@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <!-- Vibrant Neon Gradient for Hanger -->
+    <linearGradient id="neon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" /> <!-- Indigo -->
+      <stop offset="50%" style="stop-color:#8b5cf6;stop-opacity:1" /> <!-- Purple -->
+      <stop offset="100%" style="stop-color:#d946ef;stop-opacity:1" /> <!-- Fuchsia -->
+    </linearGradient>
+
+    <!-- Intense Checkmark Glow -->
+    <filter id="check-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feFlood flood-color="#d946ef" result="color" />
+      <feComposite in="color" in2="blur" operator="in" result="coloredBlur" />
+      <feMerge>
+        <feMergeNode in="coloredBlur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Hanger Glow -->
+    <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
+      <feMerge>
+        <feMergeNode in="coloredBlur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Hanger Group -->
+  <g filter="url(#neon-glow)">
+      <!-- Hanger Hook -->
+      <path d="M 50 18 C 44 18 40 22 40 27 C 40 31 43 33 46 33 L 50 33 L 50 38" 
+            stroke="url(#neon-gradient)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+
+      <!-- Shoulders -->
+      <path d="M 50 38 L 18 52 C 14 54 14 60 18 62 L 82 62 C 86 60 86 54 82 52 L 50 38 Z" 
+            stroke="url(#neon-gradient)" stroke-width="4" stroke-linejoin="round" fill="rgba(99, 102, 241, 0.05)" />
+  </g>
+
+  <!-- Neon Checkmark Group -->
+  <g filter="url(#check-glow)">
+      <!-- The Checkmark (Same gradient as hanger but thicker/brighter) -->
+      <path d="M 38 48 L 46 54 L 62 42" 
+            stroke="url(#neon-gradient)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+  
+</svg>
