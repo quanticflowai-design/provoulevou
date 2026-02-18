@@ -6,23 +6,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Mobile Menu Toggle
     const menuToggle = document.querySelector('.menu-toggle');
-    if (menuToggle) {
+    const navLinks = document.querySelector('.nav-links');
+
+    if (menuToggle && navLinks) {
         menuToggle.addEventListener('click', () => {
-            alert('Menu mobile em desenvolvimento. Navegação via scroll ativada.');
+            navLinks.classList.toggle('active');
+        });
+
+        // Close menu when clicking a link
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+            });
         });
     }
 
-    // Sticky Header Scroll Effect
-    const header = document.querySelector('.header');
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) {
-            header.style.padding = '10px 0';
-            header.style.boxShadow = '0 10px 30px rgba(0,0,0,0.05)';
-        } else {
-            header.style.padding = '0';
-            header.style.boxShadow = 'none';
-        }
-    });
+    // Sticky Header Scroll Effect (Removed as per user request for fixed top behavior without scroll change)
+    // const header = document.querySelector('.header');
+    // window.addEventListener('scroll', () => { ... });
 
     // Simple reveal animation on scroll
     const observerOptions = {
