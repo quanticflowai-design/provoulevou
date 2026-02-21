@@ -484,6 +484,15 @@
                         <div class="value" id="leadsCount">0</div>
                     </div>
                 </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;"><i
+                            class="ph-bold ph-shopping-cart"></i></div>
+                    <div class="stat-info">
+                        <h4>Adicionados ao Carrinho</h4>
+                        <div class="value" id="cartCount">0</div>
+                    </div>
+                </div>
             </div>
 
             <div class="table-container">
@@ -499,6 +508,7 @@
                         <tr>
                             <th>Data e Hora</th>
                             <th>WhatsApp do Cliente</th>
+                            <th>Adicionou ao Carrinho?</th>
                             <th>Origem (Loja)</th>
                             <th>Ação</th>
                         </tr>
@@ -623,6 +633,13 @@
                 document.getElementById('totalCount').innerText = count || (data ? data.length : 0);
                 document.getElementById('leadsCount').innerText = count || (data ? data.length : 0);
 
+                let cartAdds = 0;
+                if (data && data.length > 0) {
+                    // Check for either strict boolean true or string 'true' just in case
+                    cartAdds = data.filter(item => item.carrinho_adicionado === true || item.carrinho_adicionado === 'true').length;
+                }
+                document.getElementById('cartCount').innerText = cartAdds;
+
                 const tbody = document.getElementById('tableBody');
                 tbody.innerHTML = '';
 
@@ -656,10 +673,16 @@
                             }
                         }
 
+                        const addedToCart = item.carrinho_adicionado === true || item.carrinho_adicionado === 'true';
+                        const cartBadge = addedToCart
+                            ? '<span style="color: #10b981; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: 6px;"><i class="ph-fill ph-check-circle"></i> Sim</span>'
+                            : '<span style="color: #94a3b8; font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 5px;"><i class="ph-fill ph-minus-circle"></i> Não</span>';
+
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td>${dateStr}</td>
                             <td class="phone-display">${formattedPhone}</td>
+                            <td>${cartBadge}</td>
                             <td><span class="source-tag">${cleanOrigin}</span></td>
                             <td>
                                 <a href="https://wa.me/${phone}" target="_blank" class="btn-whats">
