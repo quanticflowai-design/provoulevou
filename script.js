@@ -150,29 +150,31 @@ document.addEventListener('DOMContentLoaded', () => {
         animate();
     }
     // Video Demo Modal Logic
-    const demoBtn = document.querySelector('a[href="#demo"]');
+    const demoTriggers = document.querySelectorAll('.demo-trigger');
     const demoModal = document.getElementById('demo-modal');
     const demoVideo = document.getElementById('demo-video');
     const modalClose = document.querySelector('.modal-close');
     const modalOverlay = document.querySelector('.modal-overlay');
 
-    if (demoBtn && demoModal && demoVideo) {
-        demoBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            demoModal.classList.add('active');
+    if (demoTriggers.length > 0 && demoModal && demoVideo) {
+        demoTriggers.forEach(trigger => {
+            trigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                demoModal.classList.add('active');
 
-            // Ensure video starts from beginning, with sound and plays
-            demoVideo.currentTime = 0;
-            demoVideo.muted = false; // Ensure sound is active
-            const playPromise = demoVideo.play();
+                // Ensure video starts from beginning, with sound and plays
+                demoVideo.currentTime = 0;
+                demoVideo.muted = false; // Ensure sound is active
+                const playPromise = demoVideo.play();
 
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.error("Video play failed:", error);
-                });
-            }
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.error("Video play failed:", error);
+                    });
+                }
 
-            document.body.style.overflow = 'hidden'; // Prevent scroll
+                document.body.style.overflow = 'hidden'; // Prevent scroll
+            });
         });
 
         const closeModal = () => {
