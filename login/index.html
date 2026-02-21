@@ -357,6 +357,14 @@
             box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
         }
 
+        /* Product cell truncation */
+        .product-cell {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         .source-tag {
             background: rgba(139, 92, 246, 0.1);
             color: #c4b5fd;
@@ -683,7 +691,7 @@
                         tr.innerHTML = `
                             <td>${dateStr}</td>
                             <td class="phone-display">${formattedPhone}</td>
-                            <td>${produto}</td>
+                            <td class="product-cell">${produto}</td>
                             <td>${cartBadge}</td>
                             <td>
                                 <a href="https://wa.me/${phone}" target="_blank" class="btn-whats">
