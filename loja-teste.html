@@ -180,6 +180,75 @@
                 z-index: 10;
                 background-color: var(--white);
             }
+
+            /* Loading Modal Styles */
+            .loading-content {
+                position: relative;
+                z-index: 1000;
+                background: var(--white);
+                padding: 50px 40px;
+                border-radius: 24px;
+                text-align: center;
+                max-width: 400px;
+                width: 90%;
+                box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+                transform: scale(0.9);
+                opacity: 0;
+                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+
+            .modal.active .loading-content {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            .loading-spinner {
+                width: 80px;
+                height: 80px;
+                margin: 0 auto 20px;
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(99, 102, 241, 0.1);
+                border-radius: 50%;
+            }
+
+            .loading-spinner::before {
+                content: '';
+                position: absolute;
+                top: -5px;
+                left: -5px;
+                right: -5px;
+                bottom: -5px;
+                border-radius: 50%;
+                border: 2px solid transparent;
+                border-top-color: var(--primary);
+                border-right-color: var(--accent);
+                animation: spin 1.5s linear infinite;
+            }
+
+            .main-spinner {
+                width: 40px;
+                height: 40px;
+                color: var(--primary);
+                animation: pulse-play 2s infinite;
+            }
+
+            .loading-content h3 {
+                font-size: 1.5rem;
+                margin-bottom: 10px;
+                color: var(--text);
+                background: linear-gradient(135deg, var(--primary), var(--accent));
+                -webkit-background-clip: text;
+                background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .loading-content p {
+                color: var(--text-muted);
+                font-size: 0.95rem;
+            }
         </style>
 
         <script>
@@ -227,8 +296,11 @@
 
                     btnMaterialize.disabled = true;
                     btnMaterialize.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Processando...';
-                    uploadStatus.textContent = 'Enviando para a IA. Isso pode levar alguns segundos...';
-                    uploadStatus.style.color = 'var(--text-muted)';
+                    uploadStatus.textContent = '';
+
+                    // Show animation popup
+                    const loadingModal = document.getElementById('loading-modal');
+                    loadingModal.classList.add('active');
                     lucide.createIcons();
 
                     try {
@@ -263,11 +335,15 @@
                                         imageUrl = responseData[keys[0]];
                                     }
                                 }
+                            } else if (contentType && contentType.indexOf("image/") !== -1 || contentType === "application/octet-stream") {
+                                // Lida com o formato de arquivo binário retornado
+                                const blob = await response.blob();
+                                imageUrl = URL.createObjectURL(blob);
                             } else {
                                 imageUrl = await response.text();
                             }
 
-                            if (imageUrl && (imageUrl.startsWith('http') || imageUrl.startsWith('data:image'))) {
+                            if (imageUrl && (imageUrl.startsWith('http') || imageUrl.startsWith('data:image') || imageUrl.startsWith('blob:'))) {
                                 const resultContainer = document.getElementById('result-container');
                                 const resultImage = document.getElementById('result-image');
 
@@ -275,14 +351,16 @@
                                 resultContainer.style.display = 'block';
 
                                 uploadStatus.textContent = 'Materialização finalizada com sucesso!';
+                                loadingModal.classList.remove('active');
 
                                 // Smooth scroll to result
                                 setTimeout(() => {
                                     resultContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                }, 100);
+                                }, 300);
                             } else {
                                 uploadStatus.textContent = 'Sucesso, mas o formato de imagem retornado não é válido.';
                                 uploadStatus.style.color = 'orange';
+                                loadingModal.classList.remove('active');
                                 console.log('Retorno do webhook não reconhecido:', responseData || imageUrl);
                             }
                         } else {
@@ -292,6 +370,7 @@
                         console.error('Error:', error);
                         uploadStatus.textContent = 'Erro ao processar as imagens. Tente novamente.';
                         uploadStatus.style.color = 'red';
+                        document.getElementById('loading-modal').classList.remove('active');
                     } finally {
                         btnMaterialize.disabled = false;
                         btnMaterialize.innerHTML = '<i data-lucide="wand-2"></i> Materializar Agora';
@@ -334,6 +413,18 @@
             <button class="modal-close" aria-label="Fechar">
                 <i data-lucide="x"></i>
             </button>
+        </div>
+    </div>
+
+    <!-- Loading Animation Modal -->
+    <div id="loading-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="loading-content">
+            <div class="loading-spinner">
+                <i data-lucide="wand-2" class="main-spinner"></i>
+            </div>
+            <h3>Materializando sua Peça...</h3>
+            <p>Nossa IA quântica está ajustando o caimento, as proporções e a iluminação. Aguarde alguns instantes!</p>
         </div>
     </div>
 
