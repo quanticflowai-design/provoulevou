@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Provou Levou | Loja de Teste</title>
+    <link rel="icon" type="image/png" href="assets/provoulevou-logo.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="style.css?v=5">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+
+    <!-- Icons (Lucide Icons via CDN) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <canvas id="neural-canvas"></canvas>
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="assets/provoulevou-logo.png" alt="Provou Levou"
+                        style="height: 65px; width: auto; max-width: 300px;">
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="scroll-link">Voltar para Home</a></li>
+                <li><a href="login/index.html" class="btn btn-primary"
+                        style="display: flex; align-items: center; gap: 8px;"><i data-lucide="layout-dashboard"
+                            style="width: 18px; height: 18px;"></i> Painel Lojista</a></li>
+            </ul>
+            <div class="menu-toggle">
+                <i data-lucide="menu"></i>
+            </div>
+        </nav>
+    </header>
+
+    <main style="padding-top: 100px;">
+        <!-- Upload Section -->
+        <section id="demo-loja" class="section demo-store">
+            <div class="container">
+                <div class="section-header">
+                    <span class="badge">Área de Teste</span>
+                    <h2>Crie sua <span class="gradient-text">Materialização</span></h2>
+                    <p>Faça o upload da foto do produto e da foto da modelo para ver a mágica da nossa IA em ação.</p>
+                </div>
+
+                <div class="upload-container">
+                    <div class="upload-card">
+                        <div class="upload-box" id="product-upload-box">
+                            <input type="file" id="product-image" accept="image/*" class="file-input" hidden>
+                            <label for="product-image" class="upload-label">
+                                <i data-lucide="shirt" class="upload-icon"></i>
+                                <h3>Foto do Produto</h3>
+                                <p>Clique ou arraste a imagem aqui</p>
+                                <img id="product-preview" class="image-preview" src="" alt="Produto"
+                                    style="display: none;">
+                            </label>
+                        </div>
+
+                        <div class="upload-box" id="model-upload-box">
+                            <input type="file" id="model-image" accept="image/*" class="file-input" hidden>
+                            <label for="model-image" class="upload-label">
+                                <i data-lucide="user" class="upload-icon"></i>
+                                <h3>Foto da Modelo</h3>
+                                <p>Clique ou arraste a imagem aqui</p>
+                                <img id="model-preview" class="image-preview" src="" alt="Modelo"
+                                    style="display: none;">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="action-container" style="text-align: center; margin-top: 40px;">
+                        <button id="btn-materialize" class="btn btn-primary"
+                            style="padding: 15px 40px; font-size: 1.1rem; width: 100%; max-width: 400px; display: inline-flex; justify-content: center; align-items: center; gap: 10px;">
+                            <i data-lucide="wand-2"></i> Materializar Agora
+                        </button>
+                        <p id="upload-status" style="margin-top: 15px; font-weight: 500;"></p>
+                    </div>
+
+                    <!-- Result Container -->
+                    <div id="result-container"
+                        style="display: none; margin-top: 50px; text-align: center; border-top: 1px solid var(--border); padding-top: 40px;">
+                        <h3 style="font-size: 1.5rem; margin-bottom: 20px; color: var(--text);">Sua <span
+                                class="gradient-text">Materialização</span>:</h3>
+                        <img id="result-image" src="" alt="Resultado da Configuração"
+                            style="max-width: 100%; max-height: 500px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <style>
+            .upload-container {
+                max-width: 800px;
+                margin: 0 auto;
+                background: var(--white);
+                padding: 40px;
+                border-radius: 24px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+            }
+
+            .upload-card {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+            }
+
+            @media (max-width: 768px) {
+                .upload-card {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .upload-box {
+                border: 2px dashed var(--border);
+                border-radius: 16px;
+                padding: 40px 20px;
+                text-align: center;
+                transition: var(--transition);
+                cursor: pointer;
+                position: relative;
+                overflow: hidden;
+                min-height: 250px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                background-color: var(--surface);
+            }
+
+            .upload-box:hover {
+                border-color: var(--primary);
+                background-color: rgba(99, 102, 241, 0.05);
+            }
+
+            .upload-label {
+                cursor: pointer;
+                display: block;
+                width: 100%;
+                height: 100%;
+                z-index: 2;
+            }
+
+            .upload-icon {
+                width: 48px;
+                height: 48px;
+                color: var(--primary);
+                margin-bottom: 15px;
+            }
+
+            .upload-box h3 {
+                font-size: 1.2rem;
+                margin-bottom: 8px;
+                color: var(--text);
+            }
+
+            .upload-box p {
+                font-size: 0.9rem;
+                color: var(--text-muted);
+            }
+
+            .image-preview {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                z-index: 10;
+                background-color: var(--white);
+            }
+        </style>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const productInput = document.getElementById('product-image');
+                const modelInput = document.getElementById('model-image');
+                const productPreview = document.getElementById('product-preview');
+                const modelPreview = document.getElementById('model-preview');
+                const btnMaterialize = document.getElementById('btn-materialize');
+                const uploadStatus = document.getElementById('upload-status');
+
+                let productBase64 = null;
+                let modelBase64 = null;
+
+                function handleFileUpload(input, previewElement, type) {
+                    input.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                                previewElement.src = event.target.result;
+                                previewElement.style.display = 'block';
+
+                                // Save base64
+                                if (type === 'product') {
+                                    productBase64 = event.target.result;
+                                } else {
+                                    modelBase64 = event.target.result;
+                                }
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                }
+
+                handleFileUpload(productInput, productPreview, 'product');
+                handleFileUpload(modelInput, modelPreview, 'model');
+
+                btnMaterialize.addEventListener('click', async () => {
+                    if (!productBase64 || !modelBase64) {
+                        uploadStatus.textContent = 'Por favor, envie as duas imagens (Produto e Modelo).';
+                        uploadStatus.style.color = 'red';
+                        return;
+                    }
+
+                    btnMaterialize.disabled = true;
+                    btnMaterialize.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Processando...';
+                    uploadStatus.textContent = 'Enviando para a IA. Isso pode levar alguns segundos...';
+                    uploadStatus.style.color = 'var(--text-muted)';
+                    lucide.createIcons();
+
+                    try {
+                        const response = await fetch('https://n8n.segredosdodrop.com/webhook/materialize-generico', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                produto: productBase64,
+                                modelo: modelBase64
+                            })
+                        });
+
+                        if (response.ok) {
+                            uploadStatus.textContent = 'Processamento concluído. Carregando resultado...';
+                            uploadStatus.style.color = 'green';
+
+                            const contentType = response.headers.get("content-type");
+                            let imageUrl = '';
+                            let responseData = null;
+
+                            if (contentType && contentType.indexOf("application/json") !== -1) {
+                                responseData = await response.json();
+                                // Try common keys for image urls
+                                imageUrl = responseData.url || responseData.image_url || responseData.imagem || responseData.image || responseData.resultado || responseData.result || '';
+
+                                // Fallback if no specific format exists but it's a string value inside an object
+                                if (!imageUrl && typeof responseData === 'object') {
+                                    const keys = Object.keys(responseData);
+                                    if (keys.length > 0 && typeof responseData[keys[0]] === 'string') {
+                                        imageUrl = responseData[keys[0]];
+                                    }
+                                }
+                            } else {
+                                imageUrl = await response.text();
+                            }
+
+                            if (imageUrl && (imageUrl.startsWith('http') || imageUrl.startsWith('data:image'))) {
+                                const resultContainer = document.getElementById('result-container');
+                                const resultImage = document.getElementById('result-image');
+
+                                resultImage.src = imageUrl;
+                                resultContainer.style.display = 'block';
+
+                                uploadStatus.textContent = 'Materialização finalizada com sucesso!';
+
+                                // Smooth scroll to result
+                                setTimeout(() => {
+                                    resultContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }, 100);
+                            } else {
+                                uploadStatus.textContent = 'Sucesso, mas o formato de imagem retornado não é válido.';
+                                uploadStatus.style.color = 'orange';
+                                console.log('Retorno do webhook não reconhecido:', responseData || imageUrl);
+                            }
+                        } else {
+                            throw new Error('Erro na comunicação com o servidor');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        uploadStatus.textContent = 'Erro ao processar as imagens. Tente novamente.';
+                        uploadStatus.style.color = 'red';
+                    } finally {
+                        btnMaterialize.disabled = false;
+                        btnMaterialize.innerHTML = '<i data-lucide="wand-2"></i> Materializar Agora';
+                        lucide.createIcons();
+                    }
+                });
+            });
+        </script>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <div class="footer-logo-container">
+                    <img src="assets/logo quantic na melhor qualidade (1).png" alt="Quantic Logo" class="footer-logo">
+                </div>
+                <p>&copy; 2026 Provou Levou - Tecnologia by Quantic. Todos os direitos reservados.</p>
+                <div class="social-links">
+                    <a href="https://www.instagram.com/quanticflowai?igsh=MTQ3anRhbndmMGJrYw==" target="_blank"><i
+                            data-lucide="instagram"></i></a>
+                    <a href="#"><i data-lucide="linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Demo Video Modal -->
+    <div id="demo-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="phone-mockup">
+            <div class="phone-frame">
+                <div class="phone-screen">
+                    <video id="demo-video" class="demo-video" preload="auto" loop playsinline>
+                        <source src="assets/VID_20260220_214442.mp4" type="video/mp4">
+                        Seu navegador não suporta vídeos.
+                    </video>
+                    <div class="phone-dynamic-island"></div>
+                </div>
+            </div>
+            <button class="modal-close" aria-label="Fechar">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
