@@ -149,4 +149,47 @@ document.addEventListener('DOMContentLoaded', () => {
         resizeCanvas();
         animate();
     }
+    // Video Demo Modal Logic
+    const demoBtn = document.querySelector('a[href="#demo"]');
+    const demoModal = document.getElementById('demo-modal');
+    const demoVideo = document.getElementById('demo-video');
+    const modalClose = document.querySelector('.modal-close');
+    const modalOverlay = document.querySelector('.modal-overlay');
+
+    if (demoBtn && demoModal && demoVideo) {
+        demoBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            demoModal.classList.add('active');
+
+            // Ensure video starts from beginning, with sound and plays
+            demoVideo.currentTime = 0;
+            demoVideo.muted = false; // Ensure sound is active
+            const playPromise = demoVideo.play();
+
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.error("Video play failed:", error);
+                });
+            }
+
+            document.body.style.overflow = 'hidden'; // Prevent scroll
+        });
+
+        const closeModal = () => {
+            demoModal.classList.remove('active');
+            demoVideo.pause();
+            demoVideo.currentTime = 0; // Reset video
+            document.body.style.overflow = ''; // Restore scroll
+        };
+
+        if (modalClose) modalClose.addEventListener('click', closeModal);
+        if (modalOverlay) modalOverlay.addEventListener('click', closeModal);
+
+        // Close on Escape key
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && demoModal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+    }
 });
