@@ -7,11 +7,11 @@ window.ENV = {
 
     // Mapeamento de e-mails Autenticados para tabelas e origens
     LOJISTAS: {
-        'atendimento@calmostore.com.br': { // Insira o e-mail real criado no Supabase Auth para a Calmo
+        'calmostore1@gmail.com': { // Insira o e-mail real criado no Supabase Auth para a Calmo
             tabela: 'geracoes_provador_calmo',
             origem: 'calmostore.com.br'
         },
-        'atendimento@budastore.com.br': { // Insira o e-mail real criado no Supabase Auth para a Buda
+        'budaimportss@gmail.com': { // Insira o e-mail real criado no Supabase Auth para a Buda
             tabela: 'geracoes_provador_buda',
             origem: 'budastore.com.br'
         }
