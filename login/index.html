@@ -508,6 +508,7 @@
                         <tr>
                             <th>Data e Hora</th>
                             <th>WhatsApp do Cliente</th>
+                            <th>Produto</th>
                             <th>Adicionou ao Carrinho?</th>
                             <th>Origem (Loja)</th>
                             <th>Ação</th>
@@ -679,9 +680,11 @@
                             : '<span style="color: #94a3b8; font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 5px;"><i class="ph-fill ph-minus-circle"></i> Não</span>';
 
                         const tr = document.createElement('tr');
+                        const produto = item.produtos || '-';
                         tr.innerHTML = `
                             <td>${dateStr}</td>
                             <td class="phone-display">${formattedPhone}</td>
+                            <td>${produto}</td>
                             <td>${cartBadge}</td>
                             <td><span class="source-tag">${cleanOrigin}</span></td>
                             <td>
