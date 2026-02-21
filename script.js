@@ -11,12 +11,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (menuToggle && navLinks) {
         menuToggle.addEventListener('click', () => {
             navLinks.classList.toggle('active');
+
+            // Toggle icon
+            const icon = menuToggle.querySelector('i');
+            if (navLinks.classList.contains('active')) {
+                icon.setAttribute('data-lucide', 'x');
+            } else {
+                icon.setAttribute('data-lucide', 'menu');
+            }
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
         });
 
         // Close menu when clicking a link
         navLinks.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', () => {
                 navLinks.classList.remove('active');
+
+                // Reset icon
+                const icon = menuToggle.querySelector('i');
+                icon.setAttribute('data-lucide', 'menu');
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
             });
         });
     }
