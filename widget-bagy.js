@@ -1,7 +1,6 @@
 (function () {
     // --- Configuração ---
     const WEBHOOK_PROVA = 'https://n8n.segredosdodrop.com/webhook/quantic-materialize';
-    const WEBHOOK_CARRINHO = 'https://n8n.segredosdodrop.com/webhook/adicionou-carrinho-calmo';
 
     // --- Estilos ---
     const styles = `
@@ -340,18 +339,6 @@
         buyBtn.onclick = function () {
             const phoneVal = phoneInput.value.replace(/\D/g, '');
             const prodName = document.title;
-
-            fetch(WEBHOOK_CARRINHO, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    whatsapp: '55' + phoneVal,
-                    phone_raw: phoneInput.value,
-                    product: prodName,
-                    event: 'adicionou_ao_carrinho',
-                    recommended_size: recommendedSize
-                })
-            }).catch(e => console.error('Erro no rastreio:', e));
 
             this.innerHTML = "ADICIONANDO...";
             this.disabled = true;
