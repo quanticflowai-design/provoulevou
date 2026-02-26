@@ -427,6 +427,34 @@
         body:not(.login-mode) #neural-canvas {
             opacity: 0;
         }
+
+        .table-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .select-filter {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .select-filter:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .select-filter option {
+            background: #1a1a24;
+            color: white;
+        }
     </style>
 </head>
 
@@ -484,14 +512,6 @@
                     </div>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);"><i
-                            class="ph-bold ph-whatsapp-logo"></i></div>
-                    <div class="stat-info">
-                        <h4>Leads Capturados</h4>
-                        <div class="value" id="leadsCount">0</div>
-                    </div>
-                </div>
 
                 <div class="stat-card">
                     <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;"><i
@@ -501,14 +521,38 @@
                         <div class="value" id="cartCount">0</div>
                     </div>
                 </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(37, 211, 102, 0.1); color: #25D366;"><i
+                            class="ph-bold ph-handbag"></i></div>
+                    <div class="stat-info">
+                        <h4>Compras via Provador</h4>
+                        <div class="value" id="purchasesCount">0</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: var(--primary);"><i
+                            class="ph-bold ph-currency-circle-dollar"></i></div>
+                    <div class="stat-info">
+                        <h4>Faturamento (via Provador)</h4>
+                        <div class="value" id="revenueCount">R$ 0,00</div>
+                    </div>
+                </div>
             </div>
 
             <div class="table-container">
                 <div class="table-header">
                     <h2><i class="ph-fill ph-list-dashes"></i> Últimos Clientes</h2>
-                    <button class="btn-refresh" onclick="loadData()">
-                        <i class="ph-bold ph-arrows-clockwise"></i> Atualizar
-                    </button>
+                    <div class="table-actions">
+                        <select id="purchaseFilter" class="select-filter" onchange="loadData()">
+                            <option value="all">Todos os Clientes</option>
+                            <option value="bought">Apenas quem Comprou</option>
+                        </select>
+                        <button class="btn-refresh" onclick="loadData()">
+                            <i class="ph-bold ph-arrows-clockwise"></i> Atualizar
+                        </button>
+                    </div>
                 </div>
 
                 <table id="dataTable">
@@ -518,6 +562,7 @@
                             <th>WhatsApp do Cliente</th>
                             <th>Produto</th>
                             <th>Adicionou ao Carrinho?</th>
+                            <th>Comprou?</th>
                             <th>Ação</th>
                         </tr>
                     </thead>
@@ -639,7 +684,6 @@
 
                 // Update stats
                 document.getElementById('totalCount').innerText = count || (data ? data.length : 0);
-                document.getElementById('leadsCount').innerText = count || (data ? data.length : 0);
 
                 let cartAdds = 0;
                 if (data && data.length > 0) {
@@ -648,17 +692,76 @@
                 }
                 document.getElementById('cartCount').innerText = cartAdds;
 
+                // Compras via provador
+                let purchasesCount = 0;
+                let totalRevenue = 0;
+                let boughtPhonesSet = new Set();
+                try {
+                    const ordersTable = activeUser.tabela.replace('geracoes_provador_', '') + '_orders';
+
+                    // Fetch all unique IDs from the fitting room table (without limit for comparison)
+                    const { data: allGenerations } = await supabaseClient
+                        .from(activeUser.tabela)
+                        .select('id')
+                        .ilike('origin', `%${activeUser.origem}%`);
+
+                    // Fetch customer phones, totals and dates from the orders table where payment_status is 'Confirmado'
+                    const { data: allOrders } = await supabaseClient
+                        .from(ordersTable)
+                        .select('customer_phone, total, created_at')
+                        .eq('payment_status', 'Confirmado')
+                        .order('created_at', { ascending: false });
+
+                    if (allGenerations && allOrders) {
+                        const generationIds = new Set(allGenerations.map(g => String(g.id)));
+
+                        // Use a Map to keep only the LATEST order per phone
+                        const latestOrdersMap = new Map();
+
+                        allOrders.forEach(order => {
+                            const phone = String(order.customer_phone);
+                            // If the phone used the fitting room and we haven't added an order for them yet
+                            // (since we ordered by created_at DESC, the first one we find is the latest)
+                            if (generationIds.has(phone) && !latestOrdersMap.has(phone)) {
+                                latestOrdersMap.set(phone, order);
+                            }
+                        });
+
+                        // Set of phones that bought (avoids double counting)
+                        boughtPhonesSet = new Set(latestOrdersMap.keys());
+                        purchasesCount = boughtPhonesSet.size;
+
+                        // Calculate total revenue using only the latest purchase of each customer
+                        const latestOrders = Array.from(latestOrdersMap.values());
+                        totalRevenue = latestOrders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
+                    }
+                } catch (purchaseErr) {
+                    console.error("Erro ao calcular compras via provador:", purchaseErr);
+                }
+                document.getElementById('purchasesCount').innerText = purchasesCount;
+                document.getElementById('revenueCount').innerText = totalRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
                 const tbody = document.getElementById('tableBody');
                 tbody.innerHTML = '';
+
+                const filterValue = document.getElementById('purchaseFilter').value;
 
                 if (data && data.length > 0) {
                     document.getElementById('emptyState').style.display = 'none';
                     document.getElementById('dataTable').style.display = 'table';
 
+                    let filteredLines = 0;
                     data.forEach(item => {
+                        const phone = String(item.id || 'Whatsapp não salvo');
+                        const hasBought = boughtPhonesSet.has(phone);
+
+                        // Aplica filtro visual (no client-side para manter performance ja que temos os sets)
+                        if (filterValue === 'bought' && !hasBought) return;
+
+                        filteredLines++;
+
                         // Trata dados flexíveis baseados nas chaves
                         const origin = item.origin || item.origem || item.url || 'Desconhecida';
-                        const phone = String(item.id || 'Whatsapp não salvo');
 
                         // Formata Data
                         let dateStr = 'Data inválida';
@@ -671,20 +774,17 @@
                         let cleanOrigin = origin;
                         try { if (origin.includes('http')) cleanOrigin = new URL(origin).hostname; } catch (e) { }
 
-                        // Formata visual do WhatsApp base
-                        let formattedPhone = phone;
-                        if (phone.length >= 12 && phone.startsWith('55')) {
-                            // formata 5511999999999 -> (11) 99999-9999
-                            const num = phone.substring(2);
-                            if (num.length === 11) {
-                                formattedPhone = `(${num.substring(0, 2)}) ${num.substring(2, 7)}-${num.substring(7)}`;
-                            }
-                        }
+                        // Telefone formato 5511... (sem formatação visual)
+                        const formattedPhone = phone;
 
                         const addedToCart = item.carrinho_adicionado === true || item.carrinho_adicionado === 'true';
                         const cartBadge = addedToCart
                             ? '<span style="color: #10b981; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: 6px;"><i class="ph-fill ph-check-circle"></i> Sim</span>'
                             : '<span style="color: #94a3b8; font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 5px;"><i class="ph-fill ph-minus-circle"></i> Não</span>';
+
+                        const buyBadge = hasBought
+                            ? '<span style="color: #25D366; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; background: rgba(37,211,102,0.1); padding: 4px 10px; border-radius: 6px;"><i class="ph-fill ph-shopping-bag"></i> Comprou</span>'
+                            : '<span style="color: #94a3b8; font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 5px;"><i class="ph-fill ph-x-circle"></i> Não</span>';
 
                         const tr = document.createElement('tr');
                         const produto = item.produtos || '-';
@@ -693,6 +793,7 @@
                             <td class="phone-display">${formattedPhone}</td>
                             <td class="product-cell">${produto}</td>
                             <td>${cartBadge}</td>
+                            <td>${buyBadge}</td>
                             <td>
                                 <a href="https://wa.me/${phone}" target="_blank" class="btn-whats">
                                     <i class="ph-bold ph-whatsapp-logo"></i> Chamar no Whats
