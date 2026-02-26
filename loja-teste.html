@@ -263,19 +263,7 @@
                 let productBase64 = null;
                 let modelBase64 = null;
 
-                function getDailyUsage() {
-                    const today = new Date().toLocaleDateString();
-                    let usage = JSON.parse(localStorage.getItem('provador_usage')) || { count: 0, date: today };
 
-                    if (usage.date !== today) {
-                        usage = { count: 0, date: today };
-                    }
-                    return usage;
-                }
-
-                function saveDailyUsage(usage) {
-                    localStorage.setItem('provador_usage', JSON.stringify(usage));
-                }
 
                 function handleFileUpload(input, previewElement, type) {
                     input.addEventListener('change', (e) => {
@@ -302,12 +290,7 @@
                 handleFileUpload(modelInput, modelPreview, 'model');
 
                 btnMaterialize.addEventListener('click', async () => {
-                    const usage = getDailyUsage();
-                    if (usage.count >= 2) {
-                        uploadStatus.textContent = 'Você atingiu o limite de 2 testes por dia. Volte amanhã!';
-                        uploadStatus.style.color = 'red';
-                        return;
-                    }
+
 
                     if (!productBase64 || !modelBase64) {
                         uploadStatus.textContent = 'Por favor, envie as duas imagens (Produto e Modelo).';
@@ -374,8 +357,7 @@
                                 uploadStatus.textContent = 'Provador finalizado com sucesso!';
                                 loadingModal.classList.remove('active');
 
-                                usage.count += 1;
-                                saveDailyUsage(usage);
+
 
                                 // Smooth scroll to result
                                 setTimeout(() => {
