@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parceria e Afiliados | Provou Levou</title>
+    <link rel="icon" type="image/jpeg" href="assets/favicon.jpg">
+    <meta name="description"
+        content="Torne-se um parceiro estratégico do Provou Levou. Ganhe comissões indicando o provador virtual nº 1 do mercado.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="style.css?v=6">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Affiliate Page Specific Styles */
+        :root {
+            --affiliate-primary: #8b5cf6;
+            --affiliate-secondary: #d946ef;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        .outfit-font {
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: -0.02em;
+        }
+
+        /* Hero Dark Section */
+        .aff-hero {
+            background-color: #0f172a;
+            color: #ffffff;
+            padding: 160px 0 100px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .aff-hero::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.25) 0%, transparent 60%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .aff-hero .container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .glass-badge {
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            color: #e9d5ff;
+            padding: 8px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+        }
+
+        .glass-badge i {
+            color: var(--affiliate-secondary);
+            width: 18px;
+            height: 18px;
+        }
+
+        .aff-hero h1 {
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            max-width: 900px;
+        }
+
+        .aff-hero p.subtitle {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            max-width: 650px;
+            margin-bottom: 50px;
+            line-height: 1.6;
+        }
+
+        /* Calculator / Earnings Box in Hero */
+        .earnings-showcase {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px 60px;
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            margin-bottom: 50px;
+        }
+
+        .earn-block {
+            text-align: left;
+        }
+
+        .earn-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .earn-value {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .earn-value.highlight {
+            background: linear-gradient(135deg, var(--affiliate-primary), var(--affiliate-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .earn-value span {
+            font-size: 1.2rem;
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            letter-spacing: 0;
+            -webkit-text-fill-color: #10b981;
+        }
+
+        .earn-divider {
+            width: 1px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Steps Section */
+        .aff-steps {
+            padding: 120px 0;
+            background: #ffffff;
+        }
+
+        .section-tag {
+            color: var(--affiliate-primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .aff-steps h2 {
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+            text-align: center;
+        }
+
+        .steps-wrapper {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .step-card {
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            padding: 50px 40px;
+            border-radius: 24px;
+            position: relative;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .step-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.08);
+            border-color: rgba(139, 92, 246, 0.3);
+            background: #fff;
+        }
+
+        .step-num {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 5rem;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            color: rgba(139, 92, 246, 0.05);
+            line-height: 1;
+            transition: 0.3s;
+        }
+
+        .step-card:hover .step-num {
+            color: rgba(139, 92, 246, 0.15);
+        }
+
+        .step-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--affiliate-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            margin-bottom: 30px;
+        }
+
+        .step-icon i {
+            width: 28px;
+            height: 28px;
+        }
+
+        .step-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #0f172a;
+        }
+
+        .step-card p {
+            color: #64748b;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* Why Us Section */
+        .aff-why {
+            background: #fafafa;
+            padding: 120px 0;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .why-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .why-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .why-content p.lead {
+            font-size: 1.15rem;
+            color: #64748b;
+            margin-bottom: 40px;
+        }
+
+        .benefit-list {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .benefit-item {
+            display: flex;
+            gap: 20px;
+        }
+
+        .benefit-icon {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            background: #fff;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.1);
+        }
+
+        .benefit-text h4 {
+            font-size: 1.25rem;
+            margin-bottom: 6px;
+            color: #0f172a;
+        }
+
+        .benefit-text p {
+            color: #64748b;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .why-image-card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 40px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .dash-mockup {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        /* Final CTA */
+        .aff-cta {
+            background: linear-gradient(135deg, #0f172a, #1e1b4b);
+            padding: 100px 0;
+            text-align: center;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .aff-cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><circle cx="2" cy="2" r="1.5" fill="rgba(255,255,255,0.05)"/></svg>');
+            z-index: 0;
+        }
+
+        .aff-cta .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .aff-cta h2 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .aff-cta p {
+            font-size: 1.25rem;
+            color: #cbd5e1;
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-glow {
+            background: linear-gradient(135deg, var(--affiliate-primary), var(--affiliate-secondary));
+            color: #fff;
+            padding: 18px 40px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.3s;
+            border: none;
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-glow:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.6);
+        }
+
+        @media (max-width: 992px) {
+            .why-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .steps-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .aff-hero h1 {
+                font-size: 3rem;
+            }
+
+            .earnings-showcase {
+                flex-direction: column;
+                gap: 20px;
+                padding: 30px;
+            }
+
+            .earn-divider {
+                width: 100%;
+                height: 1px;
+            }
+        }
+    </style>
+
+    <!-- Icons (Lucide Icons via CDN) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <header class="header"
+        style="background-color: rgba(255, 255, 255, 0.9); border-bottom: 1px solid rgba(0,0,0,0.05);">
+        <nav class="nav-container">
+            <div class="logo">
+                <a href="index.html" style="display: flex; align-items: center;">
+                    <img src="assets/provoulevou-logo.png" alt="Provou Levou"
+                        style="height: 65px; width: auto; max-width: 300px;">
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#como-funciona">Como Funciona</a></li>
+                <li><a href="index.html#beneficios">Benefícios</a></li>
+                <li><a href="index.html#planos">Planos</a></li>
+                <li><a href="afiliados.html" style="font-weight: 600; color: var(--primary-saas);">Afiliados</a></li>
+                <li><a href="login/index.html" class="btn btn-primary"
+                        style="display: flex; align-items: center; gap: 8px;"><i data-lucide="layout-dashboard"
+                            style="width: 18px; height: 18px;"></i> Painel Lojista</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="aff-hero">
+            <div class="container">
+                <div class="glass-badge">
+                    <i data-lucide="gem"></i> Programa de Parceiros Premium
+                </div>
+
+                <h1>Monetize sua rede vendendo a <span class="gradient-text">Inovação do E-commerce</span>.</h1>
+
+                <p class="subtitle">O Provou Levou é o provador virtual nº1 do Brasil. Ajude lojistas a dobrarem suas
+                    conversões e ganhe comissões recorrentes e agressivas a cada assinatura.</p>
+
+                <div class="earnings-showcase">
+                    <div class="earn-block">
+                        <span class="earn-label">Comissão por Venda</span>
+                        <div class="earn-value highlight"><span
+                                style="font-size: 1.5rem; background: transparent; padding: 0; -webkit-text-fill-color: var(--affiliate-primary); color: var(--affiliate-primary);">Até</span>
+                            R$ 239</div>
+                    </div>
+
+                    <div class="earn-divider"></div>
+
+                    <div class="earn-block">
+                        <span class="earn-label">Potencial de Conversão</span>
+                        <div class="earn-value">80% <span>Acima da média</span></div>
+                    </div>
+                </div>
+
+                <a href="https://wa.me/5511945328487?text=Quero me tornar um parceiro do Provou Levou" target="_blank"
+                    class="btn-glow">
+                    Falar com Especialista <i data-lucide="arrow-right"></i>
+                </a>
+            </div>
+        </section>
+
+        <!-- Como Funciona / Steps Section -->
+        <section class="aff-steps">
+            <div class="container">
+                <div style="text-align: center;">
+                    <span class="section-tag">Jornada do Parceiro</span>
+                    <h2>Como funciona o programa?</h2>
+                </div>
+
+                <div class="steps-wrapper">
+                    <!-- Step 1 -->
+                    <div class="step-card">
+                        <div class="step-num">1</div>
+                        <div class="step-icon">
+                            <i data-lucide="user-plus"></i>
+                        </div>
+                        <h3>Aprovação Rápida</h3>
+                        <p>Entre em contato com nosso time, receba as diretrizes do programa e seu link exclusivo de
+                            indicação em poucos minutos. Sem burocracia.</p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="step-card">
+                        <div class="step-num">2</div>
+                        <div class="step-icon">
+                            <i data-lucide="megaphone"></i>
+                        </div>
+                        <h3>Indique Lojistas</h3>
+                        <p>Utilize nossos materiais de marketing de alta conversão para apresentar a solução para sua
+                            base de clientes, lojistas ou audiência.</p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="step-card">
+                        <div class="step-num">3</div>
+                        <div class="step-icon">
+                            <i data-lucide="wallet"></i>
+                        </div>
+                        <h3>Receba sua Comissão</h3>
+                        <p>A cada lojista que assinar um de nossos planos elegíveis através do seu link, você recebe sua
+                            comissão direto na conta, de forma transparente.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Why Sell This / Benefits -->
+        <section class="aff-why">
+            <div class="container">
+                <div class="why-grid">
+                    <div class="why-content">
+                        <span class="section-tag">Por que vender?</span>
+                        <h2>O produto mais fácil de ser vendido hoje no E-commerce Brasileiro.</h2>
+                        <p class="lead">O mercado de moda sofre diariamente com um problema clássico: "Será que vai
+                            servir?". Nós resolvemos isso usando Inteligência Artificial. A demanda é infinita.</p>
+
+                        <div class="benefit-list">
+                            <div class="benefit-item">
+                                <div class="benefit-icon">
+                                    <i data-lucide="check-circle-2"></i>
+                                </div>
+                                <div class="benefit-text">
+                                    <h4>Quebra de Objeção Imediata</h4>
+                                    <p>Nenhuma loja de moda quer lidar com devoluções. Nossa tecnologia ataca direto na
+                                        dor financeira do lojista.</p>
+                                </div>
+                            </div>
+
+                            <div class="benefit-item">
+                                <div class="benefit-icon">
+                                    <i data-lucide="trending-up"></i>
+                                </div>
+                                <div class="benefit-text">
+                                    <h4>Página de Alta Conversão</h4>
+                                    <p>Nosso funil é otimizado à exaustão. Se você trouxer o lojista qualificado, nós o
+                                        convertemos para você.</p>
+                                </div>
+                            </div>
+
+                            <div class="benefit-item">
+                                <div class="benefit-icon">
+                                    <i data-lucide="headphones"></i>
+                                </div>
+                                <div class="benefit-text">
+                                    <h4>Suporte Dedicado ao Afiliado</h4>
+                                    <p>Temos um gerente de parcerias focado 100% no seu sucesso. Textos, vídeos
+                                        institucionais, tudo pronto para uso.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="why-image-card">
+                        <!-- We use a placeholder logic or an icon representing the dashboard -->
+                        <div
+                            style="background: #f8fafc; border-radius: 16px; padding: 40px; border: 1px solid #e2e8f0; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                            <div
+                                style="width: 120px; height: 120px; background: rgba(139, 92, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 30px;">
+                                <i data-lucide="bar-chart-3"
+                                    style="width: 60px; height: 60px; color: var(--affiliate-primary);"></i>
+                            </div>
+                            <h3 style="font-size: 1.5rem; margin-bottom: 10px; color: #0f172a;">Painel de Acompanhamento
+                            </h3>
+                            <p style="color: #64748b; font-size: 1rem; line-height: 1.5;">Acesso em tempo real aos seus
+                                cliques, leads gerados e comissões faturadas.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final CTA -->
+        <section class="aff-cta">
+            <div class="container">
+                <h2>Não deixe dinheiro na mesa</h2>
+                <p>Junte-se ao seleto grupo de parceiros que já faturam alto indicando o Provou Levou. As vagas para
+                    parceiros vips são limitadas.</p>
+                <a href="https://wa.me/5511945328487?text=Quero ser parceiro Provou Levou" target="_blank"
+                    class="btn-glow">
+                    Garantir Minha Vaga <i data-lucide="arrow-right"></i>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer" style="border-top: 1px solid #e2e8f0; background: #fff;">
+        <div class="container">
+            <div class="footer-bottom" style="padding: 40px 0;">
+                <div class="footer-logo-container">
+                    <img src="assets/provoulevou-logo.png" alt="Provou Levou" style="height: 40px;">
+                </div>
+                <p style="color: #64748b;">&copy; 2026 Provou Levou - Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

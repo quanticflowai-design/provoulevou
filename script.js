@@ -39,9 +39,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Sticky Header Scroll Effect (Removed as per user request for fixed top behavior without scroll change)
-    // const header = document.querySelector('.header');
-    // window.addEventListener('scroll', () => { ... });
+    // Header Scroll Effect
+    const header = document.querySelector('.header');
+    if (header) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+    }
 
     // Simple reveal animation on scroll
     const observerOptions = {
@@ -212,4 +220,44 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // FAQ Accordion Logic
+    const faqItems = document.querySelectorAll('.faq-item');
+
+    faqItems.forEach(item => {
+        const question = item.querySelector('h4');
+        const answer = item.querySelector('p');
+
+        if (question && answer) {
+            // Initially hide answer via CSS if needed, but doing it in JS ensures it works if JS is disabled
+            // Alternatively, manage via CSS class. Let's do a simple inline style toggle for now
+            answer.style.display = 'none';
+            question.style.cursor = 'pointer';
+
+            // Add a plus/minus icon indicator conceptually by changing rotation or replacing icon, 
+            // but just click toggle is fine for basic interactivity
+
+            question.addEventListener('click', () => {
+                // Close others
+                faqItems.forEach(otherItem => {
+                    if (otherItem !== item) {
+                        const otherAnswer = otherItem.querySelector('p');
+                        if (otherAnswer) otherAnswer.style.display = 'none';
+                        otherItem.classList.remove('active');
+                    }
+                });
+
+                // Toggle current
+                const isHidden = answer.style.display === 'none';
+                answer.style.display = isHidden ? 'block' : 'none';
+
+                if (isHidden) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+    });
+
 });
