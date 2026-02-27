@@ -237,13 +237,13 @@ ul {
     gap: 40px;
 }
 
-.nav-links li a {
+.nav-links li a:not(.btn) {
     position: relative;
     padding-bottom: 4px;
     font-weight: 500;
 }
 
-.nav-links li a::after {
+.nav-links li a:not(.btn)::after {
     content: '';
     position: absolute;
     bottom: 0;
@@ -255,11 +255,11 @@ ul {
     border-radius: 2px;
 }
 
-.nav-links li a:hover {
+.nav-links li a:not(.btn):hover {
     color: var(--primary);
 }
 
-.nav-links li a:hover::after {
+.nav-links li a:not(.btn):hover::after {
     width: 100%;
 }
 
