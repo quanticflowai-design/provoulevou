@@ -20,6 +20,189 @@
         html {
             scroll-behavior: smooth;
         }
+
+        /* Pricing & FAQ Styles */
+        :root {
+            --primary-saas: #8b5cf6;
+            --secondary-saas: #d946ef;
+        }
+
+        .pricing-section {
+            padding: 100px 0;
+            background: #fff;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .pricing-card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 40px 30px;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+        }
+
+        .pricing-card.featured {
+            border: 2px solid var(--primary-saas);
+            transform: scale(1.05);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.1);
+        }
+
+        .featured-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--primary-saas), var(--secondary-saas));
+            color: #fff;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .plan-name {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #0f172a;
+        }
+
+        .plan-price {
+            font-size: 36px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 5px;
+        }
+
+        .plan-price span {
+            font-size: 16px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .plan-limit {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-saas);
+            margin-bottom: 30px;
+        }
+
+        .plan-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 30px 0;
+            flex-grow: 1;
+        }
+
+        .plan-features li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .plan-features li i {
+            color: #10b981;
+            width: 18px;
+            height: 18px;
+        }
+
+        .plan-features li.disabled {
+            color: #94a3b8;
+        }
+
+        .plan-features li.disabled i {
+            color: #cbd5e1;
+        }
+
+        .pricing-card .btn {
+            width: 100%;
+            text-align: center;
+        }
+
+        .faq-section {
+            padding: 80px 0 120px;
+            background: #fafafa;
+        }
+
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        .faq-item h4 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: start;
+            gap: 10px;
+        }
+
+        .faq-item h4 i {
+            color: var(--primary-saas);
+            width: 20px;
+            height: 20px;
+            margin-top: 3px;
+        }
+
+        .faq-item p {
+            color: #64748b;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .section-highlights {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 30px 0 10px;
+        }
+
+        .highlight-tag {
+            background: #f5f3ff;
+            color: var(--primary-saas);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: 1px solid #ede9fe;
+        }
+
+        @media (max-width: 768px) {
+            .pricing-card.featured {
+                transform: scale(1);
+                margin: 20px 0;
+            }
+
+            .faq-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 
     <!-- Icons (Lucide Icons via CDN) -->
@@ -37,6 +220,7 @@
             <ul class="nav-links">
                 <li><a href="#como-funciona" class="scroll-link">Como Funciona</a></li>
                 <li><a href="#beneficios" class="scroll-link">Benefícios</a></li>
+                <li><a href="#planos" class="scroll-link">Planos</a></li>
                 <li><a href="login/index.html" class="btn btn-primary"
                         style="display: flex; align-items: center; gap: 8px;"><i data-lucide="layout-dashboard"
                             style="width: 18px; height: 18px;"></i> Painel Lojista</a></li>
@@ -289,6 +473,146 @@
                     </div>
                 </div>
             </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section id="planos" class="section pricing-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="badge">Planos e Preços</span>
+                    <h2>Escolha o plano ideal para <span class="gradient-text">escalar</span> sua loja.</h2>
+                    <p>Mais conversão, menos trocas e leads qualificados para o seu negócio.</p>
+                </div>
+
+
+
+                <div class="pricing-grid">
+                    <!-- Essencial -->
+                    <div class="pricing-card">
+                        <h3 class="plan-name">Essencial</h3>
+                        <div class="plan-price">R$ 97 <span>/mês</span></div>
+                        <div class="plan-limit">50 fotos / mês</div>
+                        <ul class="plan-features">
+                            <li><i data-lucide="check-circle-2"></i> Provador Virtual com IA</li>
+                            <li><i data-lucide="check-circle-2"></i> Painel do Lojista (ROI)</li>
+                            <li><i data-lucide="check-circle-2"></i> Captura de Leads</li>
+                            <li class="disabled"><i data-lucide="minus-circle"></i> Recuperação WhatsApp</li>
+                        </ul>
+                        <a href="https://wa.me/5511945328487?text=Olá, quero o plano Essencial."
+                            class="btn btn-primary">Começar agora</a>
+                        <span class="trust-micro"
+                            style="display:block; text-align:center; font-size:11px; color:#94a3b8; margin-top:10px;">Cancele
+                            quando quiser</span>
+                    </div>
+
+                    <!-- Crescimento -->
+                    <div class="pricing-card">
+                        <h3 class="plan-name">Crescimento</h3>
+                        <div class="plan-price">R$ 197 <span>/mês</span></div>
+                        <div class="plan-limit">100 fotos / mês</div>
+                        <ul class="plan-features">
+                            <li><i data-lucide="check-circle-2"></i> Provador Virtual com IA</li>
+                            <li><i data-lucide="check-circle-2"></i> Painel do Lojista (ROI)</li>
+                            <li><i data-lucide="check-circle-2"></i> Captura de Leads</li>
+                            <li class="disabled"><i data-lucide="minus-circle"></i> Recuperação WhatsApp</li>
+                        </ul>
+                        <a href="https://wa.me/5511945328487?text=Olá, quero o plano Crescimento."
+                            class="btn btn-primary">Começar agora</a>
+                        <span class="trust-micro"
+                            style="display:block; text-align:center; font-size:11px; color:#94a3b8; margin-top:10px;">Suporte
+                            prioritário</span>
+                    </div>
+
+                    <!-- Performance -->
+                    <div class="pricing-card featured">
+                        <div class="featured-badge">Mais Vendido</div>
+                        <h3 class="plan-name">Performance</h3>
+                        <div class="plan-price">R$ 397 <span>/mês</span></div>
+                        <div class="plan-limit">500 fotos / mês</div>
+                        <ul class="plan-features">
+                            <li><i data-lucide="check-circle-2"></i> Provador Virtual com IA</li>
+                            <li><i data-lucide="check-circle-2"></i> Painel do Lojista completo</li>
+                            <li><i data-lucide="check-circle-2"></i> Captura de Leads Premium</li>
+                            <li><i data-lucide="check-circle-2"></i> <b>IA Recuperadora WhatsApp</b></li>
+                        </ul>
+                        <a href="https://wa.me/5511945328487?text=Olá, quero o plano Performance."
+                            class="btn btn-primary">Começar agora</a>
+                        <span class="trust-micro"
+                            style="display:block; text-align:center; font-size:11px; color:#8b5cf6; margin-top:10px; font-weight:600;">Ideal
+                            para escalar vendas</span>
+                    </div>
+
+                    <!-- Escala -->
+                    <div class="pricing-card">
+                        <h3 class="plan-name">Escala</h3>
+                        <div class="plan-price">R$ 797 <span>/mês</span></div>
+                        <div class="plan-limit">1200 fotos / mês</div>
+                        <ul class="plan-features">
+                            <li><i data-lucide="check-circle-2"></i> Provador Virtual com IA</li>
+                            <li><i data-lucide="check-circle-2"></i> Fotos ilimitadas p/ produto</li>
+                            <li><i data-lucide="check-circle-2"></i> Painel do Lojista VIP</li>
+                            <li><i data-lucide="check-circle-2"></i> IA Recuperadora WhatsApp</li>
+                        </ul>
+                        <a href="https://wa.me/5511945328487?text=Olá, quero o plano Escala."
+                            class="btn btn-primary">Começar agora</a>
+                        <span class="trust-micro"
+                            style="display:block; text-align:center; font-size:11px; color:#94a3b8; margin-top:10px;">Máxima
+                            performance IA</span>
+                    </div>
+                </div>
+
+                <div style="text-align:center; margin-top:50px;">
+                    <a href="loja-teste.html" class="btn btn-outline"
+                        style="margin-right:15px; display: inline-flex; align-items: center; gap: 8px;">Ver demonstração
+                        <i data-lucide="play-circle" style="width: 18px; height: 18px;"></i></a>
+                    <a href="https://wa.me/5511945328487" target="_blank" class="btn btn-outline"
+                        style="display: inline-flex; align-items: center; gap: 8px;">Falar com um especialista <i
+                            data-lucide="message-circle" style="width: 18px; height: 18px;"></i></a>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="section faq-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="badge">FAQ</span>
+                    <h2>Perguntas Frequentes</h2>
+                    <p>Tire suas dúvidas e comece a vender mais hoje mesmo.</p>
+                </div>
+
+                <div class="faq-grid">
+                    <div class="faq-item">
+                        <h4><i data-lucide="help-circle"></i> O que é uma “foto” no plano?</h4>
+                        <p>Uma foto representa uma geração de look completa no provador virtual. O crédito é consumido
+                            cada vez que o cliente solicita a visualização da roupa em seu corpo.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h4><i data-lucide="help-circle"></i> Posso usar em mais de uma loja?</h4>
+                        <p>Cada assinatura é vinculada a um domínio (URL) específico. Para múltiplas lojas, oferecemos
+                            condições especiais de volume na contratação.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h4><i data-lucide="help-circle"></i> Como funciona o Painel do Lojista?</h4>
+                        <p>Você terá acesso a dados reais de conversão: quanto o provador gerou em vendas, quantos leads
+                            foram capturados e o ROI direto da ferramenta.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h4><i data-lucide="help-circle"></i> O que a IA Recuperadora faz no WhatsApp?</h4>
+                        <p>Ela identifica clientes que usaram o provador mas não finalizaram a compra, enviando uma
+                            mensagem automática personalizada para recuperar a venda.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h4><i data-lucide="help-circle"></i> Preciso de integração complexa?</h4>
+                        <p>Não! Nossa integração é via script simples ou app direto, compatível com Shopify, Nuvemshop,
+                            Tray, Bagy e WooCommerce em poucos minutos.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h4><i data-lucide="help-circle"></i> O que acontece se eu ultrapassar o limite?</h4>
+                        <p>O provador continuará funcionando, e informaremos você sobre a necessidade de upgrade para um
+                            plano que comporte seu novo volume de tráfego.</p>
+                    </div>
+                </div>
         </section>
 
         <!-- CTA Section -->
