@@ -839,7 +839,7 @@
                 const fStatus = activeUser.campo_status_pedido || 'payment_status';
                 const fStatusValues = activeUser.valores_status_pago || ['paid', 'Confirmado'];
                 const fNome = activeUser.campo_nome_pedido || null;
-                const selectFields = [fPhone, fTotal, 'created_at', fNome].filter(Boolean).join(', ');
+                const selectFields = [fPhone, fTotal, 'created_at', 'data_pedido', 'produto_provado', fNome].filter(Boolean).join(', ');
                 try {
                     const ordersTable = activeUser.tabela_pedidos;
 
