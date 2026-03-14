@@ -965,16 +965,19 @@
                         const rawName = nameMap.get(phone) || item.nome || item.cliente_nome || item.nome_cliente || item.customer_name || '';
                         const firstName = rawName ? rawName.trim().split(' ')[0] : '—';
 
+                        // Sanitiza dados do banco antes de inserir no DOM (previne XSS)
+                        const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
                         const tr = document.createElement('tr');
                         const produto = item.produtos || '-';
                         tr.innerHTML = `
-                            <td>${dateStr}</td>
-                            <td style="font-weight:600;">${firstName}</td>
-                            <td class="phone-display">${formattedPhone}</td>
-                            <td class="product-cell">${produto}</td>
+                            <td>${esc(dateStr)}</td>
+                            <td style="font-weight:600;">${esc(firstName)}</td>
+                            <td class="phone-display">${esc(formattedPhone)}</td>
+                            <td class="product-cell">${esc(produto)}</td>
                             <td>${buyBadge}</td>
                             <td>
-                                <a href="https://wa.me/55${phone}" target="_blank" class="btn-whats">
+                                <a href="https://wa.me/55${esc(phone)}" target="_blank" class="btn-whats">
                                     <i class="ph-bold ph-whatsapp-logo"></i> Chamar no Whats
                                 </a>
                             </td>
