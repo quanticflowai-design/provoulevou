@@ -744,14 +744,12 @@
 
         async function fetchLojista() {
             const { data: { user } } = await supabaseClient.auth.getUser();
-            console.log('fetchLojista user:', user?.email);
             if (!user) return null;
             const { data, error } = await supabaseClient
                 .from('lojistas')
                 .select('*')
                 .eq('email', user.email)
                 .single();
-            console.log('fetchLojista result:', { data, error });
             if (error || !data) return null;
             return data;
         }
