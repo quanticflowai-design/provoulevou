@@ -196,22 +196,29 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
         }
 
         .stat-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 20px;
-            padding: 30px;
+            padding: 24px 26px;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 18px;
             backdrop-filter: blur(10px);
             position: relative;
             overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+            border-color: rgba(255, 255, 255, 0.13);
         }
 
         .stat-card::before {
@@ -219,35 +226,68 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 4px;
+            width: 3px;
             height: 100%;
             background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            opacity: 0.7;
+        }
+
+        .stat-card-conversion {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(217, 70, 239, 0.06));
+            border-color: rgba(139, 92, 246, 0.22);
+        }
+
+        .stat-card-conversion:hover {
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.15);
+        }
+
+        .stat-card-conversion::before {
+            opacity: 1;
+        }
+
+        .stat-card-conversion .value {
+            background: linear-gradient(135deg, #8b5cf6, #d946ef);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 15px;
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
             background: rgba(139, 92, 246, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
+            font-size: 24px;
             color: var(--primary);
+            flex-shrink: 0;
         }
 
         .stat-info h4 {
             margin: 0;
-            font-size: 14px;
+            font-size: 12px;
             color: var(--text-muted);
             font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
 
         .stat-info .value {
-            font-size: 36px;
+            font-size: 32px;
             font-weight: 800;
-            margin: 5px 0 0 0;
+            margin: 4px 0 0 0;
             letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .stat-sub {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+            font-weight: 400;
         }
 
         /* Table area */
@@ -301,28 +341,33 @@
         }
 
         th {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 15px 30px;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 12px 28px;
             text-align: left;
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.2px;
             font-weight: 600;
+            border-bottom: 1px solid var(--border);
         }
 
         td {
-            padding: 20px 30px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            font-size: 15px;
+            padding: 16px 28px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.035);
+            font-size: 14px;
         }
 
         tr:last-child td {
             border-bottom: none;
         }
 
-        tr:hover td {
-            background: rgba(255, 255, 255, 0.02);
+        tbody tr {
+            transition: background 0.15s ease;
+        }
+
+        tbody tr:hover td {
+            background: rgba(139, 92, 246, 0.04);
         }
 
         .badge {
@@ -488,6 +533,45 @@
                 padding: 15px;
             }
         }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-page {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            transition: 0.3s;
+        }
+
+        .btn-page:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-page:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
     </style>
 </head>
 
@@ -547,15 +631,6 @@
 
 
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;"><i
-                            class="ph-bold ph-shopping-cart"></i></div>
-                    <div class="stat-info">
-                        <h4>Adicionados ao Carrinho</h4>
-                        <div class="value" id="cartCount">0</div>
-                    </div>
-                </div>
-
-                <div class="stat-card">
                     <div class="stat-icon" style="background: rgba(37, 211, 102, 0.1); color: #25D366;"><i
                             class="ph-bold ph-handbag"></i></div>
                     <div class="stat-info">
@@ -570,6 +645,16 @@
                     <div class="stat-info">
                         <h4>Faturamento (via Provador)</h4>
                         <div class="value" id="revenueCount">R$ 0,00</div>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-conversion">
+                    <div class="stat-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;"><i
+                            class="ph-bold ph-chart-line-up"></i></div>
+                    <div class="stat-info">
+                        <h4>Taxa de Conversão</h4>
+                        <div class="value" id="conversionRate">0%</div>
+                        <div class="stat-sub">provas → compras</div>
                     </div>
                 </div>
             </div>
@@ -592,9 +677,9 @@
                     <thead>
                         <tr>
                             <th>Data e Hora</th>
-                            <th>WhatsApp do Cliente</th>
+                            <th>Cliente</th>
+                            <th>WhatsApp</th>
                             <th>Produto</th>
-                            <th>Adicionou ao Carrinho?</th>
                             <th>Comprou?</th>
                             <th>Ação</th>
                         </tr>
@@ -603,6 +688,16 @@
                         <!-- Linhas injetadas via JS -->
                     </tbody>
                 </table>
+
+                <div class="pagination" id="paginationControls" style="display: none;">
+                    <button class="btn-page" id="prevPage" onclick="changePage(-1)">
+                        <i class="ph-bold ph-caret-left"></i> Anterior
+                    </button>
+                    <span class="page-info" id="pageInfo">Página 1</span>
+                    <button class="btn-page" id="nextPage" onclick="changePage(1)">
+                        Próximo <i class="ph-bold ph-caret-right"></i>
+                    </button>
+                </div>
 
                 <div class="empty-state" id="emptyState">
                     <i class="ph-light ph-ghost"></i>
@@ -702,13 +797,17 @@
                 document.getElementById('mainLoader').style.display = 'flex';
                 document.getElementById('dashboardSection').style.display = 'none';
 
+                const itemsPerPage = 10;
+                const from = (currentPage - 1) * itemsPerPage;
+                const to = from + itemsPerPage - 1;
+
                 // Fetch data from supabase using specific table and filtering origin
                 const { data, error, count } = await supabaseClient
                     .from(activeUser.tabela)
                     .select('*', { count: 'exact' })
                     .ilike('origin', `%${activeUser.origem}%`)
                     .order('created_at', { ascending: false })
-                    .limit(50);
+                    .range(from, to);
 
                 if (error) throw error;
 
@@ -718,55 +817,84 @@
                 // Update stats
                 document.getElementById('totalCount').innerText = count || (data ? data.length : 0);
 
-                let cartAdds = 0;
-                if (data && data.length > 0) {
-                    // Check for either strict boolean true or string 'true' just in case
-                    cartAdds = data.filter(item => item.carrinho_adicionado === true || item.carrinho_adicionado === 'true').length;
-                }
-                document.getElementById('cartCount').innerText = cartAdds;
-
                 // Compras via provador
                 let purchasesCount = 0;
                 let totalRevenue = 0;
                 let boughtPhonesSet = new Set();
+                let allGenerationsData = null;
+                let ordersMap = new Map();
+                let nameMap = new Map();
                 try {
-                    const ordersTable = activeUser.tabela.replace('geracoes_provador_', '') + '_orders';
+                    const ordersTable = activeUser.tabela_pedidos;
 
-                    // Fetch all unique IDs from the fitting room table (without limit for comparison)
+                    // Fetch all fitting room records (all fields, for crossref + filter "bought")
                     const { data: allGenerations } = await supabaseClient
                         .from(activeUser.tabela)
-                        .select('id')
-                        .ilike('origin', `%${activeUser.origem}%`);
+                        .select('*')
+                        .ilike('origin', `%${activeUser.origem}%`)
+                        .order('created_at', { ascending: false });
+                    allGenerationsData = allGenerations;
 
-                    // Fetch customer phones, totals and dates from the orders table where payment_status is 'Confirmado'
+                    // Mapeamento de campos (suporte a tabelas com nomenclatura diferente)
+                    const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
+                    const fTotal = activeUser.campo_total_pedido || 'total';
+                    const fStatus = activeUser.campo_status_pedido || 'payment_status';
+                    const fStatusValues = activeUser.valores_status_pago || ['paid', 'Confirmado'];
+                    const fNome = activeUser.campo_nome_pedido || null;
+                    const selectFields = [fPhone, fTotal, 'created_at', fNome].filter(Boolean).join(', ');
+
+                    // Fetch customer phones, totals and dates from the orders table where payment_status is 'paid' or 'Confirmado'
                     const { data: allOrders } = await supabaseClient
                         .from(ordersTable)
-                        .select('customer_phone, total, created_at')
-                        .eq('payment_status', 'Confirmado')
+                        .select(selectFields)
+                        .in(fStatus, fStatusValues)
                         .order('created_at', { ascending: false });
 
+                    // Busca nomes de todos os registros da tabela de pedidos (sem filtro de status)
+                    // para montar mapa telefone → nome, incluindo não-compradores com histórico na loja
+                    if (fNome) {
+                        const { data: allNomes } = await supabaseClient
+                            .from(ordersTable)
+                            .select(`${fPhone}, ${fNome}`);
+                        if (allNomes) {
+                            const normalizeTmp = p => {
+                                let n = String(p || '').replace(/\D/g, '');
+                                if (n.startsWith('55') && n.length > 11) n = n.slice(2);
+                                if (n.startsWith('0')) n = n.slice(1);
+                                return n;
+                            };
+                            allNomes.forEach(r => {
+                                const ph = normalizeTmp(r[fPhone]);
+                                if (ph && r[fNome] && !nameMap.has(ph)) nameMap.set(ph, r[fNome]);
+                            });
+                        }
+                    }
+
                     if (allGenerations && allOrders) {
-                        const generationIds = new Set(allGenerations.map(g => String(g.id)));
+                        // Regra de cruzamento: remove '55' do início se presente antes de comparar
+                        const normalize = p => {
+                            let n = String(p || '').replace(/\D/g, '');
+                            if (n.startsWith('55') && n.length > 11) n = n.slice(2);
+                            if (n.startsWith('0')) n = n.slice(1);
+                            return n;
+                        };
+                        const generationPhones = new Set(allGenerations.map(g => normalize(g.telefone_cliente)));
 
                         // Use a Map to keep only the LATEST order per phone
-                        const latestOrdersMap = new Map();
-
                         allOrders.forEach(order => {
-                            const phone = String(order.customer_phone);
-                            // If the phone used the fitting room and we haven't added an order for them yet
-                            // (since we ordered by created_at DESC, the first one we find is the latest)
-                            if (generationIds.has(phone) && !latestOrdersMap.has(phone)) {
-                                latestOrdersMap.set(phone, order);
+                            const phone = normalize(order[fPhone]);
+                            if (generationPhones.has(phone) && !ordersMap.has(phone)) {
+                                ordersMap.set(phone, order);
                             }
                         });
 
-                        // Set of phones that bought (avoids double counting)
-                        boughtPhonesSet = new Set(latestOrdersMap.keys());
+                        // Set of normalized phones that bought (avoids double counting)
+                        boughtPhonesSet = new Set(ordersMap.keys());
                         purchasesCount = boughtPhonesSet.size;
 
                         // Calculate total revenue using only the latest purchase of each customer
-                        const latestOrders = Array.from(latestOrdersMap.values());
-                        totalRevenue = latestOrders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
+                        const latestOrders = Array.from(ordersMap.values());
+                        totalRevenue = latestOrders.reduce((sum, order) => sum + (parseFloat(order[fTotal]) || 0), 0);
                     }
                 } catch (purchaseErr) {
                     console.error("Erro ao calcular compras via provador:", purchaseErr);
@@ -774,22 +902,42 @@
                 document.getElementById('purchasesCount').innerText = purchasesCount;
                 document.getElementById('revenueCount').innerText = totalRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+                const totalForConv = count || (data ? data.length : 0);
+                const convRate = totalForConv > 0 ? ((purchasesCount / totalForConv) * 100).toFixed(1) : '0.0';
+                document.getElementById('conversionRate').innerText = convRate + '%';
+
                 const tbody = document.getElementById('tableBody');
                 tbody.innerHTML = '';
 
                 const filterValue = document.getElementById('purchaseFilter').value;
 
-                if (data && data.length > 0) {
+                const normalize = p => {
+                    let n = String(p || '').replace(/\D/g, '');
+                    if (n.startsWith('55') && n.length > 11) n = n.slice(2);
+                    if (n.startsWith('0')) n = n.slice(1);
+                    return n;
+                };
+
+                // Quando filtro "bought": usa todos os registros do provador e filtra pelos compradores
+                // Quando filtro "all": usa dados paginados normalmente
+                const tableSource = filterValue === 'bought'
+                    ? (allGenerationsData || []).filter(item => boughtPhonesSet.has(normalize(item.telefone_cliente)))
+                    : (data || []);
+
+                // Oculta paginação no modo "bought" pois mostra todos de uma vez
+                if (filterValue === 'bought') {
+                    document.getElementById('paginationControls').style.display = 'none';
+                }
+
+                if (tableSource.length > 0) {
                     document.getElementById('emptyState').style.display = 'none';
                     document.getElementById('dataTable').style.display = 'table';
 
                     let filteredLines = 0;
-                    data.forEach(item => {
-                        const phone = String(item.id || 'Whatsapp não salvo');
+                    tableSource.forEach(item => {
+                        const phone = normalize(item.telefone_cliente);
+                        const phoneDisplay = String(item.telefone_cliente || 'WhatsApp não salvo');
                         const hasBought = boughtPhonesSet.has(phone);
-
-                        // Aplica filtro visual (no client-side para manter performance ja que temos os sets)
-                        if (filterValue === 'bought' && !hasBought) return;
 
                         filteredLines++;
 
@@ -808,36 +956,44 @@
                         try { if (origin.includes('http')) cleanOrigin = new URL(origin).hostname; } catch (e) { }
 
                         // Telefone formato 5511... (sem formatação visual)
-                        const formattedPhone = phone;
-
-                        const addedToCart = item.carrinho_adicionado === true || item.carrinho_adicionado === 'true';
-                        const cartBadge = addedToCart
-                            ? '<span style="color: #10b981; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: 6px;"><i class="ph-fill ph-check-circle"></i> Sim</span>'
-                            : '<span style="color: #94a3b8; font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 5px;"><i class="ph-fill ph-minus-circle"></i> Não</span>';
+                        const formattedPhone = phoneDisplay;
 
                         const buyBadge = hasBought
                             ? '<span style="color: #25D366; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; background: rgba(37,211,102,0.1); padding: 4px 10px; border-radius: 6px;"><i class="ph-fill ph-shopping-bag"></i> Comprou</span>'
                             : '<span style="color: #94a3b8; font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 5px;"><i class="ph-fill ph-x-circle"></i> Não</span>';
 
+                        const rawName = nameMap.get(phone) || item.nome || item.cliente_nome || item.nome_cliente || item.customer_name || '';
+                        const firstName = rawName ? rawName.trim().split(' ')[0] : '—';
+
                         const tr = document.createElement('tr');
                         const produto = item.produtos || '-';
                         tr.innerHTML = `
                             <td>${dateStr}</td>
+                            <td style="font-weight:600;">${firstName}</td>
                             <td class="phone-display">${formattedPhone}</td>
                             <td class="product-cell">${produto}</td>
-                            <td>${cartBadge}</td>
                             <td>${buyBadge}</td>
                             <td>
-                                <a href="https://wa.me/${phone}" target="_blank" class="btn-whats">
+                                <a href="https://wa.me/55${phone}" target="_blank" class="btn-whats">
                                     <i class="ph-bold ph-whatsapp-logo"></i> Chamar no Whats
                                 </a>
                             </td>
                         `;
                         tbody.appendChild(tr);
                     });
+
+                    // Update pagination controls (só no modo "all")
+                    if (filterValue !== 'bought') {
+                        document.getElementById('paginationControls').style.display = 'flex';
+                        document.querySelector('#pageInfo').innerText = `Página ${currentPage}`;
+                        document.getElementById('prevPage').disabled = currentPage === 1;
+                        document.getElementById('nextPage').disabled = data.length < itemsPerPage;
+                    }
+
                 } else {
                     document.getElementById('emptyState').style.display = 'block';
                     document.getElementById('dataTable').style.display = 'none';
+                    document.getElementById('paginationControls').style.display = 'none';
                 }
 
             } catch (err) {
@@ -847,6 +1003,14 @@
                 document.getElementById('errorSection').style.display = 'block';
                 document.getElementById('dashboardSection').style.display = 'none';
             }
+        }
+
+        let currentPage = 1;
+
+        function changePage(delta) {
+            currentPage += delta;
+            if (currentPage < 1) currentPage = 1;
+            loadData();
         }
 
         // Run when DOM loads

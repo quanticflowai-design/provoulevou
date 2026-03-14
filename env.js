@@ -7,13 +7,25 @@ window.ENV = {
 
     // Mapeamento de e-mails Autenticados para tabelas e origens
     LOJISTAS: {
-        'calmostore1@gmail.com': { // Insira o e-mail real criado no Supabase Auth para a Calmo
-            tabela: 'geracoes_provador_calmo',
+        'calmostore1@gmail.com': {
+            tabela: 'geracoes_provou_levou',
+            tabela_pedidos: 'calmo_orders',
             origem: 'calmostore.com.br'
         },
-        'budaimportss@gmail.com': { // Insira o e-mail real criado no Supabase Auth para a Buda
-            tabela: 'geracoes_provador_buda',
+        'budaimportss@gmail.com': {
+            tabela: 'geracoes_provou_levou',
+            tabela_pedidos: 'buda_orders',
             origem: 'budastore.com.br'
+        },
+        'contato@coletivoemaus.com': {
+            tabela: 'geracoes_provou_levou',
+            tabela_pedidos: 'emaus_vendas_provador',
+            origem: 'https://www.coletivoemaus.com',
+            campo_telefone_pedido: 'cliente_telefone',
+            campo_total_pedido: 'valor_pedido',
+            campo_status_pedido: 'status_pedido',
+            campo_nome_pedido: 'cliente_nome',
+            valores_status_pago: ['Pedido Pago', 'Pedido Enviado', 'Pedido Entregue', 'Em produção', 'Faturado', 'Pedido em separação', 'Pedido pronto para retirada']
         }
     }
 };
