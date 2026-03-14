@@ -12,6 +12,7 @@
         rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <script src="../env.js"></script>
 
     <style>
@@ -407,6 +408,46 @@
             .ranking-product { font-size: 13px; }
         }
 
+        /* Daily Sales Chart */
+        .chart-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 28px;
+            padding: 24px 28px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .chart-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-header h2 i {
+            color: var(--primary);
+        }
+
+        .chart-canvas-wrap {
+            position: relative;
+            height: 260px;
+        }
+
+        @media (max-width: 600px) {
+            .chart-canvas-wrap { height: 200px; }
+            .chart-container { padding: 16px; }
+        }
+
         /* Table area */
         .table-container {
             background: var(--card-bg);
@@ -784,6 +825,15 @@
                 <div class="ranking-list" id="rankingList"></div>
             </div>
 
+            <div class="chart-container" id="chartSection" style="display:none;">
+                <div class="chart-header">
+                    <h2><i class="ph-bold ph-chart-bar"></i> Vendas Diárias (via Provador)</h2>
+                </div>
+                <div class="chart-canvas-wrap">
+                    <canvas id="dailySalesChart"></canvas>
+                </div>
+            </div>
+
             <div class="table-container">
                 <div class="table-header">
                     <h2><i class="ph-fill ph-list-dashes"></i> Últimos Clientes</h2>
@@ -1085,6 +1135,76 @@
                     });
                 } else {
                     rankingSec.style.display = 'none';
+                }
+
+                // Gráfico de vendas diárias
+                const chartSec = document.getElementById('chartSection');
+                if (allMatchedOrders.length > 0) {
+                    chartSec.style.display = 'block';
+                    const dailyMap = {};
+                    allMatchedOrders.forEach(order => {
+                        const d = order.data_pedido || (order.created_at || '').slice(0, 10);
+                        if (d) dailyMap[d] = (dailyMap[d] || 0) + 1;
+                    });
+                    const sortedDays = Object.keys(dailyMap).sort();
+                    const labels = sortedDays.map(d => {
+                        const [y, m, dd] = d.split('-');
+                        return dd + '/' + m;
+                    });
+                    const values = sortedDays.map(d => dailyMap[d]);
+
+                    const ctx = document.getElementById('dailySalesChart');
+                    if (window._dailyChart) window._dailyChart.destroy();
+                    window._dailyChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Vendas',
+                                data: values,
+                                backgroundColor: 'rgba(139, 92, 246, 0.6)',
+                                borderColor: '#8b5cf6',
+                                borderWidth: 1,
+                                borderRadius: 6,
+                                maxBarThickness: 40
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: '#1e1e2e',
+                                    titleColor: '#fff',
+                                    bodyColor: '#c4b5fd',
+                                    borderColor: '#8b5cf6',
+                                    borderWidth: 1,
+                                    cornerRadius: 8,
+                                    callbacks: {
+                                        label: ctx => ctx.parsed.y + (ctx.parsed.y > 1 ? ' vendas' : ' venda')
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    ticks: { color: '#64748b', font: { size: 11 } },
+                                    grid: { display: false }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        color: '#64748b',
+                                        font: { size: 11 },
+                                        stepSize: 1
+                                    },
+                                    grid: { color: 'rgba(255,255,255,0.04)' }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    chartSec.style.display = 'none';
                 }
 
                 const tbody = document.getElementById('tableBody');
