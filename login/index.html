@@ -833,6 +833,7 @@
                 let allGenerationsData = null;
                 let ordersMap = new Map();
                 let nameMap = new Map();
+                let allMatchedOrders = [];
                 try {
                     const ordersTable = activeUser.tabela_pedidos;
 
@@ -894,10 +895,10 @@
                             const phone = normalize(order[fPhone]);
                             if (generationPhones.has(phone)) {
                                 boughtPhonesSet.add(phone);
-                                // Guarda o mais recente no ordersMap (para nameMap e filtro)
                                 if (!ordersMap.has(phone)) ordersMap.set(phone, order);
                                 purchasesCount++;
                                 totalRevenue += parseFloat(order[fTotal]) || 0;
+                                allMatchedOrders.push(order);
                             }
                         });
                     }
@@ -923,10 +924,11 @@
                     return n;
                 };
 
-                // Quando filtro "bought": usa todos os registros do provador e filtra pelos compradores
-                // Quando filtro "all": usa dados paginados normalmente
-                const tableSource = filterValue === 'bought'
-                    ? (allGenerationsData || []).filter(item => boughtPhonesSet.has(normalize(item.telefone_cliente)))
+                // Quando filtro "bought": mostra os PEDIDOS (não as provas) dos compradores
+                // Quando filtro "all": usa dados paginados normalmente (provas)
+                const isBoughtFilter = filterValue === 'bought';
+                const tableSource = isBoughtFilter
+                    ? allMatchedOrders
                     : (data || []);
 
                 // Oculta paginação no modo "bought" pois mostra todos de uma vez
@@ -940,20 +942,23 @@
 
                     let filteredLines = 0;
                     tableSource.forEach(item => {
-                        const phone = normalize(item.telefone_cliente);
-                        const phoneDisplay = String(item.telefone_cliente || 'WhatsApp não salvo');
-                        const hasBought = boughtPhonesSet.has(phone);
+                        // Se estamos mostrando pedidos, usar campos dinâmicos; senão, campos do provador
+                        const phoneField = isBoughtFilter ? (item[fPhone] || item.telefone_cliente) : item.telefone_cliente;
+                        const phone = normalize(phoneField);
+                        const phoneDisplay = String(phoneField || 'WhatsApp não salvo');
+                        const hasBought = isBoughtFilter ? true : boughtPhonesSet.has(phone);
 
                         filteredLines++;
 
                         // Trata dados flexíveis baseados nas chaves
                         const origin = item.origin || item.origem || item.url || 'Desconhecida';
 
-                        // Formata Data
+                        // Formata Data (created_at para provas, data_pedido/created_at para pedidos)
                         let dateStr = 'Data inválida';
-                        if (item.created_at) {
-                            const d = new Date(item.created_at);
-                            dateStr = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                        const dateRaw = item.created_at || item.data_pedido;
+                        if (dateRaw) {
+                            const d = new Date(dateRaw);
+                            dateStr = d.toLocaleDateString('pt-BR') + (item.created_at ? ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '');
                         }
 
                         // Limpa o link de origem para mostrar mais bonito
@@ -975,7 +980,7 @@
                         const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
                         const tr = document.createElement('tr');
-                        const produto = item.produtos || '-';
+                        const produto = item.produtos || item.produto_provado || '-';
                         tr.innerHTML = `
                             <td>${esc(dateStr)}</td>
                             <td style="font-weight:600;">${esc(firstName)}</td>
