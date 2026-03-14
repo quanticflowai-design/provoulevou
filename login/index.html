@@ -290,6 +290,123 @@
             font-weight: 400;
         }
 
+        /* Product Ranking */
+        .ranking-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 28px;
+            overflow: hidden;
+        }
+
+        .ranking-header {
+            padding: 20px 28px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ranking-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ranking-header h2 i {
+            color: var(--primary);
+        }
+
+        .ranking-list {
+            padding: 16px 28px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: background 0.2s;
+        }
+
+        .ranking-item:hover {
+            background: rgba(139, 92, 246, 0.06);
+        }
+
+        .ranking-position {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+        }
+
+        .ranking-item:nth-child(1) .ranking-position {
+            background: linear-gradient(135deg, #8b5cf6, #d946ef);
+            color: #fff;
+        }
+
+        .ranking-item:nth-child(2) .ranking-position {
+            background: rgba(139, 92, 246, 0.25);
+            color: #c4b5fd;
+        }
+
+        .ranking-item:nth-child(3) .ranking-position {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+        }
+
+        .ranking-product {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ranking-count {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            white-space: nowrap;
+        }
+
+        .ranking-bar-bg {
+            flex: 0 0 120px;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.06);
+            overflow: hidden;
+        }
+
+        .ranking-bar {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #8b5cf6, #d946ef);
+        }
+
+        @media (max-width: 600px) {
+            .ranking-bar-bg { display: none; }
+            .ranking-item { padding: 10px 12px; gap: 10px; }
+            .ranking-product { font-size: 13px; }
+        }
+
         /* Table area */
         .table-container {
             background: var(--card-bg);
@@ -660,6 +777,13 @@
                 </div>
             </div>
 
+            <div class="ranking-container" id="rankingSection" style="display:none;">
+                <div class="ranking-header">
+                    <h2><i class="ph-bold ph-trophy"></i> Produtos Mais Provados</h2>
+                </div>
+                <div class="ranking-list" id="rankingList"></div>
+            </div>
+
             <div class="table-container">
                 <div class="table-header">
                     <h2><i class="ph-fill ph-list-dashes"></i> Últimos Clientes</h2>
@@ -923,6 +1047,45 @@
                 // Taxa de conversão baseada em provas únicas
                 const convRate = uniqueCount > 0 ? ((boughtPhonesSet.size / uniqueCount) * 100).toFixed(1) : '0.0';
                 document.getElementById('conversionRate').innerText = convRate + '%';
+
+                // Ranking de produtos mais provados
+                const productCounts = {};
+                (allGenerationsData || []).forEach(g => {
+                    const p = g.produtos || g.produto_provado || '';
+                    if (p) productCounts[p] = (productCounts[p] || 0) + 1;
+                });
+                const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+                const ranked = Object.entries(productCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+                const rankingEl = document.getElementById('rankingList');
+                const rankingSec = document.getElementById('rankingSection');
+                if (ranked.length > 0) {
+                    rankingSec.style.display = 'block';
+                    const maxCnt = ranked[0][1];
+                    rankingEl.textContent = '';
+                    ranked.forEach(([name, cnt], i) => {
+                        const item = document.createElement('div');
+                        item.className = 'ranking-item';
+                        const pos = document.createElement('div');
+                        pos.className = 'ranking-position';
+                        pos.textContent = i + 1;
+                        const prod = document.createElement('div');
+                        prod.className = 'ranking-product';
+                        prod.textContent = name;
+                        const barBg = document.createElement('div');
+                        barBg.className = 'ranking-bar-bg';
+                        const bar = document.createElement('div');
+                        bar.className = 'ranking-bar';
+                        bar.style.width = (cnt / maxCnt * 100).toFixed(0) + '%';
+                        barBg.appendChild(bar);
+                        const count = document.createElement('div');
+                        count.className = 'ranking-count';
+                        count.textContent = cnt + (cnt > 1 ? ' provas' : ' prova');
+                        item.append(pos, prod, barBg, count);
+                        rankingEl.appendChild(item);
+                    });
+                } else {
+                    rankingSec.style.display = 'none';
+                }
 
                 const tbody = document.getElementById('tableBody');
                 tbody.innerHTML = '';
