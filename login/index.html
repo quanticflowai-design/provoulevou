@@ -626,6 +626,7 @@
                     <div class="stat-info">
                         <h4>Total de Provas Virtuais</h4>
                         <div class="value" id="totalCount">0</div>
+                        <div class="stat-sub"><span id="uniqueCount">0</span> clientes únicos</div>
                     </div>
                 </div>
 
@@ -654,7 +655,7 @@
                     <div class="stat-info">
                         <h4>Taxa de Conversão</h4>
                         <div class="value" id="conversionRate">0%</div>
-                        <div class="stat-sub">provas → compras</div>
+                        <div class="stat-sub">clientes únicos → compradores</div>
                     </div>
                 </div>
             </div>
@@ -906,8 +907,18 @@
                 document.getElementById('purchasesCount').innerText = purchasesCount;
                 document.getElementById('revenueCount').innerText = totalRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-                const totalForConv = count || (data ? data.length : 0);
-                const convRate = totalForConv > 0 ? ((purchasesCount / totalForConv) * 100).toFixed(1) : '0.0';
+                // Provas únicas (1 por telefone)
+                const uniquePhones = new Set((allGenerationsData || []).map(g => {
+                    let n = String(g.telefone_cliente || '').replace(/\D/g, '');
+                    if (n.startsWith('55') && n.length > 11) n = n.slice(2);
+                    if (n.startsWith('0')) n = n.slice(1);
+                    return n;
+                }).filter(Boolean));
+                const uniqueCount = uniquePhones.size;
+                document.getElementById('uniqueCount').innerText = uniqueCount;
+
+                // Taxa de conversão baseada em provas únicas
+                const convRate = uniqueCount > 0 ? ((boughtPhonesSet.size / uniqueCount) * 100).toFixed(1) : '0.0';
                 document.getElementById('conversionRate').innerText = convRate + '%';
 
                 const tbody = document.getElementById('tableBody');
