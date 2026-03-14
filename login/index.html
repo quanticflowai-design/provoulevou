@@ -889,21 +889,17 @@
                         };
                         const generationPhones = new Set(allGenerations.map(g => normalize(g.telefone_cliente)));
 
-                        // Use a Map to keep only the LATEST order per phone
+                        // Conta TODOS os pedidos de clientes que usaram o provador (incluindo múltiplos por cliente)
                         allOrders.forEach(order => {
                             const phone = normalize(order[fPhone]);
-                            if (generationPhones.has(phone) && !ordersMap.has(phone)) {
-                                ordersMap.set(phone, order);
+                            if (generationPhones.has(phone)) {
+                                boughtPhonesSet.add(phone);
+                                // Guarda o mais recente no ordersMap (para nameMap e filtro)
+                                if (!ordersMap.has(phone)) ordersMap.set(phone, order);
+                                purchasesCount++;
+                                totalRevenue += parseFloat(order[fTotal]) || 0;
                             }
                         });
-
-                        // Set of normalized phones that bought (avoids double counting)
-                        boughtPhonesSet = new Set(ordersMap.keys());
-                        purchasesCount = boughtPhonesSet.size;
-
-                        // Calculate total revenue using only the latest purchase of each customer
-                        const latestOrders = Array.from(ordersMap.values());
-                        totalRevenue = latestOrders.reduce((sum, order) => sum + (parseFloat(order[fTotal]) || 0), 0);
                     }
                 } catch (purchaseErr) {
                     console.error("Erro ao calcular compras via provador:", purchaseErr);
