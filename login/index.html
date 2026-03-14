@@ -743,9 +743,12 @@
         }
 
         async function fetchLojista() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) return null;
             const { data, error } = await supabaseClient
                 .from('lojistas')
                 .select('*')
+                .eq('email', user.email)
                 .single();
             if (error || !data) return null;
             return data;
