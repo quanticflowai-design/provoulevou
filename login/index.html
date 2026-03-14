@@ -953,10 +953,11 @@
 
                         // Formata Data (created_at para provas, data_pedido/created_at para pedidos)
                         let dateStr = 'Data inválida';
-                        const dateRaw = item.created_at || item.data_pedido;
+                        const dateRaw = isBoughtFilter ? (item.data_pedido || item.created_at) : item.created_at;
                         if (dateRaw) {
                             const d = new Date(dateRaw);
-                            dateStr = d.toLocaleDateString('pt-BR') + (item.created_at ? ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '');
+                            const hasTime = !isBoughtFilter && item.created_at;
+                            dateStr = d.toLocaleDateString('pt-BR') + (hasTime ? ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '');
                         }
 
                         // Limpa o link de origem para mostrar mais bonito
