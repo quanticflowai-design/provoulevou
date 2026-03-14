@@ -834,6 +834,12 @@
                 let ordersMap = new Map();
                 let nameMap = new Map();
                 let allMatchedOrders = [];
+                const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
+                const fTotal = activeUser.campo_total_pedido || 'total';
+                const fStatus = activeUser.campo_status_pedido || 'payment_status';
+                const fStatusValues = activeUser.valores_status_pago || ['paid', 'Confirmado'];
+                const fNome = activeUser.campo_nome_pedido || null;
+                const selectFields = [fPhone, fTotal, 'created_at', fNome].filter(Boolean).join(', ');
                 try {
                     const ordersTable = activeUser.tabela_pedidos;
 
@@ -844,14 +850,6 @@
                         .ilike('origin', `%${activeUser.origem}%`)
                         .order('created_at', { ascending: false });
                     allGenerationsData = allGenerations;
-
-                    // Mapeamento de campos (suporte a tabelas com nomenclatura diferente)
-                    const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
-                    const fTotal = activeUser.campo_total_pedido || 'total';
-                    const fStatus = activeUser.campo_status_pedido || 'payment_status';
-                    const fStatusValues = activeUser.valores_status_pago || ['paid', 'Confirmado'];
-                    const fNome = activeUser.campo_nome_pedido || null;
-                    const selectFields = [fPhone, fTotal, 'created_at', fNome].filter(Boolean).join(', ');
 
                     // Fetch customer phones, totals and dates from the orders table where payment_status is 'paid' or 'Confirmado'
                     const { data: allOrders } = await supabaseClient
