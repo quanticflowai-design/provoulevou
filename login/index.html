@@ -720,7 +720,7 @@
             document.body.classList.add('login-mode');
             document.getElementById('quanticLogoImg').style.filter = 'brightness(0)';
 
-            if (!window.ENV || !window.ENV.SUPABASE_URL || !window.ENV.SUPABASE_KEY || !window.ENV.LOJISTAS) {
+            if (!window.ENV || !window.ENV.SUPABASE_URL || !window.ENV.SUPABASE_KEY) {
                 document.getElementById('errorSection').style.display = 'block';
                 document.getElementById('loginSection').style.display = 'none';
                 return;
@@ -732,13 +732,22 @@
             // Verifica se já existe uma sessão de login válida ativa
             const { data: { session } } = await supabaseClient.auth.getSession();
 
-            if (session && session.user && session.user.email) {
-                const userEmail = session.user.email.toLowerCase();
-                if (window.ENV.LOJISTAS[userEmail]) {
-                    activeUser = window.ENV.LOJISTAS[userEmail];
+            if (session && session.user) {
+                const cfg = await fetchLojista();
+                if (cfg) {
+                    activeUser = cfg;
                     showDashboard(activeUser);
                 }
             }
+        }
+
+        async function fetchLojista() {
+            const { data, error } = await supabaseClient
+                .from('lojistas')
+                .select('*')
+                .single();
+            if (error || !data) return null;
+            return data;
         }
 
         async function doLogin() {
@@ -758,12 +767,12 @@
                 return;
             }
 
-            if (window.ENV.LOJISTAS[u]) {
+            const cfg = await fetchLojista();
+            if (cfg) {
                 errorElement.style.display = 'none';
-                activeUser = window.ENV.LOJISTAS[u];
+                activeUser = cfg;
                 showDashboard(activeUser);
             } else {
-                // Se o email logou mas não tá mapeado no env.js
                 errorElement.innerText = "Este usuário não tem tabela associada.";
                 errorElement.style.display = 'block';
                 await supabaseClient.auth.signOut();
@@ -958,6 +967,7 @@
                         // Telefone formato 5511... (sem formatação visual)
                         const formattedPhone = phoneDisplay;
 
+                        // buyBadge é HTML estático (não usa dados do banco — seguro sem esc())
                         const buyBadge = hasBought
                             ? '<span style="color: #25D366; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; background: rgba(37,211,102,0.1); padding: 4px 10px; border-radius: 6px;"><i class="ph-fill ph-shopping-bag"></i> Comprou</span>'
                             : '<span style="color: #94a3b8; font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 5px;"><i class="ph-fill ph-x-circle"></i> Não</span>';
