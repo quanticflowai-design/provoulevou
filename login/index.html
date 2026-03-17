@@ -505,29 +505,67 @@
         .date-filter-bar {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 16px;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
 
-        .date-filter-bar label {
+        .date-presets {
+            display: flex;
+            gap: 4px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 3px;
+        }
+
+        .btn-preset {
+            background: transparent;
+            border: none;
             color: #94a3b8;
-            font-size: 13px;
+            padding: 6px 14px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .btn-preset:hover {
+            background: rgba(255,255,255,0.06);
+            color: white;
+        }
+
+        .btn-preset.active {
+            background: var(--primary);
+            color: white;
             font-weight: 600;
+        }
+
+        .date-custom {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+        }
+
+        .date-custom label {
+            color: #64748b;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
         }
 
         .date-filter-bar input[type="date"] {
             background: rgba(255,255,255,0.05);
             border: 1px solid var(--border);
             color: white;
-            padding: 7px 12px;
+            padding: 6px 10px;
             border-radius: 8px;
             font-family: inherit;
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
+            width: 130px;
         }
 
         .date-filter-bar input[type="date"]::-webkit-calendar-picker-indicator {
@@ -535,29 +573,27 @@
             cursor: pointer;
         }
 
-        .date-filter-bar span {
+        .date-custom span {
             color: #64748b;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .btn-clear-dates {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border);
-            color: #94a3b8;
-            padding: 7px 12px;
-            border-radius: 8px;
+            background: none;
+            border: none;
+            color: #64748b;
+            padding: 4px;
             cursor: pointer;
-            font-family: inherit;
-            font-size: 12px;
+            font-size: 14px;
             display: flex;
             align-items: center;
-            gap: 5px;
-            transition: 0.3s;
+            transition: 0.2s;
+            border-radius: 4px;
         }
 
         .btn-clear-dates:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
+            color: #ef4444;
+            background: rgba(239,68,68,0.1);
         }
 
         table {
@@ -846,13 +882,21 @@
         <!-- Dashboard -->
         <div class="dashboard-content" id="dashboardSection">
             <div class="date-filter-bar">
-                <label><i class="ph-bold ph-calendar-blank"></i> Período:</label>
-                <input type="date" id="dateFrom" onchange="loadData()">
-                <span>até</span>
-                <input type="date" id="dateTo" onchange="loadData()">
-                <button class="btn-clear-dates" onclick="document.getElementById('dateFrom').value='';document.getElementById('dateTo').value='';loadData();">
-                    <i class="ph-bold ph-x"></i> Limpar
-                </button>
+                <div class="date-presets">
+                    <button class="btn-preset active" onclick="setDatePreset(0)">Tudo</button>
+                    <button class="btn-preset" onclick="setDatePreset(7)">7 dias</button>
+                    <button class="btn-preset" onclick="setDatePreset(15)">15 dias</button>
+                    <button class="btn-preset" onclick="setDatePreset(30)">30 dias</button>
+                </div>
+                <div class="date-custom">
+                    <label><i class="ph-bold ph-calendar-blank"></i></label>
+                    <input type="date" id="dateFrom" onchange="onDateInputChange()">
+                    <span>até</span>
+                    <input type="date" id="dateTo" onchange="onDateInputChange()">
+                    <button class="btn-clear-dates" onclick="setDatePreset(0)">
+                        <i class="ph-bold ph-x"></i>
+                    </button>
+                </div>
             </div>
             <div class="stats-grid">
                 <div class="stat-card">
@@ -1475,6 +1519,34 @@
         }
 
         let currentPage = 1;
+        let _dateDebounce = null;
+
+        function setDatePreset(days) {
+            document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            if (days === 0) {
+                document.getElementById('dateFrom').value = '';
+                document.getElementById('dateTo').value = '';
+            } else {
+                const to = new Date();
+                const from = new Date();
+                from.setDate(from.getDate() - days);
+                document.getElementById('dateFrom').value = from.toISOString().slice(0, 10);
+                document.getElementById('dateTo').value = to.toISOString().slice(0, 10);
+            }
+            currentPage = 1;
+            loadData();
+        }
+
+        function onDateInputChange() {
+            // Remove preset active state quando edita manualmente
+            document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+            clearTimeout(_dateDebounce);
+            _dateDebounce = setTimeout(() => {
+                currentPage = 1;
+                loadData();
+            }, 600);
+        }
 
         function changePage(delta) {
             currentPage += delta;
