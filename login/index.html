@@ -1148,7 +1148,9 @@
                 const fStatus = activeUser.campo_status_pedido || 'payment_status';
                 const fStatusValues = activeUser.valores_status_pago || ['paid', 'Confirmado'];
                 const fNome = activeUser.campo_nome_pedido || null;
-                const selectFields = [fPhone, fTotal, 'created_at', 'data_pedido', 'produto_provado', fNome].filter(Boolean).join(', ');
+                const fDataPedido = activeUser.campo_data_pedido || null;
+                const fProdutoPedido = activeUser.campo_produto_pedido || null;
+                const selectFields = [fPhone, fTotal, 'created_at', fDataPedido, fProdutoPedido, fNome].filter(Boolean).join(', ');
                 try {
                     const ordersTable = activeUser.tabela_pedidos;
 
@@ -1281,7 +1283,7 @@
                     const dailyCount = {};
                     const dailyRevenue = {};
                     allMatchedOrders.forEach(order => {
-                        const d = order.data_pedido || (order.created_at || '').slice(0, 10);
+                        const d = (fDataPedido && order[fDataPedido]) || (order.created_at || '').slice(0, 10);
                         if (d) {
                             dailyCount[d] = (dailyCount[d] || 0) + 1;
                             dailyRevenue[d] = (dailyRevenue[d] || 0) + (parseFloat(order[fTotal]) || 0);
@@ -1412,7 +1414,7 @@
                 const csvSource = isBoughtFilter ? allMatchedOrders : (allGenerationsData || []);
                 _csvExportData = csvSource.map(item => {
                     const ph = normalize(isBoughtFilter ? (item[fPhone] || item.telefone_cliente) : item.telefone_cliente);
-                    const dateRaw = isBoughtFilter ? (item.data_pedido || item.created_at) : item.created_at;
+                    const dateRaw = isBoughtFilter ? ((fDataPedido && item[fDataPedido]) || item.created_at) : item.created_at;
                     let dateStr = '';
                     if (dateRaw) {
                         const d = new Date(dateRaw);
@@ -1424,7 +1426,7 @@
                         _date: dateStr,
                         _name: firstName,
                         _phone: String(item.telefone_cliente || item[fPhone] || ''),
-                        _product: item.produtos || item.produto_provado || '',
+                        _product: item.produtos || item.produto_provado || (fProdutoPedido && item[fProdutoPedido]) || '',
                         _bought: isBoughtFilter ? true : boughtPhonesSet.has(ph)
                     };
                 });
@@ -1453,7 +1455,7 @@
 
                         // Formata Data (created_at para provas, data_pedido/created_at para pedidos)
                         let dateStr = 'Data inválida';
-                        const dateRaw = isBoughtFilter ? (item.data_pedido || item.created_at) : item.created_at;
+                        const dateRaw = isBoughtFilter ? ((fDataPedido && item[fDataPedido]) || item.created_at) : item.created_at;
                         if (dateRaw) {
                             const d = new Date(dateRaw);
                             const hasTime = !isBoughtFilter && item.created_at;
@@ -1479,7 +1481,7 @@
                         const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
                         const tr = document.createElement('tr');
-                        const produto = item.produtos || item.produto_provado || '-';
+                        const produto = item.produtos || item.produto_provado || (fProdutoPedido && item[fProdutoPedido]) || '-';
                         tr.innerHTML = `
                             <td>${esc(dateStr)}</td>
                             <td style="font-weight:600;">${esc(firstName)}</td>
