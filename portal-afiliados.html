@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal do Afiliado | Provou Levou</title>
+  <link rel="icon" type="image/jpeg" href="assets/favicon.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="env.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+
+    :root {
+      --bg:           #080e1c;
+      --bg-card:      #0f172a;
+      --bg-card2:     #141f35;
+      --border:       rgba(99,102,241,0.12);
+      --border-h:     rgba(139,92,246,0.3);
+      --primary:      #6366f1;
+      --primary-dim:  rgba(99,102,241,0.12);
+      --primary-glow: rgba(99,102,241,0.35);
+      --purple:       #8b5cf6;
+      --purple-dim:   rgba(139,92,246,0.12);
+      --fuchsia:      #d946ef;
+      --fuchsia-dim:  rgba(217,70,239,0.12);
+      --grad:         linear-gradient(135deg, #6366f1, #8b5cf6, #d946ef);
+      --grad-2:       linear-gradient(135deg, #6366f1, #d946ef);
+      --green:        #34D399;
+      --green-dim:    rgba(52,211,153,0.1);
+      --gold:         #f59e0b;
+      --gold-dim:     rgba(245,158,11,0.1);
+      --text:         #e2e8f0;
+      --text-2:       #64748b;
+      --text-3:       #2d3a50;
+      --sb-w:         232px;
+    }
+
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+
+    /* ─── Light Theme ───────────────────── */
+    [data-theme="light"] {
+      --bg:           #f1f5f9;
+      --bg-card:      #ffffff;
+      --bg-card2:     #f8fafc;
+      --border:       rgba(99,102,241,0.1);
+      --border-h:     rgba(99,102,241,0.28);
+      --text:         #0f172a;
+      --text-2:       #64748b;
+      --text-3:       #cbd5e1;
+    }
+    [data-theme="light"] .nav-item:hover     { background: rgba(99,102,241,0.06); }
+    [data-theme="light"] .nav-item.active    { background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.2); }
+    [data-theme="light"] .user-card          { background: rgba(0,0,0,0.03); }
+    [data-theme="light"] .tb-btn             { background: rgba(0,0,0,0.03); }
+    [data-theme="light"] .tb-btn:hover       { background: rgba(0,0,0,0.06); }
+    [data-theme="light"] .stat-card:hover    { box-shadow: 0 4px 20px rgba(99,102,241,0.1); }
+    [data-theme="light"] .act-item           { background: rgba(0,0,0,0.02); }
+    [data-theme="light"] .act-item:hover     { background: rgba(0,0,0,0.04); }
+    [data-theme="light"] .link-box           { background: rgba(0,0,0,0.03); }
+    [data-theme="light"] .lbtn              { background: rgba(0,0,0,0.03); color: var(--text-2); }
+    [data-theme="light"] .lbtn:hover        { background: rgba(0,0,0,0.06); color: var(--text); }
+    [data-theme="light"] td                 { border-bottom-color: rgba(0,0,0,0.04); }
+    [data-theme="light"] th                 { background: rgba(0,0,0,0.02); }
+    [data-theme="light"] tr:hover td        { background: rgba(99,102,241,0.03); }
+    [data-theme="light"] .tbl-foot          { background: rgba(0,0,0,0.02); }
+    [data-theme="light"] .flt-btn           { background: rgba(0,0,0,0.04); }
+    [data-theme="light"] .flt-btn:hover     { background: rgba(0,0,0,0.07); }
+    [data-theme="light"] .n-tip             { background: #ffffff; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+    [data-theme="light"] .card-count        { background: rgba(0,0,0,0.04); }
+    [data-theme="light"] #toast             { background: #ffffff; box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+
+    /* ─── Layout ─────────────────────────── */
+    .layout { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ─── Sidebar ────────────────────────── */
+    .sidebar {
+      width: var(--sb-w); flex-shrink: 0;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; height: 100vh;
+    }
+    .sb-logo {
+      padding: 22px 20px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sb-logo img { height: 34px; }
+    .sb-logo span {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
+      color: var(--text-2); text-transform: uppercase;
+    }
+    .sb-nav {
+      flex: 1; padding: 14px 10px;
+      display: flex; flex-direction: column; gap: 2px;
+      overflow-y: auto;
+    }
+    .nav-label {
+      font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-3);
+      padding: 12px 10px 6px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 10px 12px; border-radius: 10px;
+      font-size: 0.85rem; font-weight: 500; color: var(--text-2);
+      cursor: pointer; transition: all 0.15s;
+      border: 1px solid transparent; background: none; width: 100%; text-align: left;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    .nav-item.active {
+      background: var(--purple-dim); color: #C4B5FD;
+      border-color: rgba(139,92,246,0.18);
+    }
+    .nav-item.active i { color: var(--purple); }
+    .nav-item i { width: 16px; height: 16px; flex-shrink: 0; }
+    .sb-user { padding: 14px; border-top: 1px solid var(--border); }
+    .user-card {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px; border-radius: 12px;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    }
+    .u-avatar {
+      width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+      background: var(--grad-2);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Poppins', sans-serif; font-size: 0.9rem; font-weight: 700; color: #fff;
+    }
+    .u-info { flex: 1; min-width: 0; }
+    .u-name { font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .u-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+      padding: 2px 7px; border-radius: 20px; margin-top: 3px;
+    }
+    .u-badge.inter { background: var(--purple-dim); color: #A78BFA; border: 1px solid rgba(139,92,246,0.25); }
+    .u-badge.top   { background: rgba(245,158,11,0.1); color: #FBBF24; border: 1px solid rgba(245,158,11,0.25); }
+    .u-badge.ini   { background: rgba(100,116,139,0.12); color: #94A3B8; border: 1px solid rgba(100,116,139,0.2); }
+
+    /* ─── Main ───────────────────────────── */
+    .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+
+    .topbar {
+      padding: 18px 30px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg-card); position: sticky; top: 0; z-index: 20;
+    }
+    .tb-title { font-family: 'Poppins', sans-serif; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; }
+    .tb-sub { font-size: 0.77rem; color: var(--text-2); margin-top: 1px; }
+    .tb-actions { display: flex; align-items: center; gap: 8px; }
+    .tb-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 8px 14px; border-radius: 9px; font-size: 0.8rem; font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+      border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: var(--text-2);
+    }
+    .tb-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); border-color: var(--border-h); }
+    .tb-btn.gold { background: var(--purple-dim); border-color: rgba(139,92,246,0.3); color: #C4B5FD; }
+    .tb-btn.gold:hover { background: rgba(139,92,246,0.2); }
+    .tb-btn i { width: 14px; height: 14px; }
+
+    .content { padding: 26px 30px; flex: 1; }
+
+    /* ─── Sections ───────────────────────── */
+    .section { display: none; }
+    .section.active { display: block; animation: fadeUp 0.3s ease both; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .sec-intro { margin-bottom: 22px; }
+    .sec-intro h2 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.65rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px;
+    }
+    .sec-intro p { font-size: 0.83rem; color: var(--text-2); }
+
+    /* ─── Stats Grid ─────────────────────── */
+    .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 16px; }
+    .stat-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 20px 22px; position: relative; overflow: hidden; transition: border-color 0.2s;
+    }
+    .stat-card:hover { border-color: var(--border-h); }
+    .stat-card::after {
+      content: ''; position: absolute; top: -20px; right: -20px;
+      width: 80px; height: 80px; border-radius: 50%; opacity: 0.07;
+    }
+    .stat-card.g::after { background: var(--primary); }
+    .stat-card.p::after { background: var(--purple); }
+    .stat-card.e::after { background: var(--green); }
+    .stat-card.s::after { background: var(--fuchsia); }
+    .stat-ico {
+      position: absolute; top: 20px; right: 20px;
+      width: 34px; height: 34px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .stat-ico.g { background: var(--primary-dim); color: var(--primary); }
+    .stat-ico.p { background: var(--purple-dim);  color: var(--purple);  }
+    .stat-ico.e { background: var(--green-dim);   color: var(--green);   }
+    .stat-ico.s { background: var(--fuchsia-dim); color: var(--fuchsia); }
+    .stat-ico i { width: 16px; height: 16px; }
+    .stat-lbl { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-2); margin-bottom: 8px; }
+    .stat-val { font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
+    .stat-val.g { background: var(--grad-2); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-val.p { color: #A78BFA; }
+    .stat-val.e { color: var(--green); }
+    .stat-val.s { color: #C4B5FD; }
+    .stat-sub { font-size: 0.73rem; color: var(--text-2); margin-top: 6px; display: flex; align-items: center; gap: 5px; }
+    .badge-up { background: var(--green-dim); color: var(--green); font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 6px; }
+
+    /* ─── Progress Card ──────────────────── */
+    .prog-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 24px 28px; margin-bottom: 16px; position: relative; overflow: hidden;
+    }
+    .prog-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 85% 50%, rgba(99,102,241,0.06) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .prog-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .prog-head h3 { font-family: 'Poppins', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+    .prog-rate {
+      font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 800;
+      background: var(--grad-2); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+    }
+    .prog-rate span { font-size: 0.85rem; color: var(--text-2); font-weight: 500; font-family: 'Poppins', sans-serif; -webkit-text-fill-color: var(--text-2); }
+    .prog-track {
+      position: relative; height: 7px;
+      background: rgba(255,255,255,0.05); border-radius: 99px; margin-bottom: 14px;
+    }
+    .prog-fill {
+      position: absolute; left: 0; top: 0; height: 100%; border-radius: 99px;
+      background: var(--grad);
+      box-shadow: 0 0 14px var(--primary-glow);
+      width: 0; transition: width 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .prog-dot {
+      position: absolute; top: 50%; transform: translate(-50%,-50%);
+      width: 15px; height: 15px; border-radius: 50%;
+      background: var(--fuchsia); border: 2px solid var(--bg-card);
+      box-shadow: 0 0 14px rgba(217,70,239,0.5);
+      left: 0; transition: left 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: pdot 2s infinite;
+    }
+    @keyframes pdot {
+      0%,100% { box-shadow: 0 0 10px rgba(217,70,239,0.5); }
+      50%      { box-shadow: 0 0 22px rgba(217,70,239,0.7), 0 0 40px rgba(139,92,246,0.2); }
+    }
+    .prog-marks { display: flex; justify-content: space-between; }
+    .prog-mark { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .mark-lbl { font-size: 0.67rem; color: var(--text-2); font-weight: 500; }
+    .mark-val { font-size: 0.72rem; font-weight: 700; color: var(--text-3); }
+    .prog-mark.reached .mark-lbl { color: var(--green); }
+    .prog-mark.reached .mark-val { color: var(--green); }
+    .prog-mark.here .mark-lbl { color: var(--fuchsia); }
+    .prog-mark.here .mark-val { color: var(--fuchsia); }
+
+    /* ─── 2-col Grid ─────────────────────── */
+    .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+
+    /* ─── Card Generic ───────────────────── */
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 22px;
+    }
+    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .card-title {
+      font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-count {
+      font-size: 0.7rem; font-weight: 600; font-family: 'Poppins', sans-serif;
+      color: var(--text-2); background: rgba(255,255,255,0.04);
+      padding: 2px 9px; border-radius: 20px; border: 1px solid var(--border);
+    }
+    .view-all {
+      font-size: 0.76rem; color: var(--purple); font-weight: 600;
+      cursor: pointer; background: none; border: none; padding: 0;
+      display: flex; align-items: center; gap: 4px; transition: color 0.15s;
+    }
+    .view-all:hover { color: #A78BFA; }
+    .view-all i { width: 12px; height: 12px; }
+
+    /* ─── Activity List ──────────────────── */
+    .act-list { display: flex; flex-direction: column; gap: 10px; }
+    .act-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; border-radius: 9px;
+      background: rgba(255,255,255,0.02); border: 1px solid transparent; transition: all 0.15s;
+    }
+    .act-item:hover { background: rgba(255,255,255,0.04); border-color: var(--border); }
+    .act-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .act-dot.g { background: var(--green); box-shadow: 0 0 6px rgba(52,211,153,0.5); }
+    .act-dot.gold { background: var(--primary); box-shadow: 0 0 6px var(--primary-glow); }
+    .act-dot.p { background: var(--purple); box-shadow: 0 0 6px rgba(139,92,246,0.5); }
+    .act-info { flex: 1; }
+    .act-main { font-size: 0.82rem; font-weight: 500; }
+    .act-time { font-size: 0.71rem; color: var(--text-2); margin-top: 1px; }
+    .act-amt { font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 700; }
+    .act-amt.g { color: var(--green); }
+    .act-amt.gold { color: #A78BFA; }
+
+    /* ─── Link Card ──────────────────────── */
+    .link-box {
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 9px;
+      padding: 12px 14px; font-size: 0.78rem; color: var(--text-2);
+      word-break: break-all; margin-bottom: 12px; letter-spacing: 0.01em;
+    }
+    .link-btns { display: flex; gap: 8px; }
+    .lbtn {
+      flex: 1; padding: 8px 12px; border-radius: 8px; font-size: 0.77rem; font-weight: 600;
+      border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: var(--text-2);
+      cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .lbtn:hover { background: rgba(255,255,255,0.06); color: var(--text); border-color: var(--border-h); }
+    .lbtn.g { background: var(--primary-dim); border-color: rgba(99,102,241,0.3); color: #818CF8; }
+    .lbtn.g:hover { background: rgba(99,102,241,0.2); }
+    .lbtn i { width: 13px; height: 13px; }
+
+    /* ─── Network Tree ───────────────────── */
+    .tree-wrap {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 24px; margin-bottom: 14px; overflow-x: auto; position: relative;
+    }
+    .tree-canvas { position: relative; min-width: 760px; }
+    .tree-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+    .t-node {
+      position: absolute; display: flex; flex-direction: column;
+      align-items: center; cursor: pointer; transition: transform 0.2s;
+    }
+    .t-node:hover { transform: scale(1.08); }
+    .t-node:hover .n-tip { opacity: 1; pointer-events: auto; }
+    .n-circle {
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-family: 'Poppins', sans-serif; font-weight: 700; color: #fff;
+      position: relative; margin-bottom: 7px;
+    }
+    .n-circle.root {
+      width: 68px; height: 68px; font-size: 1.2rem;
+      background: var(--grad-2);
+      box-shadow: 0 0 0 3px var(--bg-card), 0 0 0 5px var(--purple), 0 0 20px var(--primary-glow);
+    }
+    .n-circle.l1 { width: 52px; height: 52px; font-size: 1.1rem; }
+    .n-circle.l2 { width: 40px; height: 40px; font-size: 0.9rem; }
+    .n-circle.ini  { background: linear-gradient(135deg, #2D3748, #4A5568); }
+    .n-circle.inter { background: linear-gradient(135deg, #5B21B6, #7C3AED); }
+    .n-circle.top   { background: linear-gradient(135deg, #92400E, #D97706); }
+    .n-lbl { font-size: 0.7rem; font-weight: 600; color: var(--text); text-align: center; max-width: 72px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .n-rev { font-size: 0.62rem; color: var(--green); font-weight: 600; margin-top: 2px; }
+    .n-tip {
+      position: absolute; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%);
+      background: #161D2F; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+      padding: 12px 15px; width: 175px; z-index: 50;
+      opacity: 0; transition: opacity 0.18s;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      pointer-events: none;
+    }
+    .n-tip::after {
+      content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+      border: 6px solid transparent; border-top-color: rgba(255,255,255,0.1);
+    }
+    .tip-name { font-size: 0.83rem; font-weight: 700; margin-bottom: 9px; }
+    .tip-row { display: flex; justify-content: space-between; font-size: 0.73rem; margin-bottom: 5px; }
+    .tip-row:last-child { margin-bottom: 0; }
+    .tip-lbl { color: var(--text-2); }
+    .tip-val { font-weight: 600; }
+    .tip-val.g { color: var(--green); }
+
+    /* ─── Sub-affiliate Table ─────────────── */
+    .tbl-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .tbl-head { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      padding: 11px 22px; text-align: left;
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--text-2); background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);
+    }
+    td { padding: 13px 22px; font-size: 0.83rem; border-bottom: 1px solid rgba(255,255,255,0.025); color: var(--text); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .td-name { font-weight: 600; }
+    .td-sub { font-size: 0.7rem; color: var(--text-2); margin-top: 2px; }
+    .lvl-pip {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 20px;
+    }
+    .lvl-pip.ini   { background: rgba(100,116,139,0.12); color: #94A3B8; border: 1px solid rgba(100,116,139,0.2); }
+    .lvl-pip.inter { background: var(--purple-dim); color: #A78BFA; border: 1px solid rgba(139,92,246,0.2); }
+    .lvl-pip.top   { background: rgba(245,158,11,0.1); color: #FBBF24; border: 1px solid rgba(245,158,11,0.25); }
+    .rev-val { font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 700; color: var(--green); }
+    .dot-status { display: inline-flex; align-items: center; gap: 6px; font-size: 0.77rem; font-weight: 600; }
+    .dot-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+    .dot-status.ok { color: var(--green); }
+    .dot-status.ok::before { background: var(--green); box-shadow: 0 0 4px rgba(52,211,153,0.5); }
+    .tbl-foot {
+      padding: 14px 22px; border-top: 1px solid var(--border); background: rgba(255,255,255,0.02);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .tbl-foot-lbl { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-2); }
+    .tbl-foot-val { font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 800; background: var(--grad-2); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* ─── Contracts ──────────────────────── */
+    .ctr-summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 16px; }
+    .mrr-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 20px 22px; display: flex; align-items: center; gap: 14px;
+    }
+    .mrr-ico {
+      width: 44px; height: 44px; border-radius: 11px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mrr-ico.g  { background: var(--primary-dim); color: var(--primary); }
+    .mrr-ico.p  { background: var(--purple-dim); color: var(--purple); }
+    .mrr-ico.e  { background: var(--green-dim);  color: var(--green);  }
+    .mrr-ico i { width: 20px; height: 20px; }
+    .mrr-lbl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-2); }
+    .mrr-val { font-family: 'Outfit', sans-serif; font-size: 1.7rem; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+    .mrr-val.g { background: var(--grad-2); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .mrr-val.p { color: #A78BFA; }
+    .mrr-val.e { color: var(--green); }
+
+    /* Plan badge */
+    .plan-pip {
+      display: inline-flex; align-items: center;
+      font-size: 0.72rem; font-weight: 700; padding: 3px 9px; border-radius: 6px;
+    }
+    .plan-pip.starter { background: rgba(100,116,139,0.12); color: #94A3B8; }
+    .plan-pip.pro     { background: var(--purple-dim); color: #A78BFA; }
+    .plan-pip.elite   { background: rgba(245,158,11,0.1); color: #FBBF24; }
+
+    /* ─── Criativos ──────────────────────── */
+    .cri-filters { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+    .flt-btn {
+      padding: 7px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+      border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: var(--text-2);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .flt-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+    .flt-btn.active { background: var(--purple-dim); color: #C4B5FD; border-color: rgba(139,92,246,0.25); }
+    .cri-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap: 14px; }
+    .cri-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 13px;
+      overflow: hidden; cursor: pointer; transition: all 0.2s;
+    }
+    .cri-card:hover { border-color: var(--border-h); transform: translateY(-4px); box-shadow: 0 14px 32px rgba(0,0,0,0.35); }
+    .cri-thumb {
+      width: 100%; height: 130px; display: flex; align-items: center; justify-content: center; position: relative;
+    }
+    .cri-thumb.vid  { background: linear-gradient(135deg, #0D1120 0%, #1A0A20 100%); }
+    .cri-thumb.img  { background: linear-gradient(135deg, #0D1120 0%, #0A1830 100%); }
+    .cri-thumb.pack { background: linear-gradient(135deg, #0D1120 0%, #1A1508 100%); }
+    .th-ico { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .th-ico.vid  { background: rgba(239,68,68,0.14); color: #F87171; }
+    .th-ico.img  { background: var(--purple-dim); color: #A78BFA; }
+    .th-ico.pack { background: var(--fuchsia-dim); color: var(--fuchsia); }
+    .th-ico i { width: 22px; height: 22px; }
+    .play-ov {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.35); opacity: 0; transition: opacity 0.18s;
+    }
+    .cri-card:hover .play-ov { opacity: 1; }
+    .play-circ { width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; }
+    .play-circ i { width: 18px; height: 18px; color: #0D1120; margin-left: 2px; }
+    .cri-meta { padding: 12px 14px; }
+    .cri-name { font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 7px; }
+    .cri-foot { display: flex; justify-content: space-between; align-items: center; }
+    .cri-info { font-size: 0.69rem; color: var(--text-2); }
+    .dl-btn {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 0.72rem; font-weight: 700; color: var(--purple);
+      padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(139,92,246,0.2);
+      background: var(--purple-dim); cursor: pointer; transition: all 0.15s;
+    }
+    .dl-btn:hover { background: rgba(139,92,246,0.2); }
+    .dl-btn i { width: 11px; height: 11px; }
+
+    /* ─── Toast ──────────────────────────── */
+    #toast {
+      position: fixed; bottom: 22px; right: 22px;
+      background: #161D2F; border: 1px solid var(--border-h); border-radius: 11px;
+      padding: 13px 17px; font-size: 0.83rem; font-weight: 500; color: var(--text);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6); z-index: 999;
+      display: flex; align-items: center; gap: 9px;
+      transform: translateY(80px); opacity: 0;
+      transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast i { width: 15px; height: 15px; color: var(--green); }
+
+    /* ─── Responsive ─────────────────────── */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+      .g2 { grid-template-columns: 1fr; }
+      .ctr-summary { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .content { padding: 16px; }
+      .topbar { padding: 14px 16px; }
+    }
+
+    /* ─── Auth Screen ───────────────────── */
+    .auth-screen {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--bg);
+      display: flex; align-items: flex-start; justify-content: center;
+      overflow-y: auto;
+      transition: opacity 0.4s, visibility 0.4s;
+    }
+    .auth-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    .auth-box {
+      width: 100%; max-width: 420px; padding: 40px 20px;
+      margin: auto;
+    }
+    .auth-logo {
+      text-align: center; margin-bottom: 32px;
+    }
+    .auth-logo img { height: 44px; margin-bottom: 10px; }
+    .auth-logo p { font-size: 0.82rem; color: var(--text-2); }
+    .auth-tabs {
+      display: flex; gap: 0; margin-bottom: 24px;
+      border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+    }
+    .auth-tab {
+      flex: 1; padding: 11px 0; text-align: center;
+      font-size: 0.82rem; font-weight: 600; cursor: pointer;
+      background: transparent; color: var(--text-2); border: none;
+      transition: all 0.2s;
+    }
+    .auth-tab.active {
+      background: var(--purple-dim); color: #C4B5FD;
+    }
+    .auth-form { display: none; }
+    .auth-form.active { display: block; animation: fadeUp 0.3s ease both; }
+    .auth-field {
+      margin-bottom: 14px;
+    }
+    .auth-field label {
+      display: block; font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      color: var(--text-2); margin-bottom: 6px;
+    }
+    .auth-field input {
+      width: 100%; padding: 12px 14px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--bg-card);
+      color: var(--text); font-size: 0.88rem; font-family: 'Poppins', sans-serif;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    .auth-field input:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(139,92,246,0.15);
+    }
+    .auth-field input::placeholder { color: var(--text-3); }
+    .auth-submit {
+      width: 100%; padding: 13px 0; border-radius: 10px; border: none;
+      background: var(--grad); color: #fff; font-size: 0.9rem;
+      font-weight: 700; font-family: 'Poppins', sans-serif;
+      cursor: pointer; transition: opacity 0.2s, transform 0.15s;
+      margin-top: 6px;
+    }
+    .auth-submit:hover { opacity: 0.9; }
+    .auth-submit:active { transform: scale(0.98); }
+    .auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .auth-error {
+      display: none; margin-top: 12px; padding: 10px 14px;
+      border-radius: 9px; font-size: 0.8rem; font-weight: 500;
+      background: rgba(239,68,68,0.1); color: #F87171;
+      border: 1px solid rgba(239,68,68,0.2);
+    }
+    .auth-error.show { display: block; }
+    .auth-success {
+      display: none; margin-top: 12px; padding: 10px 14px;
+      border-radius: 9px; font-size: 0.8rem; font-weight: 500;
+      background: rgba(52,211,153,0.1); color: var(--green);
+      border: 1px solid rgba(52,211,153,0.2);
+    }
+    .auth-success.show { display: block; }
+    .auth-footer {
+      text-align: center; margin-top: 24px; font-size: 0.76rem; color: var(--text-2);
+    }
+    .auth-footer a {
+      color: var(--purple); text-decoration: none; font-weight: 600;
+    }
+    .auth-footer a:hover { text-decoration: underline; }
+    .auth-spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+      vertical-align: middle; margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- ── Auth Screen ──────────────────────── -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <img src="assets/provoulevou-logo.png" alt="Provou Levou">
+      <p>Portal do Afiliado</p>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-auth="login">Entrar</button>
+      <button class="auth-tab" data-auth="signup">Criar Conta</button>
+    </div>
+
+    <!-- Login Form -->
+    <form class="auth-form active" id="loginForm" onsubmit="doLogin(event)">
+      <div class="auth-field">
+        <label>E-mail</label>
+        <input type="email" id="loginEmail" placeholder="seu@email.com" required autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Senha</label>
+        <input type="password" id="loginPass" placeholder="Sua senha" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="auth-submit" id="loginBtn">Entrar</button>
+      <div class="auth-error" id="loginError"></div>
+    </form>
+
+    <!-- Signup Form -->
+    <form class="auth-form" id="signupForm" onsubmit="doSignup(event)">
+      <div class="auth-field">
+        <label>Nome completo</label>
+        <input type="text" id="signupNome" placeholder="Seu nome" required>
+      </div>
+      <div class="auth-field">
+        <label>E-mail</label>
+        <input type="email" id="signupEmail" placeholder="seu@email.com" required autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Telefone (opcional)</label>
+        <input type="tel" id="signupTel" placeholder="(11) 99999-9999">
+      </div>
+      <div class="auth-field">
+        <label>Senha (min. 6 caracteres)</label>
+        <input type="password" id="signupPass" placeholder="Crie uma senha" required minlength="6" autocomplete="new-password">
+      </div>
+      <div class="auth-field">
+        <label>Código de indicação (opcional)</label>
+        <input type="text" id="signupRef" placeholder="slug-do-afiliado">
+      </div>
+      <button type="submit" class="auth-submit" id="signupBtn">Criar Conta</button>
+      <div class="auth-error" id="signupError"></div>
+      <div class="auth-success" id="signupSuccess"></div>
+    </form>
+
+    <div class="auth-footer">
+      <a href="index.html">Voltar ao site</a>
+    </div>
+  </div>
+</div>
+
+<div class="layout" id="appLayout" style="display:none;">
+
+  <!-- ── Sidebar ─────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <img src="assets/provoulevou-logo.png" alt="Provou Levou">
+    </div>
+
+    <nav class="sb-nav">
+      <div class="nav-label">Menu</div>
+      <button class="nav-item active" data-sec="overview">
+        <i data-lucide="layout-dashboard"></i> Visão Geral
+      </button>
+      <button class="nav-item" data-sec="rede">
+        <i data-lucide="share-2"></i> Minha Rede
+      </button>
+      <button class="nav-item" data-sec="contratos">
+        <i data-lucide="file-text"></i> Contratos
+      </button>
+      <button class="nav-item" data-sec="criativos">
+        <i data-lucide="image"></i> Criativos
+      </button>
+      <div class="nav-label" style="margin-top:8px;">Conta</div>
+      <button class="nav-item" onclick="showToast('Em breve!')">
+        <i data-lucide="settings"></i> Configurações
+      </button>
+      <button class="nav-item" onclick="doLogout()">
+        <i data-lucide="log-out"></i> Sair
+      </button>
+    </nav>
+
+    <div class="sb-user">
+      <div class="user-card">
+        <div class="u-avatar" id="sb-avatar">CM</div>
+        <div class="u-info">
+          <div class="u-name" id="sb-name">Carlos Mendes</div>
+          <div class="u-badge inter" id="sb-level">⭐ Intermediário</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ───────────────────────────── -->
+  <div class="main">
+
+    <div class="topbar">
+      <div>
+        <div class="tb-title" id="tb-title">Visão Geral</div>
+        <div class="tb-sub" id="tb-sub">Bem-vindo de volta, Carlos</div>
+      </div>
+      <div class="tb-actions">
+        <button class="tb-btn" onclick="copyLink()">
+          <i data-lucide="link-2"></i> Meu Link
+        </button>
+        <button class="tb-btn gold" onclick="navigate('criativos')">
+          <i data-lucide="image"></i> Criativos
+        </button>
+        <button class="tb-btn" id="theme-toggle" onclick="toggleTheme()" title="Alternar tema" style="padding:8px 10px;">
+          <i data-lucide="sun" id="theme-icon"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══ VISÃO GERAL ═══════════════════ -->
+      <section class="section active" id="sec-overview">
+        <div class="sec-intro">
+          <h2>Olá, Carlos. 👋</h2>
+          <p>Acompanhe sua performance, comissões e a evolução da sua rede.</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card g">
+            <div class="stat-ico g"><i data-lucide="trending-up"></i></div>
+            <div class="stat-lbl">Faturamento Gerado</div>
+            <div class="stat-val g" id="s-fat">R$ 0</div>
+            <div class="stat-sub"><span class="badge-up">+23%</span> vs. mês anterior</div>
+          </div>
+          <div class="stat-card p">
+            <div class="stat-ico p"><i data-lucide="wallet"></i></div>
+            <div class="stat-lbl">Suas Comissões</div>
+            <div class="stat-val p" id="s-com">R$ 0</div>
+            <div class="stat-sub">22% sobre vendas diretas</div>
+          </div>
+          <div class="stat-card e">
+            <div class="stat-ico e"><i data-lucide="repeat-2"></i></div>
+            <div class="stat-lbl">Recorrência Ativa</div>
+            <div class="stat-val e" id="s-mrr">R$ 0/mês</div>
+            <div class="stat-sub" id="s-ct">— contratos ativos</div>
+          </div>
+          <div class="stat-card s">
+            <div class="stat-ico s"><i data-lucide="users"></i></div>
+            <div class="stat-lbl">Rede Total</div>
+            <div class="stat-val s" id="s-rede">0</div>
+            <div class="stat-sub">sub-afiliados na rede</div>
+          </div>
+        </div>
+
+        <!-- Commission Progress -->
+        <div class="prog-card">
+          <div class="prog-head">
+            <div>
+              <h3>Progresso para o próximo nível</h3>
+              <p style="font-size:0.78rem;color:var(--text-2);margin-top:4px;">
+                Gere R$50K/mês para atingir o nível <strong style="background:var(--grad-2);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">Top (30%)</strong>
+              </p>
+            </div>
+            <div style="text-align:right;">
+              <div class="prog-rate" id="p-rate">22% <span>comissão atual</span></div>
+              <div style="font-size:0.73rem;color:var(--text-2);margin-top:4px;" id="p-meta">R$ 28.750 / R$ 50.000</div>
+            </div>
+          </div>
+          <div class="prog-track">
+            <div class="prog-fill" id="p-fill"></div>
+            <div class="prog-dot" id="p-dot"></div>
+          </div>
+          <div class="prog-marks">
+            <div class="prog-mark reached">
+              <div class="mark-lbl">Inicial</div>
+              <div class="mark-val">15%</div>
+            </div>
+            <div class="prog-mark reached">
+              <div class="mark-lbl">R$10K</div>
+              <div class="mark-val">20%</div>
+            </div>
+            <div class="prog-mark here">
+              <div class="mark-lbl">● Agora</div>
+              <div class="mark-val">22%</div>
+            </div>
+            <div class="prog-mark">
+              <div class="mark-lbl">R$35K</div>
+              <div class="mark-val">25%</div>
+            </div>
+            <div class="prog-mark">
+              <div class="mark-lbl">R$50K → Top</div>
+              <div class="mark-val">30%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity + My Link -->
+        <div class="g2">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">Últimas Atividades <span class="card-count">8</span></div>
+              <button class="view-all" onclick="navigate('contratos')">Ver tudo <i data-lucide="arrow-right"></i></button>
+            </div>
+            <div class="act-list" id="act-list"></div>
+          </div>
+
+          <div>
+            <!-- My Link -->
+            <div class="card" style="margin-bottom:14px;">
+              <div class="card-head">
+                <div class="card-title">Meu Link de Afiliado</div>
+              </div>
+              <div class="link-box" id="link-box">https://provoulevou.com/?ref=carlos-mendes</div>
+              <div class="link-btns">
+                <button class="lbtn" onclick="copyLink()"><i data-lucide="copy"></i> Copiar</button>
+                <button class="lbtn" onclick="shareLink()"><i data-lucide="share-2"></i> Compartilhar</button>
+                <button class="lbtn g"><i data-lucide="qr-code"></i> QR Code</button>
+              </div>
+            </div>
+
+            <!-- Sub-rate highlight -->
+            <div class="card" style="background:linear-gradient(135deg,rgba(99,102,241,0.07),rgba(217,70,239,0.07));border-color:rgba(139,92,246,0.2);">
+              <div style="display:flex;align-items:center;gap:14px;">
+                <div style="width:46px;height:46px;border-radius:12px;background:var(--purple-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i data-lucide="git-branch" style="width:22px;height:22px;color:var(--purple);"></i>
+                </div>
+                <div>
+                  <div style="font-size:0.72rem;color:var(--text-2);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Bônus Sub-Afiliação</div>
+                  <div style="font-family:'Outfit',sans-serif;font-size:1.8rem;font-weight:800;background:var(--grad-2);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1;">+5% <span style="font-family:'Poppins',sans-serif;font-size:0.82rem;font-weight:500;-webkit-text-fill-color:var(--text-2);">sobre vendas da sua rede</span></div>
+                  <div style="font-size:0.72rem;color:var(--text-2);margin-top:4px;">Você tem <strong style="color:var(--text);">8 sub-afiliados</strong> ativos gerando comissão extra</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ MINHA REDE ══════════════════════ -->
+      <section class="section" id="sec-rede">
+        <div class="sec-intro">
+          <h2>Minha Rede de Afiliados</h2>
+          <p>Visualize toda a hierarquia da sua rede e a performance de cada sub-afiliado.</p>
+        </div>
+
+        <div class="tree-wrap">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;">Hierarquia Visual</div>
+            <div style="display:flex;gap:16px;font-size:0.72rem;color:var(--text-2);">
+              <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#6D28D9,#D946EF);display:inline-block;"></span> Você</span>
+              <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#5B21B6,#7C3AED);display:inline-block;"></span> Intermediário</span>
+              <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#2D3748,#4A5568);display:inline-block;"></span> Inicial</span>
+            </div>
+          </div>
+          <div class="tree-canvas" id="tree-canvas">
+            <svg class="tree-svg" id="tree-svg"></svg>
+          </div>
+        </div>
+
+        <div class="tbl-card">
+          <div class="tbl-head">
+            <div class="card-title">Todos os Sub-Afiliados <span class="card-count" id="rede-count">8</span></div>
+            <div style="font-size:0.77rem;color:var(--text-2);">Inclui 2° nível da rede</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Afiliado</th>
+                <th>Nível</th>
+                <th>Faturamento Gerado</th>
+                <th>Comissão Gerada</th>
+                <th>Contratos</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="rede-tbody"></tbody>
+          </table>
+          <div class="tbl-foot">
+            <div class="tbl-foot-lbl">Total gerado pela rede</div>
+            <div class="tbl-foot-val" id="rede-total">R$ 0</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ CONTRATOS ════════════════════════ -->
+      <section class="section" id="sec-contratos">
+        <div class="sec-intro">
+          <h2>Contratos & Planos Fechados</h2>
+          <p>Todos os lojistas que você trouxe para o Provou Levou e a recorrência gerada.</p>
+        </div>
+
+        <div class="ctr-summary">
+          <div class="mrr-card">
+            <div class="mrr-ico g"><i data-lucide="dollar-sign"></i></div>
+            <div>
+              <div class="mrr-lbl">MRR Total</div>
+              <div class="mrr-val g" id="mrr-total">R$ 0</div>
+            </div>
+          </div>
+          <div class="mrr-card">
+            <div class="mrr-ico p"><i data-lucide="file-check"></i></div>
+            <div>
+              <div class="mrr-lbl">Contratos Ativos</div>
+              <div class="mrr-val p" id="ct-ativos">0</div>
+            </div>
+          </div>
+          <div class="mrr-card">
+            <div class="mrr-ico e"><i data-lucide="percent"></i></div>
+            <div>
+              <div class="mrr-lbl">Sua Comissão/mês</div>
+              <div class="mrr-val e" id="ct-com">R$ 0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tbl-card">
+          <div class="tbl-head">
+            <div class="card-title">Histórico de Contratos</div>
+            <div style="font-size:0.77rem;color:var(--text-2);">Comissão: 22% direto + 5% sub-rede</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Plano</th>
+                <th>MRR</th>
+                <th>Sua Comissão/mês</th>
+                <th>Data</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="ct-tbody"></tbody>
+          </table>
+          <div class="tbl-foot">
+            <div class="tbl-foot-lbl">Recorrência total gerada</div>
+            <div class="tbl-foot-val" id="ct-total">R$ 0</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ CRIATIVOS ════════════════════════ -->
+      <section class="section" id="sec-criativos">
+        <div class="sec-intro">
+          <h2>Biblioteca de Criativos</h2>
+          <p>Materiais exclusivos para você divulgar o Provou Levou com alta conversão.</p>
+        </div>
+
+        <div class="cri-filters">
+          <button class="flt-btn active" data-filter="all">Todos</button>
+          <button class="flt-btn" data-filter="video">Vídeos</button>
+          <button class="flt-btn" data-filter="image">Imagens</button>
+          <button class="flt-btn" data-filter="pack">Packs</button>
+        </div>
+
+        <div class="cri-grid" id="cri-grid"></div>
+      </section>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<div id="toast"><i data-lucide="check-circle"></i><span></span></div>
+
+<script>
+/* ──────────────────────────── SUPABASE ─────────────────────── */
+let sb = null;
+let currentAfiliado = null;
+
+/* ──────────────────────────── AUTH TABS ─────────────────────── */
+document.querySelectorAll('.auth-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.auth === 'login' ? 'loginForm' : 'signupForm').classList.add('active');
+  });
+});
+
+/* ──────────────────────────── LOGIN ─────────────────────────── */
+async function doLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pass  = document.getElementById('loginPass').value.trim();
+  const btn   = document.getElementById('loginBtn');
+  const errEl = document.getElementById('loginError');
+  errEl.classList.remove('show');
+
+  btn.disabled = true;
+  btn.textContent = '';
+  const spinner = document.createElement('span');
+  spinner.className = 'auth-spinner';
+  btn.appendChild(spinner);
+  btn.appendChild(document.createTextNode(' Entrando...'));
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+  if (error || !data.user) {
+    errEl.textContent = error?.message === 'Invalid login credentials'
+      ? 'E-mail ou senha inválidos.' : (error?.message || 'Erro ao entrar.');
+    errEl.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+    return;
+  }
+
+  const afiliado = await fetchAfiliado(data.user.email);
+  if (!afiliado) {
+    errEl.textContent = 'Conta não encontrada no programa de afiliados. Cadastre-se primeiro.';
+    errEl.classList.add('show');
+    await sb.auth.signOut();
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+    return;
+  }
+
+  currentAfiliado = afiliado;
+  showDashboard();
+}
+
+/* ──────────────────────────── SIGNUP ────────────────────────── */
+async function doSignup(e) {
+  e.preventDefault();
+  const nome  = document.getElementById('signupNome').value.trim();
+  const email = document.getElementById('signupEmail').value.trim().toLowerCase();
+  const tel   = document.getElementById('signupTel').value.trim();
+  const pass  = document.getElementById('signupPass').value.trim();
+  const ref   = document.getElementById('signupRef').value.trim();
+  const btn   = document.getElementById('signupBtn');
+  const errEl = document.getElementById('signupError');
+  const sucEl = document.getElementById('signupSuccess');
+
+  errEl.classList.remove('show');
+  sucEl.classList.remove('show');
+
+  if (pass.length < 6) {
+    errEl.textContent = 'A senha deve ter pelo menos 6 caracteres.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '';
+  const spinner = document.createElement('span');
+  spinner.className = 'auth-spinner';
+  btn.appendChild(spinner);
+  btn.appendChild(document.createTextNode(' Criando conta...'));
+
+  // 1. Create auth user
+  const { data: authData, error: authErr } = await sb.auth.signUp({ email, password: pass });
+
+  if (authErr) {
+    const msg = authErr.message.includes('already registered')
+      ? 'Este e-mail já está cadastrado. Faça login.' : authErr.message;
+    errEl.textContent = msg;
+    errEl.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Criar Conta';
+    return;
+  }
+
+  // 2. Generate slug from name
+  const slug = nome.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'')
+    .replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
+  // 3. Look up referrer if provided
+  let referidoPor = null;
+  if (ref) {
+    const { data: refData } = await sb.from('afiliados').select('id').eq('slug', ref).single();
+    if (refData) referidoPor = refData.id;
+  }
+
+  // 4. Insert into afiliados table
+  const { error: insertErr } = await sb.from('afiliados').insert({
+    email,
+    nome,
+    telefone: tel || null,
+    slug,
+    nivel: 'Inicial',
+    comissao_rate: 15,
+    sub_rate: 5,
+    referido_por: referidoPor,
+  });
+
+  if (insertErr) {
+    errEl.textContent = insertErr.message.includes('duplicate')
+      ? 'Este e-mail ou slug já está cadastrado.' : ('Erro ao criar perfil: ' + insertErr.message);
+    errEl.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Criar Conta';
+    return;
+  }
+
+  // Success
+  sucEl.textContent = 'Conta criada! Verifique seu e-mail para confirmar, depois faça login.';
+  sucEl.classList.add('show');
+  btn.disabled = false;
+  btn.textContent = 'Criar Conta';
+
+  // If Supabase auto-confirms, go straight to dashboard
+  if (authData.session) {
+    const afiliado = await fetchAfiliado(email);
+    if (afiliado) {
+      currentAfiliado = afiliado;
+      showDashboard();
+    }
+  }
+}
+
+/* ──────────────────────────── FETCH AFILIADO ────────────────── */
+async function fetchAfiliado(email) {
+  const { data, error } = await sb.from('afiliados').select('*').eq('email', email).single();
+  if (error || !data) return null;
+  return data;
+}
+
+/* ──────────────────────────── SHOW DASHBOARD ────────────────── */
+function showDashboard() {
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('appLayout').style.display = 'flex';
+
+  // Update sidebar user info
+  const firstName = currentAfiliado.nome.split(' ')[0];
+  document.getElementById('sb-name').textContent = currentAfiliado.nome;
+  document.getElementById('sb-avatar').textContent = initials(currentAfiliado.nome);
+  const lvlClass = levelClass(currentAfiliado.nivel);
+  const sbLevel = document.getElementById('sb-level');
+  sbLevel.className = 'u-badge ' + lvlClass;
+  const lvlIcon = lvlClass === 'top' ? '🏆' : lvlClass === 'inter' ? '⭐' : '🌱';
+  sbLevel.textContent = lvlIcon + ' ' + currentAfiliado.nivel;
+
+  // Update topbar
+  document.getElementById('tb-sub').textContent = 'Bem-vindo de volta, ' + firstName;
+
+  // Update greeting
+  document.querySelector('#sec-overview .sec-intro h2').textContent = 'Olá, ' + firstName + '. 👋';
+
+  // Update affiliate link
+  aff.link = 'https://provoulevou.com/?ref=' + currentAfiliado.slug;
+  aff.name = currentAfiliado.nome;
+  aff.commissionRate = currentAfiliado.comissao_rate || 15;
+  aff.subRate = currentAfiliado.sub_rate || 5;
+  aff.level = currentAfiliado.nivel || 'Inicial';
+  document.getElementById('link-box').textContent = aff.link;
+
+  init();
+}
+
+/* ──────────────────────────── LOGOUT ────────────────────────── */
+async function doLogout() {
+  await sb.auth.signOut();
+  currentAfiliado = null;
+  document.getElementById('appLayout').style.display = 'none';
+  document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginError').classList.remove('show');
+}
+
+/* ──────────────────────────── DATA (defaults) ───────────────── */
+const aff = {
+  name: '', initials: '', level: 'Inicial', commissionRate: 15, subRate: 5,
+  stats: { totalRevenue: 0, totalCommissions: 0, activeMRR: 0, totalContracts: 0, totalSubs: 0 },
+  link: '',
+  network: [],
+};
+
+const contracts = [];
+
+const activities = [];
+
+const creatives = [
+  { type:'video', name:'Apresentação do Produto',  dur:'1:30', size:'24 MB', date:'Set 2025' },
+  { type:'video', name:'Depoimento de Cliente',     dur:'0:45', size:'12 MB', date:'Set 2025' },
+  { type:'video', name:'Tutorial de Uso',           dur:'2:15', size:'38 MB', date:'Out 2025' },
+  { type:'video', name:'Pitch de Vendas — 60s',     dur:'1:00', size:'18 MB', date:'Nov 2025' },
+  { type:'image', name:'Banner 1080×1080',          fmt:'PNG',  size:'2.1 MB', date:'Set 2025' },
+  { type:'image', name:'Story Vertical 9:16',       fmt:'PNG',  size:'1.8 MB', date:'Set 2025' },
+  { type:'image', name:'Banner Horizontal',         fmt:'PNG',  size:'3.2 MB', date:'Out 2025' },
+  { type:'image', name:'Post Carrossel (5 slides)',  fmt:'ZIP',  size:'6.4 MB', date:'Nov 2025' },
+  { type:'pack',  name:'Kit Identidade Visual',     fmt:'ZIP',  size:'12 MB',  date:'Set 2025' },
+  { type:'pack',  name:'Pack Copy & Scripts',       fmt:'PDF',  size:'1.1 MB', date:'Out 2025' },
+];
+
+/* ──────────────────────────── HELPERS ───────────────────────── */
+function fmtR(n) { return 'R$ ' + n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtK(n) { return n >= 1000 ? 'R$ '+(n/1000).toFixed(1).replace('.',',')+'K' : fmtR(n); }
+function levelClass(l) {
+  if (!l) return '';
+  const s = l.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'');
+  if (s.includes('inter')) return 'inter';
+  if (s.includes('top'))   return 'top';
+  return 'ini';
+}
+function initials(name) { return name.split(' ').slice(0,2).map(n=>n[0].toUpperCase()).join(''); }
+
+/* ──────────────────────────── NAVIGATION ────────────────────── */
+const titles = { overview:'Visão Geral', rede:'Minha Rede', contratos:'Contratos', criativos:'Criativos' };
+function navigate(sec) {
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`[data-sec="${sec}"]`);
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(`sec-${sec}`).classList.add('active');
+  document.getElementById('tb-title').textContent = titles[sec] || sec;
+  if (sec === 'rede') renderTree();
+  lucide.createIcons();
+}
+document.querySelectorAll('.nav-item[data-sec]').forEach(btn => {
+  btn.addEventListener('click', () => navigate(btn.dataset.sec));
+});
+
+/* ──────────────────────────── OVERVIEW ──────────────────────── */
+function renderOverview() {
+  const s = aff.stats;
+  document.getElementById('s-fat').textContent = fmtK(s.totalRevenue);
+  document.getElementById('s-com').textContent = fmtK(s.totalCommissions);
+  document.getElementById('s-mrr').textContent = fmtK(s.activeMRR)+'/mês';
+  document.getElementById('s-ct').textContent  = s.totalContracts+' contratos ativos';
+  document.getElementById('s-rede').textContent = s.totalSubs;
+
+  // Progress bar
+  const pct = Math.min((s.totalRevenue / 50000) * 100, 100);
+  setTimeout(() => {
+    document.getElementById('p-fill').style.width = pct + '%';
+    document.getElementById('p-dot').style.left   = pct + '%';
+  }, 200);
+
+  // Activities
+  const al = document.getElementById('act-list');
+  al.innerHTML = activities.map(a => `
+    <div class="act-item">
+      <div class="act-dot ${a.type}"></div>
+      <div class="act-info">
+        <div class="act-main">${a.main}</div>
+        <div class="act-time">${a.sub}</div>
+      </div>
+      ${a.amt ? `<div class="act-amt ${a.amtCls}">${a.amt}</div>` : ''}
+    </div>`).join('');
+}
+
+/* ──────────────────────────── TREE ──────────────────────────── */
+function renderTree() {
+  const canvas = document.getElementById('tree-canvas');
+  const svg    = document.getElementById('tree-svg');
+  canvas.querySelectorAll('.t-node').forEach(n => n.remove());
+  svg.innerHTML = '';
+
+  const W = Math.max(canvas.offsetWidth || 760, 760);
+  const ROW_H = 130;
+  const ROOT_Y = 40;
+
+  // Collect all L2 nodes grouped by L1
+  const l1 = aff.network;
+  const l2groups = l1.map(s => s.subs || []);
+  const totalL2 = l2groups.reduce((s, g) => s + (g.length || 1), 0);
+  const slotW = W / totalL2;
+
+  // Calculate L2 x positions and L1 centroids
+  let slotIdx = 0;
+  const l1Positions = [];
+
+  l1.forEach((sub, i) => {
+    const slots = l2groups[i].length || 1;
+    const l2Xs = [];
+    for (let j = 0; j < slots; j++) {
+      l2Xs.push((slotIdx + j + 0.5) * slotW);
+    }
+    const l1X = l2Xs.reduce((a,b)=>a+b,0) / l2Xs.length;
+    l1Positions.push({ x: l1X, l2Xs });
+    slotIdx += slots;
+  });
+
+  const rootX = W / 2;
+  const rootY = ROOT_Y;
+  const l1Y   = rootY + ROW_H;
+  const l2Y   = l1Y   + ROW_H;
+
+  // Draw root
+  addNode(canvas, aff.name, null, rootX, rootY, 'root', {
+    level:'Você', revenue: aff.stats.totalRevenue, contracts: aff.stats.totalContracts
+  });
+
+  // Draw L1 and L2
+  l1.forEach((sub, i) => {
+    const lx = l1Positions[i].x;
+    addNode(canvas, sub.name, sub.level, lx, l1Y, 'l1', sub);
+    drawCurve(svg, rootX, rootY + 34, lx, l1Y);
+
+    const l2Xs = l1Positions[i].l2Xs;
+    sub.subs.forEach((ss, j) => {
+      const sx = l2Xs[j];
+      addNode(canvas, ss.name, ss.level, sx, l2Y, 'l2', ss);
+      drawCurve(svg, lx, l1Y + 26, sx, l2Y);
+    });
+  });
+
+  canvas.style.minHeight = (l2Y + 90) + 'px';
+  svg.setAttribute('height', l2Y + 90);
+  lucide.createIcons();
+}
+
+function addNode(canvas, name, level, cx, cy, cls, data) {
+  const div = document.createElement('div');
+  div.className = 't-node';
+  const r = cls === 'root' ? 34 : cls === 'l1' ? 26 : 20;
+  div.style.left = (cx - r) + 'px';
+  div.style.top  = cy + 'px';
+
+  const lc = cls === 'root' ? 'root' : levelClass(level);
+  const ini = initials(name);
+  const rev = data.revenue !== undefined ? fmtK(data.revenue) : fmtK(data.stats?.totalRevenue || 0);
+  const ct  = data.contracts !== undefined ? data.contracts : (data.stats?.totalContracts || 0);
+
+  div.innerHTML = `
+    <div class="n-circle ${cls} ${cls!=='root' ? lc : ''}">${ini}</div>
+    <div class="n-lbl">${name.split(' ')[0]}</div>
+    <div class="n-rev">${rev}</div>
+    <div class="n-tip">
+      <div class="tip-name">${name}</div>
+      <div class="tip-row"><span class="tip-lbl">Nível</span><span class="tip-val">${level || 'Você'}</span></div>
+      <div class="tip-row"><span class="tip-lbl">Faturamento</span><span class="tip-val g">${rev}</span></div>
+      <div class="tip-row"><span class="tip-lbl">Contratos</span><span class="tip-val">${ct}</span></div>
+    </div>`;
+  canvas.appendChild(div);
+}
+
+function drawCurve(svg, x1, y1, x2, y2) {
+  const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  const my = (y1 + y2) / 2;
+  p.setAttribute('d', `M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`);
+  p.setAttribute('stroke', 'rgba(139,92,246,0.28)');
+  p.setAttribute('stroke-width', '1.5');
+  p.setAttribute('stroke-dasharray', '5 4');
+  p.setAttribute('fill', 'none');
+  svg.appendChild(p);
+}
+
+/* ──────────────────────────── REDE TABLE ────────────────────── */
+function renderRedeTable() {
+  const tbody = document.getElementById('rede-tbody');
+  const rows = [];
+  let total = 0;
+
+  aff.network.forEach(s => {
+    rows.push({ ...s, indent: false });
+    total += s.revenue;
+    (s.subs || []).forEach(ss => { rows.push({ ...ss, indent: true }); total += ss.revenue; });
+  });
+
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>
+        <div class="td-name" style="${r.indent ? 'padding-left:20px;' : ''}">
+          ${r.indent ? '<span style="color:var(--text-3);margin-right:6px;">↳</span>' : ''}${r.name}
+        </div>
+        ${r.indent ? '<div class="td-sub">Sub-afiliado (2° nível)</div>' : '<div class="td-sub">Indicado direto</div>'}
+      </td>
+      <td><span class="lvl-pip ${levelClass(r.level)}">${r.level}</span></td>
+      <td><span class="rev-val">${fmtK(r.revenue)}</span></td>
+      <td>${fmtK(r.commissions)}</td>
+      <td>${r.contracts} contrato${r.contracts !== 1 ? 's' : ''}</td>
+      <td><span class="dot-status ok">Ativo</span></td>
+    </tr>`).join('');
+
+  document.getElementById('rede-total').textContent = fmtK(total);
+  document.getElementById('rede-count').textContent = rows.length;
+}
+
+/* ──────────────────────────── CONTRACTS ─────────────────────── */
+function renderContracts() {
+  const tbody = document.getElementById('ct-tbody');
+  const totalMRR = contracts.reduce((s,c) => s + c.mrr, 0);
+  const ativos   = contracts.filter(c => c.status === 'ativo').length;
+  const myComMon = Math.round(totalMRR * aff.commissionRate / 100);
+
+  document.getElementById('mrr-total').textContent = fmtR(totalMRR);
+  document.getElementById('ct-ativos').textContent = ativos;
+  document.getElementById('ct-com').textContent    = fmtR(myComMon) + '/mês';
+  document.getElementById('ct-total').textContent  = fmtR(totalMRR);
+
+  tbody.innerHTML = contracts.map(c => {
+    const pClass = c.plan === 'Elite' ? 'elite' : c.plan === 'Pro' ? 'pro' : 'starter';
+    const myCom  = Math.round(c.mrr * aff.commissionRate / 100);
+    return `
+    <tr>
+      <td class="td-name">${c.client}</td>
+      <td><span class="plan-pip ${pClass}">${c.plan}</span></td>
+      <td><span class="rev-val">${fmtR(c.mrr)}</span></td>
+      <td style="color:var(--green);font-weight:600;">${fmtR(myCom)}</td>
+      <td style="color:var(--text-2);">${c.date}</td>
+      <td><span class="dot-status ok">Ativo</span></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ──────────────────────────── CRIATIVOS ─────────────────────── */
+function renderCreatives(filter) {
+  const filtered = filter === 'all' ? creatives : creatives.filter(c => c.type === filter);
+  const grid = document.getElementById('cri-grid');
+
+  grid.innerHTML = filtered.map(c => {
+    const iconName = c.type === 'video' ? 'video' : c.type === 'pack' ? 'package' : 'image';
+    const detail   = c.type === 'video' ? c.dur + ' · ' + c.size : (c.fmt || '') + ' · ' + c.size;
+    return `
+    <div class="cri-card" onclick="showToast('Preparando download...')">
+      <div class="cri-thumb ${c.type === 'pack' ? 'pack' : c.type}">
+        <div class="th-ico ${c.type}"><i data-lucide="${iconName}"></i></div>
+        ${c.type === 'video' ? `<div class="play-ov"><div class="play-circ"><i data-lucide="play"></i></div></div>` : ''}
+      </div>
+      <div class="cri-meta">
+        <div class="cri-name">${c.name}</div>
+        <div class="cri-foot">
+          <div class="cri-info">${detail}</div>
+          <div class="dl-btn"><i data-lucide="download"></i> Baixar</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+document.querySelectorAll('.flt-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.flt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderCreatives(btn.dataset.filter);
+  });
+});
+
+/* ──────────────────────────── ACTIONS ───────────────────────── */
+function copyLink() {
+  navigator.clipboard.writeText(aff.link).then(() => showToast('Link copiado!')).catch(() => {
+    document.getElementById('link-box') && (document.getElementById('link-box').select?.());
+    showToast('Link copiado!');
+  });
+}
+function shareLink() {
+  if (navigator.share) { navigator.share({ title: 'Provou Levou', url: aff.link }); }
+  else { copyLink(); }
+}
+
+/* ──────────────────────────── TOAST ────────────────────────── */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.querySelector('span').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ──────────────────────────── INIT ─────────────────────────── */
+function init() {
+  renderOverview();
+  renderRedeTable();
+  renderContracts();
+  renderCreatives('all');
+  lucide.createIcons();
+}
+
+/* ──────────────────────────── THEME ────────────────────────── */
+function toggleTheme() {
+  const html = document.documentElement;
+  const isLight = html.getAttribute('data-theme') === 'light';
+  const next = isLight ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('pl-theme', next);
+  updateThemeIcon(next);
+}
+function updateThemeIcon(theme) {
+  const icon = document.getElementById('theme-icon');
+  if (!icon) return;
+  icon.setAttribute('data-lucide', theme === 'light' ? 'moon' : 'sun');
+  lucide.createIcons();
+}
+(function applyStoredTheme() {
+  const stored = localStorage.getItem('pl-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', stored);
+  updateThemeIcon(stored);
+})();
+
+/* ──────────────────────────── APP BOOT ─────────────────────── */
+(async function boot() {
+  if (!window.ENV || !window.ENV.SUPABASE_URL || !window.ENV.SUPABASE_KEY) {
+    document.getElementById('loginError').textContent = 'Erro: configuração do Supabase não encontrada.';
+    document.getElementById('loginError').classList.add('show');
+    return;
+  }
+
+  sb = window.supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_KEY);
+
+  // Check for existing session
+  const { data: { session } } = await sb.auth.getSession();
+  if (session && session.user) {
+    const afiliado = await fetchAfiliado(session.user.email);
+    if (afiliado) {
+      currentAfiliado = afiliado;
+      showDashboard();
+      return;
+    }
+  }
+
+  // No session — show auth screen, init icons
+  lucide.createIcons();
+})();
+</script>
+</body>
+</html>

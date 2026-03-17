@@ -289,6 +289,7 @@
                 fd.append('height', h);
                 fd.append('weight', w);
                 fd.append('product_name', prodName);
+                fd.append('origin', window.location.origin);
 
                 if (prodImg) {
                     const b = await fetch(prodImg).then(r => r.blob());
