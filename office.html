@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Provou Levou HQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="env.js"></script>
+  <style>
+/* ── RESET ─────────────────────────────────────────────────────── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Outfit',sans-serif; background:#0b0f1a; overflow:hidden; user-select:none; }
+
+/* ── LOGIN ──────────────────────────────────────────────────────── */
+#login-wrap {
+  position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+  background: radial-gradient(circle at 30% 40%, rgba(139,92,246,.12), transparent 50%),
+              radial-gradient(circle at 70% 70%, rgba(217,70,239,.08), transparent 50%), #0b0f1a;
+  z-index:999;
+}
+.login-box {
+  background:#f9fafb; border-radius:24px; padding:42px 38px;
+  width:100%; max-width:370px; box-shadow:0 24px 70px rgba(0,0,0,.25);
+}
+.login-box img  { width:160px; display:block; margin:0 auto 26px; }
+.login-box h2   { text-align:center; font-size:15px; color:#374151; font-weight:600; margin-bottom:22px; }
+.l-input {
+  display:block; width:100%; padding:13px 15px; margin-bottom:11px;
+  border:1.5px solid #e5e7eb; border-radius:11px; font-family:'Outfit'; font-size:15px;
+  color:#111827; background:#f3f4f6; outline:none; transition:.2s;
+}
+.l-input:focus { border-color:#8b5cf6; background:#fff; box-shadow:0 0 0 3px rgba(139,92,246,.15); }
+.l-btn {
+  width:100%; padding:14px; margin-top:6px; border:none; border-radius:11px; cursor:pointer;
+  background:linear-gradient(135deg,#8b5cf6,#d946ef); color:#fff;
+  font-family:'Outfit'; font-size:16px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; gap:8px; transition:.25s;
+}
+.l-btn:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(139,92,246,.35); }
+.l-btn:disabled { opacity:.6; transform:none; cursor:wait; }
+.l-err { color:#ef4444; font-size:13px; text-align:center; margin-top:11px; display:none; font-weight:600; }
+
+/* ── HUD (fixed overlay) ─────────────────────────────────────────── */
+#hud {
+  position:fixed; top:0; left:0; right:0; z-index:80; display:none;
+  padding:12px 22px; display:none; align-items:center; justify-content:space-between;
+  background:rgba(7,10,22,.82); backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(139,92,246,.18);
+}
+.hud-logo { display:flex; align-items:center; gap:10px; }
+.hud-logo img { height:28px; }
+.hud-right { display:flex; align-items:center; gap:12px; }
+.hud-clock { font-size:12px; color:#475569; display:flex; align-items:center; gap:6px; }
+.hud-dot { width:7px; height:7px; border-radius:50%; background:#22c55e; animation:blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.hud-btn {
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); color:#64748b;
+  padding:7px 14px; border-radius:9px; font-family:'Outfit'; font-size:12px;
+  cursor:pointer; transition:.2s;
+}
+.hud-btn:hover { color:#f1f5f9; background:rgba(255,255,255,.1); }
+
+/* ── CONTROLS HINT ───────────────────────────────────────────────── */
+#ctrl-hint {
+  position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
+  display:none; align-items:center; gap:14px; z-index:80;
+  background:rgba(7,10,22,.8); border:1px solid rgba(255,255,255,.07);
+  border-radius:12px; padding:8px 18px; font-size:11px; color:#475569;
+  pointer-events:none;
+}
+.key {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:20px; height:20px; background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.12); border-radius:4px;
+  font-size:10px; color:#94a3b8; font-weight:700;
+}
+
+/* ── INTERACT PROMPT ─────────────────────────────────────────────── */
+#interact-prompt {
+  position:fixed; bottom:72px; left:50%; transform:translateX(-50%);
+  display:none; flex-direction:column; align-items:center; gap:5px;
+  z-index:80; pointer-events:none;
+}
+.prompt-key {
+  background:rgba(139,92,246,.18); border:2px solid #8b5cf6;
+  border-radius:10px; padding:5px 16px; font-size:12px; font-weight:700; color:#c4b5fd;
+  animation:prompt-glow 1.2s infinite;
+}
+@keyframes prompt-glow { 0%,100%{box-shadow:0 0 0 0 rgba(139,92,246,.4)} 50%{box-shadow:0 0 0 8px rgba(139,92,246,0)} }
+.prompt-npc { font-size:11px; color:#64748b; }
+
+/* ── VIEWPORT ─────────────────────────────────────────────────────── */
+#viewport {
+  position:fixed; inset:0; overflow:hidden; display:none;
+}
+
+/* ── WORLD ────────────────────────────────────────────────────────── */
+#world {
+  position:absolute; width:1800px; height:1020px;
+  will-change:transform;
+}
+
+/* Floor tiles */
+.world-floor {
+  position:absolute; left:44px; right:44px; top:82px; bottom:44px;
+  background:
+    linear-gradient(rgba(139,92,246,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139,92,246,.025) 1px, transparent 1px),
+    #0d1424;
+  background-size:60px 60px;
+}
+
+/* Back wall */
+.back-wall {
+  position:absolute; top:0; left:0; right:0; height:82px;
+  background:linear-gradient(180deg,#1e1b4b 0%,#13102c 100%);
+  border-bottom:3px solid rgba(139,92,246,.45);
+}
+
+/* Side + bottom walls */
+.wall { position:absolute; background:#0f1220; }
+.wall-l { top:0; left:0; bottom:0; width:44px; border-right:2px solid rgba(139,92,246,.18); }
+.wall-r { top:0; right:0; bottom:0; width:44px; border-left:2px solid rgba(139,92,246,.18); }
+.wall-b { bottom:0; left:0; right:0; height:44px; border-top:2px solid rgba(139,92,246,.1); }
+
+/* ── LOGO BANNER (on back wall) ───────────────────────────────────── */
+.logo-banner {
+  position:absolute; top:14px; left:50%; transform:translateX(-50%);
+  display:flex; align-items:center; gap:14px;
+  background:rgba(139,92,246,.14); border:1px solid rgba(139,92,246,.38);
+  border-radius:12px; padding:8px 22px; white-space:nowrap;
+  box-shadow:0 0 30px rgba(139,92,246,.12);
+}
+.logo-banner img { height:38px; filter:drop-shadow(0 0 10px rgba(139,92,246,.7)); }
+
+/* ── PLANTS ───────────────────────────────────────────────────────── */
+.plant { position:absolute; display:flex; flex-direction:column; align-items:center; }
+.plant-top { width:38px; height:34px; background:radial-gradient(circle,#22c55e,#15803d); clip-path:polygon(50% 0%,100% 65%,80% 100%,20% 100%,0% 65%); }
+.plant-pot { width:26px; height:18px; background:#6d28d9; border-radius:2px 2px 5px 5px; margin-top:-3px; }
+
+/* ── COFFEE CORNER ────────────────────────────────────────────────── */
+.coffee {
+  position:absolute; bottom:58px; right:60px;
+  display:flex; flex-direction:column; align-items:center; opacity:.65;
+}
+.coffee-body {
+  width:44px; height:52px; background:#1e293b; border-radius:8px;
+  border:1px solid rgba(255,255,255,.1); display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:5px;
+}
+.coffee-scr {
+  width:28px; height:14px; border-radius:3px; background:#0a1f10;
+  border:1px solid #22c55e; font-size:7px; color:#22c55e; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+}
+.coffee-btn { width:10px; height:10px; border-radius:50%; background:#dc2626; border:1px solid rgba(255,255,255,.15); }
+.coffee-steam { font-size:15px; animation:steam 2s ease-out infinite; margin-bottom:2px; }
+@keyframes steam { 0%{transform:translateY(0);opacity:.8} 100%{transform:translateY(-12px);opacity:0} }
+.coffee-lbl { font-size:9px; color:#1e293b; margin-top:4px; text-transform:uppercase; letter-spacing:.5px; }
+
+/* ── NPC ──────────────────────────────────────────────────────────── */
+.npc-unit {
+  position:absolute; display:flex; flex-direction:column; align-items:center;
+  cursor:pointer; overflow:visible;
+}
+.npc-unit:hover .npc-head { filter:brightness(1.15); }
+
+/* NPC character sits above desk */
+.npc-char { display:flex; flex-direction:column; align-items:center; position:relative; }
+.npc-name {
+  font-size:10px; font-weight:700; white-space:nowrap; padding:2px 9px;
+  border-radius:6px; background:rgba(0,0,0,.6); border:1px solid rgba(255,255,255,.09);
+  margin-bottom:6px;
+}
+.npc-bubble {
+  position:absolute; top:-34px; left:50%; transform:translateX(-50%);
+  background:rgba(10,14,30,.96); border:1px solid rgba(139,92,246,.3);
+  border-radius:10px 10px 10px 2px; padding:4px 10px;
+  font-size:10px; color:#94a3b8; white-space:nowrap;
+  display:none; z-index:5; pointer-events:none;
+  animation:bub-in .3s ease;
+}
+@keyframes bub-in { from{opacity:0;transform:translateX(-50%) translateY(5px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+.npc-head {
+  width:48px; height:48px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; box-shadow:0 5px 16px rgba(0,0,0,.4);
+  animation:npc-bob 3.2s ease-in-out infinite; z-index:2; position:relative;
+}
+@keyframes npc-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+.npc-body { width:44px; height:26px; border-radius:9px 9px 3px 3px; margin-top:-4px; position:relative; }
+.npc-arms { display:flex; justify-content:space-between; width:58px; margin-top:2px; }
+.npc-arm { width:13px; height:9px; border-radius:5px; animation:arm-tap .42s infinite alternate ease-in-out; }
+.npc-arm.r { animation-delay:.21s; }
+@keyframes arm-tap { from{transform:translateY(0)} to{transform:translateY(5px)} }
+
+/* ── DESK ─────────────────────────────────────────────────────────── */
+.desk-sfc {
+  width:160px; height:54px; border-radius:6px 6px 0 0;
+  border-top:2px solid rgba(255,255,255,.12);
+  position:relative; display:flex; align-items:flex-end; justify-content:center;
+  padding-bottom:6px; margin-top:8px;
+}
+.desk-frt { width:160px; height:13px; border-radius:0 0 4px 4px; }
+.desk-plate {
+  font-size:9px; font-weight:700; letter-spacing:.8px; text-transform:uppercase;
+  padding:2px 9px; border-radius:4px; background:rgba(0,0,0,.4);
+}
+.monitor {
+  position:absolute; top:-50px; left:50%; transform:translateX(-50%);
+}
+.mon-scr {
+  width:62px; height:40px; border-radius:4px; border:2px solid rgba(255,255,255,.13);
+  background:#060a14; padding:4px; display:flex; flex-direction:column; gap:3px; overflow:hidden;
+}
+.mon-line { height:4px; border-radius:2px; animation:mon-blink 2.2s infinite; }
+@keyframes mon-blink { 0%,90%,100%{opacity:.9} 95%{opacity:.2} }
+.mon-stand { width:5px; height:8px; background:rgba(255,255,255,.1); margin:0 auto; }
+.mon-base  { width:20px; height:4px; background:rgba(255,255,255,.1); border-radius:2px; margin:0 auto; }
+
+/* ── PLAYER (Lucas CEO) ───────────────────────────────────────────── */
+#player {
+  position:absolute; width:48px; pointer-events:none; z-index:50;
+}
+/* Name tag */
+.p-tag {
+  position:absolute; top:0; left:50%; transform:translateX(-50%);
+  white-space:nowrap; display:flex; align-items:center; gap:5px;
+  background:rgba(0,0,0,.78); border:1px solid rgba(139,92,246,.4);
+  border-radius:9px; padding:3px 10px; font-size:10px; font-weight:700; color:#e2e8f0;
+}
+.p-tag .ceo {
+  font-size:9px; font-weight:800;
+  background:linear-gradient(135deg,#8b5cf6,#d946ef);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+/* Flip wrapper */
+.p-flip { position:absolute; top:28px; width:48px; height:98px; }
+#player.face-left .p-flip { transform:scaleX(-1); }
+/* Bob wrapper */
+.p-anim { position:relative; width:48px; height:98px; }
+#player.walking .p-anim { animation:p-bob .28s infinite ease-in-out; }
+@keyframes p-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-2px)} }
+
+/* Shadow */
+.p-shadow {
+  position:absolute; bottom:1px; left:50%; transform:translateX(-50%);
+  width:38px; height:9px; background:rgba(0,0,0,.32); border-radius:50%; filter:blur(3px);
+}
+/* Hair */
+.p-hair {
+  position:absolute; top:0; left:7px; width:34px; height:16px;
+  background:#1a0900; border-radius:52% 52% 0 0; z-index:4;
+}
+/* Ears */
+.p-ear { position:absolute; top:15px; width:8px; height:12px; background:#f5c5ac; border-radius:50%; z-index:2; }
+.p-ear.l { left:1px; }
+.p-ear.r { right:1px; }
+/* Head */
+.p-head {
+  position:absolute; top:7px; left:6px; width:36px; height:36px;
+  background:#f5c5ac; border-radius:50%; z-index:3;
+}
+/* Eyes */
+.p-eyes {
+  position:absolute; top:13px; left:50%; transform:translateX(-50%);
+  display:flex; gap:8px;
+}
+.p-eye { width:5px; height:5px; background:#1a0900; border-radius:50%; }
+/* Mouth */
+.p-mouth {
+  position:absolute; bottom:7px; left:50%; transform:translateX(-50%);
+  width:10px; height:5px;
+  border:2px solid #c07060; border-top:none; border-radius:0 0 8px 8px;
+}
+/* Neck */
+.p-neck { position:absolute; top:41px; left:19px; width:10px; height:7px; background:#f5c5ac; z-index:2; }
+/* Suit */
+.p-suit {
+  position:absolute; top:46px; left:3px; width:42px; height:26px;
+  background:#1a3258; border-radius:4px; z-index:2;
+  overflow:hidden;
+}
+/* White shirt collar peek */
+.p-suit::before {
+  content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:14px; height:8px; background:#f8fafc; clip-path:polygon(15% 0,85% 0,100% 100%,0 100%);
+}
+/* Tie */
+.p-tie {
+  position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:8px; height:26px;
+  background:linear-gradient(180deg,#8b5cf6,#6d28d9); border-radius:0 0 4px 4px; z-index:3;
+}
+/* Legs */
+.p-legs { position:absolute; top:70px; left:5px; display:flex; gap:5px; }
+.p-leg  {
+  width:16px; height:22px; background:#1a3258; border-radius:2px;
+  position:relative; transform-origin:top center;
+}
+.p-shoe {
+  position:absolute; bottom:-6px; left:-2px; width:20px; height:7px;
+  background:#080c18; border-radius:3px 4px 2px 2px;
+}
+/* Walking legs */
+#player.walking .p-leg:nth-child(1) { animation:leg-l .26s infinite alternate ease-in-out; }
+#player.walking .p-leg:nth-child(2) { animation:leg-r .26s infinite alternate ease-in-out; }
+@keyframes leg-l { from{transform:rotate(-22deg)} to{transform:rotate(22deg)} }
+@keyframes leg-r { from{transform:rotate(22deg)}  to{transform:rotate(-22deg)} }
+
+/* ── OVERLAY ──────────────────────────────────────────────────────── */
+#overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.52); z-index:150; display:none;
+}
+
+/* ── DETAIL PANEL (bottom sheet) ─────────────────────────────────── */
+#panel {
+  position:fixed; bottom:-100%; left:50%; transform:translateX(-50%);
+  width:calc(100% - 36px); max-width:560px;
+  background:#0c1120; border:1px solid rgba(139,92,246,.28);
+  border-radius:22px 22px 0 0; padding:22px 24px 44px;
+  z-index:200; transition:bottom .4s cubic-bezier(.175,.885,.32,1.275);
+  box-shadow:0 -24px 70px rgba(0,0,0,.6);
+}
+#panel.open { bottom:0; }
+.p-handle { width:36px; height:4px; background:rgba(255,255,255,.12); border-radius:2px; margin:0 auto 18px; }
+.p-hdr { display:flex; align-items:center; gap:14px; margin-bottom:18px; }
+.p-ico { width:50px; height:50px; border-radius:15px; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0; }
+.p-title { font-size:20px; font-weight:800; }
+.p-sub   { font-size:12px; color:#64748b; margin-top:3px; }
+.p-close {
+  margin-left:auto; background:rgba(255,255,255,.07); border:none; color:#94a3b8;
+  width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:18px;
+  display:flex; align-items:center; justify-content:center; transition:.2s; flex-shrink:0;
+}
+.p-close:hover { background:rgba(255,255,255,.13); color:#f1f5f9; }
+.p-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:14px; }
+.p-stat { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:12px; text-align:center; }
+.p-stat-v { font-size:20px; font-weight:800; }
+.p-stat-l { font-size:9px; color:#475569; text-transform:uppercase; letter-spacing:.5px; margin-top:4px; }
+.p-desc { font-size:13px; color:#64748b; line-height:1.6; border-top:1px solid rgba(255,255,255,.05); padding-top:13px; }
+
+/* Mini client table inside panel */
+.mini-table { width:100%; border-collapse:collapse; margin-top:10px; font-size:12px; }
+.mini-table th { color:#475569; text-transform:uppercase; font-size:10px; letter-spacing:.5px; padding:6px 8px; text-align:left; }
+.mini-table td { padding:8px 8px; border-top:1px solid rgba(255,255,255,.04); color:#94a3b8; }
+.mini-table td:first-child { color:#e2e8f0; font-weight:600; }
+.mini-link {
+  display:inline-block; margin-top:12px; font-size:12px; font-weight:700; color:#8b5cf6;
+  text-decoration:none; transition:.2s;
+}
+.mini-link:hover { color:#a78bfa; }
+.badge-s { padding:2px 7px; border-radius:5px; font-size:10px; font-weight:700; }
+.badge-yes { background:rgba(16,185,129,.12); color:#10b981; }
+.badge-no  { background:rgba(100,116,139,.1); color:#475569; }
+
+/* Particles */
+.particle {
+  position:absolute; width:3px; height:3px; border-radius:50%;
+  background:rgba(139,92,246,.45); pointer-events:none;
+  animation:float-up linear infinite;
+}
+@keyframes float-up { 0%{transform:translateY(0);opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{transform:translateY(-110px);opacity:0} }
+
+/* Loading overlay */
+#loading-screen {
+  position:fixed; inset:0; background:#0b0f1a; z-index:500;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+}
+#loading-screen img { height:44px; animation:load-pulse 1.5s ease-in-out infinite; }
+@keyframes load-pulse { 0%,100%{opacity:.6} 50%{opacity:1} }
+#loading-screen p { font-size:14px; color:#475569; font-weight:500; }
+  </style>
+</head>
+<body>
+
+<!-- ── LOGIN ──────────────────────────────────────────────────────── -->
+<div id="login-wrap">
+  <div class="login-box">
+    <img src="assets/provoulevou-logo.png" alt="Provou Levou">
+    <h2>Acesso ao HQ</h2>
+    <input type="email"    id="inp-email" class="l-input" placeholder="E-mail">
+    <input type="password" id="inp-pass"  class="l-input" placeholder="Senha">
+    <div id="l-err" class="l-err"></div>
+    <button id="l-btn" class="l-btn" onclick="doLogin()">Entrar no HQ</button>
+  </div>
+</div>
+
+<!-- ── LOADING ─────────────────────────────────────────────────────── -->
+<div id="loading-screen" style="display:none">
+  <img src="assets/provoulevou-logo.png" alt="Provou Levou">
+  <p>Carregando escritório…</p>
+</div>
+
+<!-- ── HUD ─────────────────────────────────────────────────────────── -->
+<div id="hud">
+  <div class="hud-logo">
+    <img src="assets/provoulevou-logo.png" alt="">
+  </div>
+  <div class="hud-right">
+    <div class="hud-clock">
+      <div class="hud-dot"></div>
+      <span id="hud-time">--:--</span>
+    </div>
+    <button class="hud-btn" onclick="doLogout()">Sair</button>
+  </div>
+</div>
+
+<!-- ── CONTROLS HINT ───────────────────────────────────────────────── -->
+<div id="ctrl-hint">
+  <span><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span> mover</span>
+  <span><span class="key">E</span> ver dados</span>
+  <span><span class="key">ESC</span> fechar</span>
+</div>
+
+<!-- ── INTERACT PROMPT ─────────────────────────────────────────────── -->
+<div id="interact-prompt">
+  <div class="prompt-key">E — Ver dados</div>
+  <div class="prompt-npc" id="prompt-name"></div>
+</div>
+
+<!-- ── VIEWPORT ─────────────────────────────────────────────────────── -->
+<div id="viewport">
+  <div id="world">
+    <div class="back-wall">
+      <div class="logo-banner">
+        <img src="assets/provoulevou-logo.png" alt="Provou Levou">
+      </div>
+    </div>
+    <div class="world-floor"></div>
+    <div class="wall wall-l"></div>
+    <div class="wall wall-r"></div>
+    <div class="wall wall-b"></div>
+
+    <!-- Plants -->
+    <div class="plant" style="left:64px;top:94px"><div class="plant-top"></div><div class="plant-pot"></div></div>
+    <div class="plant" style="right:64px;top:94px"><div class="plant-top"></div><div class="plant-pot"></div></div>
+    <div class="plant" style="left:64px;bottom:58px"><div class="plant-top"></div><div class="plant-pot"></div></div>
+    <div class="plant" style="right:64px;bottom:58px"><div class="plant-top"></div><div class="plant-pot"></div></div>
+
+    <!-- Coffee corner -->
+    <div class="coffee">
+      <div class="coffee-steam">☕</div>
+      <div class="coffee-body">
+        <div class="coffee-scr">ON</div>
+        <div class="coffee-btn"></div>
+      </div>
+      <div class="coffee-lbl">Café</div>
+    </div>
+
+    <!-- NPCs injected by JS -->
+    <div id="npc-container"></div>
+
+    <!-- Player (Lucas CEO) -->
+    <div id="player">
+      <div class="p-tag">Lucas <span class="ceo">CEO</span></div>
+      <div class="p-flip">
+        <div class="p-anim">
+          <div class="p-shadow"></div>
+          <div class="p-hair"></div>
+          <div class="p-ear l"></div>
+          <div class="p-ear r"></div>
+          <div class="p-head">
+            <div class="p-eyes">
+              <div class="p-eye"></div>
+              <div class="p-eye"></div>
+            </div>
+            <div class="p-mouth"></div>
+          </div>
+          <div class="p-neck"></div>
+          <div class="p-suit"><div class="p-tie"></div></div>
+          <div class="p-legs">
+            <div class="p-leg"><div class="p-shoe"></div></div>
+            <div class="p-leg"><div class="p-shoe"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ambient particles injected by JS -->
+  </div>
+</div>
+
+<!-- ── OVERLAY + PANEL ─────────────────────────────────────────────── -->
+<div id="overlay" onclick="closePanel()"></div>
+<div id="panel">
+  <div class="p-handle"></div>
+  <div class="p-hdr">
+    <div class="p-ico" id="p-ico"></div>
+    <div>
+      <div class="p-title" id="p-title"></div>
+      <div class="p-sub"   id="p-sub"></div>
+    </div>
+    <button class="p-close" onclick="closePanel()">×</button>
+  </div>
+  <div id="p-body-content"></div>
+</div>
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────────────────────────
+const WORLD_W = 1800, WORLD_H = 1020;
+const PLAYER_H = 126; // total visual height
+const PLAYER_W = 48;
+const SPEED = 220;
+
+// NPC definitions
+const NPCS = [
+  {
+    id:'provas', emoji:'📊', name:'Analista de Provas', role:'Provas Virtuais',
+    color:'#a78bfa', headBg:'linear-gradient(135deg,#8b5cf6,#7c3aed)',
+    bodyColor:'#5b21b6', armColor:'#7c3aed',
+    deskBg:'#2d1f54', deskFront:'#1e1340',
+    screenLines:['#8b5cf6','#a78bfa','#6d28d9'],
+    x:240, y:300,
+    bubbles:['Analisando provas…','Nova sessão! 📊','Calculando taxa…','Dados atualizados ✓'],
+  },
+  {
+    id:'carrinho', emoji:'🛒', name:'Especialista de Carrinho', role:'Add-to-Cart',
+    color:'#fcd34d', headBg:'linear-gradient(135deg,#f59e0b,#d97706)',
+    bodyColor:'#92400e', armColor:'#d97706',
+    deskBg:'#2a1800', deskFront:'#1a0f00',
+    screenLines:['#f59e0b','#fcd34d','#d97706'],
+    x:760, y:300,
+    bubbles:['Monitorando carrinho…','Add-to-cart! 🛒','Calculando taxa…','Conversão verificada ✓'],
+  },
+  {
+    id:'compras', emoji:'💰', name:'Analista de Vendas', role:'Compras via Provador',
+    color:'#6ee7b7', headBg:'linear-gradient(135deg,#10b981,#059669)',
+    bodyColor:'#065f46', armColor:'#059669',
+    deskBg:'#042e1a', deskFront:'#021f10',
+    screenLines:['#10b981','#6ee7b7','#059669'],
+    x:1280, y:300,
+    bubbles:['Cruzando pedidos…','Venda confirmada! 💰','Taxa calculada ✓','Dados do CRM OK'],
+  },
+  {
+    id:'receita', emoji:'💎', name:'Gestor Financeiro', role:'Faturamento',
+    color:'#67e8f9', headBg:'linear-gradient(135deg,#06b6d4,#0891b2)',
+    bodyColor:'#0e4a5a', armColor:'#0891b2',
+    deskBg:'#071e2a', deskFront:'#041318',
+    screenLines:['#06b6d4','#67e8f9','#0891b2'],
+    x:440, y:620,
+    bubbles:['Calculando receita…','Ticket médio! 💎','Faturamento OK ✓','ROI positivo 📈'],
+  },
+  {
+    id:'clientes', emoji:'👥', name:'Gestor de Clientes', role:'Últimos Clientes',
+    color:'#f9a8d4', headBg:'linear-gradient(135deg,#ec4899,#be185d)',
+    bodyColor:'#831843', armColor:'#be185d',
+    deskBg:'#2d0a1a', deskFront:'#1f0611',
+    screenLines:['#ec4899','#f9a8d4','#be185d'],
+    x:980, y:620,
+    bubbles:['Atualizando lista…','Novo cliente! 👥','Histórico carregado ✓','Dados prontos'],
+  },
+];
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let sb = null, activeUser = null;
+let dashData = null; // loaded after login
+let px = 900, py = 860;
+let camX = 0, camY = 0;
+let keys = {};
+let panelOpen = false;
+let nearNPC = null;
+let lastTs = null;
+let rafId = null;
+
+// Collision rects
+const WALL_COLS = [
+  {x:0,    y:0,         w:WORLD_W, h:160},  // back wall zone
+  {x:0,    y:WORLD_H-44,w:WORLD_W, h:44},   // front wall
+  {x:0,    y:0,         w:44,      h:WORLD_H}, // left
+  {x:WORLD_W-44,y:0,   w:44,      h:WORLD_H}, // right
+];
+const DESK_COLS = NPCS.map(n => ({x:n.x-82, y:n.y-82, w:164, h:100}));
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+function lerp(a,b,t){ return a+(b-a)*t; }
+function clamp(v,mn,mx){ return Math.max(mn,Math.min(mx,v)); }
+function overlap(a,b){ return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y; }
+function hitbox(x,y){ return {x:x-16,y:y-8,w:32,h:8}; }
+function normalize(p){ let n=String(p||'').replace(/\D/g,''); if(n.startsWith('55')&&n.length>11)n=n.slice(2); if(n.startsWith('0'))n=n.slice(1); return n; }
+function fmt(n){ return n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+
+// ── SUPABASE INIT ─────────────────────────────────────────────────────────────
+async function fetchLojista(){
+  const {data:{user}} = await sb.auth.getUser();
+  if(!user) return null;
+  const {data,error} = await sb.from('lojistas').select('*').eq('email',user.email).single();
+  if(error||!data) return null;
+  return data;
+}
+
+async function init(){
+  if(!window.ENV?.SUPABASE_URL) return;
+  sb = window.supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_KEY);
+  const {data:{session}} = await sb.auth.getSession();
+  if(session?.user?.email){
+    const u = await fetchLojista();
+    if(u){ activeUser=u; startLoading(); }
+  }
+}
+
+async function doLogin(){
+  const email = $('inp-email').value.trim().toLowerCase();
+  const pass  = $('inp-pass').value.trim();
+  const err   = $('l-err');
+  err.style.display='none';
+  const btn = $('l-btn');
+  btn.disabled=true; btn.textContent='Entrando…';
+  if(!sb){ err.textContent='Erro: configuração ausente.'; err.style.display='block'; btn.disabled=false; btn.textContent='Entrar no HQ'; return; }
+  const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
+  if(error||!data.user){ err.textContent='E-mail ou senha inválidos.'; err.style.display='block'; btn.disabled=false; btn.textContent='Entrar no HQ'; return; }
+  const u = await fetchLojista();
+  if(!u){ err.textContent='Usuário sem tabela associada.'; err.style.display='block'; btn.disabled=false; btn.textContent='Entrar no HQ'; await sb.auth.signOut(); return; }
+  activeUser=u; startLoading();
+}
+
+async function doLogout(){
+  await sb.auth.signOut(); activeUser=null; dashData=null;
+  if(rafId){ cancelAnimationFrame(rafId); rafId=null; }
+  $('viewport').style.display='none';
+  $('hud').style.display='none';
+  $('ctrl-hint').style.display='none';
+  $('login-wrap').style.display='flex';
+  $('inp-email').value=''; $('inp-pass').value='';
+  $('l-err').style.display='none'; $('l-btn').disabled=false; $('l-btn').textContent='Entrar no HQ';
+}
+
+// ── LOADING + DATA FETCH ──────────────────────────────────────────────────────
+async function startLoading(){
+  $('login-wrap').style.display='none';
+  $('loading-screen').style.display='flex';
+  dashData = await loadAllData();
+  $('loading-screen').style.display='none';
+  startWorld();
+}
+
+async function loadAllData(){
+  try{
+    const {data,count} = await sb.from(activeUser.tabela).select('*',{count:'exact'}).ilike('origin',`%${activeUser.origem}%`).order('created_at',{ascending:false}).limit(6);
+    const {data:allGens} = await sb.from(activeUser.tabela).select('telefone_cliente').ilike('origin',`%${activeUser.origem}%`);
+    const {data:allCart} = await sb.from(activeUser.tabela).select('carrinho_adicionado').ilike('origin',`%${activeUser.origem}%`);
+    const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
+    const fTotal = activeUser.campo_total_pedido || 'total';
+    const fStatus = activeUser.campo_status_pedido || 'payment_status';
+    const fStatusValues = activeUser.valores_status_pago || ['paid', 'Confirmado'];
+    const {data:allOrders} = await sb.from(activeUser.tabela_pedidos).select(`${fPhone},${fTotal},created_at`).in(fStatus,fStatusValues).order('created_at',{ascending:false});
+
+    const genPhones = new Set((allGens||[]).map(g=>normalize(g.telefone_cliente)));
+    const latestOrders = new Map();
+    (allOrders||[]).forEach(o=>{ const ph=normalize(o[fPhone]); if(genPhones.has(ph)&&!latestOrders.has(ph)) latestOrders.set(ph,o); });
+    const boughtPhones = new Set(latestOrders.keys());
+    const totalRev = Array.from(latestOrders.values()).reduce((s,o)=>s+(parseFloat(o[fTotal])||0),0);
+    const cartAdds = (allCart||[]).filter(r=>r.carrinho_adicionado===true||r.carrinho_adicionado==='true').length;
+    const totalCount = count||0;
+    const ticket = boughtPhones.size>0 ? totalRev/boughtPhones.size : 0;
+    const cartRate = totalCount>0 ? ((cartAdds/totalCount)*100).toFixed(0) : 0;
+    const buyRate  = totalCount>0 ? ((boughtPhones.size/totalCount)*100).toFixed(0) : 0;
+
+    return { totalCount, cartAdds, compras:boughtPhones.size, totalRev, ticket,
+             cartRate, buyRate, boughtPhones, recentClients: data||[] };
+  } catch(e){ console.error(e); return {}; }
+}
+
+// ── WORLD SETUP ───────────────────────────────────────────────────────────────
+function startWorld(){
+  buildNPCs();
+  addParticles();
+  positionPlayer();
+  $('viewport').style.display='block';
+  $('hud').style.display='flex';
+  $('ctrl-hint').style.display='flex';
+  updateClock();
+  setInterval(updateClock, 30000);
+  startBubbles();
+  requestAnimationFrame(gameLoop);
+}
+
+function buildNPCs(){
+  const container = $('npc-container');
+  container.innerHTML='';
+  NPCS.forEach((n,i)=>{
+    const unit = document.createElement('div');
+    unit.className='npc-unit';
+    unit.dataset.id=n.id;
+    // Position: center the 160px unit on n.x, bottom of desk-front at n.y
+    unit.style.left = (n.x-80)+'px';
+    unit.style.top  = (n.y-67)+'px';
+    unit.innerHTML=`
+      <div class="npc-char">
+        <div class="npc-bubble" id="bub-${n.id}">Trabalhando…</div>
+        <div class="npc-name" style="color:${n.color}">${n.name}</div>
+        <div class="npc-head" style="background:${n.headBg};animation-delay:${i*0.6}s">${n.emoji}</div>
+        <div class="npc-body" style="background:${n.bodyColor};position:relative">
+          <div class="npc-arms">
+            <div class="npc-arm" style="background:${n.armColor}"></div>
+            <div class="npc-arm r" style="background:${n.armColor}"></div>
+          </div>
+        </div>
+      </div>
+      <div class="desk-sfc" style="background:${n.deskBg}">
+        <div class="monitor">
+          <div class="mon-scr">
+            ${n.screenLines.map(c=>`<div class="mon-line" style="background:${c};width:${35+Math.random()*40}%"></div>`).join('')}
+          </div>
+          <div class="mon-stand"></div><div class="mon-base"></div>
+        </div>
+        <div class="desk-plate" style="color:${n.color}">${n.role}</div>
+      </div>
+      <div class="desk-frt" style="background:${n.deskFront}"></div>
+    `;
+    container.appendChild(unit);
+  });
+}
+
+function addParticles(){
+  const world = $('world');
+  for(let i=0;i<14;i++){
+    const p = document.createElement('div');
+    p.className='particle';
+    p.style.cssText=`left:${Math.random()*95}%;bottom:${10+Math.random()*25}%;
+      animation-duration:${5+Math.random()*7}s;animation-delay:${Math.random()*7}s`;
+    world.appendChild(p);
+  }
+}
+
+function positionPlayer(){
+  const el=$('player');
+  el.style.left=(px-PLAYER_W/2)+'px';
+  el.style.top =(py-PLAYER_H)+'px';
+  // Center camera
+  camX=clamp(px-window.innerWidth/2,  0,Math.max(0,WORLD_W-window.innerWidth));
+  camY=clamp(py-window.innerHeight/2, 0,Math.max(0,WORLD_H-window.innerHeight));
+  $('world').style.transform=`translate(${-camX}px,${-camY}px)`;
+}
+
+// ── INPUT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if(e.code==='KeyE' && nearNPC && !panelOpen) openPanel(nearNPC);
+  if(e.code==='Escape' && panelOpen) closePanel();
+});
+document.addEventListener('keyup',e=>{ keys[e.code]=false; });
+
+// ── GAME LOOP ─────────────────────────────────────────────────────────────────
+function gameLoop(ts){
+  rafId=requestAnimationFrame(gameLoop);
+  const dt=Math.min((ts-(lastTs||ts))/1000,0.05);
+  lastTs=ts;
+
+  if(!panelOpen){
+    let dx=0,dy=0;
+    if(keys['KeyW']||keys['ArrowUp'])    dy-=1;
+    if(keys['KeyS']||keys['ArrowDown'])  dy+=1;
+    if(keys['KeyA']||keys['ArrowLeft'])  dx-=1;
+    if(keys['KeyD']||keys['ArrowRight']) dx+=1;
+    if(dx&&dy){ dx*=0.707; dy*=0.707; }
+
+    const moving=dx!==0||dy!==0;
+    const el=$('player');
+
+    // Move X
+    const nx=px+dx*SPEED*dt;
+    const hx=hitbox(nx,py);
+    if(![...WALL_COLS,...DESK_COLS].some(c=>overlap(hx,c))) px=nx;
+    // Move Y
+    const ny=py+dy*SPEED*dt;
+    const hy=hitbox(px,ny);
+    if(![...WALL_COLS,...DESK_COLS].some(c=>overlap(hy,c))) py=ny;
+
+    // Update player DOM
+    el.style.left=(px-PLAYER_W/2)+'px';
+    el.style.top =(py-PLAYER_H)+'px';
+    if(moving) el.classList.add('walking'); else el.classList.remove('walking');
+    if(dx<0) el.classList.add('face-left'); else if(dx>0) el.classList.remove('face-left');
+
+    // NPC proximity
+    let best=null, bestD=Infinity;
+    NPCS.forEach(n=>{ const d=Math.hypot(px-n.x,py-n.y); if(d<110&&d<bestD){best=n;bestD=d;} });
+    nearNPC=best;
+    const prompt=$('interact-prompt');
+    if(best){ prompt.style.display='flex'; $('prompt-name').textContent=best.name; }
+    else     { prompt.style.display='none'; }
+  }
+
+  // Camera lerp
+  const vpW=window.innerWidth, vpH=window.innerHeight;
+  camX=lerp(camX,clamp(px-vpW/2,0,Math.max(0,WORLD_W-vpW)),0.1);
+  camY=lerp(camY,clamp(py-vpH/2,0,Math.max(0,WORLD_H-vpH)),0.1);
+  $('world').style.transform=`translate(${-camX}px,${-camY}px)`;
+}
+
+// ── PANEL ─────────────────────────────────────────────────────────────────────
+function openPanel(npc){
+  panelOpen=true;
+  $('p-ico').textContent=npc.emoji;
+  $('p-ico').style.background=npc.headBg;
+  const title=$('p-title'); title.textContent=npc.name; title.style.color=npc.color;
+  $('p-sub').textContent=npc.role;
+  $('p-body-content').innerHTML=buildPanelContent(npc);
+  $('panel').classList.add('open');
+  $('overlay').style.display='block';
+}
+function closePanel(){
+  panelOpen=false;
+  $('panel').classList.remove('open');
+  $('overlay').style.display='none';
+}
+
+function stat(label,value,color){
+  return `<div class="p-stat">
+    <div class="p-stat-v" style="color:${color}">${value}</div>
+    <div class="p-stat-l">${label}</div>
+  </div>`;
+}
+
+function buildPanelContent(npc){
+  const d=dashData||{};
+  const c=npc.color;
+  const cartRate = d.cartRate||0, buyRate=d.buyRate||0;
+
+  if(npc.id==='provas') return `
+    <div class="p-stats">
+      ${stat('Total',d.totalCount||0,c)}
+      ${stat('Carrinho',d.cartAdds||0,'#fcd34d')}
+      ${stat('Compraram',d.compras||0,'#6ee7b7')}
+    </div>
+    <div class="p-desc">
+      ${d.totalCount||0} provas virtuais registradas.
+      ${cartRate}% adicionaram ao carrinho · ${buyRate}% converteram em compra.
+    </div>`;
+
+  if(npc.id==='carrinho') return `
+    <div class="p-stats">
+      ${stat('Add-to-cart',d.cartAdds||0,c)}
+      ${stat('Taxa carrinho',cartRate+'%',c)}
+      ${stat('De compras',d.compras||0,'#6ee7b7')}
+    </div>
+    <div class="p-desc">
+      ${d.cartAdds||0} pessoas adicionaram ao carrinho após usar o provador.
+      Isso representa ${cartRate}% das provas realizadas.
+    </div>`;
+
+  if(npc.id==='compras') return `
+    <div class="p-stats">
+      ${stat('Vendas',d.compras||0,c)}
+      ${stat('Conversão',buyRate+'%',c)}
+      ${stat('Receita',fmt(d.totalRev||0),'#67e8f9')}
+    </div>
+    <div class="p-desc">
+      ${d.compras||0} clientes que usaram o provador virtual realizaram uma compra.
+      Taxa de conversão de ${buyRate}% em relação ao total de provas.
+    </div>`;
+
+  if(npc.id==='receita') return `
+    <div class="p-stats">
+      ${stat('Faturamento',fmt(d.totalRev||0),c)}
+      ${stat('Ticket médio',fmt(d.ticket||0),c)}
+      ${stat('Vendas',d.compras||0,'#6ee7b7')}
+    </div>
+    <div class="p-desc">
+      Receita gerada via provador virtual: ${fmt(d.totalRev||0)}.
+      Ticket médio por venda: ${fmt(d.ticket||0)}.
+    </div>`;
+
+  if(npc.id==='clientes'){
+    const clients=d.recentClients||[];
+    if(!clients.length) return `<div class="p-desc">Nenhum cliente ainda.</div>`;
+    const rows=clients.slice(0,5).map(r=>{
+      const phone=normalize(r.telefone_cliente);
+      const bought=(d.boughtPhones||new Set()).has(phone);
+      const cart=r.carrinho_adicionado===true||r.carrinho_adicionado==='true';
+      const prod=(r.produtos||'—').substring(0,22)+'…';
+      return `<tr>
+        <td>${phone||'—'}</td>
+        <td>${prod}</td>
+        <td><span class="badge-s ${cart?'badge-yes':'badge-no'}">${cart?'Sim':'Não'}</span></td>
+        <td><span class="badge-s ${bought?'badge-yes':'badge-no'}">${bought?'✓ Comprou':'Não'}</span></td>
+      </tr>`;
+    }).join('');
+    return `
+      <table class="mini-table">
+        <thead><tr><th>Telefone</th><th>Produto</th><th>Carrinho</th><th>Compra</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <a href="login/index.html" class="mini-link">→ Ver tabela completa</a>`;
+  }
+  return '';
+}
+
+// ── SPEECH BUBBLES ────────────────────────────────────────────────────────────
+function startBubbles(){
+  NPCS.forEach((npc,i)=>{
+    let idx=0;
+    const show=()=>{
+      const el=document.getElementById('bub-'+npc.id);
+      if(!el) return;
+      el.textContent=npc.bubbles[idx%npc.bubbles.length];
+      el.style.display='block';
+      el.style.animation='none';
+      requestAnimationFrame(()=>{ el.style.animation='bub-in .3s ease'; });
+      setTimeout(()=>{ el.style.display='none'; },2800);
+      idx++;
+    };
+    setTimeout(()=>{ show(); setInterval(show, 5500+i*700); }, 1200+i*1400);
+  });
+}
+
+// ── CLOCK ─────────────────────────────────────────────────────────────────────
+function updateClock(){
+  const n=new Date();
+  $('hud-time').textContent=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+}
+
+// ── BOOT ─────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
