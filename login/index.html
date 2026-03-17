@@ -502,6 +502,64 @@
             background: rgba(16, 185, 129, 0.1);
         }
 
+        .date-filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .date-filter-bar label {
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .date-filter-bar input[type="date"] {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .date-filter-bar input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        .date-filter-bar span {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .btn-clear-dates {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            color: #94a3b8;
+            padding: 7px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.3s;
+        }
+
+        .btn-clear-dates:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -787,6 +845,15 @@
 
         <!-- Dashboard -->
         <div class="dashboard-content" id="dashboardSection">
+            <div class="date-filter-bar">
+                <label><i class="ph-bold ph-calendar-blank"></i> Período:</label>
+                <input type="date" id="dateFrom" onchange="loadData()">
+                <span>até</span>
+                <input type="date" id="dateTo" onchange="loadData()">
+                <button class="btn-clear-dates" onclick="document.getElementById('dateFrom').value='';document.getElementById('dateTo').value='';loadData();">
+                    <i class="ph-bold ph-x"></i> Limpar
+                </button>
+            </div>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon"><i class="ph-bold ph-users"></i></div>
@@ -902,6 +969,7 @@
     <script>
         let supabaseClient = null;
         let activeUser = null;
+        let _csvExportData = []; // dados completos para exportação CSV
 
         async function initApp() {
             document.body.classList.add('login-mode');
@@ -1000,13 +1068,20 @@
                 const from = (currentPage - 1) * itemsPerPage;
                 const to = from + itemsPerPage - 1;
 
+                // Filtro de data
+                const dateFrom = document.getElementById('dateFrom').value;
+                const dateTo = document.getElementById('dateTo').value;
+
                 // Fetch data from supabase using specific table and filtering origin
-                const { data, error, count } = await supabaseClient
+                let query = supabaseClient
                     .from(activeUser.tabela)
                     .select('*', { count: 'exact' })
                     .ilike('origin', `%${activeUser.origem}%`)
-                    .order('created_at', { ascending: false })
-                    .range(from, to);
+                    .order('created_at', { ascending: false });
+                if (dateFrom) query = query.gte('created_at', dateFrom + 'T00:00:00');
+                if (dateTo) query = query.lte('created_at', dateTo + 'T23:59:59');
+                query = query.range(from, to);
+                const { data, error, count } = await query;
 
                 if (error) throw error;
 
@@ -1034,19 +1109,25 @@
                     const ordersTable = activeUser.tabela_pedidos;
 
                     // Fetch all fitting room records (all fields, for crossref + filter "bought")
-                    const { data: allGenerations } = await supabaseClient
+                    let genQuery = supabaseClient
                         .from(activeUser.tabela)
                         .select('*')
                         .ilike('origin', `%${activeUser.origem}%`)
                         .order('created_at', { ascending: false });
+                    if (dateFrom) genQuery = genQuery.gte('created_at', dateFrom + 'T00:00:00');
+                    if (dateTo) genQuery = genQuery.lte('created_at', dateTo + 'T23:59:59');
+                    const { data: allGenerations } = await genQuery;
                     allGenerationsData = allGenerations;
 
                     // Fetch customer phones, totals and dates from the orders table where payment_status is 'paid' or 'Confirmado'
-                    const { data: allOrders } = await supabaseClient
+                    let ordQuery = supabaseClient
                         .from(ordersTable)
                         .select(selectFields)
                         .in(fStatus, fStatusValues)
                         .order('created_at', { ascending: false });
+                    if (dateFrom) ordQuery = ordQuery.gte('created_at', dateFrom + 'T00:00:00');
+                    if (dateTo) ordQuery = ordQuery.lte('created_at', dateTo + 'T23:59:59');
+                    const { data: allOrders } = await ordQuery;
 
                     // Busca nomes de todos os registros da tabela de pedidos (sem filtro de status)
                     // para montar mapa telefone → nome, incluindo não-compradores com histórico na loja
@@ -1283,6 +1364,27 @@
                     ? allMatchedOrders
                     : (data || []);
 
+                // Prepara dados completos para exportação CSV (TODOS os registros, não só a página)
+                const csvSource = isBoughtFilter ? allMatchedOrders : (allGenerationsData || []);
+                _csvExportData = csvSource.map(item => {
+                    const ph = normalize(isBoughtFilter ? (item[fPhone] || item.telefone_cliente) : item.telefone_cliente);
+                    const dateRaw = isBoughtFilter ? (item.data_pedido || item.created_at) : item.created_at;
+                    let dateStr = '';
+                    if (dateRaw) {
+                        const d = new Date(dateRaw);
+                        dateStr = d.toLocaleDateString('pt-BR');
+                    }
+                    const rawName = nameMap.get(ph) || item.nome || item.cliente_nome || item.nome_cliente || item.customer_name || '';
+                    const firstName = rawName ? rawName.trim().split(' ')[0] : '';
+                    return {
+                        _date: dateStr,
+                        _name: firstName,
+                        _phone: String(item.telefone_cliente || item[fPhone] || ''),
+                        _product: item.produtos || item.produto_provado || '',
+                        _bought: isBoughtFilter ? true : boughtPhonesSet.has(ph)
+                    };
+                });
+
                 // Oculta paginação no modo "bought" pois mostra todos de uma vez
                 if (filterValue === 'bought') {
                     document.getElementById('paginationControls').style.display = 'none';
@@ -1381,18 +1483,16 @@
         }
 
         function downloadCSV() {
-            const rows = document.querySelectorAll('#tableBody tr');
-            if (!rows.length) return alert('Nenhum dado para exportar.');
+            if (!_csvExportData.length) return alert('Nenhum dado para exportar.');
             const headers = ['Data', 'Cliente', 'Telefone', 'Produto', 'Comprou'];
             const csvRows = [headers.join(';')];
-            rows.forEach(tr => {
-                const cells = tr.querySelectorAll('td');
-                const data = cells[0]?.textContent?.trim() || '';
-                const nome = cells[1]?.textContent?.trim() || '';
-                const tel = cells[2]?.textContent?.trim() || '';
-                const prod = cells[3]?.textContent?.trim() || '';
-                const comprou = cells[4]?.textContent?.trim() || '';
-                csvRows.push([data, nome, tel, prod, comprou].map(v => '"' + v.replace(/"/g, '""') + '"').join(';'));
+            _csvExportData.forEach(item => {
+                const dateRaw = item._date || '';
+                const nome = item._name || '';
+                const tel = item._phone || '';
+                const prod = item._product || '';
+                const comprou = item._bought ? 'Sim' : 'Não';
+                csvRows.push([dateRaw, nome, tel, prod, comprou].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(';'));
             });
             const bom = '\uFEFF';
             const blob = new Blob([bom + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
