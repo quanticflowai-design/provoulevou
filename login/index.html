@@ -326,6 +326,24 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            max-height: 260px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) rgba(255,255,255,0.05);
+        }
+
+        .ranking-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .ranking-list::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+
+        .ranking-list::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
         }
 
         .ranking-item {
@@ -881,129 +899,192 @@
 
         <!-- Dashboard -->
         <div class="dashboard-content" id="dashboardSection">
-            <div class="date-filter-bar">
-                <div class="date-presets">
-                    <button class="btn-preset active" onclick="setDatePreset(0)">Tudo</button>
-                    <button class="btn-preset" onclick="setDatePreset(7)">7 dias</button>
-                    <button class="btn-preset" onclick="setDatePreset(15)">15 dias</button>
-                    <button class="btn-preset" onclick="setDatePreset(30)">30 dias</button>
-                </div>
-                <div class="date-custom">
-                    <label><i class="ph-bold ph-calendar-blank"></i></label>
-                    <input type="date" id="dateFrom" onchange="onDateInputChange()">
-                    <span>até</span>
-                    <input type="date" id="dateTo" onchange="onDateInputChange()">
-                    <button class="btn-clear-dates" onclick="setDatePreset(0)">
-                        <i class="ph-bold ph-x"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="ph-bold ph-users"></i></div>
-                    <div class="stat-info">
-                        <h4>Total de Provas Virtuais</h4>
-                        <div class="value" id="totalCount">0</div>
-                        <div class="stat-sub"><span id="uniqueCount">0</span> clientes únicos</div>
+
+            <!-- ====== SEÇÃO COMPRAS ====== -->
+            <div id="comprasSection">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                    <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
+                        <i class="ph-bold ph-shopping-cart" style="color:#10b981;"></i> Compras via Provador
+                    </h2>
+                    <div class="date-filter-bar" style="margin-bottom:0;">
+                        <div class="date-presets">
+                            <button class="btn-preset active" onclick="setDatePresetCompras(0)">Tudo</button>
+                            <button class="btn-preset" onclick="setDatePresetCompras(1)">Hoje</button>
+                            <button class="btn-preset" onclick="setDatePresetCompras(7)">7 dias</button>
+                            <button class="btn-preset" onclick="setDatePresetCompras(30)">30 dias</button>
+                        </div>
+                        <div class="date-custom">
+                            <label><i class="ph-bold ph-calendar-blank"></i></label>
+                            <input type="date" id="dateFromCompras" oninput="dateFromCompras=this.value;loadCompras(1)">
+                            <span>até</span>
+                            <input type="date" id="dateToCompras" oninput="dateToCompras=this.value;loadCompras(1)">
+                            <button class="btn-clear-dates" onclick="setDatePresetCompras(0)"><i class="ph-bold ph-x"></i></button>
+                        </div>
                     </div>
                 </div>
 
-
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(37, 211, 102, 0.1); color: #25D366;"><i
-                            class="ph-bold ph-handbag"></i></div>
-                    <div class="stat-info">
-                        <h4>Compras via Provador</h4>
-                        <div class="value" id="purchasesCount">0</div>
+                <div class="stats-grid" style="margin-bottom:20px;">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:rgba(37,211,102,0.1);color:#25D366;"><i class="ph-bold ph-handbag"></i></div>
+                        <div class="stat-info">
+                            <h4>Nº de Pedidos</h4>
+                            <div class="value" id="comprasPedidosCount">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:rgba(139,92,246,0.1);color:var(--primary);"><i class="ph-bold ph-currency-circle-dollar"></i></div>
+                        <div class="stat-info">
+                            <h4>Faturamento via Provador</h4>
+                            <div class="value" id="comprasFaturamento">R$ 0,00</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:rgba(37,211,102,0.1);color:#25D366;"><i class="ph-bold ph-user-check"></i></div>
+                        <div class="stat-info">
+                            <h4>Compraram</h4>
+                            <div class="value" id="provasCompraramCount">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-card-conversion">
+                        <div class="stat-icon" style="background:rgba(139,92,246,0.15);color:#8b5cf6;"><i class="ph-bold ph-chart-line-up"></i></div>
+                        <div class="stat-info">
+                            <h4>% Conversão</h4>
+                            <div class="value" id="provasConversao">0%</div>
+                            <div class="stat-sub">únicos → compradores</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: var(--primary);"><i
-                            class="ph-bold ph-currency-circle-dollar"></i></div>
-                    <div class="stat-info">
-                        <h4>Faturamento (via Provador)</h4>
-                        <div class="value" id="revenueCount">R$ 0,00</div>
+                <div class="chart-container" id="chartSection" style="display:none;">
+                    <div class="chart-header">
+                        <h2><i class="ph-bold ph-chart-bar"></i> Vendas Diárias (via Provador)</h2>
+                    </div>
+                    <div class="chart-canvas-wrap">
+                        <canvas id="dailySalesChart"></canvas>
                     </div>
                 </div>
 
-                <div class="stat-card stat-card-conversion">
-                    <div class="stat-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;"><i
-                            class="ph-bold ph-chart-line-up"></i></div>
-                    <div class="stat-info">
-                        <h4>Taxa de Conversão</h4>
-                        <div class="value" id="conversionRate">0%</div>
-                        <div class="stat-sub">clientes únicos → compradores</div>
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2><i class="ph-fill ph-receipt"></i> Últimas Compras</h2>
+                        <div class="table-actions">
+                            <button class="btn-download" onclick="downloadCSVCompras()" title="Baixar CSV Compras">
+                                <i class="ph-bold ph-download-simple"></i> CSV
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="ranking-container" id="rankingSection" style="display:none;">
-                <div class="ranking-header">
-                    <h2><i class="ph-bold ph-trophy"></i> Produtos Mais Provados</h2>
-                </div>
-                <div class="ranking-list" id="rankingList"></div>
-            </div>
-
-            <div class="chart-container" id="chartSection" style="display:none;">
-                <div class="chart-header">
-                    <h2><i class="ph-bold ph-chart-bar"></i> Vendas Diárias (via Provador)</h2>
-                </div>
-                <div class="chart-canvas-wrap">
-                    <canvas id="dailySalesChart"></canvas>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <div class="table-header">
-                    <h2><i class="ph-fill ph-list-dashes"></i> Últimos Clientes</h2>
-                    <div class="table-actions">
-                        <select id="purchaseFilter" class="select-filter" onchange="loadData()">
-                            <option value="all">Todos os Clientes</option>
-                            <option value="bought">Apenas quem Comprou</option>
-                        </select>
-                        <button class="btn-download" onclick="downloadCSV()" title="Baixar CSV">
-                            <i class="ph-bold ph-download-simple"></i> CSV
+                    <table id="comprasTable">
+                        <thead>
+                            <tr>
+                                <th>Data do Pedido</th>
+                                <th>Cliente</th>
+                                <th>WhatsApp</th>
+                                <th>Valor</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comprasTableBody"></tbody>
+                    </table>
+                    <div class="pagination" id="comprasPagination" style="display:none;">
+                        <button class="btn-page" id="comprasPrevPage" onclick="changePageCompras(-1)">
+                            <i class="ph-bold ph-caret-left"></i> Anterior
                         </button>
+                        <span class="page-info" id="comprasPageInfo">Página 1</span>
+                        <button class="btn-page" id="comprasNextPage" onclick="changePageCompras(1)">
+                            Próximo <i class="ph-bold ph-caret-right"></i>
+                        </button>
+                    </div>
+                    <div class="empty-state" id="comprasEmptyState" style="display:none;">
+                        <i class="ph-light ph-ghost"></i>
+                        <p>Nenhuma compra encontrada no período via provador.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== SEÇÃO PROVAS ====== -->
+            <div id="provasSection" style="margin-top:40px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                    <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
+                        <i class="ph-bold ph-t-shirt" style="color:var(--primary);"></i> Provas
+                    </h2>
+                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <div class="date-filter-bar" style="margin-bottom:0;">
+                            <div class="date-presets">
+                                <button class="btn-preset active" onclick="setDatePresetProvas(0)">Tudo</button>
+                                <button class="btn-preset" onclick="setDatePresetProvas(1)">Hoje</button>
+                                <button class="btn-preset" onclick="setDatePresetProvas(7)">7 dias</button>
+                                <button class="btn-preset" onclick="setDatePresetProvas(30)">30 dias</button>
+                            </div>
+                            <div class="date-custom">
+                                <label><i class="ph-bold ph-calendar-blank"></i></label>
+                                <input type="date" id="dateFromProvas" oninput="dateFromProvas=this.value;loadProvas(1)">
+                                <span>até</span>
+                                <input type="date" id="dateToProvas" oninput="dateToProvas=this.value;loadProvas(1)">
+                                <button class="btn-clear-dates" onclick="setDatePresetProvas(0)"><i class="ph-bold ph-x"></i></button>
+                            </div>
+                        </div>
                         <button class="btn-refresh" onclick="loadData()">
                             <i class="ph-bold ph-arrows-clockwise"></i> Atualizar
                         </button>
                     </div>
                 </div>
 
-                <table id="dataTable">
-                    <thead>
-                        <tr>
-                            <th>Data e Hora</th>
-                            <th>Cliente</th>
-                            <th>WhatsApp</th>
-                            <th>Produto</th>
-                            <th>Comprou?</th>
-                            <th>Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <!-- Linhas injetadas via JS -->
-                    </tbody>
-                </table>
-
-                <div class="pagination" id="paginationControls" style="display: none;">
-                    <button class="btn-page" id="prevPage" onclick="changePage(-1)">
-                        <i class="ph-bold ph-caret-left"></i> Anterior
-                    </button>
-                    <span class="page-info" id="pageInfo">Página 1</span>
-                    <button class="btn-page" id="nextPage" onclick="changePage(1)">
-                        Próximo <i class="ph-bold ph-caret-right"></i>
-                    </button>
+                <div class="stats-grid" style="margin-bottom:20px;">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="ph-bold ph-users"></i></div>
+                        <div class="stat-info">
+                            <h4>Total de Provas</h4>
+                            <div class="value" id="provasTotalCount">0</div>
+                            <div class="stat-sub"><span id="provasUniqueCount">0</span> clientes únicos</div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="empty-state" id="emptyState">
-                    <i class="ph-light ph-ghost"></i>
-                    <p>Nenhum dado encontrado na tabela. Assim que alguém usar o provador, aparecerá aqui!</p>
+                <div class="ranking-container" id="rankingSection" style="display:none;">
+                    <div class="ranking-header">
+                        <h2><i class="ph-bold ph-trophy"></i> Produtos Mais Provados</h2>
+                    </div>
+                    <div class="ranking-list" id="rankingList"></div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2><i class="ph-fill ph-list-dashes"></i> Últimas Provas</h2>
+                        <div class="table-actions">
+                            <button class="btn-download" onclick="downloadCSVProvas()" title="Baixar CSV Provas">
+                                <i class="ph-bold ph-download-simple"></i> CSV
+                            </button>
+                        </div>
+                    </div>
+                    <table id="provasTable">
+                        <thead>
+                            <tr>
+                                <th>Data e Hora</th>
+                                <th>Cliente</th>
+                                <th>WhatsApp</th>
+                                <th>Produto</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="provasTableBody"></tbody>
+                    </table>
+                    <div class="pagination" id="provasPagination" style="display:none;">
+                        <button class="btn-page" id="provasPrevPage" onclick="changePageProvas(-1)">
+                            <i class="ph-bold ph-caret-left"></i> Anterior
+                        </button>
+                        <span class="page-info" id="provasPageInfo">Página 1</span>
+                        <button class="btn-page" id="provasNextPage" onclick="changePageProvas(1)">
+                            Próximo <i class="ph-bold ph-caret-right"></i>
+                        </button>
+                    </div>
+                    <div class="empty-state" id="provasEmptyState" style="display:none;">
+                        <i class="ph-light ph-ghost"></i>
+                        <p>Nenhuma prova encontrada. Assim que alguém usar o provador, aparecerá aqui!</p>
+                    </div>
                 </div>
             </div>
-        </div>
 
+        </div>
         <div style="text-align: center; margin-top: 50px; padding-bottom: 20px;" id="quanticFooter">
             <img src="https://i.ibb.co/23hMHTRt/logo-quantic-na-melhor-qualidade.png" alt="Quantic Logo"
                 style="height: 18px; filter: brightness(0) invert(1); opacity: 0.5;" id="quanticLogoImg">
@@ -1122,8 +1203,8 @@
                     .select('*', { count: 'exact' })
                     .ilike('origin', `%${activeUser.origem}%`)
                     .order('created_at', { ascending: false });
-                if (dateFrom) query = query.gte('created_at', dateFrom + 'T00:00:00');
-                if (dateTo) query = query.lte('created_at', dateTo + 'T23:59:59');
+                if (dateFrom) query = query.gte('created_at', dateFrom + 'T00:00:00-03:00');
+                if (dateTo) query = query.lte('created_at', dateTo + 'T23:59:59-03:00');
                 query = query.range(from, to);
                 const { data, error, count } = await query;
 
@@ -1160,8 +1241,8 @@
                         .select('*')
                         .ilike('origin', `%${activeUser.origem}%`)
                         .order('created_at', { ascending: false });
-                    if (dateFrom) genQuery = genQuery.gte('created_at', dateFrom + 'T00:00:00');
-                    if (dateTo) genQuery = genQuery.lte('created_at', dateTo + 'T23:59:59');
+                    if (dateFrom) genQuery = genQuery.gte('created_at', dateFrom + 'T00:00:00-03:00');
+                    if (dateTo) genQuery = genQuery.lte('created_at', dateTo + 'T23:59:59-03:00');
                     const { data: allGenerations } = await genQuery;
                     allGenerationsData = allGenerations;
 
@@ -1171,8 +1252,8 @@
                         .select(selectFields)
                         .in(fStatus, fStatusValues)
                         .order('created_at', { ascending: false });
-                    if (dateFrom) ordQuery = ordQuery.gte('created_at', dateFrom + 'T00:00:00');
-                    if (dateTo) ordQuery = ordQuery.lte('created_at', dateTo + 'T23:59:59');
+                    if (dateFrom) ordQuery = ordQuery.gte('created_at', dateFrom + 'T00:00:00-03:00');
+                    if (dateTo) ordQuery = ordQuery.lte('created_at', dateTo + 'T23:59:59-03:00');
                     const { data: allOrders } = await ordQuery;
 
                     // Busca nomes de todos os registros da tabela de pedidos (sem filtro de status)
@@ -1240,7 +1321,7 @@
                 // Ranking de produtos mais provados
                 const productCounts = {};
                 (allGenerationsData || []).forEach(g => {
-                    const p = g.produtos || g.produto_provado || '';
+                    const p = g.produtos || '';
                     if (p) productCounts[p] = (productCounts[p] || 0) + 1;
                 });
                 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1469,10 +1550,17 @@
                         // Telefone formato 5511... (sem formatação visual)
                         const formattedPhone = phoneDisplay;
 
-                        // buyBadge é HTML estático (não usa dados do banco — seguro sem esc())
-                        const buyBadge = hasBought
-                            ? '<span style="color: #25D366; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; background: rgba(37,211,102,0.1); padding: 4px 10px; border-radius: 6px;"><i class="ph-fill ph-shopping-bag"></i> Comprou</span>'
-                            : '<span style="color: #94a3b8; font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 5px;"><i class="ph-fill ph-x-circle"></i> Não</span>';
+                        // buyBadge — mostra data da compra mais recente quando disponível
+                        let buyBadge;
+                        if (hasBought) {
+                            const lastOrder = ordersMap.get(phone);
+                            const lastOrderRaw = lastOrder && ((fDataPedido && lastOrder[fDataPedido]) || lastOrder.created_at);
+                            const lastOrderDate = lastOrderRaw ? new Date(lastOrderRaw).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '';
+                            const dateLabel = lastOrderDate ? ' ' + lastOrderDate : '';
+                            buyBadge = '<span style="color: #25D366; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; background: rgba(37,211,102,0.1); padding: 4px 10px; border-radius: 6px;"><i class="ph-fill ph-shopping-bag"></i> Comprou' + dateLabel + '</span>';
+                        } else {
+                            buyBadge = '<span style="color: #94a3b8; font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 5px;"><i class="ph-fill ph-x-circle"></i> Não</span>';
+                        }
 
                         const rawName = nameMap.get(phone) || item.nome || item.cliente_nome || item.nome_cliente || item.customer_name || '';
                         const firstName = rawName ? rawName.trim().split(' ')[0] : '—';
@@ -1520,67 +1608,450 @@
             }
         }
 
-        let currentPage = 1;
-        let _dateDebounce = null;
+                // Estado dos dois painéis
+        let dateFromProvas = '', dateToProvas = '';
+        let dateFromCompras = '', dateToCompras = '';
+        let currentPageProvas = 1;
+        let currentPageCompras = 1;
+        const itemsPerPage = 10;
 
-        function setDatePreset(days) {
-            document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            if (days === 0) {
-                document.getElementById('dateFrom').value = '';
-                document.getElementById('dateTo').value = '';
-            } else {
-                const to = new Date();
-                const from = new Date();
-                from.setDate(from.getDate() - days);
-                document.getElementById('dateFrom').value = from.toISOString().slice(0, 10);
-                document.getElementById('dateTo').value = to.toISOString().slice(0, 10);
-            }
-            currentPage = 1;
-            loadData();
-        }
+        // Cache compartilhado
+        let generationPhones = new Set();
+        let boughtPhonesSet = new Set();
+        let provaMinDateMap = {};
+        let nameMap = {};
+        let allOrdersCache = [];
+        let _csvProvasData = [];
+        let _csvComprasData = [];
 
-        function onDateInputChange() {
-            // Remove preset active state quando edita manualmente
-            document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
-            clearTimeout(_dateDebounce);
-            _dateDebounce = setTimeout(() => {
-                currentPage = 1;
-                loadData();
-            }, 600);
-        }
+        const normalize = p => {
+            let n = String(p || '').replace(/\D/g, '');
+            if (n.startsWith('55') && n.length > 11) n = n.slice(2);
+            if (n.startsWith('0')) n = n.slice(1);
+            return n;
+        };
 
-        function changePage(delta) {
-            currentPage += delta;
-            if (currentPage < 1) currentPage = 1;
-            loadData();
-        }
+        async function loadSharedData() {
+            const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
+            const fTotal = activeUser.campo_total_pedido || 'total';
+            const fStatus = activeUser.campo_status_pedido || 'payment_status';
+            const fStatusValues = activeUser.valores_status_pago || ['paid', 'Confirmado'];
+            const fDataPedido = activeUser.campo_data_pedido || null;
+            const fNome = activeUser.campo_nome_pedido || null;
+            const selectFields = [fPhone, fTotal, fStatus, 'created_at', fDataPedido, fNome].filter(Boolean).join(', ');
 
-        function downloadCSV() {
-            if (!_csvExportData.length) return alert('Nenhum dado para exportar.');
-            const headers = ['Data', 'Cliente', 'Telefone', 'Produto', 'Comprou'];
-            const csvRows = [headers.join(';')];
-            _csvExportData.forEach(item => {
-                const dateRaw = item._date || '';
-                const nome = item._name || '';
-                const tel = item._phone || '';
-                const prod = item._product || '';
-                const comprou = item._bought ? 'Sim' : 'Não';
-                csvRows.push([dateRaw, nome, tel, prod, comprou].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(';'));
+            const { data: allGens } = await supabaseClient
+                .from(activeUser.tabela)
+                .select('telefone_cliente, created_at')
+                .ilike('origin', `%${activeUser.origem}%`);
+            generationPhones = new Set((allGens || []).map(r => normalize(r.telefone_cliente)));
+            provaMinDateMap = {};
+            (allGens || []).forEach(r => {
+                const ph = normalize(r.telefone_cliente);
+                if (!ph) return;
+                const d = (r.created_at || '').slice(0, 10);
+                if (!provaMinDateMap[ph] || d < provaMinDateMap[ph]) provaMinDateMap[ph] = d;
             });
-            const bom = '\uFEFF';
-            const blob = new Blob([bom + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+
+            if (!activeUser.tabela_pedidos) {
+                allOrdersCache = [];
+                boughtPhonesSet = new Set();
+                nameMap = {};
+                return;
+            }
+
+            const { data: allOrders } = await supabaseClient
+                .from(activeUser.tabela_pedidos)
+                .select(selectFields)
+                .in(fStatus, fStatusValues);
+            allOrdersCache = allOrders || [];
+
+            boughtPhonesSet = new Set(
+                allOrdersCache
+                    .filter(o => generationPhones.has(normalize(o[fPhone])))
+                    .map(o => normalize(o[fPhone]))
+            );
+
+            nameMap = {};
+            if (fNome) {
+                const { data: allNomes } = await supabaseClient
+                    .from(activeUser.tabela_pedidos)
+                    .select(`${fPhone}, ${fNome}`);
+                (allNomes || []).forEach(o => {
+                    const ph = normalize(o[fPhone]);
+                    if (ph && o[fNome] && !nameMap[ph]) nameMap[ph] = o[fNome];
+                });
+            }
+        }
+
+        async function loadProvas(page) {
+            currentPageProvas = page;
+            const tbody = document.getElementById('provasTableBody');
+            tbody.textContent = '';
+            const loadingRow = document.createElement('tr');
+            const loadingTd = document.createElement('td');
+            loadingTd.colSpan = 5;
+            loadingTd.style.cssText = 'text-align:center;padding:20px;color:var(--text-muted)';
+            loadingTd.textContent = 'Carregando...';
+            loadingRow.appendChild(loadingTd);
+            tbody.appendChild(loadingRow);
+            try {
+                const fromRow = (page - 1) * itemsPerPage;
+                const toRow = fromRow + itemsPerPage - 1;
+
+                let query = supabaseClient
+                    .from(activeUser.tabela)
+                    .select('*', { count: 'exact' })
+                    .ilike('origin', `%${activeUser.origem}%`)
+                    .order('created_at', { ascending: false });
+                if (dateFromProvas) query = query.gte('created_at', dateFromProvas + 'T00:00:00-03:00');
+                if (dateToProvas) query = query.lte('created_at', dateToProvas + 'T23:59:59-03:00');
+                query = query.range(fromRow, toRow);
+                const { data, count, error } = await query;
+                if (error) throw error;
+
+                let statsQuery = supabaseClient
+                    .from(activeUser.tabela)
+                    .select('telefone_cliente, produtos, created_at')
+                    .ilike('origin', `%${activeUser.origem}%`);
+                if (dateFromProvas) statsQuery = statsQuery.gte('created_at', dateFromProvas + 'T00:00:00-03:00');
+                if (dateToProvas) statsQuery = statsQuery.lte('created_at', dateToProvas + 'T23:59:59-03:00');
+                const { data: allProvas } = await statsQuery;
+
+                const totalProvas = count || 0;
+                const uniquePhonesSet = new Set((allProvas || []).map(r => normalize(r.telefone_cliente)).filter(Boolean));
+
+                document.getElementById('provasTotalCount').textContent = totalProvas;
+                document.getElementById('provasUniqueCount').textContent = uniquePhonesSet.size;
+
+                const productCounts = {};
+                (allProvas || []).forEach(g => {
+                    const p = g.produtos || '';
+                    if (p) productCounts[p] = (productCounts[p] || 0) + 1;
+                });
+                const ranked = Object.entries(productCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+                const rankingEl = document.getElementById('rankingList');
+                const rankingSec = document.getElementById('rankingSection');
+                if (ranked.length > 0) {
+                    rankingSec.style.display = 'block';
+                    const maxCnt = ranked[0][1];
+                    rankingEl.textContent = '';
+                    ranked.forEach(([name, cnt], i) => {
+                        const item = document.createElement('div'); item.className = 'ranking-item';
+                        const pos = document.createElement('div'); pos.className = 'ranking-position'; pos.textContent = i + 1;
+                        const prod = document.createElement('div'); prod.className = 'ranking-product'; prod.textContent = name;
+                        const barBg = document.createElement('div'); barBg.className = 'ranking-bar-bg';
+                        const bar = document.createElement('div'); bar.className = 'ranking-bar'; bar.style.width = (cnt / maxCnt * 100).toFixed(0) + '%';
+                        barBg.appendChild(bar);
+                        const countEl = document.createElement('div'); countEl.className = 'ranking-count'; countEl.textContent = cnt + (cnt > 1 ? ' provas' : ' prova');
+                        item.append(pos, prod, barBg, countEl);
+                        rankingEl.appendChild(item);
+                    });
+                } else {
+                    rankingSec.style.display = 'none';
+                }
+
+                tbody.textContent = '';
+                if (!data || data.length === 0) {
+                    document.getElementById('provasEmptyState').style.display = 'block';
+                    document.getElementById('provasTable').style.display = 'none';
+                    document.getElementById('provasPagination').style.display = 'none';
+                } else {
+                    document.getElementById('provasEmptyState').style.display = 'none';
+                    document.getElementById('provasTable').style.display = 'table';
+                    data.forEach(item => {
+                        const phone = normalize(item.telefone_cliente);
+                        let dateStr = '';
+                        if (item.created_at) {
+                            const d = new Date(item.created_at);
+                            dateStr = d.toLocaleDateString('pt-BR') + ' \u00e0s ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                        }
+                        const rawName = nameMap[phone] || item.nome || item.cliente_nome || item.nome_cliente || item.customer_name || '';
+                        const firstName = rawName ? rawName.trim().split(' ')[0] : '\u2014';
+                        const produto = item.produtos || item.produto_provado || '-';
+
+                        const tr = document.createElement('tr');
+                        const tdDate = document.createElement('td'); tdDate.textContent = dateStr;
+                        const tdName = document.createElement('td'); tdName.style.fontWeight = '600'; tdName.textContent = firstName;
+                        const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display'; tdPhone.textContent = String(item.telefone_cliente || '');
+                        const tdProd = document.createElement('td'); tdProd.className = 'product-cell'; tdProd.textContent = produto;
+                        const tdAction = document.createElement('td');
+                        const link = document.createElement('a');
+                        link.href = 'https://wa.me/55' + phone;
+                        link.target = '_blank';
+                        link.className = 'btn-whats';
+                        const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
+                        link.append(waIcon, ' Chamar no Whats');
+                        tdAction.appendChild(link);
+                        tr.append(tdDate, tdName, tdPhone, tdProd, tdAction);
+                        tbody.appendChild(tr);
+                    });
+                    const pag = document.getElementById('provasPagination');
+                    if (totalProvas > itemsPerPage) {
+                        pag.style.display = 'flex';
+                        document.getElementById('provasPageInfo').textContent = 'P\u00e1gina ' + page;
+                        document.getElementById('provasPrevPage').disabled = page === 1;
+                        document.getElementById('provasNextPage').disabled = data.length < itemsPerPage;
+                    } else {
+                        pag.style.display = 'none';
+                    }
+                }
+
+                _csvProvasData = (allProvas || []).map(item => {
+                    const ph = normalize(item.telefone_cliente);
+                    return {
+                        data: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : '',
+                        cliente: (nameMap[ph] || '').trim().split(' ')[0] || '',
+                        telefone: String(item.telefone_cliente || ''),
+                        produto: item.produtos || item.produto_provado || ''
+                    };
+                });
+
+            } catch (err) {
+                console.error('Erro ao carregar provas:', err);
+                tbody.textContent = '';
+                const errRow = document.createElement('tr');
+                const errTd = document.createElement('td');
+                errTd.colSpan = 5;
+                errTd.style.cssText = 'text-align:center;padding:20px;color:#ef4444';
+                errTd.textContent = 'Erro ao carregar provas.';
+                errRow.appendChild(errTd);
+                tbody.appendChild(errRow);
+            }
+        }
+
+        async function loadCompras(page) {
+            currentPageCompras = page;
+            const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
+            const fTotal = activeUser.campo_total_pedido || 'total';
+            const fStatus = activeUser.campo_status_pedido || 'payment_status';
+            const fDataPedido = activeUser.campo_data_pedido || null;
+            const fNome = activeUser.campo_nome_pedido || null;
+
+            const filtered = allOrdersCache.filter(o => {
+                const ph = normalize(o[fPhone]);
+                if (!generationPhones.has(ph)) return false;
+                const d = ((fDataPedido && o[fDataPedido]) || o.created_at || '').slice(0, 10);
+                const provaDate = provaMinDateMap[ph];
+                if (!provaDate || d < provaDate) return false;
+                if (dateFromCompras && d < dateFromCompras) return false;
+                if (dateToCompras && d > dateToCompras) return false;
+                return true;
+            });
+
+            const pedidosCount = filtered.length;
+            const faturamento = filtered.reduce((s, o) => s + (parseFloat(o[fTotal]) || 0), 0);
+            document.getElementById('comprasPedidosCount').textContent = pedidosCount;
+            document.getElementById('comprasFaturamento').textContent = faturamento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            // Compraram = clientes com pedido no período que têm prova registrada antes do pedido
+            const compraramSet = new Set();
+            filtered.forEach(o => {
+                const ph = normalize(o[fPhone]);
+                if (!ph) return;
+                const orderDate = ((fDataPedido && o[fDataPedido]) || o.created_at || '').slice(0, 10);
+                const provaDate = provaMinDateMap[ph];
+                if (provaDate && orderDate >= provaDate) compraramSet.add(ph);
+            });
+            const compraramCount = compraramSet.size;
+            const conversao = generationPhones.size > 0 ? ((compraramCount / generationPhones.size) * 100).toFixed(1) : '0.0';
+            document.getElementById('provasCompraramCount').textContent = compraramCount;
+            document.getElementById('provasConversao').textContent = conversao + '%';
+
+            renderComprasChart(filtered, fDataPedido, fTotal);
+
+            _csvComprasData = filtered.map(o => {
+                const d = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                return {
+                    data: d ? (d.length === 10 ? d.split('-').reverse().join('/') : new Date(d).toLocaleDateString('pt-BR')) : '',
+                    cliente: (fNome && o[fNome]) ? o[fNome].trim().split(' ')[0] : (nameMap[normalize(o[fPhone])] || '').trim().split(' ')[0] || '',
+                    telefone: String(o[fPhone] || ''),
+                    valor: (parseFloat(o[fTotal]) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                };
+            });
+
+            const fromIdx = (page - 1) * itemsPerPage;
+            const pageData = filtered.slice(fromIdx, fromIdx + itemsPerPage);
+            const tbody = document.getElementById('comprasTableBody');
+            tbody.textContent = '';
+
+            if (pageData.length === 0) {
+                document.getElementById('comprasEmptyState').style.display = 'block';
+                document.getElementById('comprasTable').style.display = 'none';
+                document.getElementById('comprasPagination').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('comprasEmptyState').style.display = 'none';
+            document.getElementById('comprasTable').style.display = 'table';
+
+            const orderCountByPhone = {};
+            filtered.forEach(o => {
+                const ph = normalize(o[fPhone]);
+                orderCountByPhone[ph] = (orderCountByPhone[ph] || 0) + 1;
+            });
+
+            pageData.forEach(o => {
+                const phone = normalize(o[fPhone]);
+                const dateRaw = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                const dateStr = dateRaw ? (dateRaw.length === 10 ? dateRaw.split('-').reverse().join('/') : new Date(dateRaw).toLocaleDateString('pt-BR')) : '';
+                const clienteNome = (fNome && o[fNome]) || nameMap[phone] || '';
+                const firstName = clienteNome.trim().split(' ')[0] || '\u2014';
+                const valor = (parseFloat(o[fTotal]) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                const isRecorrente = (orderCountByPhone[phone] || 0) > 1;
+                const tr = document.createElement('tr');
+                const tdDate = document.createElement('td'); tdDate.textContent = dateStr;
+                const tdName = document.createElement('td'); tdName.style.fontWeight = '600';
+                tdName.textContent = firstName;
+                if (isRecorrente) {
+                    const tag = document.createElement('span');
+                    tag.textContent = 'recorrente';
+                    tag.style.cssText = 'margin-left:6px;font-size:10px;font-weight:600;padding:2px 6px;border-radius:999px;background:rgba(139,92,246,0.15);color:#a78bfa;vertical-align:middle;';
+                    tdName.appendChild(tag);
+                }
+                const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display'; tdPhone.textContent = String(o[fPhone] || '');
+                const tdValor = document.createElement('td'); tdValor.textContent = valor;
+                const tdAction = document.createElement('td');
+                const link = document.createElement('a');
+                link.href = 'https://wa.me/55' + phone;
+                link.target = '_blank';
+                link.className = 'btn-whats';
+                const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
+                link.append(waIcon, ' Chamar');
+                tdAction.appendChild(link);
+                tr.append(tdDate, tdName, tdPhone, tdValor, tdAction);
+                tbody.appendChild(tr);
+            });
+
+            const pag = document.getElementById('comprasPagination');
+            if (filtered.length > itemsPerPage) {
+                pag.style.display = 'flex';
+                document.getElementById('comprasPageInfo').textContent = 'P\u00e1gina ' + page;
+                document.getElementById('comprasPrevPage').disabled = page === 1;
+                document.getElementById('comprasNextPage').disabled = fromIdx + itemsPerPage >= filtered.length;
+            } else {
+                pag.style.display = 'none';
+            }
+        }
+
+        function renderComprasChart(orders, fDataPedido, fTotal) {
+            const chartSec = document.getElementById('chartSection');
+            if (orders.length === 0) { chartSec.style.display = 'none'; return; }
+            chartSec.style.display = 'block';
+            const dailyCount = {}, dailyRevenue = {};
+            orders.forEach(o => {
+                const raw = (fDataPedido && o[fDataPedido]) || (o.created_at || '');
+                const day = raw ? raw.slice(0, 10) : null;
+                if (day) {
+                    dailyCount[day] = (dailyCount[day] || 0) + 1;
+                    dailyRevenue[day] = (dailyRevenue[day] || 0) + (parseFloat(o[fTotal]) || 0);
+                }
+            });
+            const sortedDays = Object.keys(dailyCount).sort();
+            const labels = sortedDays.map(d => { const [, m, dd] = d.split('-'); return dd + '/' + m; });
+            const ctx = document.getElementById('dailySalesChart');
+            if (window._dailyChart) window._dailyChart.destroy();
+            window._dailyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Vendas', data: sortedDays.map(d => dailyCount[d]), borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.15)', fill: true, tension: 0.35, borderWidth: 2.5, pointBackgroundColor: '#8b5cf6', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7, yAxisID: 'y' },
+                        { label: 'Faturamento', data: sortedDays.map(d => dailyRevenue[d]), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', fill: true, tension: 0.35, borderWidth: 2, borderDash: [5, 4], pointBackgroundColor: '#10b981', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6, yAxisID: 'y1' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: true, labels: { color: '#94a3b8', font: { size: 12 }, usePointStyle: true, pointStyle: 'circle' } },
+                        tooltip: { backgroundColor: '#1e1e2e', titleColor: '#fff', bodyColor: '#c4b5fd', borderColor: '#8b5cf6', borderWidth: 1, cornerRadius: 8, callbacks: { label: c => c.datasetIndex === 0 ? c.parsed.y + (c.parsed.y > 1 ? ' vendas' : ' venda') : 'R$ ' + c.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { display: false } },
+                        y: { position: 'left', beginAtZero: true, ticks: { color: '#8b5cf6', font: { size: 11 }, stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'Vendas', color: '#8b5cf6', font: { size: 11 } } },
+                        y1: { position: 'right', beginAtZero: true, ticks: { color: '#10b981', font: { size: 11 }, callback: v => 'R$ ' + v.toLocaleString('pt-BR') }, grid: { drawOnChartArea: false }, title: { display: true, text: 'Faturamento', color: '#10b981', font: { size: 11 } } }
+                    }
+                }
+            });
+        }
+
+        async function loadData() {
+            if (!supabaseClient || !activeUser) return;
+            document.getElementById('mainLoader').style.display = 'flex';
+            document.getElementById('dashboardSection').style.display = 'none';
+            try {
+                await loadSharedData();
+                document.getElementById('mainLoader').style.display = 'none';
+                document.getElementById('dashboardSection').style.display = 'block';
+                await Promise.all([loadProvas(1), loadCompras(1)]);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('mainLoader').style.display = 'none';
+                document.getElementById('errorSection').style.display = 'block';
+            }
+        }
+
+        function setDatePresetProvas(days) {
+            document.querySelectorAll('#provasSection .btn-preset').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            const today = new Date().toISOString().split('T')[0];
+            if (days === 0) { dateFromProvas = ''; dateToProvas = ''; }
+            else if (days === 1) { dateFromProvas = today; dateToProvas = today; }
+            else { const from = new Date(); from.setDate(from.getDate() - days + 1); dateFromProvas = from.toISOString().split('T')[0]; dateToProvas = today; }
+            document.getElementById('dateFromProvas').value = dateFromProvas;
+            document.getElementById('dateToProvas').value = dateToProvas;
+            loadProvas(1);
+        }
+
+        function setDatePresetCompras(days) {
+            document.querySelectorAll('#comprasSection .btn-preset').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            const today = new Date().toISOString().split('T')[0];
+            if (days === 0) { dateFromCompras = ''; dateToCompras = ''; }
+            else if (days === 1) { dateFromCompras = today; dateToCompras = today; }
+            else { const from = new Date(); from.setDate(from.getDate() - days + 1); dateFromCompras = from.toISOString().split('T')[0]; dateToCompras = today; }
+            document.getElementById('dateFromCompras').value = dateFromCompras;
+            document.getElementById('dateToCompras').value = dateToCompras;
+            loadCompras(1);
+        }
+
+        function changePageProvas(delta) {
+            currentPageProvas += delta;
+            if (currentPageProvas < 1) currentPageProvas = 1;
+            loadProvas(currentPageProvas);
+        }
+
+        function changePageCompras(delta) {
+            currentPageCompras += delta;
+            if (currentPageCompras < 1) currentPageCompras = 1;
+            loadCompras(currentPageCompras);
+        }
+
+        function downloadCSVProvas() {
+            if (!_csvProvasData.length) return alert('Nenhum dado para exportar.');
+            const headers = ['Data', 'Cliente', 'Telefone', 'Produto'];
+            const rows = [headers.join(';')];
+            _csvProvasData.forEach(i => rows.push([i.data, i.cliente, i.telefone, i.produto].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(';')));
+            const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            const filterLabel = document.getElementById('purchaseFilter').value === 'bought' ? 'compradores' : 'leads';
-            a.download = 'provoulevou_' + filterLabel + '_' + new Date().toISOString().slice(0,10) + '.csv';
-            a.click();
+            const a = document.createElement('a'); a.href = url; a.download = 'provoulevou_provas_' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadCSVCompras() {
+            if (!_csvComprasData.length) return alert('Nenhum dado para exportar.');
+            const headers = ['Data', 'Cliente', 'Telefone', 'Valor'];
+            const rows = [headers.join(';')];
+            _csvComprasData.forEach(i => rows.push([i.data, i.cliente, i.telefone, i.valor].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(';')));
+            const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'provoulevou_compras_' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
             URL.revokeObjectURL(url);
         }
 
         // Run when DOM loads
-        window.onload = initApp;
+                window.onload = initApp;
 
         // Neural Network Background Effect (from script.js)
         document.addEventListener('DOMContentLoaded', () => {
