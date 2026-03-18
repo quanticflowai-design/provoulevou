@@ -781,36 +781,75 @@
         }
 
         @media (max-width: 768px) {
+            .container { padding: 16px 12px; }
+
+            header { margin-bottom: 20px; padding-bottom: 14px; }
+            h1 { font-size: 20px; }
+            .header-title i { font-size: 22px; }
+
+            .login-card { padding: 28px 20px; margin: 20px auto; }
+
+            /* Stats: 2 colunas no mobile */
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .stat-card { padding: 14px 16px; gap: 12px; }
+            .stat-icon { width: 38px; height: 38px; font-size: 18px; border-radius: 10px; }
+            .stat-info .value { font-size: 22px; }
+            .stat-info h4 { font-size: 10px; }
+
+            /* Filtros de data empilhados */
+            .date-filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                margin-bottom: 14px;
+            }
+            .date-custom { flex-wrap: wrap; gap: 6px; }
+            .date-filter-bar input[type="date"] { flex: 1; min-width: 0; width: auto; }
+
+            /* Cabeçalhos de seção empilhados */
+            #provasSection > div:first-child,
+            #comprasSection > div:first-child {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            #provasSection > div:first-child > div,
+            #comprasSection > div:first-child > div {
+                width: 100%;
+            }
+
+            /* Tabelas */
+            .table-container { overflow-x: auto; }
             .table-header {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 15px;
-                padding: 20px;
+                gap: 12px;
+                padding: 16px;
             }
+            .table-header h2 { font-size: 15px; }
+            .table-actions { width: 100%; justify-content: flex-end; }
+            td, th { padding: 10px 12px; font-size: 13px; }
 
-            .table-actions {
-                width: 100%;
-                justify-content: space-between;
-                gap: 10px;
-                flex-wrap: wrap;
-            }
+            /* Botão WhatsApp — só ícone */
+            .btn-whats-text { display: none; }
+            .btn-whats { padding: 8px 10px; }
 
-            .select-filter {
-                flex: 1;
-            }
+            /* Ranking */
+            .ranking-header { padding: 16px 16px 0; }
+            .ranking-list { padding: 12px 16px 16px; }
+            .ranking-bar-bg { display: none; }
+            .ranking-item { padding: 10px 12px; gap: 10px; }
 
-            .btn-refresh {
-                flex-shrink: 0;
-            }
+            /* Chart */
+            .chart-container { padding: 16px; }
+            .chart-canvas-wrap { height: 180px; }
 
-            .table-container {
-                overflow-x: auto;
-            }
-
-            td,
-            th {
-                padding: 15px;
-            }
+            /* Paginação */
+            .pagination { gap: 12px; padding: 14px; }
+            .btn-page { padding: 7px 12px; font-size: 12px; }
         }
 
         .pagination {
@@ -1578,7 +1617,7 @@
                             <td>${buyBadge}</td>
                             <td>
                                 <a href="https://wa.me/55${esc(phone)}" target="_blank" class="btn-whats">
-                                    <i class="ph-bold ph-whatsapp-logo"></i> Chamar no Whats
+                                    <i class="ph-bold ph-whatsapp-logo"></i><span class="btn-whats-text"> Chamar</span>
                                 </a>
                             </td>
                         `;
@@ -1781,7 +1820,7 @@
                         link.target = '_blank';
                         link.className = 'btn-whats';
                         const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
-                        link.append(waIcon, ' Chamar no Whats');
+                        const waTxt1 = document.createElement('span'); waTxt1.className='btn-whats-text'; waTxt1.textContent=' Chamar'; link.append(waIcon, waTxt1);
                         tdAction.appendChild(link);
                         tr.append(tdDate, tdName, tdPhone, tdProd, tdAction);
                         tbody.appendChild(tr);
@@ -1917,7 +1956,7 @@
                 link.target = '_blank';
                 link.className = 'btn-whats';
                 const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
-                link.append(waIcon, ' Chamar');
+                const waTxt2 = document.createElement('span'); waTxt2.className='btn-whats-text'; waTxt2.textContent=' Chamar'; link.append(waIcon, waTxt2);
                 tdAction.appendChild(link);
                 tr.append(tdDate, tdName, tdPhone, tdValor, tdAction);
                 tbody.appendChild(tr);
