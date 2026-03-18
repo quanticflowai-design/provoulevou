@@ -1057,31 +1057,51 @@ async function doSignup(e) {
   btn.appendChild(spinner);
   btn.appendChild(document.createTextNode(' Criando conta...'));
 
-  // 1. Create auth user
-  const { data: authData, error: authErr } = await sb.auth.signUp({ email, password: pass });
+  // 1. Create auth user (or login if already exists)
+  let { data: authData, error: authErr } = await sb.auth.signUp({ email, password: pass });
+
+  // If email already registered in Auth, try to login instead
+  if (authErr && authErr.message.includes('already registered')) {
+    const { data: loginData, error: loginErr } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (loginErr) {
+      errEl.textContent = 'Este e-mail já está cadastrado. Faça login com a senha correta.';
+      errEl.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'Criar Conta';
+      return;
+    }
+    authData = loginData;
+    authErr = null;
+  }
 
   if (authErr) {
-    const msg = authErr.message.includes('already registered')
-      ? 'Este e-mail já está cadastrado. Faça login.' : authErr.message;
-    errEl.textContent = msg;
+    errEl.textContent = authErr.message;
     errEl.classList.add('show');
     btn.disabled = false;
     btn.textContent = 'Criar Conta';
     return;
   }
 
-  // 2. Generate slug from name
+  // 2. Check if already has afiliados record
+  const existing = await fetchAfiliado(email);
+  if (existing) {
+    currentAfiliado = existing;
+    showDashboard();
+    return;
+  }
+
+  // 3. Generate slug from name
   const slug = nome.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'')
     .replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
-  // 3. Look up referrer if provided
+  // 4. Look up referrer if provided
   let referidoPor = null;
   if (ref) {
     const { data: refData } = await sb.from('afiliados').select('id').eq('slug', ref).single();
     if (refData) referidoPor = refData.id;
   }
 
-  // 4. Insert into afiliados table
+  // 5. Insert into afiliados table
   const { error: insertErr } = await sb.from('afiliados').insert({
     email,
     nome,
@@ -1102,19 +1122,11 @@ async function doSignup(e) {
     return;
   }
 
-  // Success
-  sucEl.textContent = 'Conta criada! Verifique seu e-mail para confirmar, depois faça login.';
-  sucEl.classList.add('show');
-  btn.disabled = false;
-  btn.textContent = 'Criar Conta';
-
-  // If Supabase auto-confirms, go straight to dashboard
-  if (authData.session) {
-    const afiliado = await fetchAfiliado(email);
-    if (afiliado) {
-      currentAfiliado = afiliado;
-      showDashboard();
-    }
+  // 6. Success — go straight to dashboard
+  const afiliado = await fetchAfiliado(email);
+  if (afiliado) {
+    currentAfiliado = afiliado;
+    showDashboard();
   }
 }
 
@@ -1126,7 +1138,7 @@ async function fetchAfiliado(email) {
 }
 
 /* ──────────────────────────── SHOW DASHBOARD ────────────────── */
-function showDashboard() {
+async function showDashboard() {
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('appLayout').style.display = 'flex';
 
@@ -1154,7 +1166,50 @@ function showDashboard() {
   aff.level = currentAfiliado.nivel || 'Inicial';
   document.getElementById('link-box').textContent = aff.link;
 
+  // Fetch network from Supabase
+  await fetchRede();
+
   init();
+}
+
+/* ──────────────────────────── FETCH REDE ─────────────────────── */
+async function fetchRede() {
+  // L1: direct referrals
+  const { data: l1Data } = await sb.from('afiliados')
+    .select('id, nome, email, slug, nivel, comissao_rate, sub_rate')
+    .eq('referido_por', currentAfiliado.id);
+
+  const l1 = l1Data || [];
+
+  // L2: referrals of each L1
+  const l1Ids = l1.map(s => s.id);
+  let l2 = [];
+  if (l1Ids.length > 0) {
+    const { data: l2Data } = await sb.from('afiliados')
+      .select('id, nome, email, slug, nivel, comissao_rate, sub_rate, referido_por')
+      .in('referido_por', l1Ids);
+    l2 = l2Data || [];
+  }
+
+  // Build network array
+  aff.network = l1.map(sub => ({
+    name: sub.nome,
+    level: sub.nivel || 'Inicial',
+    revenue: 0,
+    commissions: 0,
+    contracts: 0,
+    subs: l2.filter(ss => ss.referido_por === sub.id).map(ss => ({
+      name: ss.nome,
+      level: ss.nivel || 'Inicial',
+      revenue: 0,
+      commissions: 0,
+      contracts: 0,
+    })),
+  }));
+
+  // Update stats
+  const totalSubs = l1.length + l2.length;
+  aff.stats.totalSubs = totalSubs;
 }
 
 /* ──────────────────────────── LOGOUT ────────────────────────── */
