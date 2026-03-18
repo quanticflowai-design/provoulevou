@@ -1082,26 +1082,39 @@ async function doSignup(e) {
     return;
   }
 
-  // 2. Check if already has afiliados record
+  // 2. Ensure we have an active session (signUp may not auto-login)
+  if (!authData.session) {
+    const { data: loginData, error: loginErr } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (loginErr || !loginData.session) {
+      errEl.textContent = 'Conta criada! Faça login para continuar.';
+      errEl.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'Criar Conta';
+      return;
+    }
+    authData = loginData;
+  }
+
+  // 3. Check if already has afiliados record
   const existing = await fetchAfiliado(email);
   if (existing) {
     currentAfiliado = existing;
-    showDashboard();
+    await showDashboard();
     return;
   }
 
-  // 3. Generate slug from name
+  // 4. Generate slug from name
   const slug = nome.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'')
     .replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
-  // 4. Look up referrer if provided
+  // 5. Look up referrer if provided
   let referidoPor = null;
   if (ref) {
     const { data: refData } = await sb.from('afiliados').select('id').eq('slug', ref).single();
     if (refData) referidoPor = refData.id;
   }
 
-  // 5. Insert into afiliados table
+  // 6. Insert into afiliados table
   const { error: insertErr } = await sb.from('afiliados').insert({
     email,
     nome,
@@ -1122,11 +1135,17 @@ async function doSignup(e) {
     return;
   }
 
-  // 6. Success — go straight to dashboard
+  // 7. Success — go straight to dashboard
   const afiliado = await fetchAfiliado(email);
   if (afiliado) {
     currentAfiliado = afiliado;
-    showDashboard();
+    await showDashboard();
+  } else {
+    btn.disabled = false;
+    btn.textContent = 'Criar Conta';
+    errEl.textContent = 'Conta criada, mas houve um erro ao carregar o perfil. Tente fazer login.';
+    errEl.classList.add('show');
+    await sb.auth.signOut();
   }
 }
 
