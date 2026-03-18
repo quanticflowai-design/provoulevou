@@ -823,7 +823,7 @@
               <div class="card-head">
                 <div class="card-title">Meu Link de Afiliado</div>
               </div>
-              <div class="link-box" id="link-box">https://provoulevou.com/?ref=carlos-mendes</div>
+              <div class="link-box" id="link-box">https://provoulevou.com.br/portal-afiliados.html?ref=carlos-mendes</div>
               <div class="link-btns">
                 <button class="lbtn" onclick="copyLink()"><i data-lucide="copy"></i> Copiar</button>
                 <button class="lbtn" onclick="shareLink()"><i data-lucide="share-2"></i> Compartilhar</button>
@@ -978,6 +978,25 @@
 let sb = null;
 let currentAfiliado = null;
 
+/* ──────────────────────────── PRE-FILL REF FROM URL ─────────── */
+(function () {
+  const ref = new URLSearchParams(window.location.search).get('ref');
+  if (ref) {
+    const input = document.getElementById('signupRef');
+    input.value = ref;
+    input.readOnly = true;
+    input.style.opacity = '0.6';
+    input.style.cursor = 'not-allowed';
+    // Switch to signup tab automatically
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+    const signupTab = document.querySelector('[data-auth="signup"]');
+    if (signupTab) signupTab.classList.add('active');
+    const signupForm = document.getElementById('signupForm');
+    if (signupForm) signupForm.classList.add('active');
+  }
+})();
+
 /* ──────────────────────────── AUTH TABS ─────────────────────── */
 document.querySelectorAll('.auth-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -1107,15 +1126,9 @@ async function doSignup(e) {
   const slug = nome.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'')
     .replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
-  // 5. Look up referrer if provided
-  let referidoPor = null;
-  if (ref) {
-    const { data: refData } = await sb.from('afiliados').select('id').eq('slug', ref).single();
-    if (refData) referidoPor = refData.id;
-  }
-
-  // 6. Insert into afiliados table
+  // 5. Insert into afiliados table
   const { error: insertErr } = await sb.from('afiliados').insert({
+    id: authData.user.id,
     email,
     nome,
     telefone: tel || null,
@@ -1123,7 +1136,7 @@ async function doSignup(e) {
     nivel: 'Inicial',
     comissao_rate: 15,
     sub_rate: 5,
-    referido_por: referidoPor,
+    referido_por: ref || null,
   });
 
   if (insertErr) {
@@ -1178,7 +1191,7 @@ async function showDashboard() {
   document.querySelector('#sec-overview .sec-intro h2').textContent = 'Olá, ' + firstName + '. 👋';
 
   // Update affiliate link
-  aff.link = 'https://provoulevou.com/?ref=' + currentAfiliado.slug;
+  aff.link = 'https://provoulevou.com.br/portal-afiliados.html?ref=' + currentAfiliado.slug;
   aff.name = currentAfiliado.nome;
   aff.commissionRate = currentAfiliado.comissao_rate || 15;
   aff.subRate = currentAfiliado.sub_rate || 5;
@@ -1196,17 +1209,17 @@ async function fetchRede() {
   // L1: direct referrals
   const { data: l1Data } = await sb.from('afiliados')
     .select('id, nome, email, slug, nivel, comissao_rate, sub_rate')
-    .eq('referido_por', currentAfiliado.id);
+    .eq('referido_por', currentAfiliado.slug);
 
   const l1 = l1Data || [];
 
   // L2: referrals of each L1
-  const l1Ids = l1.map(s => s.id);
+  const l1Slugs = l1.map(s => s.slug);
   let l2 = [];
-  if (l1Ids.length > 0) {
+  if (l1Slugs.length > 0) {
     const { data: l2Data } = await sb.from('afiliados')
       .select('id, nome, email, slug, nivel, comissao_rate, sub_rate, referido_por')
-      .in('referido_por', l1Ids);
+      .in('referido_por', l1Slugs);
     l2 = l2Data || [];
   }
 
@@ -1217,7 +1230,7 @@ async function fetchRede() {
     revenue: 0,
     commissions: 0,
     contracts: 0,
-    subs: l2.filter(ss => ss.referido_por === sub.id).map(ss => ({
+    subs: l2.filter(ss => ss.referido_por === sub.slug).map(ss => ({
       name: ss.nome,
       level: ss.nivel || 'Inicial',
       revenue: 0,
