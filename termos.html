@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Termos e Condições | Provou Levou</title>
+  <link rel="icon" type="image/jpeg" href="assets/favicon.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080e1c;
+      --bg-surface: #0f172a;
+      --bg-clause: #111b2e;
+      --primary: #6366f1;
+      --purple: #8b5cf6;
+      --fuchsia: #d946ef;
+      --grad: linear-gradient(135deg, #6366f1, #8b5cf6, #d946ef);
+      --text: #e2e8f0;
+      --text-2: #94a3b8;
+      --text-3: #475569;
+      --border: rgba(99,102,241,0.1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+      min-height: 100vh;
+    }
+
+    /* ─── Background Atmosphere ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px;
+      right: -200px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -200px;
+      left: -200px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── Header ─── */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      padding: 16px 0;
+    }
+    .header-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+    .logo img {
+      height: 36px;
+      border-radius: 8px;
+    }
+    .logo span {
+      font-weight: 700;
+      font-size: 1.1rem;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .back-link {
+      font-size: 0.85rem;
+      color: var(--text-2);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--text); }
+    .back-link svg { width: 16px; height: 16px; }
+
+    /* ─── Main Container ─── */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* ─── Hero Title ─── */
+    .hero-title {
+      text-align: center;
+      margin-bottom: 56px;
+      padding-bottom: 48px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(99,102,241,0.08);
+      border: 1px solid rgba(99,102,241,0.15);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 24px;
+    }
+    .hero-badge svg { width: 14px; height: 14px; }
+    .hero-title h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 12px;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-title p {
+      font-size: 0.95rem;
+      color: var(--text-2);
+      max-width: 540px;
+      margin: 0 auto;
+    }
+    .hero-title .subtitle {
+      font-size: 1.05rem;
+      color: var(--text);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    /* ─── Table of Contents ─── */
+    .toc {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 48px;
+    }
+    .toc h2 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-3);
+      margin-bottom: 16px;
+    }
+    .toc ol {
+      list-style: none;
+      counter-reset: toc;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 24px;
+    }
+    .toc li { counter-increment: toc; }
+    .toc a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      color: var(--text-2);
+      text-decoration: none;
+      padding: 6px 0;
+      transition: color 0.2s;
+    }
+    .toc a::before {
+      content: counter(toc, decimal-leading-zero);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--primary);
+      opacity: 0.6;
+      min-width: 22px;
+    }
+    .toc a:hover { color: var(--text); }
+
+    /* ─── Clauses ─── */
+    .clause {
+      margin-bottom: 40px;
+      scroll-margin-top: 80px;
+    }
+    .clause-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .clause-number {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.15);
+      border-radius: 8px;
+      padding: 6px 10px;
+      min-width: 42px;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+    .clause-header h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .clause p {
+      font-size: 0.92rem;
+      color: var(--text-2);
+      margin-bottom: 14px;
+      text-align: justify;
+    }
+    .clause p strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .clause ul, .clause ol {
+      margin: 12px 0 16px 0;
+      padding-left: 0;
+      list-style: none;
+    }
+    .clause li {
+      font-size: 0.9rem;
+      color: var(--text-2);
+      padding: 8px 0 8px 28px;
+      position: relative;
+      border-bottom: 1px solid rgba(99,102,241,0.04);
+    }
+    .clause li:last-child { border-bottom: none; }
+    .clause li::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 16px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+      opacity: 0.5;
+    }
+    .clause li strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* ─── Sub-sections (6.1, 6.2, etc.) ─── */
+    .sub-section {
+      background: var(--bg-clause);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 16px 0;
+    }
+    .sub-section h3 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sub-section h3::before {
+      content: '';
+      width: 3px;
+      height: 16px;
+      background: var(--grad);
+      border-radius: 2px;
+    }
+
+    /* ─── Important callout ─── */
+    .callout {
+      background: rgba(217,70,239,0.06);
+      border: 1px solid rgba(217,70,239,0.15);
+      border-left: 3px solid var(--fuchsia);
+      border-radius: 0 12px 12px 0;
+      padding: 16px 20px;
+      margin: 16px 0;
+    }
+    .callout p {
+      color: var(--text) !important;
+      font-size: 0.88rem !important;
+      margin: 0 !important;
+    }
+    .callout strong { color: var(--fuchsia); }
+
+    /* ─── Paragraph Note ─── */
+    .paragrafo {
+      font-size: 0.85rem !important;
+      font-style: italic;
+      opacity: 0.8;
+      padding-left: 16px;
+      border-left: 2px solid rgba(99,102,241,0.2);
+    }
+
+    /* ─── Consent Box ─── */
+    .consent-box {
+      background: var(--bg-surface);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 16px;
+      padding: 32px;
+      margin-top: 48px;
+      text-align: center;
+    }
+    .consent-box h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .consent-box ol {
+      list-style: none;
+      text-align: left;
+      margin: 20px 0;
+      padding: 0;
+    }
+    .consent-box li {
+      font-size: 0.88rem;
+      color: var(--text-2);
+      padding: 10px 0 10px 32px;
+      position: relative;
+      border-bottom: 1px solid rgba(99,102,241,0.06);
+    }
+    .consent-box li:last-child { border-bottom: none; }
+    .consent-box li::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 17px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid var(--primary);
+      opacity: 0.5;
+    }
+
+    /* ─── Digital Note ─── */
+    .digital-note {
+      background: rgba(99,102,241,0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-top: 24px;
+    }
+    .digital-note h3 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+    .digital-note p {
+      font-size: 0.85rem;
+      color: var(--text-2);
+      margin: 0;
+    }
+
+    /* ─── Version Footer ─── */
+    .version {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--text-3);
+    }
+
+    /* ─── Footer ─── */
+    .footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 0.8rem;
+      color: var(--text-3);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 640px) {
+      .container { padding: 32px 16px 60px; }
+      .toc ol { grid-template-columns: 1fr; }
+      .toc { padding: 20px; }
+      .sub-section { padding: 16px; }
+      .consent-box { padding: 24px 16px; }
+      .clause-header { flex-wrap: wrap; }
+    }
+
+    /* ─── Scrollbar ─── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+
+    /* ─── Animations ─── */
+    .clause, .consent-box, .toc, .digital-note {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp 0.5s ease forwards;
+    }
+    .toc { animation-delay: 0.1s; }
+    .clause:nth-child(1) { animation-delay: 0.15s; }
+    .clause:nth-child(2) { animation-delay: 0.2s; }
+    .clause:nth-child(3) { animation-delay: 0.25s; }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <img src="assets/provoulevou-logo.png" alt="Provou Levou">
+      </a>
+      <a href="index.html" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        Voltar ao site
+      </a>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- Hero -->
+    <div class="hero-title">
+      <div class="hero-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        LGPD
+      </div>
+      <p class="subtitle">Provador Virtual com Inteligência Artificial</p>
+      <h1>Termo de Consentimento para Tratamento de Dados Pessoais e Dados Pessoais Sensíveis</h1>
+      <p>Lei nº 13.709/2018 – Lei Geral de Proteção de Dados Pessoais</p>
+    </div>
+
+    <!-- Table of Contents -->
+    <nav class="toc">
+      <h2>Índice</h2>
+      <ol>
+        <li><a href="#c1">Identificação do Controlador</a></li>
+        <li><a href="#c2">Descrição do Serviço</a></li>
+        <li><a href="#c3">Dados Pessoais Coletados</a></li>
+        <li><a href="#c4">Finalidades do Tratamento</a></li>
+        <li><a href="#c5">Compartilhamento de Dados</a></li>
+        <li><a href="#c6">Armazenamento e Segurança</a></li>
+        <li><a href="#c7">Direitos do Titular</a></li>
+        <li><a href="#c8">Recusa ou Revogação</a></li>
+        <li><a href="#c9">Dados de Menores</a></li>
+        <li><a href="#c11">Alterações neste Termo</a></li>
+        <li><a href="#c12">Legislação e Foro</a></li>
+      </ol>
+    </nav>
+
+    <!-- Cláusula 1 -->
+    <section class="clause" id="c1">
+      <div class="clause-header">
+        <div class="clause-number">01</div>
+        <h2>Identificação do Controlador</h2>
+      </div>
+      <p>O presente Termo de Consentimento é firmado entre o <strong>USUÁRIO/TITULAR DOS DADOS</strong> (doravante denominado "Titular") e a empresa responsável pela plataforma <strong>PROVOU LEVOU</strong> (doravante denominada "Controlador"), pessoa jurídica de direito privado, inscrita no CNPJ sob o nº [INSERIR CNPJ], com sede em [INSERIR ENDEREÇO COMPLETO], representada neste ato por seu responsável legal.</p>
+      <p><strong>Encarregado de Proteção de Dados (DPO):</strong> [INSERIR NOME DO ENCARREGADO]</p>
+      <p><strong>E-mail de contato para assuntos de privacidade:</strong> contato@provoulevou.com.br</p>
+    </section>
+
+    <!-- Cláusula 2 -->
+    <section class="clause" id="c2">
+      <div class="clause-header">
+        <div class="clause-number">02</div>
+        <h2>Descrição do Serviço</h2>
+      </div>
+      <p>A plataforma Provou Levou é um provador virtual baseado em inteligência artificial que permite ao Titular experimentar peças de roupa de forma digital. O funcionamento do serviço ocorre da seguinte maneira:</p>
+      <ol>
+        <li>O Titular seleciona a peça de roupa que deseja experimentar virtualmente;</li>
+        <li>O Titular realiza o upload de uma fotografia pessoal na plataforma;</li>
+        <li>O sistema de inteligência artificial processa a imagem enviada e gera uma nova imagem simulando a peça de roupa escolhida sobre a fotografia do Titular;</li>
+        <li>A imagem resultante é disponibilizada ao Titular para visualização e, se aplicável, para auxílio na decisão de compra.</li>
+      </ol>
+    </section>
+
+    <!-- Cláusula 3 -->
+    <section class="clause" id="c3">
+      <div class="clause-header">
+        <div class="clause-number">03</div>
+        <h2>Dados Pessoais Coletados</h2>
+      </div>
+      <p>Para a prestação do serviço descrito, o Controlador realizará o tratamento dos seguintes dados pessoais:</p>
+
+      <div class="sub-section">
+        <h3>3.1. Dados Pessoais Comuns</h3>
+        <ul>
+          <li>Número de telefone (WhatsApp);</li>
+          <li>Altura;</li>
+          <li>Peso.</li>
+        </ul>
+      </div>
+
+      <div class="sub-section">
+        <h3>3.2. Dados Pessoais Sensíveis (Art. 5º, II, da LGPD)</h3>
+        <ul>
+          <li><strong>Fotografia pessoal do Titular</strong> (dado biométrico facial);</li>
+          <li><strong>Imagem processada</strong> gerada pela inteligência artificial contendo a representação visual do Titular;</li>
+          <li><strong>Características físicas</strong> extraídas da imagem para processamento pelo algoritmo de IA (como contorno corporal, proporções e traços faciais).</li>
+        </ul>
+      </div>
+
+      <div class="callout">
+        <p><strong>IMPORTANTE:</strong> Nos termos do Art. 5º, inciso II, da LGPD, dados biométricos são classificados como dados pessoais sensíveis, exigindo consentimento específico e destacado para o seu tratamento, conforme Art. 11, inciso I, da mesma lei.</p>
+      </div>
+    </section>
+
+    <!-- Cláusula 4 -->
+    <section class="clause" id="c4">
+      <div class="clause-header">
+        <div class="clause-number">04</div>
+        <h2>Finalidades do Tratamento</h2>
+      </div>
+      <p>O tratamento dos dados pessoais e dados pessoais sensíveis do Titular será realizado exclusivamente para as seguintes finalidades específicas:</p>
+      <ul>
+        <li>Prestação do serviço de provador virtual, incluindo o processamento da imagem enviada pelo Titular e a geração da imagem resultante com a peça de roupa selecionada;</li>
+        <li>Melhoria contínua dos algoritmos de inteligência artificial, visando aprimorar a precisão e a qualidade das imagens geradas pelo sistema;</li>
+        <li>Controle de qualidade e auditoria interna dos processos de tratamento de dados;</li>
+        <li>Análise estatística e de desempenho da plataforma, preferencialmente com dados anonimizados;</li>
+        <li>Comunicação com o Titular sobre atualizações do serviço, alterações neste Termo ou exercício de seus direitos;</li>
+        <li>Cumprimento de obrigações legais e regulatórias aplicáveis.</li>
+      </ul>
+      <p class="paragrafo"><strong>Parágrafo único:</strong> Os dados pessoais coletados não serão utilizados para finalidades diversas das aqui descritas. Qualquer nova finalidade será previamente comunicada ao Titular, sendo necessário novo consentimento específico, nos termos do Art. 8º, § 6º, da LGPD.</p>
+    </section>
+
+    <!-- Cláusula 5 -->
+    <section class="clause" id="c5">
+      <div class="clause-header">
+        <div class="clause-number">05</div>
+        <h2>Compartilhamento de Dados</h2>
+      </div>
+      <p>O Controlador poderá compartilhar os dados pessoais e dados pessoais sensíveis do Titular com terceiros, exclusivamente nas seguintes hipóteses:</p>
+      <ul>
+        <li><strong>Prestadores de serviços de tecnologia e infraestrutura</strong> (servidores em nuvem, processamento de IA), que atuam como operadores de dados nos termos do Art. 5º, VII, da LGPD, vinculados por contratos que garantem o mesmo nível de proteção de dados;</li>
+        <li><strong>Parceiros técnicos</strong> envolvidos no desenvolvimento e aprimoramento dos algoritmos de inteligência artificial, mediante utilização de dados anonimizados ou pseudonimizados sempre que tecnicamente possível;</li>
+        <li><strong>Autoridades públicas e órgãos reguladores,</strong> quando exigido por lei ou determinação judicial;</li>
+        <li><strong>Consultores jurídicos e de auditoria,</strong> para cumprimento de obrigações legais ou exercício regular de direitos.</li>
+      </ul>
+      <p class="paragrafo"><strong>Parágrafo único:</strong> O Controlador não comercializará, cederá ou disponibilizará os dados pessoais sensíveis do Titular a terceiros para finalidades comerciais, publicitárias ou de marketing sem o consentimento prévio, específico e destacado do Titular.</p>
+    </section>
+
+    <!-- Cláusula 6 -->
+    <section class="clause" id="c6">
+      <div class="clause-header">
+        <div class="clause-number">06</div>
+        <h2>Armazenamento e Segurança dos Dados</h2>
+      </div>
+
+      <div class="sub-section">
+        <h3>6.1. Prazo de Armazenamento</h3>
+        <p>Os dados pessoais e dados pessoais sensíveis do Titular serão armazenados pelos seguintes prazos:</p>
+        <ul>
+          <li><strong>Fotografias e imagens processadas:</strong> pelo período de 30 dias após o último uso do serviço, salvo solicitação de eliminação antecipada pelo Titular;</li>
+          <li><strong>Dados de cadastro:</strong> enquanto o Titular mantiver conta ativa na plataforma;</li>
+          <li><strong>Dados anonimizados para fins estatísticos:</strong> por prazo indeterminado, visto que não se enquadram como dados pessoais após a anonimização (Art. 12 da LGPD);</li>
+          <li><strong>Registros de consentimento:</strong> pelo prazo mínimo de 1 (um) ano ou pelo prazo prescricional aplicável, para fins de comprovação do cumprimento das obrigações legais.</li>
+        </ul>
+      </div>
+
+      <div class="sub-section">
+        <h3>6.2. Medidas de Segurança</h3>
+        <p>O Controlador adota as seguintes medidas técnicas e administrativas para proteger os dados pessoais sensíveis, nos termos dos Arts. 46 e 47 da LGPD:</p>
+        <ul>
+          <li>Criptografia de dados em trânsito (TLS/SSL) e em repouso;</li>
+          <li>Controle de acesso restrito com autenticação multifator para colaboradores autorizados;</li>
+          <li>Monitoramento contínuo e registro de logs de acesso aos dados;</li>
+          <li>Políticas internas de segurança da informação e treinamento periódico dos colaboradores;</li>
+          <li>Realização periódica de testes de segurança e avaliações de vulnerabilidade;</li>
+          <li>Plano de resposta a incidentes de segurança, em conformidade com o Art. 48 da LGPD.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Cláusula 7 -->
+    <section class="clause" id="c7">
+      <div class="clause-header">
+        <div class="clause-number">07</div>
+        <h2>Direitos do Titular</h2>
+      </div>
+      <p>Em conformidade com os Arts. 17 e 18 da LGPD, o Titular poderá exercer, a qualquer momento, os seguintes direitos em relação aos seus dados pessoais:</p>
+      <ul>
+        <li>Confirmação da existência de tratamento de dados pessoais;</li>
+        <li>Acesso aos dados pessoais tratados pelo Controlador;</li>
+        <li>Correção de dados incompletos, inexatos ou desatualizados;</li>
+        <li>Anonimização, bloqueio ou eliminação de dados desnecessários, excessivos ou tratados em desconformidade com a lei;</li>
+        <li>Portabilidade dos dados a outro fornecedor de serviço ou produto, nos termos da regulamentação da ANPD;</li>
+        <li>Eliminação dos dados pessoais tratados com base no consentimento, exceto nas hipóteses previstas no Art. 16 da LGPD;</li>
+        <li>Informação sobre entidades públicas e privadas com as quais o Controlador compartilhou seus dados;</li>
+        <li>Informação sobre a possibilidade de não fornecer consentimento e sobre as consequências da negativa;</li>
+        <li>Revogação do consentimento a qualquer momento, mediante manifestação expressa, por procedimento gratuito e facilitado, nos termos do Art. 8º, § 5º, da LGPD;</li>
+        <li>Revisão de decisões automatizadas tomadas com base no tratamento de seus dados pessoais, nos termos do Art. 20 da LGPD.</li>
+      </ul>
+      <p class="paragrafo"><strong>Parágrafo primeiro:</strong> Para exercer qualquer dos direitos acima, o Titular deverá entrar em contato com o Controlador por meio do e-mail contato@provoulevou.com.br ou pelo canal de atendimento disponível na plataforma.</p>
+      <p class="paragrafo"><strong>Parágrafo segundo:</strong> O Controlador responderá às solicitações do Titular no prazo máximo de 15 (quinze) dias, contados da data do recebimento da requisição, em conformidade com o Art. 19, II, da LGPD.</p>
+    </section>
+
+    <!-- Cláusula 8 -->
+    <section class="clause" id="c8">
+      <div class="clause-header">
+        <div class="clause-number">08</div>
+        <h2>Consequências da Recusa ou Revogação do Consentimento</h2>
+      </div>
+      <p>O fornecimento do consentimento é livre e voluntário. Contudo, o Titular deve estar ciente de que:</p>
+      <ul>
+        <li>A recusa em fornecer o consentimento para o tratamento dos dados pessoais sensíveis <strong>impedirá a utilização do serviço de provador virtual</strong>, uma vez que o processamento da fotografia é indispensável para o funcionamento da ferramenta;</li>
+        <li>A revogação do consentimento não afeta a licitude do tratamento realizado anteriormente com base no consentimento fornecido, nos termos do Art. 8º, § 5º, da LGPD;</li>
+        <li>Após a revogação, o Controlador cessará o tratamento dos dados para as finalidades que dependiam do consentimento e providenciará a eliminação dos dados, ressalvadas as hipóteses legais de retenção previstas no Art. 16 da LGPD.</li>
+      </ul>
+    </section>
+
+    <!-- Cláusula 9 -->
+    <section class="clause" id="c9">
+      <div class="clause-header">
+        <div class="clause-number">09</div>
+        <h2>Tratamento de Dados de Menores</h2>
+      </div>
+      <p>O serviço Provou Levou é destinado exclusivamente a <strong>maiores de 18 (dezoito) anos</strong>. Não é permitido o cadastro ou a utilização da plataforma por crianças ou adolescentes.</p>
+      <p>Caso o Controlador identifique que dados de menores foram fornecidos sem o consentimento específico e em destaque de pelo menos um dos pais ou responsável legal, conforme exigido pelo Art. 14, § 1º, da LGPD, tais dados serão imediatamente eliminados.</p>
+    </section>
+
+    <!-- Cláusula 11 -->
+    <section class="clause" id="c11">
+      <div class="clause-header">
+        <div class="clause-number">10</div>
+        <h2>Alterações neste Termo</h2>
+      </div>
+      <p>O Controlador poderá atualizar este Termo de Consentimento a qualquer tempo, mediante notificação prévia ao Titular, com destaque específico das alterações realizadas, conforme Art. 8º, § 6º, da LGPD. O Titular poderá revogar o consentimento caso discorde das alterações.</p>
+    </section>
+
+    <!-- Cláusula 12 -->
+    <section class="clause" id="c12">
+      <div class="clause-header">
+        <div class="clause-number">11</div>
+        <h2>Legislação e Foro Aplicáveis</h2>
+      </div>
+      <p>Este Termo é regido pelas leis da República Federativa do Brasil, em especial pela Lei nº 13.709/2018 (LGPD), pelo Código de Defesa do Consumidor (Lei nº 8.078/1990) e pelo Marco Civil da Internet (Lei nº 12.965/2014).</p>
+      <p>Fica eleito o foro da comarca de <strong>Barueri/SP</strong>, para dirimir quaisquer questões oriundas deste Termo, com renúncia expressa a qualquer outro, por mais privilegiado que seja.</p>
+    </section>
+
+    <!-- Declaração de Consentimento -->
+    <div class="consent-box">
+      <h2>Declaração de Consentimento</h2>
+      <p style="font-size:0.9rem; color:var(--text-2); margin-bottom:16px;">Ao clicar no botão "Li e Aceito" ou ao fornecer meu consentimento por meio equivalente disponibilizado na plataforma, <strong style="color:var(--text);">DECLARO</strong>, de forma livre, informada, inequívoca e específica, que:</p>
+      <ol>
+        <li>Li, compreendi e concordo integralmente com todos os termos e condições deste Termo de Consentimento;</li>
+        <li>Autorizo o Controlador a coletar, armazenar, processar e compartilhar meus dados pessoais e dados pessoais sensíveis (incluindo minha fotografia e imagem biométrica facial) para as finalidades específicas descritas na Cláusula 4;</li>
+        <li>Autorizo o compartilhamento de meus dados com os terceiros indicados na Cláusula 5, exclusivamente para as finalidades ali descritas;</li>
+        <li>Estou ciente de que posso revogar este consentimento a qualquer momento, de forma gratuita e facilitada, sem prejuízo da licitude do tratamento realizado anteriormente;</li>
+        <li>Estou ciente de que a recusa no fornecimento do consentimento impedirá o uso do serviço de provador virtual;</li>
+        <li>Fui informado(a) sobre meus direitos como Titular de dados pessoais, conforme descrito na Cláusula 7 deste Termo.</li>
+      </ol>
+    </div>
+
+    <!-- Nota Digital -->
+    <div class="digital-note">
+      <h3>Nota sobre Consentimento Digital</h3>
+      <p>Quando o consentimento for obtido por meio eletrônico (clique em botão, checkbox ou aceitação digital), o Controlador manterá registro do consentimento contendo: a identificação do Titular, a data e horário da aceitação, o endereço IP de origem, a versão do Termo aceito e o meio utilizado para a manifestação do consentimento, conforme Art. 8º, § 2º, da LGPD.</p>
+    </div>
+
+    <!-- Versão -->
+    <div class="version">
+      Versão do Termo: 1.0 &nbsp;|&nbsp; Data de publicação: 18 de março de 2026
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    &copy; 2026 Provou Levou. Todos os direitos reservados.
+  </footer>
+
+</body>
+</html>
