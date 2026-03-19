@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@0.460.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4"></script>
   <script src="env.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -402,6 +402,8 @@
     .dot-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
     .dot-status.ok { color: var(--green); }
     .dot-status.ok::before { background: var(--green); box-shadow: 0 0 4px rgba(52,211,153,0.5); }
+    .dot-status.warn { color: #FBBF24; }
+    .dot-status.warn::before { background: #FBBF24; box-shadow: 0 0 4px rgba(251,191,36,0.5); }
     .tbl-foot {
       padding: 14px 22px; border-top: 1px solid var(--border); background: rgba(255,255,255,0.02);
       display: flex; align-items: center; justify-content: space-between;
@@ -749,7 +751,7 @@
             <div class="stat-ico p"><i data-lucide="wallet"></i></div>
             <div class="stat-lbl">Suas Comissões</div>
             <div class="stat-val p" id="s-com">R$ 0</div>
-            <div class="stat-sub">22% sobre vendas diretas</div>
+            <div class="stat-sub" id="s-com-rate">15% sobre vendas diretas</div>
           </div>
           <div class="stat-card e">
             <div class="stat-ico e"><i data-lucide="repeat-2"></i></div>
@@ -775,7 +777,7 @@
               </p>
             </div>
             <div style="text-align:right;">
-              <div class="prog-rate" id="p-rate">22% <span>comissão atual</span></div>
+              <div class="prog-rate" id="p-rate">20% <span>comissão atual</span></div>
               <div style="font-size:0.73rem;color:var(--text-2);margin-top:4px;" id="p-meta">R$ 28.750 / R$ 50.000</div>
             </div>
           </div>
@@ -783,18 +785,14 @@
             <div class="prog-fill" id="p-fill"></div>
             <div class="prog-dot" id="p-dot"></div>
           </div>
-          <div class="prog-marks">
-            <div class="prog-mark reached">
+          <div class="prog-marks" id="prog-marks">
+            <div class="prog-mark">
               <div class="mark-lbl">Inicial</div>
               <div class="mark-val">15%</div>
             </div>
-            <div class="prog-mark reached">
+            <div class="prog-mark">
               <div class="mark-lbl">R$10K</div>
               <div class="mark-val">20%</div>
-            </div>
-            <div class="prog-mark here">
-              <div class="mark-lbl">● Agora</div>
-              <div class="mark-val">22%</div>
             </div>
             <div class="prog-mark">
               <div class="mark-lbl">R$35K</div>
@@ -928,7 +926,7 @@
         <div class="tbl-card">
           <div class="tbl-head">
             <div class="card-title">Histórico de Contratos</div>
-            <div style="font-size:0.77rem;color:var(--text-2);">Comissão: 22% direto + 5% sub-rede</div>
+            <div style="font-size:0.77rem;color:var(--text-2);" id="ct-rate-lbl">Comissão: 15% direto + 5% sub-rede</div>
           </div>
           <table>
             <thead>
@@ -1007,6 +1005,19 @@ document.querySelectorAll('.auth-tab').forEach(tab => {
   });
 });
 
+/* ──────────────────────────── RATE LIMIT ──────────────────────── */
+const _rl = { attempts: 0, lockedUntil: 0 };
+function checkRateLimit() {
+  if (Date.now() < _rl.lockedUntil) {
+    const secs = Math.ceil((_rl.lockedUntil - Date.now()) / 1000);
+    return 'Muitas tentativas. Aguarde ' + secs + 's.';
+  }
+  _rl.attempts++;
+  if (_rl.attempts >= 5) { _rl.lockedUntil = Date.now() + 60000; _rl.attempts = 0; return 'Muitas tentativas. Aguarde 60s.'; }
+  return null;
+}
+function resetRateLimit() { _rl.attempts = 0; }
+
 /* ──────────────────────────── LOGIN ─────────────────────────── */
 async function doLogin(e) {
   e.preventDefault();
@@ -1015,6 +1026,9 @@ async function doLogin(e) {
   const btn   = document.getElementById('loginBtn');
   const errEl = document.getElementById('loginError');
   errEl.classList.remove('show');
+
+  const rlMsg = checkRateLimit();
+  if (rlMsg) { errEl.textContent = rlMsg; errEl.classList.add('show'); return; }
 
   btn.disabled = true;
   btn.textContent = '';
@@ -1044,6 +1058,7 @@ async function doLogin(e) {
     return;
   }
 
+  resetRateLimit();
   currentAfiliado = afiliado;
   showDashboard();
 }
@@ -1193,7 +1208,7 @@ async function showDashboard() {
   // Update affiliate link
   aff.link = 'https://provoulevou.com.br/portal-afiliados.html?ref=' + currentAfiliado.slug;
   aff.name = currentAfiliado.nome;
-  aff.commissionRate = currentAfiliado.comissao_rate || 15;
+  aff.commissionRate = currentAfiliado.comissao_rate || 20;
   aff.subRate = currentAfiliado.sub_rate || 5;
   aff.level = currentAfiliado.nivel || 'Inicial';
   document.getElementById('link-box').textContent = aff.link;
@@ -1223,25 +1238,120 @@ async function fetchRede() {
     l2 = l2Data || [];
   }
 
-  // Build network array
-  aff.network = l1.map(sub => ({
-    name: sub.nome,
-    level: sub.nivel || 'Inicial',
-    revenue: 0,
-    commissions: 0,
-    contracts: 0,
-    subs: l2.filter(ss => ss.referido_por === sub.slug).map(ss => ({
-      name: ss.nome,
-      level: ss.nivel || 'Inicial',
-      revenue: 0,
-      commissions: 0,
-      contracts: 0,
-    })),
-  }));
+  // Fetch lojistas linked to this affiliate (L1 contracts)
+  const { data: lojistasL1 } = await sb.from('lojistas')
+    .select('email, nome_loja, origem, afiliado_slug')
+    .eq('afiliado_slug', currentAfiliado.slug);
 
-  // Update stats
+  // Fetch lojistas linked to sub-affiliates (L2 contracts)
+  let lojistasL2 = [];
+  if (l1Slugs.length > 0) {
+    const { data: l2Loj } = await sb.from('lojistas')
+      .select('email, nome_loja, origem, afiliado_slug')
+      .in('afiliado_slug', l1Slugs);
+    lojistasL2 = l2Loj || [];
+  }
+
+  // Fetch commissions for this affiliate
+  const { data: comissoesData } = await sb.from('comissoes_afiliados')
+    .select('*')
+    .eq('afiliado_slug', currentAfiliado.slug)
+    .order('created_at', { ascending: false });
+  const comissoes = comissoesData || [];
+
+  // Also fetch L2 commissions (where this affiliate earns from sub-affiliate sales)
+  const { data: comissoesL2Data } = await sb.from('comissoes_afiliados')
+    .select('*')
+    .eq('afiliado_slug', currentAfiliado.slug)
+    .eq('nivel', 'L2')
+    .order('created_at', { ascending: false });
+
+  // Calculate revenue per sub-affiliate from commissions
+  const revenueBySlug = {};
+  const comissoesBySlug = {};
+  const contractsBySlug = {};
+  comissoes.forEach(c => {
+    // For L1 commissions, group by lojista_email to count unique contracts
+    if (c.nivel === 'L1') {
+      if (!contractsBySlug[currentAfiliado.slug]) contractsBySlug[currentAfiliado.slug] = new Set();
+      contractsBySlug[currentAfiliado.slug].add(c.lojista_email);
+    }
+  });
+
+  // Build contracts array from lojistas
+  contracts.length = 0;
+  const planoPrices = { 97: 'Essencial', 197: 'Crescimento', 397: 'Performance', 797: 'Escala' };
+  (lojistasL1 || []).forEach(loj => {
+    // Find latest commission for this lojista to get plan info
+    const lojComissoes = comissoes.filter(c => c.lojista_email === loj.email && c.nivel === 'L1');
+    const latestCom = lojComissoes[0];
+    const mrr = latestCom ? latestCom.valor_cobrado : 0;
+    const planName = latestCom ? (planoPrices[latestCom.valor_cobrado] || latestCom.plano || 'N/A') : 'Aguardando pagamento';
+    const date = latestCom ? new Date(latestCom.created_at).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' }) : '-';
+
+    contracts.push({
+      client: loj.nome_loja || loj.email,
+      plan: planName,
+      mrr: mrr,
+      date: date,
+      status: mrr > 0 ? 'ativo' : 'pendente',
+    });
+  });
+
+  // Build activities from recent commissions
+  activities.length = 0;
+  comissoes.slice(0, 8).forEach(c => {
+    const planName = planoPrices[c.valor_cobrado] || c.plano || '';
+    const dateStr = new Date(c.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+    if (c.nivel === 'L1') {
+      activities.push({
+        type: 'ok',
+        main: 'Comissão L1: ' + fmtR(c.comissao_valor) + ' (' + planName + ')',
+        sub: dateStr + ' · ' + c.lojista_email,
+      });
+    } else {
+      activities.push({
+        type: 'ok',
+        main: 'Comissão L2: ' + fmtR(c.comissao_valor) + ' (sub-rede)',
+        sub: dateStr + ' · ' + c.lojista_email,
+      });
+    }
+  });
+
+  // Build network array with real data
+  aff.network = l1.map(sub => {
+    const subLojistas = lojistasL2.filter(l => l.afiliado_slug === sub.slug);
+    const subComissoes = comissoes.filter(c => c.nivel === 'L2' && c.lojista_email && subLojistas.some(l => l.email === c.lojista_email));
+    const subRevenue = subLojistas.length * 197; // approximate
+    return {
+      name: sub.nome,
+      level: sub.nivel || 'Inicial',
+      revenue: subRevenue,
+      commissions: subComissoes.reduce((s, c) => s + (c.comissao_valor || 0), 0),
+      contracts: subLojistas.length,
+      subs: l2.filter(ss => ss.referido_por === sub.slug).map(ss => ({
+        name: ss.nome,
+        level: ss.nivel || 'Inicial',
+        revenue: 0,
+        commissions: 0,
+        contracts: 0,
+      })),
+    };
+  });
+
+  // Update stats with real data
   const totalSubs = l1.length + l2.length;
   aff.stats.totalSubs = totalSubs;
+
+  const totalRevL1 = comissoes.filter(c => c.nivel === 'L1').reduce((s, c) => s + (c.valor_cobrado || 0), 0);
+  const totalComL1 = comissoes.filter(c => c.nivel === 'L1').reduce((s, c) => s + (c.comissao_valor || 0), 0);
+  const totalComL2 = comissoes.filter(c => c.nivel === 'L2').reduce((s, c) => s + (c.comissao_valor || 0), 0);
+  const uniqueClients = new Set(comissoes.filter(c => c.nivel === 'L1').map(c => c.lojista_email));
+
+  aff.stats.totalRevenue = totalRevL1;
+  aff.stats.totalCommissions = totalComL1 + totalComL2;
+  aff.stats.activeMRR = contracts.filter(c => c.status === 'ativo').reduce((s, c) => s + c.mrr, 0);
+  aff.stats.totalContracts = (lojistasL1 || []).length;
 }
 
 /* ──────────────────────────── LOGOUT ────────────────────────── */
@@ -1257,7 +1367,7 @@ async function doLogout() {
 
 /* ──────────────────────────── DATA (defaults) ───────────────── */
 const aff = {
-  name: '', initials: '', level: 'Inicial', commissionRate: 15, subRate: 5,
+  name: '', initials: '', level: 'Inicial', commissionRate: 20, subRate: 5,
   stats: { totalRevenue: 0, totalCommissions: 0, activeMRR: 0, totalContracts: 0, totalSubs: 0 },
   link: '',
   network: [],
@@ -1281,6 +1391,7 @@ const creatives = [
 ];
 
 /* ──────────────────────────── HELPERS ───────────────────────── */
+function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtR(n) { return 'R$ ' + n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmtK(n) { return n >= 1000 ? 'R$ '+(n/1000).toFixed(1).replace('.',',')+'K' : fmtR(n); }
 function levelClass(l) {
@@ -1314,11 +1425,28 @@ function renderOverview() {
   document.getElementById('s-fat').textContent = fmtK(s.totalRevenue);
   document.getElementById('s-com').textContent = fmtK(s.totalCommissions);
   document.getElementById('s-mrr').textContent = fmtK(s.activeMRR)+'/mês';
-  document.getElementById('s-ct').textContent  = s.totalContracts+' contratos ativos';
+  const ativos = contracts.filter(c => c.status === 'ativo').length;
+  document.getElementById('s-ct').textContent  = s.totalContracts + ' contrato' + (s.totalContracts !== 1 ? 's' : '') + (ativos > 0 ? ' (' + ativos + ' ativo' + (ativos !== 1 ? 's' : '') + ')' : '');
   document.getElementById('s-rede').textContent = s.totalSubs;
 
-  // Progress bar
-  const pct = Math.min((s.totalRevenue / 50000) * 100, 100);
+  // Commission rate from DB
+  const prateEl = document.getElementById('p-rate');
+  prateEl.firstChild.textContent = aff.commissionRate + '% ';
+  document.getElementById('s-com-rate').textContent = aff.commissionRate + '% sobre vendas diretas';
+  document.getElementById('ct-rate-lbl').textContent = 'Comissão: ' + aff.commissionRate + '% direto + ' + aff.subRate + '% sub-rede';
+
+  // Highlight current tier on progress bar
+  const tiers = [15, 20, 25, 30];
+  const marks = document.querySelectorAll('#prog-marks .prog-mark');
+  marks.forEach((m, i) => {
+    m.classList.remove('reached', 'here');
+    if (tiers[i] < aff.commissionRate) m.classList.add('reached');
+    else if (tiers[i] === aff.commissionRate) m.classList.add('reached', 'here');
+  });
+
+  // Progress bar — position based on current tier
+  const tierIndex = tiers.indexOf(aff.commissionRate);
+  const pct = tierIndex >= 0 ? (tierIndex / (tiers.length - 1)) * 100 : 0;
   setTimeout(() => {
     document.getElementById('p-fill').style.width = pct + '%';
     document.getElementById('p-dot').style.left   = pct + '%';
@@ -1330,8 +1458,8 @@ function renderOverview() {
     <div class="act-item">
       <div class="act-dot ${a.type}"></div>
       <div class="act-info">
-        <div class="act-main">${a.main}</div>
-        <div class="act-time">${a.sub}</div>
+        <div class="act-main">${esc(a.main)}</div>
+        <div class="act-time">${esc(a.sub)}</div>
       </div>
       ${a.amt ? `<div class="act-amt ${a.amtCls}">${a.amt}</div>` : ''}
     </div>`).join('');
@@ -1411,11 +1539,11 @@ function addNode(canvas, name, level, cx, cy, cls, data) {
   const ct  = data.contracts !== undefined ? data.contracts : (data.stats?.totalContracts || 0);
 
   div.innerHTML = `
-    <div class="n-circle ${cls} ${cls!=='root' ? lc : ''}">${ini}</div>
-    <div class="n-lbl">${name.split(' ')[0]}</div>
+    <div class="n-circle ${cls} ${cls!=='root' ? lc : ''}">${esc(ini)}</div>
+    <div class="n-lbl">${esc(name.split(' ')[0])}</div>
     <div class="n-rev">${rev}</div>
     <div class="n-tip">
-      <div class="tip-name">${name}</div>
+      <div class="tip-name">${esc(name)}</div>
       <div class="tip-row"><span class="tip-lbl">Nível</span><span class="tip-val">${level || 'Você'}</span></div>
       <div class="tip-row"><span class="tip-lbl">Faturamento</span><span class="tip-val g">${rev}</span></div>
       <div class="tip-row"><span class="tip-lbl">Contratos</span><span class="tip-val">${ct}</span></div>
@@ -1450,11 +1578,11 @@ function renderRedeTable() {
     <tr>
       <td>
         <div class="td-name" style="${r.indent ? 'padding-left:20px;' : ''}">
-          ${r.indent ? '<span style="color:var(--text-3);margin-right:6px;">↳</span>' : ''}${r.name}
+          ${r.indent ? '<span style="color:var(--text-3);margin-right:6px;">↳</span>' : ''}${esc(r.name)}
         </div>
         ${r.indent ? '<div class="td-sub">Sub-afiliado (2° nível)</div>' : '<div class="td-sub">Indicado direto</div>'}
       </td>
-      <td><span class="lvl-pip ${levelClass(r.level)}">${r.level}</span></td>
+      <td><span class="lvl-pip ${levelClass(r.level)}">${esc(r.level)}</span></td>
       <td><span class="rev-val">${fmtK(r.revenue)}</span></td>
       <td>${fmtK(r.commissions)}</td>
       <td>${r.contracts} contrato${r.contracts !== 1 ? 's' : ''}</td>
@@ -1478,16 +1606,16 @@ function renderContracts() {
   document.getElementById('ct-total').textContent  = fmtR(totalMRR);
 
   tbody.innerHTML = contracts.map(c => {
-    const pClass = c.plan === 'Elite' ? 'elite' : c.plan === 'Pro' ? 'pro' : 'starter';
+    const pClass = c.plan === 'Escala' ? 'elite' : c.plan === 'Performance' ? 'elite' : c.plan === 'Crescimento' ? 'pro' : 'starter';
     const myCom  = Math.round(c.mrr * aff.commissionRate / 100);
     return `
     <tr>
-      <td class="td-name">${c.client}</td>
-      <td><span class="plan-pip ${pClass}">${c.plan}</span></td>
+      <td class="td-name">${esc(c.client)}</td>
+      <td><span class="plan-pip ${pClass}">${esc(c.plan)}</span></td>
       <td><span class="rev-val">${fmtR(c.mrr)}</span></td>
       <td style="color:var(--green);font-weight:600;">${fmtR(myCom)}</td>
       <td style="color:var(--text-2);">${c.date}</td>
-      <td><span class="dot-status ok">Ativo</span></td>
+      <td><span class="dot-status ${c.status === 'ativo' ? 'ok' : 'warn'}">${c.status === 'ativo' ? 'Ativo' : 'Pendente'}</span></td>
     </tr>`;
   }).join('');
 }

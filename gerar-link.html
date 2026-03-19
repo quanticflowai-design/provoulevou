@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerar Link de Pagamento - Provou Levou</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4"></script>
+<script src="env.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f0f13; color: #e2e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .card { background: #1a1a23; border: 1px solid rgba(139,92,246,0.2); border-radius: 16px; padding: 36px; width: 100%; max-width: 460px; }
+  h1 { font-size: 1.3rem; margin-bottom: 6px; }
+  .sub { font-size: 0.82rem; color: #94a3b8; margin-bottom: 28px; }
+  .welcome { font-size: 0.85rem; color: #a78bfa; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+  .welcome span { font-weight: 600; }
+  .logout-btn { font-size: 0.75rem; color: #94a3b8; background: none; border: 1px solid rgba(148,163,184,0.2); padding: 4px 10px; border-radius: 6px; cursor: pointer; }
+  .logout-btn:hover { border-color: #f87171; color: #f87171; }
+  label { display: block; font-size: 0.82rem; color: #94a3b8; margin-bottom: 6px; margin-top: 18px; }
+  label:first-of-type { margin-top: 0; }
+  input, select { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(139,92,246,0.25); background: #12121a; color: #e2e8f0; font-size: 0.95rem; outline: none; }
+  input:focus, select:focus { border-color: #8b5cf6; }
+  select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+  select option { background: #1a1a23; }
+  .btn { width: 100%; padding: 13px 0; border-radius: 10px; border: none; background: linear-gradient(135deg, #8b5cf6, #d946ef); color: #fff; font-size: 0.95rem; font-weight: 600; cursor: pointer; margin-top: 24px; transition: opacity 0.2s; }
+  .btn:hover { opacity: 0.9; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .result { margin-top: 20px; display: none; }
+  .result.show { display: block; }
+  .link-box { background: #12121a; border: 1px solid rgba(139,92,246,0.25); border-radius: 10px; padding: 12px 14px; font-size: 0.82rem; word-break: break-all; color: #a78bfa; margin-bottom: 10px; }
+  .copy-btn { width: 100%; padding: 10px 0; border-radius: 8px; border: 1px solid rgba(139,92,246,0.3); background: transparent; color: #a78bfa; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+  .copy-btn:hover { background: rgba(139,92,246,0.1); }
+  .msg { font-size: 0.82rem; margin-top: 10px; display: none; }
+  .msg.show { display: block; }
+  .msg.err { color: #f87171; }
+  .msg.ok { color: #10b981; }
+
+  /* Login form */
+  #login-view, #main-view { display: none; }
+  #login-view.show, #main-view.show { display: block; }
+  .logo { text-align: center; margin-bottom: 24px; }
+  .logo img { height: 40px; }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <!-- LOGIN -->
+  <div id="login-view">
+    <div class="logo">
+      <img src="img/logo-white.webp" alt="Provou Levou" onerror="this.style.display='none'">
+    </div>
+    <h1>Login do Afiliado</h1>
+    <p class="sub">Entre com seu email e senha do portal de afiliados</p>
+
+    <label>Email</label>
+    <input type="email" id="login-email" placeholder="seu@email.com">
+
+    <label>Senha</label>
+    <input type="password" id="login-pass" placeholder="Sua senha">
+
+    <button class="btn" id="login-btn" onclick="doLogin()">Entrar</button>
+    <div class="msg err" id="login-err"></div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main-view">
+    <h1>Gerar Link de Pagamento</h1>
+    <p class="sub">Preencha os dados do lojista para gerar o link de pagamento</p>
+    <div class="welcome">
+      <span id="welcome-name"></span>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+
+    <label>Email do lojista</label>
+    <input type="email" id="lojista-email" placeholder="lojista@email.com">
+
+    <label>Nome da loja</label>
+    <input type="text" id="lojista-nome" placeholder="Nome da Loja">
+
+    <label>Link da loja</label>
+    <input type="url" id="lojista-url" placeholder="https://minhaloja.com.br">
+
+    <label>Plano</label>
+    <select id="plano">
+      <option value="">Selecione...</option>
+      <option value="97">Essencial - R$97/mês</option>
+      <option value="197">Crescimento - R$197/mês</option>
+      <option value="397">Performance - R$397/mês</option>
+      <option value="797">Escala - R$797/mês</option>
+    </select>
+
+    <button class="btn" id="gerar-btn" onclick="gerarLink()">Gerar Link</button>
+    <div class="msg err" id="main-err"></div>
+    <div class="msg ok" id="main-ok"></div>
+
+    <div class="result" id="result">
+      <label>Link gerado:</label>
+      <div class="link-box" id="link-box"></div>
+      <button class="copy-btn" onclick="copiar()">Copiar link</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const WEBHOOK_URL = 'https://n8n.segredosdodrop.com/webhook/mp-gerar-link';
+const WEBHOOK_SECRET = 'pv-sec-2026-xK9mQ';
+const SB_URL = window.ENV.SUPABASE_URL;
+const SB_KEY = window.ENV.SUPABASE_KEY;
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+const PLANOS = {
+  '97':  { title: 'Provou Levou - Essencial',   price: 97 },
+  '197': { title: 'Provou Levou - Crescimento',  price: 197 },
+  '397': { title: 'Provou Levou - Performance',  price: 397 },
+  '797': { title: 'Provou Levou - Escala',       price: 797 },
+};
+
+let currentAfiliado = null;
+
+// ─── RATE LIMIT ───
+const _rl = { attempts: 0, lockedUntil: 0 };
+function checkRateLimit() {
+  if (Date.now() < _rl.lockedUntil) {
+    const secs = Math.ceil((_rl.lockedUntil - Date.now()) / 1000);
+    return 'Muitas tentativas. Aguarde ' + secs + 's.';
+  }
+  _rl.attempts++;
+  if (_rl.attempts >= 5) { _rl.lockedUntil = Date.now() + 60000; _rl.attempts = 0; return 'Muitas tentativas. Aguarde 60s.'; }
+  return null;
+}
+
+// ─── INIT ───
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    await loadAfiliado(session.user.email);
+  } else {
+    showLogin();
+  }
+}
+
+function showLogin() {
+  document.getElementById('login-view').classList.add('show');
+  document.getElementById('main-view').classList.remove('show');
+}
+
+function showMain() {
+  document.getElementById('login-view').classList.remove('show');
+  document.getElementById('main-view').classList.add('show');
+  document.getElementById('welcome-name').textContent = currentAfiliado.nome;
+}
+
+// ─── LOGIN ───
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-err');
+  const btn = document.getElementById('login-btn');
+
+  errEl.classList.remove('show');
+
+  if (!email || !pass) {
+    errEl.textContent = 'Preencha email e senha.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  const rlMsg = checkRateLimit();
+  if (rlMsg) { errEl.textContent = rlMsg; errEl.classList.add('show'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Entrando...';
+
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) {
+    errEl.textContent = 'Email ou senha incorretos.';
+    errEl.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+    return;
+  }
+
+  await loadAfiliado(email);
+  btn.disabled = false;
+  btn.textContent = 'Entrar';
+}
+
+async function loadAfiliado(email) {
+  const { data } = await sb.from('afiliados').select('*').eq('email', email).single();
+  if (!data) {
+    document.getElementById('login-err').textContent = 'Conta de afiliado não encontrada.';
+    document.getElementById('login-err').classList.add('show');
+    await sb.auth.signOut();
+    showLogin();
+    return;
+  }
+  currentAfiliado = data;
+  showMain();
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  currentAfiliado = null;
+  showLogin();
+}
+
+// ─── GERAR LINK ───
+async function gerarLink() {
+  const email = document.getElementById('lojista-email').value.trim().toLowerCase();
+  const nome = document.getElementById('lojista-nome').value.trim();
+  let url = document.getElementById('lojista-url').value.trim().replace(/\/+$/, '');
+  if (url && !url.startsWith('https://')) url = 'https://' + url;
+  const planoVal = document.getElementById('plano').value;
+  const errEl = document.getElementById('main-err');
+  const okEl = document.getElementById('main-ok');
+  const resultEl = document.getElementById('result');
+  const btn = document.getElementById('gerar-btn');
+
+  errEl.classList.remove('show');
+  okEl.classList.remove('show');
+  resultEl.classList.remove('show');
+
+  if (!email || !nome || !url || !planoVal) {
+    errEl.textContent = 'Preencha todos os campos.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  const plano = PLANOS[planoVal];
+  btn.disabled = true;
+  btn.textContent = 'Gerando...';
+
+  try {
+    // 1. Check if lojista already exists
+    const { data: existing } = await sb.from('lojistas').select('email').eq('email', email);
+
+    if (!existing || existing.length === 0) {
+      // 2. Create lojista with afiliado_slug
+      const { error: insertErr } = await sb.from('lojistas').insert({
+        email: email,
+        nome_loja: nome,
+        tabela: 'geracoes_provou_levou',
+        tabela_pedidos: nome.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') + '_orders',
+        origem: url,
+        afiliado_slug: currentAfiliado.slug,
+      });
+
+      if (insertErr) {
+        errEl.textContent = 'Erro ao cadastrar lojista. Tente novamente.';
+        console.error('Insert error:', insertErr);
+        errEl.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Gerar Link';
+        return;
+      }
+
+      okEl.textContent = 'Lojista cadastrado e vinculado a você.';
+      okEl.classList.add('show');
+    } else {
+      // Lojista already exists - check if already linked to another affiliate
+      const { data: lojistaData } = await sb.from('lojistas').select('afiliado_slug').eq('email', email).single();
+      if (lojistaData && lojistaData.afiliado_slug && lojistaData.afiliado_slug !== currentAfiliado.slug) {
+        errEl.textContent = 'Este lojista já está vinculado a outro afiliado.';
+        errEl.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Gerar Link';
+        return;
+      }
+      // If not linked yet, link now
+      if (!lojistaData?.afiliado_slug) {
+        await sb.from('lojistas').update({ afiliado_slug: currentAfiliado.slug }).eq('email', email);
+        okEl.textContent = 'Lojista existente vinculado a você.';
+        okEl.classList.add('show');
+      }
+    }
+
+    // 3. Generate MP payment link via server-side webhook (token seguro no n8n)
+    const res = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-webhook-secret': WEBHOOK_SECRET,
+      },
+      body: JSON.stringify({
+        title: plano.title,
+        price: plano.price,
+        external_reference: email,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.init_point) {
+      document.getElementById('link-box').textContent = data.init_point;
+      resultEl.classList.add('show');
+    } else {
+      errEl.textContent = 'Erro ao gerar link de pagamento. Tente novamente.';
+      errEl.classList.add('show');
+      console.error('MP error:', data);
+    }
+  } catch (e) {
+    errEl.textContent = 'Erro de conexão. Verifique sua internet e tente novamente.';
+    console.error('Network error:', e);
+    errEl.classList.add('show');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Gerar Link';
+}
+
+function copiar() {
+  const link = document.getElementById('link-box').textContent;
+  navigator.clipboard.writeText(link).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copiado!';
+    setTimeout(() => btn.textContent = 'Copiar link', 2000);
+  });
+}
+
+init();
+</script>
+</body>
+</html>
