@@ -330,7 +330,7 @@
     /* ─── Network Tree ───────────────────── */
     .tree-wrap {
       background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
-      padding: 24px; margin-bottom: 14px; overflow-x: auto; position: relative;
+      padding: 24px; margin-bottom: 14px; overflow-x: auto; overflow-y: visible; position: relative;
     }
     .tree-canvas { position: relative; min-width: 760px; }
     .tree-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
@@ -857,7 +857,7 @@
 
         <div class="tree-wrap">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-            <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;">Hierarquia Visual</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;">Hierarquia Visual</div>
             <div style="display:flex;gap:16px;font-size:0.72rem;color:var(--text-2);">
               <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#6D28D9,#D946EF);display:inline-block;"></span> Você</span>
               <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#5B21B6,#7C3AED);display:inline-block;"></span> Intermediário</span>
@@ -1346,7 +1346,7 @@ function renderTree() {
 
   const W = Math.max(canvas.offsetWidth || 760, 760);
   const ROW_H = 130;
-  const ROOT_Y = 40;
+  const ROOT_Y = 90;
 
   // Collect all L2 nodes grouped by L1
   const l1 = aff.network;
