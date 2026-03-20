@@ -1699,10 +1699,14 @@
                 return;
             }
 
-            const { data: allOrders } = await supabaseClient
+            // Filtra pedidos a partir da data da primeira prova (evita trazer pedidos antigos demais)
+            const earliestProva = Object.values(provaMinDateMap).sort()[0] || '';
+            let ordQuery = supabaseClient
                 .from(activeUser.tabela_pedidos)
                 .select(selectFields)
                 .in(fStatus, fStatusValues);
+            if (earliestProva) ordQuery = ordQuery.gte(fDataPedido || 'created_at', earliestProva + 'T00:00:00-03:00');
+            const { data: allOrders } = await ordQuery;
             allOrdersCache = allOrders || [];
 
             boughtPhonesSet = new Set(
@@ -1713,9 +1717,11 @@
 
             nameMap = {};
             if (fNome) {
-                const { data: allNomes } = await supabaseClient
+                let nameQuery = supabaseClient
                     .from(activeUser.tabela_pedidos)
                     .select(`${fPhone}, ${fNome}`);
+                if (earliestProva) nameQuery = nameQuery.gte(fDataPedido || 'created_at', earliestProva + 'T00:00:00-03:00');
+                const { data: allNomes } = await nameQuery;
                 (allNomes || []).forEach(o => {
                     const ph = normalize(o[fPhone]);
                     if (ph && o[fNome] && !nameMap[ph]) nameMap[ph] = o[fNome];
