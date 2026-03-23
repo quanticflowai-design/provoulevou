@@ -1336,6 +1336,14 @@
                                 allMatchedOrders.push(order);
                             }
                         });
+
+                        // Ordena pedidos por data descendente (mais recente primeiro)
+                        const dateField = fDataPedido || 'created_at';
+                        allMatchedOrders.sort((a, b) => {
+                            const da = new Date(a[dateField] || a.created_at || 0);
+                            const db = new Date(b[dateField] || b.created_at || 0);
+                            return db - da;
+                        });
                     }
                 } catch (purchaseErr) {
                     console.error("Erro ao calcular compras via provador:", purchaseErr);
@@ -1882,6 +1890,14 @@
                 if (dateFromCompras && d < dateFromCompras) return false;
                 if (dateToCompras && d > dateToCompras) return false;
                 return true;
+            });
+
+            // Ordena por data descendente (mais recente primeiro)
+            const dateField = fDataPedido || 'created_at';
+            filtered.sort((a, b) => {
+                const da = new Date(a[dateField] || a.created_at || 0);
+                const db = new Date(b[dateField] || b.created_at || 0);
+                return db - da;
             });
 
             const pedidosCount = filtered.length;
