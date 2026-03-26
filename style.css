@@ -1494,6 +1494,78 @@ ul {
     }
 }
 
+/* Stores Section */
+.stores-section {
+    padding: 80px 0;
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.stores-carousel-wrapper {
+    margin-top: 50px;
+    position: relative;
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+}
+
+.stores-carousel {
+    overflow: hidden;
+    width: 100%;
+}
+
+.stores-track {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+    width: max-content;
+    animation: stores-scroll 25s linear infinite;
+}
+
+.stores-track:hover {
+    animation-play-state: paused;
+}
+
+@keyframes stores-scroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.store-logo-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 16px 24px;
+    opacity: 0.75;
+    transition: all 0.4s ease;
+}
+
+.store-logo-item:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.store-logo-item img {
+    max-height: 80px;
+    max-width: 200px;
+    object-fit: contain;
+}
+
+@media (max-width: 768px) {
+    .stores-track {
+        gap: 40px;
+    }
+
+    .store-logo-item img {
+        max-height: 55px;
+        max-width: 140px;
+    }
+}
+
 /* Demo Store Section */
 .demo-store {
     background-color: var(--surface);
