@@ -1,0 +1,2320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Provou Levou — Apresentação WIIO</title>
+    <link rel="icon" href="/assets/favicon.jpg">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --violet: #8b5cf6;
+            --violet-light: #a78bfa;
+            --violet-dark: #6d28d9;
+            --violet-deep: #4c1d95;
+            --indigo: #6366f1;
+            --gold: #c084fc;
+            --gold-light: #d8b4fe;
+            --emerald: #7c3aed;
+            --emerald-light: #a78bfa;
+            --rose: #e879f9;
+            --cyan: #c4b5fd;
+            --sky: #a78bfa;
+            --base: #06080f;
+            --surface: #0d1117;
+            --surface-2: #161b22;
+            --border: rgba(139, 92, 246, 0.12);
+            --text: #e8eaf0;
+            --text-muted: #7c8394;
+            --glass: rgba(13, 17, 23, 0.6);
+            --glass-border: rgba(139, 92, 246, 0.15);
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes glowPulse {
+
+            0%,
+            100% {
+                opacity: 0.4;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% center;
+            }
+
+            100% {
+                background-position: 200% center;
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        .reveal {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .reveal .slides {
+            text-align: left;
+        }
+
+        .reveal .slides section {
+            padding: 60px 80px 50px;
+            height: 100%;
+            font-size: 32px;
+            overflow: hidden;
+            display: flex !important;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .reveal .slides section.slide-cover {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            align-items: center !important;
+            text-align: left !important;
+            padding: 60px 100px !important;
+            gap: 0 !important;
+        }
+
+        .reveal h1,
+        .reveal h2,
+        .reveal h3 {
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            text-transform: none;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+            color: var(--text);
+            margin: 0 0 16px 0;
+        }
+
+        .reveal h1 {
+            font-size: 3.4em;
+            font-weight: 800;
+        }
+
+        .reveal h2 {
+            font-size: 2.8em;
+        }
+
+        .reveal h3 {
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .reveal p {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 400;
+            font-size: 0.92em;
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin: 0 0 8px 0;
+        }
+
+        /* ===== GLOW ROXO DE FUNDO ===== */
+        .reveal section::before {
+            content: '';
+            position: absolute;
+            width: 900px;
+            height: 900px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            filter: blur(100px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .reveal section.slide-cover::before {
+            left: 75%;
+        }
+
+        /* ===== GRAIN TEXTURE OVERLAY ===== */
+        .reveal section::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.5;
+        }
+
+        .reveal section>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== SECTION TAG ===== */
+        .section-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            border-radius: 100px;
+            font-family: 'Sora', sans-serif;
+            font-size: 0.78em;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            width: fit-content;
+        }
+
+        .tag-orange {
+            color: #c084fc;
+            border: 1px solid rgba(192, 132, 252, 0.3);
+            background: rgba(192, 132, 252, 0.08);
+        }
+
+        .tag-green {
+            color: #a78bfa;
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            background: rgba(167, 139, 250, 0.08);
+        }
+
+        .tag-cyan {
+            color: #c4b5fd;
+            border: 1px solid rgba(196, 181, 253, 0.3);
+            background: rgba(196, 181, 253, 0.08);
+        }
+
+        .tag-purple {
+            color: var(--violet-light);
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            background: rgba(167, 139, 250, 0.08);
+        }
+
+        .tag-pink {
+            color: #e879f9;
+            border: 1px solid rgba(232, 121, 249, 0.3);
+            background: rgba(232, 121, 249, 0.08);
+        }
+
+        .tag-red {
+            color: #d946ef;
+            border: 1px solid rgba(217, 70, 239, 0.3);
+            background: rgba(217, 70, 239, 0.08);
+        }
+
+        .tag-yellow {
+            color: #d8b4fe;
+            border: 1px solid rgba(216, 180, 254, 0.3);
+            background: rgba(216, 180, 254, 0.08);
+        }
+
+        /* ===== HIGHLIGHT TEXT ===== */
+        .text-gradient {
+            background: linear-gradient(135deg, var(--violet-light), #e879f9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 80px rgba(192, 132, 252, 0.4);
+        }
+
+        .text-green {
+            color: #34d399;
+            text-shadow: 0 0 60px rgba(52, 211, 153, 0.5), 0 0 120px rgba(16, 185, 129, 0.2);
+        }
+
+        .text-yellow {
+            color: #fbbf24;
+            text-shadow: 0 0 60px rgba(251, 191, 36, 0.5), 0 0 120px rgba(245, 158, 11, 0.2);
+        }
+
+        .text-blue {
+            color: #60a5fa;
+            text-shadow: 0 0 60px rgba(96, 165, 250, 0.5), 0 0 120px rgba(59, 130, 246, 0.2);
+        }
+
+        .text-purple {
+            color: var(--violet-light);
+            text-shadow: 0 0 60px rgba(192, 132, 252, 0.5), 0 0 120px rgba(192, 132, 252, 0.2);
+        }
+
+        .text-orange {
+            color: #c084fc;
+            text-shadow: 0 0 60px rgba(192, 132, 252, 0.5), 0 0 120px rgba(192, 132, 252, 0.2);
+        }
+
+        .text-red {
+            color: #e879f9;
+            text-shadow: 0 0 60px rgba(232, 121, 249, 0.5), 0 0 120px rgba(232, 121, 249, 0.2);
+        }
+
+        /* ===== SLIDE SUBTITLE ===== */
+        .slide-subtitle {
+            font-size: 0.95em;
+            color: var(--text-muted);
+            margin-top: 6px;
+            margin-bottom: 24px;
+            font-weight: 400;
+            line-height: 1.55;
+            max-width: 1100px;
+        }
+
+        /* ===== GLASS CARD ===== */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+        }
+
+        /* ========================================================================
+           SLIDE 1: COVER — SPLIT LAYOUT
+           ======================================================================== */
+        @keyframes orb1Move {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(60px, -40px) scale(1.1);
+            }
+
+            66% {
+                transform: translate(-30px, 30px) scale(0.95);
+            }
+        }
+
+        @keyframes orb2Move {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(-50px, 50px) scale(1.05);
+            }
+
+            66% {
+                transform: translate(40px, -20px) scale(0.9);
+            }
+        }
+
+        @keyframes lineGrow {
+            from {
+                width: 0;
+            }
+
+            to {
+                width: 100%;
+            }
+        }
+
+        @keyframes badgeReveal {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes textSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .slide-cover {
+            overflow: hidden !important;
+        }
+
+        .cover-left {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            z-index: 1;
+            padding-right: 40px;
+        }
+
+        .cover-right {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            padding-left: 40px;
+        }
+
+        .cover-right img {
+            width: 100%;
+            max-width: 900px;
+            filter: drop-shadow(0 0 80px rgba(139, 92, 246, 0.6)) drop-shadow(0 0 160px rgba(139, 92, 246, 0.4)) drop-shadow(0 0 300px rgba(139, 92, 246, 0.2));
+            animation: fadeUp 1.4s ease-out 0.2s both;
+        }
+
+        /* Cover content */
+        .cover-headline {
+            font-family: 'Sora', sans-serif;
+            font-size: 2.4em;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.08;
+            letter-spacing: -0.04em;
+            margin-bottom: 36px;
+            animation: fadeUp 1.2s ease-out 0.2s both;
+            white-space: nowrap;
+        }
+
+        .cover-tagline {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.62em;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--violet-light);
+            margin-bottom: 32px;
+            animation: fadeUp 1.2s ease-out 0.8s both;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .cover-tagline::before,
+        .cover-tagline::after {
+            content: '';
+            width: 32px;
+            height: 2px;
+            background: var(--violet-light);
+            flex-shrink: 0;
+        }
+
+        .cover-headline .highlight {
+            background: linear-gradient(135deg, #c084fc, #e879f9, #c084fc);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 2.5s linear infinite, fadeUp 1.2s ease-out 0.6s both;
+            text-shadow: 0 0 80px rgba(192, 132, 252, 0.4);
+            position: relative;
+        }
+
+        .cover-headline .highlight::after {
+            content: 'vende mais.';
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #c084fc, #e879f9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: blur(16px);
+            opacity: 0.5;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 0% center;
+            }
+
+            100% {
+                background-position: 200% center;
+            }
+        }
+
+        .cover-desc {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82em;
+            color: #ffffff;
+            line-height: 1.55;
+            margin-bottom: 60px;
+            animation: fadeUp 1.2s ease-out 0.5s both;
+        }
+
+        .cover-line {
+            display: none;
+        }
+
+        .cover-exclusive {
+            font-family: 'Sora', sans-serif;
+            color: #d8b4fe;
+            font-size: 0.68em;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 36px;
+            animation: fadeUp 1.2s ease-out 1.0s both;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cover-exclusive::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #d8b4fe;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .cover-badges {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .cover-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(139, 92, 246, 0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 12px;
+            padding: 14px 22px;
+            font-family: 'Sora', sans-serif;
+            font-size: 0.72em;
+            font-weight: 600;
+            color: var(--text);
+            box-shadow:
+                0 0 20px rgba(139, 92, 246, 0.15),
+                0 0 50px rgba(139, 92, 246, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            animation: badgeReveal 2s ease-out both;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .cover-badge:nth-child(1) {
+            animation-delay: 3.2s;
+        }
+
+        .cover-badge:nth-child(2) {
+            animation-delay: 3.6s;
+        }
+
+        .cover-badge:nth-child(3) {
+            animation-delay: 4.0s;
+        }
+
+        .cover-badge:hover {
+            transform: translateY(-3px);
+            box-shadow:
+                0 0 30px rgba(139, 92, 246, 0.3),
+                0 0 70px rgba(139, 92, 246, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        .cover-badge .badge-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 700;
+            color: white;
+        }
+
+        .badge-green {
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+        }
+
+        .badge-purple {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+        }
+
+        .badge-cyan {
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+        }
+
+        .cover-url {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.62em;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.06em;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.4), 0 0 60px rgba(192, 132, 252, 0.3);
+            animation: fadeUp 1.2s ease-out 2.0s both;
+        }
+
+        /* ========================================================================
+           SLIDE 2: O PROBLEMA
+           ======================================================================== */
+        .problem-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 28px;
+            flex: 1;
+        }
+
+        .problem-card {
+            border-radius: 20px;
+            padding: 36px 30px;
+            position: relative;
+            overflow: hidden;
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .problem-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            padding: 1px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .problem-card:nth-child(1) {
+            background: linear-gradient(160deg, #1e3a5f 0%, #0f2440 100%);
+        }
+
+        .problem-card:nth-child(2) {
+            background: linear-gradient(160deg, #14532d 0%, #052e16 100%);
+        }
+
+        .problem-card:nth-child(3) {
+            background: linear-gradient(160deg, #713f12 0%, #422006 100%);
+        }
+
+        .problem-card:nth-child(4) {
+            background: linear-gradient(160deg, #4c1d95 0%, #3b0764 100%);
+        }
+
+        .problem-card .card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15em;
+            margin-bottom: 24px;
+        }
+
+        .icon-orange {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
+        .icon-red {
+            background: linear-gradient(135deg, #34d399, #059669);
+        }
+
+        .icon-amber {
+            background: linear-gradient(135deg, #fbbf24, #d97706);
+        }
+
+        .icon-cyan {
+            background: linear-gradient(135deg, #a78bfa, #7c3aed);
+        }
+
+        .problem-card .big-number {
+            font-family: 'Sora', sans-serif;
+            font-size: 4.5em;
+            font-weight: 800;
+            color: white;
+            line-height: 1.1;
+            margin-bottom: 14px;
+            letter-spacing: -0.03em;
+            text-shadow: 0 0 30px rgba(192, 132, 252, 0.5), 0 0 80px rgba(192, 132, 252, 0.25);
+        }
+
+        .problem-card .card-desc {
+            font-size: 0.82em;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.45;
+            margin-top: auto;
+        }
+
+        /* ========================================================================
+           SLIDE 3: A SOLUÇÃO
+           ======================================================================== */
+        .solution-steps {
+            display: flex;
+            gap: 22px;
+            margin-top: 28px;
+            align-items: stretch;
+            flex: 1;
+        }
+
+        .solution-step {
+            flex: 1;
+            background: linear-gradient(160deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.03));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 20px;
+            padding: 36px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .solution-step::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.4), transparent);
+        }
+
+        .solution-step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .solution-step-num {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            font-size: 0.88em;
+            color: var(--violet-light);
+        }
+
+        .solution-step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1em;
+        }
+
+        .solution-step h3 {
+            font-size: 1.4em;
+            color: white;
+            margin-bottom: 16px;
+            line-height: 1.25;
+        }
+
+        .solution-step p {
+            font-size: 0.88em;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.5;
+        }
+
+        .step-arrow-wrap {
+            display: flex;
+            align-items: center;
+            color: #c084fc;
+            font-size: 1.4em;
+            padding: 0 2px;
+            text-shadow: 0 0 20px rgba(192, 132, 252, 0.6), 0 0 50px rgba(192, 132, 252, 0.3);
+        }
+
+        /* ========================================================================
+           SLIDE 4: CONVERSÃO
+           ======================================================================== */
+        .conversion-layout {
+            display: flex;
+            gap: 32px;
+            margin-top: 32px;
+            align-items: stretch;
+        }
+
+        .conversion-box {
+            flex: 1;
+            background: linear-gradient(160deg, rgba(139, 92, 246, 0.08), rgba(139, 92, 246, 0.02));
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 24px;
+            padding: 40px 50px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .conversion-box h3 {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.82em;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .big-percent {
+            font-family: 'Sora', sans-serif;
+            font-size: 5.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #34d399, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.15;
+            margin-bottom: 18px;
+            letter-spacing: -0.04em;
+            text-shadow: 0 0 40px rgba(52, 211, 153, 0.5), 0 0 100px rgba(16, 185, 129, 0.25);
+        }
+
+        .conversion-box .desc {
+            font-size: 0.82em;
+            color: var(--text-muted);
+            max-width: 420px;
+        }
+
+        .conversion-stats {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .conv-stat {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px 28px;
+            transition: border-color 0.3s ease;
+        }
+
+        .conv-stat:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .conv-stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15em;
+            flex-shrink: 0;
+        }
+
+        .conv-stat-icon.green {
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+        }
+
+        .conv-stat-icon.teal {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+        }
+
+        .conv-stat-icon.amber {
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+        }
+
+        .conv-stat-icon.cyan {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+        }
+
+        .conv-stat h3 {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.15em;
+            color: var(--text);
+            margin-bottom: 2px;
+            letter-spacing: -0.02em;
+        }
+
+        .conv-stat p {
+            font-size: 0.78em;
+            color: var(--text-muted);
+        }
+
+        /* ========================================================================
+           SLIDE 5: MENOS TROCAS
+           ======================================================================== */
+        .trocas-layout {
+            display: flex;
+            gap: 24px;
+            margin-top: 28px;
+            align-items: stretch;
+        }
+
+        .trocas-left {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            justify-content: stretch;
+            gap: 16px;
+        }
+
+        .troca-row {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px 26px;
+            flex: 1;
+            transition: border-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .troca-row:hover {
+            border-color: rgba(139, 92, 246, 0.25);
+            transform: translateX(4px);
+        }
+
+        .troca-row .troca-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1em;
+            flex-shrink: 0;
+        }
+
+        .troca-row .troca-info {
+            flex: 1;
+        }
+
+        .troca-row .troca-info h3 {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.92em;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .troca-row .troca-info .before {
+            font-size: 0.75em;
+            color: #d8b4fe;
+            font-weight: 500;
+        }
+
+        .troca-badge {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.68em;
+            font-weight: 600;
+            color: #c084fc;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            padding: 6px 14px;
+            border-radius: 100px;
+            white-space: nowrap;
+        }
+
+        .trocas-right {
+            flex: 1;
+            background: linear-gradient(160deg, rgba(139, 92, 246, 0.08), rgba(139, 92, 246, 0.02));
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 20px;
+            padding: 34px;
+        }
+
+        .trocas-right h3 {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.95em;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .check-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .check-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 13px 0;
+            font-size: 0.92em;
+            color: var(--text);
+            font-weight: 400;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .check-list li:last-child {
+            border-bottom: none;
+        }
+
+        .check-list li .check-icon {
+            color: #c084fc;
+            font-size: 1.1em;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* ========================================================================
+           SLIDE 6: LEADS
+           ======================================================================== */
+        .leads-flow {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-top: 28px;
+        }
+
+        .lead-step {
+            flex: 1;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 32px 22px;
+            text-align: center;
+            transition: border-color 0.3s ease;
+        }
+
+        .lead-step:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .lead-step .lead-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25em;
+        }
+
+        .lead-step h3 {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.82em;
+            color: var(--text);
+            font-weight: 600;
+            line-height: 1.35;
+        }
+
+        .lead-arrow {
+            color: rgba(139, 92, 246, 0.3);
+            font-size: 1.2em;
+            flex-shrink: 0;
+        }
+
+        .leads-data {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 28px;
+            background: linear-gradient(160deg, rgba(139, 92, 246, 0.06), rgba(139, 92, 246, 0.03));
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px 32px;
+        }
+
+        .leads-data-title {
+            grid-column: 1 / -1;
+            font-family: 'Sora', sans-serif;
+            font-size: 0.82em;
+            color: var(--violet-light);
+            font-weight: 600;
+            margin-bottom: 6px;
+            letter-spacing: 0.02em;
+        }
+
+        .lead-data-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lead-data-item .check-icon {
+            color: var(--emerald-light);
+            font-size: 1em;
+        }
+
+        .lead-data-item strong {
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        .lead-data-item span {
+            color: var(--text-muted);
+            font-size: 0.75em;
+        }
+
+        /* ========================================================================
+           SLIDES 7-9: DASHBOARD
+           ======================================================================== */
+        .slide-dashboard {
+            display: grid !important;
+            grid-template-columns: 0.35fr 0.65fr !important;
+            grid-template-rows: 1fr !important;
+            padding: 0 !important;
+            text-align: left !important;
+            gap: 0 !important;
+            align-items: stretch !important;
+        }
+
+        .reveal .slides section.slide-dashboard {
+            display: grid !important;
+            grid-template-columns: 0.25fr 0.75fr !important;
+            grid-template-rows: 1fr !important;
+            flex-direction: unset !important;
+        }
+
+        .dash-left {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            gap: 20px;
+        }
+
+        .dash-left .case-label {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.72em;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #c084fc;
+            text-shadow: 0 0 30px rgba(192, 132, 252, 0.6), 0 0 80px rgba(192, 132, 252, 0.3);
+        }
+
+        .dash-left img.store-logo {
+            max-width: 300px;
+            max-height: 160px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .dash-left .dash-url {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.62em;
+            font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        .dash-right {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 40px 20px 0;
+        }
+
+        .dash-right img.dash-screenshot {
+            width: 100%;
+            max-width: 100%;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            border-radius: 16px;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            box-shadow:
+                0 30px 60px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 0 100px rgba(139, 92, 246, 0.12);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-14px);
+            }
+        }
+
+        /* ========================================================================
+           SLIDE 10: RECUPERACAO
+           ======================================================================== */
+        .recovery-flow-box {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 44px 60px;
+            margin-top: 28px;
+        }
+
+        .recovery-flow-box h3 {
+            font-family: 'Sora', sans-serif;
+            color: var(--violet-light);
+            font-size: 1em;
+            margin-bottom: 28px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .recovery-steps {
+            display: flex;
+            align-items: flex-start;
+            gap: 24px;
+            justify-content: center;
+        }
+
+        .rec-step {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .rec-step-num {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.78em;
+            color: #c084fc;
+            font-weight: 700;
+            text-shadow: 0 0 20px rgba(192, 132, 252, 0.5);
+        }
+
+        .rec-step-icon {
+            width: 90px;
+            height: 90px;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.4em;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2);
+        }
+
+        .rec-step p {
+            font-size: 0.65em;
+            color: #ffffff;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.15);
+            text-align: center;
+            max-width: 180px;
+            line-height: 1.4;
+            white-space: nowrap;
+        }
+
+        .rec-arrow {
+            color: #c084fc;
+            font-size: 1.1em;
+            margin-top: 28px;
+            text-shadow: 0 0 20px rgba(192, 132, 252, 0.4);
+        }
+
+        .recovery-uses {
+            display: flex;
+            gap: 14px;
+            margin-top: 36px;
+        }
+
+        .recovery-use {
+            flex: 1;
+            background: rgba(139, 92, 246, 0.15);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 14px;
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .recovery-use:hover {
+            transform: translateY(-2px);
+        }
+
+        .recovery-use .use-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1em;
+            flex-shrink: 0;
+        }
+
+        .recovery-use h3 {
+            font-size: 0.72em;
+            color: #ffffff;
+            margin-bottom: 2px;
+            white-space: nowrap;
+        }
+
+        .recovery-use p {
+            font-size: 0.62em;
+            color: rgba(255, 255, 255, 0.6);
+            white-space: nowrap;
+        }
+
+        /* ========================================================================
+           SLIDE 11: INTEGRAÇÕES
+           ======================================================================== */
+        .integrations-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .integration-card {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 18px;
+            padding: 40px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .integration-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .integration-card span {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .integration-card img.platform-logo {
+            height: 90px;
+            object-fit: contain;
+        }
+
+        .integration-checks {
+            display: flex;
+            gap: 40px;
+            margin-top: 28px;
+            justify-content: center;
+        }
+
+        .int-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88em;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .int-check .check-icon {
+            color: #c084fc;
+            font-size: 1.1em;
+        }
+
+        /* ========================================================================
+           SLIDE 12: PLANOS
+           ======================================================================== */
+        .pricing-grid {
+            display: flex;
+            gap: 28px;
+            margin-top: 28px;
+            align-items: stretch;
+            justify-content: center;
+            max-width: 1800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .pricing-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 44px 36px;
+            position: relative;
+            transition: border-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            border-color: rgba(139, 92, 246, 0.25);
+            transform: translateY(-4px);
+        }
+
+        .pricing-card.featured {
+            border-color: var(--violet);
+            background: linear-gradient(160deg, rgba(139, 92, 246, 0.12), rgba(139, 92, 246, 0.04));
+            box-shadow:
+                0 0 40px rgba(139, 92, 246, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .pricing-card.featured .badge-popular {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--violet), var(--indigo));
+            color: white;
+            font-family: 'Sora', sans-serif;
+            font-size: 0.62em;
+            font-weight: 700;
+            padding: 5px 16px;
+            border-radius: 100px;
+            white-space: nowrap;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .pricing-card .plan-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.95em;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 14px;
+        }
+
+        .pricing-card .price {
+            font-family: 'Sora', sans-serif;
+            font-size: 3em;
+            font-weight: 800;
+            color: var(--violet-light);
+            line-height: 1;
+            margin-bottom: 4px;
+            letter-spacing: -0.03em;
+        }
+
+        .pricing-card .price span {
+            font-size: 0.32em;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        .pricing-card .quota {
+            font-size: 0.75em;
+            color: var(--violet-light);
+            margin-bottom: 22px;
+            font-weight: 500;
+        }
+
+        .pricing-card hr {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            margin: 0 0 18px;
+        }
+
+        .pricing-card .features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex: 1;
+        }
+
+        .pricing-card .features li {
+            font-size: 0.78em;
+            padding: 8px 0;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pricing-card .features li .check {
+            color: var(--violet-light);
+            font-size: 1em;
+        }
+
+        .pricing-cta {
+            display: block;
+            text-align: center;
+            background: linear-gradient(135deg, var(--violet), var(--indigo));
+            color: white !important;
+            padding: 11px;
+            border-radius: 12px;
+            font-family: 'Sora', sans-serif;
+            font-weight: 600;
+            font-size: 0.82em;
+            text-decoration: none;
+            transition: opacity 0.3s ease, transform 0.2s ease;
+            letter-spacing: 0.02em;
+        }
+
+        .pricing-cta:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        /* ========================================================================
+           SLIDE 13: CTA FINAL
+           ======================================================================== */
+        .slide-cta {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            overflow: hidden !important;
+            position: relative !important;
+        }
+
+        .slide-cta .cta-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .slide-cta .cta-content .logo {
+            width: 1000px;
+            margin-bottom: 32px;
+            filter: drop-shadow(0 0 80px rgba(139, 92, 246, 0.6)) drop-shadow(0 0 160px rgba(139, 92, 246, 0.4)) drop-shadow(0 0 300px rgba(139, 92, 246, 0.2));
+        }
+
+        .slide-cta .cta-content .cta-tagline {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.02em;
+        }
+
+        .slide-cta .cta-footer {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.72em;
+            color: rgba(255, 255, 255, 0.25);
+            z-index: 1;
+        }
+
+        .slide-cta .cta-footer .quantic-logo {
+            height: 1.4em;
+            opacity: 0.4;
+        }
+
+        /* ========================================================================
+           SLIDE: PRESENTE WIIO
+           ======================================================================== */
+        .slide-gift {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: left !important;
+            overflow: hidden !important;
+            gap: 0;
+            padding: 60px 80px !important;
+        }
+
+        .slide-gift::before {
+            content: '';
+            position: absolute;
+            width: 1000px;
+            height: 1000px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.18) 0%, rgba(232, 121, 249, 0.08) 40%, transparent 70%);
+            top: 50%;
+            left: 30%;
+            transform: translate(-50%, -50%);
+            filter: blur(120px);
+            z-index: 0;
+        }
+
+        .gift-left {
+            width: 50%;
+            flex: 0 0 50%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        .gift-icon {
+            font-size: 5em;
+            margin-bottom: 16px;
+            animation: float 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 60px rgba(139, 92, 246, 0.4));
+            color: #8b5cf6;
+            text-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+        }
+
+        .gift-headline {
+            font-family: 'Sora', sans-serif;
+            font-size: 2.6em;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.1;
+            letter-spacing: -0.04em;
+            margin-bottom: 24px;
+        }
+
+        .gift-headline .wiio-logo-inline {
+            height: 1.1em;
+            vertical-align: middle;
+            margin-left: 8px;
+            filter: drop-shadow(0 0 20px rgba(249, 115, 22, 0.6)) drop-shadow(0 0 50px rgba(249, 115, 22, 0.3));
+        }
+
+        .gift-headline .gift-highlight {
+            background: linear-gradient(135deg, #fb923c, #f97316, #fb923c);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 2.5s linear infinite;
+            filter: drop-shadow(0 0 20px rgba(249, 115, 22, 0.6)) drop-shadow(0 0 50px rgba(249, 115, 22, 0.3));
+        }
+
+        .gift-subtitle {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95em;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 80px;
+        }
+
+        .gift-card {
+            background: rgba(139, 92, 246, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 24px;
+            padding: 40px 44px;
+            box-shadow:
+                0 0 60px rgba(139, 92, 246, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .gift-qr {
+            width: 50%;
+            flex: 0 0 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .gift-qr img {
+            width: 520px;
+            height: 520px;
+            border-radius: 24px;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 16px 60px rgba(0, 0, 0, 0.4), 0 0 100px rgba(139, 92, 246, 0.2);
+        }
+
+        .gift-qr-label {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.88em;
+            font-weight: 600;
+            color: var(--violet-light);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(167, 139, 250, 0.4);
+        }
+
+        .gift-details {
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .gift-badge-trial {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, var(--violet), var(--indigo));
+            color: white;
+            font-family: 'Sora', sans-serif;
+            font-size: 1.1em;
+            font-weight: 700;
+            padding: 14px 28px;
+            border-radius: 14px;
+            letter-spacing: 0.02em;
+            box-shadow: 0 4px 24px rgba(139, 92, 246, 0.5);
+            width: fit-content;
+        }
+
+        .gift-perks {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .gift-perks li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88em;
+            color: var(--text);
+            font-weight: 400;
+        }
+
+        .gift-perks li .perk-check {
+            color: #c084fc;
+            font-size: 1.1em;
+            flex-shrink: 0;
+        }
+
+        .gift-phone {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.82em;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .gift-phone strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* ===== PROGRESS BAR ===== */
+        .reveal .progress {
+            height: 2px;
+            color: var(--violet);
+        }
+
+        .reveal .progress span {
+            background: linear-gradient(90deg, var(--violet), #e879f9);
+        }
+
+        /* ===== CONTROLS ===== */
+        .reveal .controls {
+            color: var(--violet-light);
+        }
+
+        /* ===== SLIDE NUMBER ===== */
+        .reveal .slide-number {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--violet-light);
+            font-family: 'Sora', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 8px;
+            right: 16px;
+            bottom: 16px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        /* ===== AUTO-REVEAL ANIMATIONS ===== */
+        .reveal .slides section.present .auto-reveal {
+            animation: fadeUp 1.2s ease-out both;
+        }
+
+        /* Staggered delays for children */
+        .reveal .slides section.present .auto-reveal:nth-child(1) {
+            animation-delay: 0.2s;
+        }
+
+        .reveal .slides section.present .auto-reveal:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        .reveal .slides section.present .auto-reveal:nth-child(3) {
+            animation-delay: 0.8s;
+        }
+
+        .reveal .slides section.present .auto-reveal:nth-child(4) {
+            animation-delay: 1.1s;
+        }
+
+        /* Card-level stagger for grids */
+        .reveal .slides section.present .stagger>*:nth-child(1) {
+            animation: fadeUp 1.0s ease-out 0.2s both;
+        }
+
+        .reveal .slides section.present .stagger>*:nth-child(2) {
+            animation: fadeUp 1.0s ease-out 0.5s both;
+        }
+
+        .reveal .slides section.present .stagger>*:nth-child(3) {
+            animation: fadeUp 1.0s ease-out 0.8s both;
+        }
+
+        .reveal .slides section.present .stagger>*:nth-child(4) {
+            animation: fadeUp 1.0s ease-out 1.1s both;
+        }
+
+        .reveal .slides section.present .stagger>*:nth-child(5) {
+            animation: fadeUp 1.0s ease-out 1.4s both;
+        }
+
+        .reveal .slides section.present .stagger>*:nth-child(6) {
+            animation: fadeUp 1.0s ease-out 1.7s both;
+        }
+
+        /* Stat rows stagger */
+        .reveal .slides section.present .stagger-rows>*:nth-child(1) {
+            animation: fadeUp 1.0s ease-out 0.2s both;
+        }
+
+        .reveal .slides section.present .stagger-rows>*:nth-child(2) {
+            animation: fadeUp 1.0s ease-out 0.5s both;
+        }
+
+        .reveal .slides section.present .stagger-rows>*:nth-child(3) {
+            animation: fadeUp 1.0s ease-out 0.8s both;
+        }
+
+        .reveal .slides section.present .stagger-rows>*:nth-child(4) {
+            animation: fadeUp 1.0s ease-out 1.1s both;
+        }
+
+        /* Reset animations when slide is not present */
+        .reveal .slides section:not(.present) .auto-reveal,
+        .reveal .slides section:not(.present) .stagger>*,
+        .reveal .slides section:not(.present) .stagger-rows>* {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: none !important;
+        }
+
+        /* ===== CENTERED HELPER ===== */
+        .centered {
+            text-align: center !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- ==================== SLIDE 1: COVER ==================== -->
+            <section class="slide-cover" data-background-color="#06080f">
+                <div class="cover-left">
+                    <div class="cover-headline">Seu cliente prova.<br>Sua loja <span class="highlight">vende
+                            mais.</span></div>
+                    <div class="cover-tagline">Provador Virtual com IA</div>
+                </div>
+                <div class="cover-right">
+                    <img src="logo-provoulevou-new.png" alt="Provou Levou">
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 2: O PROBLEMA ==================== -->
+            <section data-background-color="#06080f">
+                <div class="section-tag tag-orange">O Problema</div>
+                <h2>Seu e-commerce está perdendo<br>vendas <span class="text-orange">todos os dias.</span></h2>
+                <p class="slide-subtitle">O maior obstáculo do varejo de moda online é a insegurança do cliente. Sem
+                    provar, ele não compra — ou compra e devolve.</p>
+                <div class="problem-cards stagger">
+                    <div class="problem-card">
+                        <div class="card-icon icon-orange">&#x26A0;</div>
+                        <div class="big-number">52%</div>
+                        <div class="card-desc">dos consumidores desistem por não saber como a roupa vai ficar</div>
+                    </div>
+                    <div class="problem-card">
+                        <div class="card-icon icon-red">&#x21A9;</div>
+                        <div class="big-number">40%</div>
+                        <div class="card-desc">das devoluções no e-commerce de moda são por tamanho errado</div>
+                    </div>
+                    <div class="problem-card">
+                        <div class="card-icon icon-amber">&#x24;</div>
+                        <div class="big-number">$ 45</div>
+                        <div class="card-desc">custo médio de cada troca/devolução para o lojista</div>
+                    </div>
+                    <div class="problem-card">
+                        <div class="card-icon icon-cyan">&#x2205;</div>
+                        <div class="big-number">0%</div>
+                        <div class="card-desc">de dados capturados de quem visitou mas não comprou</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 3: A SOLUÇÃO ==================== -->
+            <section data-background-color="#06080f">
+                <div class="section-tag tag-green">A Solução</div>
+                <h2>Provou<span class="text-purple">Levou</span>: seu cliente prova<br>virtualmente e compra com
+                    confiança.</h2>
+                <p class="slide-subtitle">Um botão "Provar em Mim" é adicionado às fotos dos seus produtos. O cliente
+                    insere seus dados e nossa IA gera uma imagem realista vestindo a peça, com recomendação de tamanho.
+                </p>
+                <div class="solution-steps stagger">
+                    <div class="solution-step">
+                        <div class="solution-step-header">
+                            <div class="solution-step-num">01</div>
+                            <div class="solution-step-icon">&#x2728;</div>
+                        </div>
+                        <h3>Clique em<br>"Provar em Mim"</h3>
+                        <p>Botão integrado nas fotos dos seus produtos. O cliente inicia a experiência instantaneamente.
+                        </p>
+                    </div>
+                    <div class="step-arrow-wrap">&#x27A1;</div>
+                    <div class="solution-step">
+                        <div class="solution-step-header">
+                            <div class="solution-step-num">02</div>
+                            <div class="solution-step-icon">&#x1F464;</div>
+                        </div>
+                        <h3>Cliente informa<br>seus dados</h3>
+                        <p>Celular, altura e peso. Nossa IA analisa o biotipo e recomenda o tamanho ideal.</p>
+                    </div>
+                    <div class="step-arrow-wrap">&#x27A1;</div>
+                    <div class="solution-step">
+                        <div class="solution-step-header">
+                            <div class="solution-step-num">03</div>
+                            <div class="solution-step-icon">&#x2728;</div>
+                        </div>
+                        <h3>Materialização<br>do resultado</h3>
+                        <p>A IA gera uma imagem realista da peça no corpo do cliente com ajuste perfeito.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 4: CONVERSÃO DE VENDAS ==================== -->
+            <section data-background-color="#06080f">
+                <div class="section-tag tag-cyan">Conversão de vendas</div>
+                <h2>Quem prova, <span class="text-purple">compra.</span></h2>
+                <p class="slide-subtitle">Dados reais de lojistas que já utilizam o Provou Levou mostram resultados
+                    consistentes na taxa de conversão.</p>
+                <div class="conversion-layout">
+                    <div class="conversion-box">
+                        <h3>Taxa de Conversão Real</h3>
+                        <div class="big-percent">11.1%</div>
+                        <p class="desc">dos clientes que provaram se tornaram compradores</p>
+                    </div>
+                    <div class="conversion-stats stagger-rows">
+                        <div class="conv-stat">
+                            <div class="conv-stat-icon green">&#x1F6D2;</div>
+                            <div>
+                                <h3>18 Pedidos</h3>
+                                <p>Realizados via provador virtual</p>
+                            </div>
+                        </div>
+                        <div class="conv-stat">
+                            <div class="conv-stat-icon amber">&#x1F4B0;</div>
+                            <div>
+                                <h3>R$ 6.136,92 Faturados</h3>
+                                <p>Receita atribuída ao provador</p>
+                            </div>
+                        </div>
+                        <div class="conv-stat">
+                            <div class="conv-stat-icon cyan">&#x1F4C8;</div>
+                            <div>
+                                <h3>3x mais conversão</h3>
+                                <p>vs. navegação sem provador virtual</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 5: MENOS TROCAS ==================== -->
+            <section data-background-color="#06080f">
+                <div class="section-tag tag-yellow">Menos Trocas</div>
+                <h2>Menos trocas. Menos custos.<br>Mais <span class="text-green">Lucro!</span></h2>
+                <p class="slide-subtitle">A principal causa de devolução no e-commerce de moda é o tamanho errado. O
+                    Provou Levou resolve isso na raiz.</p>
+                <div class="trocas-layout">
+                    <div class="trocas-left stagger-rows">
+                        <div class="troca-row">
+                            <div class="troca-icon"
+                                style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:12px;">&#x1F4B5;
+                            </div>
+                            <div class="troca-info">
+                                <h3>Custo de cada devolução</h3>
+                                <div class="before">Antes: R$ 45 em média</div>
+                            </div>
+                            <div class="troca-badge">Drasticamente reduzido</div>
+                        </div>
+                        <div class="troca-row">
+                            <div class="troca-icon"
+                                style="background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:12px;">&#x1F4E6;
+                            </div>
+                            <div class="troca-info">
+                                <h3>Logística reversa</h3>
+                                <div class="before">Antes: Frete + reenvio + tempo</div>
+                            </div>
+                            <div class="troca-badge">Eliminada na origem</div>
+                        </div>
+                        <div class="troca-row">
+                            <div class="troca-icon"
+                                style="background:linear-gradient(135deg,#a78bfa,#7c3aed);border-radius:12px;">&#x2B50;
+                            </div>
+                            <div class="troca-info">
+                                <h3>Satisfação do cliente</h3>
+                                <div class="before">Antes: Frustração e abandono</div>
+                            </div>
+                            <div class="troca-badge">Experiência premium</div>
+                        </div>
+                    </div>
+                    <div class="trocas-right">
+                        <h3>Como funciona a redução</h3>
+                        <ul class="check-list">
+                            <li><span class="check-icon">&#x2714;</span> Cliente vê a peça no seu corpo antes de comprar
+                            </li>
+                            <li><span class="check-icon">&#x2714;</span> IA recomenda o tamanho ideal baseado no biotipo
+                            </li>
+                            <li><span class="check-icon">&#x2714;</span> Confiança na compra elimina a dúvida do tamanho
+                            </li>
+                            <li><span class="check-icon">&#x2714;</span> Menos trocas = menos custo operacional</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 6: PAINEL - CALMO ==================== -->
+            <section class="slide-dashboard" data-background-color="#06080f">
+                <div class="dash-left">
+                    <div class="case-label">Case de Sucesso</div>
+                    <img src="logo-calmo.webp" alt="Calmo" class="store-logo">
+                    <div class="dash-url">www.calmostore.com.br</div>
+                </div>
+                <div class="dash-right">
+                    <img src="https://i.ibb.co/jkzcDYxL/Calmo-Store.png" alt="Dashboard Calmo Store"
+                        class="dash-screenshot">
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 7: PAINEL - MARIANA ==================== -->
+            <section class="slide-dashboard" data-background-color="#06080f">
+                <div class="dash-left">
+                    <div class="case-label">Case de Sucesso</div>
+                    <img src="logo-mariana.png" alt="Mariana Cardoso" class="store-logo">
+                    <div class="dash-url">www.usemarianacardoso.com.br</div>
+                </div>
+                <div class="dash-right">
+                    <img src="https://i.ibb.co/JwdLsnLg/mariana-cardoso.png" alt="Dashboard Mariana Cardoso"
+                        class="dash-screenshot">
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 8: PAINEL - CACIFE ==================== -->
+            <section class="slide-dashboard" data-background-color="#06080f">
+                <div class="dash-left">
+                    <div class="case-label">Case de Sucesso</div>
+                    <img src="logo-cacife.webp" alt="Cacife Brand" class="store-logo">
+                    <div class="dash-url">www.cacifebrand.com.br</div>
+                </div>
+                <div class="dash-right">
+                    <img src="dashboard-cacife.png" alt="Dashboard Cacife Brand" class="dash-screenshot">
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 9: RECUPERAÇÃO DE VENDAS ==================== -->
+            <section data-background-color="#06080f">
+                <div class="section-tag tag-red">Recuperação de Vendas</div>
+                <h2>Recupere vendas perdidas<br>com <span class="text-blue">um clique.</span></h2>
+                <p class="slide-subtitle">Cada cliente que provou mas não comprou é uma oportunidade. O painel mostra
+                    quem são e permite contato direto via WhatsApp.</p>
+                <div class="recovery-flow-box">
+                    <h3>Fluxo de Recuperação</h3>
+                    <div class="recovery-steps">
+                        <div class="rec-step">
+                            <div class="rec-step-num">1</div>
+                            <div class="rec-step-icon"
+                                style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:16px;">&#x1F455;
+                            </div>
+                            <p>Cliente prova<br>mas não compra</p>
+                        </div>
+                        <div class="rec-arrow">&#x2192;</div>
+                        <div class="rec-step">
+                            <div class="rec-step-num">2</div>
+                            <div class="rec-step-icon"
+                                style="background:linear-gradient(135deg,#a855f7,#7c3aed);border-radius:16px;">&#x1F4CB;
+                            </div>
+                            <p>Aparece no painel<br>com status "Não comprou"</p>
+                        </div>
+                        <div class="rec-arrow">&#x2192;</div>
+                        <div class="rec-step">
+                            <div class="rec-step-num">3</div>
+                            <div class="rec-step-icon"
+                                style="background:linear-gradient(135deg,#c084fc,#9333ea);border-radius:16px;">&#x1F4AC;
+                            </div>
+                            <p>Você clica em<br>"Chamar no Whats"</p>
+                        </div>
+                        <div class="rec-arrow">&#x2192;</div>
+                        <div class="rec-step">
+                            <div class="rec-step-num">4</div>
+                            <div class="rec-step-icon"
+                                style="background:linear-gradient(135deg,#7c3aed,#5b21b6);border-radius:16px;">&#x1F6D2;
+                            </div>
+                            <p>Venda recuperada<br>com contato direto</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="recovery-uses stagger">
+                    <div class="recovery-use">
+                        <div class="use-icon"
+                            style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:12px;">&#x1F4AC;
+                        </div>
+                        <div>
+                            <h3>Recuperação via WhatsApp</h3>
+                            <p>Contato direto com quem não comprou</p>
+                        </div>
+                    </div>
+                    <div class="recovery-use">
+                        <div class="use-icon"
+                            style="background:linear-gradient(135deg,#a855f7,#7c3aed);border-radius:12px;">&#x2709;
+                        </div>
+                        <div>
+                            <h3>Campanhas de Email</h3>
+                            <p>Remarketing segmentado por produto</p>
+                        </div>
+                    </div>
+                    <div class="recovery-use">
+                        <div class="use-icon"
+                            style="background:linear-gradient(135deg,#c084fc,#9333ea);border-radius:12px;">&#x1F4E2;
+                        </div>
+                        <div>
+                            <h3>Promoções direcionadas</h3>
+                            <p>Ofertas para quem já demonstrou interesse</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 11: INTEGRAÇÕES ==================== -->
+            <section data-background-color="#06080f">
+                <div class="section-tag tag-cyan">Integrações</div>
+                <h2>Compatível com as maiores<br>plataformas do mercado.</h2>
+                <p class="slide-subtitle">Integração via script simples ou app direto. Instalação em poucos minutos, sem
+                    necessidade de desenvolvedor.</p>
+                <div class="integrations-grid stagger">
+                    <div class="integration-card"><img src="/assets/shopify-logo.png"
+                            alt="Shopify" class="platform-logo"></div>
+                    <div class="integration-card"><img src="/assets/nuvemshop-logo.png"
+                            alt="Nuvemshop" class="platform-logo"></div>
+                    <div class="integration-card"><img src="/assets/woocommerce-logo.png"
+                            alt="WooCommerce" class="platform-logo"></div>
+                    <div class="integration-card"><img src="/assets/tray-logo.png" alt="Tray"
+                            class="platform-logo"></div>
+                    <div class="integration-card"><img src="/assets/bagy-logo.svg" alt="Bagy"
+                            class="platform-logo"></div>
+                    <div class="integration-card"><img src="/assets/loja-integrada-logo.png"
+                            alt="Loja Integrada" class="platform-logo"></div>
+                </div>
+                <div class="integration-checks">
+                    <div class="int-check"><span class="check-icon">&#x2714;</span> Instalação em minutos</div>
+                    <div class="int-check"><span class="check-icon">&#x2714;</span> Sem integração complexa</div>
+                    <div class="int-check"><span class="check-icon">&#x2714;</span> Suporte dedicado</div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 12: PLANOS ==================== -->
+            <section data-background-color="#06080f">
+                <h2>Escolha o plano ideal para<br><span class="text-yellow">escalar</span> sua loja.</h2>
+                <p class="slide-subtitle">Mais conversão, menos trocas e leads qualificados para o seu negócio.</p>
+                <div class="pricing-grid stagger">
+                    <div class="pricing-card">
+                        <div class="plan-name">Essencial</div>
+                        <div class="price">R$ 97 <span>/mês</span></div>
+                        <div class="quota">50 fotos / mês</div>
+                        <hr>
+                        <ul class="features">
+                            <li><span class="check">&#x2714;</span> Provador Virtual com IA</li>
+                            <li><span class="check">&#x2714;</span> Painel do Lojista (ROI)</li>
+                            <li><span class="check">&#x2714;</span> Captura de Leads</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-card">
+                        <div class="plan-name">Crescimento</div>
+                        <div class="price">R$ 197 <span>/mês</span></div>
+                        <div class="quota">100 fotos / mês</div>
+                        <hr>
+                        <ul class="features">
+                            <li><span class="check">&#x2714;</span> Provador Virtual com IA</li>
+                            <li><span class="check">&#x2714;</span> Painel do Lojista (ROI)</li>
+                            <li><span class="check">&#x2714;</span> Captura de Leads</li>
+                            <li><span class="check">&#x2714;</span> Recuperação WhatsApp</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-card featured">
+                        <div class="badge-popular">MAIS VENDIDO</div>
+                        <div class="plan-name">Performance</div>
+                        <div class="price">R$ 397 <span>/mês</span></div>
+                        <div class="quota">500 fotos / mês</div>
+                        <hr>
+                        <ul class="features">
+                            <li><span class="check">&#x2714;</span> Provador Virtual com IA</li>
+                            <li><span class="check">&#x2714;</span> Painel Completo</li>
+                            <li><span class="check">&#x2714;</span> Leads Premium</li>
+                            <li><span class="check">&#x2714;</span> IA Recuperadora WhatsApp</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-card">
+                        <div class="plan-name">Escala</div>
+                        <div class="price">R$ 797 <span>/mês</span></div>
+                        <div class="quota">1200 fotos / mês</div>
+                        <hr>
+                        <ul class="features">
+                            <li><span class="check">&#x2714;</span> Provador Virtual com IA</li>
+                            <li><span class="check">&#x2714;</span> Fotos Ilimitadas p/ Produto</li>
+                            <li><span class="check">&#x2714;</span> Painel do Lojista VIP</li>
+                            <li><span class="check">&#x2714;</span> IA Recuperadora WhatsApp</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE: PRESENTE EXCLUSIVO WIIO ==================== -->
+            <section class="slide-gift" data-background-color="#06080f">
+                <div class="gift-left">
+
+                    <div class="gift-headline">Presente exclusivo<br>para lojistas <img
+                            src="https://www.wiio.io/wp-content/uploads/2025/09/cropped-cropped-logo2.png" alt="WIIO"
+                            class="wiio-logo-inline"></div>
+                    <p class="gift-subtitle">Queremos que você experimente o poder do provador virtual sem compromisso.
+                        Por isso, preparamos uma condição especial.</p>
+                    <div class="gift-card">
+                        <div class="gift-details">
+                            <div class="gift-badge-trial">&#x1F31F; 7 dias grátis para testar</div>
+                            <ul class="gift-perks">
+                                <li><span class="perk-check">&#x2714;</span> Acesso completo ao provador virtual com IA
+                                </li>
+                                <li><span class="perk-check">&#x2714;</span> Painel do lojista com métricas de conversão
+                                </li>
+                                <li><span class="perk-check">&#x2714;</span> Captura de leads desde o primeiro dia</li>
+                                <li><span class="perk-check">&#x2714;</span> Instalação assistida pela nossa equipe</li>
+                                <li><span class="perk-check">&#x2714;</span> Sem compromisso — cancele quando quiser
+                                </li>
+                            </ul>
+                            <div class="gift-phone">WhatsApp: <strong>(11) 93803-4714</strong></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="gift-qr">
+                    <div class="gift-icon">&#x1F381;</div>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=https%3A%2F%2Fwa.me%2F5511938034714%3Ftext%3DOl%25C3%25A1%21%2520Vim%2520pela%2520apresenta%25C3%25A7%25C3%25A3o%2520WIIO%2520e%2520quero%2520meus%25207%2520dias%2520gr%25C3%25A1tis%2520do%2520Provou%2520Levou%2521"
+                        alt="QR Code WhatsApp">
+                    <div class="gift-qr-label">Escaneie e fale conosco</div>
+                </div>
+            </section>
+
+            <!-- ==================== SLIDE 13: CTA ==================== -->
+            <section class="slide-cta" data-background-color="#06080f">
+                <div class="cta-content">
+                    <img src="logo-provoulevou-new.png" alt="Provou Levou" class="logo">
+                    <p class="cta-tagline">Provador virtual que materializa o desejo de compra</p>
+                </div>
+                <div class="cta-footer">Tecnologia by <img src="https://quanticsolutions.com.br/logo.png" alt="Quantic"
+                        class="quantic-logo"></div>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            slideNumber: true,
+            progress: true,
+            controls: true,
+            controlsTutorial: false,
+            transition: 'slide',
+            transitionSpeed: 'slow',
+            backgroundTransition: 'fade',
+            width: 1920,
+            height: 1080,
+            margin: 0,
+            minScale: 0.5,
+            maxScale: 3.0,
+            center: true,
+            keyboard: {
+                39: 'next',
+                37: 'prev',
+                32: 'next',
+            }
+        });
+    </script>
+</body>
+
+</html>
