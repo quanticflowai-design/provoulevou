@@ -4,27 +4,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Provador Virtual</title>
+    <title>Painel Lojista — Provou Levou</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <style>
+      @font-face {
+        font-family: 'HelveticaNow';
+        src: url('../helveticanowdisplay-medium.ttf') format('truetype');
+        font-weight: 500;
+        font-style: normal;
+        font-display: swap;
+      }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7"></script>
     <script src="../env.js"></script>
 
     <style>
         :root {
-            --bg-dark: #0f0f13;
+            --bg-dark: #0a0a0a;
             --card-bg: rgba(255, 255, 255, 0.03);
-            --primary: #8b5cf6;
-            --primary-glow: rgba(139, 92, 246, 0.3);
-            --secondary: #d946ef;
-            --text-main: #ffffff;
+            --primary: #7c3aed;
+            --primary-glow: rgba(124, 58, 237, 0.3);
+            --secondary: #a78bfa;
+            --text-main: #edebe7;
             --text-muted: #94a3b8;
-            --border: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.06);
             --success: #10b981;
         }
 
@@ -33,20 +41,22 @@
             padding: 0;
             background-color: var(--bg-dark);
             color: var(--text-main);
-            font-family: 'Outfit', sans-serif;
+            font-family: 'HelveticaNow', 'Inter', system-ui, -apple-system, sans-serif;
             min-height: 100vh;
             background-image:
-                radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.08), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(217, 70, 239, 0.08), transparent 25%);
+                radial-gradient(circle at 15% 50%, rgba(124, 58, 237, 0.06), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(124, 58, 237, 0.04), transparent 25%);
             transition: background-color 0.3s;
+            font-weight: 500;
+            -webkit-font-smoothing: antialiased;
         }
 
         body.login-mode {
-            background-color: #fcfcfd;
+            background-color: #0a0a0a;
             background-image:
-                radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(217, 70, 239, 0.05) 0%, transparent 40%);
-            color: #1a1a24;
+                radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.04) 0%, transparent 40%);
+            color: #edebe7;
         }
 
         .container {
@@ -62,28 +72,25 @@
             margin-bottom: 40px;
             border-bottom: 1px solid var(--border);
             padding-bottom: 20px;
+            padding-top: 16px;
         }
 
         .header-title {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 14px;
         }
 
         .header-title i {
-            font-size: 32px;
+            font-size: 28px;
             color: var(--primary);
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
 
         h1 {
             margin: 0;
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
+            font-size: 24px;
+            font-weight: 500;
+            letter-spacing: -0.03em;
         }
 
         /* Error section */
@@ -108,20 +115,33 @@
         }
 
         .login-card {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 400px;
-            margin: 60px auto;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            background: #131313;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 24px;
+            padding: 48px 40px;
+            max-width: 420px;
+            margin: 80px auto;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            opacity: 0.4;
         }
 
         .login-card h2 {
-            margin: 0 0 25px 0;
+            margin: 0 0 28px 0;
             text-align: center;
-            font-weight: 800;
-            color: #1a1a24;
+            font-weight: 500;
+            color: #edebe7;
+            letter-spacing: -0.02em;
+            font-size: 20px;
         }
 
         .input-group {
@@ -131,50 +151,64 @@
         }
 
         .login-input {
-            background: #f4f4f5;
-            border: 1px solid #e4e4e7;
-            border-radius: 10px;
-            padding: 14px 15px;
-            color: #1a1a24;
-            font-family: 'Outfit', sans-serif;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 15px 16px;
+            color: #edebe7;
+            font-family: 'HelveticaNow', 'Inter', system-ui, sans-serif;
             font-size: 15px;
+            font-weight: 400;
             width: 100%;
             box-sizing: border-box;
             outline: none;
-            transition: 0.3s;
+            transition: all .3s cubic-bezier(.22,1,.36,1);
         }
 
         .login-input::placeholder {
-            color: #a1a1aa;
+            color: #555;
         }
 
         .login-input:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-glow);
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+            background: rgba(255,255,255,0.05);
         }
 
         .btn-login {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: var(--primary);
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             color: white;
-            font-family: 'Outfit';
-            font-weight: 700;
+            font-family: 'HelveticaNow', 'Inter', system-ui, sans-serif;
+            font-weight: 500;
             cursor: pointer;
-            padding: 14px;
+            padding: 15px;
             width: 100%;
-            font-size: 16px;
-            margin-top: 10px;
-            transition: 0.3s;
+            font-size: 15px;
+            margin-top: 12px;
+            transition: all .35s cubic-bezier(.22,1,.36,1);
             display: flex;
             gap: 8px;
             align-items: center;
             justify-content: center;
+            position: relative;
+            overflow: hidden;
         }
+
+        .btn-login::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+            opacity: 0; transition: opacity .3s;
+        }
+
+        .btn-login:hover::before { opacity: 1; }
 
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px var(--primary-glow);
+            box-shadow: 0 12px 40px rgba(124,58,237,0.3);
+            background: #6d28d9;
         }
 
         .login-error {
@@ -203,23 +237,22 @@
         }
 
         .stat-card {
-            background: var(--card-bg);
+            background: #131313;
             border: 1px solid var(--border);
             border-radius: 20px;
             padding: 24px 26px;
             display: flex;
             align-items: center;
             gap: 18px;
-            backdrop-filter: blur(10px);
             position: relative;
             overflow: hidden;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            transition: all .35s cubic-bezier(.22,1,.36,1);
         }
 
         .stat-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-            border-color: rgba(255, 255, 255, 0.13);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
         .stat-card::before {
@@ -227,60 +260,59 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 3px;
+            width: 2px;
             height: 100%;
-            background: linear-gradient(to bottom, var(--primary), var(--secondary));
-            opacity: 0.7;
+            background: var(--primary);
+            opacity: 0.5;
+            border-radius: 0 2px 2px 0;
         }
 
         .stat-card-conversion {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(217, 70, 239, 0.06));
-            border-color: rgba(139, 92, 246, 0.22);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.06), rgba(124, 58, 237, 0.02));
+            border-color: rgba(124, 58, 237, 0.15);
         }
 
         .stat-card-conversion:hover {
-            border-color: rgba(139, 92, 246, 0.4);
-            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.15);
+            border-color: rgba(124, 58, 237, 0.3);
+            box-shadow: 0 16px 48px rgba(124, 58, 237, 0.1);
         }
 
         .stat-card-conversion::before {
             opacity: 1;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
         }
 
         .stat-card-conversion .value {
-            background: linear-gradient(135deg, #8b5cf6, #d946ef);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--secondary);
         }
 
         .stat-icon {
-            width: 52px;
-            height: 52px;
+            width: 48px;
+            height: 48px;
             border-radius: 14px;
-            background: rgba(139, 92, 246, 0.1);
+            background: rgba(124, 58, 237, 0.08);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 22px;
             color: var(--primary);
             flex-shrink: 0;
         }
 
         .stat-info h4 {
             margin: 0;
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
             font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
+            letter-spacing: 0.05em;
         }
 
         .stat-info .value {
-            font-size: 32px;
-            font-weight: 800;
+            font-size: 28px;
+            font-weight: 500;
             margin: 4px 0 0 0;
-            letter-spacing: -1px;
+            letter-spacing: -0.03em;
             line-height: 1;
         }
 
@@ -293,10 +325,9 @@
 
         /* Product Ranking */
         .ranking-container {
-            background: var(--card-bg);
+            background: #131313;
             border: 1px solid var(--border);
             border-radius: 20px;
-            backdrop-filter: blur(10px);
             margin-bottom: 28px;
             overflow: hidden;
         }
@@ -309,12 +340,13 @@
         }
 
         .ranking-header h2 {
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 15px;
+            font-weight: 500;
             margin: 0;
             display: flex;
             align-items: center;
             gap: 10px;
+            letter-spacing: -0.01em;
         }
 
         .ranking-header h2 i {
@@ -417,7 +449,7 @@
         .ranking-bar {
             height: 100%;
             border-radius: 3px;
-            background: linear-gradient(90deg, #8b5cf6, #d946ef);
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
         }
 
         @media (max-width: 600px) {
@@ -428,10 +460,9 @@
 
         /* Daily Sales Chart */
         .chart-container {
-            background: var(--card-bg);
+            background: #131313;
             border: 1px solid var(--border);
             border-radius: 20px;
-            backdrop-filter: blur(10px);
             margin-bottom: 28px;
             padding: 24px 28px;
         }
@@ -444,12 +475,13 @@
         }
 
         .chart-header h2 {
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 15px;
+            font-weight: 500;
             margin: 0;
             display: flex;
             align-items: center;
             gap: 10px;
+            letter-spacing: -0.01em;
         }
 
         .chart-header h2 i {
@@ -468,11 +500,10 @@
 
         /* Table area */
         .table-container {
-            background: var(--card-bg);
+            background: #131313;
             border: 1px solid var(--border);
             border-radius: 20px;
             overflow: hidden;
-            backdrop-filter: blur(10px);
         }
 
         .table-header {
@@ -485,39 +516,74 @@
 
         .table-header h2 {
             margin: 0;
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 16px;
+            font-weight: 500;
             display: flex;
             align-items: center;
             gap: 10px;
+            letter-spacing: -0.01em;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 7px 14px;
+            transition: all .25s;
+        }
+        .search-box:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.08);
+        }
+        .search-box i {
+            color: var(--text-muted);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .search-box input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 13px;
+            width: 170px;
+        }
+        .search-box input::placeholder {
+            color: var(--text-muted);
         }
 
         .btn-refresh, .btn-download {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 8px;
+            color: #edebe7;
+            padding: 8px 16px;
+            border-radius: 10px;
             cursor: pointer;
             font-family: inherit;
             display: flex;
             align-items: center;
             gap: 8px;
             font-size: 13px;
-            transition: 0.3s;
+            font-weight: 500;
+            transition: all .25s;
         }
 
         .btn-refresh:hover, .btn-download:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255,255,255,0.1);
         }
 
         .btn-download {
-            color: #10b981;
-            border-color: rgba(16, 185, 129, 0.3);
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.15);
         }
 
         .btn-download:hover {
-            background: rgba(16, 185, 129, 0.1);
+            background: rgba(16, 185, 129, 0.06);
+            border-color: rgba(16, 185, 129, 0.3);
         }
 
         .date-filter-bar {
@@ -530,35 +596,35 @@
 
         .date-presets {
             display: flex;
-            gap: 4px;
-            background: rgba(255,255,255,0.03);
+            gap: 2px;
+            background: rgba(255,255,255,0.02);
             border: 1px solid var(--border);
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 3px;
         }
 
         .btn-preset {
             background: transparent;
             border: none;
-            color: #94a3b8;
+            color: #666;
             padding: 6px 14px;
-            border-radius: 7px;
+            border-radius: 9px;
             cursor: pointer;
             font-family: inherit;
             font-size: 12px;
             font-weight: 500;
-            transition: 0.2s;
+            transition: all .25s;
         }
 
         .btn-preset:hover {
-            background: rgba(255,255,255,0.06);
-            color: white;
+            background: rgba(255,255,255,0.04);
+            color: #edebe7;
         }
 
         .btn-preset.active {
             background: var(--primary);
             color: white;
-            font-weight: 600;
+            font-weight: 500;
         }
 
         .date-custom {
@@ -575,15 +641,22 @@
         }
 
         .date-filter-bar input[type="date"] {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.03);
             border: 1px solid var(--border);
-            color: white;
+            color: #edebe7;
             padding: 6px 10px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-family: inherit;
             font-size: 12px;
+            font-weight: 500;
             cursor: pointer;
             width: 130px;
+            transition: all .25s;
+        }
+
+        .date-filter-bar input[type="date"]:focus {
+            border-color: var(--primary);
+            outline: none;
         }
 
         .date-filter-bar input[type="date"]::-webkit-calendar-picker-indicator {
@@ -620,21 +693,22 @@
         }
 
         th {
-            background: rgba(0, 0, 0, 0.25);
-            padding: 12px 28px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 14px 28px;
             text-align: left;
             font-size: 11px;
-            color: var(--text-muted);
+            color: #666;
             text-transform: uppercase;
-            letter-spacing: 1.2px;
-            font-weight: 600;
+            letter-spacing: 0.05em;
+            font-weight: 500;
             border-bottom: 1px solid var(--border);
         }
 
         td {
             padding: 16px 28px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.035);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
             font-size: 14px;
+            font-weight: 400;
         }
 
         tr:last-child td {
@@ -642,11 +716,11 @@
         }
 
         tbody tr {
-            transition: background 0.15s ease;
+            transition: all .2s;
         }
 
         tbody tr:hover td {
-            background: rgba(139, 92, 246, 0.04);
+            background: rgba(124, 58, 237, 0.03);
         }
 
         .badge {
@@ -662,11 +736,12 @@
         }
 
         .btn-whats {
-            background: #25D366;
-            color: white;
+            background: rgba(37, 211, 102, 0.1);
+            color: #25D366;
             text-decoration: none;
             padding: 8px 14px;
-            border-radius: 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(37, 211, 102, 0.15);
             font-size: 13px;
             font-weight: 700;
             display: inline-flex;
@@ -676,9 +751,9 @@
         }
 
         .btn-whats:hover {
-            background: #1ebc5a;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+            background: rgba(37, 211, 102, 0.15);
+            border-color: rgba(37, 211, 102, 0.3);
+            transform: translateY(-1px);
         }
 
         /* Product cell truncation */
@@ -747,10 +822,14 @@
             transition: opacity 0.5s ease;
         }
 
-        /* Ensure neural canvas disappears or is invisible when not on login-mode (if you prefer it only on login) */
+        /* Neural canvas visible on login */
         body:not(.login-mode) #neural-canvas {
             opacity: 0;
         }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
 
         .table-actions {
             display: flex;
@@ -759,20 +838,22 @@
         }
 
         .select-filter {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 8px;
+            color: #edebe7;
+            padding: 8px 16px;
+            border-radius: 10px;
             font-family: inherit;
             font-size: 13px;
+            font-weight: 500;
             outline: none;
             cursor: pointer;
-            transition: 0.3s;
+            transition: all .25s;
         }
 
         .select-filter:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255,255,255,0.1);
         }
 
         .select-filter option {
@@ -830,7 +911,9 @@
                 padding: 16px;
             }
             .table-header h2 { font-size: 15px; }
-            .table-actions { width: 100%; justify-content: flex-end; }
+            .table-actions { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
+            .search-box { width: 100%; }
+            .search-box input { width: 100%; }
             td, th { padding: 10px 12px; font-size: 13px; }
 
             /* Botão WhatsApp — só ícone */
@@ -862,22 +945,24 @@
         }
 
         .btn-page {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 8px;
+            color: #edebe7;
+            padding: 8px 16px;
+            border-radius: 10px;
             cursor: pointer;
             font-family: inherit;
             display: flex;
             align-items: center;
             gap: 8px;
             font-size: 13px;
-            transition: 0.3s;
+            font-weight: 500;
+            transition: all .25s;
         }
 
         .btn-page:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255,255,255,0.1);
         }
 
         .btn-page:disabled {
@@ -898,21 +983,31 @@
 
     <div class="container">
         <header id="mainHeader" style="display: none;">
-            <div class="header-title">
-                <i class="ph-fill ph-magic-wand"></i>
-                <h1>Estatísticas do Provador</h1>
+            <div style="display:flex;align-items:center;gap:20px;">
+                <a href="../index.html" style="display:flex;align-items:center;">
+                    <img src="../Logo (2).png" alt="Provou Levou" style="height:34px;width:auto;">
+                </a>
+                <div style="width:1px;height:24px;background:var(--border);"></div>
+                <div class="header-title">
+                    <h1>Painel Lojista</h1>
+                </div>
             </div>
-            <button class="btn-refresh" onclick="logout()" style="margin-left: auto; margin-right: 20px;">
-                <i class="ph-bold ph-sign-out"></i> Sair
-            </button>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <a href="../index.html" class="btn-refresh" style="text-decoration:none;">
+                    <i class="ph-bold ph-house"></i> Home
+                </a>
+                <button class="btn-refresh" onclick="logout()">
+                    <i class="ph-bold ph-sign-out"></i> Sair
+                </button>
+            </div>
         </header>
 
         <!-- Login Section -->
         <div id="loginSection" class="login-card">
             <div style="text-align: center; margin-bottom: 25px;">
-                <img src="../assets/provoulevou-logo.png" alt="ProvouLevou Logo" style="max-width: 85%; height: auto;">
+                <img src="../Logo (2).png" alt="Provou Levou" style="max-width: 180px; height: auto;">
             </div>
-            <h2 style="font-size: 18px; color: #1a1a24; margin-bottom: 20px;">Gestão Lojista</h2>
+            <h2 style="font-size: 18px; color: #edebe7; margin-bottom: 20px;">Gestão Lojista</h2>
             <div class="input-group">
                 <input type="text" id="loginUser" class="login-input" placeholder="E-mail">
                 <input type="password" id="loginPass" class="login-input" placeholder="Senha">
@@ -1007,6 +1102,10 @@
                     <div class="table-header">
                         <h2><i class="ph-fill ph-receipt"></i> Últimas Compras</h2>
                         <div class="table-actions">
+                            <div class="search-box">
+                                <i class="ph-bold ph-magnifying-glass"></i>
+                                <input type="text" id="searchCompras" placeholder="Buscar cliente, telefone..." oninput="debounceSearch('compras', this.value)">
+                            </div>
                             <button class="btn-download" onclick="downloadCSVCompras()" title="Baixar CSV Compras">
                                 <i class="ph-bold ph-download-simple"></i> CSV
                             </button>
@@ -1090,6 +1189,10 @@
                     <div class="table-header">
                         <h2><i class="ph-fill ph-list-dashes"></i> Últimas Provas</h2>
                         <div class="table-actions">
+                            <div class="search-box">
+                                <i class="ph-bold ph-magnifying-glass"></i>
+                                <input type="text" id="searchProvas" placeholder="Buscar cliente, telefone, produto..." oninput="debounceSearch('provas', this.value)">
+                            </div>
                             <button class="btn-download" onclick="downloadCSVProvas()" title="Baixar CSV Provas">
                                 <i class="ph-bold ph-download-simple"></i> CSV
                             </button>
@@ -1124,9 +1227,10 @@
             </div>
 
         </div>
-        <div style="text-align: center; margin-top: 50px; padding-bottom: 20px;" id="quanticFooter">
+        <div style="text-align: center; margin-top: 60px; padding: 24px 0; border-top: 1px solid var(--border);" id="quanticFooter">
+            <span style="font-size:13px;color:#666;font-weight:400;">&copy; 2026 Provou Levou — Tecnologia by Quantic</span>
             <img src="https://i.ibb.co/23hMHTRt/logo-quantic-na-melhor-qualidade.png" alt="Quantic Logo"
-                style="height: 18px; filter: brightness(0) invert(1); opacity: 0.5;" id="quanticLogoImg">
+                style="height: 16px; filter: brightness(0) invert(1); opacity: 0.35; display:block; margin: 8px auto 0;" id="quanticLogoImg">
         </div>
     </div>
 
@@ -1137,7 +1241,7 @@
 
         async function initApp() {
             document.body.classList.add('login-mode');
-            document.getElementById('quanticLogoImg').style.filter = 'brightness(0)';
+            document.getElementById('quanticLogoImg').style.filter = 'brightness(0) invert(1)';
 
             if (!window.ENV || !window.ENV.SUPABASE_URL || !window.ENV.SUPABASE_KEY) {
                 document.getElementById('errorSection').style.display = 'block';
@@ -1205,7 +1309,7 @@
             await supabaseClient.auth.signOut();
             activeUser = null;
             document.body.classList.add('login-mode');
-            document.getElementById('quanticLogoImg').style.filter = 'brightness(0)';
+            document.getElementById('quanticLogoImg').style.filter = 'brightness(0) invert(1)';
             document.getElementById('mainHeader').style.display = 'none';
             document.getElementById('dashboardSection').style.display = 'none';
             document.getElementById('loginSection').style.display = 'block';
@@ -1670,6 +1774,8 @@
         let allOrdersCache = [];
         let _csvProvasData = [];
         let _csvComprasData = [];
+        let _allProvasForSearch = [];
+        let _allComprasForSearch = [];
 
         const normalize = p => {
             let n = String(p || '').replace(/\D/g, '');
@@ -1739,6 +1845,7 @@
 
         async function loadProvas(page) {
             currentPageProvas = page;
+            _lastSearchQuery.provas = '';
             const tbody = document.getElementById('provasTableBody');
             tbody.textContent = '';
             const loadingRow = document.createElement('tr');
@@ -1765,11 +1872,12 @@
 
                 let statsQuery = supabaseClient
                     .from(activeUser.tabela)
-                    .select('telefone_cliente, produtos, created_at')
+                    .select('*')
                     .ilike('origin', `%${activeUser.origem}%`);
                 if (dateFromProvas) statsQuery = statsQuery.gte('created_at', dateFromProvas + 'T00:00:00-03:00');
                 if (dateToProvas) statsQuery = statsQuery.lte('created_at', dateToProvas + 'T23:59:59-03:00');
                 const { data: allProvas } = await statsQuery;
+                _allProvasForSearch = (allProvas || []).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
                 const totalProvas = count || 0;
                 const uniquePhonesSet = new Set((allProvas || []).map(r => normalize(r.telefone_cliente)).filter(Boolean));
@@ -1875,6 +1983,7 @@
 
         async function loadCompras(page) {
             currentPageCompras = page;
+            _lastSearchQuery.compras = '';
             const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
             const fTotal = activeUser.campo_total_pedido || 'total';
             const fStatus = activeUser.campo_status_pedido || 'payment_status';
@@ -1899,6 +2008,8 @@
                 const db = new Date(b[dateField] || b.created_at || 0);
                 return db - da;
             });
+
+            _allComprasForSearch = filtered;
 
             const pedidosCount = filtered.length;
             const faturamento = filtered.reduce((s, o) => s + (parseFloat(o[fTotal]) || 0), 0);
@@ -2075,6 +2186,104 @@
             document.getElementById('dateFromCompras').value = dateFromCompras;
             document.getElementById('dateToCompras').value = dateToCompras;
             loadCompras(1);
+        }
+
+        let _searchTimers = {};
+        let _lastSearchQuery = { provas: '', compras: '' };
+        function debounceSearch(type, value) {
+            clearTimeout(_searchTimers[type]);
+            _searchTimers[type] = setTimeout(() => filterTable(type, value), 200);
+        }
+
+        function filterTable(type, query) {
+            const q = query.toLowerCase().trim();
+            if (_lastSearchQuery[type] === q) return;
+            _lastSearchQuery[type] = q;
+            if (!q) {
+                // Sem busca: volta à paginação normal
+                if (type === 'provas') loadProvas(currentPageProvas);
+                else loadCompras(currentPageCompras);
+                return;
+            }
+
+            const isProvas = type === 'provas';
+            const allData = isProvas ? _allProvasForSearch : _allComprasForSearch;
+            const tbodyId = isProvas ? 'provasTableBody' : 'comprasTableBody';
+            const tableId = isProvas ? 'provasTable' : 'comprasTable';
+            const pagId = isProvas ? 'provasPagination' : 'comprasPagination';
+            const emptyId = isProvas ? 'provasEmptyState' : 'comprasEmptyState';
+
+            const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
+            const fTotal = activeUser.campo_total_pedido || 'total';
+            const fNome = activeUser.campo_nome_pedido || null;
+            const fDataPedido = activeUser.campo_data_pedido || null;
+
+            const matches = allData.filter(item => {
+                const phone = String(item.telefone_cliente || item[fPhone] || '');
+                const nome = (isProvas ? (nameMap[normalize(phone)] || '') : ((fNome && item[fNome]) || nameMap[normalize(item[fPhone])] || ''));
+                const produto = item.produtos || item.produto_provado || '';
+                const searchText = [phone, nome, produto].join(' ').toLowerCase();
+                return searchText.includes(q);
+            });
+
+            const tbody = document.getElementById(tbodyId);
+            tbody.textContent = '';
+            document.getElementById(pagId).style.display = 'none';
+
+            if (matches.length === 0) {
+                document.getElementById(emptyId).style.display = 'block';
+                document.getElementById(tableId).style.display = 'none';
+                return;
+            }
+
+            document.getElementById(emptyId).style.display = 'none';
+            document.getElementById(tableId).style.display = 'table';
+
+            const limit = 50;
+            matches.slice(0, limit).forEach(item => {
+                if (isProvas) {
+                    const phone = normalize(item.telefone_cliente);
+                    let dateStr = '';
+                    if (item.created_at) {
+                        const d = new Date(item.created_at);
+                        dateStr = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    }
+                    const rawName = nameMap[phone] || item.nome || item.cliente_nome || '';
+                    const firstName = rawName ? rawName.trim().split(' ')[0] : '\u2014';
+                    const produto = item.produtos || item.produto_provado || '-';
+                    const tr = document.createElement('tr');
+                    const tdDate = document.createElement('td'); tdDate.textContent = dateStr;
+                    const tdName = document.createElement('td'); tdName.style.fontWeight = '600'; tdName.textContent = firstName;
+                    const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display'; tdPhone.textContent = String(item.telefone_cliente || '');
+                    const tdProd = document.createElement('td'); tdProd.className = 'product-cell'; tdProd.textContent = produto;
+                    const tdAction = document.createElement('td');
+                    const link = document.createElement('a'); link.href = 'https://wa.me/55' + phone; link.target = '_blank'; link.className = 'btn-whats';
+                    const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
+                    const waTxt = document.createElement('span'); waTxt.className = 'btn-whats-text'; waTxt.textContent = ' Chamar';
+                    link.append(waIcon, waTxt); tdAction.appendChild(link);
+                    tr.append(tdDate, tdName, tdPhone, tdProd, tdAction);
+                    tbody.appendChild(tr);
+                } else {
+                    const phone = normalize(item[fPhone]);
+                    const dateRaw = (fDataPedido && item[fDataPedido]) || item.created_at || '';
+                    const dateStr = dateRaw ? (dateRaw.length === 10 ? dateRaw.split('-').reverse().join('/') : new Date(dateRaw).toLocaleDateString('pt-BR')) : '';
+                    const clienteNome = (fNome && item[fNome]) || nameMap[phone] || '';
+                    const firstName = clienteNome.trim().split(' ')[0] || '\u2014';
+                    const valor = (parseFloat(item[fTotal]) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    const tr = document.createElement('tr');
+                    const tdDate = document.createElement('td'); tdDate.textContent = dateStr;
+                    const tdName = document.createElement('td'); tdName.style.fontWeight = '600'; tdName.textContent = firstName;
+                    const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display'; tdPhone.textContent = String(item[fPhone] || '');
+                    const tdValor = document.createElement('td'); tdValor.textContent = valor;
+                    const tdAction = document.createElement('td');
+                    const link = document.createElement('a'); link.href = 'https://wa.me/55' + phone; link.target = '_blank'; link.className = 'btn-whats';
+                    const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
+                    const waTxt = document.createElement('span'); waTxt.className = 'btn-whats-text'; waTxt.textContent = ' Chamar';
+                    link.append(waIcon, waTxt); tdAction.appendChild(link);
+                    tr.append(tdDate, tdName, tdPhone, tdValor, tdAction);
+                    tbody.appendChild(tr);
+                }
+            });
         }
 
         function changePageProvas(delta) {
