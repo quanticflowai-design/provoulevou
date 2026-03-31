@@ -7,33 +7,48 @@
   <link rel="icon" type="image/jpeg" href="assets/favicon.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
+    @font-face {
+      font-family: 'HelveticaNow';
+      src: url('helveticanowdisplay-medium.ttf') format('truetype');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #080e1c;
-      --bg-surface: #0f172a;
-      --bg-clause: #111b2e;
-      --primary: #6366f1;
-      --purple: #8b5cf6;
-      --fuchsia: #d946ef;
-      --grad: linear-gradient(135deg, #6366f1, #8b5cf6, #d946ef);
-      --text: #e2e8f0;
-      --text-2: #94a3b8;
-      --text-3: #475569;
-      --border: rgba(99,102,241,0.1);
+      --bg: #0a0a0a;
+      --bg-surface: #131313;
+      --bg-clause: #161616;
+      --primary: #7c3aed;
+      --purple: #7c3aed;
+      --purple-light: #a78bfa;
+      --fuchsia: #a78bfa;
+      --grad: linear-gradient(135deg, #7c3aed, #a78bfa);
+      --text: #edebe7;
+      --text-2: #999;
+      --text-3: #666;
+      --border: rgba(255,255,255,0.06);
     }
 
     html { scroll-behavior: smooth; }
 
     body {
-      font-family: 'Poppins', sans-serif;
+      font-family: 'HelveticaNow', 'Inter', system-ui, -apple-system, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.8;
       min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      font-weight: 500;
     }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
 
     /* ─── Background Atmosphere ─── */
     body::before {
@@ -43,7 +58,7 @@
       right: -200px;
       width: 600px;
       height: 600px;
-      background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%);
       pointer-events: none;
       z-index: 0;
     }
@@ -54,7 +69,7 @@
       left: -200px;
       width: 500px;
       height: 500px;
-      background: radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(124,58,237,0.04) 0%, transparent 70%);
       pointer-events: none;
       z-index: 0;
     }
@@ -64,9 +79,10 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(255,255,255,0.95);
+      background: rgba(10,10,10,0.8);
       backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(0,0,0,0.08);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
       padding: 16px 0;
     }
     .header-inner {
@@ -85,15 +101,12 @@
     }
     .logo img {
       height: 36px;
-      border-radius: 8px;
     }
     .logo span {
-      font-weight: 700;
-      font-size: 1.1rem;
-      background: var(--grad);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-weight: 500;
+      font-size: 1rem;
+      color: var(--text);
+      letter-spacing: -0.02em;
     }
     .back-link {
       font-size: 0.85rem;
@@ -140,7 +153,7 @@
     }
     .hero-badge svg { width: 14px; height: 14px; }
     .hero-title h1 {
-      font-family: 'Poppins', sans-serif;
+      font-family: 'HelveticaNow', 'Inter', system-ui, sans-serif;
       font-size: clamp(1.8rem, 4vw, 2.6rem);
       font-weight: 700;
       line-height: 1.2;
@@ -339,9 +352,9 @@
       text-align: center;
     }
     .consent-box h2 {
-      font-family: 'Playfair Display', serif;
+      font-family: 'HelveticaNow', 'Inter', system-ui, sans-serif;
       font-size: 1.4rem;
-      font-weight: 800;
+      font-weight: 500;
       margin-bottom: 20px;
       background: var(--grad);
       -webkit-background-clip: text;
@@ -454,7 +467,7 @@
   <header class="header">
     <div class="header-inner">
       <a href="index.html" class="logo">
-        <img src="assets/provoulevou-logo.png" alt="Provou Levou">
+        <img src="https://i.ibb.co/MDGF2YDD/Logo-provou-branco-1.png" alt="Provou Levou">
       </a>
       <a href="index.html" class="back-link">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
