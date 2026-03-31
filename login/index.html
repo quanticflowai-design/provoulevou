@@ -801,8 +801,8 @@
         }
 
         .source-tag {
-            background: rgba(139, 92, 246, 0.1);
-            color: #c4b5fd;
+            background: rgba(124, 58, 237, 0.1);
+            color: #a78bfa;
             padding: 5px 10px;
             border-radius: 6px;
             font-size: 13px;
@@ -811,8 +811,9 @@
         }
 
         .phone-display {
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            font-size: 13px;
         }
 
         .loader {
@@ -906,77 +907,163 @@
         }
 
         @media (max-width: 768px) {
-            .container { padding: 16px 12px; }
+            .container { padding: 12px 10px; }
 
-            header { margin-bottom: 20px; padding-bottom: 14px; }
-            h1 { font-size: 20px; }
-            .header-title i { font-size: 22px; }
+            /* ─── Header mobile ─── */
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+                margin-bottom: 16px;
+                padding-bottom: 12px;
+                padding-top: 8px;
+            }
+            header > div:first-child { width: 100%; }
+            header > div:last-child {
+                width: 100%;
+                justify-content: space-between;
+            }
+            h1 { font-size: 18px; }
+            .header-title i { font-size: 20px; }
+            #headerLogo { height: 28px !important; }
 
-            .login-card { padding: 28px 20px; margin: 20px auto; }
+            /* ─── Login card mobile ─── */
+            .login-card {
+                padding: 28px 20px;
+                margin: 20px auto;
+                border-radius: 20px;
+            }
+            .login-card::before { display: none; }
 
-            /* Stats: 2 colunas no mobile */
+            /* ─── Stats: 2 colunas ─── */
             .stats-grid {
                 grid-template-columns: 1fr 1fr;
-                gap: 10px;
+                gap: 8px;
             }
-            .stat-card { padding: 14px 16px; gap: 12px; }
-            .stat-icon { width: 38px; height: 38px; font-size: 18px; border-radius: 10px; }
-            .stat-info .value { font-size: 22px; }
-            .stat-info h4 { font-size: 10px; }
+            .stat-card {
+                padding: 14px 12px;
+                gap: 10px;
+                border-radius: 14px;
+            }
+            .stat-card::before { width: 2px; }
+            .stat-icon { width: 34px; height: 34px; font-size: 16px; border-radius: 9px; }
+            .stat-info .value { font-size: 20px; }
+            .stat-info h4 { font-size: 9px; letter-spacing: 0.03em; }
+            .stat-sub { font-size: 10px; }
 
-            /* Filtros de data empilhados */
+            /* ─── Filtros de data ─── */
             .date-filter-bar {
                 flex-direction: column;
                 align-items: stretch;
                 gap: 8px;
-                margin-bottom: 14px;
+                margin-bottom: 12px;
             }
+            .date-presets {
+                width: 100%;
+                justify-content: center;
+            }
+            .btn-preset { padding: 6px 10px; font-size: 11px; }
             .date-custom { flex-wrap: wrap; gap: 6px; }
-            .date-filter-bar input[type="date"] { flex: 1; min-width: 0; width: auto; }
+            .date-filter-bar input[type="date"] { flex: 1; min-width: 0; width: auto; font-size: 11px; }
 
-            /* Cabeçalhos de seção empilhados */
+            /* ─── Seções empilhadas ─── */
             #provasSection > div:first-child,
             #comprasSection > div:first-child {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 12px;
+                gap: 10px;
             }
             #provasSection > div:first-child > div,
             #comprasSection > div:first-child > div {
                 width: 100%;
             }
+            #provasSection > div:first-child h2,
+            #comprasSection > div:first-child h2 {
+                font-size: 16px;
+            }
+            #provasSection { margin-top: 24px !important; }
 
-            /* Tabelas */
-            .table-container { overflow-x: auto; }
+            /* ─── Tabelas ─── */
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                border-radius: 14px;
+            }
             .table-header {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 12px;
-                padding: 16px;
+                gap: 10px;
+                padding: 14px;
             }
-            .table-header h2 { font-size: 15px; }
-            .table-actions { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
+            .table-header h2 { font-size: 14px; }
+            .table-actions {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
             .search-box { width: 100%; }
-            .search-box input { width: 100%; }
-            td, th { padding: 10px 12px; font-size: 13px; }
+            .search-box input { width: 100%; font-size: 13px; }
+            table { min-width: 500px; }
+            td, th { padding: 10px 10px; font-size: 12px; white-space: nowrap; }
+            th { font-size: 10px; padding: 10px; }
 
-            /* Botão WhatsApp — só ícone */
+            /* ─── WhatsApp — só ícone ─── */
             .btn-whats-text { display: none; }
-            .btn-whats { padding: 8px 10px; }
+            .btn-whats { padding: 7px 9px; border-radius: 8px; }
 
-            /* Ranking */
-            .ranking-header { padding: 16px 16px 0; }
-            .ranking-list { padding: 12px 16px 16px; }
+            /* ─── Ranking ─── */
+            .ranking-container { border-radius: 14px; }
+            .ranking-header { padding: 14px 14px 0; }
+            .ranking-header h2 { font-size: 14px; }
+            .ranking-list { padding: 10px 14px 14px; }
             .ranking-bar-bg { display: none; }
-            .ranking-item { padding: 10px 12px; gap: 10px; }
+            .ranking-item { padding: 9px 10px; gap: 8px; border-radius: 10px; }
+            .ranking-position { width: 24px; height: 24px; font-size: 11px; border-radius: 6px; }
+            .ranking-product { font-size: 12px; }
+            .ranking-count { font-size: 11px; }
 
-            /* Chart */
-            .chart-container { padding: 16px; }
+            /* ─── Chart ─── */
+            .chart-container { padding: 14px; border-radius: 14px; }
+            .chart-header h2 { font-size: 14px; }
             .chart-canvas-wrap { height: 180px; }
 
-            /* Paginação */
-            .pagination { gap: 12px; padding: 14px; }
-            .btn-page { padding: 7px 12px; font-size: 12px; }
+            /* ─── Paginação ─── */
+            .pagination { gap: 10px; padding: 12px; }
+            .btn-page { padding: 7px 10px; font-size: 11px; border-radius: 8px; }
+            .page-info { font-size: 12px; }
+
+            /* ─── Buttons mobile ─── */
+            .btn-refresh, .btn-download {
+                padding: 7px 10px;
+                font-size: 12px;
+                border-radius: 8px;
+            }
+            .btn-download { gap: 4px; }
+
+            /* ─── Theme toggle mobile ─── */
+            .theme-toggle { gap: 6px; }
+            .theme-switch { width: 36px; height: 20px; }
+            .theme-switch::after { width: 14px; height: 14px; }
+            body.light-mode .theme-switch::after { left: 18px; }
+
+            /* ─── Admin select mobile ─── */
+            #admin-rede-select { min-width: 140px !important; font-size: 12px; }
+
+            /* ─── Footer mobile ─── */
+            #quanticFooter { margin-top: 32px !important; }
+        }
+
+        /* ─── Extra small screens ─── */
+        @media (max-width: 400px) {
+            .container { padding: 8px 8px; }
+            .stats-grid { grid-template-columns: 1fr; gap: 6px; }
+            .stat-card { flex-direction: row; }
+            header > div:last-child { flex-wrap: wrap; gap: 8px; }
+            .btn-refresh { font-size: 11px; padding: 6px 8px; }
+            .btn-refresh i { font-size: 14px; }
+            h1 { font-size: 16px; }
+            .login-card { padding: 24px 16px; }
         }
 
         .pagination {
