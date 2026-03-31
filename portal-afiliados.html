@@ -101,7 +101,8 @@
       border-bottom: 1px solid var(--border);
       display: flex; align-items: center; gap: 10px;
     }
-    .sb-logo img { height: 34px; }
+    .sb-logo img { height: 34px; transition: filter 0.3s; }
+    [data-theme="light"] .sb-logo img { filter: invert(1); }
     .sb-logo span {
       font-family: 'HelveticaNow', 'Inter', system-ui, sans-serif;
       font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
@@ -617,6 +618,11 @@
       color: var(--purple); text-decoration: none; font-weight: 600;
     }
     .auth-footer a:hover { text-decoration: underline; }
+    /* ─── Admin Badge ────────────────────── */
+    .u-badge.admin { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+    .admin-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #f87171; background: rgba(239,68,68,0.1); padding: 2px 8px; border-radius: 6px; margin-left: 8px; }
+    #admin-rede-select { font-family: 'HelveticaNow', 'Inter', system-ui, sans-serif; }
+
     .auth-spinner {
       display: inline-block; width: 16px; height: 16px;
       border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
@@ -742,6 +748,8 @@
         <div class="tb-sub" id="tb-sub">Bem-vindo de volta, Carlos</div>
       </div>
       <div class="tb-actions">
+        <select class="tb-btn" id="admin-rede-select" style="display:none;min-width:200px;cursor:pointer;" onchange="switchRede(this.value)">
+        </select>
         <button class="tb-btn" onclick="copyLink()">
           <i data-lucide="link-2"></i> Meu Link
         </button>
@@ -1038,8 +1046,11 @@
 
 <script>
 /* ──────────────────────────── SUPABASE ─────────────────────── */
+const ADMIN_EMAILS = ['lucasdecamargo2015@gmail.com'];
 let sb = null;
 let currentAfiliado = null;
+let isAdmin = false;
+let allAfiliados = [];
 
 /* ──────────────────────────── PRE-FILL REF FROM URL ─────────── */
 (function () {
@@ -1254,21 +1265,72 @@ async function showDashboard() {
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('appLayout').style.display = 'flex';
 
-  // Update sidebar user info
-  const firstName = currentAfiliado.nome.split(' ')[0];
+  // Check if admin
+  isAdmin = ADMIN_EMAILS.includes(currentAfiliado.email);
+
+  // If admin, fetch all affiliates for the network selector
+  if (isAdmin) {
+    var { data: allAff } = await sb.from('afiliados').select('id, nome, email, slug, nivel');
+    allAfiliados = allAff || [];
+
+    // Populate selector
+    var sel = document.getElementById('admin-rede-select');
+    sel.style.display = 'block';
+    sel.textContent = '';
+    var optAll = document.createElement('option');
+    optAll.value = '';
+    optAll.textContent = '👁 Visualizar rede de...';
+    optAll.disabled = true;
+    sel.appendChild(optAll);
+
+    allAfiliados.forEach(function(a) {
+      var opt = document.createElement('option');
+      opt.value = a.slug;
+      opt.textContent = a.nome + ' (' + a.slug + ')';
+      if (a.slug === currentAfiliado.slug) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  updateSidebarAndGreeting();
+
+  // Fetch network from Supabase
+  await fetchRede();
+
+  init();
+}
+
+function updateSidebarAndGreeting() {
+  var firstName = currentAfiliado.nome.split(' ')[0];
   document.getElementById('sb-name').textContent = currentAfiliado.nome;
   document.getElementById('sb-avatar').textContent = initials(currentAfiliado.nome);
-  const lvlClass = levelClass(currentAfiliado.nivel);
-  const sbLevel = document.getElementById('sb-level');
-  sbLevel.className = 'u-badge ' + lvlClass;
-  const lvlIcon = lvlClass === 'top' ? '🏆' : lvlClass === 'inter' ? '⭐' : '🌱';
-  sbLevel.textContent = lvlIcon + ' ' + currentAfiliado.nivel;
+  var lvlClass = levelClass(currentAfiliado.nivel);
+  var sbLevel = document.getElementById('sb-level');
+
+  if (isAdmin) {
+    sbLevel.className = 'u-badge admin';
+    sbLevel.textContent = '🔒 Admin';
+  } else {
+    sbLevel.className = 'u-badge ' + lvlClass;
+    var lvlIcon = lvlClass === 'top' ? '🏆' : lvlClass === 'inter' ? '⭐' : '🌱';
+    sbLevel.textContent = lvlIcon + ' ' + currentAfiliado.nivel;
+  }
 
   // Update topbar
-  document.getElementById('tb-sub').textContent = 'Bem-vindo de volta, ' + firstName;
+  if (isAdmin) {
+    document.getElementById('tb-sub').textContent = 'Modo Admin — visualizando rede de ' + currentAfiliado.nome;
+  } else {
+    document.getElementById('tb-sub').textContent = 'Bem-vindo de volta, ' + firstName;
+  }
 
   // Update greeting
-  document.querySelector('#sec-overview .sec-intro h2').textContent = 'Olá, ' + firstName + '. 👋';
+  if (isAdmin) {
+    document.querySelector('#sec-overview .sec-intro h2').textContent = 'Rede: ' + currentAfiliado.nome;
+    document.querySelector('#sec-overview .sec-intro p').textContent = 'Visualizando performance, comissões e rede deste afiliado.';
+  } else {
+    document.querySelector('#sec-overview .sec-intro h2').textContent = 'Olá, ' + firstName + '. 👋';
+    document.querySelector('#sec-overview .sec-intro p').textContent = 'Acompanhe sua performance, comissões e a evolução da sua rede.';
+  }
 
   // Update affiliate link
   aff.link = 'https://provoulevou.com.br/portal-afiliados.html?ref=' + currentAfiliado.slug;
@@ -1277,11 +1339,22 @@ async function showDashboard() {
   aff.subRate = currentAfiliado.sub_rate || 5;
   aff.level = currentAfiliado.nivel || 'Inicial';
   document.getElementById('link-box').textContent = aff.link;
+}
 
-  // Fetch network from Supabase
+async function switchRede(slug) {
+  if (!slug || !isAdmin) return;
+  var target = allAfiliados.find(function(a) { return a.slug === slug; });
+  if (!target) return;
+
+  // Fetch full affiliate data
+  var { data, error } = await sb.from('afiliados').select('*').eq('slug', slug).single();
+  if (error || !data) { showToast('Afiliado não encontrado'); return; }
+
+  currentAfiliado = data;
+  updateSidebarAndGreeting();
   await fetchRede();
-
   init();
+  showToast('Visualizando rede de ' + data.nome);
 }
 
 /* ──────────────────────────── FETCH REDE ─────────────────────── */
@@ -1423,6 +1496,9 @@ async function fetchRede() {
 async function doLogout() {
   await sb.auth.signOut();
   currentAfiliado = null;
+  isAdmin = false;
+  allAfiliados = [];
+  document.getElementById('admin-rede-select').style.display = 'none';
   document.getElementById('appLayout').style.display = 'none';
   document.getElementById('authScreen').classList.remove('hidden');
   document.getElementById('loginEmail').value = '';
