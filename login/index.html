@@ -1443,11 +1443,6 @@
                             Ao continuar, você concorda com nossos<br>
                             <a href="../termos.html">Termos de Uso</a> e <a href="../termos.html">Política de Privacidade</a>.
                         </p>
-
-                        <!-- DEV: botão temporário para pular login -->
-                        <button type="button" onclick="skipLogin()" style="margin-top:16px;width:100%;padding:12px;border:1.5px dashed #d1d5db;border-radius:12px;background:transparent;color:#9ca3af;font-family:'HelveticaNow','Inter',sans-serif;font-size:13px;cursor:pointer;">
-                            [DEV] Pular login e ver dashboard
-                        </button>
                     </div>
 
                 </div>
@@ -1803,18 +1798,6 @@
             document.getElementById('loginSection').style.display = 'flex';
             document.getElementById('loginUser').value = '';
             document.getElementById('loginPass').value = '';
-        }
-
-        function skipLogin() {
-            activeUser = { tabela: 'demo', email: 'dev@teste.com' };
-            document.body.classList.remove('login-mode');
-            document.getElementById('loginSection').style.display = 'none';
-            document.getElementById('mainHeader').style.display = 'flex';
-            restoreTheme();
-            var isLight = document.body.classList.contains('light-mode');
-            updateThemeAssets(isLight);
-            document.getElementById('mainLoader').style.display = 'none';
-            document.getElementById('dashboardSection').style.display = 'block';
         }
 
         function showDashboard(userObj) {
