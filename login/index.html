@@ -1598,6 +1598,9 @@
                                 <button class="btn-clear-dates" onclick="setDatePresetProvas(0)"><i class="ph-bold ph-x"></i></button>
                             </div>
                         </div>
+                        <a href="leads.html" style="display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2);padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;transition:all .25s;font-family:inherit;">
+                            <i class="ph-bold ph-user-focus"></i> Recuperar leads
+                        </a>
                         <button class="btn-refresh" onclick="loadData()">
                             <i class="ph-bold ph-arrows-clockwise"></i> Atualizar
                         </button>
@@ -2576,7 +2579,7 @@
                 tdName.textContent = firstName;
                 if (isRecorrente) {
                     const tag = document.createElement('span');
-                    tag.textContent = 'recorrente';
+                    tag.textContent = 'recorrente (' + orderCountByPhone[phone] + ' compras)';
                     tag.style.cssText = 'margin-left:6px;font-size:10px;font-weight:600;padding:2px 6px;border-radius:999px;background:rgba(139,92,246,0.15);color:#a78bfa;vertical-align:middle;';
                     tdName.appendChild(tag);
                 }
@@ -2664,7 +2667,7 @@
         }
 
         function setDatePresetProvas(days) {
-            document.querySelectorAll('#provasSection .btn-preset').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('#provasSection .date-presets .btn-preset').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
             const today = new Date().toISOString().split('T')[0];
             if (days === 0) { dateFromProvas = ''; dateToProvas = ''; }

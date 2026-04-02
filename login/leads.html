@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Leads — Provou Levou</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <style>
+      @font-face {
+        font-family: 'HelveticaNow';
+        src: url('../helveticanowdisplay-medium.ttf') format('truetype');
+        font-weight: 500; font-style: normal; font-display: swap;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4"></script>
+    <script src="../env.js"></script>
+    <style>
+        :root {
+            --primary: #7c3aed; --secondary: #a78bfa; --amber: #10b981;
+            --bg-dark: #0a0a0a; --card-bg: #131313;
+            --text-main: #edebe7; --text-muted: #94a3b8;
+            --border: rgba(255,255,255,0.06);
+        }
+        body {
+            margin:0; padding:0; background:#0a0a0a; color:#edebe7;
+            font-family:'HelveticaNow','Inter',system-ui,sans-serif;
+            min-height:100vh; font-weight:500; -webkit-font-smoothing:antialiased;
+            background-image:
+                radial-gradient(circle at 15% 50%,rgba(16,185,129,0.05),transparent 25%),
+                radial-gradient(circle at 85% 30%,rgba(124,58,237,0.04),transparent 25%);
+        }
+        body.light-mode {
+            background:#f5f4f0; background-image:none; color:#1a1a2e;
+            --bg-dark:#f5f4f0; --card-bg:#ffffff; --text-main:#1a1a2e;
+            --text-muted:#7c7c8a; --border:rgba(0,0,0,0.06);
+        }
+        .container { max-width:1200px; margin:0 auto; padding:40px 20px; }
+        header {
+            display:flex; align-items:center; justify-content:space-between;
+            margin-bottom:32px; border-bottom:1px solid var(--border);
+            padding-bottom:20px; padding-top:16px; flex-wrap:wrap; gap:12px;
+        }
+        .header-left { display:flex; align-items:center; gap:14px; }
+        .header-left i { font-size:28px; color:#10b981; }
+        h1 { margin:0; font-size:24px; font-weight:500; letter-spacing:-0.03em; }
+        h1 span { color:var(--text-muted); font-size:14px; font-weight:400; margin-left:10px; }
+        .btn-back {
+            background:var(--card-bg); border:1px solid var(--border); color:var(--text-main);
+            padding:8px 16px; border-radius:10px; cursor:pointer; font-family:inherit;
+            font-size:13px; font-weight:500; display:flex; align-items:center; gap:6px;
+            transition:all .25s; text-decoration:none;
+        }
+        .btn-back:hover { background:rgba(255,255,255,0.06); }
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:28px; }
+        .stat-card {
+            background:var(--card-bg); border:1px solid var(--border); border-radius:20px;
+            padding:24px 26px; display:flex; align-items:center; gap:18px;
+            position:relative; overflow:hidden; transition:all .35s cubic-bezier(.22,1,.36,1);
+        }
+        .stat-card:hover { transform:translateY(-3px); box-shadow:0 16px 48px rgba(0,0,0,0.3); }
+        .stat-card::before {
+            content:''; position:absolute; top:0; left:0; width:2px; height:100%;
+            background:var(--amber); opacity:0.5; border-radius:0 2px 2px 0;
+        }
+        .stat-icon {
+            width:48px; height:48px; border-radius:14px; display:flex;
+            align-items:center; justify-content:center; font-size:22px; flex-shrink:0;
+        }
+        .stat-info h4 { margin:0; font-size:11px; color:var(--text-muted); font-weight:500; text-transform:uppercase; letter-spacing:0.05em; }
+        .stat-info .value { font-size:28px; font-weight:500; margin:4px 0 0; letter-spacing:-0.03em; line-height:1; }
+        .stat-sub { font-size:11px; color:#64748b; margin-top:4px; font-weight:400; }
+        .stat-highlight { background:linear-gradient(135deg,rgba(16,185,129,0.04),rgba(16,185,129,0.01)); border-color:rgba(16,185,129,0.12); }
+        .stat-highlight::before { opacity:1; background:linear-gradient(to bottom,#f59e0b,#059669); }
+        .insight-box {
+            background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(16,185,129,0.02));
+            border:1px solid rgba(16,185,129,0.15); border-radius:16px;
+            padding:20px 24px; margin-bottom:24px;
+        }
+        .insight-row { display:flex; align-items:flex-start; gap:12px; }
+        .insight-row + .insight-row { margin-top:14px; padding-top:14px; border-top:1px solid rgba(16,185,129,0.1); }
+        .insight-icon { font-size:18px; margin-top:2px; flex-shrink:0; }
+        .insight-title { font-weight:600; font-size:13px; margin-bottom:4px; }
+        .insight-text { font-size:13px; color:var(--text-muted); line-height:1.6; }
+        .products-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; margin-bottom:28px; }
+        .product-card {
+            background:var(--card-bg); border:1px solid var(--border); border-radius:14px;
+            padding:16px 20px; display:flex; align-items:center; gap:14px; transition:all .25s;
+        }
+        .product-card:hover { border-color:rgba(16,185,129,0.3); }
+        .product-rank {
+            width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+            font-size:13px; font-weight:600; flex-shrink:0; background:rgba(16,185,129,0.1); color:#10b981;
+        }
+        .product-name { font-size:13px; font-weight:500; flex:1; line-height:1.3; }
+        .product-count { font-size:12px; color:var(--text-muted); white-space:nowrap; }
+        .table-container { background:var(--card-bg); border:1px solid var(--border); border-radius:20px; overflow:hidden; }
+        .table-header {
+            display:flex; justify-content:space-between; align-items:center;
+            padding:25px 30px; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:12px;
+        }
+        .table-header h2 { margin:0; font-size:16px; font-weight:500; display:flex; align-items:center; gap:10px; }
+        .table-actions { display:flex; align-items:center; gap:15px; }
+        .search-box {
+            display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04);
+            border:1px solid var(--border); border-radius:10px; padding:6px 12px;
+        }
+        .search-box i { color:var(--text-muted); font-size:14px; }
+        .search-box input { background:transparent; border:none; color:var(--text-main); font-size:13px; font-family:inherit; outline:none; width:180px; }
+        .btn-export {
+            background:var(--card-bg); border:1px solid var(--border); color:var(--text-main);
+            padding:7px 14px; border-radius:10px; cursor:pointer; font-family:inherit;
+            font-size:13px; font-weight:500; display:flex; align-items:center; gap:6px; transition:all .25s;
+        }
+        .btn-export:hover { background:rgba(255,255,255,0.06); }
+        table { width:100%; border-collapse:collapse; }
+        thead th {
+            text-align:left; padding:14px 20px; font-size:11px; color:var(--text-muted);
+            font-weight:500; text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid var(--border);
+        }
+        tbody td { padding:14px 20px; font-size:13px; border-bottom:1px solid var(--border); vertical-align:middle; }
+        tbody tr:hover { background:rgba(255,255,255,0.02); }
+        .badge-provas {
+            display:inline-flex; align-items:center; gap:4px;
+            background:rgba(16,185,129,0.12); color:#10b981;
+            padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600;
+        }
+        .badge-hot {
+            background:rgba(239,68,68,0.12); color:#ef4444;
+            padding:2px 8px; border-radius:999px; font-size:10px; font-weight:600; margin-left:6px;
+        }
+        .product-cell { max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; color:var(--text-muted); }
+        .btn-whats {
+            display:inline-flex; align-items:center; gap:5px;
+            background:rgba(37,211,102,0.1); color:#25D366;
+            border:1px solid rgba(37,211,102,0.2); padding:6px 12px;
+            border-radius:8px; font-size:12px; font-weight:600;
+            text-decoration:none; transition:all .25s;
+        }
+        .btn-whats:hover { background:rgba(37,211,102,0.2); }
+        .pagination { display:flex; justify-content:center; align-items:center; gap:20px; padding:20px; border-top:1px solid var(--border); }
+        .btn-page {
+            background:var(--card-bg); border:1px solid var(--border); color:var(--text-main);
+            padding:8px 16px; border-radius:10px; cursor:pointer; font-family:inherit;
+            display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; transition:all .25s;
+        }
+        .btn-page:hover:not(:disabled) { background:rgba(255,255,255,0.06); }
+        .btn-page:disabled { opacity:0.3; cursor:not-allowed; }
+        .page-info { font-size:14px; color:var(--text-muted); font-weight:500; }
+        .empty-state { text-align:center; padding:60px 20px; }
+        .empty-state i { font-size:48px; color:var(--text-muted); margin-bottom:16px; display:block; }
+        .empty-state p { color:var(--text-muted); font-size:14px; }
+        @media (max-width:768px) {
+            .stats-grid { grid-template-columns:repeat(2,1fr); }
+            .products-grid { grid-template-columns:1fr; }
+            .search-box input { width:120px; }
+            .table-header { padding:16px 20px; }
+            thead th, tbody td { padding:10px 12px; }
+            .product-cell { max-width:140px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <i class="ph-bold ph-user-focus"></i>
+                <h1>Recuperar Leads <span>provaram e n&atilde;o compraram</span></h1>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <a href="index.html" class="btn-back"><i class="ph-bold ph-arrow-left"></i> Voltar ao painel</a>
+            </div>
+        </header>
+
+        <div id="loginGate" style="display:none;text-align:center;padding:80px 20px;color:var(--text-muted);">
+            <i class="ph-bold ph-lock" style="font-size:48px;display:block;margin-bottom:16px;"></i>
+            <p>Fa&ccedil;a login no <a href="index.html" style="color:var(--primary);">painel</a> primeiro.</p>
+        </div>
+
+        <div id="mainContent" style="display:none;">
+            <div class="stats-grid" id="statsGrid"></div>
+            <div class="insight-box" id="insightBox" style="display:none;"></div>
+            <h3 id="productsTitle" style="font-size:15px;font-weight:600;margin-bottom:12px;display:none;">
+                <i class="ph-bold ph-ranking" style="color:#10b981;"></i> Produtos mais provados sem convers&atilde;o
+            </h3>
+            <div class="products-grid" id="productsGrid"></div>
+            <div class="table-container">
+                <div class="table-header">
+                    <h2><i class="ph-bold ph-address-book" style="color:#10b981;"></i> Lista de leads</h2>
+                    <div class="table-actions">
+                        <div class="search-box">
+                            <i class="ph-bold ph-magnifying-glass"></i>
+                            <input type="text" id="searchLeads" placeholder="Buscar lead..." oninput="filterTable()">
+                        </div>
+                        <button class="btn-export" onclick="exportCSV()"><i class="ph-bold ph-download-simple"></i> CSV</button>
+                    </div>
+                </div>
+                <table>
+                    <thead><tr>
+                        <th>&Uacute;ltima prova</th><th>Cliente</th><th>Telefone</th><th>Provas</th><th>Produtos provados</th><th></th>
+                    </tr></thead>
+                    <tbody id="leadsTableBody"></tbody>
+                </table>
+                <div class="pagination" id="leadsPagination" style="display:none;">
+                    <button class="btn-page" id="prevPage" onclick="changePage(-1)"><i class="ph-bold ph-caret-left"></i> Anterior</button>
+                    <span class="page-info" id="pageInfo"></span>
+                    <button class="btn-page" id="nextPage" onclick="changePage(1)">Pr&oacute;ximo <i class="ph-bold ph-caret-right"></i></button>
+                </div>
+                <div class="empty-state" id="emptyState" style="display:none;">
+                    <i class="ph-light ph-check-circle"></i>
+                    <p>Todos que provaram j&aacute; compraram! Nenhum lead para recuperar.</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align:center;margin-top:60px;padding:24px 0;border-top:1px solid var(--border);">
+            <span style="font-size:13px;color:#666;">&copy; 2026 Provou Levou &mdash; Tecnologia by Quantic</span>
+        </div>
+    </div>
+
+<script>
+const supabaseClient = supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_KEY);
+const normalize = p => {
+    let n = String(p || '').replace(/\D/g, '');
+    if (n.startsWith('55') && n.length > 11) n = n.slice(2);
+    if (n.startsWith('0')) n = n.slice(1);
+    return n;
+};
+
+let allLeads = [];
+let currentPage = 1;
+const perPage = 15;
+
+async function init() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) { document.getElementById('loginGate').style.display = 'block'; return; }
+    const { data: lojistas } = await supabaseClient.from('lojistas').select('*').eq('email', session.user.email);
+    if (!lojistas || !lojistas[0]) { document.getElementById('loginGate').style.display = 'block'; return; }
+    document.getElementById('mainContent').style.display = 'block';
+    if (localStorage.getItem('plTheme') === 'light') document.body.classList.add('light-mode');
+    await loadLeads(lojistas[0]);
+}
+
+async function loadLeads(user) {
+    const tbody = document.getElementById('leadsTableBody');
+    tbody.textContent = '';
+    var loadingRow = document.createElement('tr');
+    var loadingTd = document.createElement('td');
+    loadingTd.colSpan = 6;
+    loadingTd.style.cssText = 'text-align:center;padding:40px;color:var(--text-muted)';
+    loadingTd.textContent = 'Carregando leads...';
+    loadingRow.appendChild(loadingTd);
+    tbody.appendChild(loadingRow);
+
+    var fPhone = user.campo_telefone_pedido || 'customer_phone';
+    var fTotal = user.campo_total_pedido || 'total';
+    var fStatus = user.campo_status_pedido || 'payment_status';
+    var fDataPedido = user.campo_data_pedido || 'created_at';
+    var fNome = user.campo_nome_pedido || 'customer_name';
+    var fStatusValues = user.valores_status_pago || ['paid'];
+
+    var { data: allSessions } = await supabaseClient
+        .from(user.tabela).select('*').ilike('origin', '%' + user.origem + '%');
+    if (!allSessions || allSessions.length === 0) {
+        tbody.textContent = '';
+        document.getElementById('emptyState').style.display = 'block';
+        return;
+    }
+
+    // Build phone map
+    var phoneMap = {};
+    allSessions.forEach(function(s) {
+        var ph = normalize(s.telefone_cliente);
+        if (!ph) return;
+        if (!phoneMap[ph]) phoneMap[ph] = { sessions: 0, products: [], lastDate: '', firstDate: '', rawPhone: s.telefone_cliente };
+        phoneMap[ph].sessions++;
+        var prod = s.produtos || '';
+        if (prod) {
+            prod.split(',').forEach(function(p) {
+                p = p.trim();
+                if (p && phoneMap[ph].products.indexOf(p) === -1) phoneMap[ph].products.push(p);
+            });
+        }
+        var d = (s.created_at || '').slice(0, 10);
+        if (!phoneMap[ph].lastDate || d > phoneMap[ph].lastDate) phoneMap[ph].lastDate = d;
+        if (!phoneMap[ph].firstDate || d < phoneMap[ph].firstDate) phoneMap[ph].firstDate = d;
+    });
+
+    // Fetch paid orders
+    var earliestDate = '9999';
+    Object.keys(phoneMap).forEach(function(ph) { if (phoneMap[ph].firstDate < earliestDate) earliestDate = phoneMap[ph].firstDate; });
+    var selectFields = [fPhone, fTotal, fStatus, fDataPedido, fNome].filter(function(v,i,a) { return a.indexOf(v) === i; }).join(',');
+    var ordQuery = supabaseClient.from(user.tabela_pedidos).select(selectFields).in(fStatus, fStatusValues);
+    if (earliestDate !== '9999') ordQuery = ordQuery.gte(fDataPedido, earliestDate + 'T00:00:00-03:00');
+    var { data: allOrders } = await ordQuery;
+
+    // Identify buyers
+    var nameMap = {};
+    var buyerPhones = {};
+    var totalRevenue = 0;
+    var totalPaidOrders = 0;
+    (allOrders || []).forEach(function(o) {
+        var ph = normalize(o[fPhone]);
+        if (!ph) return;
+        if (o[fNome]) nameMap[ph] = o[fNome];
+        if (!phoneMap[ph]) return;
+        var orderDate = (o[fDataPedido] || o.created_at || '').slice(0, 10);
+        if (orderDate >= phoneMap[ph].firstDate) {
+            buyerPhones[ph] = true;
+            totalRevenue += parseFloat(o[fTotal]) || 0;
+            totalPaidOrders++;
+        }
+    });
+    var avgTicket = totalPaidOrders > 0 ? totalRevenue / totalPaidOrders : 0;
+
+    // Build leads (non-buyers)
+    allLeads = [];
+    var productCounts = {};
+    Object.keys(phoneMap).forEach(function(ph) {
+        if (buyerPhones[ph]) return;
+        var data = phoneMap[ph];
+        var name = nameMap[ph] || '';
+        allLeads.push({
+            phone: ph, rawPhone: data.rawPhone, name: name,
+            firstName: name ? name.trim().split(' ')[0] : '',
+            sessions: data.sessions, products: data.products,
+            mainProduct: data.products[0] || '', lastDate: data.lastDate
+        });
+        data.products.forEach(function(p) { productCounts[p] = (productCounts[p] || 0) + 1; });
+    });
+    allLeads.sort(function(a, b) { return b.lastDate.localeCompare(a.lastDate) || b.sessions - a.sessions; });
+
+    // Stats
+    var totalLeadSessions = allLeads.reduce(function(s, l) { return s + l.sessions; }, 0);
+    var hotLeads = allLeads.filter(function(l) { return l.sessions >= 3; }).length;
+    var potencial = Math.floor(allLeads.length * 0.1) * avgTicket;
+
+    var statsEl = document.getElementById('statsGrid');
+    statsEl.textContent = '';
+    var statsData = [
+        { icon: 'ph-users', title: 'Leads para recuperar', value: String(allLeads.length), sub: 'provaram e n\u00e3o compraram', color: '#f59e0b' },
+        { icon: 'ph-t-shirt', title: 'Provas sem convers\u00e3o', value: String(totalLeadSessions), sub: 'sess\u00f5es no provador', color: '#f59e0b' },
+        { icon: 'ph-currency-circle-dollar', title: 'Potencial de faturamento', value: potencial.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+          sub: 'se converter 10% (' + Math.floor(allLeads.length * 0.1) + ') pelo ticket m\u00e9dio de ' + avgTicket.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), color: '#f59e0b' },
+        { icon: 'ph-fire', title: 'Leads quentes', value: String(hotLeads), sub: '3+ provas \u2014 alto interesse', color: '#f59e0b', highlight: true }
+    ];
+    statsData.forEach(function(s) {
+        var card = document.createElement('div');
+        card.className = 'stat-card' + (s.highlight ? ' stat-highlight' : '');
+        var iconDiv = document.createElement('div');
+        iconDiv.className = 'stat-icon';
+        iconDiv.style.cssText = 'background:rgba(16,185,129,0.1);color:' + s.color;
+        var iconI = document.createElement('i');
+        iconI.className = 'ph-bold ' + s.icon;
+        iconDiv.appendChild(iconI);
+        var infoDiv = document.createElement('div');
+        infoDiv.className = 'stat-info';
+        var h4 = document.createElement('h4'); h4.textContent = s.title;
+        var val = document.createElement('div'); val.className = 'value'; val.textContent = s.value;
+        var sub = document.createElement('div'); sub.className = 'stat-sub'; sub.textContent = s.sub;
+        infoDiv.append(h4, val, sub);
+        card.append(iconDiv, infoDiv);
+        statsEl.appendChild(card);
+    });
+
+    // Top products
+    var ranked = Object.entries(productCounts).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 6);
+    var grid = document.getElementById('productsGrid');
+    grid.textContent = '';
+    if (ranked.length > 0) {
+        document.getElementById('productsTitle').style.display = 'flex';
+        ranked.forEach(function(item, i) {
+            var card = document.createElement('div'); card.className = 'product-card';
+            var rank = document.createElement('div'); rank.className = 'product-rank'; rank.textContent = String(i + 1);
+            var name = document.createElement('div'); name.className = 'product-name'; name.textContent = item[0];
+            var cnt = document.createElement('div'); cnt.className = 'product-count'; cnt.textContent = item[1] + ' provas';
+            card.append(rank, name, cnt);
+            grid.appendChild(card);
+        });
+    }
+
+    // Insights
+    if (ranked.length > 0) {
+        var topProd = ranked[0][0];
+        var topCount = ranked[0][1];
+        var box = document.getElementById('insightBox');
+        box.style.display = 'block';
+        box.textContent = '';
+
+        var row1 = document.createElement('div'); row1.className = 'insight-row';
+        var icon1 = document.createElement('i'); icon1.className = 'ph-bold ph-lightbulb insight-icon'; icon1.style.color = '#f59e0b';
+        var text1Wrap = document.createElement('div');
+        var title1 = document.createElement('div'); title1.className = 'insight-title'; title1.textContent = 'Dica de recupera\u00e7\u00e3o';
+        var text1 = document.createElement('div'); text1.className = 'insight-text';
+        text1.textContent = topCount + ' leads provaram "' + topProd + '" e n\u00e3o compraram. Esse \u00e9 o produto com maior potencial de recupera\u00e7\u00e3o. Considere criar uma campanha de WhatsApp segmentada para esses clientes.';
+        text1Wrap.append(title1, text1);
+        row1.append(icon1, text1Wrap);
+
+        var row2 = document.createElement('div'); row2.className = 'insight-row';
+        var icon2 = document.createElement('i'); icon2.className = 'ph-bold ph-whatsapp-logo insight-icon'; icon2.style.color = '#25D366';
+        var text2Wrap = document.createElement('div');
+        var title2 = document.createElement('div'); title2.className = 'insight-title'; title2.textContent = 'Sugest\u00e3o de mensagem';
+        var text2 = document.createElement('div'); text2.className = 'insight-text';
+        text2.style.cssText = 'background:rgba(255,255,255,0.03);padding:12px 16px;border-radius:10px;font-style:italic;margin-top:4px;';
+        text2.textContent = 'Oi! Vi que voc\u00ea experimentou a ' + topProd + ' no nosso provador virtual. Ficou linda! Essa semana temos condi\u00e7\u00f5es especiais \u2014 quer garantir a sua?';
+        text2Wrap.append(title2, text2);
+        row2.append(icon2, text2Wrap);
+
+        box.append(row1, row2);
+    }
+
+    currentPage = 1;
+    renderTable();
+}
+
+function renderTable(searchTerm) {
+    var tbody = document.getElementById('leadsTableBody');
+    tbody.textContent = '';
+    var filtered = allLeads;
+    if (searchTerm) {
+        var q = searchTerm.toLowerCase();
+        filtered = allLeads.filter(function(l) {
+            return l.name.toLowerCase().indexOf(q) !== -1 || l.phone.indexOf(q) !== -1 ||
+                l.products.some(function(p) { return p.toLowerCase().indexOf(q) !== -1; });
+        });
+    }
+    if (filtered.length === 0) {
+        document.getElementById('emptyState').style.display = 'block';
+        document.getElementById('leadsPagination').style.display = 'none';
+        return;
+    }
+    document.getElementById('emptyState').style.display = 'none';
+    var start = (currentPage - 1) * perPage;
+    var pageData = filtered.slice(start, start + perPage);
+
+    pageData.forEach(function(l) {
+        var tr = document.createElement('tr');
+        var dateStr = l.lastDate ? l.lastDate.split('-').reverse().join('/') : '';
+        var isHot = l.sessions >= 3;
+
+        var tdDate = document.createElement('td'); tdDate.textContent = dateStr;
+        var tdName = document.createElement('td'); tdName.style.fontWeight = '600'; tdName.textContent = l.firstName || '\u2014';
+        if (isHot) {
+            var hotTag = document.createElement('span'); hotTag.className = 'badge-hot';
+            var fireIcon = document.createElement('i'); fireIcon.className = 'ph-bold ph-fire';
+            hotTag.appendChild(fireIcon);
+            hotTag.appendChild(document.createTextNode(' quente'));
+            tdName.appendChild(hotTag);
+        }
+        var tdPhone = document.createElement('td'); tdPhone.textContent = String(l.rawPhone || l.phone);
+        var tdProvas = document.createElement('td');
+        var badge = document.createElement('span'); badge.className = 'badge-provas';
+        var shirtIcon = document.createElement('i'); shirtIcon.className = 'ph-bold ph-t-shirt';
+        badge.appendChild(shirtIcon);
+        badge.appendChild(document.createTextNode(' ' + l.sessions));
+        tdProvas.appendChild(badge);
+        var tdProd = document.createElement('td'); tdProd.className = 'product-cell';
+        tdProd.textContent = l.products.join(', ') || '\u2014';
+        tdProd.title = l.products.join(', ');
+        var tdAction = document.createElement('td');
+        var link = document.createElement('a');
+        link.href = 'https://wa.me/55' + l.phone;
+        link.target = '_blank'; link.className = 'btn-whats';
+        var waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
+        link.appendChild(waIcon);
+        link.appendChild(document.createTextNode(' Chamar'));
+        tdAction.appendChild(link);
+        tr.append(tdDate, tdName, tdPhone, tdProvas, tdProd, tdAction);
+        tbody.appendChild(tr);
+    });
+
+    var pag = document.getElementById('leadsPagination');
+    if (filtered.length > perPage) {
+        pag.style.display = 'flex';
+        document.getElementById('pageInfo').textContent = 'P\u00e1gina ' + currentPage + ' de ' + Math.ceil(filtered.length / perPage);
+        document.getElementById('prevPage').disabled = currentPage === 1;
+        document.getElementById('nextPage').disabled = start + perPage >= filtered.length;
+    } else {
+        pag.style.display = 'none';
+    }
+}
+
+function changePage(delta) {
+    currentPage += delta;
+    if (currentPage < 1) currentPage = 1;
+    renderTable(document.getElementById('searchLeads').value);
+}
+
+var searchTimeout;
+function filterTable() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(function() {
+        currentPage = 1;
+        renderTable(document.getElementById('searchLeads').value);
+    }, 300);
+}
+
+function exportCSV() {
+    if (!allLeads.length) return alert('Nenhum lead para exportar.');
+    var headers = ['Telefone', 'Cliente', 'Qtd Provas', 'Ultima Prova', 'Produto Principal', 'Todos Produtos'];
+    var rows = [headers.join(';')];
+    allLeads.forEach(function(l) {
+        rows.push([
+            l.rawPhone || l.phone,
+            '"' + l.name.replace(/"/g, '""') + '"',
+            l.sessions, l.lastDate,
+            '"' + l.mainProduct.replace(/"/g, '""') + '"',
+            '"' + l.products.join(' | ').replace(/"/g, '""') + '"'
+        ].join(';'));
+    });
+    var blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'leads_nao_compraram_' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+}
+
+init();
+</script>
+</body>
+</html>
