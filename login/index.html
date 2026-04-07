@@ -1469,6 +1469,9 @@
                             <input type="date" id="dateToCompras" oninput="dateToCompras=this.value;loadCompras(1)">
                             <button class="btn-clear-dates" onclick="setDatePresetCompras(0)"><i class="ph-bold ph-x"></i></button>
                         </div>
+                        <button id="btnFilterRecorrente" onclick="toggleRecorrenteFilter()" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;transition:all .25s;white-space:nowrap;">
+                            <i class="ph-bold ph-arrows-clockwise"></i> Apenas recorrentes
+                        </button>
                     </div>
                 </div>
 
@@ -2230,6 +2233,7 @@
                 // Estado dos dois painéis
         let dateFromProvas = '', dateToProvas = '';
         let dateFromCompras = '', dateToCompras = '';
+        let comprasFilterRecorrente = false;
         let currentPageProvas = 1;
         let currentPageCompras = 1;
         const itemsPerPage = 10;
@@ -2458,6 +2462,17 @@
             const fDataPedido = activeUser.campo_data_pedido || null;
             const fNome = activeUser.campo_nome_pedido || null;
 
+            // Pre-calculate order count per phone for recorrente filter
+            const _orderCountAll = {};
+            allOrdersCache.forEach(o => {
+                const ph = normalize(o[fPhone]);
+                if (!generationPhones.has(ph)) return;
+                const d = ((fDataPedido && o[fDataPedido]) || o.created_at || '').slice(0, 10);
+                const provaDate = provaMinDateMap[ph];
+                if (!provaDate || d < provaDate) return;
+                _orderCountAll[ph] = (_orderCountAll[ph] || 0) + 1;
+            });
+
             const filtered = allOrdersCache.filter(o => {
                 const ph = normalize(o[fPhone]);
                 if (!generationPhones.has(ph)) return false;
@@ -2466,6 +2481,7 @@
                 if (!provaDate || d < provaDate) return false;
                 if (dateFromCompras && d < dateFromCompras) return false;
                 if (dateToCompras && d > dateToCompras) return false;
+                if (comprasFilterRecorrente && (_orderCountAll[ph] || 0) < 2) return false;
                 return true;
             });
 
@@ -2642,6 +2658,21 @@
             document.getElementById('dateFromProvas').value = dateFromProvas;
             document.getElementById('dateToProvas').value = dateToProvas;
             loadProvas(1);
+        }
+
+        function toggleRecorrenteFilter() {
+            comprasFilterRecorrente = !comprasFilterRecorrente;
+            var btn = document.getElementById('btnFilterRecorrente');
+            if (comprasFilterRecorrente) {
+                btn.style.background = 'var(--primary)';
+                btn.style.color = 'white';
+                btn.style.borderColor = 'var(--primary)';
+            } else {
+                btn.style.background = 'transparent';
+                btn.style.color = 'var(--text-muted)';
+                btn.style.borderColor = 'var(--border)';
+            }
+            loadCompras(1);
         }
 
         function setDatePresetCompras(days) {
