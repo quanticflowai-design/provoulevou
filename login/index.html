@@ -1900,16 +1900,17 @@
                         };
                         const generationPhones = new Set(allGenerations.map(g => normalize(g.telefone_cliente)));
 
-                        // Conta TODOS os pedidos de clientes que usaram o provador (incluindo múltiplos por cliente)
+                        // Conta apenas pedidos feitos APÓS o cliente usar o provador
                         allOrders.forEach(order => {
                             const phone = normalize(order[fPhone]);
-                            if (generationPhones.has(phone)) {
-                                boughtPhonesSet.add(phone);
-                                if (!ordersMap.has(phone)) ordersMap.set(phone, order);
-                                purchasesCount++;
-                                totalRevenue += parseFloat(order[fTotal]) || 0;
-                                allMatchedOrders.push(order);
-                            }
+                            if (!generationPhones.has(phone)) return;
+                            const orderTs = (fDataPedido && order[fDataPedido]) || order.created_at || '';
+                            if (!isOrderAfterProva(orderTs, phone)) return;
+                            boughtPhonesSet.add(phone);
+                            if (!ordersMap.has(phone)) ordersMap.set(phone, order);
+                            purchasesCount++;
+                            totalRevenue += parseFloat(order[fTotal]) || 0;
+                            allMatchedOrders.push(order);
                         });
 
                         // Ordena pedidos por data descendente (mais recente primeiro)
@@ -2253,8 +2254,24 @@
             let n = String(p || '').replace(/\D/g, '');
             if (n.startsWith('55') && n.length > 11) n = n.slice(2);
             if (n.startsWith('0')) n = n.slice(1);
+            if (n.length < 8) return '';
             return n;
         };
+
+        // Verifica se pedido foi feito após a prova:
+        // - Se pedido tem horário real: compara timestamp completo
+        // - Se pedido sem horário (T00:00:00): compara só data (mesmo dia conta)
+        function isOrderAfterProva(orderTs, phone) {
+            const provaDate = provaMinDateMap[phone];
+            if (!provaDate) return false;
+            const orderDate = (orderTs || '').slice(0, 10);
+            const hasRealTime = orderTs && !orderTs.includes('T00:00:00');
+            if (hasRealTime) {
+                const provaTs = provaMinTsMap[phone] || '';
+                return orderTs >= provaTs;
+            }
+            return orderDate >= provaDate;
+        }
 
         async function loadSharedData() {
             const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
@@ -2271,11 +2288,14 @@
                 .ilike('origin', `%${activeUser.origem}%`);
             generationPhones = new Set((allGens || []).map(r => normalize(r.telefone_cliente)));
             provaMinDateMap = {};
+            provaMinTsMap = {};
             (allGens || []).forEach(r => {
                 const ph = normalize(r.telefone_cliente);
                 if (!ph) return;
-                const d = (r.created_at || '').slice(0, 10);
+                const ts = r.created_at || '';
+                const d = ts.slice(0, 10);
                 if (!provaMinDateMap[ph] || d < provaMinDateMap[ph]) provaMinDateMap[ph] = d;
+                if (!provaMinTsMap[ph] || ts < provaMinTsMap[ph]) provaMinTsMap[ph] = ts;
             });
 
             if (!activeUser.tabela_pedidos) {
@@ -2287,13 +2307,24 @@
 
             // Filtra pedidos a partir da data da primeira prova (evita trazer pedidos antigos demais)
             const earliestProva = Object.values(provaMinDateMap).sort()[0] || '';
+            const earliestProvaDate = earliestProva.slice(0, 10);
             let ordQuery = supabaseClient
                 .from(activeUser.tabela_pedidos)
                 .select(selectFields)
                 .in(fStatus, fStatusValues);
-            if (earliestProva) ordQuery = ordQuery.gte(fDataPedido || 'created_at', earliestProva + 'T00:00:00-03:00');
-            const { data: allOrders } = await ordQuery;
-            allOrdersCache = allOrders || [];
+            if (earliestProvaDate) ordQuery = ordQuery.gte(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00');
+            // Fetch all rows (Supabase defaults to 1000)
+            const allOrdersArr = [];
+            let _page = 0;
+            const _pageSize = 1000;
+            while (true) {
+                const { data: batch } = await ordQuery.range(_page * _pageSize, (_page + 1) * _pageSize - 1);
+                if (!batch || batch.length === 0) break;
+                allOrdersArr.push(...batch);
+                if (batch.length < _pageSize) break;
+                _page++;
+            }
+            allOrdersCache = allOrdersArr;
 
             boughtPhonesSet = new Set(
                 allOrdersCache
@@ -2306,7 +2337,7 @@
                 let nameQuery = supabaseClient
                     .from(activeUser.tabela_pedidos)
                     .select(`${fPhone}, ${fNome}`);
-                if (earliestProva) nameQuery = nameQuery.gte(fDataPedido || 'created_at', earliestProva + 'T00:00:00-03:00');
+                if (earliestProvaDate) nameQuery = nameQuery.gte(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00');
                 const { data: allNomes } = await nameQuery;
                 (allNomes || []).forEach(o => {
                     const ph = normalize(o[fPhone]);
@@ -2467,18 +2498,17 @@
             allOrdersCache.forEach(o => {
                 const ph = normalize(o[fPhone]);
                 if (!generationPhones.has(ph)) return;
-                const d = ((fDataPedido && o[fDataPedido]) || o.created_at || '').slice(0, 10);
-                const provaDate = provaMinDateMap[ph];
-                if (!provaDate || d < provaDate) return;
+                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                if (!isOrderAfterProva(orderTs, ph)) return;
                 _orderCountAll[ph] = (_orderCountAll[ph] || 0) + 1;
             });
 
             const filtered = allOrdersCache.filter(o => {
                 const ph = normalize(o[fPhone]);
                 if (!generationPhones.has(ph)) return false;
-                const d = ((fDataPedido && o[fDataPedido]) || o.created_at || '').slice(0, 10);
-                const provaDate = provaMinDateMap[ph];
-                if (!provaDate || d < provaDate) return false;
+                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                if (!isOrderAfterProva(orderTs, ph)) return false;
+                const d = orderTs.slice(0, 10);
                 if (dateFromCompras && d < dateFromCompras) return false;
                 if (dateToCompras && d > dateToCompras) return false;
                 if (comprasFilterRecorrente && (_orderCountAll[ph] || 0) < 2) return false;
@@ -2505,9 +2535,7 @@
             filtered.forEach(o => {
                 const ph = normalize(o[fPhone]);
                 if (!ph) return;
-                const orderDate = ((fDataPedido && o[fDataPedido]) || o.created_at || '').slice(0, 10);
-                const provaDate = provaMinDateMap[ph];
-                if (provaDate && orderDate >= provaDate) compraramSet.add(ph);
+                compraramSet.add(ph);
             });
             const compraramCount = compraramSet.size;
             const conversao = generationPhones.size > 0 ? ((compraramCount / generationPhones.size) * 100).toFixed(1) : '0.0';
