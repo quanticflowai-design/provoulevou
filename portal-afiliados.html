@@ -1359,50 +1359,79 @@ async function switchRede(slug) {
 
 /* ──────────────────────────── FETCH REDE ─────────────────────── */
 async function fetchRede() {
-  // L1: direct referrals
-  const { data: l1Data } = await sb.from('afiliados')
-    .select('id, nome, email, slug, nivel, comissao_rate, sub_rate')
-    .eq('referido_por', currentAfiliado.slug);
+  const OWNER_SLUG = 'lucas-de-camargo';
+  const isOwnerView = isAdmin && currentAfiliado.slug === OWNER_SLUG;
 
-  const l1 = l1Data || [];
-
-  // L2: referrals of each L1
-  const l1Slugs = l1.map(s => s.slug);
+  let l1 = [];
   let l2 = [];
-  if (l1Slugs.length > 0) {
-    const { data: l2Data } = await sb.from('afiliados')
-      .select('id, nome, email, slug, nivel, comissao_rate, sub_rate, referido_por')
-      .in('referido_por', l1Slugs);
-    l2 = l2Data || [];
-  }
-
-  // Fetch lojistas linked to this affiliate (L1 contracts)
-  const { data: lojistasL1 } = await sb.from('lojistas')
-    .select('email, nome_loja, origem, afiliado_slug')
-    .eq('afiliado_slug', currentAfiliado.slug);
-
-  // Fetch lojistas linked to sub-affiliates (L2 contracts)
+  let lojistasL1 = [];
   let lojistasL2 = [];
-  if (l1Slugs.length > 0) {
-    const { data: l2Loj } = await sb.from('lojistas')
+  let comissoes = [];
+
+  if (isOwnerView) {
+    // Admin vendo própria rede: mostrar TODOS os afiliados organizados em hierarquia
+    const { data: allAff } = await sb.from('afiliados')
+      .select('id, nome, email, slug, nivel, comissao_rate, sub_rate, referido_por')
+      .neq('slug', OWNER_SLUG);
+    const todos = allAff || [];
+
+    // L1 = afiliados sem pai (top-level)
+    l1 = todos.filter(a => !a.referido_por || a.referido_por === '');
+    // L2 = afiliados com pai
+    l2 = todos.filter(a => a.referido_por && a.referido_por !== '');
+
+    // Buscar TODOS os lojistas e comissões
+    const { data: allLoj } = await sb.from('lojistas')
+      .select('email, nome_loja, origem, afiliado_slug');
+    const todosLoj = allLoj || [];
+    const l1Slugs = l1.map(s => s.slug);
+    lojistasL1 = todosLoj.filter(l => l1Slugs.includes(l.afiliado_slug));
+    lojistasL2 = todosLoj.filter(l => !l1Slugs.includes(l.afiliado_slug) && l.afiliado_slug !== OWNER_SLUG);
+
+    const { data: allCom } = await sb.from('comissoes_afiliados')
+      .select('*')
+      .neq('afiliado_slug', OWNER_SLUG)
+      .order('created_at', { ascending: false });
+    comissoes = allCom || [];
+  } else {
+    // Fluxo normal: afiliado vendo própria rede
+    // L1: direct referrals
+    const { data: l1Data } = await sb.from('afiliados')
+      .select('id, nome, email, slug, nivel, comissao_rate, sub_rate')
+      .eq('referido_por', currentAfiliado.slug);
+    l1 = l1Data || [];
+
+    // L2: referrals of each L1
+    const l1Slugs = l1.map(s => s.slug);
+    if (l1Slugs.length > 0) {
+      const { data: l2Data } = await sb.from('afiliados')
+        .select('id, nome, email, slug, nivel, comissao_rate, sub_rate, referido_por')
+        .in('referido_por', l1Slugs);
+      l2 = l2Data || [];
+    }
+
+    // Fetch lojistas linked to this affiliate (L1 contracts)
+    const { data: lojL1 } = await sb.from('lojistas')
       .select('email, nome_loja, origem, afiliado_slug')
-      .in('afiliado_slug', l1Slugs);
-    lojistasL2 = l2Loj || [];
+      .eq('afiliado_slug', currentAfiliado.slug);
+    lojistasL1 = lojL1 || [];
+
+    // Fetch lojistas linked to sub-affiliates (L2 contracts)
+    const l1Slugs2 = l1.map(s => s.slug);
+    if (l1Slugs2.length > 0) {
+      const { data: l2Loj } = await sb.from('lojistas')
+        .select('email, nome_loja, origem, afiliado_slug')
+        .in('afiliado_slug', l1Slugs2);
+      lojistasL2 = l2Loj || [];
+    }
+
+    // Fetch commissions for this affiliate
+    const { data: comissoesData } = await sb.from('comissoes_afiliados')
+      .select('*')
+      .eq('afiliado_slug', currentAfiliado.slug)
+      .order('created_at', { ascending: false });
+    comissoes = comissoesData || [];
   }
-
-  // Fetch commissions for this affiliate
-  const { data: comissoesData } = await sb.from('comissoes_afiliados')
-    .select('*')
-    .eq('afiliado_slug', currentAfiliado.slug)
-    .order('created_at', { ascending: false });
-  const comissoes = comissoesData || [];
-
-  // Also fetch L2 commissions (where this affiliate earns from sub-affiliate sales)
-  const { data: comissoesL2Data } = await sb.from('comissoes_afiliados')
-    .select('*')
-    .eq('afiliado_slug', currentAfiliado.slug)
-    .eq('nivel', 'L2')
-    .order('created_at', { ascending: false });
 
   // Calculate revenue per sub-affiliate from commissions
   const revenueBySlug = {};
@@ -1416,10 +1445,14 @@ async function fetchRede() {
     }
   });
 
+  // Merge all lojistas for network and contracts
+  const allLojistas = [...(lojistasL1 || []), ...(lojistasL2 || [])];
+
   // Build contracts array from lojistas
   contracts.length = 0;
   const planoPrices = { 97: 'Essencial', 197: 'Crescimento', 397: 'Performance', 797: 'Escala' };
-  (lojistasL1 || []).forEach(loj => {
+  const contratosSource = isOwnerView ? allLojistas : (lojistasL1 || []);
+  contratosSource.forEach(loj => {
     // Find latest commission for this lojista to get plan info
     const lojComissoes = comissoes.filter(c => c.lojista_email === loj.email && c.nivel === 'L1');
     const latestCom = lojComissoes[0];
@@ -1458,22 +1491,26 @@ async function fetchRede() {
 
   // Build network array with real data
   aff.network = l1.map(sub => {
-    const subLojistas = lojistasL2.filter(l => l.afiliado_slug === sub.slug);
-    const subComissoes = comissoes.filter(c => c.nivel === 'L2' && c.lojista_email && subLojistas.some(l => l.email === c.lojista_email));
-    const subRevenue = subLojistas.length * 197; // approximate
+    const subLojistas = allLojistas.filter(l => l.afiliado_slug === sub.slug);
+    const subComissoes = comissoes.filter(c => c.afiliado_slug === sub.slug && c.nivel === 'L1');
+    const subRevenue = subComissoes.reduce((s, c) => s + (c.valor_cobrado || 0), 0);
     return {
       name: sub.nome,
       level: sub.nivel || 'Inicial',
       revenue: subRevenue,
       commissions: subComissoes.reduce((s, c) => s + (c.comissao_valor || 0), 0),
       contracts: subLojistas.length,
-      subs: l2.filter(ss => ss.referido_por === sub.slug).map(ss => ({
-        name: ss.nome,
-        level: ss.nivel || 'Inicial',
-        revenue: 0,
-        commissions: 0,
-        contracts: 0,
-      })),
+      subs: l2.filter(ss => ss.referido_por === sub.slug).map(ss => {
+        const ssLoj = allLojistas.filter(l => l.afiliado_slug === ss.slug);
+        const ssCom = comissoes.filter(c => c.afiliado_slug === ss.slug && c.nivel === 'L1');
+        return {
+          name: ss.nome,
+          level: ss.nivel || 'Inicial',
+          revenue: ssCom.reduce((s, c) => s + (c.valor_cobrado || 0), 0),
+          commissions: ssCom.reduce((s, c) => s + (c.comissao_valor || 0), 0),
+          contracts: ssLoj.length,
+        };
+      }),
     };
   });
 
@@ -1481,15 +1518,21 @@ async function fetchRede() {
   const totalSubs = l1.length + l2.length;
   aff.stats.totalSubs = totalSubs;
 
-  const totalRevL1 = comissoes.filter(c => c.nivel === 'L1').reduce((s, c) => s + (c.valor_cobrado || 0), 0);
-  const totalComL1 = comissoes.filter(c => c.nivel === 'L1').reduce((s, c) => s + (c.comissao_valor || 0), 0);
-  const totalComL2 = comissoes.filter(c => c.nivel === 'L2').reduce((s, c) => s + (c.comissao_valor || 0), 0);
-  const uniqueClients = new Set(comissoes.filter(c => c.nivel === 'L1').map(c => c.lojista_email));
-
-  aff.stats.totalRevenue = totalRevL1;
-  aff.stats.totalCommissions = totalComL1 + totalComL2;
+  if (isOwnerView) {
+    // Admin: mostrar totais da plataforma inteira
+    const totalRev = comissoes.filter(c => c.nivel === 'L1').reduce((s, c) => s + (c.valor_cobrado || 0), 0);
+    const totalCom = comissoes.reduce((s, c) => s + (c.comissao_valor || 0), 0);
+    aff.stats.totalRevenue = totalRev;
+    aff.stats.totalCommissions = totalCom;
+  } else {
+    const totalRevL1 = comissoes.filter(c => c.nivel === 'L1').reduce((s, c) => s + (c.valor_cobrado || 0), 0);
+    const totalComL1 = comissoes.filter(c => c.nivel === 'L1').reduce((s, c) => s + (c.comissao_valor || 0), 0);
+    const totalComL2 = comissoes.filter(c => c.nivel === 'L2').reduce((s, c) => s + (c.comissao_valor || 0), 0);
+    aff.stats.totalRevenue = totalRevL1;
+    aff.stats.totalCommissions = totalComL1 + totalComL2;
+  }
   aff.stats.activeMRR = contracts.filter(c => c.status === 'ativo').reduce((s, c) => s + c.mrr, 0);
-  aff.stats.totalContracts = (lojistasL1 || []).length;
+  aff.stats.totalContracts = isOwnerView ? allLojistas.length : (lojistasL1 || []).length;
 }
 
 /* ──────────────────────────── LOGOUT ────────────────────────── */
