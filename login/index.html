@@ -2311,7 +2311,8 @@
             let ordQuery = supabaseClient
                 .from(activeUser.tabela_pedidos)
                 .select(selectFields)
-                .in(fStatus, fStatusValues);
+                .in(fStatus, fStatusValues)
+                .order('created_at', { ascending: true });
             if (earliestProvaDate) ordQuery = ordQuery.gte(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00');
             // Fetch all rows (Supabase defaults to 1000)
             const allOrdersArr = [];
