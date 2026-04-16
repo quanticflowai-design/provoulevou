@@ -2265,11 +2265,6 @@
             const provaDate = provaMinDateMap[phone];
             if (!provaDate) return false;
             const orderDate = (orderTs || '').slice(0, 10);
-            const hasRealTime = orderTs && !orderTs.includes('T00:00:00');
-            if (hasRealTime) {
-                const provaTs = provaMinTsMap[phone] || '';
-                return orderTs >= provaTs;
-            }
             return orderDate >= provaDate;
         }
 
