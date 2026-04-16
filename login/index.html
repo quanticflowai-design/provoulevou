@@ -2265,6 +2265,13 @@
             const provaDate = provaMinDateMap[phone];
             if (!provaDate) return false;
             const orderDate = (orderTs || '').slice(0, 10);
+            // If order has full timestamp (contains 'T' but not 'T00:00:00'), compare timestamps
+            const hasRealTime = orderTs && orderTs.includes('T') && !orderTs.includes('T00:00:00');
+            if (hasRealTime) {
+                const provaTs = provaMinTsMap[phone] || '';
+                return orderTs >= provaTs;
+            }
+            // Date-only field (e.g. Tray orders): compare by date
             return orderDate >= provaDate;
         }
 
