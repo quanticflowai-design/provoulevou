@@ -1460,15 +1460,6 @@
             background: rgba(139,92,246,0.1);
             color: #7c3aed;
         }
-        .coorte-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .coorte-table th, .coorte-table td {
-            padding: 10px 12px;
-            text-align: center;
-            border-bottom: 1px solid var(--border);
-        }
-        .coorte-table th { color: var(--text-muted); font-weight: 600; font-size: 12px; }
-        .coorte-table td.coorte-month-label { text-align: left; font-weight: 600; color: var(--text); }
-        .coorte-cell { border-radius: 4px; }
         .recompra-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
         .recompra-card {
             background: var(--card-bg);
@@ -1492,10 +1483,6 @@
             .kpi-delta { font-size: 11px; padding: 2px 6px; margin-left: 6px; }
             .kpi-delta i { font-size: 10px; }
             .recompra-cards { grid-template-columns: 1fr 1fr; }
-            .coorte-table { font-size: 11px; }
-            .coorte-table th, .coorte-table td { padding: 6px 4px; }
-            .coorte-table td.coorte-month-label { font-size: 12px; }
-            .coorte-cell { border-radius: 3px; }
             .products-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
             #conversaoProdutoTable th, #conversaoProdutoTable td { padding: 8px 6px; font-size: 12px; }
             #conversaoProdutoTable td[style*="max-width"] { max-width: 140px !important; }
@@ -1751,34 +1738,6 @@
                         </h2>
                     </div>
                     <div class="recompra-cards" id="recompraCards"></div>
-                </div>
-
-                <div id="coorteSection" style="margin-bottom:30px;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-                        <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
-                            <i class="ph-bold ph-calendar-check" style="color:var(--primary);"></i> Coorte de Compradores
-                            <span style="font-size:12px;font-weight:500;color:var(--text-muted);background:rgba(139,92,246,0.08);padding:4px 10px;border-radius:8px;">% que comprou X meses após a 1ª prova</span>
-                        </h2>
-                    </div>
-                    <div class="table-container" style="padding:8px;">
-                        <table class="coorte-table" id="coorteTable">
-                            <thead>
-                                <tr>
-                                    <th style="text-align:left;">Mês da 1ª prova</th>
-                                    <th>Clientes</th>
-                                    <th>M0</th>
-                                    <th>M1</th>
-                                    <th>M2</th>
-                                    <th>M3</th>
-                                </tr>
-                            </thead>
-                            <tbody id="coorteBody"></tbody>
-                        </table>
-                        <div class="empty-state" id="coorteEmptyState" style="display:none;">
-                            <i class="ph-light ph-ghost"></i>
-                            <p>Ainda não há histórico suficiente para gerar coortes.</p>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- ====== SEÇÃO LTV ====== -->
@@ -2661,105 +2620,6 @@
             });
         }
 
-        // Coorte por mês de 1ª prova. Colunas: M0 (mês da prova), M1, M2, M3.
-        function loadCoorte() {
-            const tbody = document.getElementById('coorteBody');
-            if (!tbody) return;
-            const orders = buildPhonePosProvaOrders();
-            const cohortByMonth = {};
-
-            (allGensShared || []).forEach(g => {
-                const ph = normalize(g.telefone_cliente);
-                if (!ph) return;
-                const firstProva = provaMinDateMap[ph];
-                if (!firstProva) return;
-                const key = firstProva.slice(0, 7);
-                if (!cohortByMonth[key]) {
-                    cohortByMonth[key] = {
-                        phones: new Set(),
-                        ordersByOffset: { 0: new Set(), 1: new Set(), 2: new Set(), 3: new Set() }
-                    };
-                }
-                cohortByMonth[key].phones.add(ph);
-            });
-
-            orders.forEach((arr, ph) => {
-                const firstProva = provaMinDateMap[ph];
-                if (!firstProva) return;
-                const cohortKey = firstProva.slice(0, 7);
-                if (!cohortByMonth[cohortKey]) return;
-                arr.forEach(o => {
-                    const orderMonth = o.ts.slice(0, 7);
-                    const offset = monthDiff(cohortKey, orderMonth);
-                    if (offset >= 0 && offset <= 3) {
-                        cohortByMonth[cohortKey].ordersByOffset[offset].add(ph);
-                    }
-                });
-            });
-
-            const keys = Object.keys(cohortByMonth).sort().reverse();
-            tbody.textContent = '';
-            const emptyEl = document.getElementById('coorteEmptyState');
-            const tableEl = document.getElementById('coorteTable');
-            if (keys.length === 0) {
-                if (emptyEl) emptyEl.style.display = 'block';
-                if (tableEl) tableEl.style.display = 'none';
-                return;
-            }
-            if (emptyEl) emptyEl.style.display = 'none';
-            if (tableEl) tableEl.style.display = 'table';
-
-            keys.slice(0, 12).forEach(k => {
-                const data = cohortByMonth[k];
-                const total = data.phones.size;
-                const tr = document.createElement('tr');
-
-                const tdLabel = document.createElement('td');
-                tdLabel.className = 'coorte-month-label';
-                tdLabel.textContent = formatMonthLabel(k);
-
-                const tdTotal = document.createElement('td');
-                tdTotal.textContent = String(total);
-
-                tr.append(tdLabel, tdTotal);
-
-                [0, 1, 2, 3].forEach(off => {
-                    const td = document.createElement('td');
-                    const count = data.ordersByOffset[off].size;
-                    const pct = total > 0 ? (count / total) * 100 : 0;
-                    td.className = 'coorte-cell';
-                    td.style.background = pctToColor(pct);
-                    td.style.color = pct >= 25 ? '#fff' : 'var(--text)';
-                    td.style.fontWeight = '600';
-                    td.textContent = count === 0 ? '—' : (pct.toFixed(0) + '% (' + count + ')');
-                    tr.appendChild(td);
-                });
-
-                tbody.appendChild(tr);
-            });
-        }
-
-        function monthDiff(a, b) {
-            const [ya, ma] = a.split('-').map(Number);
-            const [yb, mb] = b.split('-').map(Number);
-            return (yb - ya) * 12 + (mb - ma);
-        }
-
-        function formatMonthLabel(k) {
-            const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-            const [y, m] = k.split('-').map(Number);
-            return meses[m - 1] + '/' + y;
-        }
-
-        function pctToColor(pct) {
-            if (pct === 0) return 'transparent';
-            if (pct < 5) return 'rgba(139, 92, 246, 0.1)';
-            if (pct < 15) return 'rgba(139, 92, 246, 0.25)';
-            if (pct < 30) return 'rgba(139, 92, 246, 0.45)';
-            if (pct < 50) return 'rgba(139, 92, 246, 0.65)';
-            return 'rgba(139, 92, 246, 0.85)';
-        }
-
         async function loadProvas(page) {
             currentPageProvas = page;
             _lastSearchQuery.provas = '';
@@ -3083,7 +2943,6 @@
                 loadVisaoGeral();
                 loadConversaoProduto();
                 loadRecompra();
-                loadCoorte();
                 document.getElementById('mainLoader').style.display = 'none';
                 document.getElementById('dashboardSection').style.display = 'block';
                 restoreTab();
