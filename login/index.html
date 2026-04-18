@@ -1557,6 +1557,56 @@
                 </div>
             </div>
 
+            <!-- ====== SEÇÃO LTV ====== -->
+            <div id="ltvSection" style="margin-top:40px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                    <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
+                        <i class="ph-bold ph-crown" style="color:#f59e0b;"></i> Clientes com Maior LTV
+                        <span style="font-size:12px;font-weight:500;color:var(--text-muted);background:rgba(245,158,11,0.1);padding:4px 10px;border-radius:8px;">Apenas compras pós-prova</span>
+                    </h2>
+                </div>
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2><i class="ph-fill ph-trophy"></i> Ranking de LTV</h2>
+                        <div class="table-actions">
+                            <div class="search-box">
+                                <i class="ph-bold ph-magnifying-glass"></i>
+                                <input type="text" id="searchLtv" placeholder="Buscar cliente, telefone..." oninput="debounceSearch('ltv', this.value)">
+                            </div>
+                            <button class="btn-download" onclick="downloadCSVLtv()" title="Baixar CSV LTV">
+                                <i class="ph-bold ph-download-simple"></i> CSV
+                            </button>
+                        </div>
+                    </div>
+                    <table id="ltvTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Cliente</th>
+                                <th>WhatsApp</th>
+                                <th>Total Gasto</th>
+                                <th>Nº Pedidos</th>
+                                <th>Ticket Médio</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ltvTableBody"></tbody>
+                    </table>
+                    <div class="pagination" id="ltvPagination" style="display:none;">
+                        <button class="btn-page" id="ltvPrevPage" onclick="changePageLtv(-1)">
+                            <i class="ph-bold ph-caret-left"></i> Anterior
+                        </button>
+                        <span class="page-info" id="ltvPageInfo">Página 1</span>
+                        <button class="btn-page" id="ltvNextPage" onclick="changePageLtv(1)">
+                            Próximo <i class="ph-bold ph-caret-right"></i>
+                        </button>
+                    </div>
+                    <div class="empty-state" id="ltvEmptyState" style="display:none;">
+                        <i class="ph-light ph-ghost"></i>
+                        <p>Nenhum cliente com compras pós-prova ainda.</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- ====== SEÇÃO PROVAS ====== -->
             <div id="provasSection" style="margin-top:40px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
@@ -1850,33 +1900,85 @@
                     const ordersTable = activeUser.tabela_pedidos;
 
                     // Fetch all fitting room records (all fields, for crossref + filter "bought")
-                    let genQuery = supabaseClient
-                        .from(activeUser.tabela)
-                        .select('*')
-                        .ilike('origin', `%${activeUser.origem}%`)
-                        .order('created_at', { ascending: false });
-                    if (dateFrom) genQuery = genQuery.gte('created_at', dateFrom + 'T00:00:00-03:00');
-                    if (dateTo) genQuery = genQuery.lte('created_at', dateTo + 'T23:59:59-03:00');
-                    const { data: allGenerations } = await genQuery;
+                    // Paginate to avoid Supabase's default 1000-row limit
+                    const allGenerations = [];
+                    const genPageSize = 1000;
+                    let genFrom = 0;
+                    while (true) {
+                        let genQuery = supabaseClient
+                            .from(activeUser.tabela)
+                            .select('*')
+                            .ilike('origin', `%${activeUser.origem}%`)
+                            .order('created_at', { ascending: false })
+                            .range(genFrom, genFrom + genPageSize - 1);
+                        if (dateFrom) genQuery = genQuery.gte('created_at', dateFrom + 'T00:00:00-03:00');
+                        if (dateTo) genQuery = genQuery.lte('created_at', dateTo + 'T23:59:59-03:00');
+                        const { data: genBatch, error: genErr } = await genQuery;
+                        if (genErr || !genBatch || genBatch.length === 0) break;
+                        allGenerations.push(...genBatch);
+                        if (genBatch.length < genPageSize) break;
+                        genFrom += genPageSize;
+                    }
                     allGenerationsData = allGenerations;
 
+                    // Compute earliest prova date to filter orders (optimization: avoids fetching orders prior to provador going live)
+                    const normalizeTmp2 = p => {
+                        let n = String(p || '').replace(/\D/g, '');
+                        if (n.startsWith('55') && n.length > 11) n = n.slice(2);
+                        if (n.startsWith('0')) n = n.slice(1);
+                        return n;
+                    };
+                    let earliestProvaDate = '';
+                    allGenerations.forEach(r => {
+                        const ts = r.created_at || '';
+                        const d = ts.slice(0, 10);
+                        if (d && (!earliestProvaDate || d < earliestProvaDate)) earliestProvaDate = d;
+                    });
+
                     // Fetch customer phones, totals and dates from the orders table where payment_status is 'paid' or 'Confirmado'
-                    let ordQuery = supabaseClient
-                        .from(ordersTable)
-                        .select(selectFields)
-                        .in(fStatus, fStatusValues)
-                        .order('created_at', { ascending: false });
-                    if (dateFrom) ordQuery = ordQuery.gte('created_at', dateFrom + 'T00:00:00-03:00');
-                    if (dateTo) ordQuery = ordQuery.lte('created_at', dateTo + 'T23:59:59-03:00');
-                    const { data: allOrders } = await ordQuery;
+                    // Paginate to avoid Supabase's default 1000-row limit
+                    const allOrders = [];
+                    const pageSize = 1000;
+                    let pageFrom = 0;
+                    const orderDateField = fDataPedido || 'created_at';
+                    while (true) {
+                        let ordQuery = supabaseClient
+                            .from(ordersTable)
+                            .select(selectFields)
+                            .in(fStatus, fStatusValues)
+                            .order('created_at', { ascending: false })
+                            .range(pageFrom, pageFrom + pageSize - 1);
+                        if (earliestProvaDate) ordQuery = ordQuery.gte(orderDateField, earliestProvaDate + 'T00:00:00-03:00');
+                        if (dateFrom) ordQuery = ordQuery.gte('created_at', dateFrom + 'T00:00:00-03:00');
+                        if (dateTo) ordQuery = ordQuery.lte('created_at', dateTo + 'T23:59:59-03:00');
+                        const { data: pageData, error: pageErr } = await ordQuery;
+                        if (pageErr || !pageData || pageData.length === 0) break;
+                        allOrders.push(...pageData);
+                        if (pageData.length < pageSize) break;
+                        pageFrom += pageSize;
+                    }
 
                     // Busca nomes de todos os registros da tabela de pedidos (sem filtro de status)
                     // para montar mapa telefone → nome, incluindo não-compradores com histórico na loja
                     if (fNome) {
-                        const { data: allNomes } = await supabaseClient
-                            .from(ordersTable)
-                            .select(`${fPhone}, ${fNome}`);
-                        if (allNomes) {
+                        const allNomes = [];
+                        {
+                            const pageSize = 1000;
+                            let pFrom = 0;
+                            while (true) {
+                                let nameQ = supabaseClient
+                                    .from(ordersTable)
+                                    .select(`${fPhone}, ${fNome}`)
+                                    .range(pFrom, pFrom + pageSize - 1);
+                                if (earliestProvaDate) nameQ = nameQ.gte(orderDateField, earliestProvaDate + 'T00:00:00-03:00');
+                                const { data: batch } = await nameQ;
+                                if (!batch || batch.length === 0) break;
+                                allNomes.push(...batch);
+                                if (batch.length < pageSize) break;
+                                pFrom += pageSize;
+                            }
+                        }
+                        if (allNomes.length) {
                             const normalizeTmp = p => {
                                 let n = String(p || '').replace(/\D/g, '');
                                 if (n.startsWith('55') && n.length > 11) n = n.slice(2);
@@ -2237,6 +2339,7 @@
         let comprasFilterRecorrente = false;
         let currentPageProvas = 1;
         let currentPageCompras = 1;
+        let currentPageLtv = 1;
         const itemsPerPage = 10;
 
         // Cache compartilhado
@@ -2247,14 +2350,15 @@
         let allOrdersCache = [];
         let _csvProvasData = [];
         let _csvComprasData = [];
+        let _csvLtvData = [];
         let _allProvasForSearch = [];
+        let _allLtvForSearch = [];
         let _allComprasForSearch = [];
 
         const normalize = p => {
             let n = String(p || '').replace(/\D/g, '');
             if (n.startsWith('55') && n.length > 11) n = n.slice(2);
             if (n.startsWith('0')) n = n.slice(1);
-            if (n.length < 8) return '';
             return n;
         };
 
@@ -2284,11 +2388,24 @@
             const fNome = activeUser.campo_nome_pedido || null;
             const selectFields = [fPhone, fTotal, fStatus, 'created_at', fDataPedido, fNome].filter(Boolean).join(', ');
 
-            const { data: allGens } = await supabaseClient
-                .from(activeUser.tabela)
-                .select('telefone_cliente, created_at')
-                .ilike('origin', `%${activeUser.origem}%`);
-            generationPhones = new Set((allGens || []).map(r => normalize(r.telefone_cliente)));
+            // Paginate to avoid Supabase's default 1000-row limit
+            const allGens = [];
+            {
+                const pageSize = 1000;
+                let pFrom = 0;
+                while (true) {
+                    const { data: batch } = await supabaseClient
+                        .from(activeUser.tabela)
+                        .select('telefone_cliente, created_at')
+                        .ilike('origin', `%${activeUser.origem}%`)
+                        .range(pFrom, pFrom + pageSize - 1);
+                    if (!batch || batch.length === 0) break;
+                    allGens.push(...batch);
+                    if (batch.length < pageSize) break;
+                    pFrom += pageSize;
+                }
+            }
+            generationPhones = new Set(allGens.map(r => normalize(r.telefone_cliente)));
             provaMinDateMap = {};
             provaMinTsMap = {};
             (allGens || []).forEach(r => {
@@ -2337,12 +2454,24 @@
 
             nameMap = {};
             if (fNome) {
-                let nameQuery = supabaseClient
-                    .from(activeUser.tabela_pedidos)
-                    .select(`${fPhone}, ${fNome}`);
-                if (earliestProvaDate) nameQuery = nameQuery.gte(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00');
-                const { data: allNomes } = await nameQuery;
-                (allNomes || []).forEach(o => {
+                const allNomes = [];
+                {
+                    const pageSize = 1000;
+                    let pFrom = 0;
+                    while (true) {
+                        let nameQuery = supabaseClient
+                            .from(activeUser.tabela_pedidos)
+                            .select(`${fPhone}, ${fNome}`)
+                            .range(pFrom, pFrom + pageSize - 1);
+                        if (earliestProvaDate) nameQuery = nameQuery.gte(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00');
+                        const { data: batch } = await nameQuery;
+                        if (!batch || batch.length === 0) break;
+                        allNomes.push(...batch);
+                        if (batch.length < pageSize) break;
+                        pFrom += pageSize;
+                    }
+                }
+                allNomes.forEach(o => {
                     const ph = normalize(o[fPhone]);
                     if (ph && o[fNome] && !nameMap[ph]) nameMap[ph] = o[fNome];
                 });
@@ -2671,7 +2800,7 @@
                 await loadSharedData();
                 document.getElementById('mainLoader').style.display = 'none';
                 document.getElementById('dashboardSection').style.display = 'block';
-                await Promise.all([loadProvas(1), loadCompras(1)]);
+                await Promise.all([loadProvas(1), loadCompras(1), loadLtv(1)]);
             } catch (err) {
                 console.error(err);
                 document.getElementById('mainLoader').style.display = 'none';
@@ -2719,7 +2848,7 @@
         }
 
         let _searchTimers = {};
-        let _lastSearchQuery = { provas: '', compras: '' };
+        let _lastSearchQuery = { provas: '', compras: '', ltv: '' };
         function debounceSearch(type, value) {
             clearTimeout(_searchTimers[type]);
             _searchTimers[type] = setTimeout(() => filterTable(type, value), 200);
@@ -2732,7 +2861,55 @@
             if (!q) {
                 // Sem busca: volta à paginação normal
                 if (type === 'provas') loadProvas(currentPageProvas);
+                else if (type === 'ltv') loadLtv(currentPageLtv);
                 else loadCompras(currentPageCompras);
+                return;
+            }
+
+            if (type === 'ltv') {
+                const matches = _allLtvForSearch.filter(r => {
+                    const searchText = [r.rawPhone || '', r.name || ''].join(' ').toLowerCase();
+                    return searchText.includes(q);
+                });
+                const tbody = document.getElementById('ltvTableBody');
+                tbody.textContent = '';
+                document.getElementById('ltvPagination').style.display = 'none';
+                if (matches.length === 0) {
+                    document.getElementById('ltvEmptyState').style.display = 'block';
+                    document.getElementById('ltvTable').style.display = 'none';
+                    return;
+                }
+                document.getElementById('ltvEmptyState').style.display = 'none';
+                document.getElementById('ltvTable').style.display = 'table';
+                matches.slice(0, 50).forEach((r) => {
+                    const origIdx = _allLtvForSearch.indexOf(r);
+                    const rank = origIdx + 1;
+                    const firstName = r.name ? r.name.trim().split(' ')[0] : '\u2014';
+                    const medalColor = rank === 1 ? '#f59e0b' : rank === 2 ? '#94a3b8' : rank === 3 ? '#b45309' : 'var(--text-muted)';
+                    const tr = document.createElement('tr');
+                    const tdRank = document.createElement('td');
+                    tdRank.style.cssText = 'font-weight:700;color:' + medalColor + ';';
+                    if (rank <= 3) {
+                        const m = document.createElement('i'); m.className = 'ph-fill ph-medal'; tdRank.appendChild(m);
+                        tdRank.appendChild(document.createTextNode(' '));
+                    }
+                    tdRank.appendChild(document.createTextNode(String(rank)));
+                    const tdName = document.createElement('td'); tdName.style.fontWeight = '600'; tdName.textContent = firstName;
+                    const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display';
+                    if (r.phone) {
+                        const a = document.createElement('a');
+                        a.href = 'https://wa.me/55' + r.phone; a.target = '_blank';
+                        a.style.cssText = 'color:#25D366;text-decoration:none;';
+                        a.textContent = r.rawPhone; tdPhone.appendChild(a);
+                    } else { tdPhone.textContent = '\u2014'; }
+                    const tdTotal = document.createElement('td');
+                    tdTotal.style.cssText = 'font-weight:700;color:#10b981;';
+                    tdTotal.textContent = r.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    const tdCount = document.createElement('td'); tdCount.textContent = String(r.count);
+                    const tdAvg = document.createElement('td'); tdAvg.textContent = r.avg.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    tr.append(tdRank, tdName, tdPhone, tdTotal, tdCount, tdAvg);
+                    tbody.appendChild(tr);
+                });
                 return;
             }
 
@@ -2826,6 +3003,137 @@
             currentPageCompras += delta;
             if (currentPageCompras < 1) currentPageCompras = 1;
             loadCompras(currentPageCompras);
+        }
+
+        function loadLtv(page) {
+            currentPageLtv = page;
+            _lastSearchQuery.ltv = '';
+            const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
+            const fTotal = activeUser.campo_total_pedido || 'total';
+            const fDataPedido = activeUser.campo_data_pedido || null;
+            const fNome = activeUser.campo_nome_pedido || null;
+
+            // Agrega LTV por telefone (apenas compras pós-prova)
+            const byPhone = {};
+            allOrdersCache.forEach(o => {
+                const ph = normalize(o[fPhone]);
+                if (!ph || !generationPhones.has(ph)) return;
+                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                if (!isOrderAfterProva(orderTs, ph)) return;
+                const val = parseFloat(o[fTotal]) || 0;
+                if (!byPhone[ph]) {
+                    const rawName = (fNome && o[fNome]) || nameMap[ph] || '';
+                    byPhone[ph] = { phone: ph, rawPhone: String(o[fPhone] || ''), name: rawName, total: 0, count: 0 };
+                }
+                if (!byPhone[ph].name && fNome && o[fNome]) byPhone[ph].name = o[fNome];
+                byPhone[ph].total += val;
+                byPhone[ph].count += 1;
+            });
+
+            const ranking = Object.values(byPhone)
+                .map(r => ({ ...r, avg: r.count > 0 ? r.total / r.count : 0 }))
+                .sort((a, b) => b.total - a.total);
+
+            _allLtvForSearch = ranking;
+
+            _csvLtvData = ranking.map((r, i) => ({
+                rank: i + 1,
+                cliente: r.name ? r.name.trim() : '',
+                telefone: r.rawPhone,
+                total: r.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                pedidos: r.count,
+                ticket: r.avg.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+            }));
+
+            const tbody = document.getElementById('ltvTableBody');
+            tbody.textContent = '';
+
+            if (ranking.length === 0) {
+                document.getElementById('ltvEmptyState').style.display = 'block';
+                document.getElementById('ltvTable').style.display = 'none';
+                document.getElementById('ltvPagination').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('ltvEmptyState').style.display = 'none';
+            document.getElementById('ltvTable').style.display = 'table';
+
+            const fromIdx = (page - 1) * itemsPerPage;
+            const pageData = ranking.slice(fromIdx, fromIdx + itemsPerPage);
+
+            pageData.forEach((r, idx) => {
+                const rank = fromIdx + idx + 1;
+                const firstName = r.name ? r.name.trim().split(' ')[0] : '\u2014';
+                const medalColor = rank === 1 ? '#f59e0b' : rank === 2 ? '#94a3b8' : rank === 3 ? '#b45309' : 'var(--text-muted)';
+
+                const tr = document.createElement('tr');
+                const tdRank = document.createElement('td');
+                tdRank.style.cssText = 'font-weight:700;color:' + medalColor + ';';
+                if (rank <= 3) {
+                    const medal = document.createElement('i');
+                    medal.className = 'ph-fill ph-medal';
+                    tdRank.appendChild(medal);
+                    tdRank.appendChild(document.createTextNode(' '));
+                }
+                tdRank.appendChild(document.createTextNode(String(rank)));
+
+                const tdName = document.createElement('td');
+                tdName.style.fontWeight = '600';
+                tdName.textContent = firstName;
+
+                const tdPhone = document.createElement('td');
+                tdPhone.className = 'phone-display';
+                if (r.phone) {
+                    const waLink = document.createElement('a');
+                    waLink.href = 'https://wa.me/55' + r.phone;
+                    waLink.target = '_blank';
+                    waLink.style.cssText = 'color:#25D366;text-decoration:none;';
+                    waLink.textContent = r.rawPhone;
+                    tdPhone.appendChild(waLink);
+                } else {
+                    tdPhone.textContent = '\u2014';
+                }
+
+                const tdTotal = document.createElement('td');
+                tdTotal.style.cssText = 'font-weight:700;color:#10b981;';
+                tdTotal.textContent = r.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                const tdCount = document.createElement('td');
+                tdCount.textContent = String(r.count);
+
+                const tdAvg = document.createElement('td');
+                tdAvg.textContent = r.avg.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                tr.append(tdRank, tdName, tdPhone, tdTotal, tdCount, tdAvg);
+                tbody.appendChild(tr);
+            });
+
+            const totalPages = Math.ceil(ranking.length / itemsPerPage);
+            if (totalPages > 1) {
+                document.getElementById('ltvPagination').style.display = 'flex';
+                document.getElementById('ltvPageInfo').textContent = 'Página ' + page + ' de ' + totalPages;
+                document.getElementById('ltvPrevPage').disabled = page <= 1;
+                document.getElementById('ltvNextPage').disabled = page >= totalPages;
+            } else {
+                document.getElementById('ltvPagination').style.display = 'none';
+            }
+        }
+
+        function changePageLtv(delta) {
+            currentPageLtv += delta;
+            if (currentPageLtv < 1) currentPageLtv = 1;
+            loadLtv(currentPageLtv);
+        }
+
+        function downloadCSVLtv() {
+            if (!_csvLtvData.length) return alert('Nenhum dado para exportar.');
+            const headers = ['Rank', 'Cliente', 'Telefone', 'Total Gasto', 'Nº Pedidos', 'Ticket Médio'];
+            const rows = [headers.join(';')];
+            _csvLtvData.forEach(i => rows.push([i.rank, i.cliente, i.telefone, i.total, i.pedidos, i.ticket].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(';')));
+            const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'provoulevou_ltv_' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
+            URL.revokeObjectURL(url);
         }
 
         function downloadCSVProvas() {
