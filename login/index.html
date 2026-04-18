@@ -3071,7 +3071,7 @@
                 const ts = (fDataPedido && o[fDataPedido]) || o.created_at || '';
                 if (!isOrderAfterProva(ts, ph)) return;
                 if (!map.has(ph)) map.set(ph, []);
-                const normalizedTs = ts.length === 10 ? ts + 'T00:00:00' : ts;
+                const normalizedTs = ts.length === 10 ? ts + 'T00:00:00-03:00' : ts;
                 map.get(ph).push({ ts: normalizedTs, val: parseFloat(o[fTotal]) || 0 });
             });
             map.forEach(arr => arr.sort((a,b) => a.ts.localeCompare(b.ts)));
