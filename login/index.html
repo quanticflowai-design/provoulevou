@@ -1830,7 +1830,7 @@
                             </table>
                             <div class="empty-state" id="conversaoEmptyState" style="display:none;">
                                 <i class="ph-light ph-ghost"></i>
-                                <p>Ainda não há provas suficientes para calcular conversão por produto.</p>
+                                <p>Ainda não há produtos com pelo menos 2 provas para calcular conversão. Assim que mais clientes usarem o provador, esse ranking aparecerá aqui.</p>
                             </div>
                         </div>
                     </div>
@@ -2888,17 +2888,23 @@
                 if (!prodNorm) return;
                 const provadosDoCliente = phoneProdMap.get(ph);
                 if (!provadosDoCliente) return;
-                // Match: produto do pedido precisa bater com algum produto que o cliente provou.
-                // Tenta match exato primeiro; se não, checa se um contém o outro (ex: "camiseta branca" ~ "camiseta").
+                const valor = parseFloat(o[fTotal]) || 0;
+                // Para este pedido, encontra o produto provado que melhor casa (primeiro match exato; senão primeiro substring match).
+                let matched = null;
                 provadosDoCliente.forEach(provaNorm => {
-                    if (prodNorm === provaNorm || prodNorm.includes(provaNorm) || provaNorm.includes(prodNorm)) {
-                        if (!byProduct[provaNorm]) return;
-                        if (!byProduct[provaNorm].comprasPhones.has(ph)) {
-                            byProduct[provaNorm].comprasPhones.add(ph);
-                            byProduct[provaNorm].receita += parseFloat(o[fTotal]) || 0;
-                        }
-                    }
+                    if (matched) return;
+                    if (prodNorm === provaNorm) matched = provaNorm;
                 });
+                if (!matched) {
+                    provadosDoCliente.forEach(provaNorm => {
+                        if (matched) return;
+                        if (prodNorm.includes(provaNorm) || provaNorm.includes(prodNorm)) matched = provaNorm;
+                    });
+                }
+                if (matched && byProduct[matched]) {
+                    byProduct[matched].comprasPhones.add(ph);
+                    byProduct[matched].receita += valor;
+                }
             });
 
             const ranking = Object.values(byProduct)
