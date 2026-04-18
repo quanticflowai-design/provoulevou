@@ -1428,6 +1428,38 @@
             background:rgba(239,68,68,0.12); color:#ef4444;
             padding:2px 8px; border-radius:999px; font-size:10px; font-weight:600; margin-left:6px;
         }
+        .whatsapp-suggestion {
+            background: rgba(255,255,255,0.03);
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-style: italic;
+            margin-top: 4px;
+        }
+        body.light-mode .whatsapp-suggestion {
+            background: rgba(0,0,0,0.03);
+        }
+        body.light-mode .insight-box {
+            background: rgba(16,185,129,0.06);
+            border-color: rgba(16,185,129,0.25);
+        }
+        body.light-mode .insight-text {
+            color: #1a1a2e;
+        }
+        body.light-mode .product-card {
+            background: #ffffff;
+            border-color: rgba(0,0,0,0.06);
+        }
+        body.light-mode .product-card:hover {
+            background: #fafafa;
+        }
+        body.light-mode .badge-hot {
+            background: rgba(239,68,68,0.1);
+            color: #dc2626;
+        }
+        body.light-mode .badge-provas {
+            background: rgba(139,92,246,0.1);
+            color: #7c3aed;
+        }
     </style>
 </head>
 
@@ -3367,6 +3399,7 @@
             if (loader) loader.style.display = 'flex';
             if (content) content.style.display = 'none';
 
+            try {
             const user = activeUser;
             const fPhone = user.campo_telefone_pedido || 'customer_phone';
             const fTotal = user.campo_total_pedido || 'total';
@@ -3394,7 +3427,6 @@
             }
 
             if (allSessions.length === 0) {
-                if (loader) loader.style.display = 'none';
                 if (content) content.style.display = 'block';
                 document.getElementById('leadsRecupEmptyState').style.display = 'block';
                 return;
@@ -3547,8 +3579,7 @@
                 const icon2 = document.createElement('i'); icon2.className = 'ph-bold ph-whatsapp-logo insight-icon'; icon2.style.color = '#25D366';
                 const text2Wrap = document.createElement('div');
                 const title2 = document.createElement('div'); title2.className = 'insight-title'; title2.textContent = 'Sugestão de mensagem';
-                const text2 = document.createElement('div'); text2.className = 'insight-text';
-                text2.style.cssText = 'background:rgba(255,255,255,0.03);padding:12px 16px;border-radius:10px;font-style:italic;margin-top:4px;';
+                const text2 = document.createElement('div'); text2.className = 'insight-text whatsapp-suggestion';
                 text2.textContent = 'Oi! Vi que você experimentou a ' + topProd + ' no nosso provador virtual. Ficou linda! Essa semana temos condições especiais — quer garantir a sua?';
                 text2Wrap.append(title2, text2);
                 row2.append(icon2, text2Wrap);
@@ -3561,8 +3592,27 @@
             currentPageLeadsRecup = 1;
             renderLeadsTable();
 
-            if (loader) loader.style.display = 'none';
             if (content) content.style.display = 'block';
+        } catch (err) {
+            console.error('Erro carregando leads:', err);
+            if (content) {
+                content.style.display = 'block';
+                const tbody = document.getElementById('leadsRecupTableBody');
+                if (tbody) {
+                    tbody.textContent = '';
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.colSpan = 6;
+                    td.style.cssText = 'text-align:center;padding:40px;color:#ef4444;';
+                    td.textContent = 'Erro ao carregar leads: ' + (err && err.message ? err.message : 'falha desconhecida');
+                    tr.appendChild(td);
+                    tbody.appendChild(tr);
+                }
+            }
+            throw err; // Re-throw so showTab's catch can reset leadsRecupLoaded
+        } finally {
+            if (loader) loader.style.display = 'none';
+        }
         }
 
         function renderLeadsTable(searchTerm) {
