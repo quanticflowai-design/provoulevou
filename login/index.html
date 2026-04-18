@@ -2605,6 +2605,86 @@
             return orderDate >= provaDate;
         }
 
+        // Retorna {start, end} em ISO com offset -03:00 para um mês relativo ao atual.
+        // offset=0 => mês corrente; offset=-1 => mês anterior.
+        function monthRange(offset) {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = now.getMonth() + offset;
+            const start = new Date(y, m, 1, 0, 0, 0);
+            const end = new Date(y, m + 1, 1, 0, 0, 0);
+            const pad = n => String(n).padStart(2, '0');
+            const fmt = d => d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + '-03:00';
+            return { start: fmt(start), end: fmt(end) };
+        }
+
+        // Calcula {pedidos, fat, unicos, conv} para pedidos pós-prova dentro de [start, end).
+        // Usa estado já carregado: allOrdersCache, generationPhones, provaMinDateMap, provaMinTsMap.
+        function computeKpis(start, end) {
+            if (!activeUser || !allOrdersCache || !generationPhones) {
+                return { pedidos: 0, fat: 0, unicos: 0, conv: 0 };
+            }
+            const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
+            const fTotal = activeUser.campo_total_pedido || 'total';
+            const fDataPedido = activeUser.campo_data_pedido || null;
+            let pedidos = 0, fat = 0;
+            const uniq = new Set();
+            allOrdersCache.forEach(o => {
+                const ph = normalize(o[fPhone]);
+                if (!ph || !generationPhones.has(ph)) return;
+                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                if (!isOrderAfterProva(orderTs, ph)) return;
+                // Normaliza para timestamp completo com timezone se vier só data (YYYY-MM-DD)
+                let cmp = orderTs;
+                if (cmp && cmp.length === 10) cmp = cmp + 'T00:00:00-03:00';
+                if (cmp < start || cmp >= end) return;
+                pedidos += 1;
+                fat += parseFloat(o[fTotal]) || 0;
+                uniq.add(ph);
+            });
+            const provUnicos = generationPhones.size || 1;
+            const conv = (uniq.size / provUnicos) * 100;
+            return { pedidos, fat, unicos: uniq.size, conv };
+        }
+
+        // Renderiza um badge de variação percentual (▲/▼/—) num elemento kpi-delta.
+        function renderDelta(elId, curr, prev, formatter) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            el.textContent = '';
+            el.className = 'kpi-delta';
+            if (prev === 0 && curr === 0) {
+                el.classList.add('neutral');
+                el.textContent = '—';
+                return;
+            }
+            const delta = prev === 0 ? 100 : ((curr - prev) / prev) * 100;
+            const up = delta > 0;
+            const down = delta < 0;
+            el.classList.add(up ? 'up' : down ? 'down' : 'neutral');
+            const arrow = document.createElement('i');
+            arrow.className = up ? 'ph-bold ph-arrow-up' : down ? 'ph-bold ph-arrow-down' : 'ph-bold ph-minus';
+            el.appendChild(arrow);
+            const sign = delta > 0 ? '+' : '';
+            el.appendChild(document.createTextNode(' ' + sign + delta.toFixed(1) + '%'));
+            el.title = 'Mês anterior: ' + formatter(prev);
+        }
+
+        function loadVisaoGeral() {
+            if (!allOrdersCache || !generationPhones) return;
+            const curr = monthRange(0);
+            const prev = monthRange(-1);
+            const k0 = computeKpis(curr.start, curr.end);
+            const k1 = computeKpis(prev.start, prev.end);
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const num = v => String(v);
+            const pct = v => v.toFixed(1) + '%';
+            renderDelta('kpiDeltaPedidos', k0.pedidos, k1.pedidos, num);
+            renderDelta('kpiDeltaFat',     k0.fat,     k1.fat,     brl);
+            renderDelta('kpiDeltaUnicos',  k0.unicos,  k1.unicos,  num);
+            renderDelta('kpiDeltaConv',    k0.conv,    k1.conv,    pct);
+        }
+
         async function loadSharedData() {
             const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
             const fTotal = activeUser.campo_total_pedido || 'total';
@@ -3024,6 +3104,7 @@
             document.getElementById('dashboardSection').style.display = 'none';
             try {
                 await loadSharedData();
+                loadVisaoGeral();
                 document.getElementById('mainLoader').style.display = 'none';
                 document.getElementById('dashboardSection').style.display = 'block';
                 restoreTab();
