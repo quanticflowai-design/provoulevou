@@ -2627,6 +2627,8 @@
             const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
             const fTotal = activeUser.campo_total_pedido || 'total';
             const fDataPedido = activeUser.campo_data_pedido || null;
+            const startMs = new Date(start).getTime();
+            const endMs = new Date(end).getTime();
             let pedidos = 0, fat = 0;
             const uniq = new Set();
             allOrdersCache.forEach(o => {
@@ -2635,9 +2637,10 @@
                 const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
                 if (!isOrderAfterProva(orderTs, ph)) return;
                 // Normaliza para timestamp completo com timezone se vier só data (YYYY-MM-DD)
-                let cmp = orderTs;
-                if (cmp && cmp.length === 10) cmp = cmp + 'T00:00:00-03:00';
-                if (cmp < start || cmp >= end) return;
+                let cmpStr = orderTs;
+                if (cmpStr && cmpStr.length === 10) cmpStr = cmpStr + 'T00:00:00-03:00';
+                const cmpMs = new Date(cmpStr).getTime();
+                if (isNaN(cmpMs) || cmpMs < startMs || cmpMs >= endMs) return;
                 pedidos += 1;
                 fat += parseFloat(o[fTotal]) || 0;
                 uniq.add(ph);
@@ -2658,7 +2661,16 @@
                 el.textContent = '—';
                 return;
             }
-            const delta = prev === 0 ? 100 : ((curr - prev) / prev) * 100;
+            if (prev === 0 && curr > 0) {
+                el.classList.add('up');
+                const arrow = document.createElement('i');
+                arrow.className = 'ph-bold ph-arrow-up';
+                el.appendChild(arrow);
+                el.appendChild(document.createTextNode(' novo'));
+                el.title = 'Sem dados no mês anterior';
+                return;
+            }
+            const delta = ((curr - prev) / prev) * 100;
             const up = delta > 0;
             const down = delta < 0;
             el.classList.add(up ? 'up' : down ? 'down' : 'neutral');
