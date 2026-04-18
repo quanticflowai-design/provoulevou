@@ -1393,6 +1393,41 @@
         .kpi-delta.up { background: rgba(16,185,129,0.1); color: #10b981; }
         .kpi-delta.down { background: rgba(239,68,68,0.1); color: #ef4444; }
         .kpi-delta.neutral { background: rgba(148,163,184,0.1); color: #94a3b8; }
+
+        /* ===== Recuperar Leads tab — unique styles ===== */
+        .stat-highlight { background:linear-gradient(135deg,rgba(16,185,129,0.04),rgba(16,185,129,0.01)); border-color:rgba(16,185,129,0.12); }
+        .stat-highlight::before { opacity:1; background:linear-gradient(to bottom,#f59e0b,#059669); }
+        .insight-box {
+            background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(16,185,129,0.02));
+            border:1px solid rgba(16,185,129,0.15); border-radius:16px;
+            padding:20px 24px; margin-bottom:24px;
+        }
+        .insight-row { display:flex; align-items:flex-start; gap:12px; }
+        .insight-row + .insight-row { margin-top:14px; padding-top:14px; border-top:1px solid rgba(16,185,129,0.1); }
+        .insight-icon { font-size:18px; margin-top:2px; flex-shrink:0; }
+        .insight-title { font-weight:600; font-size:13px; margin-bottom:4px; }
+        .insight-text { font-size:13px; color:var(--text-muted); line-height:1.6; }
+        .products-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; margin-bottom:28px; }
+        .product-card {
+            background:var(--card-bg); border:1px solid var(--border); border-radius:14px;
+            padding:16px 20px; display:flex; align-items:center; gap:14px; transition:all .25s;
+        }
+        .product-card:hover { border-color:rgba(16,185,129,0.3); }
+        .product-rank {
+            width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+            font-size:13px; font-weight:600; flex-shrink:0; background:rgba(16,185,129,0.1); color:#10b981;
+        }
+        .product-name { font-size:13px; font-weight:500; flex:1; line-height:1.3; }
+        .product-count { font-size:12px; color:var(--text-muted); white-space:nowrap; }
+        .badge-provas {
+            display:inline-flex; align-items:center; gap:4px;
+            background:rgba(16,185,129,0.12); color:#10b981;
+            padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600;
+        }
+        .badge-hot {
+            background:rgba(239,68,68,0.12); color:#ef4444;
+            padding:2px 8px; border-radius:999px; font-size:10px; font-weight:600; margin-left:6px;
+        }
     </style>
 </head>
 
@@ -1504,6 +1539,9 @@
                 </button>
                 <button class="tab-btn" id="tab-btn-provas" data-tab="provas" onclick="showTab('provas')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-t-shirt"></i> Provas
+                </button>
+                <button class="tab-btn" data-tab="recuperar-leads" id="tab-btn-recuperar-leads" onclick="showTab('recuperar-leads')" role="tab" aria-selected="false">
+                    <i class="ph-bold ph-user-focus"></i> Recuperar Leads
                 </button>
             </nav>
 
@@ -1701,9 +1739,6 @@
                                     <button class="btn-clear-dates" onclick="setDatePresetProvas(0)"><i class="ph-bold ph-x"></i></button>
                                 </div>
                             </div>
-                            <a href="leads.html" style="display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2);padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;transition:all .25s;font-family:inherit;">
-                                <i class="ph-bold ph-user-focus"></i> Recuperar leads
-                            </a>
                             <button class="btn-refresh" onclick="loadData()">
                                 <i class="ph-bold ph-arrows-clockwise"></i> Atualizar
                             </button>
@@ -1770,6 +1805,62 @@
                 </div>
             </div>
 
+            <!-- ====== ABA RECUPERAR LEADS ====== -->
+            <div class="tab-pane" id="tab-recuperar-leads" role="tabpanel" aria-labelledby="tab-btn-recuperar-leads">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                    <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
+                        <i class="ph-bold ph-user-focus" style="color:#10b981;"></i> Recuperar Leads
+                        <span style="font-size:12px;font-weight:500;color:var(--text-muted);background:rgba(16,185,129,0.08);padding:4px 10px;border-radius:8px;">provaram e não compraram</span>
+                    </h2>
+                </div>
+
+                <div id="leadsRecupContent" style="display:none;">
+                    <div class="stats-grid" id="leadsStatsGrid" style="margin-bottom:28px;"></div>
+                    <div class="insight-box" id="leadsInsightBox" style="display:none;"></div>
+                    <h3 id="leadsProductsTitle" style="font-size:15px;font-weight:600;margin-bottom:12px;display:none;">
+                        <i class="ph-bold ph-ranking" style="color:#10b981;"></i> Produtos mais provados sem conversão
+                    </h3>
+                    <div class="products-grid" id="leadsProductsGrid"></div>
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h2><i class="ph-bold ph-address-book" style="color:#10b981;"></i> Lista de leads</h2>
+                            <div class="table-actions">
+                                <div class="search-box">
+                                    <i class="ph-bold ph-magnifying-glass"></i>
+                                    <input type="text" id="searchLeadsRecup" placeholder="Buscar lead..." oninput="filterLeadsTable()">
+                                </div>
+                                <button class="btn-download" onclick="exportLeadsCSV()"><i class="ph-bold ph-download-simple"></i> CSV</button>
+                            </div>
+                        </div>
+                        <table id="leadsRecupTable">
+                            <thead>
+                                <tr>
+                                    <th>Última prova</th>
+                                    <th>Cliente</th>
+                                    <th>Telefone</th>
+                                    <th>Provas</th>
+                                    <th>Produtos provados</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="leadsRecupTableBody"></tbody>
+                        </table>
+                        <div class="pagination" id="leadsRecupPagination" style="display:none;">
+                            <button class="btn-page" id="leadsRecupPrevPage" onclick="changePageLeads(-1)"><i class="ph-bold ph-caret-left"></i> Anterior</button>
+                            <span class="page-info" id="leadsRecupPageInfo"></span>
+                            <button class="btn-page" id="leadsRecupNextPage" onclick="changePageLeads(1)">Próximo <i class="ph-bold ph-caret-right"></i></button>
+                        </div>
+                        <div class="empty-state" id="leadsRecupEmptyState" style="display:none;">
+                            <i class="ph-light ph-check-circle"></i>
+                            <p>Todos que provaram já compraram! Nenhum lead para recuperar.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="loader" id="leadsRecupLoader" style="display:none;">
+                    <i class="ph-bold ph-circle-notch"></i>
+                </div>
+            </div>
+
         </div>
         <div style="text-align: center; margin-top: 60px; padding: 24px 0; border-top: 1px solid var(--border);" id="quanticFooter">
             <span style="font-size:13px;color:#666;font-weight:400;">&copy; 2026 Provou Levou — Tecnologia by Quantic</span>
@@ -1827,6 +1918,13 @@
             if (btn) {
                 btn.classList.add('active');
                 btn.setAttribute('aria-selected', 'true');
+            }
+            if (name === 'recuperar-leads' && !leadsRecupLoaded && activeUser) {
+                leadsRecupLoaded = true;
+                loadLeadsRecup().catch(err => {
+                    console.error('Erro carregando leads:', err);
+                    leadsRecupLoaded = false;
+                });
             }
             try { localStorage.setItem('pl-active-tab', name); } catch(e) {}
         }
@@ -3252,6 +3350,323 @@
             const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = 'provoulevou_compras_' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ===== Recuperar Leads tab =====
+        let allLeadsRecup = [];
+        let currentPageLeadsRecup = 1;
+        const perPageLeadsRecup = 15;
+        let searchTimeoutLeadsRecup;
+        let leadsRecupLoaded = false;
+
+        async function loadLeadsRecup() {
+            // Uses global supabaseClient and activeUser — do NOT create new client.
+            const loader = document.getElementById('leadsRecupLoader');
+            const content = document.getElementById('leadsRecupContent');
+            if (loader) loader.style.display = 'flex';
+            if (content) content.style.display = 'none';
+
+            const user = activeUser;
+            const fPhone = user.campo_telefone_pedido || 'customer_phone';
+            const fTotal = user.campo_total_pedido || 'total';
+            const fStatus = user.campo_status_pedido || 'payment_status';
+            const fDataPedido = user.campo_data_pedido || 'created_at';
+            const fNome = user.campo_nome_pedido || 'customer_name';
+            const fStatusValues = user.valores_status_pago || ['paid'];
+
+            // Paginate sessions (Regra 1 — no silent 1000-row cutoff)
+            const allSessions = [];
+            {
+                const pageSize = 1000;
+                let pFrom = 0;
+                while (true) {
+                    const { data: batch } = await supabaseClient
+                        .from(user.tabela)
+                        .select('*')
+                        .ilike('origin', '%' + user.origem + '%')
+                        .range(pFrom, pFrom + pageSize - 1);
+                    if (!batch || batch.length === 0) break;
+                    allSessions.push(...batch);
+                    if (batch.length < pageSize) break;
+                    pFrom += pageSize;
+                }
+            }
+
+            if (allSessions.length === 0) {
+                if (loader) loader.style.display = 'none';
+                if (content) content.style.display = 'block';
+                document.getElementById('leadsRecupEmptyState').style.display = 'block';
+                return;
+            }
+
+            const phoneMap = {};
+            allSessions.forEach(s => {
+                const ph = normalize(s.telefone_cliente);
+                if (!ph) return;
+                if (!phoneMap[ph]) phoneMap[ph] = { sessions: 0, products: [], lastDate: '', firstDate: '', rawPhone: s.telefone_cliente };
+                phoneMap[ph].sessions++;
+                const prod = s.produtos || '';
+                if (prod) {
+                    prod.split(',').forEach(p => {
+                        p = p.trim();
+                        if (p && phoneMap[ph].products.indexOf(p) === -1) phoneMap[ph].products.push(p);
+                    });
+                }
+                const d = (s.created_at || '').slice(0, 10);
+                if (!phoneMap[ph].lastDate || d > phoneMap[ph].lastDate) phoneMap[ph].lastDate = d;
+                if (!phoneMap[ph].firstDate || d < phoneMap[ph].firstDate) phoneMap[ph].firstDate = d;
+            });
+
+            // Earliest prova date optimization (Regra 2)
+            let earliestDate = '9999';
+            Object.keys(phoneMap).forEach(ph => { if (phoneMap[ph].firstDate < earliestDate) earliestDate = phoneMap[ph].firstDate; });
+
+            const selectFields = [fPhone, fTotal, fStatus, fDataPedido, fNome].filter((v, i, a) => a.indexOf(v) === i).join(',');
+            const allOrders = [];
+            {
+                const pageSize = 1000;
+                let pFrom = 0;
+                while (true) {
+                    let ordQuery = supabaseClient
+                        .from(user.tabela_pedidos)
+                        .select(selectFields)
+                        .in(fStatus, fStatusValues)
+                        .range(pFrom, pFrom + pageSize - 1);
+                    if (earliestDate !== '9999') ordQuery = ordQuery.gte(fDataPedido, earliestDate + 'T00:00:00-03:00');
+                    const { data: batch } = await ordQuery;
+                    if (!batch || batch.length === 0) break;
+                    allOrders.push(...batch);
+                    if (batch.length < pageSize) break;
+                    pFrom += pageSize;
+                }
+            }
+
+            const nameMapLeads = {};
+            const buyerPhones = {};
+            let totalRevenue = 0;
+            let totalPaidOrders = 0;
+            allOrders.forEach(o => {
+                const ph = normalize(o[fPhone]);
+                if (!ph) return;
+                if (o[fNome]) nameMapLeads[ph] = o[fNome];
+                if (!phoneMap[ph]) return;
+                const orderDate = (o[fDataPedido] || o.created_at || '').slice(0, 10);
+                if (orderDate >= phoneMap[ph].firstDate) {
+                    buyerPhones[ph] = true;
+                    totalRevenue += parseFloat(o[fTotal]) || 0;
+                    totalPaidOrders++;
+                }
+            });
+            const avgTicket = totalPaidOrders > 0 ? totalRevenue / totalPaidOrders : 0;
+
+            allLeadsRecup = [];
+            const productCounts = {};
+            Object.keys(phoneMap).forEach(ph => {
+                if (buyerPhones[ph]) return;
+                const data = phoneMap[ph];
+                const name = nameMapLeads[ph] || '';
+                allLeadsRecup.push({
+                    phone: ph, rawPhone: data.rawPhone, name: name,
+                    firstName: name ? name.trim().split(' ')[0] : '',
+                    sessions: data.sessions, products: data.products,
+                    mainProduct: data.products[0] || '', lastDate: data.lastDate
+                });
+                data.products.forEach(p => { productCounts[p] = (productCounts[p] || 0) + 1; });
+            });
+            allLeadsRecup.sort((a, b) => b.lastDate.localeCompare(a.lastDate) || b.sessions - a.sessions);
+
+            const totalLeadSessions = allLeadsRecup.reduce((s, l) => s + l.sessions, 0);
+            const hotLeads = allLeadsRecup.filter(l => l.sessions >= 3).length;
+            const potencial = Math.floor(allLeadsRecup.length * 0.1) * avgTicket;
+
+            const statsEl = document.getElementById('leadsStatsGrid');
+            statsEl.textContent = '';
+            const statsData = [
+                { icon: 'ph-users', title: 'Leads para recuperar', value: String(allLeadsRecup.length), sub: 'provaram e não compraram', color: '#f59e0b' },
+                { icon: 'ph-t-shirt', title: 'Provas sem conversão', value: String(totalLeadSessions), sub: 'sessões no provador', color: '#f59e0b' },
+                { icon: 'ph-currency-circle-dollar', title: 'Potencial de faturamento',
+                  value: potencial.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                  sub: 'se converter 10% (' + Math.floor(allLeadsRecup.length * 0.1) + ') pelo ticket médio de ' + avgTicket.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                  color: '#f59e0b' },
+                { icon: 'ph-fire', title: 'Leads quentes', value: String(hotLeads), sub: '3+ provas — alto interesse', color: '#f59e0b', highlight: true }
+            ];
+            statsData.forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'stat-card' + (s.highlight ? ' stat-highlight' : '');
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'stat-icon';
+                iconDiv.style.cssText = 'background:rgba(16,185,129,0.1);color:' + s.color;
+                const iconI = document.createElement('i');
+                iconI.className = 'ph-bold ' + s.icon;
+                iconDiv.appendChild(iconI);
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'stat-info';
+                const h4 = document.createElement('h4'); h4.textContent = s.title;
+                const val = document.createElement('div'); val.className = 'value'; val.textContent = s.value;
+                const sub = document.createElement('div'); sub.className = 'stat-sub'; sub.textContent = s.sub;
+                infoDiv.append(h4, val, sub);
+                card.append(iconDiv, infoDiv);
+                statsEl.appendChild(card);
+            });
+
+            const ranked = Object.entries(productCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+            const grid = document.getElementById('leadsProductsGrid');
+            grid.textContent = '';
+            if (ranked.length > 0) {
+                document.getElementById('leadsProductsTitle').style.display = 'flex';
+                ranked.forEach((item, i) => {
+                    const card = document.createElement('div'); card.className = 'product-card';
+                    const rank = document.createElement('div'); rank.className = 'product-rank'; rank.textContent = String(i + 1);
+                    const name = document.createElement('div'); name.className = 'product-name'; name.textContent = item[0];
+                    const cnt = document.createElement('div'); cnt.className = 'product-count'; cnt.textContent = item[1] + ' provas';
+                    card.append(rank, name, cnt);
+                    grid.appendChild(card);
+                });
+            } else {
+                document.getElementById('leadsProductsTitle').style.display = 'none';
+            }
+
+            const box = document.getElementById('leadsInsightBox');
+            if (ranked.length > 0) {
+                const topProd = ranked[0][0];
+                const topCount = ranked[0][1];
+                box.style.display = 'block';
+                box.textContent = '';
+
+                const row1 = document.createElement('div'); row1.className = 'insight-row';
+                const icon1 = document.createElement('i'); icon1.className = 'ph-bold ph-lightbulb insight-icon'; icon1.style.color = '#f59e0b';
+                const text1Wrap = document.createElement('div');
+                const title1 = document.createElement('div'); title1.className = 'insight-title'; title1.textContent = 'Dica de recuperação';
+                const text1 = document.createElement('div'); text1.className = 'insight-text';
+                text1.textContent = topCount + ' leads provaram "' + topProd + '" e não compraram. Esse é o produto com maior potencial de recuperação. Considere criar uma campanha de WhatsApp segmentada para esses clientes.';
+                text1Wrap.append(title1, text1);
+                row1.append(icon1, text1Wrap);
+
+                const row2 = document.createElement('div'); row2.className = 'insight-row';
+                const icon2 = document.createElement('i'); icon2.className = 'ph-bold ph-whatsapp-logo insight-icon'; icon2.style.color = '#25D366';
+                const text2Wrap = document.createElement('div');
+                const title2 = document.createElement('div'); title2.className = 'insight-title'; title2.textContent = 'Sugestão de mensagem';
+                const text2 = document.createElement('div'); text2.className = 'insight-text';
+                text2.style.cssText = 'background:rgba(255,255,255,0.03);padding:12px 16px;border-radius:10px;font-style:italic;margin-top:4px;';
+                text2.textContent = 'Oi! Vi que você experimentou a ' + topProd + ' no nosso provador virtual. Ficou linda! Essa semana temos condições especiais — quer garantir a sua?';
+                text2Wrap.append(title2, text2);
+                row2.append(icon2, text2Wrap);
+
+                box.append(row1, row2);
+            } else {
+                box.style.display = 'none';
+            }
+
+            currentPageLeadsRecup = 1;
+            renderLeadsTable();
+
+            if (loader) loader.style.display = 'none';
+            if (content) content.style.display = 'block';
+        }
+
+        function renderLeadsTable(searchTerm) {
+            const tbody = document.getElementById('leadsRecupTableBody');
+            tbody.textContent = '';
+            let filtered = allLeadsRecup;
+            if (searchTerm) {
+                const q = searchTerm.toLowerCase();
+                filtered = allLeadsRecup.filter(l =>
+                    l.name.toLowerCase().indexOf(q) !== -1 ||
+                    l.phone.indexOf(q) !== -1 ||
+                    l.products.some(p => p.toLowerCase().indexOf(q) !== -1)
+                );
+            }
+            const emptyState = document.getElementById('leadsRecupEmptyState');
+            const pag = document.getElementById('leadsRecupPagination');
+            if (filtered.length === 0) {
+                emptyState.style.display = 'block';
+                pag.style.display = 'none';
+                return;
+            }
+            emptyState.style.display = 'none';
+            const start = (currentPageLeadsRecup - 1) * perPageLeadsRecup;
+            const pageData = filtered.slice(start, start + perPageLeadsRecup);
+
+            pageData.forEach(l => {
+                const tr = document.createElement('tr');
+                const dateStr = l.lastDate ? l.lastDate.split('-').reverse().join('/') : '';
+                const isHot = l.sessions >= 3;
+
+                const tdDate = document.createElement('td'); tdDate.textContent = dateStr;
+                const tdName = document.createElement('td'); tdName.style.fontWeight = '600'; tdName.textContent = l.firstName || '—';
+                if (isHot) {
+                    const hotTag = document.createElement('span'); hotTag.className = 'badge-hot';
+                    const fireIcon = document.createElement('i'); fireIcon.className = 'ph-bold ph-fire';
+                    hotTag.appendChild(fireIcon);
+                    hotTag.appendChild(document.createTextNode(' quente'));
+                    tdName.appendChild(hotTag);
+                }
+                const tdPhone = document.createElement('td'); tdPhone.textContent = String(l.rawPhone || l.phone);
+                const tdProvas = document.createElement('td');
+                const badge = document.createElement('span'); badge.className = 'badge-provas';
+                const shirtIcon = document.createElement('i'); shirtIcon.className = 'ph-bold ph-t-shirt';
+                badge.appendChild(shirtIcon);
+                badge.appendChild(document.createTextNode(' ' + l.sessions));
+                tdProvas.appendChild(badge);
+                const tdProd = document.createElement('td'); tdProd.className = 'product-cell';
+                tdProd.textContent = l.products.join(', ') || '—';
+                tdProd.title = l.products.join(', ');
+                const tdAction = document.createElement('td');
+                const link = document.createElement('a');
+                link.href = 'https://wa.me/55' + l.phone;
+                link.target = '_blank'; link.className = 'btn-whats';
+                const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
+                link.appendChild(waIcon);
+                link.appendChild(document.createTextNode(' Chamar'));
+                tdAction.appendChild(link);
+                tr.append(tdDate, tdName, tdPhone, tdProvas, tdProd, tdAction);
+                tbody.appendChild(tr);
+            });
+
+            if (filtered.length > perPageLeadsRecup) {
+                pag.style.display = 'flex';
+                document.getElementById('leadsRecupPageInfo').textContent = 'Página ' + currentPageLeadsRecup + ' de ' + Math.ceil(filtered.length / perPageLeadsRecup);
+                document.getElementById('leadsRecupPrevPage').disabled = currentPageLeadsRecup === 1;
+                document.getElementById('leadsRecupNextPage').disabled = start + perPageLeadsRecup >= filtered.length;
+            } else {
+                pag.style.display = 'none';
+            }
+        }
+
+        function changePageLeads(delta) {
+            currentPageLeadsRecup += delta;
+            if (currentPageLeadsRecup < 1) currentPageLeadsRecup = 1;
+            renderLeadsTable(document.getElementById('searchLeadsRecup').value);
+        }
+
+        function filterLeadsTable() {
+            clearTimeout(searchTimeoutLeadsRecup);
+            searchTimeoutLeadsRecup = setTimeout(() => {
+                currentPageLeadsRecup = 1;
+                renderLeadsTable(document.getElementById('searchLeadsRecup').value);
+            }, 300);
+        }
+
+        function exportLeadsCSV() {
+            if (!allLeadsRecup.length) return alert('Nenhum lead para exportar.');
+            const headers = ['Telefone', 'Cliente', 'Qtd Provas', 'Ultima Prova', 'Produto Principal', 'Todos Produtos'];
+            const rows = [headers.join(';')];
+            allLeadsRecup.forEach(l => {
+                rows.push([
+                    l.rawPhone || l.phone,
+                    '"' + l.name.replace(/"/g, '""') + '"',
+                    l.sessions, l.lastDate,
+                    '"' + l.mainProduct.replace(/"/g, '""') + '"',
+                    '"' + l.products.join(' | ').replace(/"/g, '""') + '"'
+                ].join(';'));
+            });
+            const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'leads_nao_compraram_' + new Date().toISOString().slice(0, 10) + '.csv';
+            a.click();
             URL.revokeObjectURL(url);
         }
 
