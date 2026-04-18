@@ -1495,17 +1495,17 @@
         <!-- Dashboard -->
         <div class="dashboard-content" id="dashboardSection">
 
-            <nav class="tab-nav" id="tabNav">
-                <button class="tab-btn active" data-tab="visao-geral" onclick="showTab('visao-geral')">
+            <nav class="tab-nav" id="tabNav" role="tablist">
+                <button class="tab-btn active" data-tab="visao-geral" onclick="showTab('visao-geral')" role="tab" aria-selected="true">
                     <i class="ph-bold ph-chart-pie-slice"></i> Visão Geral
                 </button>
-                <button class="tab-btn" data-tab="vendas" onclick="showTab('vendas')">
+                <button class="tab-btn" data-tab="vendas" onclick="showTab('vendas')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-shopping-cart"></i> Vendas
                 </button>
-                <button class="tab-btn" data-tab="clientes" onclick="showTab('clientes')">
+                <button class="tab-btn" data-tab="clientes" onclick="showTab('clientes')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-users-three"></i> Clientes & LTV
                 </button>
-                <button class="tab-btn" data-tab="provas" onclick="showTab('provas')">
+                <button class="tab-btn" data-tab="provas" onclick="showTab('provas')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-t-shirt"></i> Provas
                 </button>
             </nav>
@@ -1803,12 +1803,19 @@
         let activeUser = null;
 
         function showTab(name) {
-            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             const pane = document.getElementById('tab-' + name);
             const btn = document.querySelector('.tab-btn[data-tab="' + name + '"]');
+            if (!pane && !btn && name !== 'visao-geral') { return showTab('visao-geral'); }
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active');
+                b.setAttribute('aria-selected', 'false');
+            });
             if (pane) pane.classList.add('active');
-            if (btn) btn.classList.add('active');
+            if (btn) {
+                btn.classList.add('active');
+                btn.setAttribute('aria-selected', 'true');
+            }
             try { localStorage.setItem('pl-active-tab', name); } catch(e) {}
         }
 
