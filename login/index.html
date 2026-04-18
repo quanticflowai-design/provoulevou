@@ -1554,227 +1554,227 @@
 
             <!-- ====== ABA VENDAS ====== -->
             <div class="tab-pane" id="tab-vendas" role="tabpanel" aria-labelledby="tab-btn-vendas">
-            <!-- ====== SEÇÃO COMPRAS ====== -->
-            <div id="comprasSection">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-                    <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
-                        <i class="ph-bold ph-shopping-cart" style="color:#10b981;"></i> Compras via Provador
-                    </h2>
-                    <div class="date-filter-bar" style="margin-bottom:0;">
-                        <div class="date-presets">
-                            <button class="btn-preset active" onclick="setDatePresetCompras(0)">Tudo</button>
-                            <button class="btn-preset" onclick="setDatePresetCompras(1)">Hoje</button>
-                            <button class="btn-preset" onclick="setDatePresetCompras(7)">7 dias</button>
-                            <button class="btn-preset" onclick="setDatePresetCompras(30)">30 dias</button>
-                        </div>
-                        <div class="date-custom">
-                            <label><i class="ph-bold ph-calendar-blank"></i></label>
-                            <input type="date" id="dateFromCompras" oninput="dateFromCompras=this.value;loadCompras(1)">
-                            <span>até</span>
-                            <input type="date" id="dateToCompras" oninput="dateToCompras=this.value;loadCompras(1)">
-                            <button class="btn-clear-dates" onclick="setDatePresetCompras(0)"><i class="ph-bold ph-x"></i></button>
-                        </div>
-                        <button id="btnFilterRecorrente" onclick="toggleRecorrenteFilter()" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;transition:all .25s;white-space:nowrap;">
-                            <i class="ph-bold ph-arrows-clockwise"></i> Apenas recorrentes
-                        </button>
-                    </div>
-                </div>
-
-                <div class="chart-container" id="chartSection" style="display:none;">
-                    <div class="chart-header">
-                        <h2><i class="ph-bold ph-chart-bar"></i> Vendas Diárias (via Provador)</h2>
-                    </div>
-                    <div class="chart-canvas-wrap">
-                        <canvas id="dailySalesChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="table-container">
-                    <div class="table-header">
-                        <h2><i class="ph-fill ph-receipt"></i> Últimas Compras</h2>
-                        <div class="table-actions">
-                            <div class="search-box">
-                                <i class="ph-bold ph-magnifying-glass"></i>
-                                <input type="text" id="searchCompras" placeholder="Buscar cliente, telefone..." oninput="debounceSearch('compras', this.value)">
+                <!-- ====== SEÇÃO COMPRAS ====== -->
+                <div id="comprasSection">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                        <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
+                            <i class="ph-bold ph-shopping-cart" style="color:#10b981;"></i> Compras via Provador
+                        </h2>
+                        <div class="date-filter-bar" style="margin-bottom:0;">
+                            <div class="date-presets">
+                                <button class="btn-preset active" onclick="setDatePresetCompras(0)">Tudo</button>
+                                <button class="btn-preset" onclick="setDatePresetCompras(1)">Hoje</button>
+                                <button class="btn-preset" onclick="setDatePresetCompras(7)">7 dias</button>
+                                <button class="btn-preset" onclick="setDatePresetCompras(30)">30 dias</button>
                             </div>
-                            <button class="btn-download" onclick="downloadCSVCompras()" title="Baixar CSV Compras">
-                                <i class="ph-bold ph-download-simple"></i> CSV
+                            <div class="date-custom">
+                                <label><i class="ph-bold ph-calendar-blank"></i></label>
+                                <input type="date" id="dateFromCompras" oninput="dateFromCompras=this.value;loadCompras(1)">
+                                <span>até</span>
+                                <input type="date" id="dateToCompras" oninput="dateToCompras=this.value;loadCompras(1)">
+                                <button class="btn-clear-dates" onclick="setDatePresetCompras(0)"><i class="ph-bold ph-x"></i></button>
+                            </div>
+                            <button id="btnFilterRecorrente" onclick="toggleRecorrenteFilter()" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;transition:all .25s;white-space:nowrap;">
+                                <i class="ph-bold ph-arrows-clockwise"></i> Apenas recorrentes
                             </button>
                         </div>
                     </div>
-                    <table id="comprasTable">
-                        <thead>
-                            <tr>
-                                <th>Data do Pedido</th>
-                                <th>Cliente</th>
-                                <th>WhatsApp</th>
-                                <th>Valor</th>
-                                <th>Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody id="comprasTableBody"></tbody>
-                    </table>
-                    <div class="pagination" id="comprasPagination" style="display:none;">
-                        <button class="btn-page" id="comprasPrevPage" onclick="changePageCompras(-1)">
-                            <i class="ph-bold ph-caret-left"></i> Anterior
-                        </button>
-                        <span class="page-info" id="comprasPageInfo">Página 1</span>
-                        <button class="btn-page" id="comprasNextPage" onclick="changePageCompras(1)">
-                            Próximo <i class="ph-bold ph-caret-right"></i>
-                        </button>
+
+                    <div class="chart-container" id="chartSection" style="display:none;">
+                        <div class="chart-header">
+                            <h2><i class="ph-bold ph-chart-bar"></i> Vendas Diárias (via Provador)</h2>
+                        </div>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="dailySalesChart"></canvas>
+                        </div>
                     </div>
-                    <div class="empty-state" id="comprasEmptyState" style="display:none;">
-                        <i class="ph-light ph-ghost"></i>
-                        <p>Nenhuma compra encontrada no período via provador.</p>
+
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h2><i class="ph-fill ph-receipt"></i> Últimas Compras</h2>
+                            <div class="table-actions">
+                                <div class="search-box">
+                                    <i class="ph-bold ph-magnifying-glass"></i>
+                                    <input type="text" id="searchCompras" placeholder="Buscar cliente, telefone..." oninput="debounceSearch('compras', this.value)">
+                                </div>
+                                <button class="btn-download" onclick="downloadCSVCompras()" title="Baixar CSV Compras">
+                                    <i class="ph-bold ph-download-simple"></i> CSV
+                                </button>
+                            </div>
+                        </div>
+                        <table id="comprasTable">
+                            <thead>
+                                <tr>
+                                    <th>Data do Pedido</th>
+                                    <th>Cliente</th>
+                                    <th>WhatsApp</th>
+                                    <th>Valor</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comprasTableBody"></tbody>
+                        </table>
+                        <div class="pagination" id="comprasPagination" style="display:none;">
+                            <button class="btn-page" id="comprasPrevPage" onclick="changePageCompras(-1)">
+                                <i class="ph-bold ph-caret-left"></i> Anterior
+                            </button>
+                            <span class="page-info" id="comprasPageInfo">Página 1</span>
+                            <button class="btn-page" id="comprasNextPage" onclick="changePageCompras(1)">
+                                Próximo <i class="ph-bold ph-caret-right"></i>
+                            </button>
+                        </div>
+                        <div class="empty-state" id="comprasEmptyState" style="display:none;">
+                            <i class="ph-light ph-ghost"></i>
+                            <p>Nenhuma compra encontrada no período via provador.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
             </div>
 
             <!-- ====== ABA CLIENTES & LTV ====== -->
             <div class="tab-pane" id="tab-clientes" role="tabpanel" aria-labelledby="tab-btn-clientes">
-            <!-- ====== SEÇÃO LTV ====== -->
-            <div id="ltvSection">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-                    <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
-                        <i class="ph-bold ph-crown" style="color:#f59e0b;"></i> Clientes com Maior LTV
-                        <span style="font-size:12px;font-weight:500;color:var(--text-muted);background:rgba(245,158,11,0.1);padding:4px 10px;border-radius:8px;">Apenas compras pós-prova</span>
-                    </h2>
-                </div>
-                <div class="table-container">
-                    <div class="table-header">
-                        <h2><i class="ph-fill ph-trophy"></i> Ranking de LTV</h2>
-                        <div class="table-actions">
-                            <div class="search-box">
-                                <i class="ph-bold ph-magnifying-glass"></i>
-                                <input type="text" id="searchLtv" placeholder="Buscar cliente, telefone..." oninput="debounceSearch('ltv', this.value)">
+                <!-- ====== SEÇÃO LTV ====== -->
+                <div id="ltvSection">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                        <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
+                            <i class="ph-bold ph-crown" style="color:#f59e0b;"></i> Clientes com Maior LTV
+                            <span style="font-size:12px;font-weight:500;color:var(--text-muted);background:rgba(245,158,11,0.1);padding:4px 10px;border-radius:8px;">Apenas compras pós-prova</span>
+                        </h2>
+                    </div>
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h2><i class="ph-fill ph-trophy"></i> Ranking de LTV</h2>
+                            <div class="table-actions">
+                                <div class="search-box">
+                                    <i class="ph-bold ph-magnifying-glass"></i>
+                                    <input type="text" id="searchLtv" placeholder="Buscar cliente, telefone..." oninput="debounceSearch('ltv', this.value)">
+                                </div>
+                                <button class="btn-download" onclick="downloadCSVLtv()" title="Baixar CSV LTV">
+                                    <i class="ph-bold ph-download-simple"></i> CSV
+                                </button>
                             </div>
-                            <button class="btn-download" onclick="downloadCSVLtv()" title="Baixar CSV LTV">
-                                <i class="ph-bold ph-download-simple"></i> CSV
+                        </div>
+                        <table id="ltvTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Cliente</th>
+                                    <th>WhatsApp</th>
+                                    <th>Total Gasto</th>
+                                    <th>Nº Pedidos</th>
+                                    <th>Ticket Médio</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ltvTableBody"></tbody>
+                        </table>
+                        <div class="pagination" id="ltvPagination" style="display:none;">
+                            <button class="btn-page" id="ltvPrevPage" onclick="changePageLtv(-1)">
+                                <i class="ph-bold ph-caret-left"></i> Anterior
+                            </button>
+                            <span class="page-info" id="ltvPageInfo">Página 1</span>
+                            <button class="btn-page" id="ltvNextPage" onclick="changePageLtv(1)">
+                                Próximo <i class="ph-bold ph-caret-right"></i>
                             </button>
                         </div>
-                    </div>
-                    <table id="ltvTable">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Cliente</th>
-                                <th>WhatsApp</th>
-                                <th>Total Gasto</th>
-                                <th>Nº Pedidos</th>
-                                <th>Ticket Médio</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ltvTableBody"></tbody>
-                    </table>
-                    <div class="pagination" id="ltvPagination" style="display:none;">
-                        <button class="btn-page" id="ltvPrevPage" onclick="changePageLtv(-1)">
-                            <i class="ph-bold ph-caret-left"></i> Anterior
-                        </button>
-                        <span class="page-info" id="ltvPageInfo">Página 1</span>
-                        <button class="btn-page" id="ltvNextPage" onclick="changePageLtv(1)">
-                            Próximo <i class="ph-bold ph-caret-right"></i>
-                        </button>
-                    </div>
-                    <div class="empty-state" id="ltvEmptyState" style="display:none;">
-                        <i class="ph-light ph-ghost"></i>
-                        <p>Nenhum cliente com compras pós-prova ainda.</p>
+                        <div class="empty-state" id="ltvEmptyState" style="display:none;">
+                            <i class="ph-light ph-ghost"></i>
+                            <p>Nenhum cliente com compras pós-prova ainda.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
             </div>
 
             <!-- ====== ABA PROVAS ====== -->
             <div class="tab-pane" id="tab-provas" role="tabpanel" aria-labelledby="tab-btn-provas">
-            <!-- ====== SEÇÃO PROVAS ====== -->
-            <div id="provasSection">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-                    <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
-                        <i class="ph-bold ph-t-shirt" style="color:var(--primary);"></i> Provas
-                    </h2>
-                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                        <div class="date-filter-bar" style="margin-bottom:0;">
-                            <div class="date-presets">
-                                <button class="btn-preset active" onclick="setDatePresetProvas(0)">Tudo</button>
-                                <button class="btn-preset" onclick="setDatePresetProvas(1)">Hoje</button>
-                                <button class="btn-preset" onclick="setDatePresetProvas(7)">7 dias</button>
-                                <button class="btn-preset" onclick="setDatePresetProvas(30)">30 dias</button>
+                <!-- ====== SEÇÃO PROVAS ====== -->
+                <div id="provasSection">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                        <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
+                            <i class="ph-bold ph-t-shirt" style="color:var(--primary);"></i> Provas
+                        </h2>
+                        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                            <div class="date-filter-bar" style="margin-bottom:0;">
+                                <div class="date-presets">
+                                    <button class="btn-preset active" onclick="setDatePresetProvas(0)">Tudo</button>
+                                    <button class="btn-preset" onclick="setDatePresetProvas(1)">Hoje</button>
+                                    <button class="btn-preset" onclick="setDatePresetProvas(7)">7 dias</button>
+                                    <button class="btn-preset" onclick="setDatePresetProvas(30)">30 dias</button>
+                                </div>
+                                <div class="date-custom">
+                                    <label><i class="ph-bold ph-calendar-blank"></i></label>
+                                    <input type="date" id="dateFromProvas" oninput="dateFromProvas=this.value;loadProvas(1)">
+                                    <span>até</span>
+                                    <input type="date" id="dateToProvas" oninput="dateToProvas=this.value;loadProvas(1)">
+                                    <button class="btn-clear-dates" onclick="setDatePresetProvas(0)"><i class="ph-bold ph-x"></i></button>
+                                </div>
                             </div>
-                            <div class="date-custom">
-                                <label><i class="ph-bold ph-calendar-blank"></i></label>
-                                <input type="date" id="dateFromProvas" oninput="dateFromProvas=this.value;loadProvas(1)">
-                                <span>até</span>
-                                <input type="date" id="dateToProvas" oninput="dateToProvas=this.value;loadProvas(1)">
-                                <button class="btn-clear-dates" onclick="setDatePresetProvas(0)"><i class="ph-bold ph-x"></i></button>
-                            </div>
-                        </div>
-                        <a href="leads.html" style="display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2);padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;transition:all .25s;font-family:inherit;">
-                            <i class="ph-bold ph-user-focus"></i> Recuperar leads
-                        </a>
-                        <button class="btn-refresh" onclick="loadData()">
-                            <i class="ph-bold ph-arrows-clockwise"></i> Atualizar
-                        </button>
-                    </div>
-                </div>
-
-                <div class="stats-grid" style="margin-bottom:20px;">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="ph-bold ph-users"></i></div>
-                        <div class="stat-info">
-                            <h4>Total de Provas</h4>
-                            <div class="value" id="provasTotalCount">0</div>
-                            <div class="stat-sub"><span id="provasUniqueCount">0</span> clientes únicos</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="ranking-container" id="rankingSection" style="display:none;">
-                    <div class="ranking-header">
-                        <h2><i class="ph-bold ph-trophy"></i> Produtos Mais Provados</h2>
-                    </div>
-                    <div class="ranking-list" id="rankingList"></div>
-                </div>
-
-                <div class="table-container">
-                    <div class="table-header">
-                        <h2><i class="ph-fill ph-list-dashes"></i> Últimas Provas</h2>
-                        <div class="table-actions">
-                            <div class="search-box">
-                                <i class="ph-bold ph-magnifying-glass"></i>
-                                <input type="text" id="searchProvas" placeholder="Buscar cliente, telefone, produto..." oninput="debounceSearch('provas', this.value)">
-                            </div>
-                            <button class="btn-download" onclick="downloadCSVProvas()" title="Baixar CSV Provas">
-                                <i class="ph-bold ph-download-simple"></i> CSV
+                            <a href="leads.html" style="display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2);padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;transition:all .25s;font-family:inherit;">
+                                <i class="ph-bold ph-user-focus"></i> Recuperar leads
+                            </a>
+                            <button class="btn-refresh" onclick="loadData()">
+                                <i class="ph-bold ph-arrows-clockwise"></i> Atualizar
                             </button>
                         </div>
                     </div>
-                    <table id="provasTable">
-                        <thead>
-                            <tr>
-                                <th>Data e Hora</th>
-                                <th>Cliente</th>
-                                <th>WhatsApp</th>
-                                <th>Produto</th>
-                                <th>Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody id="provasTableBody"></tbody>
-                    </table>
-                    <div class="pagination" id="provasPagination" style="display:none;">
-                        <button class="btn-page" id="provasPrevPage" onclick="changePageProvas(-1)">
-                            <i class="ph-bold ph-caret-left"></i> Anterior
-                        </button>
-                        <span class="page-info" id="provasPageInfo">Página 1</span>
-                        <button class="btn-page" id="provasNextPage" onclick="changePageProvas(1)">
-                            Próximo <i class="ph-bold ph-caret-right"></i>
-                        </button>
+
+                    <div class="stats-grid" style="margin-bottom:20px;">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="ph-bold ph-users"></i></div>
+                            <div class="stat-info">
+                                <h4>Total de Provas</h4>
+                                <div class="value" id="provasTotalCount">0</div>
+                                <div class="stat-sub"><span id="provasUniqueCount">0</span> clientes únicos</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="empty-state" id="provasEmptyState" style="display:none;">
-                        <i class="ph-light ph-ghost"></i>
-                        <p>Nenhuma prova encontrada. Assim que alguém usar o provador, aparecerá aqui!</p>
+
+                    <div class="ranking-container" id="rankingSection" style="display:none;">
+                        <div class="ranking-header">
+                            <h2><i class="ph-bold ph-trophy"></i> Produtos Mais Provados</h2>
+                        </div>
+                        <div class="ranking-list" id="rankingList"></div>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h2><i class="ph-fill ph-list-dashes"></i> Últimas Provas</h2>
+                            <div class="table-actions">
+                                <div class="search-box">
+                                    <i class="ph-bold ph-magnifying-glass"></i>
+                                    <input type="text" id="searchProvas" placeholder="Buscar cliente, telefone, produto..." oninput="debounceSearch('provas', this.value)">
+                                </div>
+                                <button class="btn-download" onclick="downloadCSVProvas()" title="Baixar CSV Provas">
+                                    <i class="ph-bold ph-download-simple"></i> CSV
+                                </button>
+                            </div>
+                        </div>
+                        <table id="provasTable">
+                            <thead>
+                                <tr>
+                                    <th>Data e Hora</th>
+                                    <th>Cliente</th>
+                                    <th>WhatsApp</th>
+                                    <th>Produto</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="provasTableBody"></tbody>
+                        </table>
+                        <div class="pagination" id="provasPagination" style="display:none;">
+                            <button class="btn-page" id="provasPrevPage" onclick="changePageProvas(-1)">
+                                <i class="ph-bold ph-caret-left"></i> Anterior
+                            </button>
+                            <span class="page-info" id="provasPageInfo">Página 1</span>
+                            <button class="btn-page" id="provasNextPage" onclick="changePageProvas(1)">
+                                Próximo <i class="ph-bold ph-caret-right"></i>
+                            </button>
+                        </div>
+                        <div class="empty-state" id="provasEmptyState" style="display:none;">
+                            <i class="ph-light ph-ghost"></i>
+                            <p>Nenhuma prova encontrada. Assim que alguém usar o provador, aparecerá aqui!</p>
+                        </div>
                     </div>
                 </div>
-            </div>
             </div>
 
         </div>
