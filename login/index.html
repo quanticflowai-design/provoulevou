@@ -1496,20 +1496,64 @@
         <div class="dashboard-content" id="dashboardSection">
 
             <nav class="tab-nav" id="tabNav" role="tablist">
-                <button class="tab-btn active" data-tab="visao-geral" onclick="showTab('visao-geral')" role="tab" aria-selected="true">
+                <button class="tab-btn active" id="tab-btn-visao-geral" data-tab="visao-geral" onclick="showTab('visao-geral')" role="tab" aria-selected="true">
                     <i class="ph-bold ph-chart-pie-slice"></i> Visão Geral
                 </button>
-                <button class="tab-btn" data-tab="vendas" onclick="showTab('vendas')" role="tab" aria-selected="false">
+                <button class="tab-btn" id="tab-btn-vendas" data-tab="vendas" onclick="showTab('vendas')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-shopping-cart"></i> Vendas
                 </button>
-                <button class="tab-btn" data-tab="clientes" onclick="showTab('clientes')" role="tab" aria-selected="false">
+                <button class="tab-btn" id="tab-btn-clientes" data-tab="clientes" onclick="showTab('clientes')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-users-three"></i> Clientes & LTV
                 </button>
-                <button class="tab-btn" data-tab="provas" onclick="showTab('provas')" role="tab" aria-selected="false">
+                <button class="tab-btn" id="tab-btn-provas" data-tab="provas" onclick="showTab('provas')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-t-shirt"></i> Provas
                 </button>
             </nav>
 
+            <!-- ====== ABA VISÃO GERAL ====== -->
+            <div class="tab-pane active" id="tab-visao-geral" role="tabpanel" aria-labelledby="tab-btn-visao-geral">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                    <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
+                        <i class="ph-bold ph-chart-pie-slice" style="color:var(--primary);"></i> Visão Geral
+                    </h2>
+                    <span style="font-size:12px;color:var(--text-muted);">Comparação com o mês anterior</span>
+                </div>
+
+                <div class="stats-grid" style="margin-bottom:20px;">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:rgba(37,211,102,0.1);color:#25D366;"><i class="ph-bold ph-handbag"></i></div>
+                        <div class="stat-info">
+                            <h4>Nº de Pedidos <span class="kpi-delta neutral" id="kpiDeltaPedidos">—</span></h4>
+                            <div class="value" id="comprasPedidosCount">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:rgba(139,92,246,0.1);color:var(--primary);"><i class="ph-bold ph-currency-circle-dollar"></i></div>
+                        <div class="stat-info">
+                            <h4>Faturamento via Provador <span class="kpi-delta neutral" id="kpiDeltaFat">—</span></h4>
+                            <div class="value" id="comprasFaturamento">R$ 0,00</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:rgba(37,211,102,0.1);color:#25D366;"><i class="ph-bold ph-user-check"></i></div>
+                        <div class="stat-info">
+                            <h4>Compradores Únicos <span class="kpi-delta neutral" id="kpiDeltaUnicos">—</span></h4>
+                            <div class="value" id="provasCompraramCount">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-card-conversion">
+                        <div class="stat-icon" style="background:rgba(139,92,246,0.15);color:#8b5cf6;"><i class="ph-bold ph-chart-line-up"></i></div>
+                        <div class="stat-info">
+                            <h4>% Conversão <span class="kpi-delta neutral" id="kpiDeltaConv">—</span></h4>
+                            <div class="value" id="provasConversao">0%</div>
+                            <div class="stat-sub">únicos → compradores</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== ABA VENDAS ====== -->
+            <div class="tab-pane" id="tab-vendas" role="tabpanel" aria-labelledby="tab-btn-vendas">
             <!-- ====== SEÇÃO COMPRAS ====== -->
             <div id="comprasSection">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
@@ -1533,38 +1577,6 @@
                         <button id="btnFilterRecorrente" onclick="toggleRecorrenteFilter()" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;transition:all .25s;white-space:nowrap;">
                             <i class="ph-bold ph-arrows-clockwise"></i> Apenas recorrentes
                         </button>
-                    </div>
-                </div>
-
-                <div class="stats-grid" style="margin-bottom:20px;">
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:rgba(37,211,102,0.1);color:#25D366;"><i class="ph-bold ph-handbag"></i></div>
-                        <div class="stat-info">
-                            <h4>Nº de Pedidos</h4>
-                            <div class="value" id="comprasPedidosCount">0</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:rgba(139,92,246,0.1);color:var(--primary);"><i class="ph-bold ph-currency-circle-dollar"></i></div>
-                        <div class="stat-info">
-                            <h4>Faturamento via Provador</h4>
-                            <div class="value" id="comprasFaturamento">R$ 0,00</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:rgba(37,211,102,0.1);color:#25D366;"><i class="ph-bold ph-user-check"></i></div>
-                        <div class="stat-info">
-                            <h4>Compradores Únicos</h4>
-                            <div class="value" id="provasCompraramCount">0</div>
-                        </div>
-                    </div>
-                    <div class="stat-card stat-card-conversion">
-                        <div class="stat-icon" style="background:rgba(139,92,246,0.15);color:#8b5cf6;"><i class="ph-bold ph-chart-line-up"></i></div>
-                        <div class="stat-info">
-                            <h4>% Conversão</h4>
-                            <div class="value" id="provasConversao">0%</div>
-                            <div class="stat-sub">únicos → compradores</div>
-                        </div>
                     </div>
                 </div>
 
@@ -1617,9 +1629,12 @@
                     </div>
                 </div>
             </div>
+            </div>
 
+            <!-- ====== ABA CLIENTES & LTV ====== -->
+            <div class="tab-pane" id="tab-clientes" role="tabpanel" aria-labelledby="tab-btn-clientes">
             <!-- ====== SEÇÃO LTV ====== -->
-            <div id="ltvSection" style="margin-top:40px;">
+            <div id="ltvSection">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
                     <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
                         <i class="ph-bold ph-crown" style="color:#f59e0b;"></i> Clientes com Maior LTV
@@ -1667,9 +1682,12 @@
                     </div>
                 </div>
             </div>
+            </div>
 
+            <!-- ====== ABA PROVAS ====== -->
+            <div class="tab-pane" id="tab-provas" role="tabpanel" aria-labelledby="tab-btn-provas">
             <!-- ====== SEÇÃO PROVAS ====== -->
-            <div id="provasSection" style="margin-top:40px;">
+            <div id="provasSection">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
                     <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
                         <i class="ph-bold ph-t-shirt" style="color:var(--primary);"></i> Provas
@@ -1756,6 +1774,7 @@
                         <p>Nenhuma prova encontrada. Assim que alguém usar o provador, aparecerá aqui!</p>
                     </div>
                 </div>
+            </div>
             </div>
 
         </div>
