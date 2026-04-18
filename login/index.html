@@ -1347,6 +1347,52 @@
         body.light-mode .date-presets { background: rgba(0,0,0,0.02); }
         body.light-mode .btn-preset:hover { background: rgba(0,0,0,0.04); }
         body.light-mode #neural-canvas { opacity: 0 !important; }
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .tab-nav::-webkit-scrollbar { display: none; }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px 18px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all .2s;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-btn:hover { color: var(--text); }
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+        .kpi-delta {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .kpi-delta.up { background: rgba(16,185,129,0.1); color: #10b981; }
+        .kpi-delta.down { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .kpi-delta.neutral { background: rgba(148,163,184,0.1); color: #94a3b8; }
     </style>
 </head>
 
@@ -1448,6 +1494,21 @@
 
         <!-- Dashboard -->
         <div class="dashboard-content" id="dashboardSection">
+
+            <nav class="tab-nav" id="tabNav">
+                <button class="tab-btn active" data-tab="visao-geral" onclick="showTab('visao-geral')">
+                    <i class="ph-bold ph-chart-pie-slice"></i> Visão Geral
+                </button>
+                <button class="tab-btn" data-tab="vendas" onclick="showTab('vendas')">
+                    <i class="ph-bold ph-shopping-cart"></i> Vendas
+                </button>
+                <button class="tab-btn" data-tab="clientes" onclick="showTab('clientes')">
+                    <i class="ph-bold ph-users-three"></i> Clientes & LTV
+                </button>
+                <button class="tab-btn" data-tab="provas" onclick="showTab('provas')">
+                    <i class="ph-bold ph-t-shirt"></i> Provas
+                </button>
+            </nav>
 
             <!-- ====== SEÇÃO COMPRAS ====== -->
             <div id="comprasSection">
@@ -1740,6 +1801,22 @@
 
         let supabaseClient = null;
         let activeUser = null;
+
+        function showTab(name) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            const pane = document.getElementById('tab-' + name);
+            const btn = document.querySelector('.tab-btn[data-tab="' + name + '"]');
+            if (pane) pane.classList.add('active');
+            if (btn) btn.classList.add('active');
+            try { localStorage.setItem('pl-active-tab', name); } catch(e) {}
+        }
+
+        function restoreTab() {
+            const saved = (function(){ try { return localStorage.getItem('pl-active-tab'); } catch(e) { return null; } })();
+            showTab(saved || 'visao-geral');
+        }
+
         let _csvExportData = []; // dados completos para exportação CSV
 
         async function initApp() {
@@ -2800,6 +2877,7 @@
                 await loadSharedData();
                 document.getElementById('mainLoader').style.display = 'none';
                 document.getElementById('dashboardSection').style.display = 'block';
+                restoreTab();
                 await Promise.all([loadProvas(1), loadCompras(1), loadLtv(1)]);
             } catch (err) {
                 console.error(err);
