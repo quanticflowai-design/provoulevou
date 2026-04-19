@@ -2929,7 +2929,7 @@
             const dailyCount = {}, dailyRevenue = {};
             orders.forEach(o => {
                 const raw = (fDataPedido && o[fDataPedido]) || (o.created_at || '');
-                const day = raw ? raw.slice(0, 10) : null;
+                const day = raw ? (raw.length === 10 ? raw : new Date(raw).toLocaleDateString('en-CA')) : null;
                 if (day) {
                     dailyCount[day] = (dailyCount[day] || 0) + 1;
                     dailyRevenue[day] = (dailyRevenue[day] || 0) + (parseFloat(o[fTotal]) || 0);
