@@ -2006,13 +2006,10 @@ function updateThemeIcon(theme) {
 
 /* ──────────────────────────── APP BOOT ─────────────────────── */
 (async function boot() {
-  if (!window.ENV || !window.ENV.SUPABASE_URL || !window.ENV.SUPABASE_KEY) {
-    document.getElementById('loginError').textContent = 'Erro: configuração do Supabase não encontrada.';
-    document.getElementById('loginError').classList.add('show');
-    return;
-  }
+  const SUPABASE_URL = (window.ENV && window.ENV.SUPABASE_URL) || 'https://quantic-supabase.k5jwra.easypanel.host';
+  const SUPABASE_KEY = (window.ENV && window.ENV.SUPABASE_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.g2PgdtfvvAFY_Dyylnh9dRVKudf1RWiw1WqwogmsHTA';
 
-  sb = window.supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_KEY);
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // Check for existing session
   const { data: { session } } = await sb.auth.getSession();

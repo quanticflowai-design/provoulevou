@@ -1605,15 +1605,6 @@
 
         </div>
 
-        <!-- Error Section -->
-        <div class="config-card" id="errorSection">
-            <i class="ph-bold ph-warning-circle"
-                style="font-size:42px; color:#ef4444; margin-bottom:15px; display:inline-block;"></i>
-            <h3>Conexão Supabase Ausente!</h3>
-            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 0;">Abra o arquivo <b>env.js</b> nessa
-                pasta e insira a sua URL, a KEY e o Título da Tabela para carregar o Dashboard.</p>
-        </div>
-
         <div class="loader" id="mainLoader">
             <i class="ph-bold ph-circle-notch"></i>
         </div>
@@ -2086,14 +2077,11 @@
             document.body.classList.add('login-mode');
             document.getElementById('quanticLogoImg').style.filter = 'brightness(0) invert(1)';
 
-            if (!window.ENV || !window.ENV.SUPABASE_URL || !window.ENV.SUPABASE_KEY) {
-                document.getElementById('errorSection').style.display = 'block';
-                document.getElementById('loginSection').style.display = 'none';
-                return;
-            }
+            const SUPABASE_URL = (window.ENV && window.ENV.SUPABASE_URL) || 'https://quantic-supabase.k5jwra.easypanel.host';
+            const SUPABASE_KEY = (window.ENV && window.ENV.SUPABASE_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.g2PgdtfvvAFY_Dyylnh9dRVKudf1RWiw1WqwogmsHTA';
 
             // Init core client once
-            supabaseClient = window.supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_KEY);
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
             // Verifica se já existe uma sessão de login válida ativa
             const { data: { session } } = await supabaseClient.auth.getSession();
@@ -2980,7 +2968,6 @@
             } catch (err) {
                 console.error(err);
                 document.getElementById('mainLoader').style.display = 'none';
-                document.getElementById('errorSection').style.display = 'block';
             }
         }
 
