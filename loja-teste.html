@@ -690,6 +690,17 @@
             body: JSON.stringify({ produto: productBase64, modelo: modelBase64 })
           });
 
+          if (response.status === 429) {
+            var errData = null;
+            try { errData = await response.json(); } catch (e) {}
+            var msg = (errData && errData.mensagem) || 'Você atingiu o limite de 3 testes gratuitos. Entre em contato para liberar mais.';
+            uploadStatus.textContent = msg;
+            uploadStatus.style.color = '#ef4444';
+            loadingModal.classList.remove('active');
+            resetButton();
+            return;
+          }
+
           if (response.ok) {
             uploadStatus.textContent = 'Processamento concluído.';
             uploadStatus.style.color = '#10b981';
