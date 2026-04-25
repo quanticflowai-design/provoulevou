@@ -693,7 +693,7 @@
           if (response.status === 429) {
             var errData = null;
             try { errData = await response.json(); } catch (e) {}
-            var msg = (errData && errData.mensagem) || 'Você atingiu o limite de 3 testes gratuitos. Entre em contato para liberar mais.';
+            var msg = (errData && errData.mensagem) || 'Você atingiu o limite de 5 testes gratuitos. Entre em contato para liberar mais.';
             uploadStatus.textContent = msg;
             uploadStatus.style.color = '#ef4444';
             loadingModal.classList.remove('active');
