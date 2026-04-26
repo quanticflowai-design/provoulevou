@@ -20,16 +20,16 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg: #0a0a0a;
-      --bg-alt: #111111;
-      --bg-elevated: #161616;
-      --text: #edebe7;
-      --text-sub: #999;
-      --text-muted: #666;
+      --bg: #f5f4f0;
+      --bg-alt: #eeecea;
+      --bg-elevated: #ffffff;
+      --text: #0a0a0a;
+      --text-sub: #666;
+      --text-muted: #888;
       --text-dark: #0a0a0a;
-      --border: rgba(255,255,255,0.06);
+      --border: rgba(0,0,0,0.08);
       --purple: #7c3aed;
-      --purple-light: #a78bfa;
+      --purple-light: #7c3aed;
       --purple-soft: rgba(124,58,237,0.08);
       --green: #10b981;
       --red: #ef4444;
@@ -79,10 +79,10 @@
 
     /* Typography */
     .label {
-      font-size: 13px; letter-spacing: 0.05em; color: var(--purple-light);
+      font-size: 13px; letter-spacing: 0.05em; color: var(--purple);
       font-weight: 500; text-transform: uppercase; display: inline-block; margin-bottom: 16px;
     }
-    .accent { color: var(--purple-light); }
+    .accent { color: var(--purple); }
 
     /* Nav */
     .nav {
@@ -97,17 +97,17 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: 12px 10px 12px 24px;
       border-radius: var(--pill);
-      background: rgba(10,10,10,0.7);
+      background: rgba(245,244,240,0.7);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       pointer-events: all;
       transition: all .35s;
     }
-    .nav.scrolled .nav-pill { background: rgba(10,10,10,0.92); box-shadow: 0 1px 12px rgba(0,0,0,0.2); }
-    .nav-brand { text-decoration: none; display: flex; align-items: center; }
+    .nav.scrolled .nav-pill { background: rgba(245,244,240,0.95); box-shadow: 0 1px 12px rgba(0,0,0,0.04); }
+    .nav-brand { text-decoration: none; display: flex; align-items: center; color: var(--text-dark); }
     .nav-logo { height: 38px; width: auto; }
     .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
-    .nav-links a { font-size: 13px; color: var(--text-muted); text-decoration: none; transition: color .2s; font-weight: 500; }
-    .nav-links a:hover { color: var(--text); }
+    .nav-links a { font-size: 13px; color: #666; text-decoration: none; transition: color .2s; font-weight: 500; }
+    .nav-links a:hover { color: var(--text-dark); }
     .nav-cta {
       font-family: var(--font); font-size: 13px; font-weight: 500;
       padding: 9px 20px;
@@ -117,7 +117,7 @@
     }
     .nav-cta:hover { background: #6d28d9; }
     .nav-mob { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
-    .nav-mob span { display: block; width: 18px; height: 1.5px; background: var(--text); margin: 4px 0; transition: all .3s; }
+    .nav-mob span { display: block; width: 18px; height: 1.5px; background: var(--text-dark); margin: 4px 0; transition: all .3s; }
 
     /* Hero */
     .test-hero {
@@ -137,10 +137,10 @@
     .test-hero h1 {
       font-size: clamp(2.4rem, 4.5vw, 3.6rem);
       font-weight: 500; line-height: 1.08; letter-spacing: -0.04em;
-      margin-bottom: 16px;
+      margin-bottom: 16px; color: var(--text-dark);
     }
     .test-hero p {
-      font-size: 17px; color: var(--text-sub); font-weight: 400;
+      font-size: 17px; color: var(--text-muted); font-weight: 400;
       max-width: 560px; margin: 0 auto;
     }
 
@@ -165,11 +165,11 @@
       width: 32px; height: 32px; border-radius: 10px;
       background: var(--purple-soft);
       display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 600; color: var(--purple-light);
+      font-size: 13px; font-weight: 600; color: var(--purple);
       flex-shrink: 0;
     }
     .upload-step-info h4 {
-      font-size: 14px; font-weight: 500; color: var(--text);
+      font-size: 14px; font-weight: 500; color: var(--text-dark);
       letter-spacing: -0.01em; margin: 0;
     }
     .upload-step-info span {
@@ -211,9 +211,9 @@
     }
     .upload-box:hover::before { opacity: 1; }
     .upload-box:hover {
-      border-color: rgba(124,58,237,0.2);
+      border-color: rgba(124,58,237,0.3);
       transform: translateY(-4px);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 0 0 1px rgba(124,58,237,0.1);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.06), 0 0 0 1px rgba(124,58,237,0.15);
     }
     .upload-box.has-image {
       border-color: var(--purple);
@@ -237,7 +237,7 @@
       content: '';
       position: absolute; inset: -4px;
       border-radius: 24px;
-      border: 1px dashed rgba(124,58,237,0.15);
+      border: 1px dashed rgba(124,58,237,0.25);
       transition: all .35s;
     }
     .upload-box:hover .upload-icon-wrap {
@@ -245,14 +245,24 @@
       transform: scale(1.05);
     }
     .upload-box:hover .upload-icon-wrap::after {
-      border-color: rgba(124,58,237,0.3);
+      border-color: rgba(124,58,237,0.45);
+    }
+    .upload-box.drag-over {
+      border-color: var(--purple);
+      background: rgba(124,58,237,0.04);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(124,58,237,0.18), 0 0 0 1px var(--purple);
+    }
+    .upload-box.drag-over .upload-icon-wrap {
+      background: rgba(124,58,237,0.16);
+      transform: scale(1.1);
     }
     .upload-icon {
-      width: 32px; height: 32px; stroke: var(--purple-light);
+      width: 32px; height: 32px; stroke: var(--purple);
       fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
     }
     .upload-box h3 {
-      font-size: 1.05rem; font-weight: 500; letter-spacing: -0.02em; color: var(--text);
+      font-size: 1.05rem; font-weight: 500; letter-spacing: -0.02em; color: var(--text-dark);
     }
     .upload-box .upload-hint {
       font-size: 13px; color: var(--text-muted); font-weight: 400;
@@ -265,7 +275,7 @@
     .upload-tag {
       position: absolute; top: 16px; left: 16px; z-index: 3;
       font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase;
-      font-weight: 500; color: var(--purple-light);
+      font-weight: 500; color: var(--purple);
       background: rgba(124,58,237,0.1);
       padding: 5px 12px; border-radius: var(--pill);
       backdrop-filter: blur(8px);
@@ -333,12 +343,12 @@
       background: linear-gradient(90deg, transparent, var(--purple), transparent);
     }
     .result-container h3 {
-      font-size: 1.3rem; font-weight: 500; margin-bottom: 24px; letter-spacing: -0.02em;
+      font-size: 1.3rem; font-weight: 500; margin-bottom: 24px; letter-spacing: -0.02em; color: var(--text-dark);
     }
     .result-container img {
       max-width: 100%; max-height: 520px;
       border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.12);
     }
 
     /* Loading Modal */
@@ -349,7 +359,7 @@
     .modal.active { display: flex; }
     .modal-overlay {
       position: absolute; inset: 0;
-      background: rgba(0,0,0,0.8);
+      background: rgba(245,244,240,0.85);
       backdrop-filter: blur(8px);
     }
     .loading-content {
@@ -362,6 +372,7 @@
       max-width: 380px; width: 90%;
       transform: scale(0.9); opacity: 0;
       transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.08);
     }
     .modal.active .loading-content { transform: scale(1); opacity: 1; }
     .loading-spinner {
@@ -379,14 +390,14 @@
     }
     @keyframes spin { 100% { transform: rotate(360deg); } }
     .main-spinner {
-      width: 36px; height: 36px; stroke: var(--purple-light);
+      width: 36px; height: 36px; stroke: var(--purple);
       fill: none; stroke-width: 1.5; stroke-linecap: round;
       animation: pulse-play 2s infinite;
     }
     @keyframes pulse-play { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.7;transform:scale(0.9)} }
     .loading-content h3 {
       font-size: 1.3rem; font-weight: 500; margin-bottom: 10px;
-      background: linear-gradient(135deg, var(--purple), var(--purple-light));
+      background: linear-gradient(135deg, var(--purple), #a78bfa);
       -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     }
     .loading-content p { color: var(--text-muted); font-size: 15px; font-weight: 400; }
@@ -404,7 +415,7 @@
     .foot-bottom a {
       font-size: 13px; color: var(--text-muted); text-decoration: none; transition: color .2s;
     }
-    .foot-bottom a:hover { color: var(--purple-light); }
+    .foot-bottom a:hover { color: var(--purple); }
     .foot-links { display: flex; gap: 24px; }
 
     /* Mobile */
@@ -423,11 +434,11 @@
 
     .mob-menu {
       display: none; position: fixed; inset: 0; z-index: 99;
-      background: rgba(10,10,10,0.98); backdrop-filter: blur(20px);
+      background: rgba(245,244,240,0.98); backdrop-filter: blur(20px);
       flex-direction: column; align-items: center; justify-content: center; gap: 2rem;
     }
     .mob-menu.open { display: flex; }
-    .mob-menu a { font-size: 1.2rem; color: var(--text); text-decoration: none; font-weight: 500; }
+    .mob-menu a { font-size: 1.2rem; color: var(--text-dark); text-decoration: none; font-weight: 500; }
   </style>
 </head>
 <body>
@@ -435,7 +446,7 @@
   <!-- NAV -->
   <nav class="nav" id="nav">
     <div class="nav-pill">
-      <a href="index.html" class="nav-brand"><img src="https://i.ibb.co/MDGF2YDD/Logo-provou-branco-1.png" alt="Provou Levou" class="nav-logo"></a>
+      <a href="index.html" class="nav-brand"><img src="https://i.ibb.co/MD3B4FQf/Logo-provou-preto-1.png" alt="Provou Levou" class="nav-logo"></a>
       <ul class="nav-links">
         <li><a href="index.html">Home</a></li>
         <li><a href="index.html#como-funciona">Como Funciona</a></li>
@@ -623,25 +634,68 @@
       var btnIconSvg = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M15 4V2m0 2v2m0-2h2m-2 0h-2"/><path d="M8.5 8.5L3 14l5 5L19.5 7.5 15 3z"/></svg>';
       var spinnerSvg = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>';
 
-      function handleFileUpload(input, previewElement, type) {
+      function processFile(file, previewElement, type) {
+        if (!file || !file.type || file.type.indexOf('image/') !== 0) {
+          uploadStatus.textContent = 'Envie um arquivo de imagem válido.';
+          uploadStatus.style.color = '#ef4444';
+          return;
+        }
+        var reader = new FileReader();
+        reader.onload = function(event) {
+          previewElement.src = event.target.result;
+          previewElement.style.display = 'block';
+          previewElement.closest('.upload-box').classList.add('has-image');
+          if (type === 'product') productBase64 = event.target.result;
+          else modelBase64 = event.target.result;
+          uploadStatus.textContent = '';
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function bindUpload(box, input, previewElement, type) {
         input.addEventListener('change', function(e) {
-          var file = e.target.files[0];
-          if (file) {
-            var reader = new FileReader();
-            reader.onload = function(event) {
-              previewElement.src = event.target.result;
-              previewElement.style.display = 'block';
-              previewElement.closest('.upload-box').classList.add('has-image');
-              if (type === 'product') productBase64 = event.target.result;
-              else modelBase64 = event.target.result;
-            };
-            reader.readAsDataURL(file);
-          }
+          var file = e.target.files && e.target.files[0];
+          if (file) processFile(file, previewElement, type);
+        });
+
+        // Drag-and-drop
+        ['dragenter', 'dragover'].forEach(function(evt) {
+          box.addEventListener(evt, function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            box.classList.add('drag-over');
+          });
+        });
+        ['dragleave', 'dragend'].forEach(function(evt) {
+          box.addEventListener(evt, function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            // only remove if leaving the box itself, not entering a child
+            if (evt === 'dragleave' && box.contains(e.relatedTarget)) return;
+            box.classList.remove('drag-over');
+          });
+        });
+        box.addEventListener('drop', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          box.classList.remove('drag-over');
+          var dt = e.dataTransfer;
+          var file = dt && dt.files && dt.files[0];
+          if (file) processFile(file, previewElement, type);
         });
       }
 
-      handleFileUpload(productInput, productPreview, 'product');
-      handleFileUpload(modelInput, modelPreview, 'model');
+      var productBox = document.getElementById('product-upload-box');
+      var modelBox = document.getElementById('model-upload-box');
+      bindUpload(productBox, productInput, productPreview, 'product');
+      bindUpload(modelBox, modelInput, modelPreview, 'model');
+
+      // Prevent the browser from opening dropped files outside the boxes
+      ['dragover', 'drop'].forEach(function(evt) {
+        window.addEventListener(evt, function(e) {
+          if (!e.target.closest('.upload-box')) e.preventDefault();
+        });
+      });
 
       function resetButton() {
         btnMaterialize.disabled = false;
