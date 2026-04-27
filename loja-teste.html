@@ -3,11 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <title>Provou Levou — Loja de Teste</title>
+  <title>Provou Levou — Como Funciona</title>
   <link rel="icon" type="image/jpeg" href="assets/favicon.jpg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     @font-face {
       font-family: 'HelveticaNow';
@@ -20,681 +17,656 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg: #f5f4f0;
-      --bg-alt: #eeecea;
+      --bg: #fafaf8;
       --bg-elevated: #ffffff;
       --text: #0a0a0a;
-      --text-sub: #666;
-      --text-muted: #888;
-      --text-dark: #0a0a0a;
+      --text-sub: #999;
       --border: rgba(0,0,0,0.08);
       --purple: #7c3aed;
-      --purple-light: #7c3aed;
-      --purple-soft: rgba(124,58,237,0.08);
+      --purple-soft: rgba(124,58,237,0.06);
       --green: #10b981;
       --red: #ef4444;
-      --radius: 20px;
+      --radius: 16px;
       --pill: 9999px;
-      --font: 'HelveticaNow', 'Inter', system-ui, -apple-system, sans-serif;
-      --container: 1200px;
+      --font: 'HelveticaNow', system-ui, -apple-system, sans-serif;
+      --ease: cubic-bezier(.22,1,.36,1);
     }
 
-    html { scroll-behavior: smooth; }
     body {
       font-family: var(--font);
       background: var(--bg);
       color: var(--text);
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-      font-size: 16px;
       font-weight: 500;
-      line-height: 1.6;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
     }
 
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 10px; }
-
-    .container { max-width: var(--container); margin: 0 auto; padding: 0 40px; }
-
-    /* Reveals */
-    .rv { opacity: 0; transform: translateY(30px); transition: opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1); }
-    .rv.show { opacity: 1; transform: none; }
-    .d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}
-
-    .blur-entry {
-      opacity: 0; filter: blur(12px); transform: translateY(16px);
-      animation: blurFadeIn 1.5s cubic-bezier(.22,1,.36,1) forwards;
-    }
-    .blur-entry.be1 { animation-delay: 0.1s; }
-    .blur-entry.be2 { animation-delay: 0.3s; }
-    .blur-entry.be3 { animation-delay: 0.5s; }
-    @keyframes blurFadeIn {
-      0% { opacity: 0; filter: blur(12px); transform: translateY(16px); }
-      100% { opacity: 1; filter: blur(0); transform: translateY(0); }
-    }
-
-    /* Typography */
-    .label {
-      font-size: 13px; letter-spacing: 0.05em; color: var(--purple);
-      font-weight: 500; text-transform: uppercase; display: inline-block; margin-bottom: 16px;
-    }
-    .accent { color: var(--purple); }
-
-    /* Nav */
-    .nav {
-      position: fixed; top: 0; inset-inline: 0; z-index: 100;
-      display: flex; justify-content: center;
-      padding: 16px 20px 0;
-      pointer-events: none;
-    }
-    .nav-pill {
-      max-width: var(--container);
-      width: 100%;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 10px 12px 24px;
-      border-radius: var(--pill);
-      background: rgba(245,244,240,0.7);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      pointer-events: all;
-      transition: all .35s;
-    }
-    .nav.scrolled .nav-pill { background: rgba(245,244,240,0.95); box-shadow: 0 1px 12px rgba(0,0,0,0.04); }
-    .nav-brand { text-decoration: none; display: flex; align-items: center; color: var(--text-dark); }
-    .nav-logo { height: 38px; width: auto; }
-    .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
-    .nav-links a { font-size: 13px; color: #666; text-decoration: none; transition: color .2s; font-weight: 500; }
-    .nav-links a:hover { color: var(--text-dark); }
-    .nav-cta {
-      font-family: var(--font); font-size: 13px; font-weight: 500;
-      padding: 9px 20px;
-      background: var(--purple); color: #fff;
-      border-radius: 8px; text-decoration: none;
-      transition: all .25s;
-    }
-    .nav-cta:hover { background: #6d28d9; }
-    .nav-mob { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
-    .nav-mob span { display: block; width: 18px; height: 1.5px; background: var(--text-dark); margin: 4px 0; transition: all .3s; }
-
-    /* Hero */
-    .test-hero {
-      padding: 160px 0 80px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .test-hero::before {
-      content: '';
-      position: absolute;
-      top: -40%; left: 50%; transform: translateX(-50%);
-      width: 800px; height: 800px;
-      background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .test-hero h1 {
-      font-size: clamp(2.4rem, 4.5vw, 3.6rem);
-      font-weight: 500; line-height: 1.08; letter-spacing: -0.04em;
-      margin-bottom: 16px; color: var(--text-dark);
-    }
-    .test-hero p {
-      font-size: 17px; color: var(--text-muted); font-weight: 400;
-      max-width: 560px; margin: 0 auto;
-    }
-
-    /* Mode toggle */
-    .mode-toggle {
+    /* Top bar */
+    .topbar {
+      padding: 24px 32px;
       display: flex;
-      gap: 4px;
-      padding: 4px;
-      background: var(--bg-alt);
-      border-radius: var(--pill);
-      margin: 0 auto 32px;
-      width: fit-content;
+      justify-content: space-between;
+      align-items: center;
     }
-    .mode-toggle-btn {
+    .topbar a {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 13px;
+      transition: color .15s ease;
+    }
+    .topbar a:hover { color: var(--purple); }
+    .topbar-brand img { height: 32px; width: auto; display: block; }
+    .topbar-back { color: var(--text-sub); }
+
+    /* Progress bar */
+    .progress-wrap {
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .progress-track {
+      height: 2px;
+      background: rgba(0,0,0,0.06);
+      border-radius: 2px;
+      overflow: hidden;
+      transition: opacity .25s ease;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--purple);
+      border-radius: 2px;
+      transition: width .4s var(--ease);
+      width: 0%;
+    }
+    .progress-wrap.hidden .progress-track { opacity: 0; }
+
+    /* Main */
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+      position: relative;
+    }
+
+    /* Steps */
+    .step {
+      display: none;
+    }
+    .step.active {
+      display: block;
+      animation: stepIn .4s var(--ease);
+    }
+    .step.active.back {
+      animation: stepInBack .4s var(--ease);
+    }
+    @keyframes stepIn {
+      from { opacity: 0; transform: translateX(24px); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes stepInBack {
+      from { opacity: 0; transform: translateX(-24px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    /* Step header */
+    .step-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      min-height: 22px;
+    }
+    .step-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
       font-family: var(--font);
       font-size: 13px;
-      font-weight: 500;
-      padding: 9px 22px;
-      border: none;
-      background: transparent;
       color: var(--text-sub);
-      border-radius: var(--pill);
       cursor: pointer;
-      transition: background .18s ease, color .18s ease;
+      padding: 4px 0;
+      transition: color .15s ease;
     }
-    .mode-toggle-btn:hover:not(.active) { color: var(--text-dark); }
-    .mode-toggle-btn.active {
-      background: var(--purple);
-      color: #fff;
-    }
-
-    /* Upload section */
-    .upload-section { padding: 0 0 120px; }
-    .upload-wrap {
-      max-width: 860px;
-      margin: 0 auto;
-      position: relative;
+    .step-back:hover { color: var(--text); }
+    .step-back svg { width: 14px; height: 14px; }
+    .step-counter {
+      font-size: 12px;
+      color: var(--text-sub);
+      letter-spacing: 0.04em;
     }
 
-    /* Step labels */
-    .upload-step-header {
-      display: flex; align-items: center; gap: 40px;
-      margin-bottom: 32px;
+    /* Step title */
+    .step h1 {
+      font-size: clamp(1.7rem, 4vw, 2.2rem);
+      font-weight: 500;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      text-align: center;
     }
-    .upload-step {
-      display: flex; align-items: center; gap: 12px;
-      flex: 1;
-    }
-    .upload-step-num {
-      width: 32px; height: 32px; border-radius: 10px;
-      background: var(--purple-soft);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 600; color: var(--purple);
-      flex-shrink: 0;
-    }
-    .upload-step-info h4 {
-      font-size: 14px; font-weight: 500; color: var(--text-dark);
-      letter-spacing: -0.01em; margin: 0;
-    }
-    .upload-step-info span {
-      font-size: 12px; color: var(--text-muted); font-weight: 400;
-    }
-    .upload-step-line {
-      width: 40px; height: 1px; background: var(--border); flex-shrink: 0;
+    .step p.lead {
+      font-size: 14px;
+      color: var(--text-sub);
+      font-weight: 400;
+      text-align: center;
+      margin-bottom: 36px;
     }
 
-    /* Upload grid */
-    .upload-grid {
+    /* Type grid */
+    .type-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-bottom: 32px;
+      gap: 14px;
     }
-    .upload-box {
+    .type-card {
+      background: var(--bg-elevated);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 0;
-      text-align: center;
-      transition: all .4s cubic-bezier(.22,1,.36,1);
+      padding: 36px 20px 28px;
       cursor: pointer;
+      transition: border-color .18s ease, transform .18s ease, background .18s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      font-family: var(--font);
+      color: var(--text);
+      text-align: center;
+    }
+    .type-card:hover {
+      border-color: rgba(124,58,237,0.4);
+      transform: translateY(-2px);
+    }
+    .type-card:active { transform: translateY(0); }
+    .type-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--purple-soft);
+      color: var(--purple);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .18s ease;
+    }
+    .type-card:hover .type-icon { background: rgba(124,58,237,0.12); }
+    .type-icon svg {
+      width: 28px;
+      height: 28px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .type-card h3 {
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    .type-card span {
+      font-size: 12px;
+      color: var(--text-sub);
+      font-weight: 400;
+    }
+
+    /* Upload */
+    .upload-wrap {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .upload-box {
       position: relative;
+      background: var(--bg-elevated);
+      border: 1.5px dashed rgba(0,0,0,0.12);
+      border-radius: var(--radius);
+      cursor: pointer;
       overflow: hidden;
-      min-height: 320px;
+      transition: border-color .18s ease, background .18s ease;
+      aspect-ratio: 4 / 3;
+      margin-bottom: 24px;
+    }
+    .upload-box:hover {
+      border-color: var(--purple);
+      border-style: solid;
+    }
+    .upload-box.drag-over {
+      border-color: var(--purple);
+      border-style: solid;
+      background: var(--purple-soft);
+    }
+    .upload-box.has-image {
+      border-color: var(--purple);
+      border-style: solid;
+    }
+    .upload-label {
+      position: absolute;
+      inset: 0;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      background: var(--bg-elevated);
-    }
-    .upload-box::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(124,58,237,0.03) 0%, transparent 60%);
-      opacity: 0;
-      transition: opacity .4s;
-    }
-    .upload-box:hover::before { opacity: 1; }
-    .upload-box:hover {
-      border-color: rgba(124,58,237,0.3);
-      transform: translateY(-4px);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.06), 0 0 0 1px rgba(124,58,237,0.15);
-    }
-    .upload-box.has-image {
-      border-color: var(--purple);
-      box-shadow: 0 0 0 1px var(--purple), 0 8px 32px rgba(124,58,237,0.15);
-    }
-    .upload-box.has-image:hover { transform: translateY(-2px); }
-    .upload-label {
-      cursor: pointer; display: flex; flex-direction: column;
-      align-items: center; gap: 16px; width: 100%; height: 100%;
-      justify-content: center; z-index: 2; position: relative;
-      padding: 48px 24px;
-    }
-    .upload-icon-wrap {
-      width: 72px; height: 72px; border-radius: 20px;
-      background: var(--purple-soft);
-      display: flex; align-items: center; justify-content: center;
-      transition: all .35s;
-      position: relative;
-    }
-    .upload-icon-wrap::after {
-      content: '';
-      position: absolute; inset: -4px;
-      border-radius: 24px;
-      border: 1px dashed rgba(124,58,237,0.25);
-      transition: all .35s;
-    }
-    .upload-box:hover .upload-icon-wrap {
-      background: rgba(124,58,237,0.12);
-      transform: scale(1.05);
-    }
-    .upload-box:hover .upload-icon-wrap::after {
-      border-color: rgba(124,58,237,0.45);
-    }
-    .upload-box.drag-over {
-      border-color: var(--purple);
-      background: rgba(124,58,237,0.04);
-      transform: translateY(-4px);
-      box-shadow: 0 20px 60px rgba(124,58,237,0.18), 0 0 0 1px var(--purple);
-    }
-    .upload-box.drag-over .upload-icon-wrap {
-      background: rgba(124,58,237,0.16);
-      transform: scale(1.1);
+      gap: 10px;
+      padding: 24px;
+      cursor: pointer;
+      text-align: center;
     }
     .upload-icon {
-      width: 32px; height: 32px; stroke: var(--purple);
-      fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.04);
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .18s ease, color .18s ease;
     }
-    .upload-box h3 {
-      font-size: 1.05rem; font-weight: 500; letter-spacing: -0.02em; color: var(--text-dark);
+    .upload-box:hover .upload-icon,
+    .upload-box.has-image .upload-icon {
+      background: var(--purple);
+      color: #fff;
     }
-    .upload-box .upload-hint {
-      font-size: 13px; color: var(--text-muted); font-weight: 400;
-      display: flex; align-items: center; gap: 6px;
+    .upload-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
-    .upload-box .upload-hint svg {
-      width: 14px; height: 14px; stroke: var(--text-muted); fill: none;
-      stroke-width: 1.5; stroke-linecap: round;
+    .upload-hint {
+      font-size: 13px;
+      color: var(--text-sub);
+      font-weight: 400;
     }
-    .upload-tag {
-      position: absolute; top: 16px; left: 16px; z-index: 3;
-      font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase;
-      font-weight: 500; color: var(--purple);
-      background: rgba(124,58,237,0.1);
-      padding: 5px 12px; border-radius: var(--pill);
-      backdrop-filter: blur(8px);
+    .upload-preview {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
-    .image-preview {
-      position: absolute; top: 0; left: 0;
-      width: 100%; height: 100%; object-fit: cover;
-      z-index: 10; border-radius: calc(var(--radius) - 1px);
-    }
+    .file-input { display: none; }
 
-    /* CTA Button */
+    /* CTA */
     .btn-main {
-      display: inline-flex; align-items: center; gap: 10px;
-      padding: 18px 36px; background: var(--purple); color: #fff;
-      font-family: var(--font); font-size: 16px; font-weight: 500;
-      border: none; border-radius: 12px; cursor: pointer;
-      text-decoration: none; transition: all .35s cubic-bezier(.22,1,.36,1);
-      width: 100%; max-width: 420px; justify-content: center;
-      position: relative; overflow: hidden;
+      display: block;
+      width: 100%;
+      padding: 16px 24px;
+      background: var(--purple);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: var(--font);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .15s ease, transform .15s ease, opacity .15s ease;
     }
-    .btn-main::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
-      opacity: 0; transition: opacity .3s;
-    }
-    .btn-main:hover::before { opacity: 1; }
-    .btn-main:hover {
+    .btn-main:hover:not(:disabled) {
       background: #6d28d9;
-      transform: translateY(-3px);
-      box-shadow: 0 12px 40px rgba(124,58,237,0.3), 0 0 0 1px rgba(124,58,237,0.2);
+      transform: translateY(-1px);
     }
-    .btn-main:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
-    .btn-main:disabled::before { display: none; }
-    .btn-main svg { width: 18px; height: 18px; }
+    .btn-main:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      margin-top: 16px;
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(0,0,0,0.04);
+      border-color: rgba(0,0,0,0.16);
+    }
 
-    .action-area {
+    .upload-status {
       text-align: center;
-      padding: 32px 0 0;
-      border-top: 1px solid var(--border);
+      margin-top: 14px;
+      font-size: 13px;
+      min-height: 18px;
+      color: var(--text-sub);
+      font-weight: 400;
     }
-    .action-hint {
-      margin-top: 12px; font-size: 13px; color: var(--text-muted); font-weight: 400;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-    }
-    .action-hint svg {
-      width: 14px; height: 14px; stroke: var(--green); fill: none;
-      stroke-width: 2; stroke-linecap: round;
-    }
-    #upload-status { margin-top: 16px; font-size: 14px; font-weight: 500; }
 
     /* Result */
-    .result-container {
-      display: none; margin-top: 48px; text-align: center;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
+    .result-img-wrap {
+      width: 100%;
       border-radius: var(--radius);
-      padding: 48px 40px;
-      position: relative;
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
       overflow: hidden;
+      margin-bottom: 8px;
     }
-    .result-container::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, var(--purple), transparent);
-    }
-    .result-container h3 {
-      font-size: 1.3rem; font-weight: 500; margin-bottom: 24px; letter-spacing: -0.02em; color: var(--text-dark);
-    }
-    .result-container img {
-      max-width: 100%; max-height: 520px;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+    .result-img-wrap img {
+      width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      display: block;
     }
 
-    /* Loading Modal */
+    /* Loading modal */
     .modal {
-      display: none; position: fixed; inset: 0; z-index: 200;
-      align-items: center; justify-content: center;
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(250,250,248,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 32px;
     }
     .modal.active { display: flex; }
-    .modal-overlay {
-      position: absolute; inset: 0;
-      background: rgba(245,244,240,0.85);
-      backdrop-filter: blur(8px);
-    }
-    .loading-content {
-      position: relative; z-index: 1;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      padding: 48px 40px;
-      border-radius: var(--radius);
-      text-align: center;
-      max-width: 380px; width: 90%;
-      transform: scale(0.9); opacity: 0;
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.08);
-    }
-    .modal.active .loading-content { transform: scale(1); opacity: 1; }
-    .loading-spinner {
-      width: 80px; height: 80px; margin: 0 auto 24px;
-      position: relative; display: flex; align-items: center; justify-content: center;
-      background: var(--purple-soft); border-radius: 50%;
-    }
-    .loading-spinner::before {
-      content: ''; position: absolute; inset: -5px;
-      border-radius: 50%;
-      border: 2px solid transparent;
+    .modal-spinner {
+      width: 36px;
+      height: 36px;
+      border: 2px solid rgba(0,0,0,0.08);
       border-top-color: var(--purple);
-      border-right-color: var(--purple-light);
-      animation: spin 1.5s linear infinite;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin-bottom: 24px;
     }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
-    .main-spinner {
-      width: 36px; height: 36px; stroke: var(--purple);
-      fill: none; stroke-width: 1.5; stroke-linecap: round;
-      animation: pulse-play 2s infinite;
+    .modal h3 {
+      font-size: 17px;
+      font-weight: 500;
+      margin-bottom: 4px;
     }
-    @keyframes pulse-play { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.7;transform:scale(0.9)} }
-    .loading-content h3 {
-      font-size: 1.3rem; font-weight: 500; margin-bottom: 10px;
-      background: linear-gradient(135deg, var(--purple), #a78bfa);
-      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    .modal p {
+      font-size: 13px;
+      color: var(--text-sub);
+      font-weight: 400;
+      max-width: 320px;
     }
-    .loading-content p { color: var(--text-muted); font-size: 15px; font-weight: 400; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* Footer */
     .footer {
-      margin-top: auto;
-      padding: 40px 0 24px;
-      border-top: 1px solid var(--border);
+      padding: 24px 32px 32px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-sub);
+      font-weight: 400;
     }
-    .foot-bottom {
-      display: flex; justify-content: space-between; align-items: center;
+    .footer a {
+      color: var(--text-sub);
+      text-decoration: none;
+      transition: color .15s ease;
     }
-    .foot-bottom span { font-size: 13px; color: var(--text-muted); font-weight: 400; }
-    .foot-bottom a {
-      font-size: 13px; color: var(--text-muted); text-decoration: none; transition: color .2s;
-    }
-    .foot-bottom a:hover { color: var(--purple); }
-    .foot-links { display: flex; gap: 24px; }
+    .footer a:hover { color: var(--text); }
 
     /* Mobile */
-    @media (max-width: 768px) {
-      .container { padding: 0 20px; }
-      .nav-links { display: none; }
-      .nav-mob { display: block; }
-      .test-hero { padding: 130px 0 48px; }
-      .upload-grid { grid-template-columns: 1fr; }
-      .upload-box { min-height: 240px; }
-      .upload-step-header { flex-direction: column; gap: 12px; align-items: flex-start; }
-      .upload-step-line { width: 100%; height: 1px; }
-      .foot-bottom { flex-direction: column; gap: 12px; text-align: center; }
-      .foot-links { justify-content: center; }
+    @media (max-width: 600px) {
+      .topbar { padding: 16px 20px; }
+      .topbar-brand img { height: 28px; }
+      .progress-wrap { padding: 0 20px; }
+      main { padding: 28px 20px 60px; }
+      .type-grid { gap: 10px; }
+      .type-card { padding: 28px 16px 22px; }
+      .type-icon { width: 48px; height: 48px; }
+      .upload-box { aspect-ratio: 1 / 1; }
     }
-
-    .mob-menu {
-      display: none; position: fixed; inset: 0; z-index: 99;
-      background: rgba(245,244,240,0.98); backdrop-filter: blur(20px);
-      flex-direction: column; align-items: center; justify-content: center; gap: 2rem;
-    }
-    .mob-menu.open { display: flex; }
-    .mob-menu a { font-size: 1.2rem; color: var(--text-dark); text-decoration: none; font-weight: 500; }
   </style>
 </head>
 <body>
 
-  <!-- NAV -->
-  <nav class="nav" id="nav">
-    <div class="nav-pill">
-      <a href="index.html" class="nav-brand"><img src="https://i.ibb.co/MD3B4FQf/Logo-provou-preto-1.png" alt="Provou Levou" class="nav-logo"></a>
-      <ul class="nav-links">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="index.html#como-funciona">Como Funciona</a></li>
-        <li><a href="index.html#planos">Planos</a></li>
-      </ul>
-      <a href="login/index.html" class="nav-cta">Painel Lojista</a>
-      <button class="nav-mob" id="nav-mob-btn" aria-label="Menu"><span></span><span></span><span></span></button>
-    </div>
-  </nav>
+  <header class="topbar">
+    <a href="index.html" class="topbar-brand" aria-label="Provou Levou">
+      <img src="https://i.ibb.co/MD3B4FQf/Logo-provou-preto-1.png" alt="Provou Levou">
+    </a>
+    <a href="index.html" class="topbar-back">← voltar</a>
+  </header>
 
-  <div class="mob-menu" id="mob-menu">
-    <a href="index.html" class="mob-link">Home</a>
-    <a href="index.html#como-funciona" class="mob-link">Como Funciona</a>
-    <a href="index.html#planos" class="mob-link">Planos</a>
-    <a href="login/index.html" class="mob-link">Painel Lojista</a>
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
   </div>
 
-  <!-- HERO -->
-  <section class="test-hero">
-    <div class="container">
-      <div class="label blur-entry be1">Loja de Teste</div>
-      <h1 class="blur-entry be2">Teste o <span class="accent">Provador Virtual</span></h1>
-      <p class="blur-entry be3">Envie a foto do produto e da modelo para ver a IA em ação. Resultado em segundos.</p>
-    </div>
-  </section>
+  <main>
 
-  <!-- UPLOAD -->
-  <section class="upload-section">
-    <div class="container">
-      <div class="upload-wrap rv">
-        <!-- Mode toggle -->
-        <div class="mode-toggle" role="tablist" aria-label="Modo do provador">
-          <button type="button" class="mode-toggle-btn active" data-mode="roupa" role="tab" aria-selected="true">Roupa</button>
-          <button type="button" class="mode-toggle-btn" data-mode="oculos" role="tab" aria-selected="false">Óculos</button>
+    <!-- STEP 1 — Tipo -->
+    <section class="step active" id="step-1" data-step="1">
+      <div class="step-meta">
+        <span></span>
+        <span class="step-counter">1 de 3</span>
+      </div>
+      <h1>Que prova quer gerar?</h1>
+      <p class="lead">Escolha o tipo pra começarmos.</p>
+      <div class="type-grid">
+        <button type="button" class="type-card" data-type="roupa">
+          <span class="type-icon">
+            <svg viewBox="0 0 24 24"><path d="M16 3l4 2.5-2 4-2-1v13H8V8.5l-2 1-2-4L8 3l2 2h4l2-2z"/></svg>
+          </span>
+          <h3>Roupa</h3>
+          <span>provador de moda</span>
+        </button>
+        <button type="button" class="type-card" data-type="oculos">
+          <span class="type-icon">
+            <svg viewBox="0 0 24 24"><circle cx="6.5" cy="14" r="3.5"/><circle cx="17.5" cy="14" r="3.5"/><path d="M10 14h4"/><path d="M3 14l1.5-5h2"/><path d="M21 14l-1.5-5h-2"/></svg>
+          </span>
+          <h3>Óculos</h3>
+          <span>provador de armações</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 2 — Foto produto -->
+    <section class="step" id="step-2" data-step="2">
+      <div class="step-meta">
+        <button type="button" class="step-back" data-back>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          voltar
+        </button>
+        <span class="step-counter">2 de 3</span>
+      </div>
+      <h1 id="step2-title">Foto do produto</h1>
+      <p class="lead" id="step2-sub">a peça de roupa que vai provar</p>
+      <div class="upload-wrap">
+        <div class="upload-box" id="product-upload-box">
+          <input type="file" id="product-image" accept="image/*" class="file-input">
+          <label for="product-image" class="upload-label">
+            <span class="upload-icon">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </span>
+            <span class="upload-hint">clique ou arraste uma imagem</span>
+            <img id="product-preview" class="upload-preview" alt="" style="display:none;">
+          </label>
         </div>
+        <button type="button" class="btn-main" id="btn-step2-next" disabled>Continuar</button>
+      </div>
+    </section>
 
-        <!-- Step indicators -->
-        <div class="upload-step-header">
-          <div class="upload-step">
-            <div class="upload-step-num">1</div>
-            <div class="upload-step-info">
-              <h4>Envie o produto</h4>
-              <span>A peça de roupa</span>
-            </div>
-          </div>
-          <div class="upload-step-line"></div>
-          <div class="upload-step">
-            <div class="upload-step-num">2</div>
-            <div class="upload-step-info">
-              <h4>Envie a modelo</h4>
-              <span>Quem vai vestir</span>
-            </div>
-          </div>
-          <div class="upload-step-line"></div>
-          <div class="upload-step" style="opacity:0.4;">
-            <div class="upload-step-num">3</div>
-            <div class="upload-step-info">
-              <h4>Resultado</h4>
-              <span>IA em ação</span>
-            </div>
-          </div>
+    <!-- STEP 3 — Foto modelo -->
+    <section class="step" id="step-3" data-step="3">
+      <div class="step-meta">
+        <button type="button" class="step-back" data-back>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          voltar
+        </button>
+        <span class="step-counter">3 de 3</span>
+      </div>
+      <h1 id="step3-title">Foto da modelo</h1>
+      <p class="lead" id="step3-sub">quem vai vestir</p>
+      <div class="upload-wrap">
+        <div class="upload-box" id="model-upload-box">
+          <input type="file" id="model-image" accept="image/*" class="file-input">
+          <label for="model-image" class="upload-label">
+            <span class="upload-icon">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </span>
+            <span class="upload-hint">clique ou arraste uma imagem</span>
+            <img id="model-preview" class="upload-preview" alt="" style="display:none;">
+          </label>
         </div>
+        <button type="button" class="btn-main" id="btn-materialize" disabled>Provar agora</button>
+        <p id="upload-status" class="upload-status"></p>
+      </div>
+    </section>
 
-        <!-- Upload cards -->
-        <div class="upload-grid">
-          <div class="upload-box" id="product-upload-box">
-            <span class="upload-tag">Produto</span>
-            <input type="file" id="product-image" accept="image/*" class="file-input" hidden>
-            <label for="product-image" class="upload-label">
-              <div class="upload-icon-wrap">
-                <svg class="upload-icon" viewBox="0 0 24 24">
-                  <path d="M20.38 3.46L16.01 2.09a1.5 1.5 0 00-.95.01L11 3.5l-4.06-1.4a1.5 1.5 0 00-.95-.01L1.62 3.46A1 1 0 001 4.41V19.5a1 1 0 001.38.92L6.5 18.8l4.06 1.4a1.5 1.5 0 00.95-.01L15.5 18.8l4.12 1.62A1 1 0 0021 19.5V4.41a1 1 0 00-.62-.95z" fill="none" stroke="currentColor"/>
-                  <path d="M6 3v16M11 3.5v16M16 2.09v16" fill="none" stroke="currentColor" stroke-dasharray="2 3"/>
-                </svg>
-              </div>
-              <h3>Foto do Produto</h3>
-              <span class="upload-hint">
-                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                Clique ou arraste
-              </span>
-              <img id="product-preview" class="image-preview" src="" alt="Produto" style="display:none;">
-            </label>
-          </div>
-          <div class="upload-box" id="model-upload-box">
-            <span class="upload-tag">Modelo</span>
-            <input type="file" id="model-image" accept="image/*" class="file-input" hidden>
-            <label for="model-image" class="upload-label">
-              <div class="upload-icon-wrap">
-                <svg class="upload-icon" viewBox="0 0 24 24">
-                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-              </div>
-              <h3>Foto da Modelo</h3>
-              <span class="upload-hint">
-                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                Clique ou arraste
-              </span>
-              <img id="model-preview" class="image-preview" src="" alt="Modelo" style="display:none;">
-            </label>
-          </div>
-        </div>
-
-        <!-- Action -->
-        <div class="action-area">
-          <button id="btn-materialize" class="btn-main">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M15 4V2m0 2v2m0-2h2m-2 0h-2"/><path d="M8.5 8.5L3 14l5 5L19.5 7.5 15 3z"/></svg>
-            Provar Roupa Agora
-          </button>
-          <div class="action-hint">
-            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-            Resultado em segundos via IA
-          </div>
-          <p id="upload-status"></p>
-        </div>
-
-        <!-- Result -->
-        <div id="result-container" class="result-container">
-          <h3>Seu <span class="accent">Resultado</span></h3>
+    <!-- STEP 4 — Resultado -->
+    <section class="step" id="step-4" data-step="4">
+      <div class="step-meta">
+        <span></span>
+        <span class="step-counter"></span>
+      </div>
+      <h1>Pronto.</h1>
+      <p class="lead" id="step4-sub">veja o resultado abaixo.</p>
+      <div class="upload-wrap">
+        <div class="result-img-wrap">
           <img id="result-image" src="" alt="Resultado">
         </div>
+        <button type="button" class="btn-main btn-secondary" id="btn-restart">Provar de novo</button>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- FOOTER -->
+  </main>
+
   <footer class="footer">
-    <div class="container">
-      <div class="foot-bottom">
-        <span>&copy; 2026 Provou Levou — Tecnologia by Quantic.</span>
-        <div class="foot-links">
-          <a href="index.html">Home</a>
-          <a href="login/index.html">Painel</a>
-          <a href="https://www.instagram.com/quanticflowai/" target="_blank">Instagram</a>
-        </div>
-      </div>
-    </div>
+    <span>&copy; 2026 Provou Levou — by <a href="https://www.instagram.com/quanticflowai/" target="_blank" rel="noopener">Quantic</a></span>
   </footer>
 
-  <!-- Loading Modal -->
   <div id="loading-modal" class="modal">
-    <div class="modal-overlay"></div>
-    <div class="loading-content">
-      <div class="loading-spinner">
-        <svg class="main-spinner" viewBox="0 0 24 24">
-          <path d="M15 4V2m0 2v2m0-2h2m-2 0h-2"/><path d="M8.5 8.5L3 14l5 5L19.5 7.5 15 3z"/>
-        </svg>
-      </div>
-      <h3>Provando sua Roupa...</h3>
-      <p>Nossa IA está ajustando o caimento, as proporções e a iluminação.</p>
-    </div>
+    <div class="modal-spinner"></div>
+    <h3>Provando...</h3>
+    <p>Estou ajustando o caimento e a luz.</p>
   </div>
 
   <script>
-    // Reveal observer
-    const obs = new IntersectionObserver(function(entries) {
-      entries.forEach(function(el) { if (el.isIntersecting) el.target.classList.add('show'); });
-    }, { threshold: 0.06, rootMargin: '0px 0px -20px 0px' });
-    document.querySelectorAll('.rv').forEach(function(el) { obs.observe(el); });
-
-    // Nav scroll
-    var tick = false;
-    addEventListener('scroll', function() {
-      if (!tick) { requestAnimationFrame(function() { document.getElementById('nav').classList.toggle('scrolled', scrollY > 30); tick = false; }); tick = true; }
-    });
-
-    // Mobile menu
-    var mobBtn = document.getElementById('nav-mob-btn');
-    var mobMenu = document.getElementById('mob-menu');
-    mobBtn.addEventListener('click', function() {
-      mobMenu.classList.toggle('open');
-      document.body.style.overflow = mobMenu.classList.contains('open') ? 'hidden' : '';
-    });
-    document.querySelectorAll('.mob-link').forEach(function(a) {
-      a.addEventListener('click', function() { mobMenu.classList.remove('open'); document.body.style.overflow = ''; });
-    });
-
-    // Upload logic
     document.addEventListener('DOMContentLoaded', function() {
       var productInput = document.getElementById('product-image');
       var modelInput = document.getElementById('model-image');
       var productPreview = document.getElementById('product-preview');
       var modelPreview = document.getElementById('model-preview');
+      var productBox = document.getElementById('product-upload-box');
+      var modelBox = document.getElementById('model-upload-box');
+      var btnStep2Next = document.getElementById('btn-step2-next');
       var btnMaterialize = document.getElementById('btn-materialize');
+      var btnRestart = document.getElementById('btn-restart');
       var uploadStatus = document.getElementById('upload-status');
+      var progressFill = document.getElementById('progress-fill');
+      var progressWrap = document.getElementById('progress-wrap');
 
       var productBase64 = null;
       var modelBase64 = null;
+      var currentMode = null;
+      var currentStep = 1;
 
       var MODES = {
         roupa: {
           endpoint: 'https://n8n.segredosdodrop.com/webhook/materialize-generico',
-          step1Title: 'Envie o produto', step1Sub: 'A peça de roupa',
-          step2Title: 'Envie a modelo', step2Sub: 'Quem vai vestir',
-          productTag: 'Produto', productTitle: 'Foto do Produto',
-          modelTag: 'Modelo', modelTitle: 'Foto da Modelo',
-          ctaText: 'Provar Roupa Agora',
-          loadingTitle: 'Provando sua Roupa...',
-          loadingSub: 'Nossa IA está ajustando o caimento, as proporções e a iluminação.'
+          step2Title: 'Foto do produto',
+          step2Sub: 'a peça de roupa que vai provar',
+          step3Title: 'Foto da modelo',
+          step3Sub: 'quem vai vestir',
+          step4Sub: 'Veja como ficou a peça na modelo.',
+          loadingTitle: 'Provando...',
+          loadingSub: 'Estou ajustando o caimento e a luz.'
         },
         oculos: {
           endpoint: 'https://n8n.segredosdodrop.com/webhook/gerador-oculos-teste',
-          step1Title: 'Envie o óculos', step1Sub: 'A armação',
-          step2Title: 'Envie a pessoa', step2Sub: 'Quem vai usar',
-          productTag: 'Óculos', productTitle: 'Foto do Óculos',
-          modelTag: 'Pessoa', modelTitle: 'Foto da Pessoa',
-          ctaText: 'Provar Óculos Agora',
-          loadingTitle: 'Provando seu Óculos...',
-          loadingSub: 'Nossa IA está ajustando o ângulo, o tamanho e a iluminação.'
+          step2Title: 'Foto do óculos',
+          step2Sub: 'a armação',
+          step3Title: 'Foto da pessoa',
+          step3Sub: 'quem vai usar',
+          step4Sub: 'Veja como ficou o óculos na pessoa.',
+          loadingTitle: 'Provando...',
+          loadingSub: 'Estou ajustando o ângulo e a luz.'
         }
       };
-      var currentMode = 'roupa';
-      var btnOriginalText = MODES[currentMode].ctaText;
-      var btnIconSvg = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M15 4V2m0 2v2m0-2h2m-2 0h-2"/><path d="M8.5 8.5L3 14l5 5L19.5 7.5 15 3z"/></svg>';
-      var spinnerSvg = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>';
 
+      // ========= Step navigation =========
+      function setProgress(step) {
+        if (step === 4) {
+          progressWrap.classList.add('hidden');
+        } else {
+          progressWrap.classList.remove('hidden');
+          var pct = ((step - 1) / 2) * 100;
+          progressFill.style.width = pct + '%';
+        }
+      }
+
+      function goToStep(n, direction) {
+        var sections = document.querySelectorAll('.step');
+        sections.forEach(function(s) {
+          s.classList.remove('active', 'back');
+        });
+        var target = document.getElementById('step-' + n);
+        if (!target) return;
+        if (direction === 'back') target.classList.add('back');
+        // Force reflow so animation re-runs
+        void target.offsetWidth;
+        target.classList.add('active');
+        currentStep = n;
+        setProgress(n);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function applyMode(mode) {
+        currentMode = mode;
+        var cfg = MODES[mode];
+        document.getElementById('step2-title').textContent = cfg.step2Title;
+        document.getElementById('step2-sub').textContent = cfg.step2Sub;
+        document.getElementById('step3-title').textContent = cfg.step3Title;
+        document.getElementById('step3-sub').textContent = cfg.step3Sub;
+        document.getElementById('step4-sub').textContent = cfg.step4Sub;
+        var lm = document.getElementById('loading-modal');
+        lm.querySelector('h3').textContent = cfg.loadingTitle;
+        lm.querySelector('p').textContent = cfg.loadingSub;
+      }
+
+      function resetAll() {
+        productBase64 = null;
+        modelBase64 = null;
+        productPreview.style.display = 'none';
+        modelPreview.style.display = 'none';
+        productPreview.src = '';
+        modelPreview.src = '';
+        productBox.classList.remove('has-image');
+        modelBox.classList.remove('has-image');
+        productInput.value = '';
+        modelInput.value = '';
+        btnStep2Next.disabled = true;
+        btnMaterialize.disabled = true;
+        uploadStatus.textContent = '';
+      }
+
+      // ========= Step 1: Tipo selection =========
+      document.querySelectorAll('.type-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+          applyMode(card.dataset.type);
+          goToStep(2);
+        });
+      });
+
+      // ========= Back buttons =========
+      document.querySelectorAll('[data-back]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          if (currentStep > 1) goToStep(currentStep - 1, 'back');
+        });
+      });
+
+      // ========= Upload logic =========
       function processFile(file, previewElement, type) {
         if (!file || !file.type || file.type.indexOf('image/') !== 0) {
           uploadStatus.textContent = 'Envie um arquivo de imagem válido.';
-          uploadStatus.style.color = '#ef4444';
+          uploadStatus.style.color = 'var(--red)';
           return;
         }
         var reader = new FileReader();
@@ -702,8 +674,13 @@
           previewElement.src = event.target.result;
           previewElement.style.display = 'block';
           previewElement.closest('.upload-box').classList.add('has-image');
-          if (type === 'product') productBase64 = event.target.result;
-          else modelBase64 = event.target.result;
+          if (type === 'product') {
+            productBase64 = event.target.result;
+            btnStep2Next.disabled = false;
+          } else {
+            modelBase64 = event.target.result;
+            btnMaterialize.disabled = false;
+          }
           uploadStatus.textContent = '';
         };
         reader.readAsDataURL(file);
@@ -714,8 +691,6 @@
           var file = e.target.files && e.target.files[0];
           if (file) processFile(file, previewElement, type);
         });
-
-        // Drag-and-drop
         ['dragenter', 'dragover'].forEach(function(evt) {
           box.addEventListener(evt, function(e) {
             e.preventDefault();
@@ -727,7 +702,6 @@
           box.addEventListener(evt, function(e) {
             e.preventDefault();
             e.stopPropagation();
-            // only remove if leaving the box itself, not entering a child
             if (evt === 'dragleave' && box.contains(e.relatedTarget)) return;
             box.classList.remove('drag-over');
           });
@@ -742,116 +716,27 @@
         });
       }
 
-      var productBox = document.getElementById('product-upload-box');
-      var modelBox = document.getElementById('model-upload-box');
       bindUpload(productBox, productInput, productPreview, 'product');
       bindUpload(modelBox, modelInput, modelPreview, 'model');
 
-      // Prevent the browser from opening dropped files outside the boxes
       ['dragover', 'drop'].forEach(function(evt) {
         window.addEventListener(evt, function(e) {
           if (!e.target.closest('.upload-box')) e.preventDefault();
         });
       });
 
-      function resetButton() {
-        btnMaterialize.disabled = false;
-        btnMaterialize.textContent = '';
-        // Recreate button content safely
-        var iconSpan = document.createElement('span');
-        iconSpan.style.display = 'inline-flex';
-        iconSpan.style.alignItems = 'center';
-        var parser = new DOMParser();
-        var svgDoc = parser.parseFromString(btnIconSvg, 'image/svg+xml');
-        iconSpan.appendChild(svgDoc.documentElement);
-        btnMaterialize.appendChild(iconSpan);
-        btnMaterialize.appendChild(document.createTextNode(' ' + btnOriginalText));
-      }
-
-      function setButtonLoading() {
-        btnMaterialize.disabled = true;
-        btnMaterialize.textContent = '';
-        var iconSpan = document.createElement('span');
-        iconSpan.style.display = 'inline-flex';
-        iconSpan.style.alignItems = 'center';
-        var parser = new DOMParser();
-        var svgDoc = parser.parseFromString(spinnerSvg, 'image/svg+xml');
-        iconSpan.appendChild(svgDoc.documentElement);
-        btnMaterialize.appendChild(iconSpan);
-        btnMaterialize.appendChild(document.createTextNode(' Processando...'));
-      }
-
-      function applyMode(mode) {
-        currentMode = mode;
-        var cfg = MODES[mode];
-
-        document.querySelectorAll('.mode-toggle-btn').forEach(function(b) {
-          var active = b.dataset.mode === mode;
-          b.classList.toggle('active', active);
-          b.setAttribute('aria-selected', active ? 'true' : 'false');
-        });
-
-        var stepInfos = document.querySelectorAll('.upload-step-info');
-        if (stepInfos[0]) {
-          stepInfos[0].querySelector('h4').textContent = cfg.step1Title;
-          stepInfos[0].querySelector('span').textContent = cfg.step1Sub;
-        }
-        if (stepInfos[1]) {
-          stepInfos[1].querySelector('h4').textContent = cfg.step2Title;
-          stepInfos[1].querySelector('span').textContent = cfg.step2Sub;
-        }
-
-        var productBoxEl = document.getElementById('product-upload-box');
-        var modelBoxEl = document.getElementById('model-upload-box');
-        if (productBoxEl) {
-          productBoxEl.querySelector('.upload-tag').textContent = cfg.productTag;
-          productBoxEl.querySelector('h3').textContent = cfg.productTitle;
-        }
-        if (modelBoxEl) {
-          modelBoxEl.querySelector('.upload-tag').textContent = cfg.modelTag;
-          modelBoxEl.querySelector('h3').textContent = cfg.modelTitle;
-        }
-
-        btnOriginalText = cfg.ctaText;
-        resetButton();
-
-        var lm = document.getElementById('loading-modal');
-        if (lm) {
-          var lmH3 = lm.querySelector('h3');
-          var lmP = lm.querySelector('p');
-          if (lmH3) lmH3.textContent = cfg.loadingTitle;
-          if (lmP) lmP.textContent = cfg.loadingSub;
-        }
-
-        productBase64 = null;
-        modelBase64 = null;
-        productPreview.style.display = 'none';
-        modelPreview.style.display = 'none';
-        productPreview.src = '';
-        modelPreview.src = '';
-        if (productBoxEl) productBoxEl.classList.remove('has-image');
-        if (modelBoxEl) modelBoxEl.classList.remove('has-image');
-        productInput.value = '';
-        modelInput.value = '';
-        var rc = document.getElementById('result-container');
-        if (rc) rc.style.display = 'none';
-        uploadStatus.textContent = '';
-      }
-
-      document.querySelectorAll('.mode-toggle-btn').forEach(function(b) {
-        b.addEventListener('click', function() {
-          if (b.dataset.mode !== currentMode) applyMode(b.dataset.mode);
-        });
+      // ========= Step 2 → Step 3 =========
+      btnStep2Next.addEventListener('click', function() {
+        if (!productBase64) return;
+        goToStep(3);
       });
 
+      // ========= Step 3 → Provar =========
       btnMaterialize.addEventListener('click', async function() {
-        if (!productBase64 || !modelBase64) {
-          uploadStatus.textContent = 'Envie as duas imagens para continuar.';
-          uploadStatus.style.color = '#ef4444';
-          return;
-        }
+        if (!productBase64 || !modelBase64) return;
 
-        setButtonLoading();
+        btnMaterialize.disabled = true;
+        btnMaterialize.textContent = 'Processando...';
         uploadStatus.textContent = '';
 
         var loadingModal = document.getElementById('loading-modal');
@@ -864,67 +749,56 @@
             body: JSON.stringify({ produto: productBase64, modelo: modelBase64 })
           });
 
-          // Limite por IP desativado no backend (n8n). Mantido comentado para reativacao futura.
-          // if (response.status === 429) {
-          //   var errData = null;
-          //   try { errData = await response.json(); } catch (e) {}
-          //   var msg = (errData && errData.mensagem) || 'Você atingiu o limite de 5 testes gratuitos. Entre em contato para liberar mais.';
-          //   uploadStatus.textContent = msg;
-          //   uploadStatus.style.color = '#ef4444';
-          //   loadingModal.classList.remove('active');
-          //   resetButton();
-          //   return;
-          // }
+          if (!response.ok) throw new Error('http ' + response.status);
 
-          if (response.ok) {
-            uploadStatus.textContent = 'Processamento concluído.';
-            uploadStatus.style.color = '#10b981';
+          var contentType = response.headers.get('content-type');
+          var imageUrl = '';
 
-            var contentType = response.headers.get('content-type');
-            var imageUrl = '';
-            var responseData = null;
-
-            if (contentType && contentType.indexOf('application/json') !== -1) {
-              responseData = await response.json();
-              imageUrl = responseData.url || responseData.image_url || responseData.imagem || responseData.image || responseData.resultado || responseData.result || '';
-              if (!imageUrl && typeof responseData === 'object') {
-                var keys = Object.keys(responseData);
-                if (keys.length > 0 && typeof responseData[keys[0]] === 'string') {
-                  imageUrl = responseData[keys[0]];
-                }
+          if (contentType && contentType.indexOf('application/json') !== -1) {
+            var responseData = await response.json();
+            imageUrl = responseData.url || responseData.image_url || responseData.imagem || responseData.image || responseData.resultado || responseData.result || '';
+            if (!imageUrl && typeof responseData === 'object') {
+              var keys = Object.keys(responseData);
+              if (keys.length > 0 && typeof responseData[keys[0]] === 'string') {
+                imageUrl = responseData[keys[0]];
               }
-            } else if (contentType && (contentType.indexOf('image/') !== -1 || contentType === 'application/octet-stream')) {
-              var blob = await response.blob();
-              imageUrl = URL.createObjectURL(blob);
-            } else {
-              imageUrl = await response.text();
             }
-
-            if (imageUrl && (imageUrl.startsWith('http') || imageUrl.startsWith('data:image') || imageUrl.startsWith('blob:'))) {
-              var resultContainer = document.getElementById('result-container');
-              var resultImage = document.getElementById('result-image');
-              resultImage.src = imageUrl;
-              resultContainer.style.display = 'block';
-              uploadStatus.textContent = 'Provador finalizado com sucesso!';
-              loadingModal.classList.remove('active');
-              setTimeout(function() { resultContainer.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
-            } else {
-              uploadStatus.textContent = 'Formato de imagem retornado não é válido.';
-              uploadStatus.style.color = '#f59e0b';
-              loadingModal.classList.remove('active');
-            }
+          } else if (contentType && (contentType.indexOf('image/') !== -1 || contentType === 'application/octet-stream')) {
+            var blob = await response.blob();
+            imageUrl = URL.createObjectURL(blob);
           } else {
-            throw new Error('Erro na comunicação');
+            imageUrl = await response.text();
+          }
+
+          if (imageUrl && (imageUrl.startsWith('http') || imageUrl.startsWith('data:image') || imageUrl.startsWith('blob:'))) {
+            document.getElementById('result-image').src = imageUrl;
+            loadingModal.classList.remove('active');
+            goToStep(4);
+          } else {
+            uploadStatus.textContent = 'Resposta inesperada. Tente novamente.';
+            uploadStatus.style.color = 'var(--red)';
+            loadingModal.classList.remove('active');
           }
         } catch (error) {
           console.error('Error:', error);
           uploadStatus.textContent = 'Erro ao processar. Tente novamente.';
-          uploadStatus.style.color = '#ef4444';
-          document.getElementById('loading-modal').classList.remove('active');
+          uploadStatus.style.color = 'var(--red)';
+          loadingModal.classList.remove('active');
         } finally {
-          resetButton();
+          btnMaterialize.textContent = 'Provar agora';
+          btnMaterialize.disabled = !modelBase64;
         }
       });
+
+      // ========= Step 4 → Restart =========
+      btnRestart.addEventListener('click', function() {
+        resetAll();
+        currentMode = null;
+        goToStep(1, 'back');
+      });
+
+      // Init
+      setProgress(1);
     });
   </script>
 </body>
