@@ -485,7 +485,7 @@
             <span class="upload-icon">
               <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             </span>
-            <span class="upload-hint">clique ou arraste uma imagem</span>
+            <span class="upload-hint">clique, arraste ou cole (Ctrl+V)</span>
             <img id="product-preview" class="upload-preview" alt="" style="display:none;">
           </label>
         </div>
@@ -511,7 +511,7 @@
             <span class="upload-icon">
               <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             </span>
-            <span class="upload-hint">clique ou arraste uma imagem</span>
+            <span class="upload-hint">clique, arraste ou cole (Ctrl+V)</span>
             <img id="model-preview" class="upload-preview" alt="" style="display:none;">
           </label>
         </div>
@@ -723,6 +723,25 @@
         window.addEventListener(evt, function(e) {
           if (!e.target.closest('.upload-box')) e.preventDefault();
         });
+      });
+
+      // ========= Paste support =========
+      document.addEventListener('paste', function(e) {
+        if (currentStep !== 2 && currentStep !== 3) return;
+        var items = e.clipboardData && e.clipboardData.items;
+        if (!items) return;
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].type.indexOf('image/') === 0) {
+            var file = items[i].getAsFile();
+            if (!file) continue;
+            if (currentStep === 2) {
+              processFile(file, productPreview, 'product');
+            } else {
+              processFile(file, modelPreview, 'model');
+            }
+            break;
+          }
+        }
       });
 
       // ========= Step 2 → Step 3 =========
