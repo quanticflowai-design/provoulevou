@@ -2723,7 +2723,7 @@
                             dateStr = d.toLocaleDateString('pt-BR') + ' \u00e0s ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                         }
                         const rawName = nameMap[phone] || item.nome || item.cliente_nome || item.nome_cliente || item.customer_name || '';
-                        const firstName = rawName ? rawName.trim().split(' ')[0] : '\u2014';
+                        const firstName = rawName ? rawName.trim().split(' ').slice(0, 2).join(' ') : '\u2014';
                         const produto = item.produtos || item.produto_provado || '-';
 
                         const tr = document.createElement('tr');
@@ -2872,7 +2872,7 @@
                 const dateRaw = (fDataPedido && o[fDataPedido]) || o.created_at || '';
                 const dateStr = dateRaw ? (dateRaw.length === 10 ? dateRaw.split('-').reverse().join('/') : new Date(dateRaw).toLocaleDateString('pt-BR')) : '';
                 const clienteNome = (fNome && o[fNome]) || nameMap[phone] || '';
-                const firstName = clienteNome.trim().split(' ')[0] || '\u2014';
+                const firstName = clienteNome.trim().split(' ').slice(0, 2).join(' ') || '\u2014';
                 const valor = (parseFloat(o[fTotal]) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                 const isRecorrente = (orderCountByPhone[phone] || 0) > 1;
                 const tr = document.createElement('tr');
@@ -3138,7 +3138,7 @@
                     const dateRaw = (fDataPedido && item[fDataPedido]) || item.created_at || '';
                     const dateStr = dateRaw ? (dateRaw.length === 10 ? dateRaw.split('-').reverse().join('/') : new Date(dateRaw).toLocaleDateString('pt-BR')) : '';
                     const clienteNome = (fNome && item[fNome]) || nameMap[phone] || '';
-                    const firstName = clienteNome.trim().split(' ')[0] || '\u2014';
+                    const firstName = clienteNome.trim().split(' ').slice(0, 2).join(' ') || '\u2014';
                     const valor = (parseFloat(item[fTotal]) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                     const tr = document.createElement('tr');
                     const tdDate = document.createElement('td'); tdDate.textContent = dateStr;
