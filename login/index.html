@@ -1691,7 +1691,7 @@
                 <div id="fatMensalContainer" class="chart-container" style="display:none;margin-bottom:20px;">
                     <div class="chart-header">
                         <h2><i class="ph-bold ph-trend-up" style="color:var(--primary);"></i> Faturamento Mensal</h2>
-                        <span style="font-size:12px;color:var(--text-muted);">Total da loja · linha = via provador</span>
+                        <span style="font-size:12px;color:var(--text-muted);">Faturamento total da loja &nbsp;·&nbsp; <span style="color:#f59e0b;">★</span> instalação do provador</span>
                     </div>
                     <div class="chart-canvas-wrap">
                         <canvas id="fatMensalChart"></canvas>
@@ -2386,25 +2386,12 @@
                             fill: true,
                             tension: 0.4,
                             borderWidth: 2.5,
-                            pointBackgroundColor: barColors,
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                            pointRadius: 5,
-                            pointHoverRadius: 7,
-                        },
-                        {
-                            label: 'Via Provador',
-                            data: months.map(m => byMonth[m].postProva),
-                            borderColor: '#10b981',
-                            backgroundColor: 'rgba(16,185,129,0.08)',
-                            fill: true,
-                            tension: 0.4,
-                            borderWidth: 2.5,
-                            pointBackgroundColor: '#10b981',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
+                            pointBackgroundColor: months.map(m => m === installMonth ? '#f59e0b' : '#8b5cf6'),
+                            pointBorderColor: months.map(m => m === installMonth ? '#fff' : '#fff'),
+                            pointBorderWidth: months.map(m => m === installMonth ? 3 : 2),
+                            pointRadius: months.map(m => m === installMonth ? 9 : 4),
+                            pointHoverRadius: months.map(m => m === installMonth ? 11 : 6),
+                            pointStyle: months.map(m => m === installMonth ? 'star' : 'circle'),
                         }
                     ]
                 },
