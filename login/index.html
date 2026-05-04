@@ -1687,6 +1687,17 @@
                     </div>
                 </div>
 
+                <!-- Gráfico de faturamento mensal geral -->
+                <div id="fatMensalContainer" class="chart-container" style="display:none;margin-bottom:20px;">
+                    <div class="chart-header">
+                        <h2><i class="ph-bold ph-trend-up" style="color:var(--primary);"></i> Faturamento Mensal</h2>
+                        <span style="font-size:12px;color:var(--text-muted);">Total da loja · linha = via provador</span>
+                    </div>
+                    <div class="chart-canvas-wrap">
+                        <canvas id="fatMensalChart"></canvas>
+                    </div>
+                </div>
+
                 <div id="comprasSection">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
                         <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
@@ -2314,6 +2325,153 @@
             el.title = 'Mês anterior: ' + formatter(prev);
         }
 
+        function renderFatMensalChart() {
+            const container = document.getElementById('fatMensalContainer');
+            if (!allOrdersCache || allOrdersCache.length === 0) { if (container) container.style.display = 'none'; return; }
+            const fTotal    = activeUser.campo_total_pedido || 'total';
+            const fPhone    = activeUser.campo_telefone_pedido || 'customer_phone';
+            const fDataPedido = activeUser.campo_data_pedido || null;
+
+            // Primeira prova = mês de instalação do provador
+            const installDate = Object.values(provaMinDateMap).sort()[0] || '';
+            const installMonth = installDate.slice(0, 7); // YYYY-MM
+
+            // Agregar por mês: faturamento total e pós-prova
+            const byMonth = {};
+            allOrdersCache.forEach(o => {
+                const raw = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                const m = raw ? (raw.length >= 7 ? raw.slice(0, 7) : '') : '';
+                if (!m) return;
+                if (!byMonth[m]) byMonth[m] = { total: 0, postProva: 0 };
+                const val = parseFloat(o[fTotal]) || 0;
+                byMonth[m].total += val;
+                const ph = normalize(o[fPhone]);
+                if (isOrderAfterProva(raw, ph)) byMonth[m].postProva += val;
+            });
+
+            const months = Object.keys(byMonth).sort();
+            if (months.length === 0) { if (container) container.style.display = 'none'; return; }
+
+            const labels = months.map(m => {
+                const [y, mo] = m.split('-');
+                const nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+                return nomes[parseInt(mo) - 1] + '/' + y.slice(2);
+            });
+
+            // Cor das barras: cinza antes da instalação, roxo depois
+            const barColors = months.map(m =>
+                !installMonth || m < installMonth
+                    ? 'rgba(100,116,139,0.55)'
+                    : 'rgba(139,92,246,0.75)'
+            );
+            const barHover = months.map(m =>
+                !installMonth || m < installMonth
+                    ? 'rgba(100,116,139,0.8)'
+                    : 'rgba(139,92,246,1)'
+            );
+
+            if (container) container.style.display = 'block';
+            const ctx = document.getElementById('fatMensalChart');
+            if (window._fatMensalChart) window._fatMensalChart.destroy();
+            window._fatMensalChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Faturamento Total',
+                            data: months.map(m => byMonth[m].total),
+                            backgroundColor: barColors,
+                            hoverBackgroundColor: barHover,
+                            borderRadius: 6,
+                            borderSkipped: false,
+                            order: 2,
+                        },
+                        {
+                            label: 'Via Provador',
+                            data: months.map(m => byMonth[m].postProva),
+                            type: 'line',
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16,185,129,0.12)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2.5,
+                            pointBackgroundColor: '#10b981',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            order: 1,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { color: '#94a3b8', font: { size: 12 }, usePointStyle: true, pointStyle: 'circle',
+                                filter: item => item.text !== 'Faturamento Total' || true }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e1e2e', titleColor: '#fff', bodyColor: '#c4b5fd',
+                            borderColor: '#8b5cf6', borderWidth: 1, cornerRadius: 8,
+                            callbacks: {
+                                label: c => {
+                                    const v = c.parsed.y;
+                                    return ' ' + c.dataset.label + ': R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                                },
+                                afterBody: tooltipItems => {
+                                    const m = months[tooltipItems[0].dataIndex];
+                                    if (installMonth && m === installMonth) return ['', '📍 Mês de instalação do provador'];
+                                    return [];
+                                }
+                            }
+                        },
+                        // Anotação do mês de instalação via desenho manual
+                        annotation: undefined
+                    },
+                    scales: {
+                        x: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { display: false } },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#94a3b8', font: { size: 11 },
+                                callback: v => 'R$ ' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) },
+                            grid: { color: 'rgba(255,255,255,0.04)' }
+                        }
+                    }
+                },
+                plugins: [{
+                    // Linha vertical no mês de instalação
+                    id: 'installLine',
+                    afterDraw(chart) {
+                        if (!installMonth) return;
+                        const idx = months.indexOf(installMonth);
+                        if (idx < 0) return;
+                        const meta = chart.getDatasetMeta(0);
+                        if (!meta.data[idx]) return;
+                        const x = meta.data[idx].x;
+                        const ctx2 = chart.ctx;
+                        const { top, bottom } = chart.chartArea;
+                        ctx2.save();
+                        ctx2.beginPath();
+                        ctx2.moveTo(x, top);
+                        ctx2.lineTo(x, bottom);
+                        ctx2.strokeStyle = 'rgba(251,191,36,0.7)';
+                        ctx2.lineWidth = 2;
+                        ctx2.setLineDash([5, 4]);
+                        ctx2.stroke();
+                        ctx2.fillStyle = 'rgba(251,191,36,0.9)';
+                        ctx2.font = '600 10px Inter, sans-serif';
+                        ctx2.textAlign = 'center';
+                        ctx2.fillText('📍 instalou', x, top - 6);
+                        ctx2.restore();
+                    }
+                }]
+            });
+        }
+
         function loadVisaoGeral() {
             if (!allOrdersCache || !generationPhones) return;
             const curr = monthRange(0);
@@ -2327,6 +2485,7 @@
             renderDelta('kpiDeltaFat',     k0.fat,     k1.fat,     brl);
             renderDelta('kpiDeltaUnicos',  k0.unicos,  k1.unicos,  num);
             renderDelta('kpiDeltaConv',    k0.conv,    k1.conv,    pct);
+            renderFatMensalChart();
 
             // Banner: leads que usaram o provador mas ainda não compraram
             const fTotal = activeUser.campo_total_pedido || 'total';
