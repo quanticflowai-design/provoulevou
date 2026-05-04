@@ -2374,25 +2374,29 @@
             const ctx = document.getElementById('fatMensalChart');
             if (window._fatMensalChart) window._fatMensalChart.destroy();
             window._fatMensalChart = new Chart(ctx, {
-                type: 'bar',
+                type: 'line',
                 data: {
                     labels,
                     datasets: [
                         {
                             label: 'Faturamento Total',
                             data: months.map(m => byMonth[m].total),
-                            backgroundColor: barColors,
-                            hoverBackgroundColor: barHover,
-                            borderRadius: 6,
-                            borderSkipped: false,
-                            order: 2,
+                            borderColor: '#8b5cf6',
+                            backgroundColor: 'rgba(139,92,246,0.08)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2.5,
+                            pointBackgroundColor: barColors,
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
                         },
                         {
                             label: 'Via Provador',
                             data: months.map(m => byMonth[m].postProva),
-                            type: 'line',
                             borderColor: '#10b981',
-                            backgroundColor: 'rgba(16,185,129,0.12)',
+                            backgroundColor: 'rgba(16,185,129,0.08)',
                             fill: true,
                             tension: 0.4,
                             borderWidth: 2.5,
@@ -2401,7 +2405,6 @@
                             pointBorderWidth: 2,
                             pointRadius: 4,
                             pointHoverRadius: 6,
-                            order: 1,
                         }
                     ]
                 },
@@ -2411,26 +2414,20 @@
                     plugins: {
                         legend: {
                             display: true,
-                            labels: { color: '#94a3b8', font: { size: 12 }, usePointStyle: true, pointStyle: 'circle',
-                                filter: item => item.text !== 'Faturamento Total' || true }
+                            labels: { color: '#94a3b8', font: { size: 12 }, usePointStyle: true, pointStyle: 'circle' }
                         },
                         tooltip: {
                             backgroundColor: '#1e1e2e', titleColor: '#fff', bodyColor: '#c4b5fd',
                             borderColor: '#8b5cf6', borderWidth: 1, cornerRadius: 8,
                             callbacks: {
-                                label: c => {
-                                    const v = c.parsed.y;
-                                    return ' ' + c.dataset.label + ': R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                                },
+                                label: c => ' ' + c.dataset.label + ': R$ ' + c.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
                                 afterBody: tooltipItems => {
                                     const m = months[tooltipItems[0].dataIndex];
                                     if (installMonth && m === installMonth) return ['', '📍 Mês de instalação do provador'];
                                     return [];
                                 }
                             }
-                        },
-                        // Anotação do mês de instalação via desenho manual
-                        annotation: undefined
+                        }
                     },
                     scales: {
                         x: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { display: false } },
