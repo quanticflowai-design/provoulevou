@@ -2325,28 +2325,49 @@
             el.title = 'Mês anterior: ' + formatter(prev);
         }
 
-        function renderFatMensalChart() {
+        async function renderFatMensalChart() {
             const container = document.getElementById('fatMensalContainer');
-            if (!allOrdersCache || allOrdersCache.length === 0) { if (container) container.style.display = 'none'; return; }
-            const fTotal    = activeUser.campo_total_pedido || 'total';
-            const fPhone    = activeUser.campo_telefone_pedido || 'customer_phone';
-            const fDataPedido = activeUser.campo_data_pedido || null;
+            if (!activeUser || !activeUser.tabela_pedidos) { if (container) container.style.display = 'none'; return; }
+            const fTotal      = activeUser.campo_total_pedido || 'total';
+            const fDataPedido = activeUser.campo_data_pedido || 'created_at';
+            const fStatus     = activeUser.campo_status_pedido || 'payment_status';
+            const fStatusVals = activeUser.valores_status_pago || ['paid'];
 
             // Primeira prova = mês de instalação do provador
-            const installDate = Object.values(provaMinDateMap).sort()[0] || '';
-            const installMonth = installDate.slice(0, 7); // YYYY-MM
+            const installDate  = Object.values(provaMinDateMap).sort()[0] || '';
+            const installMonth = installDate.slice(0, 7);
 
-            // Agregar por mês: faturamento total e pós-prova
+            // Buscar todos os pedidos pagos desde nov/2025 (paginado)
+            const since = '2025-11-01T00:00:00-03:00';
+            const allOrders = [];
+            const pageSize = 1000;
+            let from = 0;
+            while (true) {
+                let q = supabaseClient
+                    .from(activeUser.tabela_pedidos)
+                    .select(`${fTotal},${fDataPedido}`)
+                    .in(fStatus, fStatusVals)
+                    .gte(fDataPedido, since)
+                    .order(fDataPedido, { ascending: true })
+                    .range(from, from + pageSize - 1);
+                const { data: batch } = await q;
+                if (!batch || batch.length === 0) break;
+                allOrders.push(...batch);
+                if (batch.length < pageSize) break;
+                from += pageSize;
+            }
+
+            if (allOrders.length === 0) { if (container) container.style.display = 'none'; return; }
+
+            // Agregar por mês
             const byMonth = {};
-            allOrdersCache.forEach(o => {
-                const raw = (fDataPedido && o[fDataPedido]) || o.created_at || '';
-                const m = raw ? (raw.length >= 7 ? raw.slice(0, 7) : '') : '';
+            allOrders.forEach(o => {
+                const raw = o[fDataPedido] || '';
+                const m = raw.slice(0, 7);
                 if (!m) return;
-                if (!byMonth[m]) byMonth[m] = { total: 0, postProva: 0 };
+                if (!byMonth[m]) byMonth[m] = { total: 0 };
                 const val = parseFloat(o[fTotal]) || 0;
                 byMonth[m].total += val;
-                const ph = normalize(o[fPhone]);
-                if (isOrderAfterProva(raw, ph)) byMonth[m].postProva += val;
             });
 
             const months = Object.keys(byMonth).sort();
@@ -2357,18 +2378,6 @@
                 const nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
                 return nomes[parseInt(mo) - 1] + '/' + y.slice(2);
             });
-
-            // Cor das barras: cinza antes da instalação, roxo depois
-            const barColors = months.map(m =>
-                !installMonth || m < installMonth
-                    ? 'rgba(100,116,139,0.55)'
-                    : 'rgba(139,92,246,0.75)'
-            );
-            const barHover = months.map(m =>
-                !installMonth || m < installMonth
-                    ? 'rgba(100,116,139,0.8)'
-                    : 'rgba(139,92,246,1)'
-            );
 
             if (container) container.style.display = 'block';
             const ctx = document.getElementById('fatMensalChart');
@@ -2469,7 +2478,7 @@
             renderDelta('kpiDeltaFat',     k0.fat,     k1.fat,     brl);
             renderDelta('kpiDeltaUnicos',  k0.unicos,  k1.unicos,  num);
             renderDelta('kpiDeltaConv',    k0.conv,    k1.conv,    pct);
-            renderFatMensalChart();
+            renderFatMensalChart(); // async — roda em paralelo, sem bloquear
 
             // Banner: leads que usaram o provador mas ainda não compraram
             const fTotal = activeUser.campo_total_pedido || 'total';
