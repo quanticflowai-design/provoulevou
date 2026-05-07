@@ -445,7 +445,7 @@
     <section class="step active" id="step-1" data-step="1">
       <div class="step-meta">
         <span></span>
-        <span class="step-counter">1 de 3</span>
+        <span class="step-counter">1 de 4</span>
       </div>
       <h1>Que prova quer gerar?</h1>
       <p class="lead">Escolha o tipo pra começarmos.</p>
@@ -467,14 +467,33 @@
       </div>
     </section>
 
-    <!-- STEP 2 — Foto produto -->
+    <!-- STEP 2 — Site da loja -->
     <section class="step" id="step-2" data-step="2">
       <div class="step-meta">
         <button type="button" class="step-back" data-back>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
           voltar
         </button>
-        <span class="step-counter">2 de 3</span>
+        <span class="step-counter">2 de 4</span>
+      </div>
+      <h1>Qual o site da sua loja?</h1>
+      <p class="lead">Pra gente liberar a demonstração. Pode ser só o domínio (ex: minhaloja.com.br).</p>
+      <div class="upload-wrap">
+        <input type="text" id="site-input" class="q-input" placeholder="minhaloja.com.br" autocomplete="url"
+               style="width:100%;padding:14px 16px;font-size:16px;border:1px solid var(--line,#e5e5e5);border-radius:10px;background:#fff;color:var(--ink,#111);box-sizing:border-box;">
+        <p id="site-error" class="upload-status" style="display:none;color:var(--red,#cc3333);"></p>
+        <button type="button" class="btn-main" id="btn-site-next" disabled>Continuar</button>
+      </div>
+    </section>
+
+    <!-- STEP 3 — Foto produto -->
+    <section class="step" id="step-3" data-step="3">
+      <div class="step-meta">
+        <button type="button" class="step-back" data-back>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          voltar
+        </button>
+        <span class="step-counter">3 de 4</span>
       </div>
       <h1 id="step2-title">Foto do produto</h1>
       <p class="lead" id="step2-sub">a peça de roupa que vai provar</p>
@@ -493,14 +512,14 @@
       </div>
     </section>
 
-    <!-- STEP 3 — Foto modelo -->
-    <section class="step" id="step-3" data-step="3">
+    <!-- STEP 4 — Foto modelo -->
+    <section class="step" id="step-4" data-step="4">
       <div class="step-meta">
         <button type="button" class="step-back" data-back>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
           voltar
         </button>
-        <span class="step-counter">3 de 3</span>
+        <span class="step-counter">4 de 4</span>
       </div>
       <h1 id="step3-title">Foto da modelo</h1>
       <p class="lead" id="step3-sub">quem vai vestir</p>
@@ -520,8 +539,8 @@
       </div>
     </section>
 
-    <!-- STEP 4 — Resultado -->
-    <section class="step" id="step-4" data-step="4">
+    <!-- STEP 5 — Resultado -->
+    <section class="step" id="step-5" data-step="5">
       <div class="step-meta">
         <span></span>
         <span class="step-counter"></span>
@@ -593,11 +612,11 @@
 
       // ========= Step navigation =========
       function setProgress(step) {
-        if (step === 4) {
+        if (step === 5) {
           progressWrap.classList.add('hidden');
         } else {
           progressWrap.classList.remove('hidden');
-          var pct = ((step - 1) / 2) * 100;
+          var pct = ((step - 1) / 3) * 100;
           progressFill.style.width = pct + '%';
         }
       }
@@ -744,10 +763,61 @@
         }
       });
 
-      // ========= Step 2 → Step 3 =========
+      // ========= Step 2 (Site da loja) → Step 3 =========
+      var siteInput = document.getElementById('site-input');
+      var btnSiteNext = document.getElementById('btn-site-next');
+      var siteError = document.getElementById('site-error');
+      var siteUrl = '';
+
+      function isValidSite(v) {
+        v = (v || '').trim();
+        if (v.length < 4) return false;
+        // domínio simples: contém ponto e ao menos 2 chars depois
+        return /^(https?:\/\/)?(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9\/\-_.?=&#%]*$/i.test(v);
+      }
+
+      siteInput.addEventListener('input', function() {
+        btnSiteNext.disabled = !isValidSite(siteInput.value);
+        if (siteError.style.display !== 'none') siteError.style.display = 'none';
+      });
+
+      btnSiteNext.addEventListener('click', function() {
+        var v = (siteInput.value || '').trim();
+        if (!isValidSite(v)) {
+          siteError.textContent = 'Coloca um domínio válido (ex: minhaloja.com.br)';
+          siteError.style.display = 'block';
+          return;
+        }
+        siteUrl = v;
+        // Captura o lead anonimamente em landing_leads (best-effort)
+        try {
+          fetch('https://quantic-supabase.k5jwra.easypanel.host/rest/v1/landing_leads', {
+            method: 'POST',
+            headers: {
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.g2PgdtfvvAFY_Dyylnh9dRVKudf1RWiw1WqwogmsHTA',
+              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.g2PgdtfvvAFY_Dyylnh9dRVKudf1RWiw1WqwogmsHTA',
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({
+              utm_source: 'loja-teste',
+              utm_medium: 'demo',
+              utm_campaign: currentMode || '',
+              page_path: window.location.pathname + window.location.search,
+              referrer: document.referrer || null,
+              user_agent: navigator.userAgent,
+              utm_content: v
+            }),
+            keepalive: true
+          }).catch(function(){});
+        } catch(e) {}
+        goToStep(3);
+      });
+
+      // ========= Step 3 → Step 4 =========
       btnStep2Next.addEventListener('click', function() {
         if (!productBase64) return;
-        goToStep(3);
+        goToStep(4);
       });
 
       // ========= Step 3 → Provar =========
@@ -792,7 +862,7 @@
           if (imageUrl && (imageUrl.startsWith('http') || imageUrl.startsWith('data:image') || imageUrl.startsWith('blob:'))) {
             document.getElementById('result-image').src = imageUrl;
             loadingModal.classList.remove('active');
-            goToStep(4);
+            goToStep(5);
           } else {
             uploadStatus.textContent = 'Resposta inesperada. Tente novamente.';
             uploadStatus.style.color = 'var(--red)';
