@@ -441,11 +441,30 @@
 
   <main>
 
-    <!-- STEP 1 — Tipo -->
+    <!-- STEP 1 — Site da loja -->
     <section class="step active" id="step-1" data-step="1">
       <div class="step-meta">
         <span></span>
         <span class="step-counter">1 de 4</span>
+      </div>
+      <h1>Qual o site da sua loja?</h1>
+      <p class="lead">Pra gente liberar a demonstração. Pode ser só o domínio (ex: minhaloja.com.br).</p>
+      <div class="upload-wrap">
+        <input type="text" id="site-input" class="q-input" placeholder="minhaloja.com.br" autocomplete="url" inputmode="url"
+               style="width:100%;padding:14px 16px;font-size:16px;border:1px solid var(--line,#e5e5e5);border-radius:10px;background:#fff;color:var(--ink,#111);box-sizing:border-box;">
+        <p id="site-error" class="upload-status" style="display:none;color:var(--red,#cc3333);margin:10px 0 0;"></p>
+        <button type="button" class="btn-main" id="btn-site-next" style="margin-top:28px;" disabled>Continuar</button>
+      </div>
+    </section>
+
+    <!-- STEP 2 — Tipo -->
+    <section class="step" id="step-2" data-step="2">
+      <div class="step-meta">
+        <button type="button" class="step-back" data-back>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          voltar
+        </button>
+        <span class="step-counter">2 de 4</span>
       </div>
       <h1>Que prova quer gerar?</h1>
       <p class="lead">Escolha o tipo pra começarmos.</p>
@@ -464,25 +483,6 @@
           <h3>Óculos</h3>
           <span>provador de armações</span>
         </button>
-      </div>
-    </section>
-
-    <!-- STEP 2 — Site da loja -->
-    <section class="step" id="step-2" data-step="2">
-      <div class="step-meta">
-        <button type="button" class="step-back" data-back>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-          voltar
-        </button>
-        <span class="step-counter">2 de 4</span>
-      </div>
-      <h1>Qual o site da sua loja?</h1>
-      <p class="lead">Pra gente liberar a demonstração. Pode ser só o domínio (ex: minhaloja.com.br).</p>
-      <div class="upload-wrap">
-        <input type="text" id="site-input" class="q-input" placeholder="minhaloja.com.br" autocomplete="url"
-               style="width:100%;padding:14px 16px;font-size:16px;border:1px solid var(--line,#e5e5e5);border-radius:10px;background:#fff;color:var(--ink,#111);box-sizing:border-box;">
-        <p id="site-error" class="upload-status" style="display:none;color:var(--red,#cc3333);"></p>
-        <button type="button" class="btn-main" id="btn-site-next" disabled>Continuar</button>
       </div>
     </section>
 
@@ -666,11 +666,11 @@
         uploadStatus.textContent = '';
       }
 
-      // ========= Step 1: Tipo selection =========
+      // ========= Step 2: Tipo selection =========
       document.querySelectorAll('.type-card').forEach(function(card) {
         card.addEventListener('click', function() {
           applyMode(card.dataset.type);
-          goToStep(2);
+          goToStep(3);
         });
       });
 
@@ -763,32 +763,54 @@
         }
       });
 
-      // ========= Step 2 (Site da loja) → Step 3 =========
+      // ========= Step 1 (Site da loja) → Step 2 =========
       var siteInput = document.getElementById('site-input');
       var btnSiteNext = document.getElementById('btn-site-next');
       var siteError = document.getElementById('site-error');
       var siteUrl = '';
 
-      function isValidSite(v) {
-        v = (v || '').trim();
-        if (v.length < 4) return false;
-        // domínio simples: contém ponto e ao menos 2 chars depois
-        return /^(https?:\/\/)?(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)+[a-z0-9\/\-_.?=&#%]*$/i.test(v);
+      // Validação robusta: usa URL nativa do browser
+      function normalizeSite(v) {
+        v = (v || '').trim().replace(/\s+/g, '');
+        if (!v) return null;
+        try {
+          var u = new URL(v.includes('://') ? v : 'https://' + v);
+          var host = u.hostname.toLowerCase();
+          if (!host.includes('.')) return null;
+          var parts = host.split('.');
+          var tld = parts[parts.length - 1];
+          if (tld.length < 2) return null;
+          // Cada label só letras/dígitos/hífen, hífen não nas pontas
+          var validLabel = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
+          for (var i = 0; i < parts.length; i++) {
+            if (!validLabel.test(parts[i])) return null;
+          }
+          return host + (u.pathname && u.pathname !== '/' ? u.pathname : '');
+        } catch (e) {
+          return null;
+        }
       }
 
       siteInput.addEventListener('input', function() {
-        btnSiteNext.disabled = !isValidSite(siteInput.value);
+        btnSiteNext.disabled = normalizeSite(siteInput.value) === null;
         if (siteError.style.display !== 'none') siteError.style.display = 'none';
       });
 
+      siteInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !btnSiteNext.disabled) {
+          e.preventDefault();
+          btnSiteNext.click();
+        }
+      });
+
       btnSiteNext.addEventListener('click', function() {
-        var v = (siteInput.value || '').trim();
-        if (!isValidSite(v)) {
+        var normalized = normalizeSite(siteInput.value);
+        if (!normalized) {
           siteError.textContent = 'Coloca um domínio válido (ex: minhaloja.com.br)';
           siteError.style.display = 'block';
           return;
         }
-        siteUrl = v;
+        siteUrl = normalized;
         // Captura o lead anonimamente em landing_leads (best-effort)
         try {
           fetch('https://quantic-supabase.k5jwra.easypanel.host/rest/v1/landing_leads', {
@@ -802,19 +824,19 @@
             body: JSON.stringify({
               utm_source: 'loja-teste',
               utm_medium: 'demo',
-              utm_campaign: currentMode || '',
+              utm_campaign: 'pre-tipo',
               page_path: window.location.pathname + window.location.search,
               referrer: document.referrer || null,
               user_agent: navigator.userAgent,
-              utm_content: v
+              utm_content: normalized
             }),
             keepalive: true
           }).catch(function(){});
         } catch(e) {}
-        goToStep(3);
+        goToStep(2);
       });
 
-      // ========= Step 3 → Step 4 =========
+      // ========= Step 3 (Foto produto) → Step 4 =========
       btnStep2Next.addEventListener('click', function() {
         if (!productBase64) return;
         goToStep(4);
@@ -845,6 +867,15 @@
 
           if (contentType && contentType.indexOf('application/json') !== -1) {
             var responseData = await response.json();
+            // Limite por IP/uso atingido
+            if (responseData && responseData.error === 'limite_atingido') {
+              loadingModal.classList.remove('active');
+              uploadStatus.textContent = responseData.mensagem || 'Você atingiu o limite de testes grátis. Entre em contato pra liberar mais.';
+              uploadStatus.style.color = 'var(--red,#cc3333)';
+              btnMaterialize.textContent = 'Provar agora';
+              btnMaterialize.disabled = !modelBase64;
+              return;
+            }
             imageUrl = responseData.url || responseData.image_url || responseData.imagem || responseData.image || responseData.resultado || responseData.result || '';
             if (!imageUrl && typeof responseData === 'object') {
               var keys = Object.keys(responseData);
