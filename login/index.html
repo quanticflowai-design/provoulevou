@@ -2224,11 +2224,17 @@
         let _allLtvForSearch = [];
         let _allComprasForSearch = [];
 
-        const normalize = p => {
+        const normalizeFull = p => {
             let n = String(p || '').replace(/\D/g, '');
             if (n.startsWith('55') && n.length > 11) n = n.slice(2);
             if (n.startsWith('0')) n = n.slice(1);
             return n;
+        };
+        // Match key (default) — usa últimos 9 dígitos para tolerar DDD 55 (Mato Grosso) e dados
+        // legacy gravados sem DDD (bug histórico do SQL n8n strippando '^55' demais).
+        const normalize = p => {
+            const n = normalizeFull(p);
+            return n.length >= 9 ? n.slice(-9) : n;
         };
 
         // Verifica se pedido foi feito após a prova:
@@ -2925,7 +2931,7 @@
                         const tdProd = document.createElement('td'); tdProd.className = 'product-cell'; tdProd.textContent = produto;
                         const tdAction = document.createElement('td');
                         const link = document.createElement('a');
-                        link.href = 'https://wa.me/55' + phone;
+                        link.href = 'https://wa.me/55' + normalizeFull(item.telefone_cliente);
                         link.target = '_blank';
                         link.className = 'btn-whats';
                         const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
@@ -3081,7 +3087,7 @@
                 const tdValor = document.createElement('td'); tdValor.textContent = valor;
                 const tdAction = document.createElement('td');
                 const link = document.createElement('a');
-                link.href = 'https://wa.me/55' + phone;
+                link.href = 'https://wa.me/55' + normalizeFull(o[fPhone]);
                 link.target = '_blank';
                 link.className = 'btn-whats';
                 const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
@@ -3253,7 +3259,7 @@
                     const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display';
                     if (r.phone) {
                         const a = document.createElement('a');
-                        a.href = 'https://wa.me/55' + r.phone; a.target = '_blank';
+                        a.href = 'https://wa.me/55' + normalizeFull(r.rawPhone || r.phone); a.target = '_blank';
                         a.style.cssText = 'color:#25D366;text-decoration:none;';
                         a.textContent = r.rawPhone; tdPhone.appendChild(a);
                     } else { tdPhone.textContent = '\u2014'; }
@@ -3319,7 +3325,7 @@
                     const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display'; tdPhone.textContent = String(item.telefone_cliente || '');
                     const tdProd = document.createElement('td'); tdProd.className = 'product-cell'; tdProd.textContent = produto;
                     const tdAction = document.createElement('td');
-                    const link = document.createElement('a'); link.href = 'https://wa.me/55' + phone; link.target = '_blank'; link.className = 'btn-whats';
+                    const link = document.createElement('a'); link.href = 'https://wa.me/55' + normalizeFull(item.telefone_cliente); link.target = '_blank'; link.className = 'btn-whats';
                     const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
                     const waTxt = document.createElement('span'); waTxt.className = 'btn-whats-text'; waTxt.textContent = ' Chamar';
                     link.append(waIcon, waTxt); tdAction.appendChild(link);
@@ -3338,7 +3344,7 @@
                     const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display'; tdPhone.textContent = String(item[fPhone] || '');
                     const tdValor = document.createElement('td'); tdValor.textContent = valor;
                     const tdAction = document.createElement('td');
-                    const link = document.createElement('a'); link.href = 'https://wa.me/55' + phone; link.target = '_blank'; link.className = 'btn-whats';
+                    const link = document.createElement('a'); link.href = 'https://wa.me/55' + normalizeFull(item[fPhone]); link.target = '_blank'; link.className = 'btn-whats';
                     const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
                     const waTxt = document.createElement('span'); waTxt.className = 'btn-whats-text'; waTxt.textContent = ' Chamar';
                     link.append(waIcon, waTxt); tdAction.appendChild(link);
@@ -3440,7 +3446,7 @@
                 tdPhone.className = 'phone-display';
                 if (r.phone) {
                     const waLink = document.createElement('a');
-                    waLink.href = 'https://wa.me/55' + r.phone;
+                    waLink.href = 'https://wa.me/55' + normalizeFull(r.rawPhone || r.phone);
                     waLink.target = '_blank';
                     waLink.style.cssText = 'color:#25D366;text-decoration:none;';
                     waLink.textContent = r.rawPhone;
@@ -3792,7 +3798,7 @@
                 tdProd.title = l.products.join(', ');
                 const tdAction = document.createElement('td');
                 const link = document.createElement('a');
-                link.href = 'https://wa.me/55' + l.phone;
+                link.href = 'https://wa.me/55' + normalizeFull(l.rawPhone || l.phone);
                 link.target = '_blank'; link.className = 'btn-whats';
                 const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
                 link.appendChild(waIcon);
