@@ -1300,6 +1300,66 @@
         }
 
         /* ─── Theme Toggle ─── */
+        /* Notifications */
+        .notif-wrap { position: relative; }
+        .notif-btn { position: relative; padding: 6px 10px; }
+        .notif-btn i { font-size: 16px; }
+        @keyframes notif-shake {
+            0%, 100% { transform: rotate(0); }
+            10%, 30% { transform: rotate(-12deg); }
+            20%, 40% { transform: rotate(12deg); }
+            50% { transform: rotate(0); }
+        }
+        .notif-btn.has-unread i { animation: notif-shake 2.5s ease-in-out infinite; transform-origin: top center; color: #f59e0b; }
+        .notif-badge {
+            position: absolute; top: 4px; right: 6px;
+            min-width: 16px; height: 16px; padding: 0 4px;
+            background: #ef4444; color: #fff;
+            font-size: 10px; font-weight: 700; line-height: 16px;
+            border-radius: 999px; text-align: center;
+            box-shadow: 0 0 0 2px var(--bg, #fff);
+        }
+        .notif-panel {
+            position: absolute; top: calc(100% + 10px); right: 0;
+            width: 360px; max-width: 92vw;
+            background: var(--bg, #fff); color: var(--text, #111);
+            border: 1px solid var(--border, rgba(0,0,0,0.1));
+            border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+            z-index: 1000; overflow: hidden;
+            display: none;
+        }
+        .notif-panel.open { display: block; animation: notif-fade-in .18s ease-out; }
+        @keyframes notif-fade-in { from { opacity:0; transform: translateY(-4px); } to { opacity:1; transform: translateY(0); } }
+        .notif-panel-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 16px; border-bottom: 1px solid var(--border, rgba(0,0,0,0.08));
+            font-size: 13px; font-weight: 600; letter-spacing: 0.02em;
+        }
+        .notif-mark-read {
+            background: none; border: none; color: var(--text-muted, #888);
+            font-size: 11px; cursor: pointer; padding: 4px 6px;
+        }
+        .notif-mark-read:hover { color: var(--text, #111); }
+        .notif-list { max-height: 480px; overflow-y: auto; }
+        .notif-item {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border, rgba(0,0,0,0.06));
+            display: flex; gap: 12px; align-items: flex-start;
+        }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-item.unread { background: rgba(245, 158, 11, 0.06); }
+        .notif-item-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #f59e0b; flex-shrink: 0; margin-top: 7px;
+        }
+        .notif-item:not(.unread) .notif-item-dot { background: transparent; }
+        .notif-item-body { flex: 1; min-width: 0; }
+        .notif-item-title { font-size: 13px; font-weight: 600; margin: 0 0 4px; }
+        .notif-item-text { font-size: 12px; line-height: 1.5; color: var(--text-muted, #555); margin: 0; }
+        .notif-item-date { font-size: 10px; color: var(--text-muted, #888); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .notif-empty { padding: 28px 16px; text-align: center; color: var(--text-muted, #888); font-size: 12px; }
+
         .theme-toggle {
             display: flex;
             align-items: center;
@@ -1540,6 +1600,19 @@
                 <div class="theme-toggle" onclick="toggleTheme()">
                     <span class="theme-toggle-label"><i class="ph-bold ph-sun" id="themeIcon"></i></span>
                     <div class="theme-switch" id="themeSwitch"></div>
+                </div>
+                <div class="notif-wrap" id="notifWrap">
+                    <button class="btn-refresh notif-btn" id="notifBtn" onclick="toggleNotifications()" aria-label="Notificações">
+                        <i class="ph-bold ph-bell" id="notifBellIcon"></i>
+                        <span class="notif-badge" id="notifBadge" style="display:none;"></span>
+                    </button>
+                    <div class="notif-panel" id="notifPanel" role="dialog" aria-label="Comunicados">
+                        <div class="notif-panel-header">
+                            <span>Comunicados</span>
+                            <button type="button" class="notif-mark-read" id="notifMarkRead" onclick="markAllNotificationsRead()">marcar todos como lidos</button>
+                        </div>
+                        <div class="notif-list" id="notifList"></div>
+                    </div>
                 </div>
                 <a href="../index.html" class="btn-refresh" style="text-decoration:none;">
                     <i class="ph-bold ph-house"></i> Home
@@ -2197,7 +2270,100 @@
             restoreTheme();
             var isLight = document.body.classList.contains('light-mode');
             updateThemeAssets(isLight);
+            renderNotifications();
             loadData();
+        }
+
+        // ====== Notificações / Comunicados ======
+        // Pra adicionar novo comunicado: prepende ao array (manter ordem do mais novo pro mais antigo).
+        // Bumpa o `id` (string única — usado pra rastrear o que cada usuário já leu via localStorage).
+        const NOTIFICATIONS = [
+            {
+                id: 'provou-levou-2-0-oculos',
+                title: 'Provou Levou 2.0',
+                body: 'Melhoria na geração das fotos de óculos: mais fidelidade aos modelos e mais confiança pro cliente comprar.',
+                date: '2026-05-08'
+            }
+        ];
+        const NOTIF_STORAGE_KEY = 'pl_notif_seen';
+
+        function getSeenNotifications() {
+            try { return JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY) || '[]'); }
+            catch (e) { return []; }
+        }
+        function saveSeenNotifications(ids) {
+            try { localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(ids)); } catch (e) {}
+        }
+        function renderNotifications() {
+            const list = document.getElementById('notifList');
+            const badge = document.getElementById('notifBadge');
+            const btn = document.getElementById('notifBtn');
+            const markBtn = document.getElementById('notifMarkRead');
+            if (!list || !badge || !btn) return;
+            const seen = new Set(getSeenNotifications());
+            const fmt = d => {
+                const parts = (d || '').split('-');
+                if (parts.length !== 3) return d;
+                return parts[2] + '/' + parts[1] + '/' + parts[0];
+            };
+            while (list.firstChild) list.removeChild(list.firstChild);
+            if (!NOTIFICATIONS.length) {
+                const empty = document.createElement('div');
+                empty.className = 'notif-empty';
+                empty.textContent = 'Sem comunicados.';
+                list.appendChild(empty);
+            } else {
+                NOTIFICATIONS.forEach(n => {
+                    const isUnread = !seen.has(n.id);
+                    const item = document.createElement('div');
+                    item.className = 'notif-item' + (isUnread ? ' unread' : '');
+                    const dot = document.createElement('span'); dot.className = 'notif-item-dot';
+                    const body = document.createElement('div'); body.className = 'notif-item-body';
+                    const title = document.createElement('h4'); title.className = 'notif-item-title'; title.textContent = n.title;
+                    const text = document.createElement('p'); text.className = 'notif-item-text'; text.textContent = n.body;
+                    const date = document.createElement('div'); date.className = 'notif-item-date'; date.textContent = fmt(n.date);
+                    body.appendChild(title); body.appendChild(text); body.appendChild(date);
+                    item.appendChild(dot); item.appendChild(body);
+                    list.appendChild(item);
+                });
+            }
+            const unreadCount = NOTIFICATIONS.filter(n => !seen.has(n.id)).length;
+            if (unreadCount > 0) {
+                badge.style.display = 'inline-block';
+                badge.textContent = String(unreadCount);
+                btn.classList.add('has-unread');
+                if (markBtn) markBtn.style.display = '';
+            } else {
+                badge.style.display = 'none';
+                btn.classList.remove('has-unread');
+                if (markBtn) markBtn.style.display = 'none';
+            }
+        }
+        function toggleNotifications() {
+            const panel = document.getElementById('notifPanel');
+            if (!panel) return;
+            const isOpen = panel.classList.toggle('open');
+            if (isOpen) {
+                // Marca como visto ao abrir (mas mantém o ícone até clicar "marcar todos como lidos")
+                setTimeout(function () {
+                    document.addEventListener('click', closeNotifOnOutside, { once: true });
+                }, 0);
+            }
+        }
+        function closeNotifOnOutside(e) {
+            const wrap = document.getElementById('notifWrap');
+            const panel = document.getElementById('notifPanel');
+            if (!wrap || !panel) return;
+            if (!wrap.contains(e.target)) {
+                panel.classList.remove('open');
+            } else {
+                document.addEventListener('click', closeNotifOnOutside, { once: true });
+            }
+        }
+        function markAllNotificationsRead() {
+            const allIds = NOTIFICATIONS.map(n => n.id);
+            saveSeenNotifications(allIds);
+            renderNotifications();
         }
 
 
