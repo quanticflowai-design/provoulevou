@@ -2521,7 +2521,7 @@
             el.appendChild(arrow);
             const sign = delta > 0 ? '+' : '';
             el.appendChild(document.createTextNode(' ' + sign + delta.toFixed(1) + '%'));
-            el.title = 'Mês anterior: ' + formatter(prev);
+            el.title = 'Mesmo período do mês anterior: ' + formatter(prev);
         }
 
         // Card "Crescimento da loja desde o provador": compara faturamento total/dia da loja
@@ -2718,8 +2718,16 @@
             if (!allOrdersCache || !generationPhones) return;
             const curr = monthRange(0);
             const prev = monthRange(-1);
+            // Para comparação justa, recorta o mês anterior no mesmo dia do mês atual
+            // (ex: hoje é dia 8 → compara Mai 1-8 com Abr 1-8, não Mai 1-8 com Abr inteiro)
+            const today = new Date();
+            const dayOfMonth = today.getDate();
+            const prevEndDate = new Date(today.getFullYear(), today.getMonth() - 1, dayOfMonth, 23, 59, 59);
+            const pad = n => String(n).padStart(2, '0');
+            const fmt = d => d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + '-03:00';
+            const prevEndIso = fmt(prevEndDate);
             const k0 = computeKpis(curr.start, curr.end);
-            const k1 = computeKpis(prev.start, prev.end);
+            const k1 = computeKpis(prev.start, prevEndIso);
             const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             const num = v => String(v);
             const pct = v => v.toFixed(1) + '%';
