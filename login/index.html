@@ -1751,7 +1751,7 @@
                         <i class="ph-bold ph-trend-up" style="font-size:20px;color:#22c55e;"></i>
                         <div style="font-weight:700;font-size:15px;color:var(--text);">Crescimento da loja desde o provador</div>
                     </div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:18px;">
+                    <div id="crescimentoGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:18px;">
                         <div>
                             <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Antes do provador (média/dia)</div>
                             <div id="crescAntesFat" style="font-size:18px;font-weight:700;color:var(--text);">—</div>
@@ -1768,6 +1768,7 @@
                             <div id="crescDeltaPedidos" style="font-size:12px;color:var(--text-muted);margin-top:2px;">—</div>
                         </div>
                     </div>
+                    <div id="crescimentoPlaceholder" style="display:none;font-size:13px;color:var(--text-muted);padding:8px 0;"></div>
                     <div id="crescimentoLojaFooter" style="margin-top:12px;font-size:11px;color:var(--text-muted);"></div>
                 </div>
 
@@ -2529,8 +2530,20 @@
         function renderCrescimentoLoja() {
             const card = document.getElementById('crescimentoLojaCard');
             if (!card) return;
+            const placeholder = document.getElementById('crescimentoPlaceholder');
+            const grid = document.getElementById('crescimentoGrid');
+            const footer = document.getElementById('crescimentoLojaFooter');
+            const showPlaceholder = (msg) => {
+                card.style.display = 'block';
+                if (grid) grid.style.display = 'none';
+                if (footer) footer.style.display = 'none';
+                if (placeholder) {
+                    placeholder.style.display = 'block';
+                    placeholder.textContent = msg;
+                }
+            };
             if (!preProvadorBaseline || !allOrdersCache || allOrdersCache.length === 0) {
-                card.style.display = 'none';
+                showPlaceholder('Ainda sem dados suficientes para análise. Volte em alguns dias.');
                 return;
             }
             const fTotal = activeUser.campo_total_pedido || 'total';
@@ -2547,12 +2560,17 @@
                 postPedidos += 1;
             });
             const postDays = Math.max(1, Math.ceil((todayMs - provaStartMs) / (24 * 60 * 60 * 1000)));
-            // Esconde se ainda não tem 1 mês completo pós-instalação — comparação seria injusta
-            // (poucos dias de provador podem mostrar negativo só por variação do dia a dia).
             if (postDays < 30 || preProvadorBaseline.days < 30) {
-                card.style.display = 'none';
+                const diasRestantes = Math.max(0, 30 - postDays);
+                const msg = postDays < 30
+                    ? 'Ainda sem dados suficientes para análise — faltam ' + diasRestantes + ' dia(s) de provador para uma comparação justa.'
+                    : 'Ainda sem dados suficientes para análise.';
+                showPlaceholder(msg);
                 return;
             }
+            if (placeholder) placeholder.style.display = 'none';
+            if (grid) grid.style.display = '';
+            if (footer) footer.style.display = '';
             const postFatDay = postFat / postDays;
             const postPedDay = postPedidos / postDays;
             const preFatDay = preProvadorBaseline.fatPerDay;
