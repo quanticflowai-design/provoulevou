@@ -2547,6 +2547,12 @@
                 postPedidos += 1;
             });
             const postDays = Math.max(1, Math.ceil((todayMs - provaStartMs) / (24 * 60 * 60 * 1000)));
+            // Esconde se ainda não tem 1 mês completo pós-instalação — comparação seria injusta
+            // (poucos dias de provador podem mostrar negativo só por variação do dia a dia).
+            if (postDays < 30 || preProvadorBaseline.days < 30) {
+                card.style.display = 'none';
+                return;
+            }
             const postFatDay = postFat / postDays;
             const postPedDay = postPedidos / postDays;
             const preFatDay = preProvadorBaseline.fatPerDay;
