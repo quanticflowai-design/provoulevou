@@ -1760,6 +1760,32 @@
                     </div>
                 </div>
 
+                <!-- Crescimento da loja desde a instalação do provador -->
+                <div id="crescimentoLojaCard" style="display:none;margin-bottom:20px;background:linear-gradient(135deg,rgba(34,197,94,0.10),rgba(16,185,129,0.06));border:1px solid rgba(34,197,94,0.30);border-radius:14px;padding:18px 22px;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                        <i class="ph-bold ph-trend-up" style="font-size:20px;color:#22c55e;"></i>
+                        <div style="font-weight:700;font-size:15px;color:var(--text);">Crescimento da loja desde o provador</div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:18px;">
+                        <div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Antes do provador (média/dia)</div>
+                            <div id="crescAntesFat" style="font-size:18px;font-weight:700;color:var(--text);">—</div>
+                            <div id="crescAntesPedidos" style="font-size:12px;color:var(--text-muted);margin-top:2px;">—</div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Depois do provador (média/dia)</div>
+                            <div id="crescDepoisFat" style="font-size:18px;font-weight:700;color:var(--text);">—</div>
+                            <div id="crescDepoisPedidos" style="font-size:12px;color:var(--text-muted);margin-top:2px;">—</div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Crescimento</div>
+                            <div id="crescDeltaFat" style="font-size:22px;font-weight:800;color:#22c55e;">—</div>
+                            <div id="crescDeltaPedidos" style="font-size:12px;color:var(--text-muted);margin-top:2px;">—</div>
+                        </div>
+                    </div>
+                    <div id="crescimentoLojaFooter" style="margin-top:12px;font-size:11px;color:var(--text-muted);"></div>
+                </div>
+
                 <!-- Gráfico de faturamento mensal geral -->
                 <div id="fatMensalContainer" class="chart-container" style="display:none;margin-bottom:20px;">
                     <div class="chart-header">
@@ -2383,6 +2409,7 @@
         let nameMap = {};
         let allOrdersCache = [];
         let allGensShared = [];
+        let preProvadorBaseline = null; // { pedidosPerDay, fatPerDay, unicosPerDay, days, firstProvaDate }
         let _csvProvasData = [];
         let _csvComprasData = [];
         let _csvLtvData = [];
@@ -2495,6 +2522,56 @@
             const sign = delta > 0 ? '+' : '';
             el.appendChild(document.createTextNode(' ' + sign + delta.toFixed(1) + '%'));
             el.title = 'Mês anterior: ' + formatter(prev);
+        }
+
+        // Card "Crescimento da loja desde o provador": compara faturamento total/dia da loja
+        // antes vs depois da instalação. Não filtra por clientes do provador — é a loja inteira.
+        function renderCrescimentoLoja() {
+            const card = document.getElementById('crescimentoLojaCard');
+            if (!card) return;
+            if (!preProvadorBaseline || !allOrdersCache || allOrdersCache.length === 0) {
+                card.style.display = 'none';
+                return;
+            }
+            const fTotal = activeUser.campo_total_pedido || 'total';
+            const fDataPedido = activeUser.campo_data_pedido || 'created_at';
+            const provaStartMs = new Date(preProvadorBaseline.firstProvaDate + 'T00:00:00-03:00').getTime();
+            const todayMs = Date.now();
+            let postFat = 0, postPedidos = 0;
+            allOrdersCache.forEach(o => {
+                const ts = o[fDataPedido] || o.created_at || '';
+                if (!ts) return;
+                const ms = new Date(ts.length === 10 ? ts + 'T00:00:00-03:00' : ts).getTime();
+                if (isNaN(ms) || ms < provaStartMs) return;
+                postFat += parseFloat(o[fTotal]) || 0;
+                postPedidos += 1;
+            });
+            const postDays = Math.max(1, Math.ceil((todayMs - provaStartMs) / (24 * 60 * 60 * 1000)));
+            const postFatDay = postFat / postDays;
+            const postPedDay = postPedidos / postDays;
+            const preFatDay = preProvadorBaseline.fatPerDay;
+            const prePedDay = preProvadorBaseline.pedidosPerDay;
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+            document.getElementById('crescAntesFat').textContent = brl(preFatDay);
+            document.getElementById('crescAntesPedidos').textContent = prePedDay.toFixed(1) + ' pedidos/dia';
+            document.getElementById('crescDepoisFat').textContent = brl(postFatDay);
+            document.getElementById('crescDepoisPedidos').textContent = postPedDay.toFixed(1) + ' pedidos/dia';
+            const fatDelta = preFatDay > 0 ? (postFatDay / preFatDay - 1) * 100 : 0;
+            const pedDelta = prePedDay > 0 ? (postPedDay / prePedDay - 1) * 100 : 0;
+            const sign = v => v > 0 ? '+' : '';
+            const deltaFatEl = document.getElementById('crescDeltaFat');
+            deltaFatEl.textContent = sign(fatDelta) + fatDelta.toFixed(1) + '%';
+            deltaFatEl.style.color = fatDelta >= 0 ? '#22c55e' : '#ef4444';
+            document.getElementById('crescDeltaPedidos').textContent = sign(pedDelta) + pedDelta.toFixed(1) + '% em pedidos';
+            const fmtDate = d => {
+                const [y, m, day] = d.split('-');
+                return day + '/' + m + '/' + y;
+            };
+            document.getElementById('crescimentoLojaFooter').textContent =
+                'Antes: ' + preProvadorBaseline.days + ' dias antes da instalação · ' +
+                'Depois: ' + postDays + ' dias desde ' + fmtDate(preProvadorBaseline.firstProvaDate) + ' · ' +
+                'Faturamento total da loja (todos os pedidos pagos)';
+            card.style.display = 'block';
         }
 
         async function renderFatMensalChart() {
@@ -2650,6 +2727,7 @@
             renderDelta('kpiDeltaFat',     k0.fat,     k1.fat,     brl);
             renderDelta('kpiDeltaUnicos',  k0.unicos,  k1.unicos,  num);
             renderDelta('kpiDeltaConv',    k0.conv,    k1.conv,    pct);
+            renderCrescimentoLoja();
             renderFatMensalChart(); // async — roda em paralelo, sem bloquear
 
             // Banner: leads que usaram o provador mas ainda não compraram
@@ -2745,6 +2823,54 @@
                 _page++;
             }
             allOrdersCache = allOrdersArr;
+
+            // Baseline pré-provador: pedidos pagos da loja nos 90 dias antes da primeira prova
+            preProvadorBaseline = null;
+            if (earliestProvaDate) {
+                const provaStartMs = new Date(earliestProvaDate + 'T00:00:00-03:00').getTime();
+                const baselineSinceMs = provaStartMs - 90 * 24 * 60 * 60 * 1000;
+                const baselineSinceIso = new Date(baselineSinceMs).toISOString();
+                const preRows = [];
+                let _bp = 0;
+                const _bps = 1000;
+                while (true) {
+                    const { data: batch } = await supabaseClient
+                        .from(activeUser.tabela_pedidos)
+                        .select(`${fDataPedido || 'created_at'}, ${fTotal}, ${fPhone}`)
+                        .in(fStatus, fStatusValues)
+                        .gte(fDataPedido || 'created_at', baselineSinceIso)
+                        .lt(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00')
+                        .range(_bp * _bps, (_bp + 1) * _bps - 1);
+                    if (!batch || batch.length === 0) break;
+                    preRows.push(...batch);
+                    if (batch.length < _bps) break;
+                    _bp++;
+                }
+                if (preRows.length > 0) {
+                    let totalFat = 0, totalPedidos = 0;
+                    const phones = new Set();
+                    let minDate = null;
+                    for (const r of preRows) {
+                        totalFat += parseFloat(r[fTotal]) || 0;
+                        totalPedidos++;
+                        const ph = normalize(r[fPhone]);
+                        if (ph) phones.add(ph);
+                        const d = (r[fDataPedido || 'created_at'] || '').slice(0, 10);
+                        if (d && (!minDate || d < minDate)) minDate = d;
+                    }
+                    if (minDate) {
+                        const startMs = new Date(minDate + 'T00:00:00-03:00').getTime();
+                        const days = Math.max(1, Math.round((provaStartMs - startMs) / (24 * 60 * 60 * 1000)));
+                        preProvadorBaseline = {
+                            pedidosPerDay: totalPedidos / days,
+                            fatPerDay: totalFat / days,
+                            unicosPerDay: phones.size / days,
+                            days,
+                            firstProvaDate: earliestProvaDate
+                        };
+                    }
+                }
+            }
 
             boughtPhonesSet = new Set(
                 allOrdersCache
