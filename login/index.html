@@ -2623,6 +2623,7 @@
                     .gte(fDataPedido, since)
                     .order(fDataPedido, { ascending: true })
                     .range(from, from + pageSize - 1);
+                if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
                 const { data: batch } = await q;
                 if (!batch || batch.length === 0) break;
                 allOrders.push(...batch);
@@ -2843,6 +2844,7 @@
                 .in(fStatus, fStatusValues)
                 .order('created_at', { ascending: true });
             if (earliestProvaDate) ordQuery = ordQuery.gte(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00');
+            if (activeUser.canal_provador) ordQuery = ordQuery.eq('channel', activeUser.canal_provador);
             // Fetch all rows (Supabase defaults to 1000)
             const allOrdersArr = [];
             let _page = 0;
@@ -2866,13 +2868,14 @@
                 let _bp = 0;
                 const _bps = 1000;
                 while (true) {
-                    const { data: batch } = await supabaseClient
+                    let baseQ = supabaseClient
                         .from(activeUser.tabela_pedidos)
                         .select(`${fDataPedido || 'created_at'}, ${fTotal}, ${fPhone}`)
                         .in(fStatus, fStatusValues)
                         .gte(fDataPedido || 'created_at', baselineSinceIso)
-                        .lt(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00')
-                        .range(_bp * _bps, (_bp + 1) * _bps - 1);
+                        .lt(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00');
+                    if (activeUser.canal_provador) baseQ = baseQ.eq('channel', activeUser.canal_provador);
+                    const { data: batch } = await baseQ.range(_bp * _bps, (_bp + 1) * _bps - 1);
                     if (!batch || batch.length === 0) break;
                     preRows.push(...batch);
                     if (batch.length < _bps) break;
@@ -2922,6 +2925,7 @@
                             .select(`${fPhone}, ${fNome}`)
                             .range(pFrom, pFrom + pageSize - 1);
                         if (earliestProvaDate) nameQuery = nameQuery.gte(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00');
+                        if (activeUser.canal_provador) nameQuery = nameQuery.eq('channel', activeUser.canal_provador);
                         const { data: batch } = await nameQuery;
                         if (!batch || batch.length === 0) break;
                         allNomes.push(...batch);
@@ -3924,6 +3928,7 @@
                         .in(fStatus, fStatusValues)
                         .range(pFrom, pFrom + pageSize - 1);
                     if (earliestDate !== '9999') ordQuery = ordQuery.gte(fDataPedido, earliestDate + 'T00:00:00-03:00');
+                    if (user.canal_provador) ordQuery = ordQuery.eq('channel', user.canal_provador);
                     const { data: batch } = await ordQuery;
                     if (!batch || batch.length === 0) break;
                     allOrders.push(...batch);
