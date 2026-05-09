@@ -1787,11 +1787,17 @@
                     </div>
                 </div>
 
-                <!-- Gráfico de faturamento mensal geral -->
+                <!-- Gráfico de faturamento mensal/semanal geral -->
                 <div id="fatMensalContainer" class="chart-container" style="display:none;margin-bottom:20px;">
-                    <div class="chart-header">
-                        <h2><i class="ph-bold ph-trend-up" style="color:var(--primary);"></i> Faturamento Mensal</h2>
-                        <span style="font-size:12px;color:var(--text-muted);">Faturamento total da loja &nbsp;·&nbsp; <span style="color:#f59e0b;">★</span> instalação do provador</span>
+                    <div class="chart-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <h2><i class="ph-bold ph-trend-up" style="color:var(--primary);"></i> <span id="fatChartTitle">Faturamento Mensal</span></h2>
+                            <span style="font-size:12px;color:var(--text-muted);">Faturamento total da loja &nbsp;·&nbsp; <span style="color:#f59e0b;">★</span> instalação do provador</span>
+                        </div>
+                        <div class="fat-toggle" style="display:inline-flex;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:3px;">
+                            <button type="button" class="fat-toggle-btn active" data-gran="month" style="border:0;background:transparent;color:var(--text);padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;">Mês</button>
+                            <button type="button" class="fat-toggle-btn" data-gran="week" style="border:0;background:transparent;color:var(--text-muted);padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;">Semana</button>
+                        </div>
                     </div>
                     <div class="chart-canvas-wrap">
                         <canvas id="fatMensalChart"></canvas>
@@ -2598,7 +2604,13 @@
             card.style.display = 'block';
         }
 
-        async function renderFatMensalChart() {
+        // Cache dos pedidos pra trocar granularidade sem refetch
+        let _fatChartOrdersCache = null;
+        let _fatChartGranularity = 'month';
+
+        async function renderFatMensalChart(granularity) {
+            granularity = granularity || _fatChartGranularity || 'month';
+            _fatChartGranularity = granularity;
             const container = document.getElementById('fatMensalContainer');
             if (!activeUser || !activeUser.tabela_pedidos) { if (container) container.style.display = 'none'; return; }
             const fTotal      = activeUser.campo_total_pedido || 'total';
@@ -2606,52 +2618,93 @@
             const fStatus     = activeUser.campo_status_pedido || 'payment_status';
             const fStatusVals = activeUser.valores_status_pago || ['paid'];
 
-            // Primeira prova = mês de instalação do provador
+            // Primeira prova = data de instalação do provador
             const installDate  = Object.values(provaMinDateMap).sort()[0] || '';
             const installMonth = installDate.slice(0, 7);
 
-            // Buscar todos os pedidos pagos desde nov/2025 (paginado)
-            const since = '2025-11-01T00:00:00-03:00';
-            const allOrders = [];
-            const pageSize = 1000;
-            let from = 0;
-            while (true) {
-                let q = supabaseClient
-                    .from(activeUser.tabela_pedidos)
-                    .select(`${fTotal},${fDataPedido}`)
-                    .in(fStatus, fStatusVals)
-                    .gte(fDataPedido, since)
-                    .order(fDataPedido, { ascending: true })
-                    .range(from, from + pageSize - 1);
-                if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
-                const { data: batch } = await q;
-                if (!batch || batch.length === 0) break;
-                allOrders.push(...batch);
-                if (batch.length < pageSize) break;
-                from += pageSize;
+            // Buscar todos os pedidos pagos desde nov/2025 (paginado), com cache
+            let allOrders = _fatChartOrdersCache;
+            if (!allOrders) {
+                const since = '2025-11-01T00:00:00-03:00';
+                allOrders = [];
+                const pageSize = 1000;
+                let from = 0;
+                while (true) {
+                    let q = supabaseClient
+                        .from(activeUser.tabela_pedidos)
+                        .select(`${fTotal},${fDataPedido}`)
+                        .in(fStatus, fStatusVals)
+                        .gte(fDataPedido, since)
+                        .order(fDataPedido, { ascending: true })
+                        .range(from, from + pageSize - 1);
+                    if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
+                    const { data: batch } = await q;
+                    if (!batch || batch.length === 0) break;
+                    allOrders.push(...batch);
+                    if (batch.length < pageSize) break;
+                    from += pageSize;
+                }
+                _fatChartOrdersCache = allOrders;
             }
 
             if (allOrders.length === 0) { if (container) container.style.display = 'none'; return; }
 
-            // Agregar por mês
-            const byMonth = {};
+            // Agregação: mês (YYYY-MM) ou semana (YYYY-Www, ISO week)
+            // Semana ISO: começa na segunda. Função compute ISO week from date string.
+            function isoWeekKey(dateStr) {
+                const d = new Date(dateStr.slice(0,10) + 'T12:00:00-03:00');
+                if (isNaN(d.getTime())) return '';
+                // Get Thursday of current week (ISO standard)
+                const day = (d.getDay() + 6) % 7; // 0=Mon
+                const thu = new Date(d);
+                thu.setDate(d.getDate() - day + 3);
+                const year = thu.getFullYear();
+                const jan4 = new Date(year, 0, 4);
+                const jan4Day = (jan4.getDay() + 6) % 7;
+                const week1Mon = new Date(year, 0, 4 - jan4Day);
+                const week = Math.floor((thu - week1Mon) / (7 * 86400000)) + 1;
+                return year + '-W' + String(week).padStart(2,'0');
+            }
+            function isoWeekStartDate(weekKey) {
+                // returns Date object of Monday for "YYYY-Www"
+                const [y, w] = weekKey.split('-W').map(Number);
+                const jan4 = new Date(y, 0, 4);
+                const jan4Day = (jan4.getDay() + 6) % 7;
+                const monday = new Date(y, 0, 4 - jan4Day + (w - 1) * 7);
+                return monday;
+            }
+
+            const buckets = {};
             allOrders.forEach(o => {
                 const raw = o[fDataPedido] || '';
-                const m = raw.slice(0, 7);
-                if (!m) return;
-                if (!byMonth[m]) byMonth[m] = { total: 0 };
-                const val = parseFloat(o[fTotal]) || 0;
-                byMonth[m].total += val;
+                const key = granularity === 'week' ? isoWeekKey(raw) : raw.slice(0, 7);
+                if (!key) return;
+                if (!buckets[key]) buckets[key] = { total: 0 };
+                buckets[key].total += parseFloat(o[fTotal]) || 0;
             });
+            const keys = Object.keys(buckets).sort();
+            if (keys.length === 0) { if (container) container.style.display = 'none'; return; }
 
-            const months = Object.keys(byMonth).sort();
-            if (months.length === 0) { if (container) container.style.display = 'none'; return; }
-
-            const labels = months.map(m => {
-                const [y, mo] = m.split('-');
-                const nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+            const nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+            const labels = keys.map(k => {
+                if (granularity === 'week') {
+                    const start = isoWeekStartDate(k);
+                    const end = new Date(start); end.setDate(end.getDate() + 6);
+                    const fmt = d => String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+                    return fmt(start) + '–' + fmt(end);
+                }
+                const [y, mo] = k.split('-');
                 return nomes[parseInt(mo) - 1] + '/' + y.slice(2);
             });
+            // For week granularity, install marker = ISO week of first prova
+            const installKey = granularity === 'week' ? isoWeekKey(installDate) : installMonth;
+            // alias mantém compatibilidade do bloco abaixo
+            const months = keys;
+            const byMonth = buckets;
+            const installMonthCalc = installKey;
+            // Atualiza título
+            const titleEl = document.getElementById('fatChartTitle');
+            if (titleEl) titleEl.textContent = granularity === 'week' ? 'Faturamento Semanal' : 'Faturamento Mensal';
 
             if (container) container.style.display = 'block';
             const ctx = document.getElementById('fatMensalChart');
@@ -2669,12 +2722,12 @@
                             fill: true,
                             tension: 0.4,
                             borderWidth: 2.5,
-                            pointBackgroundColor: months.map(m => m === installMonth ? '#f59e0b' : '#8b5cf6'),
-                            pointBorderColor: months.map(m => m === installMonth ? '#fff' : '#fff'),
-                            pointBorderWidth: months.map(m => m === installMonth ? 3 : 2),
-                            pointRadius: months.map(m => m === installMonth ? 9 : 4),
-                            pointHoverRadius: months.map(m => m === installMonth ? 11 : 6),
-                            pointStyle: months.map(m => m === installMonth ? 'star' : 'circle'),
+                            pointBackgroundColor: months.map(m => m === installKey ? '#f59e0b' : '#8b5cf6'),
+                            pointBorderColor: months.map(m => m === installKey ? '#fff' : '#fff'),
+                            pointBorderWidth: months.map(m => m === installKey ? 3 : 2),
+                            pointRadius: months.map(m => m === installKey ? 9 : 4),
+                            pointHoverRadius: months.map(m => m === installKey ? 11 : 6),
+                            pointStyle: months.map(m => m === installKey ? 'star' : 'circle'),
                         }
                     ]
                 },
@@ -2693,7 +2746,7 @@
                                 label: c => ' ' + c.dataset.label + ': R$ ' + c.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
                                 afterBody: tooltipItems => {
                                     const m = months[tooltipItems[0].dataIndex];
-                                    if (installMonth && m === installMonth) return ['', '📍 Mês de instalação do provador'];
+                                    if (installKey && m === installKey) return ['', '📍 Instalação do provador'];
                                     return [];
                                 }
                             }
@@ -2710,11 +2763,11 @@
                     }
                 },
                 plugins: [{
-                    // Linha vertical no mês de instalação
+                    // Linha vertical no período de instalação
                     id: 'installLine',
                     afterDraw(chart) {
-                        if (!installMonth) return;
-                        const idx = months.indexOf(installMonth);
+                        if (!installKey) return;
+                        const idx = months.indexOf(installKey);
                         if (idx < 0) return;
                         const meta = chart.getDatasetMeta(0);
                         if (!meta.data[idx]) return;
@@ -2761,7 +2814,31 @@
             renderDelta('kpiDeltaUnicos',  k0.unicos,  k1.unicos,  num);
             renderDelta('kpiDeltaConv',    k0.conv,    k1.conv,    pct);
             renderCrescimentoLoja();
-            renderFatMensalChart(); // async — roda em paralelo, sem bloquear
+            renderFatMensalChart(_fatChartGranularity); // async — roda em paralelo, sem bloquear
+            // Wire up toggle buttons (idempotent)
+            if (!window._fatToggleBound) {
+                window._fatToggleBound = true;
+                document.querySelectorAll('.fat-toggle-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const gran = btn.dataset.gran;
+                        if (gran === _fatChartGranularity) return;
+                        document.querySelectorAll('.fat-toggle-btn').forEach(b => {
+                            const active = b.dataset.gran === gran;
+                            b.classList.toggle('active', active);
+                            b.style.background = active ? 'var(--bg, rgba(255,255,255,0.08))' : 'transparent';
+                            b.style.color = active ? 'var(--text)' : 'var(--text-muted)';
+                            b.style.fontWeight = active ? '600' : '500';
+                        });
+                        renderFatMensalChart(gran);
+                    });
+                });
+                // Set initial active styling
+                document.querySelectorAll('.fat-toggle-btn').forEach(b => {
+                    if (b.dataset.gran === _fatChartGranularity) {
+                        b.style.background = 'var(--bg, rgba(255,255,255,0.08))';
+                    }
+                });
+            }
 
             // Banner: leads que usaram o provador mas ainda não compraram
             const fTotal = activeUser.campo_total_pedido || 'total';
