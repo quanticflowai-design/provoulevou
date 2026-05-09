@@ -2622,10 +2622,21 @@
             const installDate  = Object.values(provaMinDateMap).sort()[0] || '';
             const installMonth = installDate.slice(0, 7);
 
-            // Buscar todos os pedidos pagos desde nov/2025 (paginado), com cache
+            // Buscar pedidos: 6 meses antes do install (ou 12m atrás se nunca instalou),
+            // pra dar contexto pré-provador suficiente pra comparação semanal.
             let allOrders = _fatChartOrdersCache;
             if (!allOrders) {
-                const since = '2025-11-01T00:00:00-03:00';
+                const today = new Date();
+                let sinceDate;
+                if (installDate) {
+                    sinceDate = new Date(installDate.slice(0,10) + 'T00:00:00-03:00');
+                    sinceDate.setMonth(sinceDate.getMonth() - 6);
+                } else {
+                    sinceDate = new Date(today);
+                    sinceDate.setMonth(sinceDate.getMonth() - 12);
+                }
+                const pad = n => String(n).padStart(2,'0');
+                const since = sinceDate.getFullYear() + '-' + pad(sinceDate.getMonth()+1) + '-01T00:00:00-03:00';
                 allOrders = [];
                 const pageSize = 1000;
                 let from = 0;
