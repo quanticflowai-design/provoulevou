@@ -404,9 +404,57 @@
       </div>
     </div>
 
+    <!-- ─── GOOGLE SEARCH CONSOLE ─── -->
+    <h2 style="margin: 32px 0 16px; font-size:16px; font-weight:600;">Google Search Console <span style="font-size:11px; color:var(--text-muted); font-weight:400;">(sync diario via n8n)</span></h2>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="label">Impressoes</div>
+        <div class="value" id="card-gsc-impressions">-</div>
+        <div class="sub" id="card-gsc-impressions-sub">total no periodo</div>
+      </div>
+      <div class="card">
+        <div class="label">Cliques organicos</div>
+        <div class="value" id="card-gsc-clicks">-</div>
+        <div class="sub" id="card-gsc-clicks-sub">do Google</div>
+      </div>
+      <div class="card">
+        <div class="label">CTR medio</div>
+        <div class="value" id="card-gsc-ctr">-</div>
+        <div class="sub" id="card-gsc-ctr-sub">cliques / impressoes</div>
+      </div>
+      <div class="card">
+        <div class="label">Posicao media</div>
+        <div class="value" id="card-gsc-position">-</div>
+        <div class="sub" id="card-gsc-position-sub">na SERP</div>
+      </div>
+    </div>
+
+    <div class="charts-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="panel">
+        <h3>Cliques x Impressoes diarias <span class="count" id="chart-gsc-period"></span></h3>
+        <div class="chart-wrap"><canvas id="chart-gsc-trend"></canvas></div>
+      </div>
+      <div class="panel">
+        <h3>CTR e Posicao Media diaria</h3>
+        <div class="chart-wrap"><canvas id="chart-gsc-ctr"></canvas></div>
+      </div>
+    </div>
+
+    <div class="tables-grid">
+      <div class="panel">
+        <h3>Top Queries (palavras-chave que rankeiam)</h3>
+        <table id="table-gsc-queries"><thead><tr><th>Query</th><th style="text-align:right;">Cliques</th><th style="text-align:right;">Impr.</th><th style="text-align:right;">CTR</th><th style="text-align:right;">Posic.</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="panel">
+        <h3>Top Paginas no Google</h3>
+        <table id="table-gsc-pages"><thead><tr><th>Pagina</th><th style="text-align:right;">Cliques</th><th style="text-align:right;">Impr.</th><th style="text-align:right;">Posic.</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+
     <div class="footer-info">
-      Dados atualizados em tempo real via Supabase. Tabelas <code>page_views</code> e <code>landing_leads</code>.
-      <br>GA4 e Google Search Console disponiveis nos paineis do Google.
+      Dados atualizados em tempo real via Supabase. Tabelas <code>page_views</code>, <code>landing_leads</code>, <code>gsc_metrics</code>.
+      <br>GA4 (engagement, bounce, etc) disponivel em <a href="https://analytics.google.com" target="_blank" style="color:var(--purple-light);">analytics.google.com</a>.
     </div>
   </div>
 
@@ -694,14 +742,19 @@
 
     async function loadDashboard(days) {
       const since = new Date(Date.now() - days * 86400000).toISOString();
+      const sinceDate = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
       let pv = [];
       let leads = [];
+      let gscRows = [];
       try {
         pv = await fetchSupa('page_views?select=created_at,session_id,page_path,referrer,utm_source,utm_medium,utm_campaign,is_organic,is_direct,is_referral,screen_width,language,user_agent&created_at=gte.' + since + '&order=created_at.desc&limit=10000');
       } catch (e) { console.error('page_views fail', e); }
       try {
         leads = await fetchSupa('landing_leads?select=created_at,utm_source,utm_medium,page_path,referrer&created_at=gte.' + since + '&limit=5000');
       } catch (e) { console.warn('landing_leads fail', e); }
+      try {
+        gscRows = await fetchSupa('gsc_metrics?select=date,query,page,clicks,impressions,position&date=gte.' + sinceDate + '&order=date.desc&limit=20000');
+      } catch (e) { console.warn('gsc_metrics fail', e); }
       renderCards(pv, leads);
       renderTrend(pv, days);
       renderChannelDonut(pv);
@@ -711,7 +764,156 @@
       renderCampaigns(pv);
       renderPages(pv);
       renderConversion(pv, leads);
+      renderGsc(gscRows, days);
       document.getElementById('chart-trend-period').textContent = '(ultimos ' + days + ' dias)';
+      document.getElementById('chart-gsc-period').textContent = '(ultimos ' + days + ' dias)';
+    }
+
+    function renderGsc(rows, days) {
+      const totalClicks = rows.reduce((s, r) => s + (r.clicks || 0), 0);
+      const totalImpr = rows.reduce((s, r) => s + (r.impressions || 0), 0);
+      const ctr = totalImpr ? (totalClicks / totalImpr * 100).toFixed(2) + '%' : '-';
+      const avgPos = totalImpr
+        ? (rows.reduce((s, r) => s + (r.position || 0) * (r.impressions || 0), 0) / totalImpr).toFixed(2)
+        : '-';
+
+      document.getElementById('card-gsc-impressions').textContent = fmt(totalImpr);
+      document.getElementById('card-gsc-clicks').textContent = fmt(totalClicks);
+      document.getElementById('card-gsc-ctr').textContent = ctr;
+      document.getElementById('card-gsc-position').textContent = avgPos;
+
+      // Aggregate by day for trend chart
+      const byDay = {};
+      for (let i = 0; i < days; i++) {
+        const d = localDay(new Date(Date.now() - i * 86400000));
+        byDay[d] = { clicks: 0, impressions: 0, posSum: 0, imprForPos: 0 };
+      }
+      rows.forEach(r => {
+        const d = r.date;
+        if (!byDay[d]) return;
+        byDay[d].clicks += r.clicks || 0;
+        byDay[d].impressions += r.impressions || 0;
+        byDay[d].posSum += (r.position || 0) * (r.impressions || 0);
+        byDay[d].imprForPos += r.impressions || 0;
+      });
+      const labels = Object.keys(byDay).sort();
+      const c = chartColors();
+
+      // Chart 1: Clicks vs Impressions (dual axis)
+      if (charts.gscTrend) charts.gscTrend.destroy();
+      const ctxTrend = document.getElementById('chart-gsc-trend').getContext('2d');
+      charts.gscTrend = new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Cliques', data: labels.map(d => byDay[d].clicks),
+              borderColor: '#7c3aed', backgroundColor: '#7c3aed20', yAxisID: 'y',
+              fill: true, tension: 0.3, pointRadius: 0 },
+            { label: 'Impressoes', data: labels.map(d => byDay[d].impressions),
+              borderColor: '#10b981', backgroundColor: '#10b98120', yAxisID: 'y1',
+              fill: false, tension: 0.3, pointRadius: 0 },
+          ],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { intersect: false, mode: 'index' },
+          plugins: { legend: { position: 'bottom', labels: { color: c.text, font: { size: 11 } } } },
+          scales: {
+            x: { ticks: { color: c.ticks, font: { size: 10 } }, grid: { color: c.grid } },
+            y: { ticks: { color: c.ticks, font: { size: 10 } }, grid: { color: c.grid }, position: 'left',
+                 title: { display: true, text: 'Cliques', color: c.ticks } },
+            y1: { ticks: { color: c.ticks, font: { size: 10 } }, grid: { display: false }, position: 'right',
+                  title: { display: true, text: 'Impressoes', color: c.ticks } },
+          },
+        }
+      });
+
+      // Chart 2: CTR + Position
+      if (charts.gscCtr) charts.gscCtr.destroy();
+      const ctxCtr = document.getElementById('chart-gsc-ctr').getContext('2d');
+      const ctrData = labels.map(d => byDay[d].impressions ? (byDay[d].clicks / byDay[d].impressions * 100) : 0);
+      const posData = labels.map(d => byDay[d].imprForPos ? (byDay[d].posSum / byDay[d].imprForPos) : 0);
+      charts.gscCtr = new Chart(ctxCtr, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: 'CTR (%)', data: ctrData, borderColor: '#3b82f6',
+              backgroundColor: '#3b82f620', yAxisID: 'y', fill: true, tension: 0.3, pointRadius: 0 },
+            { label: 'Posicao media', data: posData, borderColor: '#f59e0b',
+              backgroundColor: '#f59e0b20', yAxisID: 'y1', fill: false, tension: 0.3, pointRadius: 0 },
+          ],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { intersect: false, mode: 'index' },
+          plugins: { legend: { position: 'bottom', labels: { color: c.text, font: { size: 11 } } } },
+          scales: {
+            x: { ticks: { color: c.ticks, font: { size: 10 } }, grid: { color: c.grid } },
+            y: { ticks: { color: c.ticks, font: { size: 10 } }, grid: { color: c.grid }, position: 'left',
+                 title: { display: true, text: 'CTR (%)', color: c.ticks }, beginAtZero: true },
+            y1: { ticks: { color: c.ticks, font: { size: 10 } }, grid: { display: false }, position: 'right',
+                  title: { display: true, text: 'Posicao (menor=melhor)', color: c.ticks }, reverse: true },
+          },
+        }
+      });
+
+      // Top queries
+      const queriesAgg = {};
+      rows.filter(r => r.query).forEach(r => {
+        if (!queriesAgg[r.query]) queriesAgg[r.query] = { clicks: 0, impr: 0, posSum: 0 };
+        queriesAgg[r.query].clicks += r.clicks || 0;
+        queriesAgg[r.query].impr += r.impressions || 0;
+        queriesAgg[r.query].posSum += (r.position || 0) * (r.impressions || 0);
+      });
+      const topQueries = Object.entries(queriesAgg)
+        .sort((a,b) => b[1].clicks - a[1].clicks || b[1].impr - a[1].impr)
+        .slice(0, 15);
+      const tbodyQ = document.querySelector('#table-gsc-queries tbody');
+      clearChildren(tbodyQ);
+      if (topQueries.length === 0) {
+        emptyRow(tbodyQ, 5, 'Sem dados (aguardando primeiro sync n8n)');
+      } else {
+        topQueries.forEach(([q, m]) => {
+          const tr = document.createElement('tr');
+          appendCell(tr, q);
+          appendCell(tr, fmt(m.clicks), { num: true });
+          appendCell(tr, fmt(m.impr), { num: true });
+          appendCell(tr, m.impr ? (m.clicks / m.impr * 100).toFixed(1) + '%' : '-', { num: true });
+          appendCell(tr, m.impr ? (m.posSum / m.impr).toFixed(1) : '-', { num: true });
+          tbodyQ.appendChild(tr);
+        });
+      }
+
+      // Top pages
+      const pagesAgg = {};
+      rows.filter(r => r.page).forEach(r => {
+        if (!pagesAgg[r.page]) pagesAgg[r.page] = { clicks: 0, impr: 0, posSum: 0 };
+        pagesAgg[r.page].clicks += r.clicks || 0;
+        pagesAgg[r.page].impr += r.impressions || 0;
+        pagesAgg[r.page].posSum += (r.position || 0) * (r.impressions || 0);
+      });
+      const topPages = Object.entries(pagesAgg)
+        .sort((a,b) => b[1].clicks - a[1].clicks || b[1].impr - a[1].impr)
+        .slice(0, 15);
+      const tbodyP = document.querySelector('#table-gsc-pages tbody');
+      clearChildren(tbodyP);
+      if (topPages.length === 0) {
+        emptyRow(tbodyP, 4, 'Sem dados (aguardando primeiro sync n8n)');
+      } else {
+        topPages.forEach(([p, m]) => {
+          // Mostrar so o path (sem dominio)
+          let display = p;
+          try { display = new URL(p).pathname || '/'; } catch (e) {}
+          const tr = document.createElement('tr');
+          appendCell(tr, display);
+          appendCell(tr, fmt(m.clicks), { num: true });
+          appendCell(tr, fmt(m.impr), { num: true });
+          appendCell(tr, m.impr ? (m.posSum / m.impr).toFixed(1) : '-', { num: true });
+          tbodyP.appendChild(tr);
+        });
+      }
     }
 
     function renderCards(pv, leads) {
