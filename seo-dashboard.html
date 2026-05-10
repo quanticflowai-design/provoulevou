@@ -12,13 +12,15 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7"></script>
   <style>
     :root {
-      --bg: #0a0a0a;
-      --bg-card: #131313;
-      --bg-elev: #1a1a1a;
-      --border: rgba(255,255,255,0.08);
-      --text: #edebe7;
-      --text-sub: #999;
-      --text-muted: #666;
+      /* Light theme (default) */
+      --bg: #f5f4f0;
+      --bg-card: #ffffff;
+      --bg-elev: #fafaf8;
+      --border: rgba(0,0,0,0.08);
+      --text: #0a0a0a;
+      --text-sub: #555;
+      --text-muted: #888;
+      --chart-grid: #eeebe5;
       --purple: #7c3aed;
       --purple-light: #a78bfa;
       --green: #10b981;
@@ -27,6 +29,16 @@
       --blue: #3b82f6;
       --pink: #ec4899;
       --radius: 14px;
+    }
+    [data-theme="dark"] {
+      --bg: #0a0a0a;
+      --bg-card: #131313;
+      --bg-elev: #1a1a1a;
+      --border: rgba(255,255,255,0.08);
+      --text: #edebe7;
+      --text-sub: #999;
+      --text-muted: #666;
+      --chart-grid: #1a1a1a;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
@@ -253,7 +265,7 @@
       margin-top: 12px;
       text-align: center;
     }
-    .logout-btn {
+    .logout-btn, .theme-btn {
       padding: 6px 12px;
       background: transparent;
       border: 1px solid var(--border);
@@ -264,6 +276,8 @@
       font-family: inherit;
     }
     .logout-btn:hover { color: var(--text); border-color: var(--red); }
+    .theme-btn { padding: 6px 10px; }
+    .theme-btn:hover { color: var(--text); border-color: var(--purple); }
     .user-info {
       font-size: 12px;
       color: var(--text-muted);
@@ -307,6 +321,7 @@
         <button class="filter-btn" data-days="7">7 dias</button>
         <button class="filter-btn active" data-days="30">30 dias</button>
         <button class="filter-btn" data-days="90">90 dias</button>
+        <button class="theme-btn" id="theme-btn" title="Alternar tema claro/escuro">🌙</button>
         <span class="user-info" id="user-info"></span>
         <button class="logout-btn" id="logout-btn">Sair</button>
       </div>
@@ -642,6 +657,35 @@
 
     let charts = {};
 
+    // ─── Theme toggle ───
+    const THEME_KEY = 'pl_seo_theme';
+    function getTheme() { return localStorage.getItem(THEME_KEY) || 'light'; }
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem(THEME_KEY, theme);
+      const btn = document.getElementById('theme-btn');
+      if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+      // Re-render charts pra atualizar cores
+      if (Object.keys(charts).length > 0) {
+        const activeBtn = document.querySelector('.filter-btn.active');
+        if (activeBtn) loadDashboard(parseInt(activeBtn.dataset.days));
+      }
+    }
+    applyTheme(getTheme());
+    document.getElementById('theme-btn').addEventListener('click', () => {
+      applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
+    });
+
+    // Helpers para cores baseadas no tema atual
+    function chartColors() {
+      const isDark = getTheme() === 'dark';
+      return {
+        text: isDark ? '#999' : '#555',
+        ticks: isDark ? '#666' : '#888',
+        grid: isDark ? '#1a1a1a' : '#eeebe5',
+      };
+    }
+
     async function loadDashboard(days) {
       const since = new Date(Date.now() - days * 86400000).toISOString();
       let pv = [];
@@ -707,6 +751,7 @@
         pointHoverRadius: 4,
       })).filter(d => d.data.some(v => v > 0));
       if (charts.trend) charts.trend.destroy();
+      const c = chartColors();
       const ctx = document.getElementById('chart-trend').getContext('2d');
       charts.trend = new Chart(ctx, {
         type: 'line',
@@ -714,10 +759,10 @@
         options: {
           responsive: true, maintainAspectRatio: false,
           interaction: { intersect: false, mode: 'index' },
-          plugins: { legend: { position: 'bottom', labels: { color: '#999', font: { size: 11 } } } },
+          plugins: { legend: { position: 'bottom', labels: { color: c.text, font: { size: 11 } } } },
           scales: {
-            x: { ticks: { color: '#666', font: { size: 10 } }, grid: { color: '#1a1a1a' } },
-            y: { ticks: { color: '#666', font: { size: 10 } }, grid: { color: '#1a1a1a' }, beginAtZero: true },
+            x: { ticks: { color: c.ticks, font: { size: 10 } }, grid: { color: c.grid } },
+            y: { ticks: { color: c.ticks, font: { size: 10 } }, grid: { color: c.grid }, beginAtZero: true },
           },
         }
       });
@@ -733,13 +778,14 @@
       const data = labels.map(l => counts[l]);
       const colors = labels.map(channelColor);
       if (charts.channel) charts.channel.destroy();
+      const c = chartColors();
       const ctx = document.getElementById('chart-channel').getContext('2d');
       charts.channel = new Chart(ctx, {
         type: 'doughnut',
         data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0 }] },
         options: {
           responsive: true, maintainAspectRatio: false, cutout: '60%',
-          plugins: { legend: { position: 'bottom', labels: { color: '#999', font: { size: 11 } } } },
+          plugins: { legend: { position: 'bottom', labels: { color: c.text, font: { size: 11 } } } },
         }
       });
     }
@@ -748,6 +794,7 @@
       const counts = { Mobile: 0, Tablet: 0, Desktop: 0, Unknown: 0 };
       pv.forEach(r => { counts[deviceFromWidth(r.screen_width)]++; });
       if (charts.devices) charts.devices.destroy();
+      const c = chartColors();
       const ctx = document.getElementById('chart-devices').getContext('2d');
       charts.devices = new Chart(ctx, {
         type: 'bar',
@@ -764,8 +811,8 @@
           responsive: true, maintainAspectRatio: false, indexAxis: 'y',
           plugins: { legend: { display: false } },
           scales: {
-            x: { ticks: { color: '#666', font: { size: 10 } }, grid: { color: '#1a1a1a' } },
-            y: { ticks: { color: '#999', font: { size: 11 } }, grid: { display: false } },
+            x: { ticks: { color: c.ticks, font: { size: 10 } }, grid: { color: c.grid } },
+            y: { ticks: { color: c.text, font: { size: 11 } }, grid: { display: false } },
           }
         }
       });
@@ -779,6 +826,7 @@
       });
       const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0, 6);
       if (charts.langs) charts.langs.destroy();
+      const c = chartColors();
       const ctx = document.getElementById('chart-langs').getContext('2d');
       charts.langs = new Chart(ctx, {
         type: 'bar',
@@ -795,8 +843,8 @@
           responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { ticks: { color: '#999', font: { size: 11 } }, grid: { display: false } },
-            y: { ticks: { color: '#666', font: { size: 10 } }, grid: { color: '#1a1a1a' }, beginAtZero: true },
+            x: { ticks: { color: c.text, font: { size: 11 } }, grid: { display: false } },
+            y: { ticks: { color: c.ticks, font: { size: 10 } }, grid: { color: c.grid }, beginAtZero: true },
           }
         }
       });
