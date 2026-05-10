@@ -628,6 +628,12 @@
       if (w < 1200) return 'Tablet';
       return 'Desktop';
     }
+    // Retorna 'YYYY-MM-DD' no fuso local do navegador (corrige UTC -> America/Sao_Paulo)
+    function localDay(isoOrDate) {
+      const d = isoOrDate instanceof Date ? isoOrDate : new Date(isoOrDate);
+      // 'sv-SE' por convencao retorna ISO 8601 (YYYY-MM-DD)
+      return d.toLocaleDateString('sv-SE');
+    }
 
     // Helpers seguros para construir tabelas (sem innerHTML)
     function clearChildren(node) { while (node.firstChild) node.removeChild(node.firstChild); }
@@ -729,11 +735,11 @@
     function renderTrend(pv, days) {
       const buckets = {};
       for (let i = 0; i < days; i++) {
-        const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+        const d = localDay(new Date(Date.now() - i * 86400000));
         buckets[d] = { Organic: 0, Referral: 0, Direct: 0, Social: 0, Paid: 0, Campaign: 0, Other: 0 };
       }
       pv.forEach(r => {
-        const d = r.created_at.slice(0, 10);
+        const d = localDay(r.created_at);
         if (!buckets[d]) return;
         const ch = classifyChannel(r);
         buckets[d][ch] = (buckets[d][ch] || 0) + 1;
