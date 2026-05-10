@@ -130,7 +130,9 @@
                 </div>
                 <div class="q-powered-footer">
                     <span style="font-size:11px; color:#94a3b8;">powered by</span>
-                    <img src="https://i.ibb.co/23hMHTRt/logo-quantic-na-melhor-qualidade.png" class="q-quantic-logo">
+                    <a href="https://provoulevou.com.br/?utm_source=widget&utm_medium=parceiro&utm_campaign=bagy" target="_blank" rel="dofollow noopener" title="Provou Levou - Provador Virtual com IA" style="display:inline-flex;align-items:center;text-decoration:none;">
+                      <img src="https://i.ibb.co/23hMHTRt/logo-quantic-na-melhor-qualidade.png" class="q-quantic-logo" alt="Provou Levou - Provador Virtual com IA">
+                    </a>
                 </div>
             </div>
         </div>
