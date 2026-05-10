@@ -1745,6 +1745,23 @@
                     </div>
                 </div>
 
+                <!-- Gráfico de faturamento mensal/semanal geral -->
+                <div id="fatMensalContainer" class="chart-container" style="display:none;margin-bottom:20px;">
+                    <div class="chart-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <h2><i class="ph-bold ph-trend-up" style="color:var(--primary);"></i> <span id="fatChartTitle">Faturamento Mensal</span></h2>
+                            <span style="font-size:12px;color:var(--text-muted);">Faturamento total da loja &nbsp;·&nbsp; <span style="color:#f59e0b;">★</span> instalação do provador</span>
+                        </div>
+                        <div class="fat-toggle" style="display:inline-flex;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:3px;">
+                            <button type="button" class="fat-toggle-btn active" data-gran="month" style="border:0;background:transparent;color:var(--text);padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;">Mês</button>
+                            <button type="button" class="fat-toggle-btn" data-gran="week" style="border:0;background:transparent;color:var(--text-muted);padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;">Semana</button>
+                        </div>
+                    </div>
+                    <div class="chart-canvas-wrap">
+                        <canvas id="fatMensalChart"></canvas>
+                    </div>
+                </div>
+
                 <!-- Crescimento da loja desde a instalação do provador -->
                 <div id="crescimentoLojaCard" style="display:none;margin-bottom:20px;background:linear-gradient(135deg,rgba(34,197,94,0.10),rgba(16,185,129,0.06));border:1px solid rgba(34,197,94,0.30);border-radius:14px;padding:18px 22px;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
@@ -1784,23 +1801,6 @@
                     <div style="text-align:right;min-width:120px;">
                         <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Potencial de faturamento</div>
                         <div id="leadsRecuperarPotencial" style="font-size:20px;font-weight:800;color:#f59e0b;"></div>
-                    </div>
-                </div>
-
-                <!-- Gráfico de faturamento mensal/semanal geral -->
-                <div id="fatMensalContainer" class="chart-container" style="display:none;margin-bottom:20px;">
-                    <div class="chart-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-                        <div>
-                            <h2><i class="ph-bold ph-trend-up" style="color:var(--primary);"></i> <span id="fatChartTitle">Faturamento Mensal</span></h2>
-                            <span style="font-size:12px;color:var(--text-muted);">Faturamento total da loja &nbsp;·&nbsp; <span style="color:#f59e0b;">★</span> instalação do provador</span>
-                        </div>
-                        <div class="fat-toggle" style="display:inline-flex;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:3px;">
-                            <button type="button" class="fat-toggle-btn active" data-gran="month" style="border:0;background:transparent;color:var(--text);padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;">Mês</button>
-                            <button type="button" class="fat-toggle-btn" data-gran="week" style="border:0;background:transparent;color:var(--text-muted);padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;">Semana</button>
-                        </div>
-                    </div>
-                    <div class="chart-canvas-wrap">
-                        <canvas id="fatMensalChart"></canvas>
                     </div>
                 </div>
 
