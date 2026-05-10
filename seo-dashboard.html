@@ -233,6 +233,43 @@
       margin-top: 24px;
     }
 
+    .gate-card .field { margin-top: 12px; }
+    .gate-card label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+    .gate-card .alt {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .gate-card .alt a {
+      color: var(--purple-light);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .gate-card .alt a:hover { text-decoration: underline; }
+    .gate-success {
+      color: var(--green);
+      font-size: 13px;
+      margin-top: 12px;
+      text-align: center;
+    }
+    .logout-btn {
+      padding: 6px 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .logout-btn:hover { color: var(--text); border-color: var(--red); }
+    .user-info {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-right: 12px;
+    }
+
     @media (max-width: 800px) {
       .charts-grid, .tables-grid { grid-template-columns: 1fr; }
       .header { flex-direction: column; gap: 12px; align-items: flex-start; }
@@ -244,10 +281,21 @@
   <div id="gate" class="gate">
     <div class="gate-card">
       <h1>SEO Dashboard</h1>
-      <p>Acesso restrito. Digite seu email para entrar.</p>
-      <input type="email" id="gate-email" placeholder="email@provoulevou.com.br" autocomplete="email">
+      <p>Acesso restrito. Login via Supabase Auth.</p>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="gate-email" placeholder="seu@email.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" id="gate-pass" placeholder="••••••••" autocomplete="current-password">
+      </div>
       <button id="gate-btn">Entrar</button>
       <div id="gate-error" class="gate-error" style="display:none;"></div>
+      <div id="gate-success" class="gate-success" style="display:none;"></div>
+      <div class="alt">
+        <a id="gate-magic">Esqueci a senha / login por magic link</a>
+      </div>
     </div>
   </div>
 
@@ -259,6 +307,8 @@
         <button class="filter-btn" data-days="7">7 dias</button>
         <button class="filter-btn active" data-days="30">30 dias</button>
         <button class="filter-btn" data-days="90">90 dias</button>
+        <span class="user-info" id="user-info"></span>
+        <button class="logout-btn" id="logout-btn">Sair</button>
       </div>
     </div>
 
@@ -352,32 +402,167 @@
       'cionilucas@gmail.com',
       'lucasdecamargo2015@gmail.com',
     ];
-    const STORAGE_KEY = 'pl_seo_admin';
+    const SESSION_KEY = 'pl_seo_session';
 
-    function checkAuth() {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved && ALLOWED_EMAILS.includes(saved)) showDashboard();
+    // ─── Supabase Auth helpers (sem dependencia externa, fetch direto) ───
+    async function authRequest(path, body, method = 'POST') {
+      const r = await fetch(SUPA_URL + '/auth/v1' + path, {
+        method,
+        headers: {
+          'apikey': SUPA_ANON,
+          'Content-Type': 'application/json',
+        },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.msg || data.error_description || data.error || ('HTTP ' + r.status));
+      return data;
     }
-    function showDashboard() {
+    function saveSession(session) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+        expires_at: session.expires_at,
+        user: { email: session.user.email, id: session.user.id },
+      }));
+    }
+    function getSession() {
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
+      catch (e) { return null; }
+    }
+    function clearSession() { localStorage.removeItem(SESSION_KEY); }
+    async function refreshIfNeeded() {
+      const s = getSession();
+      if (!s) return null;
+      const now = Math.floor(Date.now() / 1000);
+      if (s.expires_at && s.expires_at - now < 60) {
+        try {
+          const fresh = await authRequest('/token?grant_type=refresh_token', { refresh_token: s.refresh_token });
+          saveSession(fresh);
+          return fresh;
+        } catch (e) {
+          clearSession();
+          return null;
+        }
+      }
+      return s;
+    }
+    async function checkAuth() {
+      const s = await refreshIfNeeded();
+      if (s && s.user && ALLOWED_EMAILS.includes(s.user.email)) {
+        showDashboard(s.user.email);
+      }
+    }
+    function showDashboard(email) {
       document.getElementById('gate').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
+      const userInfo = document.getElementById('user-info');
+      if (userInfo) userInfo.textContent = email;
       loadDashboard(30);
     }
+
     document.getElementById('gate-btn').addEventListener('click', tryLogin);
-    document.getElementById('gate-email').addEventListener('keypress', e => {
+    document.getElementById('gate-pass').addEventListener('keypress', e => {
       if (e.key === 'Enter') tryLogin();
     });
-    function tryLogin() {
+    document.getElementById('gate-email').addEventListener('keypress', e => {
+      if (e.key === 'Enter') document.getElementById('gate-pass').focus();
+    });
+    document.getElementById('gate-magic').addEventListener('click', tryMagicLink);
+
+    async function tryLogin() {
+      const email = document.getElementById('gate-email').value.trim().toLowerCase();
+      const password = document.getElementById('gate-pass').value;
+      const errEl = document.getElementById('gate-error');
+      const okEl = document.getElementById('gate-success');
+      errEl.style.display = 'none';
+      okEl.style.display = 'none';
+      if (!email || !password) {
+        errEl.textContent = 'Preencha email e senha.';
+        errEl.style.display = 'block';
+        return;
+      }
+      if (!ALLOWED_EMAILS.includes(email)) {
+        errEl.textContent = 'Email nao autorizado para o dashboard.';
+        errEl.style.display = 'block';
+        return;
+      }
+      try {
+        const data = await authRequest('/token?grant_type=password', { email, password });
+        saveSession(data);
+        showDashboard(email);
+      } catch (e) {
+        errEl.textContent = 'Login falhou: ' + (e.message || 'credenciais invalidas');
+        errEl.style.display = 'block';
+      }
+    }
+
+    async function tryMagicLink() {
       const email = document.getElementById('gate-email').value.trim().toLowerCase();
       const errEl = document.getElementById('gate-error');
+      const okEl = document.getElementById('gate-success');
+      errEl.style.display = 'none';
+      okEl.style.display = 'none';
+      if (!email) {
+        errEl.textContent = 'Preencha o email primeiro.';
+        errEl.style.display = 'block';
+        return;
+      }
       if (!ALLOWED_EMAILS.includes(email)) {
         errEl.textContent = 'Email nao autorizado.';
         errEl.style.display = 'block';
         return;
       }
-      localStorage.setItem(STORAGE_KEY, email);
-      showDashboard();
+      try {
+        await authRequest('/otp', { email, create_user: false });
+        okEl.textContent = 'Link enviado para ' + email + '. Verifique sua caixa.';
+        okEl.style.display = 'block';
+      } catch (e) {
+        errEl.textContent = 'Falha ao enviar magic link: ' + (e.message || '');
+        errEl.style.display = 'block';
+      }
     }
+
+    // Capturar callback do magic link / recovery (Supabase manda token na URL hash)
+    (function handleAuthCallback() {
+      if (!window.location.hash) return;
+      const params = new URLSearchParams(window.location.hash.substring(1));
+      const access_token = params.get('access_token');
+      const refresh_token = params.get('refresh_token');
+      const expires_at = params.get('expires_at');
+      if (access_token) {
+        // Decode JWT pra pegar email
+        try {
+          const payload = JSON.parse(atob(access_token.split('.')[1]));
+          const email = payload.email;
+          if (email && ALLOWED_EMAILS.includes(email)) {
+            saveSession({
+              access_token,
+              refresh_token,
+              expires_at: parseInt(expires_at) || (Math.floor(Date.now() / 1000) + 3600),
+              user: { email, id: payload.sub },
+            });
+            history.replaceState(null, '', window.location.pathname);
+            showDashboard(email);
+          }
+        } catch (e) { console.error('JWT decode fail', e); }
+      }
+    })();
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      const s = getSession();
+      if (s) {
+        try {
+          await fetch(SUPA_URL + '/auth/v1/logout', {
+            method: 'POST',
+            headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + s.access_token },
+          });
+        } catch (e) {}
+      }
+      clearSession();
+      window.location.reload();
+    });
+
     checkAuth();
 
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -389,8 +574,10 @@
     });
 
     async function fetchSupa(path) {
+      const s = await refreshIfNeeded();
+      const token = s ? s.access_token : SUPA_ANON;
       const r = await fetch(SUPA_URL + '/rest/v1/' + path, {
-        headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON }
+        headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + token }
       });
       if (!r.ok) throw new Error('Supabase ' + r.status);
       return r.json();
