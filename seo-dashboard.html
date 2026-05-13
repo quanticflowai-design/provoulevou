@@ -228,6 +228,7 @@
     .pill.social { background: rgba(236,72,153,0.15); color: var(--pink); }
     .pill.paid { background: rgba(59,130,246,0.15); color: var(--blue); }
     .pill.campaign { background: rgba(167,139,250,0.15); color: var(--purple-light); }
+    .pill.internal { background: rgba(71,85,105,0.15); color: #94a3b8; }
     .pill.other { background: rgba(255,255,255,0.06); color: var(--text-muted); }
 
     .empty {
@@ -651,11 +652,13 @@
       return ((n / total) * 100).toFixed(1) + '%';
     }
     function classifyChannel(row) {
+      if (row.utm_medium === 'internal') return 'Internal';
       if (row.utm_medium === 'cpc' || row.utm_source === 'dropads') return 'Paid';
       if (row.is_organic) return 'Organic';
       if (row.utm_medium === 'social') return 'Social';
       if (row.is_referral) return 'Referral';
       if (row.is_direct) return 'Direct';
+      if (row.utm_source === 'widget') return 'Referral';
       if (row.utm_source) return 'Campaign';
       return 'Other';
     }
@@ -667,6 +670,7 @@
         'Social':   '#ec4899',
         'Paid':     '#3b82f6',
         'Campaign': '#a78bfa',
+        'Internal': '#475569',
         'Other':    '#6b7280',
       })[ch] || '#6b7280';
     }
@@ -938,7 +942,7 @@
       const buckets = {};
       for (let i = 0; i < days; i++) {
         const d = localDay(new Date(Date.now() - i * 86400000));
-        buckets[d] = { Organic: 0, Referral: 0, Direct: 0, Social: 0, Paid: 0, Campaign: 0, Other: 0 };
+        buckets[d] = { Organic: 0, Referral: 0, Direct: 0, Social: 0, Paid: 0, Campaign: 0, Internal: 0, Other: 0 };
       }
       pv.forEach(r => {
         const d = localDay(r.created_at);
@@ -947,7 +951,7 @@
         buckets[d][ch] = (buckets[d][ch] || 0) + 1;
       });
       const labels = Object.keys(buckets).reverse();
-      const channels = ['Organic', 'Referral', 'Direct', 'Social', 'Paid', 'Campaign', 'Other'];
+      const channels = ['Organic', 'Referral', 'Direct', 'Social', 'Paid', 'Campaign', 'Internal', 'Other'];
       const datasets = channels.map(ch => ({
         label: ch,
         data: labels.map(d => buckets[d][ch]),
@@ -1114,7 +1118,7 @@
     }
 
     function renderConversion(pv, leads) {
-      const channels = ['Organic', 'Referral', 'Direct', 'Social', 'Paid', 'Campaign', 'Other'];
+      const channels = ['Organic', 'Referral', 'Direct', 'Social', 'Paid', 'Campaign', 'Internal', 'Other'];
       const visits = {};
       const leadsByCh = {};
       channels.forEach(c => { visits[c] = 0; leadsByCh[c] = 0; });

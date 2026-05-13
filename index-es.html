@@ -5110,6 +5110,7 @@
   <!-- ─── Tracker SEO + UTM (Supabase) ─── -->
   <script>
     (function () {
+      if (window.location.protocol === 'file:') return;
       var SUPA_URL = 'https://quantic-supabase.k5jwra.easypanel.host';
       var SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.g2PgdtfvvAFY_Dyylnh9dRVKudf1RWiw1WqwogmsHTA';
       var STORAGE_KEY = 'pl_utm', STORAGE_TS = 'pl_utm_ts', SESSION_KEY = 'pl_session_id';
@@ -5134,7 +5135,7 @@
         if (!ref) return { source: 'direct', medium: '(none)' };
         try {
           var refHost = new URL(ref).hostname.toLowerCase();
-          if (refHost === window.location.hostname.toLowerCase()) return null;
+          if (refHost === window.location.hostname.toLowerCase()) return { source: 'internal', medium: 'internal' };
           if (/google\./.test(refHost)) return { source: 'google', medium: 'organic' };
           if (/bing\./.test(refHost)) return { source: 'bing', medium: 'organic' };
           if (/duckduckgo\./.test(refHost)) return { source: 'duckduckgo', medium: 'organic' };

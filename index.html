@@ -5241,6 +5241,9 @@
   <!-- ─── Tracker SEO + UTM + WA (Supabase) ─── -->
   <script>
     (function () {
+      // Guard: nao trackear quando aberto via file:// (testes locais poluem dados)
+      if (window.location.protocol === 'file:') return;
+
       var SUPA_URL = 'https://quantic-supabase.k5jwra.easypanel.host';
       var SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.g2PgdtfvvAFY_Dyylnh9dRVKudf1RWiw1WqwogmsHTA';
       var STORAGE_KEY = 'pl_utm';
@@ -5288,7 +5291,7 @@
         try {
           var refHost = new URL(ref).hostname.toLowerCase();
           var thisHost = window.location.hostname.toLowerCase();
-          if (refHost === thisHost) return null; // navegacao interna
+          if (refHost === thisHost) return { source: 'internal', medium: 'internal' }; // navegacao entre paginas do site
           // Search engines
           if (/google\./.test(refHost)) return { source: 'google', medium: 'organic' };
           if (/bing\./.test(refHost)) return { source: 'bing', medium: 'organic' };
