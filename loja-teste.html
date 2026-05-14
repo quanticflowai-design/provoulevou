@@ -880,14 +880,12 @@
             body: JSON.stringify({ produto: productBase64, modelo: modelBase64 })
           });
 
-          if (!response.ok) throw new Error('http ' + response.status);
-
           var contentType = response.headers.get('content-type');
           var imageUrl = '';
 
+          // Trata 429/limite ANTES de checar response.ok (body tem a mensagem real)
           if (contentType && contentType.indexOf('application/json') !== -1) {
             var responseData = await response.json();
-            // Limite por IP/uso atingido
             if (responseData && responseData.error === 'limite_atingido') {
               loadingModal.classList.remove('active');
               uploadStatus.textContent = responseData.mensagem || 'Você atingiu o limite de testes grátis. Entre em contato pra liberar mais.';
@@ -896,6 +894,7 @@
               btnMaterialize.disabled = !modelBase64;
               return;
             }
+            if (!response.ok) throw new Error('http ' + response.status);
             imageUrl = responseData.url || responseData.image_url || responseData.imagem || responseData.image || responseData.resultado || responseData.result || '';
             if (!imageUrl && typeof responseData === 'object') {
               var keys = Object.keys(responseData);
