@@ -917,8 +917,57 @@
         goToStep(1, 'back');
       });
 
-      // Init
-      setProgress(1);
+      // Init: support ?start=type to skip step 1 (site input) and start at type selection
+      var urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('start') === 'type') {
+        siteUrl = 'demo.provoulevou.com.br';
+        goToStep(2);
+      } else {
+        setProgress(1);
+      }
+
+      // Embed mode: hide topbar, footer, progress and back button on step 2 (no step to go back to)
+      if (urlParams.get('embed') === '1') {
+        document.body.classList.add('embed-mode');
+        var styleEl = document.createElement('style');
+        styleEl.textContent = `
+          html, body { min-height: 0 !important; }
+          body.embed-mode { background: transparent; min-height: auto !important; }
+          body.embed-mode .topbar, body.embed-mode .footer, body.embed-mode #progress-wrap { display: none !important; }
+          body.embed-mode main { padding: 24px 20px 24px; }
+          body.embed-mode #step-2 .step-meta,
+          body.embed-mode #step-2 > h1,
+          body.embed-mode #step-2 > .lead { display: none !important; }
+          body.embed-mode .step h1 { font-size: clamp(1.4rem, 3.5vw, 1.8rem); }
+          body.embed-mode .step .lead { font-size: 14px; }
+          @media (max-width: 600px) {
+            body.embed-mode main { padding: 20px 16px 20px; }
+          }
+        `;
+        document.head.appendChild(styleEl);
+
+        // Auto-resize: send height to parent
+        function postHeight() {
+          var activeStep = document.querySelector('.step.active');
+          if (!activeStep) return;
+          var rect = activeStep.getBoundingClientRect();
+          var mainPad = 48; // top + bottom of main padding
+          var h = Math.ceil(rect.height + mainPad);
+          try {
+            window.parent.postMessage({ type: 'pl-embed-height', height: h }, '*');
+          } catch (e) {}
+        }
+        // Post on load, after step changes, and on resize
+        window.addEventListener('load', postHeight);
+        window.addEventListener('resize', postHeight);
+        // Observe step changes
+        var observer = new MutationObserver(function() { setTimeout(postHeight, 50); });
+        document.querySelectorAll('.step').forEach(function(s) {
+          observer.observe(s, { attributes: true, attributeFilter: ['class'] });
+        });
+        // Initial post
+        setTimeout(postHeight, 100);
+      }
     });
   </script>
 </body>

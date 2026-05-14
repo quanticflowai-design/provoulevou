@@ -1389,8 +1389,28 @@
 
     /* ─── DASHBOARD SCROLL SECTION ─── */
     .dash-scroll-section {
-      background: var(--bg-light);
-      padding: 100px 0 60px;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 0%, rgba(124,58,237,0.22) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 30% at 100% 100%, rgba(167,139,250,0.14) 0%, transparent 70%),
+        radial-gradient(ellipse 35% 25% at 0% 60%, rgba(124,58,237,0.12) 0%, transparent 72%),
+        #0a0a0a;
+      padding: 120px 0 100px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dash-scroll-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+      opacity: 0.6;
+      pointer-events: none;
     }
 
     .dash-scroll-section .container {
@@ -1398,25 +1418,14 @@
       margin: 0 auto;
       padding: 0 40px;
       position: relative;
+      z-index: 2;
     }
 
     .dash-scroll-bg {
       position: relative;
     }
 
-    .dash-scroll-bg::before {
-      content: '';
-      position: absolute;
-      top: -40px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% + 80px);
-      max-width: 1100px;
-      height: calc(100% + 80px);
-      background: var(--purple);
-      border-radius: 28px;
-      z-index: 0;
-    }
+    .dash-scroll-bg::before { display: none; }
 
     .dash-scroll-header {
       text-align: center;
@@ -1551,43 +1560,102 @@
 
     /* Stats section below dashboard */
     .dash-stats-section {
-      max-width: 1100px;
-      margin: 80px auto 0;
+      max-width: 1200px;
+      margin: 96px auto 0;
       text-align: left;
+      position: relative;
     }
 
     .dash-stats-heading {
-      font-size: clamp(1.25rem, 3vw, 2.25rem);
-      font-weight: 500;
-      color: var(--text-dark);
-      line-height: 1.3;
-      letter-spacing: -0.03em;
-      margin-bottom: 48px;
+      font-size: clamp(1.4rem, 2.6vw, 2rem);
+      font-weight: 300;
+      color: #fff;
+      line-height: 1.25;
+      letter-spacing: -0.025em;
+      margin-bottom: 56px;
+      max-width: 880px;
     }
 
     .dash-stats-heading span {
-      color: var(--text-muted);
+      color: rgba(255,255,255,0.55);
+      font-size: 0.65em;
+      display: block;
+      margin-top: 12px;
+      font-weight: 400;
+      line-height: 1.55;
+    }
+
+    .dash-stats-heading em {
+      font-style: italic;
+      font-weight: 400;
+      background: linear-gradient(120deg, #7c3aed 0%, #a78bfa 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      display: inline-block; padding-right: 4px;
     }
 
     .dash-stats-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 32px;
+      gap: 0;
       margin-top: 32px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
     }
 
+    .dash-stats-grid > div {
+      padding: 28px 28px;
+      position: relative;
+      transition: background 0.35s ease;
+    }
+
+    .dash-stats-grid > div + div {
+      border-left: 1px dashed rgba(255,255,255,0.08);
+    }
+
+    .dash-stats-grid > div:hover {
+      background: rgba(124,58,237,0.06);
+    }
+
+    .dash-stats-grid > div::before {
+      content: counter(dashstat, decimal-leading-zero);
+      counter-increment: dashstat;
+      font-family: 'Times New Roman', Georgia, serif;
+      font-style: italic;
+      font-size: 12px;
+      color: rgba(167,139,250,0.7);
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .dash-stats-grid { counter-reset: dashstat; }
+
     .dash-stat-value {
-      font-size: clamp(1.5rem, 3vw, 2rem);
-      font-weight: 500;
-      color: var(--text-dark);
-      letter-spacing: -0.03em;
-      margin-bottom: 4px;
+      font-size: clamp(2.2rem, 3.4vw, 3rem);
+      font-weight: 300;
+      color: #fff;
+      letter-spacing: -0.04em;
+      margin-bottom: 8px;
+      line-height: 1;
+      font-style: italic;
+      background: linear-gradient(120deg, #fff 0%, #c4b5fd 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      display: inline-block; padding-right: 4px;
     }
 
     .dash-stat-label {
-      font-size: 14px;
-      color: var(--text-muted);
+      font-size: 11.5px;
+      color: rgba(255,255,255,0.55);
       line-height: 1.5;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    @media (max-width: 860px) {
+      .dash-stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .dash-stats-grid > div + div { border-left: none; }
+      .dash-stats-grid > div:nth-child(2n) { border-left: 1px dashed rgba(255,255,255,0.08); }
+      .dash-stats-grid > div:nth-child(n+3) { border-top: 1px dashed rgba(255,255,255,0.08); }
     }
 
     /* Area chart */
@@ -3956,7 +4024,28 @@
     .cases-carousel {
       overflow: hidden;
       width: 100%;
+      position: relative;
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 14%, #000 86%, transparent 100%);
+              mask-image: linear-gradient(90deg, transparent 0%, #000 14%, #000 86%, transparent 100%);
     }
+    .cases-carousel::before,
+    .cases-carousel::after {
+      content: "";
+      position: absolute;
+      top: -8%;
+      bottom: -8%;
+      width: 8px;
+      pointer-events: none;
+      z-index: 3;
+      border-radius: 999px;
+      background: linear-gradient(180deg, transparent 0%, #a78bfa 18%, #7c3aed 50%, #a78bfa 82%, transparent 100%);
+      box-shadow:
+        0 0 24px 8px rgba(124,58,237,0.65),
+        0 0 60px 20px rgba(124,58,237,0.35),
+        0 0 120px 40px rgba(124,58,237,0.18);
+    }
+    .cases-carousel::before { left: 0; }
+    .cases-carousel::after { right: 0; }
     .cases-track {
       display: flex;
       gap: 20px;
@@ -4039,8 +4128,8 @@
       <a href="#" class="nav-brand"><img src="https://i.ibb.co/MD3B4FQf/Logo-provou-preto-1.png" alt="Provou Levou"
           class="nav-logo"></a>
       <ul class="nav-links">
-        <li><a href="#como-funciona">Como Funciona</a></li>
-        <li><a href="#tecnologia">Tecnologia</a></li>
+        <li><a href="#experimente">Experimente</a></li>
+        <li><a href="#processo">Como Fica na Loja</a></li>
         <li><a href="#planos">Planos</a></li>
         <li><a href="#faq">FAQ</a></li>
       </ul>
@@ -4060,8 +4149,8 @@
   </nav>
 
   <div class="mob-menu" id="mob-menu">
-    <a href="#como-funciona" class="mob-link">Como Funciona</a>
-    <a href="#tecnologia" class="mob-link">Tecnologia</a>
+    <a href="#experimente" class="mob-link">Experimente</a>
+    <a href="#processo" class="mob-link">Como Fica na Loja</a>
     <a href="#planos" class="mob-link">Planos</a>
     <a href="#faq" class="mob-link">FAQ</a>
     <div style="display:flex;align-items:center;gap:10px;justify-content:center;padding:8px 0;">
@@ -4078,30 +4167,585 @@
   <!-- ─── HERO (Editorial) ─── -->
   <section class="hero">
     <div class="hero-content">
-      <!-- Marca editorial -->
-      <div class="blur-entry be1" style="display:inline-flex; align-items:center; gap:10px; font-size:11px; letter-spacing:2.5px; color:rgba(255,255,255,0.6); text-transform:uppercase; margin-bottom:28px;">
-        <span style="width:24px; height:1px; background:rgba(255,255,255,0.4);"></span>
-        Provou Levou · MMXXVI
-        <span style="width:24px; height:1px; background:rgba(255,255,255,0.4);"></span>
-      </div>
-
-      <h1 class="h-display blur-entry be1">Provador virtual com IA<br>para <span class="gradient-text">moda &amp; óculos</span>.</h1>
+      <h1 class="h-display blur-entry be1">Provador virtual com IA<br>para <em class="gradient-text" style="font-style:italic; font-weight:400;">moda &amp; óculos.</em></h1>
 
       <p class="hero-sub blur-entry be2" style="font-style:italic; font-weight:300; font-size:clamp(1.05rem, 1.4vw, 1.3rem); color:rgba(0,0,0,0.7); margin-top:24px; line-height:1.5;">
-        Seu cliente prova antes de comprar.<br>
-        <span style="color:#000; font-style:normal; font-weight:500;">+10 mil provas</span>, <span style="color:#000; font-style:normal; font-weight:500;">R$ 230 mil atribuídos</span>, até <span style="color:#000; font-style:normal; font-weight:500;">22% das vendas</span> vêm do provador.
+        O provador virtual que materializa o desejo de compra.
       </p>
+      <ul class="blur-entry be2" style="list-style:none; padding:0; margin:32px 0 0; display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
+        <li style="display:inline-flex; align-items:center; gap:8px; padding:7px 14px 7px 12px; background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.22); border-radius:50px; font-size:clamp(0.85rem, 1vw, 0.95rem); color:#1a1a1a; font-weight:500;">
+          <span style="width:6px; height:6px; background:#7c3aed; border-radius:50%; box-shadow:0 0 0 3px rgba(124,58,237,0.18); flex-shrink:0;"></span>
+          até +22% de conversão
+        </li>
+        <li style="display:inline-flex; align-items:center; gap:8px; padding:7px 14px 7px 12px; background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.22); border-radius:50px; font-size:clamp(0.85rem, 1vw, 0.95rem); color:#1a1a1a; font-weight:500;">
+          <span style="width:6px; height:6px; background:#7c3aed; border-radius:50%; box-shadow:0 0 0 3px rgba(124,58,237,0.18); flex-shrink:0;"></span>
+          +43% de LTV
+        </li>
+        <li style="display:inline-flex; align-items:center; gap:8px; padding:7px 14px 7px 12px; background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.22); border-radius:50px; font-size:clamp(0.85rem, 1vw, 0.95rem); color:#1a1a1a; font-weight:500;">
+          <span style="width:6px; height:6px; background:#7c3aed; border-radius:50%; box-shadow:0 0 0 3px rgba(124,58,237,0.18); flex-shrink:0;"></span>
+          −52% em devoluções
+        </li>
+      </ul>
 
       <div class="hero-ctas blur-entry be3" style="margin-top:36px;">
-        <a href="https://wa.me/5511965749173?text=Olá, tenho interesse no Provador Virtual." class="btn-main"
-          target="_blank" data-fb-event="InitiateCheckout" data-fb-label="Hero - Testar Grátis">Testar Grátis por 7 Dias <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+        <a href="https://wa.me/5511965749173?text=Olá, tenho interesse no Provador Virtual." class="btn-main hero-cta-glow"
+          target="_blank" data-fb-event="InitiateCheckout" data-fb-label="Hero - Testar Grátis" style="padding:18px 36px; font-size:17px; font-weight:600; letter-spacing:-0.01em; box-shadow:0 12px 36px rgba(124,58,237,0.45), 0 0 0 1px rgba(124,58,237,0.3) inset; position:relative;">Testar Grátis por 7 Dias <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
             stroke-width="1.5" stroke-linecap="round">
             <path d="M3 8h10M9 4l4 4-4 4" />
           </svg></a>
-        <a href="loja-teste.html" class="btn-ghost" data-fb-event="ViewContent" data-fb-label="Hero - Experimentar Provador">Experimentar Provador</a>
+        <a href="#experimente" class="btn-ghost" data-fb-event="ViewContent" data-fb-label="Hero - Experimentar Provador">Experimentar Provador</a>
+      </div>
+      <style>
+        .hero-cta-glow { animation: hero-cta-pulse 2.6s ease-in-out infinite; }
+        @keyframes hero-cta-pulse {
+          0%, 100% { box-shadow: 0 12px 36px rgba(124,58,237,0.45), 0 0 0 1px rgba(124,58,237,0.3) inset, 0 0 0 0 rgba(124,58,237,0.5); }
+          50% { box-shadow: 0 16px 44px rgba(124,58,237,0.6), 0 0 0 1px rgba(124,58,237,0.4) inset, 0 0 0 12px rgba(124,58,237,0); }
+        }
+        .hero-cta-glow:hover { transform: translateY(-2px); animation-play-state: paused; }
+      </style>
+
+    </div>
+  </section>
+
+  <!-- ─── EXPERIMENTE AGORA (Atelier Trial) ─── -->
+  <section class="section experimente-section" id="experimente">
+    <style>
+      .experimente-section {
+        background:
+          radial-gradient(ellipse 60% 40% at 50% 0%, rgba(124,58,237,0.22) 0%, transparent 70%),
+          radial-gradient(ellipse 40% 30% at 80% 100%, rgba(244,114,182,0.12) 0%, transparent 70%),
+          radial-gradient(ellipse 40% 30% at 20% 100%, rgba(34,211,238,0.10) 0%, transparent 70%),
+          #050505;
+        padding:88px 0 56px;
+        position:relative;
+        overflow:hidden;
+      }
+      /* Faint blueprint grid */
+      .experimente-section::before {
+        content:'';
+        position:absolute; inset:0;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+        background-size: 48px 48px;
+        background-position: 0 0;
+        opacity:0.8;
+        mask-image:linear-gradient(180deg, transparent 0%, #000 25%, #000 75%, transparent 100%);
+        -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 25%, #000 75%, transparent 100%);
+        pointer-events:none;
+      }
+      .experimente-section > * { position:relative; z-index:2; }
+
+      /* Top measure tape: small ticks like a tailor's tape */
+      .exp-tape {
+        display:flex; justify-content:center; align-items:flex-end;
+        gap:8px; height:14px; margin-bottom:36px;
+        opacity:0.45;
+      }
+      .exp-tape span {
+        width:1px; background:rgba(255,255,255,0.7);
+      }
+      .exp-tape span:nth-child(5n+1) { height:14px; }
+      .exp-tape span:nth-child(2n) { height:6px; }
+      .exp-tape span:not(:nth-child(2n)):not(:nth-child(5n+1)) { height:9px; }
+
+      /* Header */
+      .exp-header {
+        max-width:680px; margin:0 auto;
+        text-align:center;
+        margin-bottom:48px;
+      }
+      .exp-kicker {
+        display:inline-flex; align-items:center; gap:10px;
+        padding:6px 14px;
+        background:rgba(255,255,255,0.05);
+        border:1px solid rgba(255,255,255,0.12);
+        border-radius:50px;
+        font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+        color:rgba(255,255,255,0.75); font-weight:600;
+        margin-bottom:20px;
+      }
+      .exp-kicker .live-dot {
+        width:7px; height:7px; border-radius:50%;
+        background:#10b981;
+        animation:exp-pulse 1.8s ease-in-out infinite;
+        box-shadow:0 0 0 3px rgba(16,185,129,0.25);
+      }
+      @keyframes pulse-dot {
+        0%, 100% { transform:scale(1); opacity:0.6; }
+        50% { transform:scale(2.4); opacity:0; }
+      }
+      @keyframes exp-pulse {
+        0%,100% { box-shadow:0 0 0 3px rgba(16,185,129,0.25); }
+        50%     { box-shadow:0 0 0 6px rgba(16,185,129,0); }
+      }
+      .exp-h2 {
+        font-size:clamp(2rem, 4.4vw, 3.2rem);
+        font-weight:500;
+        letter-spacing:-0.04em;
+        line-height:1.02;
+        color:#fff;
+        margin:0;
+      }
+      .exp-h2 em {
+        font-style:italic;
+        font-weight:400;
+        color:#a78bfa;
+        position:relative;
+      }
+      .exp-h2 em::after {
+        content:'';
+        position:absolute; left:0; right:0; bottom:-4px;
+        height:1.5px;
+        background:linear-gradient(90deg, transparent, #a78bfa, transparent);
+        opacity:0.7;
+      }
+      .exp-subtitle {
+        margin-top:18px;
+        font-size:14.5px;
+        color:rgba(255,255,255,0.6);
+        max-width:480px;
+        margin-left:auto; margin-right:auto;
+        line-height:1.5;
+      }
+
+      /* Stage with iframe */
+      .exp-stage {
+        position:relative;
+        max-width:880px;
+        margin:0 auto;
+      }
+      /* Stage spotlight: a soft halo behind the card */
+      .exp-stage::before {
+        content:'';
+        position:absolute; left:50%; top:-40px;
+        transform:translateX(-50%);
+        width:120%; height:80px;
+        background:radial-gradient(ellipse, rgba(124,58,237,0.14), transparent 70%);
+        filter:blur(20px);
+        pointer-events:none;
+        z-index:0;
+      }
+
+      /* Corner brackets */
+      .exp-corner {
+        position:absolute;
+        width:28px; height:28px;
+        border:2px solid #7c3aed;
+        z-index:3;
+        pointer-events:none;
+        opacity:0.85;
+      }
+      .exp-corner.tl { top:-14px; left:-14px; border-right:0; border-bottom:0; }
+      .exp-corner.tr { top:-14px; right:-14px; border-left:0; border-bottom:0; }
+      .exp-corner.bl { bottom:-14px; left:-14px; border-right:0; border-top:0; }
+      .exp-corner.br { bottom:-14px; right:-14px; border-left:0; border-top:0; }
+
+      /* Card */
+      .exp-card {
+        position:relative;
+        background:#ffffff;
+        border-radius:14px;
+        box-shadow:
+          0 1px 1px rgba(0,0,0,0.04),
+          0 4px 12px rgba(0,0,0,0.04),
+          0 32px 80px -16px rgba(0,0,0,0.18),
+          0 0 0 1px rgba(0,0,0,0.06);
+        overflow:hidden;
+        z-index:1;
+      }
+      .experimente-iframe {
+        width:100%; height:380px; border:0; display:block; background:transparent;
+        transition: height 0.4s cubic-bezier(.22,1,.36,1);
+      }
+
+      /* Marginalia (annotations on the sides — desktop only) */
+      .exp-note {
+        position:absolute;
+        font-size:11px;
+        letter-spacing:1.2px;
+        text-transform:uppercase;
+        font-weight:600;
+        color:rgba(255,255,255,0.6);
+        display:flex; align-items:center; gap:10px;
+        z-index:4;
+      }
+      .exp-note .exp-note-num {
+        display:inline-flex; align-items:center; justify-content:center;
+        width:24px; height:24px; border-radius:50%;
+        background:#fff; color:#0a0a0a;
+        font-size:10px; font-weight:700;
+        letter-spacing:0;
+      }
+      .exp-note .exp-note-line { width:24px; height:1px; background:rgba(255,255,255,0.3); }
+      .exp-note-1 { top:60px; left:-180px; }
+      .exp-note-2 { top:50%; right:-200px; transform:translateY(-50%); }
+      .exp-note-3 { bottom:60px; left:-180px; }
+      .exp-note-2 .exp-note-line { background:linear-gradient(90deg, rgba(255,255,255,0.3), transparent); }
+
+      /* Bottom hint pointing to next section */
+      .exp-pivot {
+        text-align:center; margin-top:40px;
+      }
+      .exp-pivot-arrow {
+        display:inline-flex; align-items:center; gap:10px;
+        padding:8px 16px; border-radius:50px;
+        background:rgba(124,58,237,0.08);
+        color:#7c3aed; font-size:12px; font-weight:600;
+        letter-spacing:1px; text-transform:uppercase;
+        animation:exp-bob 2.5s ease-in-out infinite;
+      }
+      @keyframes exp-bob {
+        0%,100% { transform:translateY(0); }
+        50%     { transform:translateY(4px); }
+      }
+      .exp-pivot-arrow svg { width:14px; height:14px; }
+
+      @media (max-width: 1080px) {
+        .exp-note-1, .exp-note-2, .exp-note-3 { display:none; }
+      }
+      @media (max-width: 720px) {
+        .experimente-section { padding:64px 0 36px; }
+        .exp-tape { display:none; }
+        .exp-corner { width:20px; height:20px; }
+        .exp-corner.tl { top:-10px; left:-10px; }
+        .exp-corner.tr { top:-10px; right:-10px; }
+        .exp-corner.bl { bottom:-10px; left:-10px; }
+        .exp-corner.br { bottom:-10px; right:-10px; }
+        .exp-card { border-radius:10px; }
+      }
+    </style>
+    <script>
+      // Auto-resize iframe based on loja-teste embed content
+      window.addEventListener('message', function(ev) {
+        if (ev.data && ev.data.type === 'pl-embed-height') {
+          var iframe = document.querySelector('.experimente-iframe');
+          if (iframe) {
+            var h = Math.max(280, Math.min(1100, ev.data.height));
+            iframe.style.height = h + 'px';
+          }
+        }
+      });
+    </script>
+
+    <!-- Top tape measure -->
+    <div class="exp-tape" aria-hidden="true">
+      <!-- 25 ticks -->
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <div class="container">
+      <header class="exp-header rv">
+        <div class="exp-kicker">
+          Demo ao vivo · sem cadastro
+        </div>
+        <h2 class="h-section exp-h2">Teste o <em>provador</em> agora.</h2>
+        <p class="exp-subtitle">Escolha entre roupa ou óculos, envie duas fotos e veja a IA materializar em segundos — exatamente como seu cliente vai ver.</p>
+      </header>
+
+      <div class="exp-stage rv d1">
+        <!-- Corner brackets (decor) -->
+        <span class="exp-corner tl"></span>
+        <span class="exp-corner tr"></span>
+        <span class="exp-corner bl"></span>
+        <span class="exp-corner br"></span>
+
+        <!-- The actual iframe card -->
+        <div class="exp-card">
+          <iframe
+            class="experimente-iframe"
+            src="loja-teste.html?start=type&embed=1"
+            title="Experimente o Provou Levou"
+            loading="lazy"
+            allow="clipboard-read; clipboard-write">
+          </iframe>
+        </div>
       </div>
 
     </div>
+  </section>
+  <!-- ─── COMO FICA NA SUA LOJA (Demonstração Visual) ─── -->
+  <section class="section como-fica-section grain-overlay" id="processo" style="background:radial-gradient(ellipse at top left, #f3eefe 0%, var(--bg-light) 70%); padding:56px 0 96px; position:relative; overflow:hidden;">
+    <style>
+      .como-fica-section .label, .como-fica-section .h-section { color:#0a0a0a; }
+      .como-fica-h2 { white-space:nowrap; }
+      @media (max-width: 720px) { .como-fica-h2 { white-space:normal; font-size:clamp(1.6rem, 7vw, 2.2rem); } }
+      /* Spec strip — editorial numbered chips */
+      /* Spec strip — exhibition label style */
+      .como-fica-bullets {
+        list-style:none; padding:0; margin:40px auto 0;
+        display:grid;
+        grid-template-columns:repeat(3, 1fr);
+        gap:0;
+        max-width:780px;
+        position:relative;
+        border-top:1px solid rgba(0,0,0,0.1);
+        border-bottom:1px solid rgba(0,0,0,0.1);
+      }
+      .como-fica-bullet {
+        position:relative;
+        display:flex; flex-direction:column;
+        align-items:flex-start;
+        gap:8px;
+        padding:22px 24px 20px;
+        text-align:left;
+        overflow:hidden;
+        transition:background 0.4s ease;
+      }
+      .como-fica-bullet + .como-fica-bullet {
+        border-left:1px solid rgba(0,0,0,0.08);
+      }
+      .como-fica-bullet::before {
+        content:'';
+        position:absolute; left:0; right:0; top:0;
+        height:2px;
+        background:linear-gradient(90deg, #7c3aed, #a78bfa);
+        transform:scaleX(0); transform-origin:left center;
+        transition:transform 0.5s cubic-bezier(.22,1,.36,1);
+      }
+      .como-fica-bullet:hover { background:rgba(124,58,237,0.04); }
+      .como-fica-bullet:hover::before { transform:scaleX(1); }
+      .como-fica-bullet:hover .como-fica-bullet-num em {
+        background:linear-gradient(120deg, #7c3aed, #a78bfa);
+        -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+      }
+      .como-fica-bullet-num {
+        font-size:9.5px; letter-spacing:2.4px; text-transform:uppercase;
+        color:rgba(0,0,0,0.4); font-weight:600;
+        display:flex; align-items:center; gap:8px;
+      }
+      .como-fica-bullet-num em {
+        font-family:'Times New Roman', Georgia, serif;
+        font-style:italic; font-weight:400;
+        font-size:18px; letter-spacing:-0.02em;
+        color:#0a0a0a;
+        transition:all 0.3s ease;
+      }
+      .como-fica-bullet-num::before {
+        content:''; width:18px; height:1px; background:rgba(0,0,0,0.25);
+      }
+      .como-fica-bullet-content { width:100%; }
+      .como-fica-bullet-label {
+        font-size:15.5px;
+        font-weight:500;
+        color:#0a0a0a;
+        letter-spacing:-0.015em;
+        line-height:1.25;
+      }
+      .como-fica-bullet-sub {
+        font-size:11.5px;
+        font-weight:400;
+        color:rgba(0,0,0,0.55);
+        letter-spacing:0.2px;
+        margin-top:6px;
+        line-height:1.45;
+      }
+
+      @media (max-width: 720px) {
+        .como-fica-bullets {
+          grid-template-columns:1fr;
+          max-width:380px;
+          border-top:1px solid rgba(0,0,0,0.1);
+        }
+        .como-fica-bullet + .como-fica-bullet {
+          border-left:none;
+          border-top:1px solid rgba(0,0,0,0.08);
+        }
+        .como-fica-bullet { padding:18px 20px; }
+      }
+
+      .demo-toggle { display:inline-flex; background:rgba(0,0,0,0.05); border-radius:50px; padding:6px; margin:32px 0 48px; gap:4px; border:1px solid rgba(0,0,0,0.08); }
+      .demo-toggle button { background:transparent; border:none; padding:12px 28px; border-radius:50px; font-size:14px; font-weight:500; color:rgba(0,0,0,0.55); cursor:pointer; transition:all .3s ease; display:flex; align-items:center; gap:8px; }
+      .demo-toggle button.active { background:#0a0a0a; color:#fff; box-shadow:0 6px 18px rgba(0,0,0,0.18); }
+      .demo-toggle button svg { width:18px; height:18px; }
+
+      .store-frame { max-width:980px; margin:0 auto; background:#fff; border-radius:18px; box-shadow:0 30px 80px -20px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.06); overflow:hidden; position:relative; }
+      .store-frame-bar { background:#f5f4f0; border-bottom:1px solid rgba(0,0,0,0.06); padding:14px 18px; display:flex; align-items:center; gap:8px; }
+      .store-frame-dot { width:11px; height:11px; border-radius:50%; }
+      .store-frame-url { margin-left:14px; background:rgba(0,0,0,0.05); padding:6px 16px; border-radius:8px; font-size:12.5px; color:rgba(0,0,0,0.55); flex:1; max-width:380px; }
+
+      .store-content { display:grid; grid-template-columns:1fr 1fr; gap:0; min-height:520px; }
+      .store-img-side { background:#f8f7f4; padding:32px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+      .store-img-side img.product-photo { max-width:100%; max-height:440px; width:auto; object-fit:contain; }
+
+      /* Selo Provou Levou (top-right da foto) — visual */
+      @keyframes pl-shake { 0%,50%,100%{transform:rotate(0deg)} 10%,30%{transform:rotate(-10deg)} 20%,40%{transform:rotate(10deg)} }
+      .pl-trigger-stamp {
+        position:absolute; top:24px; right:24px; z-index:10;
+        background:none; border:none; padding:0;
+        width:80px; height:80px;
+        display:flex; align-items:center; justify-content:center;
+        filter:drop-shadow(0 4px 14px rgba(0,0,0,0.22));
+        animation:pl-shake 3s infinite;
+        pointer-events:none;
+      }
+      .pl-trigger-stamp img { width:100%; height:100%; object-fit:contain; }
+
+      .store-info-side { padding:48px 40px; display:flex; flex-direction:column; justify-content:center; }
+      .store-breadcrumb { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:rgba(0,0,0,0.4); margin-bottom:14px; }
+      .store-product-name { font-size:26px; font-weight:600; color:#000; line-height:1.2; margin-bottom:10px; letter-spacing:-0.02em; }
+      .store-rating { display:flex; gap:8px; align-items:center; margin-bottom:18px; }
+      .store-rating .stars { color:#f59e0b; font-size:14px; letter-spacing:1px; }
+      .store-rating .reviews { font-size:12px; color:rgba(0,0,0,0.5); }
+      .store-price { font-size:28px; font-weight:600; color:#000; letter-spacing:-0.02em; }
+      .store-price-old { font-size:14px; color:rgba(0,0,0,0.4); text-decoration:line-through; margin-left:8px; }
+      .store-installment { font-size:13px; color:rgba(0,0,0,0.55); margin-top:4px; margin-bottom:24px; }
+      .store-sizes { display:flex; gap:8px; margin-bottom:20px; }
+      .store-size-btn { min-width:48px; height:48px; padding:0 6px; border-radius:24px; border:1px solid rgba(0,0,0,0.18); background:#fff; font-size:13px; font-weight:500; color:#000; transition:all .2s ease; pointer-events:none; display:inline-flex; align-items:center; justify-content:center; line-height:1; }
+      .store-size-btn.active { background:#000; color:#fff; border-color:#000; }
+
+      /* Botão inline (visual — sem ação no clique) */
+      .pl-inline-btn {
+        display:flex; align-items:center; justify-content:center; gap:8px;
+        width:100%; padding:13px 16px;
+        background:transparent; color:#000;
+        border:1.5px solid #000; border-radius:6px;
+        font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
+        margin-bottom:10px;
+        pointer-events:none;
+      }
+      .pl-inline-btn svg { width:14px; height:14px; flex-shrink:0; }
+
+      .store-actions { display:flex; gap:10px; margin-top:4px; }
+      .btn-store-cart { flex:1; padding:14px 20px; background:#000; color:#fff; border:none; border-radius:50px; font-size:14px; font-weight:500; letter-spacing:0.3px; pointer-events:none; }
+      .btn-store-fav { width:48px; height:48px; border-radius:50%; border:1px solid rgba(0,0,0,0.15); background:#fff; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+
+      .demo-cta-row { text-align:center; margin-top:40px; }
+      .demo-real-cta { display:inline-flex; align-items:center; gap:8px; background:#000; color:#fff; padding:14px 28px; border-radius:50px; font-size:14px; font-weight:500; text-decoration:none; }
+      .demo-real-cta:hover { background:#1a1a1a; }
+
+      @media (max-width: 720px) {
+        .store-content { grid-template-columns:1fr; }
+        .store-img-side { min-height:380px; }
+        .demo-toggle button { padding:10px 20px; font-size:13px; }
+        .pl-trigger-stamp { top:12px; right:12px; width:60px; height:60px; }
+      }
+    </style>
+
+    <div class="container">
+      <div style="text-align:center; max-width:780px; margin:0 auto;">
+        <h2 class="h-section rv d1 como-fica-h2">Como fica na sua Loja</h2>
+
+        <!-- Spec strip editorial -->
+        <ul class="como-fica-bullets rv d2">
+          <li class="como-fica-bullet">
+            <span class="como-fica-bullet-num">01</span>
+            <div class="como-fica-bullet-content">
+              <div class="como-fica-bullet-label">Setup em 1h</div>
+            </div>
+          </li>
+          <li class="como-fica-bullet">
+            <span class="como-fica-bullet-num">02</span>
+            <div class="como-fica-bullet-content">
+              <div class="como-fica-bullet-label">Botão personalizável</div>
+            </div>
+          </li>
+          <li class="como-fica-bullet">
+            <span class="como-fica-bullet-num">03</span>
+            <div class="como-fica-bullet-content">
+              <div class="como-fica-bullet-label">Design clean</div>
+            </div>
+          </li>
+        </ul>
+
+        <div class="demo-toggle rv d3" style="margin-top:36px;">
+          <button type="button" class="active" data-demo="roupa">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4l-4 4-4-4M5 8l-2 4 4 2 1-2M19 8l2 4-4 2-1-2M8 12v8h8v-8"/></svg>
+            Loja de Roupas
+          </button>
+          <button type="button" data-demo="oculos">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="14" r="3.5"/><circle cx="17.5" cy="14" r="3.5"/><path d="M10 14h4M3 14l1.5-5h2M21 14l-1.5-5h-2"/></svg>
+            Loja de Óculos
+          </button>
+        </div>
+      </div>
+
+      <div class="store-frame rv d4">
+        <div class="store-frame-bar">
+          <div class="store-frame-dot" style="background:#ff5f57;"></div>
+          <div class="store-frame-dot" style="background:#febc2e;"></div>
+          <div class="store-frame-dot" style="background:#28c840;"></div>
+          <div class="store-frame-url" id="demoUrl">🔒 usemarianacardoso.com.br / blusa-cecilia-baunilha</div>
+        </div>
+
+        <div class="store-content">
+          <div class="store-img-side">
+            <img class="product-photo demo-roupa" src="assets/demo/roupa-produto.jpg" alt="Blusa Cecília">
+            <img class="product-photo demo-oculos" src="assets/demo/oculos-produto.jpg" alt="Óculos Hexagonal" style="display:none;">
+
+            <!-- Selo flutuante (réplica do widget real — visual) -->
+            <div class="pl-trigger-stamp" aria-hidden="true">
+              <img src="https://cdn.shopify.com/s/files/1/0636/6334/1746/files/logo_provador.png?v=1772494793" alt="Selo Provou Levou">
+            </div>
+          </div>
+
+          <div class="store-info-side">
+            <div class="store-breadcrumb" id="demoBreadcrumb">Blusas / Manga Longa</div>
+            <h3 class="store-product-name" id="demoProductName">Blusa Alfaiataria Cecília</h3>
+            <div class="store-rating">
+              <span class="stars">★★★★★</span>
+              <span class="reviews" id="demoReviews">4.9 · 142 avaliações</span>
+            </div>
+            <div>
+              <span class="store-price" id="demoPrice">R$ 249,00</span>
+              <span class="store-price-old" id="demoPriceOld">R$ 329,00</span>
+            </div>
+            <div class="store-installment" id="demoInstallment">ou 5× de R$ 49,80 sem juros</div>
+
+            <div id="demoSizesWrap">
+              <div style="font-size:13px; color:rgba(0,0,0,0.6); margin-bottom:8px;">Tamanho</div>
+              <div class="store-sizes">
+                <span class="store-size-btn">PP</span>
+                <span class="store-size-btn active">P</span>
+                <span class="store-size-btn">M</span>
+                <span class="store-size-btn">G</span>
+                <span class="store-size-btn">GG</span>
+              </div>
+            </div>
+
+            <!-- Botão INLINE (visual — sem ação no clique) -->
+            <div class="pl-inline-btn" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              Provador Virtual
+            </div>
+
+            <div class="store-actions" style="justify-content:center;">
+              <div class="btn-store-cart" style="text-align:center;">Comprar</div>
+            </div>
+
+            <div style="margin-top:24px; padding-top:24px; border-top:1px solid rgba(0,0,0,0.08); font-size:12.5px; color:rgba(0,0,0,0.55); line-height:1.6;">
+              ✓ Frete grátis acima de R$ 250<br>
+              ✓ Troca grátis em 30 dias
+            </div>
+          </div>
+        </div>
+      </div>    </div>
+
+    <script>
+      (function(){
+        const data = {
+          roupa: { url:'🔒 usemarianacardoso.com.br / blusa-cecilia-baunilha', breadcrumb:'Blusas / Manga Longa', name:'Blusa Alfaiataria Cecília', reviews:'4.9 · 142 avaliações', price:'R$ 249,00', priceOld:'R$ 329,00', installment:'ou 5× de R$ 49,80 sem juros', sizesVisible:true },
+          oculos: { url:'🔒 califabrand.com.br / oculos-hexagonal', breadcrumb:'Óculos de Sol / Hexagonal', name:'Óculos Hexagonal Vintage', reviews:'4.8 · 84 avaliações', price:'R$ 189,00', priceOld:'R$ 249,00', installment:'ou 4× de R$ 47,25 sem juros', sizesVisible:false }
+        };
+        const url=document.getElementById('demoUrl'),bc=document.getElementById('demoBreadcrumb'),nm=document.getElementById('demoProductName'),rv=document.getElementById('demoReviews'),pr=document.getElementById('demoPrice'),po=document.getElementById('demoPriceOld'),ins=document.getElementById('demoInstallment'),sw=document.getElementById('demoSizesWrap');
+        function setType(type){
+          const d=data[type]; url.textContent=d.url; bc.textContent=d.breadcrumb; nm.textContent=d.name; rv.textContent=d.reviews; pr.textContent=d.price; po.textContent=d.priceOld; ins.textContent=d.installment; sw.style.display=d.sizesVisible?'':'none';
+          document.querySelectorAll('.demo-roupa').forEach(el=>el.style.display=type==='roupa'?'':'none');
+          document.querySelectorAll('.demo-oculos').forEach(el=>el.style.display=type==='oculos'?'':'none');
+        }
+        document.querySelectorAll('.demo-toggle button').forEach(btn=>{
+          btn.addEventListener('click',()=>{ document.querySelectorAll('.demo-toggle button').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); setType(btn.dataset.demo); });
+        });
+      })();
+    </script>
+
   </section>
 
   <!-- ─── CANAL DE VENDAS · ENGAJAMENTO ─── -->
@@ -4118,268 +4762,298 @@
         </p>
       </div>
 
-      <!-- Comparativo de tempo -->
-      <div class="rv d3" style="max-width:1000px; margin:0 auto 56px; background:rgba(255,255,255,0.025); border:1px solid rgba(124,58,237,0.18); border-radius:20px; padding:40px; position:relative; overflow:hidden;">
-        <div style="position:absolute; top:-40px; right:-40px; width:200px; height:200px; background:radial-gradient(circle, rgba(124,58,237,0.18), transparent 70%); border-radius:50%; pointer-events:none;"></div>
+      <!-- Comparativo de tempo · escala compartilhada horizontal -->
+      <div class="rv d3 time-race" style="max-width:1100px; margin:0 auto 56px;">
+        <style>
+          .time-race {
+            background:linear-gradient(160deg, rgba(124,58,237,0.06) 0%, rgba(0,0,0,0.4) 100%);
+            border:1px solid rgba(124,58,237,0.18);
+            border-radius:24px;
+            padding:40px 44px 36px;
+            position:relative;
+            overflow:hidden;
+          }
+          .time-race::before {
+            content:""; position:absolute; top:-60px; right:-60px; width:280px; height:280px;
+            background:radial-gradient(circle, rgba(124,58,237,0.14), transparent 70%);
+            pointer-events:none;
+          }
+          .tr-head {
+            display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:10px;
+            margin-bottom:30px; position:relative;
+          }
+          .tr-head h3 {
+            font-size:11px; font-weight:500; color:rgba(255,255,255,0.55);
+            letter-spacing:2.6px; text-transform:uppercase; margin:0;
+            display:flex; align-items:center; gap:10px;
+          }
+          .tr-head h3::before { content:""; width:24px; height:1px; background:rgba(255,255,255,0.3); }
+          .tr-head .src {
+            font-family:'Times New Roman', Georgia, serif; font-style:italic;
+            font-size:13px; color:rgba(255,255,255,0.4);
+          }
+          .tr-rows { position:relative; }
+          .tr-row {
+            display:grid;
+            grid-template-columns:260px 1fr auto;
+            align-items:center;
+            gap:28px;
+            padding:24px 0;
+            border-top:1px dashed rgba(255,255,255,0.08);
+            position:relative;
+          }
+          .tr-row:last-child { border-bottom:1px dashed rgba(255,255,255,0.08); }
+          .tr-meta { display:flex; flex-direction:column; gap:7px; }
+          .tr-tag {
+            font-size:11.5px; letter-spacing:2.2px; text-transform:uppercase; font-weight:600;
+          }
+          .tr-row.is-base .tr-tag { color:rgba(255,255,255,0.55); }
+          .tr-row.is-prov .tr-tag { color:#a78bfa; }
+          .tr-row.is-top .tr-tag { color:#67e8f9; }
+          .tr-label { font-size:15.5px; color:rgba(255,255,255,0.85); line-height:1.4; font-weight:400; }
+          .tr-track { position:relative; height:14px; background:rgba(255,255,255,0.05); border-radius:50px; overflow:hidden; }
+          .tr-fill {
+            position:absolute; top:0; bottom:0; left:0;
+            border-radius:50px;
+            animation:tr-grow 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+          }
+          .tr-row.is-base .tr-fill { background:linear-gradient(90deg, rgba(255,255,255,0.18), rgba(255,255,255,0.35)); width:7.5%; animation-delay:0.1s; }
+          .tr-row.is-prov .tr-fill { background:linear-gradient(90deg, #7c3aed, #a78bfa); width:17%; box-shadow:0 0 18px rgba(167,139,250,0.45); animation-delay:0.35s; }
+          .tr-row.is-top .tr-fill { background:linear-gradient(90deg, #22d3ee, #a5f3fc); width:100%; box-shadow:0 0 18px rgba(34,211,238,0.45); animation-delay:0.6s; }
+          @keyframes tr-grow { from { transform:scaleX(0); transform-origin:left center; } to { transform:scaleX(1); } }
+          .tr-value {
+            display:flex; align-items:baseline; gap:14px; min-width:170px; justify-content:flex-end;
+          }
+          .tr-value .num {
+            font-size:38px; font-weight:300; letter-spacing:-0.04em; line-height:1; font-style:italic;
+            display:inline-block; padding-right:4px;
+          }
+          .tr-value .num .unit { font-size:18px; margin-left:4px; font-style:normal; display:inline-block; padding-right:2px; -webkit-text-fill-color:initial; background:none; }
+          .tr-row.is-base .tr-value .num .unit { color:rgba(255,255,255,0.5); }
+          .tr-row.is-prov .tr-value .num .unit { color:rgba(167,139,250,0.85); }
+          .tr-row.is-top .tr-value .num .unit { color:rgba(103,232,249,0.85); }
+          .tr-row.is-base .tr-value .num { color:rgba(255,255,255,0.7); font-style:normal; }
+          .tr-row.is-prov .tr-value .num {
+            background:linear-gradient(120deg, #7c3aed, #a78bfa); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+          }
+          .tr-row.is-top .tr-value .num {
+            background:linear-gradient(120deg, #22d3ee, #a5f3fc); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+          }
+          .tr-mult {
+            font-family:'Times New Roman', Georgia, serif; font-style:italic; font-weight:400;
+            font-size:18px; min-width:40px; text-align:right;
+          }
+          .tr-row.is-base .tr-mult { color:rgba(255,255,255,0.3); }
+          .tr-row.is-prov .tr-mult { color:#a78bfa; }
+          .tr-row.is-top .tr-mult { color:#22d3ee; }
+          .tr-foot {
+            display:flex; justify-content:space-between; font-size:10px; letter-spacing:1.8px;
+            color:rgba(255,255,255,0.3); text-transform:uppercase; margin-top:20px; padding-top:14px;
+            border-top:1px dashed rgba(255,255,255,0.06);
+          }
+          @media (max-width: 760px) {
+            .time-race { padding:28px 22px 26px; }
+            .tr-row { grid-template-columns:1fr; gap:10px; padding:18px 0; }
+            .tr-value { justify-content:flex-start; min-width:0; }
+          }
+        </style>
 
-        <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:32px; position:relative;">
-          <h3 style="font-size:18px; font-weight:600; color:#fff;">Tempo médio na página de produto</h3>
-          <span style="font-size:11px; letter-spacing:1.5px; color:rgba(255,255,255,0.4); text-transform:uppercase;">Cappasity benchmark · 2024</span>
+        <div class="tr-head">
+          <h3>Tempo médio na página de produto</h3>
+          <span class="src">Cappasity benchmark · 2024</span>
         </div>
 
-        <!-- Bar 1: tradicional -->
-        <div style="margin-bottom:28px; position:relative;">
-          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
-            <span style="font-size:14px; color:rgba(255,255,255,0.75);">Página de produto · moda online</span>
-            <span style="font-size:28px; font-weight:600; color:rgba(255,255,255,0.85); letter-spacing:-0.02em;">45<span style="font-size:18px; opacity:0.6;">&thinsp;s</span></span>
+        <div class="tr-rows">
+          <div class="tr-row is-base">
+            <div class="tr-meta">
+              <span class="tr-tag">Benchmark</span>
+              <span class="tr-label">Página de produto · moda online</span>
+            </div>
+            <div class="tr-track"><span class="tr-fill"></span></div>
+            <div class="tr-value">
+              <span class="tr-mult">1×</span>
+              <span class="num">45<span class="unit">s</span></span>
+            </div>
           </div>
-          <div style="height:8px; background:rgba(255,255,255,0.06); border-radius:8px; overflow:hidden;">
-            <div style="height:100%; width:18%; background:linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0.5)); border-radius:8px;"></div>
+
+          <div class="tr-row is-prov">
+            <div class="tr-meta">
+              <span class="tr-tag">Provou Levou · média</span>
+              <span class="tr-label">Cliente abre o provador e prova</span>
+            </div>
+            <div class="tr-track"><span class="tr-fill"></span></div>
+            <div class="tr-value">
+              <span class="tr-mult">2,3×</span>
+              <span class="num">102<span class="unit">s</span></span>
+            </div>
+          </div>
+
+          <div class="tr-row is-top">
+            <div class="tr-meta">
+              <span class="tr-tag">Top 10% · engajados</span>
+              <span class="tr-label">Cliente fica provando até</span>
+            </div>
+            <div class="tr-track"><span class="tr-fill"></span></div>
+            <div class="tr-value">
+              <span class="tr-mult">13×</span>
+              <span class="num">10<span class="unit">min</span></span>
+            </div>
           </div>
         </div>
 
-        <!-- Bar 2: média provador -->
-        <div style="margin-bottom:28px; position:relative;">
-          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
-            <span style="font-size:14px; color:#fff; font-weight:500;">Provador Provou Levou · média</span>
-            <span style="font-size:36px; font-weight:600; color:#a78bfa; letter-spacing:-0.02em;">102<span style="font-size:22px; opacity:0.7;">&thinsp;s</span></span>
-          </div>
-          <div style="height:10px; background:rgba(255,255,255,0.06); border-radius:8px; overflow:hidden;">
-            <div style="height:100%; width:42%; background:linear-gradient(90deg, #7c3aed, #a78bfa); border-radius:8px; box-shadow:0 0 24px rgba(167,139,250,0.4);"></div>
-          </div>
-          <div style="font-size:11px; color:rgba(167,139,250,0.7); margin-top:8px; letter-spacing:0.3px;">+57 s · 2,3× o benchmark</div>
-        </div>
-
-        <!-- Bar 3: top 10% -->
-        <div>
-          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
-            <span style="font-size:14px; color:#fff; font-weight:500;">Top 10% dos clientes · ficam até</span>
-            <span style="font-size:36px; font-weight:600; color:#22d3ee; letter-spacing:-0.02em;">10<span style="font-size:22px; opacity:0.7;">&thinsp;min</span></span>
-          </div>
-          <div style="height:10px; background:rgba(255,255,255,0.06); border-radius:8px; overflow:hidden;">
-            <div style="height:100%; width:100%; background:linear-gradient(90deg, #22d3ee, #67e8f9, #a5f3fc); border-radius:8px; box-shadow:0 0 24px rgba(34,211,238,0.4);"></div>
-          </div>
-          <div style="font-size:11px; color:rgba(34,211,238,0.7); margin-top:8px; letter-spacing:0.3px;">600 s · 13× o benchmark · cliente engajado pronto pra fechar</div>
+        <div class="tr-foot">
+          <span>0&thinsp;s</span><span style="opacity:0.7;">300&thinsp;s</span><span>600&thinsp;s</span>
         </div>
       </div>
 
-      <!-- 3 KPIs do canal -->
-      <div class="rv d4" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:18px; max-width:1000px; margin:0 auto;">
-        <div style="background:linear-gradient(160deg, rgba(124,58,237,0.08), rgba(0,0,0,0)); border:1px solid rgba(124,58,237,0.2); border-radius:16px; padding:28px;">
-          <div style="font-size:11px; letter-spacing:2px; color:#a78bfa; text-transform:uppercase; margin-bottom:12px;">Atenção</div>
-          <div style="font-size:32px; font-weight:500; color:#fff; line-height:1; letter-spacing:-0.02em;">2,3×</div>
-          <p style="font-size:13px; color:rgba(255,255,255,0.55); margin-top:10px; line-height:1.5;">mais tempo no produto vs. a página tradicional</p>
-        </div>
-        <div style="background:linear-gradient(160deg, rgba(34,211,238,0.08), rgba(0,0,0,0)); border:1px solid rgba(34,211,238,0.2); border-radius:16px; padding:28px;">
-          <div style="font-size:11px; letter-spacing:2px; color:#22d3ee; text-transform:uppercase; margin-bottom:12px;">Engajamento profundo</div>
-          <div style="font-size:32px; font-weight:500; color:#fff; line-height:1; letter-spacing:-0.02em;">1 em 10</div>
-          <p style="font-size:13px; color:rgba(255,255,255,0.55); margin-top:10px; line-height:1.5;">clientes fica 10+ minutos provando &mdash; lead quente</p>
-        </div>
-        <div style="background:linear-gradient(160deg, rgba(251,191,36,0.08), rgba(0,0,0,0)); border:1px solid rgba(251,191,36,0.2); border-radius:16px; padding:28px;">
-          <div style="font-size:11px; letter-spacing:2px; color:#fbbf24; text-transform:uppercase; margin-bottom:12px;">Conversão</div>
-          <div style="font-size:32px; font-weight:500; color:#fff; line-height:1; letter-spacing:-0.02em;">até 22%</div>
-          <p style="font-size:13px; color:rgba(255,255,255,0.55); margin-top:10px; line-height:1.5;">das vendas do mês vêm direto do provador</p>
-        </div>
-      </div>
     </div>
   </section>
 
-
-  <!-- ─── COMO FICA NA SUA LOJA (Demo Interativo) ─── -->
-  <section class="section como-fica-section" id="processo" style="background:var(--bg-light); padding:96px 0; position:relative;">
+  <!-- ─── OUTCOMES (resultados que o tempo a mais vira) ─── -->
+  <section class="section outcomes-section grain-overlay" style="background:radial-gradient(ellipse at top, #f3eefe 0%, var(--bg-light) 70%); padding:96px 0 88px; position:relative; overflow:hidden;">
     <style>
-      .demo-toggle { display:inline-flex; background:rgba(0,0,0,0.05); border-radius:50px; padding:6px; margin:32px 0 48px; gap:4px; }
-      .demo-toggle button { background:transparent; border:none; padding:12px 28px; border-radius:50px; font-size:14px; font-weight:500; color:rgba(0,0,0,0.55); cursor:pointer; transition:all .3s ease; display:flex; align-items:center; gap:8px; }
-      .demo-toggle button.active { background:#000; color:#fff; box-shadow:0 4px 16px rgba(0,0,0,0.18); }
-      .demo-toggle button svg { width:18px; height:18px; }
-
-      .store-frame { max-width:980px; margin:0 auto; background:#fff; border-radius:18px; box-shadow:0 30px 80px -20px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.06); overflow:hidden; position:relative; }
-      .store-frame-bar { background:#f5f4f0; border-bottom:1px solid rgba(0,0,0,0.06); padding:14px 18px; display:flex; align-items:center; gap:8px; }
-      .store-frame-dot { width:11px; height:11px; border-radius:50%; }
-      .store-frame-url { margin-left:14px; background:rgba(0,0,0,0.05); padding:6px 16px; border-radius:8px; font-size:12.5px; color:rgba(0,0,0,0.55); flex:1; max-width:380px; }
-
-      .store-content { display:grid; grid-template-columns:1fr 1fr; gap:0; min-height:520px; }
-      .store-img-side { background:#f8f7f4; padding:32px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
-      .store-img-side img.product-photo { max-width:100%; max-height:440px; width:auto; object-fit:contain; transition:opacity .6s ease; }
-      .store-img-side img.result-photo { position:absolute; inset:32px; margin:auto; max-width:calc(100% - 64px); max-height:calc(100% - 64px); width:auto; object-fit:contain; opacity:0; transition:opacity .8s ease; border-radius:8px; }
-      .store-frame.is-result .product-photo { opacity:0; }
-      .store-frame.is-result .result-photo { opacity:1; }
-
-      .pl-button { position:absolute; bottom:24px; left:50%; transform:translateX(-50%); background:linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color:#fff; padding:14px 28px; border-radius:50px; border:none; font-size:14px; font-weight:600; letter-spacing:0.3px; cursor:pointer; box-shadow:0 12px 32px -8px rgba(124,58,237,0.55), 0 0 0 4px rgba(255,255,255,0.6); display:inline-flex; align-items:center; gap:10px; transition:transform .25s ease, box-shadow .25s ease; z-index:5; }
-      .pl-button:hover { transform:translateX(-50%) translateY(-2px); box-shadow:0 16px 38px -8px rgba(124,58,237,0.65), 0 0 0 4px rgba(255,255,255,0.7); }
-      .pl-button .pl-pulse { position:absolute; inset:-4px; border-radius:50px; background:linear-gradient(135deg, #7c3aed, #a855f7); z-index:-1; animation:plpulse 2.2s ease-out infinite; }
-      @keyframes plpulse { 0% { transform:scale(1); opacity:0.5; } 100% { transform:scale(1.25); opacity:0; } }
-      .store-frame.is-result .pl-button { display:none; }
-
-      .pl-overlay { position:absolute; inset:0; background:rgba(255,255,255,0.96); backdrop-filter:blur(6px); opacity:0; visibility:hidden; transition:all .5s ease; z-index:6; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; }
-      .pl-overlay-progress { width:80px; height:80px; border-radius:50%; background:conic-gradient(#7c3aed 0deg, #a855f7 270deg, rgba(0,0,0,0.05) 270deg); animation:plspin 1.4s linear infinite; margin-bottom:24px; position:relative; }
-      .pl-overlay-progress::after { content:''; position:absolute; inset:8px; background:#fff; border-radius:50%; }
-      @keyframes plspin { to { transform:rotate(360deg); } }
-      .pl-overlay h4 { font-size:18px; font-weight:600; color:#000; margin-bottom:6px; }
-      .pl-overlay p { font-size:13px; color:rgba(0,0,0,0.55); }
-
-      .store-info-side { padding:48px 40px; display:flex; flex-direction:column; justify-content:center; }
-      .store-breadcrumb { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:rgba(0,0,0,0.4); margin-bottom:14px; }
-      .store-product-name { font-size:26px; font-weight:600; color:#000; line-height:1.2; margin-bottom:10px; letter-spacing:-0.02em; }
-      .store-rating { display:flex; gap:8px; align-items:center; margin-bottom:18px; }
-      .store-rating .stars { color:#f59e0b; font-size:14px; letter-spacing:1px; }
-      .store-rating .reviews { font-size:12px; color:rgba(0,0,0,0.5); }
-      .store-price { font-size:28px; font-weight:600; color:#000; letter-spacing:-0.02em; }
-      .store-price-old { font-size:14px; color:rgba(0,0,0,0.4); text-decoration:line-through; margin-left:8px; }
-      .store-installment { font-size:13px; color:rgba(0,0,0,0.55); margin-top:4px; margin-bottom:24px; }
-      .store-sizes { display:flex; gap:8px; margin-bottom:20px; }
-      .store-size-btn { width:42px; height:42px; border-radius:50%; border:1px solid rgba(0,0,0,0.18); background:#fff; font-size:13px; font-weight:500; color:#000; cursor:pointer; transition:all .2s ease; }
-      .store-size-btn:hover, .store-size-btn.active { background:#000; color:#fff; border-color:#000; }
-      .store-actions { display:flex; gap:10px; margin-top:16px; }
-      .btn-store-cart { flex:1; padding:14px 20px; background:#000; color:#fff; border:none; border-radius:50px; font-size:14px; font-weight:500; cursor:pointer; letter-spacing:0.3px; }
-      .btn-store-fav { width:48px; height:48px; border-radius:50%; border:1px solid rgba(0,0,0,0.15); background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-
-      .demo-cta-row { text-align:center; margin-top:40px; }
-      .demo-restart { background:transparent; border:1px solid rgba(0,0,0,0.15); color:rgba(0,0,0,0.7); padding:10px 22px; border-radius:50px; font-size:13px; cursor:pointer; margin-right:8px; }
-      .demo-restart:hover { border-color:#000; color:#000; }
-      .demo-real-cta { display:inline-flex; align-items:center; gap:8px; background:#000; color:#fff; padding:14px 28px; border-radius:50px; font-size:14px; font-weight:500; text-decoration:none; }
-      .demo-real-cta:hover { background:#1a1a1a; }
-
-      @media (max-width: 720px) {
-        .store-content { grid-template-columns:1fr; }
-        .store-img-side { min-height:380px; }
-        .demo-toggle button { padding:10px 20px; font-size:13px; }
+      .outcomes-section .container { position:relative; z-index:2; }
+      .outcomes-header { text-align:center; max-width:680px; margin:0 auto 56px; }
+      .outcomes-header .o-kicker-head {
+        display:inline-flex; align-items:center; gap:12px;
+        font-size:10.5px; letter-spacing:2.6px; text-transform:uppercase;
+        color:rgba(124,58,237,0.85); margin-bottom:20px; font-weight:600;
+      }
+      .outcomes-header .o-kicker-head::before,
+      .outcomes-header .o-kicker-head::after {
+        content:''; width:22px; height:1px; background:rgba(124,58,237,0.5);
+      }
+      .outcomes-header h2 {
+        font-size:clamp(1.9rem, 4.2vw, 3rem);
+        font-weight:300; letter-spacing:-0.035em; line-height:1.04;
+        color:#0a0a0a; margin:0;
+      }
+      .outcomes-header h2 em {
+        font-style:italic; font-weight:400;
+        background:linear-gradient(120deg, #7c3aed 0%, #a78bfa 100%);
+        -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+      }
+      .outcomes-stats { display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; max-width:1100px; margin:0 auto; }
+      .outcome-card {
+        position:relative;
+        background:#fff;
+        border:1px solid rgba(124,58,237,0.18);
+        border-radius:20px;
+        padding:32px 28px;
+        overflow:hidden;
+        box-shadow:0 1px 2px rgba(0,0,0,0.03), 0 18px 40px -22px rgba(124,58,237,0.28);
+        transition:transform 0.35s cubic-bezier(.22,1,.36,1), border-color 0.35s ease, box-shadow 0.35s ease;
+      }
+      .outcome-card:hover {
+        transform:translateY(-4px);
+        border-color:rgba(124,58,237,0.42);
+        box-shadow:0 1px 2px rgba(0,0,0,0.03), 0 28px 60px -22px rgba(124,58,237,0.42);
+      }
+      .outcome-card::before {
+        content:''; position:absolute; top:-40px; right:-40px;
+        width:160px; height:160px;
+        background:radial-gradient(circle, rgba(124,58,237,0.10), transparent 70%);
+        pointer-events:none;
+      }
+      .outcome-card .o-kicker {
+        font-size:10.5px; letter-spacing:2.2px; text-transform:uppercase;
+        color:#7c3aed; font-weight:600; margin-bottom:14px;
+        display:flex; align-items:center; gap:8px;
+      }
+      .outcome-card .o-kicker::before {
+        content:''; width:16px; height:1px; background:rgba(124,58,237,0.5);
+      }
+      .outcome-card .o-num {
+        font-size:clamp(2.6rem, 4.4vw, 3.8rem);
+        font-weight:300; letter-spacing:-0.045em; line-height:1;
+        font-style:italic;
+        background:linear-gradient(120deg, #7c3aed 0%, #a78bfa 100%);
+        -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+        display:inline-block; padding-right:4px;
+      }
+      .outcome-card .o-num .sign { font-style:normal; color:#7c3aed; -webkit-text-fill-color:#7c3aed; background:none; display:inline-block; padding-right:2px; }
+      .outcome-card .o-label {
+        font-size:13.5px; color:rgba(0,0,0,0.6); margin-top:10px;
+        font-weight:400; line-height:1.5;
+      }
+      .outcomes-foot {
+        max-width:780px; margin:56px auto 0; text-align:center;
+        font-size:clamp(1.05rem, 1.5vw, 1.25rem); color:rgba(0,0,0,0.7); line-height:1.55;
+        font-weight:400;
+      }
+      .outcomes-foot strong { color:#0a0a0a; font-weight:600; }
+      @media (max-width: 860px) {
+        .outcomes-stats { grid-template-columns:1fr; gap:14px; }
+        .outcomes-section { padding:64px 0 56px; }
       }
     </style>
 
     <div class="container">
-      <div style="text-align:center; max-width:680px; margin:0 auto;">
-        <div class="label rv">Como fica na sua loja</div>
-        <h2 class="h-section rv d1" style="margin-top:8px;">Veja o provador rodando<br>na prática.</h2>
-        <p class="rv d2" style="margin-top:14px; font-size:15px; color:rgba(0,0,0,0.6); line-height:1.55;">
-          Mesmo botão. Mesma IA. Dois modelos diferentes — escolha sua categoria e teste a experiência completa.
-        </p>
-
-        <div class="demo-toggle rv d3">
-          <button type="button" class="active" data-demo="roupa">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4l-4 4-4-4M5 8l-2 4 4 2 1-2M19 8l2 4-4 2-1-2M8 12v8h8v-8"/></svg>
-            Loja de Roupas
-          </button>
-          <button type="button" data-demo="oculos">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="14" r="3.5"/><circle cx="17.5" cy="14" r="3.5"/><path d="M10 14h4M3 14l1.5-5h2M21 14l-1.5-5h-2"/></svg>
-            Loja de Óculos
-          </button>
-        </div>
+      <div class="outcomes-header rv">
+        <div class="o-kicker-head">Resultados</div>
+        <h2 class="rv d1">Mais tempo provando<br><em>vira receita real.</em></h2>
       </div>
 
-      <div class="store-frame rv d4" id="storeFrame">
-        <div class="store-frame-bar">
-          <div class="store-frame-dot" style="background:#ff5f57;"></div>
-          <div class="store-frame-dot" style="background:#febc2e;"></div>
-          <div class="store-frame-dot" style="background:#28c840;"></div>
-          <div class="store-frame-url" id="demoUrl">🔒 usemarianacardoso.com.br / vestido-floral-midi</div>
-        </div>
-
-        <div class="store-content">
-          <div class="store-img-side">
-            <img class="product-photo demo-roupa" src="https://i.ibb.co/Dgs0yD4n/Adobe-Express-Gif-Mariana.gif" alt="Vestido Floral">
-            <img class="result-photo demo-roupa" src="https://i.ibb.co/Dgs0yD4n/Adobe-Express-Gif-Mariana.gif" alt="Resultado">
-            <img class="product-photo demo-oculos" src="assets/demo/oculos-produto.webp" alt="Óculos Hexagonal" style="display:none;">
-            <img class="result-photo demo-oculos" src="assets/demo/oculos-resultado.jpg" alt="Óculos provado" style="display:none;">
-
-            <button type="button" class="pl-button" id="plButton">
-              <span class="pl-pulse"></span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-              Provar em Mim
-            </button>
-
-            <div class="pl-overlay" id="plOverlay">
-              <div class="pl-overlay-progress"></div>
-              <h4>Provando com IA...</h4>
-              <p id="plOverlayCopy">Gerando como fica em você...</p>
-            </div>
-          </div>
-
-          <div class="store-info-side">
-            <div class="store-breadcrumb" id="demoBreadcrumb">Vestidos / Midi</div>
-            <h3 class="store-product-name" id="demoProductName">Vestido Floral Midi</h3>
-            <div class="store-rating">
-              <span class="stars">★★★★★</span>
-              <span class="reviews" id="demoReviews">4.9 · 128 avaliações</span>
-            </div>
-            <div>
-              <span class="store-price" id="demoPrice">R$ 289,00</span>
-              <span class="store-price-old" id="demoPriceOld">R$ 359,00</span>
-            </div>
-            <div class="store-installment" id="demoInstallment">ou 5× de R$ 57,80 sem juros</div>
-
-            <div id="demoSizesWrap">
-              <div style="font-size:13px; color:rgba(0,0,0,0.6); margin-bottom:8px;">Tamanho</div>
-              <div class="store-sizes">
-                <button class="store-size-btn">PP</button>
-                <button class="store-size-btn active">P</button>
-                <button class="store-size-btn">M</button>
-                <button class="store-size-btn">G</button>
-                <button class="store-size-btn">GG</button>
-              </div>
-            </div>
-
-            <div class="store-actions">
-              <button class="btn-store-cart">Adicionar ao carrinho</button>
-              <button class="btn-store-fav" aria-label="Favoritar">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-              </button>
-            </div>
-
-            <div style="margin-top:24px; padding-top:24px; border-top:1px solid rgba(0,0,0,0.08); font-size:12.5px; color:rgba(0,0,0,0.55); line-height:1.6;">
-              ✓ Frete grátis acima de R$ 250<br>
-              ✓ Troca grátis em 30 dias
-            </div>
-          </div>
-        </div>
+      <div class="outcomes-stats rv d2">
+        <article class="outcome-card">
+          <div class="o-kicker">Topo de funil</div>
+          <span class="o-num"><span class="sign">+</span>22<span style="font-size:0.5em;">%</span></span>
+          <div class="o-label">de conversão na página de produto</div>
+        </article>
+        <article class="outcome-card">
+          <div class="o-kicker">Retenção</div>
+          <span class="o-num"><span class="sign">+</span>43<span style="font-size:0.5em;">%</span></span>
+          <div class="o-label">de LTV por cliente que provou</div>
+        </article>
+        <article class="outcome-card">
+          <div class="o-kicker">Custo</div>
+          <span class="o-num"><span class="sign">−</span>52<span style="font-size:0.5em;">%</span></span>
+          <div class="o-label">em devoluções por desencaixe</div>
+        </article>
       </div>
 
-      <div class="demo-cta-row">
-        <button type="button" class="demo-restart" id="demoRestart">↻ Provar de novo</button>
-        <a href="loja-teste.html" class="demo-real-cta" data-fb-event="ViewContent" data-fb-label="Como Fica - Experimentar Real">
-          Provar com sua foto
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-        </a>
-      </div>
+      <p class="outcomes-foot rv d3">
+        Mais tempo provando vira <strong>mais venda, mais cliente recorrente e menos devolução.</strong>
+        <br>É por isso que o provador deixa de ser feature e vira canal.
+      </p>
     </div>
-
-    <script>
-      (function(){
-        const data = {
-          roupa: { url:'🔒 usemarianacardoso.com.br / vestido-floral-midi', breadcrumb:'Vestidos / Midi', name:'Vestido Floral Midi', reviews:'4.9 · 128 avaliações', price:'R$ 289,00', priceOld:'R$ 359,00', installment:'ou 5× de R$ 57,80 sem juros', sizesVisible:true, overlayCopy:'Gerando como fica em você...' },
-          oculos: { url:'🔒 califabrand.com.br / oculos-hexagonal', breadcrumb:'Óculos de Sol / Hexagonal', name:'Óculos Hexagonal Vintage', reviews:'4.8 · 84 avaliações', price:'R$ 189,00', priceOld:'R$ 249,00', installment:'ou 4× de R$ 47,25 sem juros', sizesVisible:false, overlayCopy:'Aplicando armação no seu rosto...' }
-        };
-        const frame=document.getElementById('storeFrame'),url=document.getElementById('demoUrl'),bc=document.getElementById('demoBreadcrumb'),nm=document.getElementById('demoProductName'),rv=document.getElementById('demoReviews'),pr=document.getElementById('demoPrice'),po=document.getElementById('demoPriceOld'),ins=document.getElementById('demoInstallment'),sw=document.getElementById('demoSizesWrap'),ov=document.getElementById('plOverlay'),oc=document.getElementById('plOverlayCopy');
-        function setType(type){
-          const d=data[type]; url.textContent=d.url; bc.textContent=d.breadcrumb; nm.textContent=d.name; rv.textContent=d.reviews; pr.textContent=d.price; po.textContent=d.priceOld; ins.textContent=d.installment; sw.style.display=d.sizesVisible?'':'none'; oc.textContent=d.overlayCopy;
-          document.querySelectorAll('.demo-roupa').forEach(el=>el.style.display=type==='roupa'?'':'none');
-          document.querySelectorAll('.demo-oculos').forEach(el=>el.style.display=type==='oculos'?'':'none');
-          frame.classList.remove('is-result'); ov.style.opacity=0; ov.style.visibility='hidden';
-        }
-        document.querySelectorAll('.demo-toggle button').forEach(btn=>{
-          btn.addEventListener('click',()=>{ document.querySelectorAll('.demo-toggle button').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); setType(btn.dataset.demo); });
-        });
-        document.getElementById('plButton').addEventListener('click',()=>{
-          ov.style.opacity=1; ov.style.visibility='visible';
-          setTimeout(()=>{ ov.style.opacity=0; frame.classList.add('is-result'); setTimeout(()=>ov.style.visibility='hidden',500); },1800);
-        });
-        document.getElementById('demoRestart').addEventListener('click',()=>{ frame.classList.remove('is-result'); });
-      })();
-    </script>
   </section>
+
 
   <!-- ─── RESULTADOS REAIS — CASES COM NÚMEROS (Editorial) ─── -->
   <section class="section results-real-section grain-overlay" style="background:radial-gradient(ellipse at top, #1a0f2e 0%, #0a0a0a 60%); padding:120px 0; position:relative; overflow:hidden;">
+    <style>
+      @media (max-width: 900px) {
+        .results-real-section { padding:72px 0 !important; }
+        .results-real-section .results-grid { grid-template-columns:1fr 1fr !important; gap:12px !important; }
+        .results-real-section .result-card-v2 { padding:20px !important; border-radius:16px !important; }
+        .results-real-section .result-card-v2 header { margin-bottom:16px !important; gap:8px; }
+        .results-real-section .result-card-v2 header > div:first-child { min-width:0; }
+        .results-real-section .result-card-v2 header h3 { font-size:16px !important; margin-top:4px !important; line-height:1.15; }
+        .results-real-section .result-card-v2 header > div:first-child > div:first-child { font-size:8.5px !important; letter-spacing:1.4px !important; }
+        .results-real-section .result-card-v2 header svg { width:54px !important; height:24px !important; flex-shrink:0; }
+        .results-real-section .result-card-v2 .stat-mono { font-size:30px !important; }
+        .results-real-section .result-card-v2 > div[style*="margin-bottom:24px"] { margin-bottom:14px !important; }
+        .results-real-section .result-card-v2 > div[style*="margin-bottom:24px"] .stat-mono + div { font-size:11px !important; margin-top:4px !important; }
+        .results-real-section .result-card-v2 > div[style*="grid-template-columns"] { gap:10px !important; padding-top:14px !important; }
+        .results-real-section .result-card-v2 > div[style*="grid-template-columns"] .stat-mono { font-size:16px !important; }
+        .results-real-section .result-card-v2 > div[style*="grid-template-columns"] .editorial-note { font-size:9.5px !important; }
+        .results-real-section .result-card-v2 footer { font-size:9px !important; margin-top:14px !important; padding-top:10px !important; word-break:break-all; }
+      }
+      @media (max-width: 480px) {
+        .results-real-section .results-grid { grid-template-columns:1fr !important; }
+      }
+    </style>
     <div class="container" style="position:relative; z-index:2;">
 
       <!-- Header editorial -->
       <div style="text-align:center; margin-bottom:72px; max-width:780px; margin-left:auto; margin-right:auto;">
         <h2 class="rv d1" style="font-weight:300; font-size:clamp(2.4rem, 5vw, 4rem); line-height:1.02; letter-spacing:-0.04em; color:#fff;">
-          Quatro lojas.<br>
-          <em style="font-style:italic; font-weight:400; color:#c4b5fd;">Quatro evidências.</em>
+          Cases de sucesso<br>
+          <em style="font-style:italic; font-weight:400; color:#c4b5fd;">reais.</em>
         </h2>
         <p class="rv d2 editorial-note" style="margin-top:20px; max-width:560px; margin-left:auto; margin-right:auto; line-height:1.6; font-size:15px;">
-          Métricas auditáveis, puxadas em tempo real do dashboard de atribuição. Cada número marcado com <span style="color:#a78bfa;">*</span> tem rastro até o pedido individual.
+          Métricas auditáveis, puxadas do dashboard de atribuição. Cada número marcado com <span style="color:#a78bfa;">*</span> tem rastro até o pedido individual.
         </p>
       </div>
 
@@ -4408,14 +5082,10 @@
             <div class="editorial-note" style="margin-top:8px;">em vendas atribuídas <span style="opacity:0.55;">/ 60 dias</span></div>
           </div>
 
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.08);">
-            <div>
-              <div class="stat-mono" style="font-size:22px; color:#c4b5fd; font-weight:500;">22%</div>
-              <div class="editorial-note" style="font-size:11px; margin-top:4px;">atribuição<br>último mês</div>
-            </div>
+          <div style="display:grid; grid-template-columns:1fr; gap:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.08);">
             <div>
               <div class="stat-mono" style="font-size:22px; color:#c4b5fd; font-weight:500;">+10%</div>
-              <div class="editorial-note" style="font-size:11px; margin-top:4px;">novos<br>pagantes</div>
+              <div class="editorial-note" style="font-size:11px; margin-top:4px;">novos pagantes</div>
             </div>
           </div>
 
@@ -4435,8 +5105,8 @@
             <svg width="80" height="36" viewBox="0 0 80 36" fill="none" style="opacity:0.85;">
               <defs><linearGradient id="grad-mc" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#f472b6" stop-opacity="0.35"/><stop offset="100%" stop-color="#f472b6" stop-opacity="0"/></linearGradient></defs>
               <path d="M2 30 L20 26 L40 20 L60 14 L78 7 L78 34 L2 34 Z" fill="url(#grad-mc)"/>
-              <path d="M2 30 L20 26 L40 20 L60 14 L78 7" stroke="#f472b6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-              <circle cx="78" cy="7" r="2.5" fill="#fff" stroke="#f472b6" stroke-width="1.5"/>
+              <path d="M2 30 L20 26 L40 20 L60 14 L78 7" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <circle cx="78" cy="7" r="2.5" fill="#fff" stroke="#a78bfa" stroke-width="1.5"/>
             </svg>
           </header>
 
@@ -4472,8 +5142,8 @@
             <svg width="80" height="36" viewBox="0 0 80 36" fill="none" style="opacity:0.85;">
               <defs><linearGradient id="grad-mx" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#22d3ee" stop-opacity="0.35"/><stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/></linearGradient></defs>
               <path d="M2 28 L24 22 L46 14 L78 3 L78 34 L2 34 Z" fill="url(#grad-mx)"/>
-              <path d="M2 28 L24 22 L46 14 L78 3" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-              <circle cx="78" cy="3" r="2.5" fill="#fff" stroke="#22d3ee" stroke-width="1.5"/>
+              <path d="M2 28 L24 22 L46 14 L78 3" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <circle cx="78" cy="3" r="2.5" fill="#fff" stroke="#a78bfa" stroke-width="1.5"/>
             </svg>
           </header>
 
@@ -4509,8 +5179,8 @@
             <svg width="80" height="36" viewBox="0 0 80 36" fill="none" style="opacity:0.85;">
               <defs><linearGradient id="grad-cl" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#fbbf24" stop-opacity="0.35"/><stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/></linearGradient></defs>
               <path d="M2 20 L40 14 L78 6 L78 34 L2 34 Z" fill="url(#grad-cl)"/>
-              <path d="M2 20 L40 14 L78 6" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-              <circle cx="78" cy="6" r="2.5" fill="#fff" stroke="#fbbf24" stroke-width="1.5"/>
+              <path d="M2 20 L40 14 L78 6" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <circle cx="78" cy="6" r="2.5" fill="#fff" stroke="#a78bfa" stroke-width="1.5"/>
             </svg>
           </header>
 
@@ -4536,15 +5206,307 @@
     </div>
   </section>
 
+  <!-- ─── CASES DE SUCESSO ─── -->
+  <section class="section section-dark cases-section">
+    <div class="container">
+      <div style="display:grid; grid-template-columns:1fr auto; align-items:end; gap:40px; max-width:1200px; margin:0 auto 64px; padding:0 24px;">
+        <div class="rv d1" style="text-align:center; padding:0 24px; border-right:1px dashed rgba(255,255,255,0.12);">
+          <h2 style="font-size:clamp(2rem, 4.4vw, 3.4rem); font-weight:300; letter-spacing:-0.035em; line-height:1.04; color:#fff; margin:0 0 14px;">
+            Lojas que já usam<br><em style="font-style:italic; font-weight:400; background:linear-gradient(120deg, var(--purple) 0%, #a78bfa 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">Provou Levou.</em>
+          </h2>
+        </div>
+        <div class="rv d2" style="text-align:right; padding-bottom:8px;">
+          <div style="font-family:'Times New Roman', Georgia, serif; font-size:72px; font-weight:300; color:var(--purple); line-height:0.85; letter-spacing:-0.04em;">200<span style="font-size:32px; opacity:0.6;">+</span></div>
+          <div style="font-size:10px; letter-spacing:2.4px; text-transform:uppercase; color:rgba(255,255,255,0.5); margin-top:6px;">lojas<br>ativas</div>
+        </div>
+      </div>
+      <div class="cases-carousel rv">
+        <div class="cases-track">
+          <a href="https://www.cacifebrand.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/cacife.webp" alt="Cacifé Brand" style="height:52px;width:auto;object-fit:contain;"></div>
+            <h3>Cacifé Brand</h3>
+            <span class="case-url">www.cacifebrand.com.br</span>
+          </a>
+          <a href="https://www.usemarianacardoso.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/mariana.png" alt="Mariana Cardoso" style="height:28px;width:auto;object-fit:contain;"></div>
+            <h3>Mariana Cardoso</h3>
+            <span class="case-url">www.usemarianacardoso.com.br</span>
+          </a>
+          <a href="https://www.calmostore.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/calmo.webp" alt="Calmo Store" style="height:48px;width:auto;object-fit:contain;"></div>
+            <h3>Calmo Store</h3>
+            <span class="case-url">www.calmostore.com.br</span>
+          </a>
+          <a href="https://marandolamoda.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/marandola.webp" alt="Marandola Moda" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
+            <h3>Marandola Moda</h3>
+            <span class="case-url">www.marandolamoda.com.br</span>
+          </a>
+          <!-- Óticas -->
+          <a href="https://www.oticamaxilook.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/maxilook.webp" alt="Ótica Maxilook" style="height:32px;width:auto;object-fit:contain;"></div>
+            <h3>Ótica Maxilook</h3>
+            <span class="case-url">www.oticamaxilook.com.br</span>
+          </a>
+          <a href="https://www.califabrand.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/califa.webp" alt="Califa Brand" style="height:48px;width:auto;object-fit:contain;"></div>
+            <h3>Califa Brand</h3>
+            <span class="case-url">www.califabrand.com.br</span>
+          </a>
+          <a href="https://www.amazonisunglasses.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/amazoni.png" alt="Amazoni Sunglasses" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
+            <h3>Amazoni Sunglasses</h3>
+            <span class="case-url">www.amazonisunglasses.com.br</span>
+          </a>
+          <a href="https://www.fosseyewear.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/foss.png" alt="Foss Eyewear" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
+            <h3>Foss Eyewear</h3>
+            <span class="case-url">www.fosseyewear.com.br</span>
+          </a>
+          <a href="https://www.parislondon.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/parislondon.webp" alt="Paris London" style="height:48px;width:auto;object-fit:contain;"></div>
+            <h3>Paris London</h3>
+            <span class="case-url">www.parislondon.com.br</span>
+          </a>
+          <a href="https://acessoriostyle.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/acessoriostyle.webp" alt="Ótica Style" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
+            <h3>Ótica Style</h3>
+            <span class="case-url">acessoriostyle.com.br</span>
+          </a>
+          <a href="https://www.liuzzieyewear.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/liuzzi.webp" alt="Liuzzi Eyewear" style="height:22px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
+            <h3>Liuzzi Eyewear</h3>
+            <span class="case-url">www.liuzzieyewear.com.br</span>
+          </a>
+          <a href="https://www.oculosemfoco.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/oculosemfoco.webp" alt="Óculos em Foco" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
+            <h3>Óculos em Foco</h3>
+            <span class="case-url">www.oculosemfoco.com.br</span>
+          </a>
+          <a href="https://oticasmarina.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/marina.png" alt="Óticas Marina" style="height:40px;width:auto;object-fit:contain;"></div>
+            <h3>Óticas Marina</h3>
+            <span class="case-url">oticasmarina.com.br</span>
+          </a>
+          <a href="https://arantz.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/arantz.png" alt="Arantz" style="height:28px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
+            <h3>Arantz</h3>
+            <span class="case-url">arantz.com.br</span>
+          </a>
+          <a href="https://soucetglasses.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/soucet.png" alt="Soucet Glasses" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
+            <h3>Soucet Glasses</h3>
+            <span class="case-url">soucetglasses.com.br</span>
+          </a>
+          <!-- Duplicados para loop infinito -->
+          <a href="https://www.cacifebrand.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/cacife.webp" alt="Cacifé Brand" style="height:52px;width:auto;object-fit:contain;"></div>
+            <h3>Cacifé Brand</h3>
+            <span class="case-url">www.cacifebrand.com.br</span>
+          </a>
+          <a href="https://www.usemarianacardoso.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/mariana.png" alt="Mariana Cardoso" style="height:28px;width:auto;object-fit:contain;"></div>
+            <h3>Mariana Cardoso</h3>
+            <span class="case-url">www.usemarianacardoso.com.br</span>
+          </a>
+          <a href="https://www.oticamaxilook.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/maxilook.webp" alt="Ótica Maxilook" style="height:32px;width:auto;object-fit:contain;"></div>
+            <h3>Ótica Maxilook</h3>
+            <span class="case-url">www.oticamaxilook.com.br</span>
+          </a>
+          <a href="https://www.califabrand.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/califa.webp" alt="Califa Brand" style="height:48px;width:auto;object-fit:contain;"></div>
+            <h3>Califa Brand</h3>
+            <span class="case-url">www.califabrand.com.br</span>
+          </a>
+          <a href="https://www.amazonisunglasses.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/amazoni.png" alt="Amazoni Sunglasses" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
+            <h3>Amazoni Sunglasses</h3>
+            <span class="case-url">www.amazonisunglasses.com.br</span>
+          </a>
+          <a href="https://www.fosseyewear.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/foss.png" alt="Foss Eyewear" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
+            <h3>Foss Eyewear</h3>
+            <span class="case-url">www.fosseyewear.com.br</span>
+          </a>
+          <a href="https://www.parislondon.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
+            <div class="case-card-logo"><img src="assets/lojistas/parislondon.webp" alt="Paris London" style="height:48px;width:auto;object-fit:contain;"></div>
+            <h3>Paris London</h3>
+            <span class="case-url">www.parislondon.com.br</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── DASHBOARD SCROLL ─── -->
+  <section class="dash-scroll-section">
+    <div class="container">
+      <div class="dash-scroll-bg">
+        <div class="dash-scroll-header" style="position:relative; text-align:center; max-width:780px; margin:0 auto 64px;">
+          <div style="display:inline-flex; align-items:center; gap:12px; font-size:10.5px; letter-spacing:2.6px; text-transform:uppercase; color:rgba(167,139,250,0.85); margin-bottom:24px; font-weight:600;">
+            <span style="width:24px; height:1px; background:rgba(167,139,250,0.5);"></span>
+            Painel de Gestão
+            <span style="width:24px; height:1px; background:rgba(167,139,250,0.5);"></span>
+          </div>
+          <h2 style="font-size:clamp(2.2rem, 5vw, 3.8rem); font-weight:300; letter-spacing:-0.04em; line-height:1.02; color:#fff; margin:0 0 22px;">
+            Acompanhe seus<br><em style="font-style:italic; font-weight:400; background:linear-gradient(120deg, #7c3aed 0%, #a78bfa 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; display:inline-block; padding-right:4px;">resultados</em> ao vivo.
+          </h2>
+          <p style="max-width:580px; margin:0 auto 32px; font-size:15.5px; line-height:1.65; color:rgba(255,255,255,0.62); font-weight:300;">
+            Controle total sobre o impacto do provador no seu faturamento &mdash; e um raio-x do comportamento de cada cliente que provou.
+          </p>
+          <div style="display:inline-flex; align-items:center; gap:16px; padding:10px 20px 10px 12px; background:rgba(255,255,255,0.04); border:1px solid rgba(167,139,250,0.18); border-radius:50px; backdrop-filter:blur(10px); box-shadow:0 8px 24px -12px rgba(124,58,237,0.4);">
+            <div style="display:flex;">
+              <span class="dash-avatar" style="background:#f59e0b; margin-right:-10px; border:2px solid #0a0a0a; width:32px; height:32px; font-size:13px;">R</span>
+              <span class="dash-avatar" style="background:#10b981; margin-right:-10px; border:2px solid #0a0a0a; width:32px; height:32px; font-size:13px;">M</span>
+              <span class="dash-avatar" style="background:#fbbf24; margin-right:-10px; border:2px solid #0a0a0a; width:32px; height:32px; font-size:13px;">A</span>
+              <span class="dash-avatar" style="background:#ef4444; border:2px solid #0a0a0a; width:32px; height:32px; font-size:13px;">J</span>
+            </div>
+            <span style="width:1px; height:20px; background:rgba(255,255,255,0.14);"></span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="display:inline-flex; gap:2px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#fbbf24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#fbbf24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#fbbf24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#fbbf24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#fbbf24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              </div>
+              <span style="font-family:'Times New Roman', Georgia, serif; font-style:italic; font-size:17px; font-weight:400; color:#fff;">4,9</span>
+              <span style="font-size:11px; letter-spacing:0.8px; color:rgba(255,255,255,0.55);">&middot; +200 lojistas</span>
+            </div>
+          </div>
+        </div>
+        <div class="dash-scroll-perspective" id="dashScrollWrap">
+          <div class="dash-scroll-card" id="dashScrollCard">
+            <img src="assets/demo/dashboard-painel-lojista.png" alt="Painel Provou Levou — Visão Geral com KPIs e gráfico de faturamento mensal" loading="lazy" onerror="this.src='dashboard-captura.webp'">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── O QUE VEM JUNTO (SERVIÇOS) ─── -->
+  <section class="section services-section" style="background:#0a0a0a; padding:96px 0; border-top:1px solid rgba(255,255,255,0.05);">
+    <div class="container">
+      <div style="text-align:center; max-width:780px; margin:0 auto 72px; padding:0 24px;">
+        <h2 class="rv d1" style="font-size:clamp(2rem, 4.2vw, 3.2rem); font-weight:300; letter-spacing:-0.035em; line-height:1.04; color:#fff; margin:0;">
+          Mais do que um provador.<br><em style="font-style:italic; font-weight:400; background:linear-gradient(120deg, #7c3aed 0%, #a78bfa 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">Uma plataforma de conversão.</em>
+        </h2>
+        <p class="rv d2" style="margin-top:18px; max-width:560px; margin-left:auto; margin-right:auto; font-size:14.5px; line-height:1.65; color:rgba(255,255,255,0.6); font-weight:300;">
+          Tudo o que vem incluso para o lojista vender mais — sem precisar contratar outras ferramentas.
+        </p>
+      </div>
+
+      <style>
+        .services-grid-v2 { display:grid; grid-template-columns:repeat(3, 1fr); gap:1px; max-width:1280px; margin:0 auto; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.06); border-radius:24px; overflow:hidden; }
+        .svc-v2 { position:relative; padding:40px 32px 36px; background:#0a0a0a; transition:background 0.4s ease; overflow:hidden; isolation:isolate; }
+        .svc-v2::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 0% 0%, var(--svc-glow, rgba(124,58,237,0.18)) 0%, transparent 55%); opacity:0; transition:opacity 0.5s ease; z-index:-1; }
+        .svc-v2:hover { background:#0d0c14; }
+        .svc-v2:hover::before { opacity:1; }
+        .svc-v2 .svc-num { font-family:'Times New Roman', Georgia, serif; font-size:13px; font-style:italic; color:rgba(255,255,255,0.3); letter-spacing:0.5px; display:block; margin-bottom:24px; }
+        .svc-v2 .svc-icon { width:42px; height:42px; display:flex; align-items:center; justify-content:center; margin-bottom:22px; border-radius:10px; background:var(--svc-icon-bg); border:1px solid var(--svc-icon-border); transition:transform 0.4s ease; }
+        .svc-v2:hover .svc-icon { transform:translateY(-3px) rotate(-4deg); }
+        .svc-v2 h3 { font-size:19px; font-weight:500; color:#fff; margin:0 0 12px; letter-spacing:-0.02em; line-height:1.25; }
+        .svc-v2 h3 em { font-style:italic; font-weight:400; color:var(--svc-accent); }
+        .svc-v2 p { font-size:13.5px; color:rgba(255,255,255,0.55); line-height:1.65; font-weight:300; margin:0; }
+        .svc-v2 .svc-corner { position:absolute; top:18px; right:18px; width:8px; height:8px; }
+        .svc-v2 .svc-corner::before, .svc-v2 .svc-corner::after { content:""; position:absolute; background:var(--svc-accent); opacity:0.4; }
+        .svc-v2 .svc-corner::before { top:0; right:0; width:8px; height:1px; }
+        .svc-v2 .svc-corner::after { top:0; right:0; width:1px; height:8px; }
+        @media (max-width: 980px) { .services-grid-v2 { grid-template-columns:repeat(2, 1fr); } }
+        @media (max-width: 620px) { .services-grid-v2 { grid-template-columns:1fr; } }
+      </style>
+
+      <div class="services-grid rv d3 services-grid-v2">
+
+        <article class="svc-v2" style="--svc-accent:#a78bfa; --svc-glow:rgba(124,58,237,0.22); --svc-icon-bg:rgba(124,58,237,0.12); --svc-icon-border:rgba(124,58,237,0.28);">
+          <span class="svc-corner"></span>
+          <span class="svc-num">№ 01</span>
+          <div class="svc-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
+            </svg>
+          </div>
+          <h3>Provador virtual com <em>IA proprietária.</em></h3>
+          <p>Treinada pra roupas e armações de óculos. Cliente prova em segundos, sem app, no próprio celular.</p>
+        </article>
+
+        <article class="svc-v2" style="--svc-accent:#a78bfa; --svc-glow:rgba(124,58,237,0.22); --svc-icon-bg:rgba(124,58,237,0.12); --svc-icon-border:rgba(124,58,237,0.28);">
+          <span class="svc-corner"></span>
+          <span class="svc-num">№ 02</span>
+          <div class="svc-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z M3 9h6 M15 9h6 M9 3v6 M9 15v6"/>
+            </svg>
+          </div>
+          <h3>Dashboard de <em>ROI real.</em></h3>
+          <p>Faturamento atribuído, taxa de conversão, LTV, ticket médio com vs sem provador, tempo até a compra.</p>
+        </article>
+
+        <article class="svc-v2" style="--svc-accent:#a78bfa; --svc-glow:rgba(124,58,237,0.22); --svc-icon-bg:rgba(124,58,237,0.12); --svc-icon-border:rgba(124,58,237,0.28);">
+          <span class="svc-corner"></span>
+          <span class="svc-num">№ 03</span>
+          <div class="svc-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 11l8-8 10 10-8 8z"/><circle cx="14" cy="10" r="1.5"/>
+            </svg>
+          </div>
+          <h3>Captura de <em>leads na prova.</em></h3>
+          <p>Telefone + e-mail na hora da prova. Você vê quem provou mas não comprou — e abre uma janela de remarketing.</p>
+        </article>
+
+        <article class="svc-v2" style="--svc-accent:#a78bfa; --svc-glow:rgba(124,58,237,0.22); --svc-icon-bg:rgba(124,58,237,0.12); --svc-icon-border:rgba(124,58,237,0.28);">
+          <span class="svc-corner"></span>
+          <span class="svc-num">№ 04</span>
+          <div class="svc-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 11.5a9 9 0 1 1-18 0 9 9 0 0 1 4-7.5L21 11.5z"/><path d="M7 11h.01M11 11h.01M15 11h.01"/>
+            </svg>
+          </div>
+          <h3>Leads pro <em>comercial.</em></h3>
+          <p>Peça provada cai direto no painel do lojista. A equipe puxa o lead quente e fecha no WhatsApp antes de esfriar.</p>
+        </article>
+
+        <article class="svc-v2" style="--svc-accent:#a78bfa; --svc-glow:rgba(124,58,237,0.22); --svc-icon-bg:rgba(124,58,237,0.12); --svc-icon-border:rgba(124,58,237,0.28);">
+          <span class="svc-corner"></span>
+          <span class="svc-num">№ 05</span>
+          <div class="svc-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05 M12 22.08V12"/>
+            </svg>
+          </div>
+          <h3>Setup em <em>1 hora.</em></h3>
+          <p>Instalação feita pela nossa equipe via GTM, FTP ou app oficial da plataforma. Você não mexe em código.</p>
+        </article>
+
+        <article class="svc-v2" style="--svc-accent:#a78bfa; --svc-glow:rgba(124,58,237,0.22); --svc-icon-bg:rgba(124,58,237,0.12); --svc-icon-border:rgba(124,58,237,0.28);">
+          <span class="svc-corner"></span>
+          <span class="svc-num">№ 06</span>
+          <div class="svc-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+          </div>
+          <h3>Análise de <em>impacto.</em></h3>
+          <p>Relatório mensal: faturamento atribuído, crescimento vs baseline pré-provador, YoY e contrafactual. Tudo auditável.</p>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
   <!-- ─── LOGO CLOUD ─── -->
   <section class="logo-cloud" id="integracoes">
     <div class="container">
       <div class="logo-cloud-inner">
-        <div class="logo-cloud-heading">
-          <h2 class="h-section" style="font-size:clamp(1.8rem,3.2vw,2.5rem)"><span class="muted"><span
-                style="color:var(--purple)">Compatível</span> com a sua plataforma.</span><br>
-            <span class="bold">Integração em minutos.</span>
+        <div class="logo-cloud-heading" style="max-width:1280px; margin:0 auto 8px; padding:0 24px; text-align:center;">
+          <h2 style="font-size:clamp(2rem, 4vw, 3.4rem); font-weight:300; letter-spacing:-0.035em; line-height:1.02; color:#111; margin:0;">
+            Plug em qualquer plataforma.<br>
+            <em style="font-style:italic; font-weight:400; background:linear-gradient(120deg, #7c3aed 0%, #a78bfa 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">No ar em 1 hora.</em>
           </h2>
+          <p style="margin:18px auto 0; max-width:560px; font-size:14.5px; line-height:1.6; color:rgba(0,0,0,0.55); font-weight:400;">
+            Instalação feita pela nossa própria equipe &mdash; você não precisa mexer em código nem chamar dev.
+          </p>
         </div>
         <div class="logo-cloud-line"></div>
         <div class="logo-cloud-slider">
@@ -4566,301 +5528,6 @@
           </div>
         </div>
         <div class="logo-cloud-line"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── VERTICAIS: MODA OU ÓCULOS (Editorial Diptico) ─── -->
-  <section class="section verticals-section grain-overlay" style="background:#0a0a0a; padding:120px 0; border-top:1px solid rgba(255,255,255,0.05); position:relative; overflow:hidden;">
-    <div class="container" style="position:relative; z-index:2;">
-
-      <!-- Header diptico -->
-      <div style="text-align:center; margin-bottom:80px; max-width:780px; margin-left:auto; margin-right:auto;">
-        <div style="display:inline-flex; align-items:center; gap:10px; font-size:11px; letter-spacing:2.5px; color:rgba(255,255,255,0.5); text-transform:uppercase; margin-bottom:18px;">
-          <span style="width:24px; height:1px; background:rgba(255,255,255,0.3);"></span>
-          Vol. 02 · Verticais
-          <span style="width:24px; height:1px; background:rgba(255,255,255,0.3);"></span>
-        </div>
-        <h2 class="rv d1" style="font-weight:300; font-size:clamp(2.4rem, 5vw, 4rem); line-height:1.02; letter-spacing:-0.04em; color:#fff;">
-          Dois modelos.<br>
-          <em style="font-style:italic; font-weight:400; background:linear-gradient(135deg, #f472b6 0%, #22d3ee 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Uma só IA.</em>
-        </h2>
-        <p class="rv d2 editorial-note" style="margin-top:20px; max-width:560px; margin-left:auto; margin-right:auto; line-height:1.6; font-size:15px;">
-          Treinada para corpos e treinada para rostos. O widget se adapta à categoria da loja sem você configurar nada.
-        </p>
-      </div>
-
-      <!-- Diptico -->
-      <div class="verticals-grid rv d3" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(380px, 1fr)); gap:28px; max-width:1280px; margin:0 auto;">
-
-        <!-- VESTUÁRIO — Editorial card -->
-        <article style="background:linear-gradient(180deg, rgba(236,72,153,0.08) 0%, rgba(60,12,38,0.15) 50%, rgba(0,0,0,0) 100%); border:1px solid rgba(236,72,153,0.22); border-radius:28px; padding:0; position:relative; overflow:hidden;">
-
-          <!-- Top banner editorial -->
-          <div style="background:linear-gradient(135deg, rgba(236,72,153,0.18), rgba(236,72,153,0.05)); padding:16px 32px; border-bottom:1px solid rgba(236,72,153,0.2); display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:10px; letter-spacing:2px; color:#f472b6; text-transform:uppercase;">A · Moda</span>
-            <span style="font-size:10px; letter-spacing:1.5px; color:rgba(255,255,255,0.5);">LTV / FIDELIZAÇÃO</span>
-          </div>
-
-          <div style="padding:40px 32px;">
-            <!-- Heading editorial -->
-            <h3 style="font-size:32px; font-weight:400; color:#fff; letter-spacing:-0.03em; line-height:1.05; margin-bottom:16px;">
-              Para marcas de<br><em style="font-style:italic; color:#f472b6;">moda autoral.</em>
-            </h3>
-
-            <p style="color:rgba(255,255,255,0.65); font-size:15px; line-height:1.65; margin-bottom:28px; font-weight:300;">
-              O cliente prova a peça no próprio corpo, ganha confiança no caimento e <strong style="color:#fff; font-weight:500;">volta a comprar.</strong> A IA aprende o biotipo e o widget vira balcão de confiança.
-            </p>
-
-            <!-- Stats horizontal table editorial -->
-            <div style="display:flex; flex-direction:column; gap:0; margin-bottom:28px;">
-              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid rgba(255,255,255,0.08);">
-                <span class="editorial-note" style="font-size:13px;">Atribuição típica</span>
-                <span class="stat-mono" style="font-size:18px; color:#fff; font-weight:500;">8 — 22<span style="opacity:0.5;">%</span></span>
-              </div>
-              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid rgba(255,255,255,0.06);">
-                <span class="editorial-note" style="font-size:13px;">Pedidos / cliente / ano</span>
-                <span class="stat-mono" style="font-size:18px; color:#fff; font-weight:500;">4 — 6</span>
-              </div>
-              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid rgba(255,255,255,0.06);">
-                <span class="editorial-note" style="font-size:13px;">Re-engajamento provador</span>
-                <span class="stat-mono" style="font-size:18px; color:#fff; font-weight:500;">39 — 56<span style="opacity:0.5;">%</span></span>
-              </div>
-              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.06);">
-                <span class="editorial-note" style="font-size:13px; color:#f472b6;">Lift em LTV</span>
-                <span class="stat-mono" style="font-size:22px; color:#f472b6; font-weight:600;">+43<span style="opacity:0.7; font-size:16px;">%</span></span>
-              </div>
-            </div>
-
-            <!-- Quem usa -->
-            <div style="padding-top:8px;">
-              <div class="editorial-note" style="font-size:11px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; color:rgba(255,255,255,0.4); font-style:normal;">Quem já usa</div>
-              <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                <span style="font-style:italic; font-size:14px; color:#fbcfe8; padding:5px 12px; background:rgba(236,72,153,0.08); border-radius:50px; border:1px solid rgba(236,72,153,0.15);">Cacifé</span>
-                <span style="font-style:italic; font-size:14px; color:#fbcfe8; padding:5px 12px; background:rgba(236,72,153,0.08); border-radius:50px; border:1px solid rgba(236,72,153,0.15);">Mariana Cardoso</span>
-                <span style="font-style:italic; font-size:14px; color:#fbcfe8; padding:5px 12px; background:rgba(236,72,153,0.08); border-radius:50px; border:1px solid rgba(236,72,153,0.15);">Calmo</span>
-                <span style="font-style:italic; font-size:14px; color:#fbcfe8; padding:5px 12px; background:rgba(236,72,153,0.08); border-radius:50px; border:1px solid rgba(236,72,153,0.15);">Marandola</span>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <!-- ÓCULOS — Editorial card -->
-        <article style="background:linear-gradient(180deg, rgba(34,211,238,0.08) 0%, rgba(8,40,52,0.15) 50%, rgba(0,0,0,0) 100%); border:1px solid rgba(34,211,238,0.22); border-radius:28px; padding:0; position:relative; overflow:hidden;">
-
-          <div style="background:linear-gradient(135deg, rgba(34,211,238,0.18), rgba(34,211,238,0.05)); padding:16px 32px; border-bottom:1px solid rgba(34,211,238,0.2); display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:10px; letter-spacing:2px; color:#22d3ee; text-transform:uppercase;">B · Óticas</span>
-            <span style="font-size:10px; letter-spacing:1.5px; color:rgba(255,255,255,0.5);">CONVERSÃO IMEDIATA</span>
-          </div>
-
-          <div style="padding:40px 32px;">
-            <h3 style="font-size:32px; font-weight:400; color:#fff; letter-spacing:-0.03em; line-height:1.05; margin-bottom:16px;">
-              Para óticas que<br><em style="font-style:italic; color:#22d3ee;">vendem rápido.</em>
-            </h3>
-
-            <p style="color:rgba(255,255,255,0.65); font-size:15px; line-height:1.65; margin-bottom:28px; font-weight:300;">
-              O cliente prova a armação no rosto, vê o caimento em <strong style="color:#fff; font-weight:500;">menos de uma hora</strong> e fecha. O provador vira o balcão virtual da ótica — tira a dúvida e converte.
-            </p>
-
-            <div style="display:flex; flex-direction:column; gap:0; margin-bottom:28px;">
-              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid rgba(255,255,255,0.08);">
-                <span class="editorial-note" style="font-size:13px;">Atribuição típica</span>
-                <span class="stat-mono" style="font-size:18px; color:#fff; font-weight:500;">14 — 30<span style="opacity:0.5;">%</span></span>
-              </div>
-              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid rgba(255,255,255,0.06);">
-                <span class="editorial-note" style="font-size:13px;">Compra em 1 hora</span>
-                <span class="stat-mono" style="font-size:18px; color:#fff; font-weight:500;">51<span style="opacity:0.5;">%</span></span>
-              </div>
-              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.06);">
-                <span class="editorial-note" style="font-size:13px;">Re-engajamento</span>
-                <span class="stat-mono" style="font-size:18px; color:#fff; font-weight:500;">61,6<span style="opacity:0.5;">%</span></span>
-              </div>
-            </div>
-
-            <div style="padding-top:8px;">
-              <div class="editorial-note" style="font-size:11px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; color:rgba(255,255,255,0.4); font-style:normal;">Quem já usa</div>
-              <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">Maxilook</span>
-                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">Califa</span>
-                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">Amazoni</span>
-                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">Foss</span>
-                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">Paris London</span>
-                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">Ótica Style</span>
-                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">Liuzzi</span>
-                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">+ 4 lojas</span>
-              </div>
-            </div>
-          </div>
-        </article>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── DASHBOARD SCROLL ─── -->
-  <section class="dash-scroll-section">
-    <div class="container">
-      <div class="dash-scroll-bg">
-        <div class="dash-scroll-header">
-          <div class="label">Painel de Gestão</div>
-          <h2>Acompanhe seus <span class="accent">Resultados</span> em Tempo Real.</h2>
-          <p>Tenha controle total sobre o impacto do provador virtual no seu faturamento e conheça melhor o
-            comportamento dos seus clientes.</p>
-          <div class="dash-reviews">
-            <div class="dash-reviews-avatars">
-              <span class="dash-avatar" style="background:#f59e0b">R</span>
-              <span class="dash-avatar" style="background:#10b981">M</span>
-              <span class="dash-avatar" style="background:#f59e0b">A</span>
-              <span class="dash-avatar" style="background:#ef4444">J</span>
-              <div class="dash-reviews-info">
-                <div class="dash-reviews-stars">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
-                  <span>4.9</span>
-                </div>
-                <div class="dash-reviews-text">de +200 lojistas ativos</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="dash-scroll-perspective" id="dashScrollWrap">
-          <div class="dash-scroll-card" id="dashScrollCard">
-            <img src="dashboard-captura.webp" alt="Painel Provou Levou" loading="lazy">
-          </div>
-        </div>
-      </div>
-      <div class="dash-stats-section">
-        <p class="dash-stats-heading">
-          Sua loja vende mesmo quando o cliente fecha a tela.
-          <span>Nosso painel de analytics ajuda você a acompanhar conversões, mapear clientes e tomar decisões baseadas
-            em dados.</span>
-        </p>
-        <div class="dash-stats-grid">
-          <div>
-            <div class="dash-stat-value">+200</div>
-            <div class="dash-stat-label">Lojistas Ativos</div>
-          </div>
-          <div>
-            <div class="dash-stat-value">-52%</div>
-            <div class="dash-stat-label">Redução em Devoluções</div>
-          </div>
-          <div>
-            <div class="dash-stat-value">15%+</div>
-            <div class="dash-stat-label">Aumento na Conversão</div>
-          </div>
-          <div>
-            <div class="dash-stat-value">10min</div>
-            <div class="dash-stat-label">Integração Rápida</div>
-          </div>
-        </div>
-        <div class="dash-chart-wrap">
-          <svg viewBox="0 0 1100 200" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="var(--purple)" stop-opacity="0.35" />
-                <stop offset="100%" stop-color="var(--purple)" stop-opacity="0" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M0 180 C80 170, 150 150, 220 130 S380 90, 440 80 S560 60, 660 50 S800 30, 880 20 S1000 10, 1100 5 L1100 200 L0 200 Z"
-              fill="url(#chartGrad)" />
-            <path d="M0 180 C80 170, 150 150, 220 130 S380 90, 440 80 S560 60, 660 50 S800 30, 880 20 S1000 10, 1100 5"
-              fill="none" stroke="var(--purple)" stroke-width="2.5" />
-          </svg>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── O QUE VEM JUNTO (SERVIÇOS) ─── -->
-  <section class="section services-section" style="background:#0a0a0a; padding:96px 0; border-top:1px solid rgba(255,255,255,0.05);">
-    <div class="container">
-      <div style="text-align:center; margin-bottom:64px;">
-        <div class="label rv" style="color:#a78bfa;">A plataforma completa</div>
-        <h2 class="h-section rv d1" style="color:#fff;">Mais do que um provador.<br>Uma plataforma de conversão.</h2>
-        <p class="body-text rv d2" style="margin-top:14px; max-width:640px; margin-left:auto; margin-right:auto; color:rgba(255,255,255,0.6);">Tudo o que vem incluso para o lojista vender mais — sem precisar contratar outras ferramentas.</p>
-      </div>
-
-      <div class="services-grid rv d3" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:18px; max-width:1300px; margin:0 auto;">
-
-        <div class="service-card" style="background:rgba(255,255,255,0.025); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:32px;">
-          <div style="width:48px; height:48px; background:rgba(124,58,237,0.15); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
-            </svg>
-          </div>
-          <h3 style="font-size:18px; font-weight:700; color:#fff; margin-bottom:10px;">Provador Virtual com IA</h3>
-          <p style="font-size:13.5px; color:rgba(255,255,255,0.6); line-height:1.55;">IA proprietária treinada pra roupas e armações de óculos. Cliente prova em segundos, sem app, no próprio celular.</p>
-        </div>
-
-        <div class="service-card" style="background:rgba(255,255,255,0.025); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:32px;">
-          <div style="width:48px; height:48px; background:rgba(34,211,238,0.15); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z M3 9h6 M15 9h6 M9 3v6 M9 15v6"/>
-            </svg>
-          </div>
-          <h3 style="font-size:18px; font-weight:700; color:#fff; margin-bottom:10px;">Dashboard de ROI</h3>
-          <p style="font-size:13.5px; color:rgba(255,255,255,0.6); line-height:1.55;">Painel completo do lojista: faturamento atribuído, taxa de conversão, LTV, ticket médio com vs sem provador, tempo até a compra.</p>
-        </div>
-
-        <div class="service-card" style="background:rgba(255,255,255,0.025); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:32px;">
-          <div style="width:48px; height:48px; background:rgba(16,185,129,0.15); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 11l8-8 10 10-8 8z"/><circle cx="14" cy="10" r="1.5"/>
-            </svg>
-          </div>
-          <h3 style="font-size:18px; font-weight:700; color:#fff; margin-bottom:10px;">Captura de Leads</h3>
-          <p style="font-size:13.5px; color:rgba(255,255,255,0.6); line-height:1.55;">Telefone + e-mail capturados na hora da prova. Sua loja vê quem provou mas não comprou e abre uma janela de remarketing.</p>
-        </div>
-
-        <div class="service-card" style="background:rgba(255,255,255,0.025); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:32px;">
-          <div style="width:48px; height:48px; background:rgba(245,158,11,0.15); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 11.5a9 9 0 1 1-18 0 9 9 0 0 1 4-7.5L21 11.5z"/><path d="M7 11h.01M11 11h.01M15 11h.01"/>
-            </svg>
-          </div>
-          <h3 style="font-size:18px; font-weight:700; color:#fff; margin-bottom:10px;">Leads pro Comercial</h3>
-          <p style="font-size:13.5px; color:rgba(255,255,255,0.6); line-height:1.55;">Telefone e peça provada caem direto no painel do lojista. A equipe comercial puxa esses leads quentes e fecha a venda no WhatsApp — antes do cliente esfriar.</p>
-        </div>
-
-        <div class="service-card" style="background:rgba(255,255,255,0.025); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:32px;">
-          <div style="width:48px; height:48px; background:rgba(236,72,153,0.15); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05 M12 22.08V12"/>
-            </svg>
-          </div>
-          <h3 style="font-size:18px; font-weight:700; color:#fff; margin-bottom:10px;">Setup via GTM em 5min</h3>
-          <p style="font-size:13.5px; color:rgba(255,255,255,0.6); line-height:1.55;">Não precisa mexer no código da loja. Instalamos via Google Tag Manager, FTP ou app oficial da sua plataforma — escolha o que for mais simples.</p>
-        </div>
-
-        <div class="service-card" style="background:rgba(255,255,255,0.025); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:32px;">
-          <div style="width:48px; height:48px; background:rgba(168,85,247,0.15); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-            </svg>
-          </div>
-          <h3 style="font-size:18px; font-weight:700; color:#fff; margin-bottom:10px;">Análise de Impacto</h3>
-          <p style="font-size:13.5px; color:rgba(255,255,255,0.6); line-height:1.55;">Relatório mensal: faturamento atribuído, crescimento vs baseline pré-provador, YoY e contrafactual. Você sabe exatamente quanto o provador agregou.</p>
-        </div>
-
       </div>
     </div>
   </section>
@@ -4996,363 +5663,6 @@
     </section>
   </div>
 
-  <!-- ─── CASES DE SUCESSO ─── -->
-  <section class="section section-dark cases-section">
-    <div class="container">
-      <div style="text-align:center; margin-bottom:56px;">
-        <div class="label rv">Cases de Sucesso</div>
-        <h2 class="h-section rv d1">Lojas que já usam o <span class="accent">Provou Levou.</span></h2>
-        <p class="body-text rv d2" style="margin-top:10px; max-width:600px; margin-left:auto; margin-right:auto;">Marcas
-          de moda e óticas que transformaram a experiência de compra com o provador virtual.</p>
-      </div>
-      <div class="cases-carousel rv">
-        <div class="cases-track">
-          <a href="https://www.cacifebrand.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/cacife.webp" alt="Cacifé Brand" style="height:52px;width:auto;object-fit:contain;"></div>
-            <h3>Cacifé Brand</h3>
-            <span class="case-url">www.cacifebrand.com.br</span>
-          </a>
-          <a href="https://www.usemarianacardoso.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/mariana.png" alt="Mariana Cardoso" style="height:28px;width:auto;object-fit:contain;"></div>
-            <h3>Mariana Cardoso</h3>
-            <span class="case-url">www.usemarianacardoso.com.br</span>
-          </a>
-          <a href="https://www.calmostore.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/calmo.webp" alt="Calmo Store" style="height:48px;width:auto;object-fit:contain;"></div>
-            <h3>Calmo Store</h3>
-            <span class="case-url">www.calmostore.com.br</span>
-          </a>
-          <a href="https://marandolamoda.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/marandola.webp" alt="Marandola Moda" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Marandola Moda</h3>
-            <span class="case-url">www.marandolamoda.com.br</span>
-          </a>
-          <!-- Óticas -->
-          <a href="https://www.oticamaxilook.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/maxilook.webp" alt="Ótica Maxilook" style="height:48px;width:auto;object-fit:contain;"></div>
-            <h3>Ótica Maxilook</h3>
-            <span class="case-url">www.oticamaxilook.com.br</span>
-          </a>
-          <a href="https://www.califabrand.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/califa.webp" alt="Califa Brand" style="height:48px;width:auto;object-fit:contain;"></div>
-            <h3>Califa Brand</h3>
-            <span class="case-url">www.califabrand.com.br</span>
-          </a>
-          <a href="https://www.amazonisunglasses.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/amazoni.png" alt="Amazoni Sunglasses" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Amazoni Sunglasses</h3>
-            <span class="case-url">www.amazonisunglasses.com.br</span>
-          </a>
-          <a href="https://www.fosseyewear.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/foss.png" alt="Foss Eyewear" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Foss Eyewear</h3>
-            <span class="case-url">www.fosseyewear.com.br</span>
-          </a>
-          <a href="https://www.parislondon.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/parislondon.webp" alt="Paris London" style="height:48px;width:auto;object-fit:contain;"></div>
-            <h3>Paris London</h3>
-            <span class="case-url">www.parislondon.com.br</span>
-          </a>
-          <a href="https://acessoriostyle.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/acessoriostyle.webp" alt="Ótica Style" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Ótica Style</h3>
-            <span class="case-url">acessoriostyle.com.br</span>
-          </a>
-          <a href="https://www.liuzzieyewear.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/liuzzi.webp" alt="Liuzzi Eyewear" style="height:32px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Liuzzi Eyewear</h3>
-            <span class="case-url">www.liuzzieyewear.com.br</span>
-          </a>
-          <a href="https://www.oculosemfoco.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/oculosemfoco.webp" alt="Óculos em Foco" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Óculos em Foco</h3>
-            <span class="case-url">www.oculosemfoco.com.br</span>
-          </a>
-          <a href="https://oticasmarina.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/marina.png" alt="Óticas Marina" style="height:68px;width:auto;object-fit:contain;"></div>
-            <h3>Óticas Marina</h3>
-            <span class="case-url">oticasmarina.com.br</span>
-          </a>
-          <a href="https://arantz.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/arantz.png" alt="Arantz" style="height:28px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Arantz</h3>
-            <span class="case-url">arantz.com.br</span>
-          </a>
-          <a href="https://soucetglasses.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/soucet.png" alt="Soucet Glasses" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Soucet Glasses</h3>
-            <span class="case-url">soucetglasses.com.br</span>
-          </a>
-          <!-- Duplicados para loop infinito -->
-          <a href="https://www.cacifebrand.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/cacife.webp" alt="Cacifé Brand" style="height:52px;width:auto;object-fit:contain;"></div>
-            <h3>Cacifé Brand</h3>
-            <span class="case-url">www.cacifebrand.com.br</span>
-          </a>
-          <a href="https://www.usemarianacardoso.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/mariana.png" alt="Mariana Cardoso" style="height:28px;width:auto;object-fit:contain;"></div>
-            <h3>Mariana Cardoso</h3>
-            <span class="case-url">www.usemarianacardoso.com.br</span>
-          </a>
-          <a href="https://www.oticamaxilook.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/maxilook.webp" alt="Ótica Maxilook" style="height:48px;width:auto;object-fit:contain;"></div>
-            <h3>Ótica Maxilook</h3>
-            <span class="case-url">www.oticamaxilook.com.br</span>
-          </a>
-          <a href="https://www.califabrand.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/califa.webp" alt="Califa Brand" style="height:48px;width:auto;object-fit:contain;"></div>
-            <h3>Califa Brand</h3>
-            <span class="case-url">www.califabrand.com.br</span>
-          </a>
-          <a href="https://www.amazonisunglasses.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/amazoni.png" alt="Amazoni Sunglasses" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Amazoni Sunglasses</h3>
-            <span class="case-url">www.amazonisunglasses.com.br</span>
-          </a>
-          <a href="https://www.fosseyewear.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/foss.png" alt="Foss Eyewear" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Foss Eyewear</h3>
-            <span class="case-url">www.fosseyewear.com.br</span>
-          </a>
-          <a href="https://www.parislondon.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/parislondon.webp" alt="Paris London" style="height:48px;width:auto;object-fit:contain;"></div>
-            <h3>Paris London</h3>
-            <span class="case-url">www.parislondon.com.br</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── TESTIMONIALS ─── -->
-  <section class="testimonials-section">
-    <div class="container">
-      <div class="testimonials-header">
-        <div class="label">Depoimentos</div>
-        <h2>Quem usa, <span style="color:var(--purple)">recomenda.</span></h2>
-        <p>Veja o que nossos clientes dizem sobre o Provou Levou.</p>
-      </div>
-      <div class="testimonials-columns">
-        <!-- Column 1 -->
-        <div class="testimonials-col">
-          <div class="testimonials-col-inner">
-            <div class="t-card">
-              <p class="t-card-text">"Nossas devoluções caíram pela metade no primeiro mês. O provador virtual mudou
-                completamente a experiência de compra na nossa loja."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#7c3aed;">M</div>
-                <div>
-                  <div class="t-card-name">Marina Costa</div>
-                  <div class="t-card-role">CEO, Atelier Urbano</div>
-                </div>
-              </div>
-            </div>
-            <div class="t-card">
-              <p class="t-card-text">"A integração levou 10 minutos. No dia seguinte já tínhamos dados reais de
-                conversão. O ROI se pagou em uma semana."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#10b981;">R</div>
-                <div>
-                  <div class="t-card-name">Ricardo Mendes</div>
-                  <div class="t-card-role">Fundador, Street Co.</div>
-                </div>
-              </div>
-            </div>
-            <div class="t-card">
-              <p class="t-card-text">"O suporte respondeu em minutos e resolveu tudo. Melhor atendimento que já tive com
-                uma ferramenta SaaS."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#f59e0b;">C</div>
-                <div>
-                  <div class="t-card-name">Camila Rocha</div>
-                  <div class="t-card-role">Gerente, Bella Store</div>
-                </div>
-              </div>
-            </div>
-            <!-- Duplicate for seamless loop -->
-            <div class="t-card">
-              <p class="t-card-text">"Nossas devoluções caíram pela metade no primeiro mês. O provador virtual mudou
-                completamente a experiência de compra na nossa loja."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#7c3aed;">M</div>
-                <div>
-                  <div class="t-card-name">Marina Costa</div>
-                  <div class="t-card-role">CEO, Atelier Urbano</div>
-                </div>
-              </div>
-            </div>
-            <div class="t-card">
-              <p class="t-card-text">"A integração levou 10 minutos. No dia seguinte já tínhamos dados reais de
-                conversão. O ROI se pagou em uma semana."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#10b981;">R</div>
-                <div>
-                  <div class="t-card-name">Ricardo Mendes</div>
-                  <div class="t-card-role">Fundador, Street Co.</div>
-                </div>
-              </div>
-            </div>
-            <div class="t-card">
-              <p class="t-card-text">"O suporte respondeu em minutos e resolveu tudo. Melhor atendimento que já tive com
-                uma ferramenta SaaS."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#f59e0b;">C</div>
-                <div>
-                  <div class="t-card-name">Camila Rocha</div>
-                  <div class="t-card-role">Gerente, Bella Store</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Column 2 -->
-        <div class="testimonials-col">
-          <div class="testimonials-col-inner">
-            <div class="t-card">
-              <p class="t-card-text">"Os leads que chegam no painel são clientes que já provaram a peça. Fica fácil
-                fechar a venda no WhatsApp — recuperamos vendas que estavam perdidas."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#3b82f6;">A</div>
-                <div>
-                  <div class="t-card-name">Ana Beatriz</div>
-                  <div class="t-card-role">Head de E-commerce, Veste Bem</div>
-                </div>
-              </div>
-            </div>
-            <div class="t-card">
-              <p class="t-card-text">"Nosso ticket médio subiu 35% depois que os clientes começaram a provar as peças
-                virtualmente. Eles compram com mais confiança."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#ef4444;">P</div>
-                <div>
-                  <div class="t-card-name">Pedro Almeida</div>
-                  <div class="t-card-role">Diretor, Vanguarda Wear</div>
-                </div>
-              </div>
-            </div>
-            <div class="t-card">
-              <p class="t-card-text">"O painel mostra exatamente quanto cada peça converte. Mudou a forma como
-                escolhemos nosso estoque."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#8b5cf6;">L</div>
-                <div>
-                  <div class="t-card-name">Lucas Ferreira</div>
-                  <div class="t-card-role">CMO, Modo Fashion</div>
-                </div>
-              </div>
-            </div>
-            <!-- Duplicate for seamless loop -->
-            <div class="t-card">
-              <p class="t-card-text">"Os leads que chegam no painel são clientes que já provaram a peça. Fica fácil
-                fechar a venda no WhatsApp — recuperamos vendas que estavam perdidas."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#3b82f6;">A</div>
-                <div>
-                  <div class="t-card-name">Ana Beatriz</div>
-                  <div class="t-card-role">Head de E-commerce, Veste Bem</div>
-                </div>
-              </div>
-            </div>
-            <div class="t-card">
-              <p class="t-card-text">"Nosso ticket médio subiu 35% depois que os clientes começaram a provar as peças
-                virtualmente. Eles compram com mais confiança."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#ef4444;">P</div>
-                <div>
-                  <div class="t-card-name">Pedro Almeida</div>
-                  <div class="t-card-role">Diretor, Vanguarda Wear</div>
-                </div>
-              </div>
-            </div>
-            <div class="t-card">
-              <p class="t-card-text">"O painel mostra exatamente quanto cada peça converte. Mudou a forma como
-                escolhemos nosso estoque."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#8b5cf6;">L</div>
-                <div>
-                  <div class="t-card-name">Lucas Ferreira</div>
-                  <div class="t-card-role">CMO, Modo Fashion</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Column 3 -->
-        <div class="testimonials-col">
-          <div class="testimonials-col-inner">
-            <div class="t-card">
-              <p class="t-card-text">"Implementamos em uma tarde e no dia seguinte já vimos resultados. A experiência do
-                cliente ficou premium."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#ec4899;">J</div>
-                <div>
-                  <div class="t-card-name">Julia Santos</div>
-                  <div class="t-card-role">Fundadora, J.Studio</div>
-                </div>
-              </div>
-            </div>
-            <div class="t-card">
-              <p class="t-card-text">"A captura de leads pelo provador é genial. Conseguimos o contato de clientes que
-                antes só olhavam e saíam."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#14b8a6;">F</div>
-                <div>
-                  <div class="t-card-name">Felipe Gomes</div>
-                  <div class="t-card-role">Growth, Urban Style</div>
-                </div>
-              </div>
-            </div>
-            <div class="t-card">
-              <p class="t-card-text">"Melhor investimento que fizemos esse ano. O provador virtual virou nosso principal
-                diferencial competitivo."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#f97316;">T</div>
-                <div>
-                  <div class="t-card-name">Tatiana Lima</div>
-                  <div class="t-card-role">CEO, Closet Digital</div>
-                </div>
-              </div>
-            </div>
-            <!-- Duplicate for seamless loop -->
-            <div class="t-card">
-              <p class="t-card-text">"Implementamos em uma tarde e no dia seguinte já vimos resultados. A experiência do
-                cliente ficou premium."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#ec4899;">J</div>
-                <div>
-                  <div class="t-card-name">Julia Santos</div>
-                  <div class="t-card-role">Fundadora, J.Studio</div>
-                </div>
-              </div>
-            </div>
-            <div class="t-card">
-              <p class="t-card-text">"A captura de leads pelo provador é genial. Conseguimos o contato de clientes que
-                antes só olhavam e saíam."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#14b8a6;">F</div>
-                <div>
-                  <div class="t-card-name">Felipe Gomes</div>
-                  <div class="t-card-role">Growth, Urban Style</div>
-                </div>
-              </div>
-            </div>
-            <div class="t-card">
-              <p class="t-card-text">"Melhor investimento que fizemos esse ano. O provador virtual virou nosso principal
-                diferencial competitivo."</p>
-              <div class="t-card-author">
-                <div class="t-card-avatar" style="background:#f97316;">T</div>
-                <div>
-                  <div class="t-card-name">Tatiana Lima</div>
-                  <div class="t-card-role">CEO, Closet Digital</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- ─── FAQ ─── -->
   <section class="section" id="faq" style="background:#050505;">
     <div class="container">
@@ -5454,10 +5764,18 @@
     <div class="cta-final-hotspot-right"></div>
     <div class="cta-final-ambient"></div>
     <div class="container">
-      <div class="label rv">Comece Agora</div>
-      <h2 class="h-section rv d1">Preparado para transformar<br>seu <span class="gradient-text">e-commerce?</span></h2>
-      <p class="body-lg rv d2">Fale agora com um especialista. Mostramos números reais de lojas como a sua — moda ou óculos — e calculamos seu ROI antes de você assinar.</p>
-      <div class="hero-ctas rv d3">
+      <div class="rv" style="display:inline-flex; align-items:center; gap:12px; font-size:10.5px; letter-spacing:2.6px; text-transform:uppercase; color:rgba(255,255,255,0.6); margin-bottom:22px;">
+        <span style="width:24px; height:1px; background:rgba(255,255,255,0.4);"></span>
+        Comece agora
+        <span style="width:24px; height:1px; background:rgba(255,255,255,0.4);"></span>
+      </div>
+      <h2 class="rv d1" style="font-size:clamp(2.2rem, 5vw, 4rem); font-weight:300; letter-spacing:-0.04em; line-height:1.02; color:#fff; margin:0;">
+        Preparado para transformar<br><em style="font-style:italic; font-weight:400;" class="gradient-text">seu e-commerce?</em>
+      </h2>
+      <p class="rv d2" style="font-size:clamp(1rem, 1.3vw, 1.2rem); font-weight:300; color:rgba(255,255,255,0.7); max-width:600px; margin:24px auto 0; line-height:1.55;">
+        Fale agora com um especialista. Mostramos números reais de lojas como a sua — moda ou óculos — e calculamos seu ROI antes de você assinar.
+      </p>
+      <div class="hero-ctas rv d3" style="margin-top:40px;">
         <a href="https://wa.me/5511965749173?text=Olá, tenho interesse no Provador Virtual." class="btn-main"
           target="_blank" style="padding: 16px 36px; font-size: 16px;" data-fb-event="InitiateCheckout" data-fb-label="CTA Final - Implementar Agora">Implementar Agora <svg viewBox="0 0 16 16"
             fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
@@ -5476,54 +5794,54 @@
     </div>
   </section>
 
-  <!-- ─── SEO Internal Linking + Recursos ─── -->
-  <section style="padding: 64px 0; background: #0f0f0f; border-top: 1px solid rgba(255,255,255,0.06);">
+  <!-- ─── SEO Internal Linking + Recursos (discreto) ─── -->
+  <section style="padding: 20px 0; background: #0a0a0a; border-top: 1px solid rgba(255,255,255,0.04); opacity:0.45;">
     <div class="container" style="max-width: 1100px;">
-      <div style="text-align: center; margin-bottom: 32px;">
-        <span style="display: inline-block; padding: 4px 12px; background: rgba(124, 58, 237, 0.15); color: #a78bfa; border-radius: 99px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px;">Recursos &amp; insights</span>
-        <h2 style="font-size: 32px; color: #edebe7; font-weight: 700; margin: 0;">Aprenda mais sobre <a href="/provador-virtual/" style="color: #a78bfa; text-decoration: none;">provador virtual</a></h2>
-        <p style="font-size: 16px; color: #999; margin-top: 12px; max-width: 600px; margin-left: auto; margin-right: auto;">Cases reais, estratégias comprovadas e dados sobre conversão e devolução no e-commerce de moda.</p>
+      <div style="text-align:center; margin-bottom:14px;">
+        <h2 style="font-size:11px; font-weight:500; letter-spacing:2.4px; text-transform:uppercase; color:rgba(255,255,255,0.45); margin:0;">
+          Aprenda mais sobre <a href="/provador-virtual/" style="color:rgba(167,139,250,0.7); text-decoration:none;">provador virtual</a>
+        </h2>
       </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
-        <a href="/provador-virtual/" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); display: block;">
-          <div style="font-size: 11px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">Produto</div>
-          <h3 style="font-size: 18px; color: #edebe7; margin-bottom: 8px; font-weight: 600;">Provador virtual com IA — guia completo</h3>
-          <p style="color: #999; font-size: 14px; line-height: 1.5;">O que é, como funciona, casos brasileiros, planos e integrações.</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px;">
+        <a href="/provador-virtual/" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); display: block;">
+          <div style="font-size: 10px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;">Produto</div>
+          <h3 style="font-size: 15px; color: #edebe7; margin-bottom: 6px; font-weight: 600; line-height:1.3;">Provador virtual com IA — guia completo</h3>
+          <p style="color: #999; font-size: 12.5px; line-height: 1.45;">O que é, como funciona, casos brasileiros, planos e integrações.</p>
         </a>
-        <a href="/blog/como-reduzir-devolucao-moda-online.html" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); display: block;">
-          <div style="font-size: 11px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">Guia</div>
-          <h3 style="font-size: 18px; color: #edebe7; margin-bottom: 8px; font-weight: 600;">Como reduzir devolução em moda online</h3>
-          <p style="color: #999; font-size: 14px; line-height: 1.5;">7 estratégias para cortar 23-78% das devoluções em 2026.</p>
+        <a href="/blog/como-reduzir-devolucao-moda-online.html" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); display: block;">
+          <div style="font-size: 10px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;">Guia</div>
+          <h3 style="font-size: 15px; color: #edebe7; margin-bottom: 6px; font-weight: 600; line-height:1.3;">Como reduzir devolução em moda online</h3>
+          <p style="color: #999; font-size: 12.5px; line-height: 1.45;">7 estratégias para cortar 23-78% das devoluções em 2026.</p>
         </a>
-        <a href="/blog/virtual-try-on-brasil.html" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); display: block;">
-          <div style="font-size: 11px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">Tecnologia</div>
-          <h3 style="font-size: 18px; color: #edebe7; margin-bottom: 8px; font-weight: 600;">Virtual try-on no Brasil — guia 2026</h3>
-          <p style="color: #999; font-size: 14px; line-height: 1.5;">O que é, quanto custa, como integrar com Shopify, Nuvemshop e Tray.</p>
+        <a href="/blog/virtual-try-on-brasil.html" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); display: block;">
+          <div style="font-size: 10px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;">Tecnologia</div>
+          <h3 style="font-size: 15px; color: #edebe7; margin-bottom: 6px; font-weight: 600; line-height:1.3;">Virtual try-on no Brasil — guia 2026</h3>
+          <p style="color: #999; font-size: 12.5px; line-height: 1.45;">O que é, quanto custa, como integrar com Shopify, Nuvemshop e Tray.</p>
         </a>
-        <a href="/blog/aumentar-conversao-moda-online.html" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); display: block;">
-          <div style="font-size: 11px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">Estratégia</div>
-          <h3 style="font-size: 18px; color: #edebe7; margin-bottom: 8px; font-weight: 600;">5 estratégias pra aumentar conversão em moda</h3>
-          <p style="color: #999; font-size: 14px; line-height: 1.5;">De 1,9% a 14% de conversão: o que lojistas reais fizeram.</p>
+        <a href="/blog/aumentar-conversao-moda-online.html" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); display: block;">
+          <div style="font-size: 10px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;">Estratégia</div>
+          <h3 style="font-size: 15px; color: #edebe7; margin-bottom: 6px; font-weight: 600; line-height:1.3;">5 estratégias pra aumentar conversão em moda</h3>
+          <p style="color: #999; font-size: 12.5px; line-height: 1.45;">De 1,9% a 14% de conversão: o que lojistas reais fizeram.</p>
         </a>
-        <a href="/blog/case-cacife-brand.html" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); display: block;">
-          <div style="font-size: 11px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">Case Real</div>
-          <h3 style="font-size: 18px; color: #edebe7; margin-bottom: 8px; font-weight: 600;">Case Cacifé: 14% conversão com provador virtual</h3>
-          <p style="color: #999; font-size: 14px; line-height: 1.5;">R$ 85k em 98 dias, 631 novos clientes — números completos.</p>
+        <a href="/blog/case-cacife-brand.html" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); display: block;">
+          <div style="font-size: 10px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;">Case Real</div>
+          <h3 style="font-size: 15px; color: #edebe7; margin-bottom: 6px; font-weight: 600; line-height:1.3;">Case Cacifé: 14% conversão com provador virtual</h3>
+          <p style="color: #999; font-size: 12.5px; line-height: 1.45;">R$ 85k em 98 dias, 631 novos clientes — números completos.</p>
         </a>
-        <a href="/provador-virtual-roupa/" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 24px; border-radius: 12px; border: 1px solid rgba(124,58,237,0.3); display: block;">
-          <div style="font-size: 11px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">Página dedicada</div>
-          <h3 style="font-size: 18px; color: #edebe7; margin-bottom: 8px; font-weight: 600;">Provador virtual de roupa</h3>
-          <p style="color: #999; font-size: 14px; line-height: 1.5;">Cases Cacifé (14% conversão) e Mariana (+43% LTV). Para lojas de roupa.</p>
+        <a href="/provador-virtual-roupa/" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 18px; border-radius: 10px; border: 1px solid rgba(124,58,237,0.3); display: block;">
+          <div style="font-size: 10px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;">Página dedicada</div>
+          <h3 style="font-size: 15px; color: #edebe7; margin-bottom: 6px; font-weight: 600; line-height:1.3;">Provador virtual de roupa</h3>
+          <p style="color: #999; font-size: 12.5px; line-height: 1.45;">Cases Cacifé (14% conversão) e Mariana (+43% LTV). Para lojas de roupa.</p>
         </a>
-        <a href="/provador-virtual-oculos/" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 24px; border-radius: 12px; border: 1px solid rgba(124,58,237,0.3); display: block;">
-          <div style="font-size: 11px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">Página dedicada</div>
-          <h3 style="font-size: 18px; color: #edebe7; margin-bottom: 8px; font-weight: 600;">Provador virtual de óculos</h3>
-          <p style="color: #999; font-size: 14px; line-height: 1.5;">51% compram em 1h. 5 óticas em produção. Para Nuvemshop, Tray e Bagy.</p>
+        <a href="/provador-virtual-oculos/" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 18px; border-radius: 10px; border: 1px solid rgba(124,58,237,0.3); display: block;">
+          <div style="font-size: 10px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;">Página dedicada</div>
+          <h3 style="font-size: 15px; color: #edebe7; margin-bottom: 6px; font-weight: 600; line-height:1.3;">Provador virtual de óculos</h3>
+          <p style="color: #999; font-size: 12.5px; line-height: 1.45;">51% compram em 1h. 5 óticas em produção. Para Nuvemshop, Tray e Bagy.</p>
         </a>
-        <a href="/blog/provador-virtual-oculos.html" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); display: block;">
-          <div style="font-size: 11px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">Categoria</div>
-          <h3 style="font-size: 18px; color: #edebe7; margin-bottom: 8px; font-weight: 600;">Provador virtual para óculos — guia</h3>
-          <p style="color: #999; font-size: 14px; line-height: 1.5;">Por que óticas convertem 51% em 1 hora com virtual try-on.</p>
+        <a href="/blog/provador-virtual-oculos.html" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); display: block;">
+          <div style="font-size: 10px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;">Categoria</div>
+          <h3 style="font-size: 15px; color: #edebe7; margin-bottom: 6px; font-weight: 600; line-height:1.3;">Provador virtual para óculos — guia</h3>
+          <p style="color: #999; font-size: 12.5px; line-height: 1.45;">Por que óticas convertem 51% em 1 hora com virtual try-on.</p>
         </a>
       </div>
       <div style="text-align: center; margin-top: 32px;">
@@ -5865,6 +6183,65 @@
       }, true);
     })();
   </script>
+
+  <!-- ─── WhatsApp Float (FAB persistente) ─── -->
+  <a href="https://wa.me/5511965749173?text=Olá, tenho interesse no Provador Virtual."
+     target="_blank"
+     rel="noopener"
+     class="wa-fab"
+     aria-label="Falar pelo WhatsApp"
+     data-fb-event="Contact"
+     data-fb-label="WhatsApp Float">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.297-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+    </svg>
+    <span class="wa-fab-label">Falar agora</span>
+  </a>
+
+  <style>
+    .wa-fab {
+      position:fixed;
+      bottom:20px; right:20px;
+      width:auto; min-width:60px; height:60px;
+      background:#25D366;
+      color:#fff;
+      border-radius:50px;
+      box-shadow:0 8px 24px -4px rgba(37,211,102,0.55), 0 0 0 0 rgba(37,211,102,0.6);
+      display:flex; align-items:center; justify-content:center;
+      gap:10px;
+      padding:0 22px 0 18px;
+      text-decoration:none;
+      z-index:99998;
+      transition:transform 0.25s ease, box-shadow 0.25s ease, padding 0.3s ease;
+      animation:wa-pulse 2.4s ease-out infinite;
+      font-weight:600;
+      font-size:14px;
+      letter-spacing:0.2px;
+    }
+    .wa-fab svg { width:30px; height:30px; flex-shrink:0; }
+    .wa-fab-label { white-space:nowrap; }
+    .wa-fab:hover { transform:translateY(-3px) scale(1.03); box-shadow:0 14px 30px -4px rgba(37,211,102,0.7); }
+    .wa-fab:active { transform:translateY(-1px); }
+    @keyframes wa-pulse {
+      0%   { box-shadow:0 8px 24px -4px rgba(37,211,102,0.55), 0 0 0 0 rgba(37,211,102,0.55); }
+      70%  { box-shadow:0 8px 24px -4px rgba(37,211,102,0.55), 0 0 0 18px rgba(37,211,102,0); }
+      100% { box-shadow:0 8px 24px -4px rgba(37,211,102,0.55), 0 0 0 0 rgba(37,211,102,0); }
+    }
+    @media (max-width: 720px) {
+      .wa-fab {
+        bottom:16px; right:16px;
+        padding:0;
+        width:58px;
+        min-width:58px;
+        justify-content:center;
+      }
+      .wa-fab-label { display:none; }
+      .wa-fab svg { width:28px; height:28px; }
+    }
+    /* Não mostrar se o usuário já clicou recente (cookie/sessionStorage opcional) */
+    .wa-fab.dismissed { display:none; }
+  </style>
+
 </body>
 
 </html>
