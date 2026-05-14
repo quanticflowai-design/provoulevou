@@ -162,6 +162,25 @@
     }
 
     /* Type grid */
+    .type-pick-label {
+      font-size: 11px;
+      letter-spacing: 2.2px;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.5);
+      font-weight: 600;
+      margin: 0 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .type-pick-label::before,
+    .type-pick-label::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: rgba(0,0,0,0.1);
+    }
+    body.embed-mode .type-pick-label { margin-top: 4px; }
     .type-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -468,6 +487,7 @@
       </div>
       <h1>Que prova quer gerar?</h1>
       <p class="lead">Escolha o tipo pra começarmos.</p>
+      <div class="type-pick-label">Selecione uma opção</div>
       <div class="type-grid">
         <button type="button" class="type-card" data-type="roupa">
           <span class="type-icon">
