@@ -396,6 +396,30 @@
       letter-spacing: -0.035em;
     }
 
+    /* Editorial annotations (same font, just lighter weight) */
+    .editorial-note {
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.55);
+      font-size: 13px;
+    }
+
+    .stat-mono {
+      font-feature-settings: "tnum" 1;
+    }
+
+    /* Grain texture overlay */
+    .grain-overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.45 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+      opacity: 0.18;
+      pointer-events: none;
+      mix-blend-mode: overlay;
+      z-index: 0;
+    }
+    .grain-overlay > * { position: relative; z-index: 1; }
+
     .h-card {
       font-size: clamp(1.2rem, 1.8vw, 1.5rem);
       font-weight: 500;
@@ -4051,12 +4075,24 @@
       target="_blank" data-fb-event="InitiateCheckout" data-fb-label="Mobile Menu - Falar com Especialista">Falar com Especialista</a>
   </div>
 
-  <!-- ─── HERO ─── -->
+  <!-- ─── HERO (Editorial) ─── -->
   <section class="hero">
     <div class="hero-content">
-      <h1 class="h-display blur-entry be1">Provador virtual com IA<br>para <span class="gradient-text">moda e óculos</span>.</h1>
-      <p class="hero-sub blur-entry be2">Seu cliente prova antes de comprar. +10 mil provas, R$ 230 mil em vendas atribuídas, até 22% das compras vêm do provador.</p>
-      <div class="hero-ctas blur-entry be3">
+      <!-- Marca editorial -->
+      <div class="blur-entry be1" style="display:inline-flex; align-items:center; gap:10px; font-size:11px; letter-spacing:2.5px; color:rgba(255,255,255,0.6); text-transform:uppercase; margin-bottom:28px;">
+        <span style="width:24px; height:1px; background:rgba(255,255,255,0.4);"></span>
+        Provou Levou · MMXXVI
+        <span style="width:24px; height:1px; background:rgba(255,255,255,0.4);"></span>
+      </div>
+
+      <h1 class="h-display blur-entry be1">Provador virtual com IA<br>para <em style="font-style:italic; font-weight:400; background:linear-gradient(135deg, #f472b6 0%, #a78bfa 50%, #22d3ee 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">moda &amp; óculos.</em></h1>
+
+      <p class="hero-sub blur-entry be2" style="font-style:italic; font-weight:300; font-size:clamp(1.05rem, 1.4vw, 1.3rem); color:rgba(255,255,255,0.75); margin-top:24px; line-height:1.5;">
+        Seu cliente prova antes de comprar.<br>
+        <span style="color:#fff; font-style:normal; font-weight:400;">+10 mil provas</span>, <span style="color:#fff; font-style:normal; font-weight:400;">R$ 230 mil atribuídos</span>, até <span style="color:#fff; font-style:normal; font-weight:400;">22% das vendas</span> vêm do provador.
+      </p>
+
+      <div class="hero-ctas blur-entry be3" style="margin-top:36px;">
         <a href="https://wa.me/5511965749173?text=Olá, tenho interesse no Provador Virtual." class="btn-main"
           target="_blank" data-fb-event="InitiateCheckout" data-fb-label="Hero - Testar Grátis">Testar Grátis por 7 Dias <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
             stroke-width="1.5" stroke-linecap="round">
@@ -4064,12 +4100,25 @@
           </svg></a>
         <a href="loja-teste.html" class="btn-ghost" data-fb-event="ViewContent" data-fb-label="Hero - Experimentar Provador">Experimentar Provador</a>
       </div>
-      <!-- Trust strip -->
-      <div class="hero-trust blur-entry be3" style="margin-top:32px; display:flex; flex-wrap:wrap; justify-content:center; gap:32px; font-size:13px; color:rgba(255,255,255,0.5); font-weight:500;">
-        <div style="display:flex; align-items:center; gap:8px;"><strong style="color:#a78bfa; font-size:18px;">+10.000</strong> provas geradas</div>
-        <div style="display:flex; align-items:center; gap:8px;"><strong style="color:#a78bfa; font-size:18px;">22+</strong> lojas ativas</div>
-        <div style="display:flex; align-items:center; gap:8px;"><strong style="color:#a78bfa; font-size:18px;">R$ 230 mil</strong> atribuídos</div>
-        <div style="display:flex; align-items:center; gap:8px;"><strong style="color:#a78bfa; font-size:18px;">5 plataformas</strong> integradas</div>
+
+      <!-- KPI strip editorial — números em tabela -->
+      <div class="hero-trust blur-entry be3" style="margin-top:56px; display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:0; max-width:780px; margin-left:auto; margin-right:auto; border-top:1px solid rgba(255,255,255,0.12); border-bottom:1px solid rgba(255,255,255,0.12);">
+        <div style="padding:20px 16px; text-align:center; border-right:1px solid rgba(255,255,255,0.08);">
+          <div class="stat-mono" style="font-size:24px; font-weight:500; color:#fff; letter-spacing:-0.02em;">10.168</div>
+          <div class="editorial-note" style="font-size:11px; margin-top:4px; letter-spacing:0.5px;">provas geradas</div>
+        </div>
+        <div style="padding:20px 16px; text-align:center; border-right:1px solid rgba(255,255,255,0.08);">
+          <div class="stat-mono" style="font-size:24px; font-weight:500; color:#fff; letter-spacing:-0.02em;">22</div>
+          <div class="editorial-note" style="font-size:11px; margin-top:4px; letter-spacing:0.5px;">lojas ativas</div>
+        </div>
+        <div style="padding:20px 16px; text-align:center; border-right:1px solid rgba(255,255,255,0.08);">
+          <div class="stat-mono" style="font-size:24px; font-weight:500; color:#fff; letter-spacing:-0.02em;">R$ 229k</div>
+          <div class="editorial-note" style="font-size:11px; margin-top:4px; letter-spacing:0.5px;">atribuídos</div>
+        </div>
+        <div style="padding:20px 16px; text-align:center;">
+          <div class="stat-mono" style="font-size:24px; font-weight:500; color:#fff; letter-spacing:-0.02em;">5</div>
+          <div class="editorial-note" style="font-size:11px; margin-top:4px; letter-spacing:0.5px;">plataformas</div>
+        </div>
       </div>
     </div>
   </section>
@@ -4111,134 +4160,195 @@
     </div>
   </section>
 
-  <!-- ─── RESULTADOS REAIS — CASES COM NÚMEROS ─── -->
-  <section class="section results-real-section" style="background:#0a0a0a; padding:96px 0;">
-    <div class="container">
-      <div style="text-align:center; margin-bottom:64px;">
-        <div class="label rv" style="color:#a78bfa;">Resultados Reais</div>
-        <h2 class="h-section rv d1" style="color:#fff;">Lojistas que estão vendendo mais<br>com o Provou Levou.</h2>
-        <p class="body-text rv d2" style="margin-top:14px; max-width:640px; margin-left:auto; margin-right:auto; color:rgba(255,255,255,0.6);">Dados reais extraídos do nosso dashboard de atribuição. Cada caso mostra quanto da receita veio direto de clientes que passaram pelo provador antes de comprar.</p>
+  <!-- ─── RESULTADOS REAIS — CASES COM NÚMEROS (Editorial) ─── -->
+  <section class="section results-real-section grain-overlay" style="background:radial-gradient(ellipse at top, #1a0f2e 0%, #0a0a0a 60%); padding:120px 0; position:relative; overflow:hidden;">
+    <div class="container" style="position:relative; z-index:2;">
+
+      <!-- Header editorial -->
+      <div style="text-align:center; margin-bottom:72px; max-width:780px; margin-left:auto; margin-right:auto;">
+        <div style="display:inline-flex; align-items:center; gap:10px; font-size:11px; letter-spacing:2.5px; color:#a78bfa; text-transform:uppercase; margin-bottom:18px;">
+          <span style="width:24px; height:1px; background:#a78bfa;"></span>
+          Vol. 01 · Resultados
+          <span style="width:24px; height:1px; background:#a78bfa;"></span>
+        </div>
+        <h2 class="rv d1" style="font-weight:300; font-size:clamp(2.4rem, 5vw, 4rem); line-height:1.02; letter-spacing:-0.04em; color:#fff;">
+          Quatro lojas.<br>
+          <em style="font-style:italic; font-weight:400; color:#c4b5fd;">Quatro evidências.</em>
+        </h2>
+        <p class="rv d2 editorial-note" style="margin-top:20px; max-width:560px; margin-left:auto; margin-right:auto; line-height:1.6; font-size:15px;">
+          Métricas auditáveis, puxadas em tempo real do dashboard de atribuição. Cada número marcado com <span style="color:#a78bfa;">*</span> tem rastro até o pedido individual.
+        </p>
       </div>
 
-      <div class="results-grid rv d3" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:20px; max-width:1400px; margin:0 auto;">
+      <!-- Cases grid (asymmetric editorial) -->
+      <div class="results-grid rv d3" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:24px; max-width:1400px; margin:0 auto;">
 
         <!-- Cacifé -->
-        <div class="result-card" style="background:linear-gradient(135deg, rgba(124,58,237,0.08), rgba(124,58,237,0.02)); border:1px solid rgba(124,58,237,0.25); border-radius:18px; padding:28px;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+        <article class="result-card-v2" style="background:linear-gradient(160deg, rgba(124,58,237,0.12) 0%, rgba(20,10,40,0.4) 60%, rgba(0,0,0,0.6) 100%); border:1px solid rgba(124,58,237,0.3); border-radius:20px; padding:32px; position:relative; overflow:hidden;">
+          <div style="position:absolute; top:-30px; right:-30px; width:140px; height:140px; background:radial-gradient(circle, rgba(124,58,237,0.25), transparent 70%); border-radius:50%; pointer-events:none;"></div>
+          <header style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; position:relative;">
             <div>
-              <div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:#a78bfa; font-weight:600;">Vestuário · Volume</div>
-              <h3 style="font-size:22px; font-weight:700; color:#fff; margin-top:4px;">Cacifé Brand</h3>
+              <div style="font-size:10px; letter-spacing:2px; color:#a78bfa; text-transform:uppercase;">№ 01 · Vestuário</div>
+              <h3 style="font-size:26px; font-weight:500; color:#fff; margin-top:6px; letter-spacing:-0.02em;">Cacifé Brand</h3>
             </div>
-            <span style="background:rgba(124,58,237,0.18); color:#c4b5fd; font-size:10px; font-weight:700; padding:5px 10px; border-radius:6px;">2 MESES</span>
+            <!-- Sparkline -->
+            <svg width="80" height="36" viewBox="0 0 80 36" fill="none" style="opacity:0.85;">
+              <defs><linearGradient id="grad-cf" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#a78bfa" stop-opacity="0.35"/><stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/></linearGradient></defs>
+              <path d="M2 32 L20 28 L40 16 L60 8 L78 4 L78 34 L2 34 Z" fill="url(#grad-cf)"/>
+              <path d="M2 32 L20 28 L40 16 L60 8 L78 4" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <circle cx="78" cy="4" r="2.5" fill="#fff" stroke="#a78bfa" stroke-width="1.5"/>
+            </svg>
+          </header>
+
+          <div style="margin-bottom:24px;">
+            <div class="stat-mono" style="font-size:46px; font-weight:500; color:#fff; line-height:0.95; letter-spacing:-0.02em;">R$&thinsp;96k<span style="color:#a78bfa; font-size:18px; vertical-align:top;">*</span></div>
+            <div class="editorial-note" style="margin-top:8px;">em vendas atribuídas <span style="opacity:0.55;">/ 60 dias</span></div>
           </div>
-          <div style="display:flex; flex-direction:column; gap:14px;">
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.08);">
             <div>
-              <div style="font-size:34px; font-weight:800; color:#fff; line-height:1;">R$ 96 mil</div>
-              <div style="font-size:13px; color:rgba(255,255,255,0.55); margin-top:6px;">em vendas atribuídas ao provador</div>
+              <div class="stat-mono" style="font-size:22px; color:#c4b5fd; font-weight:500;">22%</div>
+              <div class="editorial-note" style="font-size:11px; margin-top:4px;">atribuição<br>último mês</div>
             </div>
-            <div style="height:1px; background:rgba(255,255,255,0.08);"></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-              <div>
-                <div style="font-size:18px; font-weight:700; color:#a78bfa;">22%</div>
-                <div style="font-size:11px; color:rgba(255,255,255,0.5);">atribuição no último mês</div>
-              </div>
-              <div>
-                <div style="font-size:18px; font-weight:700; color:#a78bfa;">+10%</div>
-                <div style="font-size:11px; color:rgba(255,255,255,0.5);">novos clientes pagantes</div>
-              </div>
+            <div>
+              <div class="stat-mono" style="font-size:22px; color:#c4b5fd; font-weight:500;">+10%</div>
+              <div class="editorial-note" style="font-size:11px; margin-top:4px;">novos<br>pagantes</div>
             </div>
           </div>
-        </div>
+
+          <footer class="editorial-note" style="font-size:10.5px; margin-top:24px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.08); letter-spacing:0.3px;">
+            <span style="color:#a78bfa;">*</span> 746 pedidos verificados · cacifebrand.com.br
+          </footer>
+        </article>
 
         <!-- Mariana Cardoso -->
-        <div class="result-card" style="background:linear-gradient(135deg, rgba(236,72,153,0.08), rgba(236,72,153,0.02)); border:1px solid rgba(236,72,153,0.25); border-radius:18px; padding:28px;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+        <article class="result-card-v2" style="background:linear-gradient(160deg, rgba(236,72,153,0.12) 0%, rgba(35,10,30,0.4) 60%, rgba(0,0,0,0.6) 100%); border:1px solid rgba(236,72,153,0.3); border-radius:20px; padding:32px; position:relative; overflow:hidden;">
+          <div style="position:absolute; top:-30px; right:-30px; width:140px; height:140px; background:radial-gradient(circle, rgba(236,72,153,0.22), transparent 70%); border-radius:50%; pointer-events:none;"></div>
+          <header style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; position:relative;">
             <div>
-              <div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:#f472b6; font-weight:600;">Vestuário · Nicho</div>
-              <h3 style="font-size:22px; font-weight:700; color:#fff; margin-top:4px;">Mariana Cardoso</h3>
+              <div style="font-size:10px; letter-spacing:2px; color:#f472b6; text-transform:uppercase;">№ 02 · Vestuário</div>
+              <h3 style="font-size:26px; font-weight:500; color:#fff; margin-top:6px; letter-spacing:-0.02em;">Mariana Cardoso</h3>
             </div>
-            <span style="background:rgba(236,72,153,0.18); color:#fbcfe8; font-size:10px; font-weight:700; padding:5px 10px; border-radius:6px;">2 MESES</span>
+            <svg width="80" height="36" viewBox="0 0 80 36" fill="none" style="opacity:0.85;">
+              <defs><linearGradient id="grad-mc" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#f472b6" stop-opacity="0.35"/><stop offset="100%" stop-color="#f472b6" stop-opacity="0"/></linearGradient></defs>
+              <path d="M2 30 L20 26 L40 20 L60 14 L78 7 L78 34 L2 34 Z" fill="url(#grad-mc)"/>
+              <path d="M2 30 L20 26 L40 20 L60 14 L78 7" stroke="#f472b6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <circle cx="78" cy="7" r="2.5" fill="#fff" stroke="#f472b6" stroke-width="1.5"/>
+            </svg>
+          </header>
+
+          <div style="margin-bottom:24px;">
+            <div class="stat-mono" style="font-size:46px; font-weight:500; color:#fff; line-height:0.95; letter-spacing:-0.02em;">+43%<span style="color:#f472b6; font-size:18px; vertical-align:top;">*</span></div>
+            <div class="editorial-note" style="margin-top:8px;">LTV por cliente <span style="opacity:0.55;">/ vs. baseline</span></div>
           </div>
-          <div style="display:flex; flex-direction:column; gap:14px;">
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.08);">
             <div>
-              <div style="font-size:34px; font-weight:800; color:#fff; line-height:1;">+43%</div>
-              <div style="font-size:13px; color:rgba(255,255,255,0.55); margin-top:6px;">de LTV por cliente</div>
+              <div class="stat-mono" style="font-size:22px; color:#fbcfe8; font-weight:500;">+35%</div>
+              <div class="editorial-note" style="font-size:11px; margin-top:4px;">faturamento<br>mensal</div>
             </div>
-            <div style="height:1px; background:rgba(255,255,255,0.08);"></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-              <div>
-                <div style="font-size:18px; font-weight:700; color:#f472b6;">+35%</div>
-                <div style="font-size:11px; color:rgba(255,255,255,0.5);">faturamento mensal</div>
-              </div>
-              <div>
-                <div style="font-size:18px; font-weight:700; color:#f472b6;">+21%</div>
-                <div style="font-size:11px; color:rgba(255,255,255,0.5);">ticket médio</div>
-              </div>
+            <div>
+              <div class="stat-mono" style="font-size:22px; color:#fbcfe8; font-weight:500;">+21%</div>
+              <div class="editorial-note" style="font-size:11px; margin-top:4px;">ticket<br>médio</div>
             </div>
           </div>
-        </div>
+
+          <footer class="editorial-note" style="font-size:10.5px; margin-top:24px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.08); letter-spacing:0.3px;">
+            <span style="color:#f472b6;">*</span> 101 pedidos pós-prova · usemarianacardoso.com.br
+          </footer>
+        </article>
 
         <!-- Maxilook -->
-        <div class="result-card" style="background:linear-gradient(135deg, rgba(34,211,238,0.08), rgba(34,211,238,0.02)); border:1px solid rgba(34,211,238,0.25); border-radius:18px; padding:28px;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+        <article class="result-card-v2" style="background:linear-gradient(160deg, rgba(34,211,238,0.10) 0%, rgba(8,30,40,0.4) 60%, rgba(0,0,0,0.6) 100%); border:1px solid rgba(34,211,238,0.3); border-radius:20px; padding:32px; position:relative; overflow:hidden;">
+          <div style="position:absolute; top:-30px; right:-30px; width:140px; height:140px; background:radial-gradient(circle, rgba(34,211,238,0.22), transparent 70%); border-radius:50%; pointer-events:none;"></div>
+          <header style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; position:relative;">
             <div>
-              <div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:#22d3ee; font-weight:600;">Óticas · Premium</div>
-              <h3 style="font-size:22px; font-weight:700; color:#fff; margin-top:4px;">Maxilook</h3>
+              <div style="font-size:10px; letter-spacing:2px; color:#22d3ee; text-transform:uppercase;">№ 03 · Óticas</div>
+              <h3 style="font-size:26px; font-weight:500; color:#fff; margin-top:6px; letter-spacing:-0.02em;">Ótica Maxilook</h3>
             </div>
-            <span style="background:rgba(34,211,238,0.18); color:#a5f3fc; font-size:10px; font-weight:700; padding:5px 10px; border-radius:6px;">1 MÊS</span>
+            <svg width="80" height="36" viewBox="0 0 80 36" fill="none" style="opacity:0.85;">
+              <defs><linearGradient id="grad-mx" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#22d3ee" stop-opacity="0.35"/><stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/></linearGradient></defs>
+              <path d="M2 28 L24 22 L46 14 L78 3 L78 34 L2 34 Z" fill="url(#grad-mx)"/>
+              <path d="M2 28 L24 22 L46 14 L78 3" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <circle cx="78" cy="3" r="2.5" fill="#fff" stroke="#22d3ee" stroke-width="1.5"/>
+            </svg>
+          </header>
+
+          <div style="margin-bottom:24px;">
+            <div class="stat-mono" style="font-size:46px; font-weight:500; color:#fff; line-height:0.95; letter-spacing:-0.02em;">30%<span style="color:#22d3ee; font-size:18px; vertical-align:top;">*</span></div>
+            <div class="editorial-note" style="margin-top:8px;">das vendas via provador <span style="opacity:0.55;">/ 30 dias</span></div>
           </div>
-          <div style="display:flex; flex-direction:column; gap:14px;">
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.08);">
             <div>
-              <div style="font-size:34px; font-weight:800; color:#fff; line-height:1;">30%</div>
-              <div style="font-size:13px; color:rgba(255,255,255,0.55); margin-top:6px;">das vendas vêm do provador</div>
+              <div class="stat-mono" style="font-size:22px; color:#a5f3fc; font-weight:500;">+47%</div>
+              <div class="editorial-note" style="font-size:11px; margin-top:4px;">ticket<br>médio</div>
             </div>
-            <div style="height:1px; background:rgba(255,255,255,0.08);"></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-              <div>
-                <div style="font-size:18px; font-weight:700; color:#22d3ee;">+47%</div>
-                <div style="font-size:11px; color:rgba(255,255,255,0.5);">ticket médio</div>
-              </div>
-              <div>
-                <div style="font-size:18px; font-weight:700; color:#22d3ee;">3x</div>
-                <div style="font-size:11px; color:rgba(255,255,255,0.5);">faturamento vs baseline</div>
-              </div>
+            <div>
+              <div class="stat-mono" style="font-size:22px; color:#a5f3fc; font-weight:500;">3×</div>
+              <div class="editorial-note" style="font-size:11px; margin-top:4px;">faturamento<br>vs. baseline</div>
             </div>
           </div>
-        </div>
+
+          <footer class="editorial-note" style="font-size:10.5px; margin-top:24px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.08); letter-spacing:0.3px;">
+            <span style="color:#22d3ee;">*</span> 749 provas · oticamaxilook.com.br
+          </footer>
+        </article>
 
         <!-- Califa -->
-        <div class="result-card" style="background:linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.02)); border:1px solid rgba(16,185,129,0.25); border-radius:18px; padding:28px;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+        <article class="result-card-v2" style="background:linear-gradient(160deg, rgba(251,191,36,0.10) 0%, rgba(40,28,8,0.4) 60%, rgba(0,0,0,0.6) 100%); border:1px solid rgba(251,191,36,0.3); border-radius:20px; padding:32px; position:relative; overflow:hidden;">
+          <div style="position:absolute; top:-30px; right:-30px; width:140px; height:140px; background:radial-gradient(circle, rgba(251,191,36,0.20), transparent 70%); border-radius:50%; pointer-events:none;"></div>
+          <header style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; position:relative;">
             <div>
-              <div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:#34d399; font-weight:600;">Óticas · Volume</div>
-              <h3 style="font-size:22px; font-weight:700; color:#fff; margin-top:4px;">Califa</h3>
+              <div style="font-size:10px; letter-spacing:2px; color:#fbbf24; text-transform:uppercase;">№ 04 · Óticas</div>
+              <h3 style="font-size:26px; font-weight:500; color:#fff; margin-top:6px; letter-spacing:-0.02em;">Califa Brand</h3>
             </div>
-            <span style="background:rgba(16,185,129,0.18); color:#a7f3d0; font-size:10px; font-weight:700; padding:5px 10px; border-radius:6px;">1 MÊS</span>
+            <svg width="80" height="36" viewBox="0 0 80 36" fill="none" style="opacity:0.85;">
+              <defs><linearGradient id="grad-cl" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#fbbf24" stop-opacity="0.35"/><stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/></linearGradient></defs>
+              <path d="M2 20 L40 14 L78 6 L78 34 L2 34 Z" fill="url(#grad-cl)"/>
+              <path d="M2 20 L40 14 L78 6" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <circle cx="78" cy="6" r="2.5" fill="#fff" stroke="#fbbf24" stroke-width="1.5"/>
+            </svg>
+          </header>
+
+          <div style="margin-bottom:24px;">
+            <div class="stat-mono" style="font-size:46px; font-weight:500; color:#fff; line-height:0.95; letter-spacing:-0.02em;">R$&thinsp;28k<span style="color:#fbbf24; font-size:18px; vertical-align:top;">*</span></div>
+            <div class="editorial-note" style="margin-top:8px;">atribuídos <span style="opacity:0.55;">/ 30 dias</span></div>
           </div>
-          <div style="display:flex; flex-direction:column; gap:14px;">
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.08);">
             <div>
-              <div style="font-size:34px; font-weight:800; color:#fff; line-height:1;">R$ 28 mil</div>
-              <div style="font-size:13px; color:rgba(255,255,255,0.55); margin-top:6px;">em vendas atribuídas (1 mês)</div>
+              <div class="stat-mono" style="font-size:22px; color:#fde68a; font-weight:500;">21%</div>
+              <div class="editorial-note" style="font-size:11px; margin-top:4px;">conversão<br>temporal</div>
             </div>
-            <div style="height:1px; background:rgba(255,255,255,0.08);"></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-              <div>
-                <div style="font-size:18px; font-weight:700; color:#34d399;">21%</div>
-                <div style="font-size:11px; color:rgba(255,255,255,0.5);">conversão temporal</div>
-              </div>
-              <div>
-                <div style="font-size:18px; font-weight:700; color:#34d399;">0,9h</div>
-                <div style="font-size:11px; color:rgba(255,255,255,0.5);">mediana até a compra</div>
-              </div>
+            <div>
+              <div class="stat-mono" style="font-size:22px; color:#fde68a; font-weight:500;">0,9h</div>
+              <div class="editorial-note" style="font-size:11px; margin-top:4px;">mediana<br>até compra</div>
             </div>
           </div>
-        </div>
+
+          <footer class="editorial-note" style="font-size:10.5px; margin-top:24px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.08); letter-spacing:0.3px;">
+            <span style="color:#fbbf24;">*</span> 245 pedidos · califabrand.com.br
+          </footer>
+        </article>
 
       </div>
 
-      <p style="text-align:center; margin-top:36px; font-size:13px; color:rgba(255,255,255,0.4); max-width:600px; margin-left:auto; margin-right:auto;">
-        Métricas extraídas do dashboard de atribuição do Provou Levou, com regra de pedido pós-prova (cliente provou antes de comprar). Atualizado em maio/2026.
-      </p>
+      <!-- Footer editorial: 3 colunas tipo "ficha" -->
+      <div style="margin-top:72px; max-width:880px; margin-left:auto; margin-right:auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:32px; padding-top:32px; border-top:1px solid rgba(255,255,255,0.08);">
+        <div>
+          <div style="font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.4); text-transform:uppercase; margin-bottom:8px;">Metodologia</div>
+          <p style="font-size:12.5px; color:rgba(255,255,255,0.6); line-height:1.55;">Pedido pós-prova = telefone do cliente registrado em <code style="font-size:11px; background:rgba(124,58,237,0.15); padding:1px 5px; border-radius:3px;">geracoes_provou_levou</code> antes do <code style="font-size:11px; background:rgba(124,58,237,0.15); padding:1px 5px; border-radius:3px;">created_at</code> do pedido.</p>
+        </div>
+        <div>
+          <div style="font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.4); text-transform:uppercase; margin-bottom:8px;">Auditoria</div>
+          <p style="font-size:12.5px; color:rgba(255,255,255,0.6); line-height:1.55;">Lojistas têm acesso ao dashboard que filtra marketplaces (ML, TikTok, Shopee). Só pedidos da plataforma própria entram.</p>
+        </div>
+        <div>
+          <div style="font-size:10px; letter-spacing:2px; color:rgba(255,255,255,0.4); text-transform:uppercase; margin-bottom:8px;">Snapshot</div>
+          <p style="font-size:12.5px; color:rgba(255,255,255,0.6); line-height:1.55;">Dados extraídos em maio/2026. Total acumulado em 22 lojas: <strong style="color:#fff; ">R$ 229 mil</strong>.</p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -4360,92 +4470,134 @@
     </div>
   </section>
 
-  <!-- ─── VERTICAIS: MODA OU ÓCULOS ─── -->
-  <section class="section verticals-section" style="background:#000; padding:96px 0; border-top:1px solid rgba(255,255,255,0.05);">
-    <div class="container">
-      <div style="text-align:center; margin-bottom:56px;">
-        <div class="label rv" style="color:#a78bfa;">Para quem é</div>
-        <h2 class="h-section rv d1" style="color:#fff;">Funciona para moda<br>e para óculos.</h2>
-        <p class="body-text rv d2" style="margin-top:14px; max-width:620px; margin-left:auto; margin-right:auto; color:rgba(255,255,255,0.6);">Cada vertical tem uma tese de valor distinta. O modelo de IA, o widget e o dashboard se adaptam à categoria da sua loja.</p>
+  <!-- ─── VERTICAIS: MODA OU ÓCULOS (Editorial Diptico) ─── -->
+  <section class="section verticals-section grain-overlay" style="background:#0a0a0a; padding:120px 0; border-top:1px solid rgba(255,255,255,0.05); position:relative; overflow:hidden;">
+    <div class="container" style="position:relative; z-index:2;">
+
+      <!-- Header diptico -->
+      <div style="text-align:center; margin-bottom:80px; max-width:780px; margin-left:auto; margin-right:auto;">
+        <div style="display:inline-flex; align-items:center; gap:10px; font-size:11px; letter-spacing:2.5px; color:rgba(255,255,255,0.5); text-transform:uppercase; margin-bottom:18px;">
+          <span style="width:24px; height:1px; background:rgba(255,255,255,0.3);"></span>
+          Vol. 02 · Verticais
+          <span style="width:24px; height:1px; background:rgba(255,255,255,0.3);"></span>
+        </div>
+        <h2 class="rv d1" style="font-weight:300; font-size:clamp(2.4rem, 5vw, 4rem); line-height:1.02; letter-spacing:-0.04em; color:#fff;">
+          Dois modelos.<br>
+          <em style="font-style:italic; font-weight:400; background:linear-gradient(135deg, #f472b6 0%, #22d3ee 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Uma só IA.</em>
+        </h2>
+        <p class="rv d2 editorial-note" style="margin-top:20px; max-width:560px; margin-left:auto; margin-right:auto; line-height:1.6; font-size:15px;">
+          Treinada para corpos e treinada para rostos. O widget se adapta à categoria da loja sem você configurar nada.
+        </p>
       </div>
 
-      <div class="verticals-grid rv d3" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(380px, 1fr)); gap:24px; max-width:1200px; margin:0 auto;">
+      <!-- Diptico -->
+      <div class="verticals-grid rv d3" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(380px, 1fr)); gap:28px; max-width:1280px; margin:0 auto;">
 
-        <!-- VESTUÁRIO -->
-        <div class="vertical-card" style="background:linear-gradient(180deg, rgba(236,72,153,0.05), rgba(0,0,0,0)); border:1px solid rgba(236,72,153,0.2); border-radius:24px; padding:40px;">
-          <div style="display:flex; align-items:center; gap:14px; margin-bottom:24px;">
-            <div style="width:56px; height:56px; background:rgba(236,72,153,0.15); border:1px solid rgba(236,72,153,0.3); border-radius:14px; display:flex; align-items:center; justify-content:center;">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 4l-4 4-4-4M5 8l-2 4 4 2 1-2M19 8l2 4-4 2-1-2M8 12v8h8v-8"/>
-              </svg>
-            </div>
-            <div>
-              <div style="font-size:12px; text-transform:uppercase; letter-spacing:1.5px; color:#f472b6; font-weight:600;">Para</div>
-              <h3 style="font-size:26px; font-weight:700; color:#fff;">Marcas de Moda</h3>
-            </div>
-          </div>
-          <p style="color:rgba(255,255,255,0.65); font-size:15px; line-height:1.6; margin-bottom:24px;">O cliente prova a peça no próprio corpo, ganha confiança no tamanho e volta para comprar — várias vezes. <strong style="color:#fff;">Modelo de LTV e fidelização.</strong></p>
-          <div style="display:grid; gap:14px; padding:20px 0; border-top:1px solid rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.06); margin-bottom:20px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:13px; color:rgba(255,255,255,0.55);">Atribuição típica</span>
-              <span style="font-size:15px; font-weight:600; color:#fff;">8% a 22%</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:13px; color:rgba(255,255,255,0.55);">Pedidos/cliente/ano</span>
-              <span style="font-size:15px; font-weight:600; color:#fff;">4 a 6</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:13px; color:rgba(255,255,255,0.55);">Re-engajamento provador</span>
-              <span style="font-size:15px; font-weight:600; color:#fff;">39% a 56%</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:13px; color:rgba(255,255,255,0.55);">Lift em LTV</span>
-              <span style="font-size:15px; font-weight:600; color:#f472b6;">+43%</span>
-            </div>
-          </div>
-          <div style="font-size:13px; color:rgba(255,255,255,0.5);">
-            <strong style="color:#fff;">Quem já usa:</strong> Cacifé Brand, Mariana Cardoso, Calmo Store, Dope Tees, Marandola Moda, Carminito
-          </div>
-        </div>
+        <!-- VESTUÁRIO — Editorial card -->
+        <article style="background:linear-gradient(180deg, rgba(236,72,153,0.08) 0%, rgba(60,12,38,0.15) 50%, rgba(0,0,0,0) 100%); border:1px solid rgba(236,72,153,0.22); border-radius:28px; padding:0; position:relative; overflow:hidden;">
 
-        <!-- ÓCULOS -->
-        <div class="vertical-card" style="background:linear-gradient(180deg, rgba(34,211,238,0.05), rgba(0,0,0,0)); border:1px solid rgba(34,211,238,0.2); border-radius:24px; padding:40px;">
-          <div style="display:flex; align-items:center; gap:14px; margin-bottom:24px;">
-            <div style="width:56px; height:56px; background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); border-radius:14px; display:flex; align-items:center; justify-content:center;">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="6" cy="14" r="4"/>
-                <circle cx="18" cy="14" r="4"/>
-                <path d="M10 14h4M2 11l2-5h3M22 11l-2-5h-3"/>
-              </svg>
+          <!-- Top banner editorial -->
+          <div style="background:linear-gradient(135deg, rgba(236,72,153,0.18), rgba(236,72,153,0.05)); padding:16px 32px; border-bottom:1px solid rgba(236,72,153,0.2); display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:10px; letter-spacing:2px; color:#f472b6; text-transform:uppercase;">A · Moda</span>
+            <span style="font-size:10px; letter-spacing:1.5px; color:rgba(255,255,255,0.5);">LTV / FIDELIZAÇÃO</span>
+          </div>
+
+          <div style="padding:40px 32px;">
+            <!-- Heading editorial -->
+            <h3 style="font-size:32px; font-weight:400; color:#fff; letter-spacing:-0.03em; line-height:1.05; margin-bottom:16px;">
+              Para marcas de<br><em style="font-style:italic; color:#f472b6;">moda autoral.</em>
+            </h3>
+
+            <p style="color:rgba(255,255,255,0.65); font-size:15px; line-height:1.65; margin-bottom:28px; font-weight:300;">
+              O cliente prova a peça no próprio corpo, ganha confiança no caimento e <strong style="color:#fff; font-weight:500;">volta a comprar.</strong> A IA aprende o biotipo e o widget vira balcão de confiança.
+            </p>
+
+            <!-- Stats horizontal table editorial -->
+            <div style="display:flex; flex-direction:column; gap:0; margin-bottom:28px;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid rgba(255,255,255,0.08);">
+                <span class="editorial-note" style="font-size:13px;">Atribuição típica</span>
+                <span class="stat-mono" style="font-size:18px; color:#fff; font-weight:500;">8 — 22<span style="opacity:0.5;">%</span></span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid rgba(255,255,255,0.06);">
+                <span class="editorial-note" style="font-size:13px;">Pedidos / cliente / ano</span>
+                <span class="stat-mono" style="font-size:18px; color:#fff; font-weight:500;">4 — 6</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid rgba(255,255,255,0.06);">
+                <span class="editorial-note" style="font-size:13px;">Re-engajamento provador</span>
+                <span class="stat-mono" style="font-size:18px; color:#fff; font-weight:500;">39 — 56<span style="opacity:0.5;">%</span></span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.06);">
+                <span class="editorial-note" style="font-size:13px; color:#f472b6;">Lift em LTV</span>
+                <span class="stat-mono" style="font-size:22px; color:#f472b6; font-weight:600;">+43<span style="opacity:0.7; font-size:16px;">%</span></span>
+              </div>
             </div>
-            <div>
-              <div style="font-size:12px; text-transform:uppercase; letter-spacing:1.5px; color:#22d3ee; font-weight:600;">Para</div>
-              <h3 style="font-size:26px; font-weight:700; color:#fff;">Óticas</h3>
+
+            <!-- Quem usa -->
+            <div style="padding-top:8px;">
+              <div class="editorial-note" style="font-size:11px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; color:rgba(255,255,255,0.4); font-style:normal;">Quem já usa</div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                <span style="font-style:italic; font-size:14px; color:#fbcfe8; padding:5px 12px; background:rgba(236,72,153,0.08); border-radius:50px; border:1px solid rgba(236,72,153,0.15);">Cacifé</span>
+                <span style="font-style:italic; font-size:14px; color:#fbcfe8; padding:5px 12px; background:rgba(236,72,153,0.08); border-radius:50px; border:1px solid rgba(236,72,153,0.15);">Mariana Cardoso</span>
+                <span style="font-style:italic; font-size:14px; color:#fbcfe8; padding:5px 12px; background:rgba(236,72,153,0.08); border-radius:50px; border:1px solid rgba(236,72,153,0.15);">Calmo</span>
+                <span style="font-style:italic; font-size:14px; color:#fbcfe8; padding:5px 12px; background:rgba(236,72,153,0.08); border-radius:50px; border:1px solid rgba(236,72,153,0.15);">Dope</span>
+                <span style="font-style:italic; font-size:14px; color:#fbcfe8; padding:5px 12px; background:rgba(236,72,153,0.08); border-radius:50px; border:1px solid rgba(236,72,153,0.15);">Marandola</span>
+                <span style="font-style:italic; font-size:14px; color:#fbcfe8; padding:5px 12px; background:rgba(236,72,153,0.08); border-radius:50px; border:1px solid rgba(236,72,153,0.15);">Carminito</span>
+              </div>
             </div>
           </div>
-          <p style="color:rgba(255,255,255,0.65); font-size:15px; line-height:1.6; margin-bottom:24px;">O cliente prova a armação no próprio rosto, vê como fica em minutos e fecha. <strong style="color:#fff;">Modelo de conversão imediata — provador vira balcão virtual.</strong></p>
-          <div style="display:grid; gap:14px; padding:20px 0; border-top:1px solid rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.06); margin-bottom:20px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:13px; color:rgba(255,255,255,0.55);">Atribuição típica</span>
-              <span style="font-size:15px; font-weight:600; color:#fff;">14% a 30%</span>
+        </article>
+
+        <!-- ÓCULOS — Editorial card -->
+        <article style="background:linear-gradient(180deg, rgba(34,211,238,0.08) 0%, rgba(8,40,52,0.15) 50%, rgba(0,0,0,0) 100%); border:1px solid rgba(34,211,238,0.22); border-radius:28px; padding:0; position:relative; overflow:hidden;">
+
+          <div style="background:linear-gradient(135deg, rgba(34,211,238,0.18), rgba(34,211,238,0.05)); padding:16px 32px; border-bottom:1px solid rgba(34,211,238,0.2); display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:10px; letter-spacing:2px; color:#22d3ee; text-transform:uppercase;">B · Óticas</span>
+            <span style="font-size:10px; letter-spacing:1.5px; color:rgba(255,255,255,0.5);">CONVERSÃO IMEDIATA</span>
+          </div>
+
+          <div style="padding:40px 32px;">
+            <h3 style="font-size:32px; font-weight:400; color:#fff; letter-spacing:-0.03em; line-height:1.05; margin-bottom:16px;">
+              Para óticas que<br><em style="font-style:italic; color:#22d3ee;">vendem rápido.</em>
+            </h3>
+
+            <p style="color:rgba(255,255,255,0.65); font-size:15px; line-height:1.65; margin-bottom:28px; font-weight:300;">
+              O cliente prova a armação no rosto, vê o caimento em <strong style="color:#fff; font-weight:500;">menos de uma hora</strong> e fecha. O provador vira o balcão virtual da ótica — tira a dúvida e converte.
+            </p>
+
+            <div style="display:flex; flex-direction:column; gap:0; margin-bottom:28px;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid rgba(255,255,255,0.08);">
+                <span class="editorial-note" style="font-size:13px;">Atribuição típica</span>
+                <span class="stat-mono" style="font-size:18px; color:#fff; font-weight:500;">14 — 30<span style="opacity:0.5;">%</span></span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid rgba(255,255,255,0.06);">
+                <span class="editorial-note" style="font-size:13px; color:#22d3ee;">Mediana até a compra</span>
+                <span class="stat-mono" style="font-size:22px; color:#22d3ee; font-weight:600;">0,9<span style="opacity:0.7; font-size:16px;"> h</span></span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid rgba(255,255,255,0.06);">
+                <span class="editorial-note" style="font-size:13px;">Compra em 1 hora</span>
+                <span class="stat-mono" style="font-size:18px; color:#fff; font-weight:500;">51<span style="opacity:0.5;">%</span></span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.06);">
+                <span class="editorial-note" style="font-size:13px;">Re-engajamento</span>
+                <span class="stat-mono" style="font-size:18px; color:#fff; font-weight:500;">61,6<span style="opacity:0.5;">%</span></span>
+              </div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:13px; color:rgba(255,255,255,0.55);">Mediana até a compra</span>
-              <span style="font-size:15px; font-weight:600; color:#22d3ee;">0,9 hora</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:13px; color:rgba(255,255,255,0.55);">Compra em 1h</span>
-              <span style="font-size:15px; font-weight:600; color:#22d3ee;">51%</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:13px; color:rgba(255,255,255,0.55);">Re-engajamento provador</span>
-              <span style="font-size:15px; font-weight:600; color:#fff;">61,6%</span>
+
+            <div style="padding-top:8px;">
+              <div class="editorial-note" style="font-size:11px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; color:rgba(255,255,255,0.4); font-style:normal;">Quem já usa</div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">Maxilook</span>
+                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">Califa</span>
+                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">Amazoni</span>
+                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">Foss</span>
+                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">Paris London</span>
+                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">Ótica Style</span>
+                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">Liuzzi</span>
+                <span style="font-style:italic; font-size:14px; color:#a5f3fc; padding:5px 12px; background:rgba(34,211,238,0.08); border-radius:50px; border:1px solid rgba(34,211,238,0.15);">+ 4 lojas</span>
+              </div>
             </div>
           </div>
-          <div style="font-size:13px; color:rgba(255,255,255,0.5);">
-            <strong style="color:#fff;">Quem já usa:</strong> Maxilook, Califa, Amazoni, Foss Eyewear, Paris London, Ótica Style, Liuzzi, Óculos em Foco, Marina, Arantz, Soucet
-          </div>
-        </div>
+        </article>
 
       </div>
     </div>
@@ -5481,8 +5633,7 @@
     <div class="container">
       <div class="label rv">Comece Agora</div>
       <h2 class="h-section rv d1">Preparado para transformar<br>seu <span class="gradient-text">e-commerce?</span></h2>
-      <p class="body-lg rv d2">Fale agora com um especialista e descubra como o Provou Levou pode escalar seu negócio.
-      </p>
+      <p class="body-lg rv d2">Fale agora com um especialista. Mostramos números reais de lojas como a sua — moda ou óculos — e calculamos seu ROI antes de você assinar.</p>
       <div class="hero-ctas rv d3">
         <a href="https://wa.me/5511965749173?text=Olá, tenho interesse no Provador Virtual." class="btn-main"
           target="_blank" style="padding: 16px 36px; font-size: 16px;" data-fb-event="InitiateCheckout" data-fb-label="CTA Final - Implementar Agora">Implementar Agora <svg viewBox="0 0 16 16"
@@ -5535,6 +5686,16 @@
           <div style="font-size: 11px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">Case Real</div>
           <h3 style="font-size: 18px; color: #edebe7; margin-bottom: 8px; font-weight: 600;">Case Cacifé: 14% conversão com provador virtual</h3>
           <p style="color: #999; font-size: 14px; line-height: 1.5;">R$ 85k em 98 dias, 631 novos clientes — números completos.</p>
+        </a>
+        <a href="/provador-virtual-roupa/" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 24px; border-radius: 12px; border: 1px solid rgba(124,58,237,0.3); display: block;">
+          <div style="font-size: 11px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">Página dedicada</div>
+          <h3 style="font-size: 18px; color: #edebe7; margin-bottom: 8px; font-weight: 600;">Provador virtual de roupa</h3>
+          <p style="color: #999; font-size: 14px; line-height: 1.5;">Cases Cacifé (14% conversão) e Mariana (+43% LTV). Para lojas de roupa.</p>
+        </a>
+        <a href="/provador-virtual-oculos/" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 24px; border-radius: 12px; border: 1px solid rgba(124,58,237,0.3); display: block;">
+          <div style="font-size: 11px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">Página dedicada</div>
+          <h3 style="font-size: 18px; color: #edebe7; margin-bottom: 8px; font-weight: 600;">Provador virtual de óculos</h3>
+          <p style="color: #999; font-size: 14px; line-height: 1.5;">51% compram em 1h. 5 óticas em produção. Para Nuvemshop, Tray e Bagy.</p>
         </a>
         <a href="/blog/provador-virtual-oculos.html" style="text-decoration: none; color: inherit; background: #1a1a1a; padding: 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); display: block;">
           <div style="font-size: 11px; color: #a78bfa; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">Categoria</div>
