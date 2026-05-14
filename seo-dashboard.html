@@ -453,8 +453,56 @@
       </div>
     </div>
 
+    <!-- ─── BING WEBMASTER ─── -->
+    <h2 style="margin: 32px 0 16px; font-size:16px; font-weight:600;">Bing Webmaster <span style="font-size:11px; color:var(--text-muted); font-weight:400;">(sync diario via n8n · alimenta SearchGPT / ChatGPT browsing)</span></h2>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="label">Impressoes Bing</div>
+        <div class="value" id="card-bing-impressions">-</div>
+        <div class="sub" id="card-bing-impressions-sub">acumulado</div>
+      </div>
+      <div class="card">
+        <div class="label">Cliques organicos</div>
+        <div class="value" id="card-bing-clicks">-</div>
+        <div class="sub" id="card-bing-clicks-sub">do Bing</div>
+      </div>
+      <div class="card">
+        <div class="label">CTR Bing</div>
+        <div class="value" id="card-bing-ctr">-</div>
+        <div class="sub" id="card-bing-ctr-sub">cliques / impressoes</div>
+      </div>
+      <div class="card">
+        <div class="label">Backlinks (Bing)</div>
+        <div class="value" id="card-bing-backlinks">-</div>
+        <div class="sub" id="card-bing-backlinks-sub">dominios unicos</div>
+      </div>
+    </div>
+
+    <div class="charts-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="panel">
+        <h3>Trafego Bing diario <span class="count" id="chart-bing-period"></span></h3>
+        <div class="chart-wrap"><canvas id="chart-bing-trend"></canvas></div>
+      </div>
+      <div class="panel">
+        <h3>Top Backlinks (Bing detectou)</h3>
+        <table id="table-bing-backlinks"><thead><tr><th>Dominio referenciador</th><th style="text-align:right;">Links</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+
+    <div class="tables-grid">
+      <div class="panel">
+        <h3>Top Queries no Bing</h3>
+        <table id="table-bing-queries"><thead><tr><th>Query</th><th style="text-align:right;">Cliques</th><th style="text-align:right;">Impr.</th><th style="text-align:right;">CTR</th><th style="text-align:right;">Posic.</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="panel">
+        <h3>Top Paginas no Bing</h3>
+        <table id="table-bing-pages"><thead><tr><th>Pagina</th><th style="text-align:right;">Cliques</th><th style="text-align:right;">Impr.</th><th style="text-align:right;">Posic.</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+
     <div class="footer-info">
-      Dados atualizados em tempo real via Supabase. Tabelas <code>page_views</code>, <code>landing_leads</code>, <code>gsc_metrics</code>.
+      Dados atualizados em tempo real via Supabase. Tabelas <code>page_views</code>, <code>landing_leads</code>, <code>gsc_metrics</code>, <code>bing_metrics</code>, <code>bing_traffic</code>, <code>bing_backlinks</code>.
       <br>GA4 (engagement, bounce, etc) disponivel em <a href="https://analytics.google.com" target="_blank" style="color:var(--purple-light);">analytics.google.com</a>.
     </div>
   </div>
@@ -759,6 +807,16 @@
       try {
         gscRows = await fetchSupa('gsc_metrics?select=date,query,page,clicks,impressions,position&date=gte.' + sinceDate + '&order=date.desc&limit=20000');
       } catch (e) { console.warn('gsc_metrics fail', e); }
+      let bingMetrics = [], bingTraffic = [], bingBacklinks = [];
+      try {
+        bingMetrics = await fetchSupa('bing_metrics?select=captured_at,type,text,impressions,clicks,avg_position&captured_at=gte.' + since + '&order=captured_at.desc&limit=20000');
+      } catch (e) { console.warn('bing_metrics fail', e); }
+      try {
+        bingTraffic = await fetchSupa('bing_traffic?select=date,impressions,clicks&date=gte.' + sinceDate + '&order=date.desc&limit=200');
+      } catch (e) { console.warn('bing_traffic fail', e); }
+      try {
+        bingBacklinks = await fetchSupa('bing_backlinks?select=source_url,target_url,anchor_text&limit=2000');
+      } catch (e) { console.warn('bing_backlinks fail', e); }
       renderCards(pv, leads);
       renderTrend(pv, days);
       renderChannelDonut(pv);
@@ -769,8 +827,10 @@
       renderPages(pv);
       renderConversion(pv, leads);
       renderGsc(gscRows, days);
+      renderBing(bingMetrics, bingTraffic, bingBacklinks, days);
       document.getElementById('chart-trend-period').textContent = '(ultimos ' + days + ' dias)';
       document.getElementById('chart-gsc-period').textContent = '(ultimos ' + days + ' dias)';
+      document.getElementById('chart-bing-period').textContent = '(ultimos ' + days + ' dias)';
     }
 
     function renderGsc(rows, days) {
@@ -1145,6 +1205,140 @@
         appendCell(tr, rate, { num: true });
         tbody.appendChild(tr);
       });
+    }
+
+    function renderBing(metrics, traffic, backlinks, days) {
+      // ─── Cards ───
+      const totalClicks = traffic.reduce((s, r) => s + (r.clicks || 0), 0);
+      const totalImpr = traffic.reduce((s, r) => s + (r.impressions || 0), 0);
+      const ctr = totalImpr ? (totalClicks / totalImpr * 100).toFixed(2) + '%' : '-';
+      const uniqDomains = new Set(backlinks.map(b => {
+        try { return new URL(b.source_url).hostname.replace(/^www\./, ''); } catch (e) { return b.source_url; }
+      })).size;
+      document.getElementById('card-bing-impressions').textContent = fmt(totalImpr);
+      document.getElementById('card-bing-clicks').textContent = fmt(totalClicks);
+      document.getElementById('card-bing-ctr').textContent = ctr;
+      document.getElementById('card-bing-backlinks').textContent = fmt(uniqDomains);
+      document.getElementById('card-bing-backlinks-sub').textContent = backlinks.length + ' links totais';
+
+      // ─── Gráfico de tráfego diário ───
+      const byDay = {};
+      for (let i = 0; i < days; i++) {
+        const d = localDay(new Date(Date.now() - i * 86400000));
+        byDay[d] = { clicks: 0, impressions: 0 };
+      }
+      traffic.forEach(r => {
+        const d = r.date;
+        if (!byDay[d]) return;
+        byDay[d].clicks += r.clicks || 0;
+        byDay[d].impressions += r.impressions || 0;
+      });
+      const labels = Object.keys(byDay).sort();
+      const c = chartColors();
+      if (charts.bingTrend) charts.bingTrend.destroy();
+      const ctxBing = document.getElementById('chart-bing-trend').getContext('2d');
+      charts.bingTrend = new Chart(ctxBing, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Cliques', data: labels.map(d => byDay[d].clicks),
+              borderColor: '#3b82f6', backgroundColor: '#3b82f620',
+              yAxisID: 'y', fill: true, tension: 0.3, pointRadius: 0 },
+            { label: 'Impressoes', data: labels.map(d => byDay[d].impressions),
+              borderColor: '#a78bfa', backgroundColor: '#a78bfa20',
+              yAxisID: 'y1', fill: false, tension: 0.3, pointRadius: 0 },
+          ],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { intersect: false, mode: 'index' },
+          plugins: { legend: { position: 'bottom', labels: { color: c.text, font: { size: 11 } } } },
+          scales: {
+            x: { ticks: { color: c.ticks, font: { size: 10 } }, grid: { color: c.grid } },
+            y: { ticks: { color: c.ticks, font: { size: 10 } }, grid: { color: c.grid }, position: 'left',
+                 title: { display: true, text: 'Cliques', color: c.ticks } },
+            y1: { ticks: { color: c.ticks, font: { size: 10 } }, grid: { display: false }, position: 'right',
+                  title: { display: true, text: 'Impressoes', color: c.ticks } },
+          },
+        }
+      });
+
+      // ─── Top backlinks por domínio referenciador ───
+      const domAgg = {};
+      backlinks.forEach(b => {
+        let dom = b.source_url;
+        try { dom = new URL(b.source_url).hostname.replace(/^www\./, ''); } catch (e) {}
+        domAgg[dom] = (domAgg[dom] || 0) + 1;
+      });
+      const sortedDoms = Object.entries(domAgg).sort((a,b) => b[1] - a[1]).slice(0, 10);
+      const tbodyB = document.querySelector('#table-bing-backlinks tbody');
+      clearChildren(tbodyB);
+      if (sortedDoms.length === 0) {
+        emptyRow(tbodyB, 2, 'Sem backlinks ainda (Bing precisa crawlar primeiro)');
+      } else {
+        sortedDoms.forEach(([d, n]) => {
+          const tr = document.createElement('tr');
+          appendCell(tr, d);
+          appendCell(tr, fmt(n), { num: true });
+          tbodyB.appendChild(tr);
+        });
+      }
+
+      // ─── Top Queries ───
+      const queryAgg = {};
+      metrics.filter(m => m.type === 'query' && m.text).forEach(m => {
+        if (!queryAgg[m.text]) queryAgg[m.text] = { clicks: 0, impr: 0, posSum: 0 };
+        queryAgg[m.text].clicks += m.clicks || 0;
+        queryAgg[m.text].impr += m.impressions || 0;
+        queryAgg[m.text].posSum += (m.avg_position || 0) * (m.impressions || 0);
+      });
+      const topQ = Object.entries(queryAgg)
+        .sort((a,b) => b[1].clicks - a[1].clicks || b[1].impr - a[1].impr)
+        .slice(0, 15);
+      const tbodyQ = document.querySelector('#table-bing-queries tbody');
+      clearChildren(tbodyQ);
+      if (topQ.length === 0) {
+        emptyRow(tbodyQ, 5, 'Sem dados (aguardando primeiro sync Bing)');
+      } else {
+        topQ.forEach(([q, m]) => {
+          const tr = document.createElement('tr');
+          appendCell(tr, q);
+          appendCell(tr, fmt(m.clicks), { num: true });
+          appendCell(tr, fmt(m.impr), { num: true });
+          appendCell(tr, m.impr ? (m.clicks / m.impr * 100).toFixed(1) + '%' : '-', { num: true });
+          appendCell(tr, m.impr ? (m.posSum / m.impr).toFixed(1) : '-', { num: true });
+          tbodyQ.appendChild(tr);
+        });
+      }
+
+      // ─── Top Pages ───
+      const pageAgg = {};
+      metrics.filter(m => m.type === 'page' && m.text).forEach(m => {
+        if (!pageAgg[m.text]) pageAgg[m.text] = { clicks: 0, impr: 0, posSum: 0 };
+        pageAgg[m.text].clicks += m.clicks || 0;
+        pageAgg[m.text].impr += m.impressions || 0;
+        pageAgg[m.text].posSum += (m.avg_position || 0) * (m.impressions || 0);
+      });
+      const topP = Object.entries(pageAgg)
+        .sort((a,b) => b[1].clicks - a[1].clicks || b[1].impr - a[1].impr)
+        .slice(0, 15);
+      const tbodyP = document.querySelector('#table-bing-pages tbody');
+      clearChildren(tbodyP);
+      if (topP.length === 0) {
+        emptyRow(tbodyP, 4, 'Sem dados (aguardando primeiro sync Bing)');
+      } else {
+        topP.forEach(([p, m]) => {
+          let display = p;
+          try { display = new URL(p).pathname || '/'; } catch (e) {}
+          const tr = document.createElement('tr');
+          appendCell(tr, display);
+          appendCell(tr, fmt(m.clicks), { num: true });
+          appendCell(tr, fmt(m.impr), { num: true });
+          appendCell(tr, m.impr ? (m.posSum / m.impr).toFixed(1) : '-', { num: true });
+          tbodyP.appendChild(tr);
+        });
+      }
     }
   </script>
 </body>
