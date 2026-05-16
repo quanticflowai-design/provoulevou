@@ -6111,7 +6111,7 @@
       // Guard: nao trackear quando aberto via file:// (testes locais poluem dados)
       if (window.location.protocol === 'file:') return;
       var _h = window.location.hostname;
-      if (_h === 'localhost' || _h === '127.0.0.1' || _h === '' || _h.endsWith('.local')) return;
+      if (_h === 'localhost' || _h === '127.0.0.1' || _h === '72.61.128.136' || _h === '' || _h.endsWith('.local')) return;
       var _p = window.location.pathname;
       if (_p.indexOf('/Users/') === 0 || _p.indexOf('/home/') === 0) return;
       if (/^\/test(\/|$|-)/i.test(_p)) return;
@@ -6163,7 +6163,7 @@
         try {
           var refHost = new URL(ref).hostname.toLowerCase();
           var thisHost = window.location.hostname.toLowerCase();
-          if (refHost === thisHost) return { source: 'internal', medium: 'internal' }; // navegacao entre paginas do site
+          if (refHost === thisHost || refHost === '72.61.128.136') return { source: 'internal', medium: 'internal' }; // navegacao entre paginas do site
           // Search engines
           if (/google\./.test(refHost)) return { source: 'google', medium: 'organic' };
           if (/bing\./.test(refHost)) return { source: 'bing', medium: 'organic' };
