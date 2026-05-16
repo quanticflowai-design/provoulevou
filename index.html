@@ -6237,7 +6237,8 @@
               utm_content: utm.utm_content,
               page_path: (window.location.pathname.replace(/\/index\.html$/i, '/') || '/') + window.location.search,
               referrer: document.referrer || null,
-              user_agent: navigator.userAgent
+              user_agent: navigator.userAgent,
+              source_type: (utm.utm_source === 'widget' || utm.utm_source === 'loja-teste') ? 'widget' : 'site'
             }),
             keepalive: true
           }).catch(function () {});

@@ -802,7 +802,7 @@
         pv = await fetchSupa('page_views?select=created_at,session_id,page_path,referrer,utm_source,utm_medium,utm_campaign,is_organic,is_direct,is_referral,screen_width,language,user_agent&created_at=gte.' + since + '&order=created_at.desc&limit=10000');
       } catch (e) { console.error('page_views fail', e); }
       try {
-        leads = await fetchSupa('landing_leads?select=created_at,utm_source,utm_medium,page_path,referrer&created_at=gte.' + since + '&limit=5000');
+        leads = await fetchSupa('landing_leads?select=created_at,utm_source,utm_medium,page_path,referrer,source_type&source_type=eq.site&created_at=gte.' + since + '&limit=5000');
       } catch (e) { console.warn('landing_leads fail', e); }
       try {
         gscRows = await fetchSupa('gsc_metrics?select=date,query,page,clicks,impressions,position&date=gte.' + sinceDate + '&order=date.desc&limit=20000');
