@@ -2417,6 +2417,7 @@
         let allOrdersCache = [];
         let allGensShared = [];
         let preProvadorBaseline = null; // { pedidosPerDay, fatPerDay, unicosPerDay, days, firstProvaDate }
+        let yoyBaseline = null; // { fatPerDay, pedidosPerDay, days, windowStart, windowEnd } — mesmo período pós-instalação do ano anterior
         let _csvProvasData = [];
         let _csvComprasData = [];
         let _csvLtvData = [];
@@ -2579,15 +2580,18 @@
             if (footer) footer.style.display = '';
             const postFatDay = postFat / postDays;
             const postPedDay = postPedidos / postDays;
-            const preFatDay = preProvadorBaseline.fatPerDay;
-            const prePedDay = preProvadorBaseline.pedidosPerDay;
+            // Prefere YoY (mesmo período ano anterior) quando há dado histórico — neutraliza sazonalidade.
+            // Cai pro baseline 90d quando a loja não tem 1+ ano de histórico de pedidos.
+            const useYoy = yoyBaseline && yoyBaseline.fatPerDay > 0;
+            const baseFatDay = useYoy ? yoyBaseline.fatPerDay : preProvadorBaseline.fatPerDay;
+            const basePedDay = useYoy ? yoyBaseline.pedidosPerDay : preProvadorBaseline.pedidosPerDay;
             const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
-            document.getElementById('crescAntesFat').textContent = brl(preFatDay);
-            document.getElementById('crescAntesPedidos').textContent = prePedDay.toFixed(1) + ' pedidos/dia';
+            document.getElementById('crescAntesFat').textContent = brl(baseFatDay);
+            document.getElementById('crescAntesPedidos').textContent = basePedDay.toFixed(1) + ' pedidos/dia';
             document.getElementById('crescDepoisFat').textContent = brl(postFatDay);
             document.getElementById('crescDepoisPedidos').textContent = postPedDay.toFixed(1) + ' pedidos/dia';
-            const fatDelta = preFatDay > 0 ? (postFatDay / preFatDay - 1) * 100 : 0;
-            const pedDelta = prePedDay > 0 ? (postPedDay / prePedDay - 1) * 100 : 0;
+            const fatDelta = baseFatDay > 0 ? (postFatDay / baseFatDay - 1) * 100 : 0;
+            const pedDelta = basePedDay > 0 ? (postPedDay / basePedDay - 1) * 100 : 0;
             const sign = v => v > 0 ? '+' : '';
             const deltaFatEl = document.getElementById('crescDeltaFat');
             deltaFatEl.textContent = sign(fatDelta) + fatDelta.toFixed(1) + '%';
@@ -2597,10 +2601,19 @@
                 const [y, m, day] = d.split('-');
                 return day + '/' + m + '/' + y;
             };
-            document.getElementById('crescimentoLojaFooter').textContent =
-                'Antes: ' + preProvadorBaseline.days + ' dias antes da instalação · ' +
-                'Depois: ' + postDays + ' dias desde ' + fmtDate(preProvadorBaseline.firstProvaDate) + ' · ' +
-                'Faturamento total da loja (todos os pedidos pagos)';
+            const footerEl = document.getElementById('crescimentoLojaFooter');
+            if (useYoy) {
+                footerEl.textContent =
+                    'Comparação YoY: ' + fmtDate(yoyBaseline.windowStart) + ' a ' + fmtDate(yoyBaseline.windowEnd) +
+                    ' (ano anterior) vs ' + fmtDate(preProvadorBaseline.firstProvaDate) +
+                    ' até hoje · ' + postDays + ' dias · neutraliza sazonalidade.';
+            } else {
+                footerEl.textContent =
+                    'Antes: ' + preProvadorBaseline.days + ' dias antes da instalação · ' +
+                    'Depois: ' + postDays + ' dias desde ' + fmtDate(preProvadorBaseline.firstProvaDate) + ' · ' +
+                    'Faturamento total da loja (todos os pedidos pagos) · ' +
+                    'Sem 1 ano de histórico para YoY ainda.';
+            }
             card.style.display = 'block';
         }
 
@@ -2930,7 +2943,8 @@
                 .from(activeUser.tabela_pedidos)
                 .select(selectFields)
                 .in(fStatus, fStatusValues)
-                .order('created_at', { ascending: true });
+                .order('created_at', { ascending: true })
+                .order('id', { ascending: true });
             if (earliestProvaDate) ordQuery = ordQuery.gte(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00');
             if (activeUser.canal_provador) ordQuery = ordQuery.eq('channel', activeUser.canal_provador);
             // Fetch all rows (Supabase defaults to 1000)
@@ -2944,10 +2958,22 @@
                 if (batch.length < _pageSize) break;
                 _page++;
             }
-            allOrdersCache = allOrdersArr;
+            // Defensive dedup por id_pedido — caso a paginação ainda traga duplicatas
+            // (ex: rows com mesmo created_at sem tiebreaker, ou ordem instável do PG).
+            {
+                const seen = new Set();
+                allOrdersCache = allOrdersArr.filter(o => {
+                    const k = o.id_pedido != null ? String(o.id_pedido) : (o.id != null ? 'pk:' + o.id : null);
+                    if (!k) return true;
+                    if (seen.has(k)) return false;
+                    seen.add(k);
+                    return true;
+                });
+            }
 
             // Baseline pré-provador: pedidos pagos da loja nos 90 dias antes da primeira prova
             preProvadorBaseline = null;
+            yoyBaseline = null;
             if (earliestProvaDate) {
                 const provaStartMs = new Date(earliestProvaDate + 'T00:00:00-03:00').getTime();
                 const baselineSinceMs = provaStartMs - 90 * 24 * 60 * 60 * 1000;
@@ -2992,6 +3018,43 @@
                             firstProvaDate: earliestProvaDate
                         };
                     }
+                }
+
+                // YoY baseline: mesmo período pós-instalação do ano anterior
+                // Neutraliza sazonalidade (Black Friday, Natal etc) que distorce o baseline de 90 dias
+                // quando a instalação cai logo depois desses picos.
+                const yoyEndMs = Date.now() - 365 * 24 * 60 * 60 * 1000;
+                const yoyStartMs = provaStartMs - 365 * 24 * 60 * 60 * 1000;
+                const yoyStartIso = new Date(yoyStartMs).toISOString();
+                const yoyEndIso = new Date(yoyEndMs).toISOString();
+                const yoyRows = [];
+                let _yp = 0;
+                const _yps = 1000;
+                while (true) {
+                    let yQ = supabaseClient
+                        .from(activeUser.tabela_pedidos)
+                        .select(`${fDataPedido || 'created_at'}, ${fTotal}`)
+                        .in(fStatus, fStatusValues)
+                        .gte(fDataPedido || 'created_at', yoyStartIso)
+                        .lt(fDataPedido || 'created_at', yoyEndIso);
+                    if (activeUser.canal_provador) yQ = yQ.eq('channel', activeUser.canal_provador);
+                    const { data: batch } = await yQ.range(_yp * _yps, (_yp + 1) * _yps - 1);
+                    if (!batch || batch.length === 0) break;
+                    yoyRows.push(...batch);
+                    if (batch.length < _yps) break;
+                    _yp++;
+                }
+                if (yoyRows.length > 0) {
+                    let yoyFat = 0;
+                    for (const r of yoyRows) yoyFat += parseFloat(r[fTotal]) || 0;
+                    const yoyDays = Math.max(1, Math.round((yoyEndMs - yoyStartMs) / (24 * 60 * 60 * 1000)));
+                    yoyBaseline = {
+                        fatPerDay: yoyFat / yoyDays,
+                        pedidosPerDay: yoyRows.length / yoyDays,
+                        days: yoyDays,
+                        windowStart: new Date(yoyStartMs).toISOString().slice(0,10),
+                        windowEnd: new Date(yoyEndMs).toISOString().slice(0,10),
+                    };
                 }
             }
 
