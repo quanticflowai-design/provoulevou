@@ -2958,17 +2958,43 @@
                 if (batch.length < _pageSize) break;
                 _page++;
             }
-            // Defensive dedup por id_pedido — caso a paginação ainda traga duplicatas
-            // (ex: rows com mesmo created_at sem tiebreaker, ou ordem instável do PG).
+            // Defensive dedup em 2 níveis:
+            // 1) Por id_pedido — pega duplicação de paginação (mesma row em 2 páginas).
+            // 2) Por composite (phone + timestamp + total) — pega duplicação ESTRUTURAL,
+            //    quando o mesmo pedido entra 2x via syncs diferentes com id_pedido distintos
+            //    (ex: webhook Nuvemshop com order_number vs id interno do produto).
+            //    Quando há colisão composta, mantém preferencialmente a row com order_number
+            //    preenchido (numeração visível pro lojista) ou a com id_pedido menor.
             {
-                const seen = new Set();
-                allOrdersCache = allOrdersArr.filter(o => {
-                    const k = o.id_pedido != null ? String(o.id_pedido) : (o.id != null ? 'pk:' + o.id : null);
-                    if (!k) return true;
-                    if (seen.has(k)) return false;
-                    seen.add(k);
-                    return true;
-                });
+                const seenPedido = new Set();
+                const phoneField = activeUser.campo_telefone_pedido || 'customer_phone';
+                const totalField = activeUser.campo_total_pedido || 'total';
+                const dateField = activeUser.campo_data_pedido || 'created_at';
+                const compositeMap = new Map(); // key -> row escolhida
+                const pickWinner = (a, b) => {
+                    // prefere quem tem order_number setado
+                    const aHasON = a.order_number != null && a.order_number !== '';
+                    const bHasON = b.order_number != null && b.order_number !== '';
+                    if (aHasON !== bHasON) return aHasON ? a : b;
+                    // empata: menor id_pedido vence (numeração curta da loja)
+                    const aId = Number(a.id_pedido); const bId = Number(b.id_pedido);
+                    if (!isNaN(aId) && !isNaN(bId)) return aId <= bId ? a : b;
+                    return a;
+                };
+                for (const o of allOrdersArr) {
+                    const kPedido = o.id_pedido != null ? String(o.id_pedido) : (o.id != null ? 'pk:' + o.id : null);
+                    if (kPedido && seenPedido.has(kPedido)) continue;
+                    if (kPedido) seenPedido.add(kPedido);
+                    const phone = String(o[phoneField] || '').replace(/\D/g, '');
+                    const ts = String(o[dateField] || o.created_at || '').slice(0, 19);
+                    const total = Number(o[totalField] || 0).toFixed(2);
+                    const kComposite = phone && ts ? `${phone}|${ts}|${total}` : null;
+                    if (kComposite) {
+                        const prev = compositeMap.get(kComposite);
+                        compositeMap.set(kComposite, prev ? pickWinner(prev, o) : o);
+                    }
+                }
+                allOrdersCache = Array.from(compositeMap.values());
             }
 
             // Baseline pré-provador: pedidos pagos da loja nos 90 dias antes da primeira prova
