@@ -442,6 +442,119 @@
             margin-bottom: 28px;
         }
 
+        /* Card de consumo do plano (provas usadas desde último pagamento) */
+        .consumo-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 22px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .consumo-card::before {
+            content: '';
+            position: absolute; left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: var(--primary);
+            opacity: 0.7;
+        }
+        .consumo-card.warn::before { background: #f59e0b; }
+        .consumo-card.danger::before { background: #ef4444; }
+        .consumo-card.unlimited::before { background: #a855f7; }
+        .consumo-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .consumo-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .consumo-plan-name {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.3px;
+            line-height: 1.1;
+        }
+        .consumo-plan-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .consumo-status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 5px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .consumo-status-badge.ok      { background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.30); }
+        .consumo-status-badge.warn    { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.30); }
+        .consumo-status-badge.danger  { background: rgba(239,68,68,0.12);  color: #ef4444; border: 1px solid rgba(239,68,68,0.30); }
+        .consumo-status-badge.violet  { background: rgba(168,85,247,0.12); color: #a855f7; border: 1px solid rgba(168,85,247,0.30); }
+        .consumo-status-badge.muted   { background: rgba(148,163,184,0.10); color: var(--text-muted); border: 1px solid var(--border); }
+        .consumo-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+        @media (max-width: 640px) { .consumo-stats { grid-template-columns: repeat(2, 1fr); } }
+        .consumo-stat-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 4px;
+        }
+        .consumo-stat-value {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.3px;
+        }
+        .consumo-stat-value.highlight { color: var(--primary); }
+        .consumo-stat-value.warn      { color: #f59e0b; }
+        .consumo-stat-value.danger    { color: #ef4444; }
+        .consumo-stat-value.violet    { color: #a855f7; }
+        .consumo-bar-wrap {
+            position: relative;
+            height: 10px;
+            background: rgba(148,163,184,0.12);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .consumo-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #c084fc);
+            border-radius: 999px;
+            transition: width 0.6s cubic-bezier(0.2,0.9,0.3,1);
+        }
+        .consumo-card.warn   .consumo-bar-fill { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .consumo-card.danger .consumo-bar-fill { background: linear-gradient(90deg, #ef4444, #f87171); }
+        .consumo-card.unlimited .consumo-bar-fill { background: linear-gradient(90deg, #a855f7, #c084fc); }
+        .consumo-footer {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+        .consumo-footer strong { color: var(--text); font-weight: 600; }
+
         .stat-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -1707,6 +1820,40 @@
                         <i class="ph-bold ph-chart-pie-slice" style="color:var(--primary);"></i> Visão Geral
                     </h2>
                     <span style="font-size:12px;color:var(--text-muted);">Comparação com o mês anterior</span>
+                </div>
+
+                <!-- Card de Consumo do Plano (provas usadas desde último pagamento) -->
+                <div id="consumoPlanoCard" class="consumo-card" style="display:none;">
+                    <div class="consumo-header">
+                        <div>
+                            <div class="consumo-label">Seu Plano</div>
+                            <div class="consumo-plan-name" id="consumoPlanName">—</div>
+                            <div class="consumo-plan-sub" id="consumoPlanSub"></div>
+                        </div>
+                        <span class="consumo-status-badge muted" id="consumoStatusBadge">—</span>
+                    </div>
+                    <div class="consumo-stats">
+                        <div>
+                            <span class="consumo-stat-label">Utilizadas</span>
+                            <span class="consumo-stat-value" id="consumoUsadas">0</span>
+                        </div>
+                        <div>
+                            <span class="consumo-stat-label" id="consumoLimiteLabel">Limite do Plano</span>
+                            <span class="consumo-stat-value" id="consumoLimite">—</span>
+                        </div>
+                        <div>
+                            <span class="consumo-stat-label">Restantes</span>
+                            <span class="consumo-stat-value highlight" id="consumoRestantes">—</span>
+                        </div>
+                        <div>
+                            <span class="consumo-stat-label">% Consumido</span>
+                            <span class="consumo-stat-value" id="consumoPct">—</span>
+                        </div>
+                    </div>
+                    <div class="consumo-bar-wrap">
+                        <div class="consumo-bar-fill" id="consumoBarFill" style="width:0%"></div>
+                    </div>
+                    <div class="consumo-footer" id="consumoFooter"></div>
                 </div>
 
                 <div class="stats-grid" style="margin-bottom:20px;">
@@ -3655,6 +3802,190 @@
             });
         }
 
+        // ====== Consumo do Plano (provas usadas desde último pagamento) ======
+        // Cruza activeUser.email com provou_levou_stores pra pegar plano + last_payment.
+        // Conta provas em geracoes_provou_levou desde a data de início do ciclo.
+        // Ultra Power / planos personalizados são tratados como "ilimitado" com limite
+        // de referência 3.000/mês (excedente cobrado no fechamento mensal).
+        const PLAN_LIMITS_LOJISTA = {
+            'Starter': 50, 'Inicial': 100, 'Médio': 500, 'Premium': 1200,
+            'Essencial': 50, 'Crescimento': 100, 'Performance': 500, 'Escala': 1200,
+            'Ultra Power': Infinity
+        };
+        const UNLIMITED_REF_LIMIT = 3000;
+
+        function fmtPlanDate(iso) {
+            if (!iso) return null;
+            const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (!m) return iso;
+            return m[3] + '/' + m[2] + '/' + m[1];
+        }
+
+        // Monta footer com partes alternando texto plano e <strong> sem usar innerHTML
+        function setFooterParts(parts) {
+            const el = document.getElementById('consumoFooter');
+            while (el.firstChild) el.removeChild(el.firstChild);
+            parts.forEach(p => {
+                if (p && p.bold) {
+                    const s = document.createElement('strong');
+                    s.textContent = p.text;
+                    el.appendChild(s);
+                } else {
+                    el.appendChild(document.createTextNode(p.text));
+                }
+            });
+        }
+
+        async function loadConsumoPlano() {
+            const card = document.getElementById('consumoPlanoCard');
+            if (!card || !activeUser || !activeUser.email) { if (card) card.style.display = 'none'; return; }
+            try {
+                const { data: store, error } = await supabaseClient
+                    .from('provou_levou_stores')
+                    .select('plan, status, last_payment, implementation_date, plano_personalizado')
+                    .eq('email', activeUser.email)
+                    .maybeSingle();
+                if (error || !store) { card.style.display = 'none'; return; }
+
+                const isTeste = store.status === 'Teste Gratuito';
+                const startDate = (store.last_payment && store.last_payment !== '-')
+                    ? store.last_payment
+                    : (isTeste ? store.implementation_date : null);
+
+                if (!startDate) { card.style.display = 'none'; return; }
+
+                const origem = activeUser.origem;
+                if (!origem) { card.style.display = 'none'; return; }
+                const cutoff = startDate + 'T00:00:00';
+                const { count, error: cErr } = await supabaseClient
+                    .from('geracoes_provou_levou')
+                    .select('id', { count: 'exact', head: true })
+                    .ilike('origin', '%' + origem + '%')
+                    .gte('created_at', cutoff);
+                if (cErr) { console.warn('[consumo] erro provas:', cErr.message); card.style.display = 'none'; return; }
+                const usadas = count || 0;
+
+                const planLabel = store.plano_personalizado || store.plan || '—';
+                const isPersonalizado = !!store.plano_personalizado;
+                const baseLimit = PLAN_LIMITS_LOJISTA[store.plan];
+                const isUnlimited = baseLimit === Infinity || isPersonalizado;
+                const limite = isUnlimited ? UNLIMITED_REF_LIMIT : (baseLimit || 0);
+                const pct = limite > 0 ? (usadas / limite) * 100 : 0;
+                const restantes = Math.max(0, limite - usadas);
+                const excedente = Math.max(0, usadas - limite);
+
+                card.classList.remove('warn', 'danger', 'unlimited');
+
+                document.getElementById('consumoPlanName').textContent = isUnlimited
+                    ? planLabel + ' · Ilimitado'
+                    : planLabel;
+
+                const startFmt = fmtPlanDate(startDate);
+                const subEl = document.getElementById('consumoPlanSub');
+                subEl.textContent = isTeste
+                    ? 'Início do teste gratuito: ' + startFmt
+                    : 'Último pagamento: ' + startFmt;
+
+                const limiteEl = document.getElementById('consumoLimite');
+                const limiteLbl = document.getElementById('consumoLimiteLabel');
+                const restEl = document.getElementById('consumoRestantes');
+                const pctEl = document.getElementById('consumoPct');
+                const barFill = document.getElementById('consumoBarFill');
+                const badge = document.getElementById('consumoStatusBadge');
+
+                document.getElementById('consumoUsadas').textContent = usadas.toLocaleString('pt-BR');
+                restEl.classList.remove('warn', 'danger', 'violet');
+                restEl.classList.add('highlight');
+                pctEl.classList.remove('warn', 'danger', 'violet', 'highlight');
+                badge.className = 'consumo-status-badge';
+
+                if (isUnlimited) {
+                    card.classList.add('unlimited');
+                    limiteLbl.textContent = 'Referência mensal';
+                    limiteEl.textContent = UNLIMITED_REF_LIMIT.toLocaleString('pt-BR');
+                    restEl.classList.remove('highlight'); restEl.classList.add('violet');
+                    pctEl.classList.add('violet');
+                    if (excedente > 0) {
+                        restEl.textContent = '0';
+                        pctEl.textContent = '100%+';
+                        barFill.style.width = '100%';
+                        badge.classList.add('violet');
+                        badge.textContent = '+' + excedente.toLocaleString('pt-BR') + ' extra';
+                        setFooterParts([
+                            { text: excedente.toLocaleString('pt-BR'), bold: true },
+                            { text: ' provas acima da referência. Excedente cobrado no ' },
+                            { text: 'fechamento mensal', bold: true },
+                            { text: '. Contagem desde ' + startFmt + '.' }
+                        ]);
+                    } else {
+                        restEl.textContent = restantes.toLocaleString('pt-BR');
+                        pctEl.textContent = pct.toFixed(0) + '%';
+                        barFill.style.width = Math.min(pct, 100).toFixed(1) + '%';
+                        badge.classList.add('violet');
+                        badge.textContent = 'Ilimitado';
+                        setFooterParts([
+                            { text: 'Plano ' },
+                            { text: planLabel, bold: true },
+                            { text: ' tem referência de 3.000 provas/mês. Excedente é cobrado no fechamento mensal. Contagem desde ' + startFmt + '.' }
+                        ]);
+                    }
+                } else if (isTeste) {
+                    limiteLbl.textContent = 'Limite do Teste';
+                    limiteEl.textContent = limite ? limite.toLocaleString('pt-BR') : '—';
+                    restEl.textContent = restantes.toLocaleString('pt-BR');
+                    pctEl.textContent = limite ? pct.toFixed(0) + '%' : '—';
+                    barFill.style.width = Math.min(pct, 100).toFixed(1) + '%';
+                    if (pct >= 100) { card.classList.add('danger'); badge.classList.add('danger'); badge.textContent = 'Teste Gratuito · Excedido'; }
+                    else if (pct >= 80) { card.classList.add('warn'); badge.classList.add('warn'); badge.textContent = 'Teste Gratuito · Atenção'; }
+                    else { badge.classList.add('ok'); badge.textContent = 'Teste Gratuito'; }
+                    setFooterParts([
+                        { text: 'Contagem desde o início do teste em ' },
+                        { text: startFmt, bold: true },
+                        { text: '.' }
+                    ]);
+                } else {
+                    limiteLbl.textContent = 'Limite do Plano';
+                    limiteEl.textContent = limite ? limite.toLocaleString('pt-BR') : '—';
+                    restEl.textContent = restantes.toLocaleString('pt-BR');
+                    pctEl.textContent = limite ? pct.toFixed(0) + '%' : '—';
+                    barFill.style.width = Math.min(pct, 100).toFixed(1) + '%';
+                    if (pct >= 100) {
+                        card.classList.add('danger');
+                        badge.classList.add('danger'); badge.textContent = 'Limite Excedido';
+                        restEl.classList.remove('highlight'); restEl.classList.add('danger');
+                        pctEl.classList.add('danger');
+                        setFooterParts([
+                            { text: 'Você ultrapassou o limite do plano. ' },
+                            { text: (usadas - limite).toLocaleString('pt-BR'), bold: true },
+                            { text: ' provas além do contratado. Fale com a Quantic pra ajustar o plano.' }
+                        ]);
+                    } else if (pct >= 80) {
+                        card.classList.add('warn');
+                        badge.classList.add('warn'); badge.textContent = 'Atenção';
+                        restEl.classList.remove('highlight'); restEl.classList.add('warn');
+                        pctEl.classList.add('warn');
+                        setFooterParts([
+                            { text: 'Próximo do limite do plano. Contagem desde o último pagamento em ' },
+                            { text: startFmt, bold: true },
+                            { text: '.' }
+                        ]);
+                    } else {
+                        badge.classList.add('ok'); badge.textContent = 'No limite';
+                        setFooterParts([
+                            { text: 'Contagem desde o último pagamento em ' },
+                            { text: startFmt, bold: true },
+                            { text: '.' }
+                        ]);
+                    }
+                }
+
+                card.style.display = '';
+            } catch (e) {
+                console.warn('[consumo] falhou:', e);
+                if (card) card.style.display = 'none';
+            }
+        }
+
         async function loadData() {
             if (!supabaseClient || !activeUser) return;
             document.getElementById('mainLoader').style.display = 'flex';
@@ -3664,6 +3995,7 @@
                 loadVisaoGeral();
                 loadConversaoProduto();
                 loadRecompra();
+                loadConsumoPlano();
                 document.getElementById('mainLoader').style.display = 'none';
                 document.getElementById('dashboardSection').style.display = 'block';
                 restoreTab();
