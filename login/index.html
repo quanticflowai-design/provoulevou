@@ -3836,16 +3836,40 @@
             });
         }
 
+        // Normaliza domínio pra cruzar lojistas.origem com provou_levou_stores.domain
+        // (porque os emails muitas vezes diferem — login pseudo-email vs email real do cliente).
+        function normalizeStoreDomain(s) {
+            return String(s || '').toLowerCase()
+                .replace(/^https?:\/\//, '')
+                .replace(/^www\./, '')
+                .replace(/\/+$/, '')
+                .trim();
+        }
+
         async function loadConsumoPlano() {
             const card = document.getElementById('consumoPlanoCard');
-            if (!card || !activeUser || !activeUser.email) { if (card) card.style.display = 'none'; return; }
+            if (!card || !activeUser) { if (card) card.style.display = 'none'; return; }
             try {
-                const { data: store, error } = await supabaseClient
-                    .from('provou_levou_stores')
-                    .select('plan, status, last_payment, implementation_date, plano_personalizado')
-                    .eq('email', activeUser.email)
-                    .maybeSingle();
-                if (error || !store) { card.style.display = 'none'; return; }
+                // Tenta primeiro por email; se falhar, fallback por domínio normalizado
+                let store = null;
+                if (activeUser.email) {
+                    const r1 = await supabaseClient
+                        .from('provou_levou_stores')
+                        .select('plan, status, last_payment, implementation_date, plano_personalizado, domain')
+                        .eq('email', activeUser.email)
+                        .maybeSingle();
+                    if (!r1.error && r1.data) store = r1.data;
+                }
+                if (!store && activeUser.origem) {
+                    const targetDom = normalizeStoreDomain(activeUser.origem);
+                    const r2 = await supabaseClient
+                        .from('provou_levou_stores')
+                        .select('plan, status, last_payment, implementation_date, plano_personalizado, domain');
+                    if (!r2.error && r2.data) {
+                        store = r2.data.find(s => normalizeStoreDomain(s.domain) === targetDom) || null;
+                    }
+                }
+                if (!store) { card.style.display = 'none'; return; }
 
                 const isTeste = store.status === 'Teste Gratuito';
                 const startDate = (store.last_payment && store.last_payment !== '-')
