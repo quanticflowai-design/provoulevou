@@ -1892,6 +1892,34 @@
                     </div>
                 </div>
 
+                <!-- 2ª fileira: engajamento dos clientes no provador -->
+                <div class="stats-grid" style="margin-bottom:20px;">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:rgba(168,85,247,0.10);color:#a855f7;"><i class="ph-bold ph-arrows-clockwise"></i></div>
+                        <div class="stat-info">
+                            <h4>Re-engajamento</h4>
+                            <div class="value" id="provasReengajaram">0</div>
+                            <div class="stat-sub"><span id="provasReengajaramPct">0%</span> dos clientes provaram &gt; 1 vez</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:rgba(245,158,11,0.10);color:#f59e0b;"><i class="ph-bold ph-clock"></i></div>
+                        <div class="stat-info">
+                            <h4>Tempo Médio no Provador</h4>
+                            <div class="value" id="provasTempoMedio">—</div>
+                            <div class="stat-sub">duração média da sessão (provas em sequência)</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:rgba(34,197,94,0.10);color:#22c55e;"><i class="ph-bold ph-calendar-check"></i></div>
+                        <div class="stat-info">
+                            <h4>Voltaram em Outro Dia</h4>
+                            <div class="value" id="provasVoltaramDia">0</div>
+                            <div class="stat-sub"><span id="provasVoltaramDiaPct">0%</span> dos clientes provaram em &gt; 1 dia</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Gráfico de faturamento mensal/semanal geral -->
                 <div id="fatMensalContainer" class="chart-container" style="display:none;margin-bottom:20px;">
                     <div class="chart-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
@@ -2128,30 +2156,6 @@
                                 <h4>Total de Provas</h4>
                                 <div class="value" id="provasTotalCount">0</div>
                                 <div class="stat-sub"><span id="provasUniqueCount">0</span> clientes únicos</div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon" style="background:rgba(168,85,247,0.10);color:#a855f7;"><i class="ph-bold ph-arrows-clockwise"></i></div>
-                            <div class="stat-info">
-                                <h4>Re-engajamento</h4>
-                                <div class="value" id="provasReengajaram">0</div>
-                                <div class="stat-sub"><span id="provasReengajaramPct">0%</span> dos clientes provaram &gt; 1 vez</div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon" style="background:rgba(245,158,11,0.10);color:#f59e0b;"><i class="ph-bold ph-clock"></i></div>
-                            <div class="stat-info">
-                                <h4>Tempo Médio no Provador</h4>
-                                <div class="value" id="provasTempoMedio">—</div>
-                                <div class="stat-sub">entre a 1ª e a última prova do mesmo cliente</div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon" style="background:rgba(34,197,94,0.10);color:#22c55e;"><i class="ph-bold ph-calendar-check"></i></div>
-                            <div class="stat-info">
-                                <h4>Voltaram em Outro Dia</h4>
-                                <div class="value" id="provasVoltaramDia">0</div>
-                                <div class="stat-sub"><span id="provasVoltaramDiaPct">0%</span> dos clientes provaram em &gt; 1 dia</div>
                             </div>
                         </div>
                     </div>
@@ -2987,8 +2991,61 @@
             });
         }
 
+        // ===== Cards de engajamento (Visão Geral): re-engajamento, tempo médio por sessão, retorno em outro dia =====
+        // Detecta sessões pelo gap entre provas do mesmo telefone (< 30min = mesma sessão).
+        function renderEngajamentoCards(allProvas) {
+            const provasPorPhone = {};
+            (allProvas || []).forEach(r => {
+                const ph = normalize(r.telefone_cliente);
+                if (!ph || !r.created_at) return;
+                if (!provasPorPhone[ph]) provasPorPhone[ph] = { ts: [], dias: new Set() };
+                provasPorPhone[ph].ts.push(new Date(r.created_at).getTime());
+                provasPorPhone[ph].dias.add(r.created_at.substring(0, 10));
+            });
+            const SESSION_GAP_MS = 30 * 60 * 1000;
+            const sessionDurationsMs = [];
+            let reengaj = 0, voltaramDia = 0;
+            const totalUnicos = Object.keys(provasPorPhone).length;
+            Object.values(provasPorPhone).forEach(o => {
+                if (o.ts.length > 1) reengaj++;
+                if (o.dias.size > 1) voltaramDia++;
+                const sorted = [...o.ts].sort((a, b) => a - b);
+                let start = sorted[0], last = sorted[0];
+                for (let i = 1; i < sorted.length; i++) {
+                    if (sorted[i] - last > SESSION_GAP_MS) {
+                        sessionDurationsMs.push(last - start);
+                        start = sorted[i];
+                    }
+                    last = sorted[i];
+                }
+                sessionDurationsMs.push(last - start);
+            });
+            const sessoesValidas = sessionDurationsMs.filter(d => d > 0);
+            const reengajPct = totalUnicos > 0 ? (reengaj / totalUnicos * 100) : 0;
+            const voltaramPct = totalUnicos > 0 ? (voltaramDia / totalUnicos * 100) : 0;
+            const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            setText('provasReengajaram', reengaj.toLocaleString('pt-BR'));
+            setText('provasReengajaramPct', reengajPct.toFixed(0) + '%');
+            setText('provasVoltaramDia', voltaramDia.toLocaleString('pt-BR'));
+            setText('provasVoltaramDiaPct', voltaramPct.toFixed(0) + '%');
+            const tempoEl = document.getElementById('provasTempoMedio');
+            if (!tempoEl) return;
+            if (sessoesValidas.length === 0) {
+                tempoEl.textContent = '—';
+            } else {
+                const avgMs = sessoesValidas.reduce((a, b) => a + b, 0) / sessoesValidas.length;
+                const sec = avgMs / 1000;
+                const min = sec / 60;
+                const hr = min / 60;
+                if (sec < 60) tempoEl.textContent = Math.round(sec) + 's';
+                else if (min < 60) tempoEl.textContent = min.toFixed(1).replace('.', ',') + ' min';
+                else tempoEl.textContent = hr.toFixed(1).replace('.', ',') + ' h';
+            }
+        }
+
         function loadVisaoGeral() {
             if (!allOrdersCache || !generationPhones) return;
+            renderEngajamentoCards(allGensShared || []);
             const curr = monthRange(0);
             const prev = monthRange(-1);
             // Para comparação justa, recorta o mês anterior no mesmo dia do mês atual
@@ -3554,49 +3611,6 @@
                 document.getElementById('provasTotalCount').textContent = totalProvas;
                 document.getElementById('provasUniqueCount').textContent = uniquePhonesSet.size;
 
-                // ===== Engajamento: re-engajaram, tempo médio entre provas, voltaram em outro dia =====
-                // Agrupa timestamps + dias distintos por telefone
-                const provasPorPhone = {};
-                (allProvas || []).forEach(r => {
-                    const ph = normalize(r.telefone_cliente);
-                    if (!ph || !r.created_at) return;
-                    if (!provasPorPhone[ph]) provasPorPhone[ph] = { ts: [], dias: new Set() };
-                    provasPorPhone[ph].ts.push(new Date(r.created_at).getTime());
-                    provasPorPhone[ph].dias.add(r.created_at.substring(0, 10));
-                });
-                let reengaj = 0, voltaramDia = 0, deltaSomaMs = 0, deltaContagem = 0;
-                Object.values(provasPorPhone).forEach(o => {
-                    if (o.ts.length > 1) {
-                        reengaj++;
-                        const min = Math.min(...o.ts);
-                        const max = Math.max(...o.ts);
-                        deltaSomaMs += (max - min);
-                        deltaContagem++;
-                    }
-                    if (o.dias.size > 1) voltaramDia++;
-                });
-                const totalUnicos = uniquePhonesSet.size;
-                const reengajPct = totalUnicos > 0 ? (reengaj / totalUnicos * 100) : 0;
-                const voltaramPct = totalUnicos > 0 ? (voltaramDia / totalUnicos * 100) : 0;
-                document.getElementById('provasReengajaram').textContent = reengaj.toLocaleString('pt-BR');
-                document.getElementById('provasReengajaramPct').textContent = reengajPct.toFixed(0) + '%';
-                document.getElementById('provasVoltaramDia').textContent = voltaramDia.toLocaleString('pt-BR');
-                document.getElementById('provasVoltaramDiaPct').textContent = voltaramPct.toFixed(0) + '%';
-                // Tempo médio: formata o delta médio em h/min/dias dependendo da magnitude
-                const tempoEl = document.getElementById('provasTempoMedio');
-                if (deltaContagem === 0) {
-                    tempoEl.textContent = '—';
-                } else {
-                    const avgMs = deltaSomaMs / deltaContagem;
-                    const sec = avgMs / 1000;
-                    const min = sec / 60;
-                    const hr = min / 60;
-                    const day = hr / 24;
-                    if (sec < 60) tempoEl.textContent = Math.round(sec) + 's';
-                    else if (min < 60) tempoEl.textContent = min.toFixed(1).replace('.', ',') + ' min';
-                    else if (hr < 48) tempoEl.textContent = hr.toFixed(1).replace('.', ',') + ' h';
-                    else tempoEl.textContent = day.toFixed(1).replace('.', ',') + ' dias';
-                }
 
                 const productCounts = {};
                 (allProvas || []).forEach(g => {
