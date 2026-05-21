@@ -3101,9 +3101,14 @@
         // ===== Compra de Provas Extras (sempre disponível pra lojistas habilitados) =====
         // Lojista informa quantidade; preço/foto = (plano R$/foto) × MARKUP pra não canibalizar
         // upgrade. Após 1ª compra de extras no ciclo, mostra smart nudge sugerindo subir de plano.
-        const PACKS_GATE_EMAILS = ['cacifebrand@outlook.com']; // piloto: só Cacifé por enquanto
+        const PACKS_GATE_EMAILS = ['cacifebrand@outlook.com', 'parislondoneyewear@gmail.com'];
         const PACKS_WEBHOOK_BASE = 'https://n8n.segredosdodrop.com/webhook';
         const PACKS_MARKUP = 1.3; // extras saem 30% acima do R$/foto do plano vigente
+        // Mapeamento email → slug usado no workflow do n8n (campo "loja" no body do PIX)
+        const PACKS_LOJA_SLUG = {
+            'cacifebrand@outlook.com': 'cacife',
+            'parislondoneyewear@gmail.com': 'parislondon'
+        };
         // Mesmos valores usados em PLAN_LIMITS_LOJISTA — pra calcular preço/foto a partir do plano
         const PACKS_PLAN_VALUES = {
             'Starter': 97, 'Inicial': 197, 'Médio': 397, 'Premium': 797,
@@ -3269,8 +3274,9 @@
             document.getElementById('packPixStatus').style.color = 'var(--text-muted)';
 
             try {
+                const lojaSlug = PACKS_LOJA_SLUG[(activeUser.email || '').toLowerCase()] || 'desconhecida';
                 const body = {
-                    loja: 'cacife',
+                    loja: lojaSlug,
                     valor: valor,
                     fotos: qty,
                     phone: '',
