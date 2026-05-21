@@ -4188,12 +4188,12 @@
         // ====== Consumo do Plano (provas usadas desde último pagamento) ======
         // Cruza activeUser.email com provou_levou_stores pra pegar plano + last_payment.
         // Conta provas em geracoes_provou_levou desde a data de início do ciclo.
-        // Ultra Power / planos personalizados são tratados como "ilimitado" com limite
-        // de referência 3.000/mês (excedente cobrado no fechamento mensal).
+        // Planos personalizados (plano_personalizado != null) usam UNLIMITED_REF_LIMIT
+        // como referência mensal e cobram excedente no fechamento.
         const PLAN_LIMITS_LOJISTA = {
             'Starter': 50, 'Inicial': 100, 'Médio': 500, 'Premium': 1200,
             'Essencial': 50, 'Crescimento': 100, 'Acelerador': 300, 'Performance': 500, 'Escala': 1200,
-            'Ultra Power': Infinity
+            'Ultra Power': 3000
         };
         const UNLIMITED_REF_LIMIT = 3000;
 
