@@ -1934,7 +1934,12 @@
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
                         <i class="ph-bold ph-shopping-cart" style="font-size:20px;color:#a855f7;"></i>
                         <div style="font-weight:700;font-size:15px;color:var(--text);">Comprar Provas Extras</div>
-                        <span style="font-size:11px;color:var(--text-muted);">Pague via PIX no preço por foto do seu plano. Credita imediato.</span>
+                        <span style="font-size:11px;color:var(--text-muted);">Pague via PIX. Credita imediato.</span>
+                    </div>
+                    <!-- Smart nudge de upgrade: aparece quando lojista já comprou extras no ciclo -->
+                    <div id="packUpgradeNudge" style="display:none;background:linear-gradient(135deg,rgba(34,197,94,0.10),rgba(16,185,129,0.06));border:1px solid rgba(34,197,94,0.30);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:none;align-items:flex-start;gap:12px;">
+                        <i class="ph-bold ph-trend-up" style="font-size:18px;color:#22c55e;flex-shrink:0;margin-top:2px;"></i>
+                        <div style="flex:1;font-size:12px;line-height:1.5;color:var(--text);" id="packUpgradeNudgeText"></div>
                     </div>
                     <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:12px;align-items:end;">
                         <div>
@@ -3094,10 +3099,11 @@
         }
 
         // ===== Compra de Provas Extras (sempre disponível pra lojistas habilitados) =====
-        // Lojista informa quantidade; preço/foto vem do plano vigente em provou_levou_stores.
-        // Total = qty × preço/foto. PIX gerado via webhook n8n (POST /webhook/cacife-pix).
+        // Lojista informa quantidade; preço/foto = (plano R$/foto) × MARKUP pra não canibalizar
+        // upgrade. Após 1ª compra de extras no ciclo, mostra smart nudge sugerindo subir de plano.
         const PACKS_GATE_EMAILS = ['cacifebrand@outlook.com']; // piloto: só Cacifé por enquanto
         const PACKS_WEBHOOK_BASE = 'https://n8n.segredosdodrop.com/webhook';
+        const PACKS_MARKUP = 1.3; // extras saem 30% acima do R$/foto do plano vigente
         // Mesmos valores usados em PLAN_LIMITS_LOJISTA — pra calcular preço/foto a partir do plano
         const PACKS_PLAN_VALUES = {
             'Starter': 97, 'Inicial': 197, 'Médio': 397, 'Premium': 797,
@@ -3107,9 +3113,66 @@
         const PACKS_PLAN_LIMITS_REF = {
             'Starter': 50, 'Inicial': 100, 'Médio': 500, 'Premium': 1200,
             'Essencial': 50, 'Crescimento': 100, 'Acelerador': 300, 'Performance': 500, 'Escala': 1200,
-            'Ultra Power': 3000 // R$ 2.200 / 3.000 fotos = R$ 0,73/foto
+            'Ultra Power': 3000 // R$ 2.200 / 3.000 fotos = R$ 0,73/foto base, R$ 0,95 com markup
+        };
+        // Próximo plano na escada de upgrade pra cada plano atual
+        const PACKS_NEXT_PLAN = {
+            'Starter': 'Crescimento', 'Inicial': 'Médio', 'Médio': 'Premium', 'Premium': 'Ultra Power',
+            'Essencial': 'Crescimento', 'Crescimento': 'Acelerador', 'Acelerador': 'Performance',
+            'Performance': 'Escala', 'Escala': 'Ultra Power', 'Ultra Power': null
         };
         let _packPrecoFotoLoja = null; // preenchido em renderPacksExtras a partir do store
+
+        // Smart nudge: se o lojista já comprou extras no ciclo atual, sugere upgrade pro próximo plano
+        // mostrando comparação numérica (extras gastos + plano atual vs preço do plano de cima).
+        async function renderUpgradeNudge(store) {
+            const nudge = document.getElementById('packUpgradeNudge');
+            const txt = document.getElementById('packUpgradeNudgeText');
+            if (!nudge || !txt || !store) { if (nudge) nudge.style.display = 'none'; return; }
+            const planAtual = store.plan;
+            const nextPlan = PACKS_NEXT_PLAN[planAtual];
+            if (!nextPlan || !PACKS_PLAN_VALUES[nextPlan] || !PACKS_PLAN_LIMITS_REF[nextPlan]) {
+                nudge.style.display = 'none'; return;
+            }
+            const lastPay = store.last_payment;
+            if (!lastPay) { nudge.style.display = 'none'; return; }
+
+            try {
+                // Soma valor de extras aprovados desde o último pagamento (ciclo atual)
+                const cutoff = lastPay + 'T00:00:00';
+                const { data, error } = await supabaseClient
+                    .from('provou_levou_pix_extras')
+                    .select('valor,created_at,status')
+                    .eq('status', 'approved')
+                    .ilike('origin', '%' + (activeUser.origem || '') + '%')
+                    .gte('created_at', cutoff);
+                if (error || !data || data.length === 0) { nudge.style.display = 'none'; return; }
+
+                const totalExtras = data.reduce((s, r) => s + (parseFloat(r.valor) || 0), 0);
+                const planAtualValor = PACKS_PLAN_VALUES[planAtual] || 0;
+                const nextValor = PACKS_PLAN_VALUES[nextPlan];
+                const nextLimite = PACKS_PLAN_LIMITS_REF[nextPlan];
+                const custoAtualCiclo = planAtualValor + totalExtras;
+                const economia = custoAtualCiclo - nextValor;
+                const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
+
+                // Texto adaptativo: se upgrade já compensa, ressalta a economia
+                let html = '';
+                if (economia > 0) {
+                    html = `<b>Você já gastou ${brl(totalExtras)} em extras esse ciclo</b> (além dos ${brl(planAtualValor)} do plano ${planAtual}). ` +
+                           `Mudando pro plano <b>${nextPlan}</b> (${nextLimite.toLocaleString('pt-BR')} fotos / ${brl(nextValor)}), você economizaria <b style="color:#22c55e;">${brl(economia)}</b> esse mês e teria muito mais folga. ` +
+                           `<a href="https://wa.me/5511965749173?text=Quero%20fazer%20upgrade%20pro%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Quantic</a>`;
+                } else {
+                    html = `Você comprou ${brl(totalExtras)} em extras esse ciclo. Se isso virar rotina, considera o plano <b>${nextPlan}</b> (${nextLimite.toLocaleString('pt-BR')} fotos / ${brl(nextValor)}) — mais previsibilidade e R$/foto menor. ` +
+                           `<a href="https://wa.me/5511965749173?text=Tenho%20interesse%20em%20conhecer%20o%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Quantic</a>`;
+                }
+                txt.innerHTML = html;
+                nudge.style.display = 'flex';
+            } catch (e) {
+                console.warn('renderUpgradeNudge fail:', e);
+                nudge.style.display = 'none';
+            }
+        }
 
         async function renderPacksExtras() {
             const card = document.getElementById('packsExtrasCard');
@@ -3120,15 +3183,16 @@
             // Calcula preço/foto a partir do plano do lojista em provou_levou_stores
             let precoFoto = null;
             let planLabel = '';
+            let store = null;
             try {
                 if (activeUser.email) {
                     const r1 = await supabaseClient.from('provou_levou_stores')
-                        .select('plan, plano_personalizado, valor_personalizado, domain')
+                        .select('plan, plano_personalizado, valor_personalizado, domain, last_payment')
                         .eq('email', activeUser.email).maybeSingle();
-                    let store = r1.error ? null : r1.data;
+                    store = r1.error ? null : r1.data;
                     if (!store && activeUser.origem) {
                         const r2 = await supabaseClient.from('provou_levou_stores')
-                            .select('plan, plano_personalizado, valor_personalizado, domain');
+                            .select('plan, plano_personalizado, valor_personalizado, domain, last_payment');
                         if (!r2.error && r2.data) {
                             const target = normalizeStoreDomain(activeUser.origem);
                             store = r2.data.find(s => normalizeStoreDomain(s.domain) === target) || null;
@@ -3143,6 +3207,8 @@
                             precoFoto = PACKS_PLAN_VALUES[store.plan] / PACKS_PLAN_LIMITS_REF[store.plan];
                             planLabel = store.plan;
                         }
+                        // Aplica markup pra evitar canibalização do upgrade
+                        if (precoFoto != null) precoFoto = precoFoto * PACKS_MARKUP;
                     }
                 }
             } catch (e) { console.warn('packs preço/foto fail:', e); }
@@ -3152,7 +3218,10 @@
             card.style.display = '';
             const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
             document.getElementById('packExtraPrecoFoto').textContent = brl(precoFoto);
-            document.getElementById('packExtraSub').textContent = 'Baseado no seu plano: ' + planLabel + ' (' + brl(precoFoto) + ' por prova).';
+            document.getElementById('packExtraSub').textContent = 'Plano vigente: ' + planLabel + '. Provas extras saem por ' + brl(precoFoto) + ' (30% acima do R$/foto do plano).';
+
+            // Smart nudge: checa extras já comprados no ciclo e sugere upgrade se aplicável
+            renderUpgradeNudge(store);
 
             const qtdEl = document.getElementById('packExtraQtd');
             const totalEl = document.getElementById('packExtraTotal');
