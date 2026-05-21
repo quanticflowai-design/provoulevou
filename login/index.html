@@ -1936,7 +1936,7 @@
                         <div style="font-weight:700;font-size:15px;color:var(--text);">Comprar Provas Extras</div>
                         <span style="font-size:11px;color:var(--text-muted);">Pague via PIX e use quando quiser. Credita imediato.</span>
                     </div>
-                    <div id="packsGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+                    <div id="packsGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;">
                         <!-- packs preenchidos via JS -->
                     </div>
                 </div>
@@ -3087,10 +3087,11 @@
         // webhook n8n (POST /webhook/cacife-pix) com o valor do pack escolhido.
         // Modal exibe QR code e polling de status até aprovação.
         const PACKS_EXTRAS = [
-            { fotos: 25,   preco: 75,   nome: 'Mini',    cor: '#22c55e' },
-            { fotos: 100,  preco: 200,  nome: 'Padrão',  cor: '#3b82f6' },
-            { fotos: 300,  preco: 500,  nome: 'Grande',  cor: '#a855f7' },
-            { fotos: 1000, preco: 1300, nome: 'Mega',    cor: '#f59e0b' }
+            { fotos: 50,   preco: 97,   nome: 'Essencial',   cor: '#22c55e' },
+            { fotos: 100,  preco: 147,  nome: 'Crescimento', cor: '#3b82f6' },
+            { fotos: 300,  preco: 347,  nome: 'Acelerador',  cor: '#a855f7' },
+            { fotos: 500,  preco: 547,  nome: 'Performance', cor: '#f59e0b' },
+            { fotos: 1200, preco: 997,  nome: 'Escala',      cor: '#ec4899' }
         ];
         const PACKS_GATE_EMAILS = ['cacifebrand@outlook.com']; // piloto: só Cacifé por enquanto
         const PACKS_WEBHOOK_BASE = 'https://n8n.segredosdodrop.com/webhook';
