@@ -3103,11 +3103,15 @@
         // upgrade. Após 1ª compra de extras no ciclo, mostra smart nudge sugerindo subir de plano.
         const PACKS_GATE_EMAILS = ['cacifebrand@outlook.com', 'parislondoneyewear@gmail.com'];
         const PACKS_WEBHOOK_BASE = 'https://n8n.segredosdodrop.com/webhook';
-        const PACKS_MARKUP = 1.3; // extras saem 30% acima do R$/foto do plano vigente
+        const PACKS_MARKUP = 1.3; // extras saem 30% acima do R$/foto do plano vigente (regra padrão)
         // Mapeamento email → slug usado no workflow do n8n (campo "loja" no body do PIX)
         const PACKS_LOJA_SLUG = {
             'cacifebrand@outlook.com': 'cacife',
             'parislondoneyewear@gmail.com': 'parislondon'
+        };
+        // Override de R$/foto pra lojistas com acordo especial (sobrescreve o cálculo padrão)
+        const PACKS_PRICE_OVERRIDE = {
+            'parislondoneyewear@gmail.com': 0.75 // Paris London: R$ 0,75/foto (acordo direto)
         };
         // Mesmos valores usados em PLAN_LIMITS_LOJISTA — pra calcular preço/foto a partir do plano
         const PACKS_PLAN_VALUES = {
@@ -3244,12 +3248,20 @@
                 }
             } catch (e) { console.warn('packs preço/foto fail:', e); }
 
+            // Override de R$/foto pra lojistas com acordo especial (vem depois do cálculo padrão)
+            const overrideEmail = (activeUser.email || '').toLowerCase();
+            const override = PACKS_PRICE_OVERRIDE[overrideEmail];
+            const isOverride = (typeof override === 'number' && override > 0);
+            if (isOverride) precoFoto = override;
+
             if (precoFoto == null || precoFoto <= 0) { card.style.display = 'none'; return; }
             _packPrecoFotoLoja = precoFoto;
             card.style.display = '';
             const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
             document.getElementById('packExtraPrecoFoto').textContent = brl(precoFoto);
-            document.getElementById('packExtraSub').textContent = 'Plano vigente: ' + planLabel + '. Provas extras saem por ' + brl(precoFoto) + ' (30% acima do R$/foto do plano).';
+            document.getElementById('packExtraSub').textContent = isOverride
+                ? 'Acordo especial: provas extras por ' + brl(precoFoto) + ' cada.'
+                : 'Plano vigente: ' + planLabel + '. Provas extras saem por ' + brl(precoFoto) + ' (30% acima do R$/foto do plano).';
 
             // Smart nudge: checa extras já comprados no ciclo e sugere upgrade se aplicável
             renderUpgradeNudge(store);
