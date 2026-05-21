@@ -3135,35 +3135,46 @@
                 nudge.style.display = 'none'; return;
             }
             const lastPay = store.last_payment;
-            if (!lastPay) { nudge.style.display = 'none'; return; }
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
+            const planAtualValor = PACKS_PLAN_VALUES[planAtual] || 0;
+            const nextValor = PACKS_PLAN_VALUES[nextPlan];
+            const nextLimite = PACKS_PLAN_LIMITS_REF[nextPlan];
+            const planAtualLimite = PACKS_PLAN_LIMITS_REF[planAtual] || 0;
 
             try {
                 // Soma valor de extras aprovados desde o último pagamento (ciclo atual)
-                const cutoff = lastPay + 'T00:00:00';
-                const { data, error } = await supabaseClient
-                    .from('provou_levou_pix_extras')
-                    .select('valor,created_at,status')
-                    .eq('status', 'approved')
-                    .ilike('origin', '%' + (activeUser.origem || '') + '%')
-                    .gte('created_at', cutoff);
-                if (error || !data || data.length === 0) { nudge.style.display = 'none'; return; }
+                let totalExtras = 0;
+                if (lastPay) {
+                    const cutoff = lastPay + 'T00:00:00';
+                    const { data, error } = await supabaseClient
+                        .from('provou_levou_pix_extras')
+                        .select('valor,created_at,status')
+                        .eq('status', 'approved')
+                        .ilike('origin', '%' + (activeUser.origem || '') + '%')
+                        .gte('created_at', cutoff);
+                    if (!error && data) {
+                        totalExtras = data.reduce((s, r) => s + (parseFloat(r.valor) || 0), 0);
+                    }
+                }
 
-                const totalExtras = data.reduce((s, r) => s + (parseFloat(r.valor) || 0), 0);
-                const planAtualValor = PACKS_PLAN_VALUES[planAtual] || 0;
-                const nextValor = PACKS_PLAN_VALUES[nextPlan];
-                const nextLimite = PACKS_PLAN_LIMITS_REF[nextPlan];
                 const custoAtualCiclo = planAtualValor + totalExtras;
                 const economia = custoAtualCiclo - nextValor;
-                const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
+                const fotosExtras = planAtualLimite ? (nextLimite - planAtualLimite) : nextLimite;
 
-                // Texto adaptativo: se upgrade já compensa, ressalta a economia
                 let html = '';
-                if (economia > 0) {
+                if (totalExtras > 0 && economia > 0) {
+                    // CASO 1: já comprou extras E upgrade já economiza
                     html = `<b>Você já gastou ${brl(totalExtras)} em extras esse ciclo</b> (além dos ${brl(planAtualValor)} do plano ${planAtual}). ` +
                            `Mudando pro plano <b>${nextPlan}</b> (${nextLimite.toLocaleString('pt-BR')} fotos / ${brl(nextValor)}), você economizaria <b style="color:#22c55e;">${brl(economia)}</b> esse mês e teria muito mais folga. ` +
                            `<a href="https://wa.me/5511965749173?text=Quero%20fazer%20upgrade%20pro%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Quantic</a>`;
-                } else {
+                } else if (totalExtras > 0) {
+                    // CASO 2: já comprou extras MAS upgrade ainda não compensa
                     html = `Você comprou ${brl(totalExtras)} em extras esse ciclo. Se isso virar rotina, considera o plano <b>${nextPlan}</b> (${nextLimite.toLocaleString('pt-BR')} fotos / ${brl(nextValor)}) — mais previsibilidade e R$/foto menor. ` +
+                           `<a href="https://wa.me/5511965749173?text=Tenho%20interesse%20em%20conhecer%20o%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Quantic</a>`;
+                } else {
+                    // CASO 3: nunca comprou extras — sugere prevenção
+                    const extrasParaCompensar = nextValor - planAtualValor;
+                    html = `💡 <b>Pensando em comprar extras?</b> O plano <b>${nextPlan}</b> tem ${nextLimite.toLocaleString('pt-BR')} fotos por ${brl(nextValor)} — só ${brl(extrasParaCompensar)} a mais que seu plano atual e te dá ${fotosExtras > 0 ? '+' + fotosExtras.toLocaleString('pt-BR') : 'muito mais'} fotos com R$/foto menor. ` +
                            `<a href="https://wa.me/5511965749173?text=Tenho%20interesse%20em%20conhecer%20o%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Quantic</a>`;
                 }
                 txt.innerHTML = html;
