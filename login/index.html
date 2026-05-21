@@ -1929,6 +1929,36 @@
                     <div class="consumo-footer" id="consumoFooter"></div>
                 </div>
 
+                <!-- Comprar Pack Extra (visível só pra lojistas específicos via gate JS) -->
+                <div id="packsExtrasCard" style="display:none;margin-bottom:20px;background:linear-gradient(135deg,rgba(168,85,247,0.10),rgba(139,92,246,0.06));border:1px solid rgba(168,85,247,0.30);border-radius:14px;padding:18px 22px;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+                        <i class="ph-bold ph-shopping-cart" style="font-size:20px;color:#a855f7;"></i>
+                        <div style="font-weight:700;font-size:15px;color:var(--text);">Comprar Provas Extras</div>
+                        <span style="font-size:11px;color:var(--text-muted);">Pague via PIX e use quando quiser. Credita imediato.</span>
+                    </div>
+                    <div id="packsGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+                        <!-- packs preenchidos via JS -->
+                    </div>
+                </div>
+
+                <!-- Modal PIX Pack -->
+                <div id="packPixModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+                    <div style="background:var(--card-bg,#0f0f15);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:420px;width:100%;text-align:center;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                            <div style="font-weight:700;font-size:16px;color:var(--text);" id="packPixTitle">Pagamento Pack</div>
+                            <button onclick="fecharPackPix()" style="background:transparent;border:0;color:var(--text-muted);font-size:24px;cursor:pointer;line-height:1;">&times;</button>
+                        </div>
+                        <div id="packPixBody">
+                            <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Escaneie o QR Code ou copie o código PIX</div>
+                            <div id="packPixLoading" style="padding:30px 0;color:var(--text-muted);">Gerando PIX...</div>
+                            <img id="packPixQr" style="display:none;width:240px;height:240px;margin:0 auto 12px;border-radius:8px;" alt="QR PIX" />
+                            <div id="packPixCopy" style="display:none;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:10px;font-family:monospace;font-size:11px;word-break:break-all;color:var(--text);max-height:80px;overflow-y:auto;text-align:left;"></div>
+                            <button id="packPixCopyBtn" style="display:none;margin-top:8px;background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);color:#a855f7;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;">📋 Copiar código PIX</button>
+                            <div id="packPixStatus" style="margin-top:14px;font-size:12px;color:var(--text-muted);">Aguardando pagamento...</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Gráfico de faturamento mensal/semanal geral -->
                 <div id="fatMensalContainer" class="chart-container" style="display:none;margin-bottom:20px;">
                     <div class="chart-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
@@ -3052,9 +3082,148 @@
             }
         }
 
+        // ===== Compra de Packs Extras (PILOT: só Cacifé) =====
+        // Mostra cards de pack pra lojistas elegíveis. Cada botão gera um PIX via
+        // webhook n8n (POST /webhook/cacife-pix) com o valor do pack escolhido.
+        // Modal exibe QR code e polling de status até aprovação.
+        const PACKS_EXTRAS = [
+            { fotos: 25,   preco: 75,   nome: 'Mini',    cor: '#22c55e' },
+            { fotos: 100,  preco: 200,  nome: 'Padrão',  cor: '#3b82f6' },
+            { fotos: 300,  preco: 500,  nome: 'Grande',  cor: '#a855f7' },
+            { fotos: 1000, preco: 1300, nome: 'Mega',    cor: '#f59e0b' }
+        ];
+        const PACKS_GATE_EMAILS = ['cacifebrand@outlook.com']; // piloto: só Cacifé por enquanto
+        const PACKS_WEBHOOK_BASE = 'https://n8n.segredosdodrop.com/webhook';
+
+        function renderPacksExtras() {
+            const card = document.getElementById('packsExtrasCard');
+            const grid = document.getElementById('packsGrid');
+            if (!card || !grid || !activeUser) return;
+            const elegivel = PACKS_GATE_EMAILS.includes((activeUser.email || '').toLowerCase());
+            if (!elegivel) { card.style.display = 'none'; return; }
+            card.style.display = '';
+            while (grid.firstChild) grid.removeChild(grid.firstChild);
+            PACKS_EXTRAS.forEach(p => {
+                const precoFoto = (p.preco / p.fotos).toFixed(2).replace('.', ',');
+                const item = document.createElement('div');
+                item.style.cssText = 'background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px;';
+                const head = document.createElement('div');
+                head.style.cssText = 'display:flex;align-items:center;justify-content:space-between;';
+                const label = document.createElement('div');
+                label.style.cssText = `font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${p.cor};`;
+                label.textContent = p.nome;
+                head.appendChild(label);
+                const fotos = document.createElement('div');
+                fotos.style.cssText = 'font-size:18px;font-weight:800;color:var(--text);';
+                fotos.textContent = p.fotos.toLocaleString('pt-BR') + ' fotos';
+                const preco = document.createElement('div');
+                preco.style.cssText = 'font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px;';
+                preco.textContent = 'R$ ' + p.preco;
+                const sub = document.createElement('div');
+                sub.style.cssText = 'font-size:11px;color:var(--text-muted);';
+                sub.textContent = 'R$ ' + precoFoto + ' por foto';
+                const btn = document.createElement('button');
+                btn.style.cssText = `margin-top:8px;background:${p.cor};border:0;color:#fff;border-radius:8px;padding:9px 12px;font-weight:600;cursor:pointer;font-size:13px;`;
+                btn.textContent = 'Comprar via PIX';
+                btn.addEventListener('click', () => iniciarCompraPack(p));
+                item.append(head, fotos, preco, sub, btn);
+                grid.appendChild(item);
+            });
+        }
+
+        let _packPixPolling = null;
+        let _packPixPaymentId = null;
+
+        async function iniciarCompraPack(pack) {
+            const modal = document.getElementById('packPixModal');
+            modal.style.display = 'flex';
+            document.getElementById('packPixTitle').textContent = `Pack ${pack.nome} — ${pack.fotos} fotos / R$ ${pack.preco}`;
+            document.getElementById('packPixLoading').style.display = '';
+            document.getElementById('packPixQr').style.display = 'none';
+            document.getElementById('packPixCopy').style.display = 'none';
+            document.getElementById('packPixCopyBtn').style.display = 'none';
+            document.getElementById('packPixStatus').textContent = 'Gerando PIX...';
+            document.getElementById('packPixStatus').style.color = 'var(--text-muted)';
+
+            try {
+                const body = {
+                    loja: 'cacife',
+                    valor: pack.preco,
+                    fotos: pack.fotos,
+                    phone: '',
+                    email: activeUser.email || '',
+                    origin: activeUser.origem || ''
+                };
+                const r = await fetch(PACKS_WEBHOOK_BASE + '/cacife-pix', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (!r.ok) throw new Error('Falha ao gerar PIX (HTTP ' + r.status + ')');
+                const data = await r.json();
+                // Resposta esperada: { id, qr_code, qr_code_base64 } ou similar
+                const paymentId = data.id || data.payment_id;
+                const qrCode = data.qr_code || (data.point_of_interaction && data.point_of_interaction.transaction_data && data.point_of_interaction.transaction_data.qr_code);
+                const qrBase64 = data.qr_code_base64 || (data.point_of_interaction && data.point_of_interaction.transaction_data && data.point_of_interaction.transaction_data.qr_code_base64);
+                if (!paymentId || !qrCode) throw new Error('PIX gerado sem dados completos');
+
+                _packPixPaymentId = paymentId;
+                document.getElementById('packPixLoading').style.display = 'none';
+                if (qrBase64) {
+                    const img = document.getElementById('packPixQr');
+                    img.src = 'data:image/png;base64,' + qrBase64;
+                    img.style.display = '';
+                }
+                const copyEl = document.getElementById('packPixCopy');
+                copyEl.textContent = qrCode;
+                copyEl.style.display = '';
+                const copyBtn = document.getElementById('packPixCopyBtn');
+                copyBtn.style.display = '';
+                copyBtn.onclick = async () => {
+                    try { await navigator.clipboard.writeText(qrCode); copyBtn.textContent = '✓ Copiado'; setTimeout(()=>{copyBtn.textContent='📋 Copiar código PIX';},2000); }
+                    catch(e) { copyBtn.textContent = 'Erro ao copiar'; }
+                };
+                // polling de status
+                if (_packPixPolling) clearInterval(_packPixPolling);
+                _packPixPolling = setInterval(() => checarStatusPack(pack), 4000);
+            } catch (err) {
+                console.error('iniciarCompraPack', err);
+                document.getElementById('packPixLoading').textContent = 'Erro: ' + err.message;
+                document.getElementById('packPixStatus').textContent = 'Tenta de novo em alguns segundos ou avisa o suporte.';
+                document.getElementById('packPixStatus').style.color = '#ef4444';
+            }
+        }
+
+        async function checarStatusPack(pack) {
+            if (!_packPixPaymentId) return;
+            try {
+                const r = await fetch(PACKS_WEBHOOK_BASE + '/cacife-pix-status?payment_id=' + encodeURIComponent(_packPixPaymentId));
+                if (!r.ok) return;
+                const data = await r.json();
+                const status = data.status || (data[0] && data[0].status);
+                if (status === 'approved') {
+                    clearInterval(_packPixPolling); _packPixPolling = null;
+                    document.getElementById('packPixStatus').textContent = '✓ Pagamento aprovado! Pack de ' + pack.fotos + ' fotos creditado.';
+                    document.getElementById('packPixStatus').style.color = '#22c55e';
+                    setTimeout(() => { fecharPackPix(); }, 3000);
+                } else if (status === 'cancelled' || status === 'rejected') {
+                    clearInterval(_packPixPolling); _packPixPolling = null;
+                    document.getElementById('packPixStatus').textContent = 'Pagamento ' + status + '. Tenta de novo.';
+                    document.getElementById('packPixStatus').style.color = '#ef4444';
+                }
+            } catch (e) { /* ignora erros de polling */ }
+        }
+
+        function fecharPackPix() {
+            document.getElementById('packPixModal').style.display = 'none';
+            if (_packPixPolling) { clearInterval(_packPixPolling); _packPixPolling = null; }
+            _packPixPaymentId = null;
+        }
+
         function loadVisaoGeral() {
             if (!allOrdersCache || !generationPhones) return;
             renderEngajamentoCards(allGensShared || []);
+            renderPacksExtras();
             const curr = monthRange(0);
             const prev = monthRange(-1);
             // Para comparação justa, recorta o mês anterior no mesmo dia do mês atual
