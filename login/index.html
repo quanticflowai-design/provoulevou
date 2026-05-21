@@ -1894,32 +1894,6 @@
                     </div>
                 </div>
 
-                <!-- Card: Ticket médio COM × SEM provador -->
-                <div id="ticketCompareCard" style="display:none;margin-bottom:20px;background:linear-gradient(135deg,rgba(139,92,246,0.10),rgba(168,85,247,0.06));border:1px solid rgba(139,92,246,0.30);border-radius:14px;padding:18px 22px;">
-                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
-                        <i class="ph-bold ph-coins" style="font-size:20px;color:#a855f7;"></i>
-                        <div style="font-weight:700;font-size:15px;color:var(--text);">Ticket médio: COM × SEM provador</div>
-                        <span style="font-size:11px;color:var(--text-muted);">Considera a primeira compra de cada cliente</span>
-                    </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;align-items:stretch;">
-                        <div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.20);border-radius:12px;padding:14px 16px;">
-                            <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">COM provador</div>
-                            <div id="ticketComValor" style="font-size:22px;font-weight:800;color:#22c55e;letter-spacing:-0.5px;">—</div>
-                            <div id="ticketComSub" style="font-size:11px;color:var(--text-muted);margin-top:4px;">— clientes</div>
-                        </div>
-                        <div style="background:rgba(148,163,184,0.06);border:1px solid rgba(148,163,184,0.20);border-radius:12px;padding:14px 16px;">
-                            <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">SEM provador</div>
-                            <div id="ticketSemValor" style="font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px;">—</div>
-                            <div id="ticketSemSub" style="font-size:11px;color:var(--text-muted);margin-top:4px;">— clientes</div>
-                        </div>
-                        <div style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.25);border-radius:12px;padding:14px 16px;">
-                            <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Lift</div>
-                            <div id="ticketLiftValor" style="font-size:22px;font-weight:800;color:#a855f7;letter-spacing:-0.5px;">—</div>
-                            <div id="ticketLiftSub" style="font-size:11px;color:var(--text-muted);margin-top:4px;">diferença entre os tickets</div>
-                        </div>
-                    </div>
-                    <div id="ticketCompareFooter" style="margin-top:12px;font-size:11px;color:var(--text-muted);"></div>
-                </div>
 
                 <!-- Card de Consumo do Plano (provas usadas desde último pagamento) -->
                 <div id="consumoPlanoCard" class="consumo-card" style="display:none;">
@@ -3078,77 +3052,9 @@
             }
         }
 
-        // ===== Ticket médio: COM × SEM provador =====
-        // Classifica cada cliente pela 1ª compra: se foi APÓS sua 1ª prova → COM, senão → SEM.
-        // Usa allOrdersCache (já filtrado por status pago) + provaMinTsMap/provaMinDateMap.
-        function renderTicketCompare() {
-            const card = document.getElementById('ticketCompareCard');
-            if (!card) return;
-            if (!allOrdersCache || allOrdersCache.length === 0) { card.style.display = 'none'; return; }
-            const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
-            const fTotal = activeUser.campo_total_pedido || 'total';
-            const fDataPedido = activeUser.campo_data_pedido || null;
-
-            // Pega a 1ª compra paga de cada telefone (ordem ascendente)
-            const sorted = allOrdersCache.slice().sort((a, b) => {
-                const ta = (fDataPedido && a[fDataPedido]) || a.created_at || '';
-                const tb = (fDataPedido && b[fDataPedido]) || b.created_at || '';
-                return ta < tb ? -1 : ta > tb ? 1 : 0;
-            });
-            const firstOrderByPhone = {};
-            sorted.forEach(o => {
-                const ph = normalize(o[fPhone]);
-                if (!ph) return;
-                if (!firstOrderByPhone[ph]) firstOrderByPhone[ph] = o;
-            });
-
-            const com = [], sem = [];
-            Object.entries(firstOrderByPhone).forEach(([ph, o]) => {
-                const ts = (fDataPedido && o[fDataPedido]) || o.created_at || '';
-                const total = parseFloat(o[fTotal]) || 0;
-                if (total <= 0) return;
-                if (provaMinDateMap[ph] && isOrderAfterProva(ts, ph)) com.push(total);
-                else sem.push(total);
-            });
-
-            if (com.length === 0 && sem.length === 0) { card.style.display = 'none'; return; }
-            card.style.display = '';
-            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            const avgCom = com.length ? com.reduce((a, b) => a + b, 0) / com.length : 0;
-            const avgSem = sem.length ? sem.reduce((a, b) => a + b, 0) / sem.length : 0;
-            document.getElementById('ticketComValor').textContent = com.length ? brl(avgCom) : '—';
-            document.getElementById('ticketComSub').textContent = com.length + ' cliente' + (com.length === 1 ? '' : 's');
-            document.getElementById('ticketSemValor').textContent = sem.length ? brl(avgSem) : '—';
-            document.getElementById('ticketSemSub').textContent = sem.length + ' cliente' + (sem.length === 1 ? '' : 's');
-            const liftEl = document.getElementById('ticketLiftValor');
-            const liftSub = document.getElementById('ticketLiftSub');
-            const footer = document.getElementById('ticketCompareFooter');
-            if (avgCom > 0 && avgSem > 0) {
-                const liftPct = ((avgCom / avgSem) - 1) * 100;
-                const sign = liftPct >= 0 ? '+' : '';
-                liftEl.textContent = sign + liftPct.toFixed(0) + '%';
-                liftEl.style.color = liftPct >= 0 ? '#22c55e' : '#ef4444';
-                liftSub.textContent = (liftPct >= 0 ? 'a mais' : 'a menos') + ' por pedido COM provador';
-                const deltaBrl = brl(Math.abs(avgCom - avgSem));
-                footer.textContent = (liftPct >= 0
-                    ? 'Quem prova antes de comprar gasta em média ' + deltaBrl + ' a mais por pedido — sinal de que o provador atrai cliente premium.'
-                    : 'Quem prova gasta ' + deltaBrl + ' a menos — sinal de que o provador está atraindo público price-sensitive (a investigar).');
-            } else if (avgCom > 0) {
-                liftEl.textContent = 'só COM';
-                liftEl.style.color = '#a855f7';
-                liftSub.textContent = 'ainda sem comparação';
-                footer.textContent = 'Todas as compras do período vieram de clientes que usaram o provador antes.';
-            } else {
-                liftEl.textContent = '—';
-                liftSub.textContent = 'ainda sem cliente COM provador';
-                footer.textContent = 'Nenhum cliente comprou após usar o provador no período. Foque em trazer mais visitantes pro widget.';
-            }
-        }
-
         function loadVisaoGeral() {
             if (!allOrdersCache || !generationPhones) return;
             renderEngajamentoCards(allGensShared || []);
-            renderTicketCompare();
             const curr = monthRange(0);
             const prev = monthRange(-1);
             // Para comparação justa, recorta o mês anterior no mesmo dia do mês atual
