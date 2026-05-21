@@ -3120,11 +3120,22 @@
             'Essencial': 50, 'Crescimento': 100, 'Acelerador': 300, 'Performance': 500, 'Escala': 1200,
             'Ultra Power': 3000 // R$ 2.200 / 3.000 fotos = R$ 0,73/foto base, R$ 0,95 com markup
         };
-        // Próximo plano na escada de upgrade pra cada plano atual
+        // Próximo plano na escada de upgrade pra cada plano atual.
+        // Planos legados (Starter/Inicial/Médio/Premium) são mapeados pros planos NOVOS
+        // que melhor correspondem em volume — não pulam pra outro legado.
         const PACKS_NEXT_PLAN = {
-            'Starter': 'Crescimento', 'Inicial': 'Médio', 'Médio': 'Premium', 'Premium': 'Ultra Power',
-            'Essencial': 'Crescimento', 'Crescimento': 'Acelerador', 'Acelerador': 'Performance',
-            'Performance': 'Escala', 'Escala': 'Ultra Power', 'Ultra Power': null
+            // Legado → Novo (volume equivalente ou maior)
+            'Starter':     'Crescimento', // 50 → 100
+            'Inicial':     'Acelerador',  // 100 → 300
+            'Médio':       'Escala',      // 500 → 1200 (Performance tem mesmo volume; pula pra Escala)
+            'Premium':     'Ultra Power', // 1200 → 3000
+            // Novo → Novo
+            'Essencial':   'Crescimento',
+            'Crescimento': 'Acelerador',
+            'Acelerador':  'Performance',
+            'Performance': 'Escala',
+            'Escala':      'Ultra Power',
+            'Ultra Power': null
         };
         let _packPrecoFotoLoja = null; // preenchido em renderPacksExtras a partir do store
 
@@ -3148,6 +3159,9 @@
 
             try {
                 // Soma valor de extras aprovados desde o último pagamento (ciclo atual)
+                // Filtra valor > 1 pra ignorar PIX legados de R$ 1 (sistema antigo de provas
+                // avulsas que o cliente final pagava direto na loja — não conta como compra
+                // intencional de pack pelo lojista)
                 let totalExtras = 0;
                 if (lastPay) {
                     const cutoff = lastPay + 'T00:00:00';
@@ -3155,6 +3169,7 @@
                         .from('provou_levou_pix_extras')
                         .select('valor,created_at,status')
                         .eq('status', 'approved')
+                        .gt('valor', 1)
                         .ilike('origin', '%' + (activeUser.origem || '') + '%')
                         .gte('created_at', cutoff);
                     if (!error && data) {
@@ -3171,16 +3186,16 @@
                     // CASO 1: já comprou extras E upgrade já economiza
                     html = `<b>Você já gastou ${brl(totalExtras)} em extras esse ciclo</b> (além dos ${brl(planAtualValor)} do plano ${planAtual}). ` +
                            `Mudando pro plano <b>${nextPlan}</b> (${nextLimite.toLocaleString('pt-BR')} fotos / ${brl(nextValor)}), você economizaria <b style="color:#22c55e;">${brl(economia)}</b> esse mês e teria muito mais folga. ` +
-                           `<a href="https://wa.me/5511965749173?text=Quero%20fazer%20upgrade%20pro%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Quantic</a>`;
+                           `<a href="https://wa.me/5511965749173?text=Quero%20fazer%20upgrade%20pro%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Provou Levou</a>`;
                 } else if (totalExtras > 0) {
                     // CASO 2: já comprou extras MAS upgrade ainda não compensa
                     html = `Você comprou ${brl(totalExtras)} em extras esse ciclo. Se isso virar rotina, considera o plano <b>${nextPlan}</b> (${nextLimite.toLocaleString('pt-BR')} fotos / ${brl(nextValor)}) — mais previsibilidade e R$/foto menor. ` +
-                           `<a href="https://wa.me/5511965749173?text=Tenho%20interesse%20em%20conhecer%20o%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Quantic</a>`;
+                           `<a href="https://wa.me/5511965749173?text=Tenho%20interesse%20em%20conhecer%20o%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Provou Levou</a>`;
                 } else {
                     // CASO 3: nunca comprou extras — sugere prevenção
                     const extrasParaCompensar = nextValor - planAtualValor;
                     html = `💡 <b>Pensando em comprar extras?</b> O plano <b>${nextPlan}</b> tem ${nextLimite.toLocaleString('pt-BR')} fotos por ${brl(nextValor)} — só ${brl(extrasParaCompensar)} a mais que seu plano atual e te dá ${fotosExtras > 0 ? '+' + fotosExtras.toLocaleString('pt-BR') : 'muito mais'} fotos com R$/foto menor. ` +
-                           `<a href="https://wa.me/5511965749173?text=Tenho%20interesse%20em%20conhecer%20o%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Quantic</a>`;
+                           `<a href="https://wa.me/5511965749173?text=Tenho%20interesse%20em%20conhecer%20o%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Provou Levou</a>`;
                 }
                 txt.innerHTML = html;
                 nudge.style.display = 'flex';
