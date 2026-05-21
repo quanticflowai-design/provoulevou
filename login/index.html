@@ -1884,6 +1884,14 @@
                             <div class="stat-sub"><span id="provasVoltaramDiaPct">0%</span> dos clientes provaram em &gt; 1 dia</div>
                         </div>
                     </div>
+                    <div class="stat-card" id="cardProvasExtras" style="display:none;">
+                        <div class="stat-icon" style="background:rgba(16,185,129,0.10);color:#10b981;"><i class="ph-bold ph-currency-circle-dollar"></i></div>
+                        <div class="stat-info">
+                            <h4>Provas Extras Pagas</h4>
+                            <div class="value" id="provasExtrasCount">0</div>
+                            <div class="stat-sub"><span id="provasExtrasValor">R$ 0,00</span> em PIX de R$1 (provas além da cota grátis)</div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Card: Ticket médio COM × SEM provador -->
@@ -4023,6 +4031,30 @@
                 .trim();
         }
 
+        async function loadProvasExtras() {
+            const card = document.getElementById('cardProvasExtras');
+            if (!supabaseClient || !activeUser || !activeUser.origem) {
+                if (card) card.style.display = 'none';
+                return;
+            }
+            try {
+                const { data, error } = await supabaseClient
+                    .from('provou_levou_pix_extras')
+                    .select('valor,approved_at')
+                    .eq('status', 'approved')
+                    .ilike('origin', `%${activeUser.origem}%`);
+                if (error) throw error;
+                const count = (data || []).length;
+                const total = (data || []).reduce((s, r) => s + (parseFloat(r.valor) || 0), 0);
+                document.getElementById('provasExtrasCount').textContent = count.toLocaleString('pt-BR');
+                document.getElementById('provasExtrasValor').textContent = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                if (card) card.style.display = count > 0 ? '' : 'none';
+            } catch (err) {
+                console.error('loadProvasExtras error', err);
+                if (card) card.style.display = 'none';
+            }
+        }
+
         async function loadConsumoPlano() {
             const card = document.getElementById('consumoPlanoCard');
             if (!card || !activeUser) { if (card) card.style.display = 'none'; return; }
@@ -4197,6 +4229,7 @@
                 loadConversaoProduto();
                 loadRecompra();
                 loadConsumoPlano();
+                loadProvasExtras();
                 document.getElementById('mainLoader').style.display = 'none';
                 document.getElementById('dashboardSection').style.display = 'block';
                 restoreTab();
