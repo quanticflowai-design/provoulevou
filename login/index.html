@@ -1552,6 +1552,57 @@
         }
         .tab-pane { display: none; }
         .tab-pane.active { display: block; }
+        .crm-board {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(260px, 1fr));
+            gap: 14px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        @media (max-width: 1200px) { .crm-board { grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: minmax(260px, 1fr); } }
+        .crm-col {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 200px;
+            max-height: 75vh;
+        }
+        .crm-col-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .crm-col-title { font-size: 13px; font-weight: 700; color: var(--text); display: inline-flex; align-items: center; gap: 6px; }
+        .crm-col-count {
+            font-size: 11px; font-weight: 600; padding: 2px 8px;
+            border-radius: 999px; background: rgba(139,92,246,0.12); color: var(--primary);
+        }
+        .crm-col-body { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; padding-right: 2px; }
+        .crm-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 12.5px;
+            display: flex; flex-direction: column; gap: 6px;
+            transition: transform .15s, box-shadow .15s;
+        }
+        .crm-card:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.18); }
+        .crm-card-name { font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; }
+        .crm-card-meta { font-size: 11px; color: var(--text-muted); display: flex; gap: 8px; flex-wrap: wrap; }
+        .crm-card-product { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .crm-card-wpp {
+            display: inline-flex; align-items: center; gap: 4px;
+            color: #25D366; font-weight: 600; font-size: 11.5px;
+            text-decoration: none; margin-top: 2px;
+        }
+        .crm-card-wpp:hover { text-decoration: underline; }
+        .crm-col-empty { font-size: 12px; color: var(--text-muted); padding: 12px; text-align: center; font-style: italic; opacity: .65; }
+        .crm-col[data-key="cold"] .crm-col-title i { color: #94a3b8; }
+        .crm-col[data-key="multiplas"] .crm-col-title i { color: #fbbf24; }
+        .crm-col[data-key="reengajou"] .crm-col-title i { color: #fb923c; }
+        .crm-col[data-key="voltou"] .crm-col-title i { color: #ef4444; }
+        .crm-col[data-key="convertido"] .crm-col-title i { color: #10b981; }
         .kpi-delta {
             display: inline-flex;
             align-items: center;
@@ -1810,6 +1861,9 @@
                 </button>
                 <button class="tab-btn" data-tab="recuperar-leads" id="tab-btn-recuperar-leads" onclick="showTab('recuperar-leads')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-user-focus"></i> Recuperar Leads
+                </button>
+                <button class="tab-btn" data-tab="crm" id="tab-btn-crm" onclick="showTab('crm')" role="tab" aria-selected="false">
+                    <i class="ph-bold ph-kanban"></i> CRM
                 </button>
             </nav>
 
@@ -2360,6 +2414,29 @@
                 </div>
             </div>
 
+            <!-- ====== ABA CRM ====== -->
+            <div class="tab-pane" id="tab-crm" role="tabpanel" aria-labelledby="tab-btn-crm">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                    <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
+                        <i class="ph-bold ph-kanban" style="color:var(--primary);"></i> CRM
+                        <span style="font-size:12px;font-weight:500;color:var(--text-muted);background:rgba(139,92,246,0.08);padding:4px 10px;border-radius:8px;">funil de leads do provador</span>
+                    </h2>
+                    <button class="btn-download" disabled title="Em breve: criar suas próprias colunas" style="opacity:.55;cursor:not-allowed;">
+                        <i class="ph-bold ph-sliders-horizontal"></i> Personalizar Funil
+                    </button>
+                </div>
+                <div id="crmContent" style="display:none;">
+                    <div class="crm-board" id="crmBoard"></div>
+                </div>
+                <div class="loader" id="crmLoader" style="display:none;">
+                    <i class="ph-bold ph-circle-notch"></i>
+                </div>
+                <div class="empty-state" id="crmEmptyState" style="display:none;">
+                    <i class="ph-light ph-users-three"></i>
+                    <p>Ainda não há leads pra mostrar — assim que alguém provar, os cards vão aparecer aqui.</p>
+                </div>
+            </div>
+
         </div>
         <div style="text-align: center; margin-top: 60px; padding: 24px 0; border-top: 1px solid var(--border);" id="quanticFooter">
             <span style="font-size:13px;color:#666;font-weight:400;">&copy; 2026 Provou Levou — Tecnologia by Quantic</span>
@@ -2423,6 +2500,13 @@
                 loadLeadsRecup().catch(err => {
                     console.error('Erro carregando leads:', err);
                     leadsRecupLoaded = false;
+                });
+            }
+            if (name === 'crm' && !crmLoaded && activeUser) {
+                crmLoaded = true;
+                loadCRM().catch(err => {
+                    console.error('Erro carregando CRM:', err);
+                    crmLoaded = false;
                 });
             }
             try { localStorage.setItem('pl-active-tab', name); } catch(e) {}
@@ -4481,6 +4565,8 @@
             // Limpa caches do chart pra evitar usar dados de outro lojista quando troca de login
             _fatChartOrdersCache = null;
             if (window._fatMensalChart) { window._fatMensalChart.destroy(); window._fatMensalChart = null; }
+            leadsRecupLoaded = false;
+            crmLoaded = false;
             try {
                 await loadSharedData();
                 loadVisaoGeral();
@@ -5083,6 +5169,246 @@
         } finally {
             if (loader) loader.style.display = 'none';
         }
+        }
+
+        // ============== CRM (kanban de leads) ==============
+        let crmLoaded = false;
+
+        const CRM_COLUMNS = [
+            { key: 'cold',       title: 'Provou e não comprou',           icon: 'ph-user' },
+            { key: 'multiplas',  title: 'Provou + de 1 vez',              icon: 'ph-arrows-clockwise' },
+            { key: 'reengajou',  title: 'Re-engajou',                     icon: 'ph-fire' },
+            { key: 'voltou',     title: 'Voltou outro dia',               icon: 'ph-calendar-check' },
+            { key: 'convertido', title: 'Convertido',                     icon: 'ph-check-circle' }
+        ];
+
+        function crmClassify(d) {
+            if (d.bought) return 'convertido';
+            const dates = Array.from(d.uniqueDates).sort();
+            if (dates.length >= 2) {
+                const gap = (new Date(dates[dates.length-1]) - new Date(dates[0])) / 86400000;
+                return gap > 7 ? 'voltou' : 'reengajou';
+            }
+            if (d.provaCount >= 2) return 'multiplas';
+            return 'cold';
+        }
+
+        function crmFormatRelative(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr + 'T12:00:00-03:00');
+            if (isNaN(d.getTime())) return '';
+            const diff = Math.floor((Date.now() - d.getTime()) / 86400000);
+            if (diff <= 0) return 'Hoje';
+            if (diff === 1) return 'Ontem';
+            if (diff < 30) return `Há ${diff} dias`;
+            if (diff < 365) return `Há ${Math.floor(diff/30)} meses`;
+            return `Há ${Math.floor(diff/365)} ano(s)`;
+        }
+
+        function crmWppLink(rawPhone) {
+            const digits = String(rawPhone || '').replace(/\D/g, '');
+            if (!digits) return '';
+            const num = digits.startsWith('55') ? digits : '55' + digits;
+            return 'https://wa.me/' + num;
+        }
+
+        async function loadCRM() {
+            const loader = document.getElementById('crmLoader');
+            const content = document.getElementById('crmContent');
+            const emptyEl = document.getElementById('crmEmptyState');
+            if (loader) loader.style.display = 'flex';
+            if (content) content.style.display = 'none';
+            if (emptyEl) emptyEl.style.display = 'none';
+
+            try {
+                const user = activeUser;
+                const fPhone = user.campo_telefone_pedido || 'customer_phone';
+                const fStatus = user.campo_status_pedido || 'payment_status';
+                const fDataPedido = user.campo_data_pedido || 'created_at';
+                const fNome = user.campo_nome_pedido || 'customer_name';
+                const fStatusValues = user.valores_status_pago || ['paid'];
+
+                // Provas (todas as sessões da origem do lojista)
+                const allSessions = [];
+                {
+                    const pageSize = 1000;
+                    let pFrom = 0;
+                    while (true) {
+                        const { data: batch } = await supabaseClient
+                            .from(user.tabela)
+                            .select('telefone_cliente,produtos,created_at')
+                            .ilike('origin', '%' + user.origem + '%')
+                            .range(pFrom, pFrom + pageSize - 1);
+                        if (!batch || batch.length === 0) break;
+                        allSessions.push(...batch);
+                        if (batch.length < pageSize) break;
+                        pFrom += pageSize;
+                    }
+                }
+
+                const leadMap = {};
+                allSessions.forEach(s => {
+                    const ph = normalize(s.telefone_cliente);
+                    if (!ph) return;
+                    if (!leadMap[ph]) {
+                        leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: '', firstDate: '', lastProduct: '', rawPhone: s.telefone_cliente, bought: false, name: '' };
+                    }
+                    leadMap[ph].provaCount++;
+                    const d = (s.created_at || '').slice(0, 10);
+                    if (d) {
+                        leadMap[ph].uniqueDates.add(d);
+                        if (!leadMap[ph].lastDate || d > leadMap[ph].lastDate) {
+                            leadMap[ph].lastDate = d;
+                            const firstProduct = (s.produtos || '').split(',')[0].trim();
+                            if (firstProduct) leadMap[ph].lastProduct = firstProduct;
+                        }
+                        if (!leadMap[ph].firstDate || d < leadMap[ph].firstDate) leadMap[ph].firstDate = d;
+                    }
+                });
+
+                const phoneList = Object.keys(leadMap);
+                if (phoneList.length === 0) {
+                    if (emptyEl) emptyEl.style.display = 'block';
+                    return;
+                }
+
+                // Pedidos pagos (pra marcar quem comprou)
+                let earliestDate = '9999';
+                phoneList.forEach(ph => { if (leadMap[ph].firstDate && leadMap[ph].firstDate < earliestDate) earliestDate = leadMap[ph].firstDate; });
+
+                const selectFields = [fPhone, fStatus, fDataPedido, fNome].filter((v, i, a) => a.indexOf(v) === i).join(',');
+                const allOrders = [];
+                {
+                    const pageSize = 1000;
+                    let pFrom = 0;
+                    while (true) {
+                        let q = supabaseClient
+                            .from(user.tabela_pedidos)
+                            .select(selectFields)
+                            .in(fStatus, fStatusValues)
+                            .range(pFrom, pFrom + pageSize - 1);
+                        if (earliestDate !== '9999') q = q.gte(fDataPedido, earliestDate + 'T00:00:00-03:00');
+                        if (user.canal_provador) q = q.eq('channel', user.canal_provador);
+                        const { data: batch } = await q;
+                        if (!batch || batch.length === 0) break;
+                        allOrders.push(...batch);
+                        if (batch.length < pageSize) break;
+                        pFrom += pageSize;
+                    }
+                }
+
+                allOrders.forEach(o => {
+                    const ph = normalize(o[fPhone]);
+                    if (!ph || !leadMap[ph]) return;
+                    leadMap[ph].bought = true;
+                    if (o[fNome] && !leadMap[ph].name) leadMap[ph].name = o[fNome];
+                });
+
+                // Classifica
+                const buckets = { cold: [], multiplas: [], reengajou: [], voltou: [], convertido: [] };
+                phoneList.forEach(ph => {
+                    const d = leadMap[ph];
+                    buckets[crmClassify(d)].push({ phone: ph, ...d });
+                });
+
+                // Ordena cada bucket por lastDate desc
+                Object.values(buckets).forEach(arr => arr.sort((a,b) => (b.lastDate||'').localeCompare(a.lastDate||'')));
+
+                // Render
+                const board = document.getElementById('crmBoard');
+                board.textContent = '';
+                CRM_COLUMNS.forEach(col => {
+                    const colEl = document.createElement('div');
+                    colEl.className = 'crm-col';
+                    colEl.dataset.key = col.key;
+
+                    const header = document.createElement('div');
+                    header.className = 'crm-col-header';
+                    const title = document.createElement('div');
+                    title.className = 'crm-col-title';
+                    const ic = document.createElement('i'); ic.className = 'ph-bold ' + col.icon;
+                    const tx = document.createElement('span'); tx.textContent = col.title;
+                    title.append(ic, tx);
+                    const cnt = document.createElement('span');
+                    cnt.className = 'crm-col-count';
+                    cnt.textContent = buckets[col.key].length;
+                    header.append(title, cnt);
+
+                    const body = document.createElement('div');
+                    body.className = 'crm-col-body';
+
+                    if (buckets[col.key].length === 0) {
+                        const empty = document.createElement('div');
+                        empty.className = 'crm-col-empty';
+                        empty.textContent = '—';
+                        body.appendChild(empty);
+                    } else {
+                        buckets[col.key].slice(0, 200).forEach(lead => {
+                            const card = document.createElement('div');
+                            card.className = 'crm-card';
+
+                            const name = document.createElement('div');
+                            name.className = 'crm-card-name';
+                            const userIc = document.createElement('i'); userIc.className = 'ph-bold ph-user-circle'; userIc.style.color = 'var(--text-muted)';
+                            const nameTx = document.createElement('span');
+                            nameTx.textContent = lead.name || ('+' + (String(lead.rawPhone || '').replace(/\D/g,'') || lead.phone));
+                            name.append(userIc, nameTx);
+
+                            const meta = document.createElement('div');
+                            meta.className = 'crm-card-meta';
+                            const provasSpan = document.createElement('span');
+                            provasSpan.innerHTML = '<i class="ph-bold ph-eye"></i> ' + lead.provaCount + ' prova' + (lead.provaCount > 1 ? 's' : '');
+                            const dateSpan = document.createElement('span');
+                            dateSpan.innerHTML = '<i class="ph-bold ph-clock"></i> ' + crmFormatRelative(lead.lastDate);
+                            meta.append(provasSpan, dateSpan);
+
+                            card.append(name, meta);
+
+                            if (lead.lastProduct) {
+                                const prod = document.createElement('div');
+                                prod.className = 'crm-card-product';
+                                prod.title = lead.lastProduct;
+                                prod.innerHTML = '<i class="ph-bold ph-t-shirt"></i> ' + lead.lastProduct;
+                                card.appendChild(prod);
+                            }
+
+                            const wppHref = crmWppLink(lead.rawPhone || lead.phone);
+                            if (wppHref) {
+                                const a = document.createElement('a');
+                                a.className = 'crm-card-wpp';
+                                a.href = wppHref;
+                                a.target = '_blank';
+                                a.rel = 'noopener';
+                                a.innerHTML = '<i class="ph-bold ph-whatsapp-logo"></i> Abrir no WhatsApp';
+                                card.appendChild(a);
+                            }
+
+                            body.appendChild(card);
+                        });
+
+                        if (buckets[col.key].length > 200) {
+                            const more = document.createElement('div');
+                            more.className = 'crm-col-empty';
+                            more.textContent = '+' + (buckets[col.key].length - 200) + ' leads (mostrando 200 mais recentes)';
+                            body.appendChild(more);
+                        }
+                    }
+
+                    colEl.append(header, body);
+                    board.appendChild(colEl);
+                });
+
+                if (content) content.style.display = 'block';
+            } catch (err) {
+                console.error('Erro carregando CRM:', err);
+                if (emptyEl) {
+                    emptyEl.style.display = 'block';
+                    emptyEl.innerHTML = '<i class="ph-light ph-warning"></i><p>Erro ao carregar CRM: ' + (err && err.message ? err.message : 'falha desconhecida') + '</p>';
+                }
+                throw err;
+            } finally {
+                if (loader) loader.style.display = 'none';
+            }
         }
 
         function renderLeadsTable(searchTerm) {
