@@ -4464,6 +4464,9 @@
             if (!supabaseClient || !activeUser) return;
             document.getElementById('mainLoader').style.display = 'flex';
             document.getElementById('dashboardSection').style.display = 'none';
+            // Limpa caches do chart pra evitar usar dados de outro lojista quando troca de login
+            _fatChartOrdersCache = null;
+            if (window._fatMensalChart) { window._fatMensalChart.destroy(); window._fatMensalChart = null; }
             try {
                 await loadSharedData();
                 loadVisaoGeral();
