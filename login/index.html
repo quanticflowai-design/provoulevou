@@ -5238,6 +5238,8 @@
                             .from(user.tabela)
                             .select('telefone_cliente,produtos,created_at')
                             .ilike('origin', '%' + user.origem + '%')
+                            .order('created_at', { ascending: true })
+                            .order('id', { ascending: true })
                             .range(pFrom, pFrom + pageSize - 1);
                         if (!batch || batch.length === 0) break;
                         allSessions.push(...batch);
@@ -5286,6 +5288,8 @@
                             .from(user.tabela_pedidos)
                             .select(selectFields)
                             .in(fStatus, fStatusValues)
+                            .order(fDataPedido, { ascending: true })
+                            .order('id', { ascending: true })
                             .range(pFrom, pFrom + pageSize - 1);
                         if (earliestDate !== '9999') q = q.gte(fDataPedido, earliestDate + 'T00:00:00-03:00');
                         if (user.canal_provador) q = q.eq('channel', user.canal_provador);
