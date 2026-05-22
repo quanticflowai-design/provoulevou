@@ -2860,6 +2860,7 @@
             const fDataPedido = activeUser.campo_data_pedido || 'created_at';
             const fStatus     = activeUser.campo_status_pedido || 'payment_status';
             const fStatusVals = activeUser.valores_status_pago || ['paid'];
+            const fPhone      = activeUser.campo_telefone_pedido || 'customer_phone';
 
             // Primeira prova = data de instalação do provador
             const installDate  = Object.values(provaMinDateMap).sort()[0] || '';
@@ -2886,7 +2887,7 @@
                 while (true) {
                     let q = supabaseClient
                         .from(activeUser.tabela_pedidos)
-                        .select(`${fTotal},${fDataPedido}`)
+                        .select(`${fTotal},${fDataPedido},${fPhone}`)
                         .in(fStatus, fStatusVals)
                         .gte(fDataPedido, since)
                         .order(fDataPedido, { ascending: true })
@@ -2933,8 +2934,11 @@
                 const raw = o[fDataPedido] || '';
                 const key = granularity === 'week' ? isoWeekKey(raw) : raw.slice(0, 7);
                 if (!key) return;
-                if (!buckets[key]) buckets[key] = { total: 0 };
-                buckets[key].total += parseFloat(o[fTotal]) || 0;
+                if (!buckets[key]) buckets[key] = { total: 0, provador: 0 };
+                const v = parseFloat(o[fTotal]) || 0;
+                buckets[key].total += v;
+                const ph = normalize(o[fPhone]);
+                if (ph && isOrderAfterProva(raw, ph)) buckets[key].provador += v;
             });
             const keys = Object.keys(buckets).sort();
             if (keys.length === 0) { if (container) container.style.display = 'none'; return; }
@@ -2997,7 +3001,17 @@
                             backgroundColor: '#1e1e2e', titleColor: '#fff', bodyColor: '#c4b5fd',
                             borderColor: '#8b5cf6', borderWidth: 1, cornerRadius: 8,
                             callbacks: {
-                                label: c => ' ' + c.dataset.label + ': R$ ' + c.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
+                                label: c => {
+                                    const m = months[c.dataIndex];
+                                    const tot = c.parsed.y;
+                                    const prov = (byMonth[m] && byMonth[m].provador) || 0;
+                                    const pct = tot > 0 ? (prov / tot * 100) : 0;
+                                    const brl = v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                                    return [
+                                        ' Faturamento total: ' + brl(tot),
+                                        ' Via provador: ' + brl(prov) + ' (' + pct.toFixed(1).replace('.', ',') + '%)'
+                                    ];
+                                },
                                 afterBody: tooltipItems => {
                                     const m = months[tooltipItems[0].dataIndex];
                                     if (installKey && m === installKey) return ['', '📍 Instalação do provador'];
