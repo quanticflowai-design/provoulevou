@@ -4474,6 +4474,12 @@
                 document.getElementById('mainLoader').style.display = 'none';
                 document.getElementById('dashboardSection').style.display = 'block';
                 restoreTab();
+                // Bug conhecido: Chart.js criado enquanto dashboardSection tava display:none
+                // gera canvas com dimensões 0×0 e renderiza torto. Agora que o dashboard tá
+                // visível, refaz a renderização (usa cache, então não dispara novas queries).
+                requestAnimationFrame(() => {
+                    if (typeof renderFatMensalChart === 'function') renderFatMensalChart(_fatChartGranularity);
+                });
                 await Promise.all([loadProvas(1), loadCompras(1), loadLtv(1)]);
             } catch (err) {
                 console.error(err);
