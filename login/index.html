@@ -2421,9 +2421,14 @@
                         <i class="ph-bold ph-kanban" style="color:var(--primary);"></i> CRM
                         <span style="font-size:12px;font-weight:500;color:var(--text-muted);background:rgba(139,92,246,0.08);padding:4px 10px;border-radius:8px;">funil de leads do provador</span>
                     </h2>
-                    <button class="btn-download" disabled title="Em breve: criar suas próprias colunas" style="opacity:.55;cursor:not-allowed;">
-                        <i class="ph-bold ph-sliders-horizontal"></i> Personalizar Funil
-                    </button>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button class="btn-download" onclick="openCrmMsgModal()" title="Editar a mensagem padrão enviada no WhatsApp">
+                            <i class="ph-bold ph-chat-circle-text"></i> Mensagem padrão
+                        </button>
+                        <button class="btn-download" disabled title="Em breve: criar suas próprias colunas" style="opacity:.55;cursor:not-allowed;">
+                            <i class="ph-bold ph-sliders-horizontal"></i> Personalizar Funil
+                        </button>
+                    </div>
                 </div>
                 <div id="crmContent" style="display:none;">
                     <div class="crm-board" id="crmBoard"></div>
@@ -2434,6 +2439,27 @@
                 <div class="empty-state" id="crmEmptyState" style="display:none;">
                     <i class="ph-light ph-users-three"></i>
                     <p>Ainda não há leads pra mostrar — assim que alguém provar, os cards vão aparecer aqui.</p>
+                </div>
+            </div>
+
+            <!-- Modal Mensagem Padrão CRM -->
+            <div id="crmMsgModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+                <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;max-width:520px;width:100%;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                        <h3 style="margin:0;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;">
+                            <i class="ph-bold ph-chat-circle-text" style="color:#25D366;"></i> Mensagem padrão WhatsApp
+                        </h3>
+                        <button onclick="closeCrmMsgModal()" style="background:transparent;border:0;color:var(--text-muted);cursor:pointer;font-size:20px;line-height:1;padding:4px;">×</button>
+                    </div>
+                    <p style="font-size:13px;color:var(--text-muted);margin:0 0 10px;">
+                        Esse texto é pré-preenchido ao clicar em "Abrir no WhatsApp". Use <code style="background:rgba(139,92,246,0.12);padding:1px 6px;border-radius:4px;color:var(--primary);">{produto}</code> pra inserir o nome do item que o cliente provou.
+                    </p>
+                    <textarea id="crmMsgTextarea" rows="5" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13.5px;color:var(--text);resize:vertical;font-family:inherit;"></textarea>
+                    <div style="font-size:11.5px;color:var(--text-muted);margin-top:6px;">Obrigatório incluir <code style="background:rgba(139,92,246,0.12);padding:1px 5px;border-radius:4px;color:var(--primary);">{produto}</code> — se faltar, será adicionado automaticamente.</div>
+                    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+                        <button onclick="resetCrmMsgTemplate()" style="background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">Restaurar padrão</button>
+                        <button onclick="saveCrmMsgTemplate()" style="background:#25D366;border:0;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Salvar</button>
+                    </div>
                 </div>
             </div>
 
@@ -5205,11 +5231,62 @@
             return `Há ${Math.floor(diff/365)} ano(s)`;
         }
 
-        function crmWppLink(rawPhone) {
+        const CRM_MSG_DEFAULT = 'Oi! Vi que você experimentou {produto} no nosso provador virtual. Posso te ajudar a fechar essa compra? Tenho uma condição especial pra você.';
+
+        function crmMsgStorageKey() {
+            return 'pl-crm-msg-template-' + ((activeUser && activeUser.email) || 'default');
+        }
+        function getCrmMsgTemplate() {
+            try {
+                const saved = localStorage.getItem(crmMsgStorageKey());
+                return saved && saved.trim() ? saved : CRM_MSG_DEFAULT;
+            } catch(e) { return CRM_MSG_DEFAULT; }
+        }
+        function setCrmMsgTemplate(text) {
+            try { localStorage.setItem(crmMsgStorageKey(), text); } catch(e) {}
+        }
+        function buildCrmMsg(produto) {
+            let tpl = getCrmMsgTemplate();
+            if (tpl.indexOf('{produto}') === -1) tpl = tpl.trim() + ' ' + (produto || 'o item');
+            const safeProd = produto || 'o item que você provou';
+            return tpl.replace(/\{produto\}/g, safeProd);
+        }
+
+        function openCrmMsgModal() {
+            const modal = document.getElementById('crmMsgModal');
+            const ta = document.getElementById('crmMsgTextarea');
+            if (ta) ta.value = getCrmMsgTemplate();
+            if (modal) modal.style.display = 'flex';
+        }
+        function closeCrmMsgModal() {
+            const modal = document.getElementById('crmMsgModal');
+            if (modal) modal.style.display = 'none';
+        }
+        function saveCrmMsgTemplate() {
+            const ta = document.getElementById('crmMsgTextarea');
+            if (!ta) return;
+            let v = ta.value.trim();
+            if (!v) v = CRM_MSG_DEFAULT;
+            if (v.indexOf('{produto}') === -1) v = v + ' {produto}';
+            setCrmMsgTemplate(v);
+            closeCrmMsgModal();
+            if (typeof loadCRM === 'function' && crmLoaded) {
+                crmLoaded = false;
+                loadCRM().catch(() => { crmLoaded = false; });
+                crmLoaded = true;
+            }
+        }
+        function resetCrmMsgTemplate() {
+            const ta = document.getElementById('crmMsgTextarea');
+            if (ta) ta.value = CRM_MSG_DEFAULT;
+        }
+
+        function crmWppLink(rawPhone, produto) {
             const digits = String(rawPhone || '').replace(/\D/g, '');
             if (!digits) return '';
             const num = digits.startsWith('55') ? digits : '55' + digits;
-            return 'https://wa.me/' + num;
+            const msg = buildCrmMsg(produto);
+            return 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg);
         }
 
         async function loadCRM() {
@@ -5376,7 +5453,7 @@
                                 card.appendChild(prod);
                             }
 
-                            const wppHref = crmWppLink(lead.rawPhone || lead.phone);
+                            const wppHref = crmWppLink(lead.rawPhone || lead.phone, lead.lastProduct);
                             if (wppHref) {
                                 const a = document.createElement('a');
                                 a.className = 'crm-card-wpp';
