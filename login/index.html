@@ -5326,6 +5326,7 @@
                 }
 
                 const leadMap = {};
+                const provaMinTs = {}; // pra replicar isOrderAfterProva exatamente
                 allSessions.forEach(s => {
                     const ph = normalize(s.telefone_cliente);
                     if (!ph) return;
@@ -5333,7 +5334,8 @@
                         leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: '', firstDate: '', lastProduct: '', rawPhone: s.telefone_cliente, bought: false, name: '' };
                     }
                     leadMap[ph].provaCount++;
-                    const d = (s.created_at || '').slice(0, 10);
+                    const ts = s.created_at || '';
+                    const d = ts.slice(0, 10);
                     if (d) {
                         leadMap[ph].uniqueDates.add(d);
                         if (!leadMap[ph].lastDate || d > leadMap[ph].lastDate) {
@@ -5343,6 +5345,7 @@
                         }
                         if (!leadMap[ph].firstDate || d < leadMap[ph].firstDate) leadMap[ph].firstDate = d;
                     }
+                    if (ts && (!provaMinTs[ph] || ts < provaMinTs[ph])) provaMinTs[ph] = ts;
                 });
 
                 const phoneList = Object.keys(leadMap);
@@ -5381,6 +5384,13 @@
                 allOrders.forEach(o => {
                     const ph = normalize(o[fPhone]);
                     if (!ph || !leadMap[ph]) return;
+                    // Replica isOrderAfterProva: só conta como "convertido" se o pedido foi após a prova
+                    const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                    const provaDate = leadMap[ph].firstDate;
+                    const provaTs = provaMinTs[ph] || '';
+                    const hasRealTime = orderTs && orderTs.includes('T') && !orderTs.includes('T00:00:00');
+                    const after = hasRealTime ? (orderTs >= provaTs) : (orderTs.slice(0,10) >= provaDate);
+                    if (!after) return;
                     leadMap[ph].bought = true;
                     if (o[fNome] && !leadMap[ph].name) leadMap[ph].name = o[fNome];
                 });
