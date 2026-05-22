@@ -1603,6 +1603,32 @@
         .crm-col[data-key="reengajou"] .crm-col-title i { color: #fb923c; }
         .crm-col[data-key="voltou"] .crm-col-title i { color: #ef4444; }
         .crm-col[data-key="convertido"] .crm-col-title i { color: #10b981; }
+        .crm-col-dragover { outline: 2px dashed var(--primary); outline-offset: -4px; background: rgba(139,92,246,0.08); }
+        .crm-card { cursor: grab; }
+        .crm-card-dragging { opacity: 0.4; cursor: grabbing; }
+        .crm-pipeline-row {
+            display: flex; align-items: center; gap: 10px;
+            background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;
+            padding: 10px 12px;
+        }
+        .crm-pipeline-row input.crm-col-title-edit {
+            flex: 1; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px;
+            padding: 6px 10px; font-size: 13px; color: #111;
+        }
+        .crm-pipeline-row .crm-pipe-icon { font-size: 18px; color: #7c3aed; flex-shrink: 0; }
+        .crm-pipeline-row .crm-pipe-badge {
+            font-size: 10.5px; padding: 2px 7px; border-radius: 999px;
+            background: rgba(139,92,246,0.12); color: #7c3aed; font-weight: 600; white-space: nowrap;
+        }
+        .crm-pipeline-row .crm-pipe-arrows { display: flex; flex-direction: column; gap: 2px; }
+        .crm-pipeline-row .crm-pipe-arrows button {
+            background: transparent; border: 0; color: #888; cursor: pointer; padding: 0; font-size: 14px; line-height: 1;
+        }
+        .crm-pipeline-row .crm-pipe-arrows button:hover { color: #111; }
+        .crm-pipeline-row .crm-pipe-delete {
+            background: transparent; border: 0; color: #dc2626; cursor: pointer; font-size: 16px; padding: 4px;
+        }
+        .crm-pipeline-row .crm-pipe-delete:disabled { color: #ccc; cursor: not-allowed; }
         .kpi-delta {
             display: inline-flex;
             align-items: center;
@@ -2425,7 +2451,7 @@
                         <button class="btn-download" onclick="openCrmMsgModal()" title="Editar a mensagem padrão enviada no WhatsApp">
                             <i class="ph-bold ph-chat-circle-text"></i> Mensagem padrão
                         </button>
-                        <button class="btn-download" disabled title="Em breve: criar suas próprias colunas" style="opacity:.55;cursor:not-allowed;">
+                        <button class="btn-download" onclick="openCrmPipelineModal()" title="Criar, renomear e reordenar colunas do funil">
                             <i class="ph-bold ph-sliders-horizontal"></i> Personalizar Funil
                         </button>
                     </div>
@@ -2439,6 +2465,32 @@
                 <div class="empty-state" id="crmEmptyState" style="display:none;">
                     <i class="ph-light ph-users-three"></i>
                     <p>Ainda não há leads pra mostrar — assim que alguém provar, os cards vão aparecer aqui.</p>
+                </div>
+            </div>
+
+            <!-- Modal Personalizar Funil -->
+            <div id="crmPipelineModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+                <div style="background:#ffffff;color:#111;border:1px solid #e5e7eb;border-radius:14px;max-width:620px;width:100%;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.4);max-height:85vh;display:flex;flex-direction:column;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                        <h3 style="margin:0;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;">
+                            <i class="ph-bold ph-sliders-horizontal" style="color:#7c3aed;"></i> Personalizar Funil
+                        </h3>
+                        <button onclick="closeCrmPipelineModal()" style="background:transparent;border:0;color:#666;cursor:pointer;font-size:20px;line-height:1;padding:4px;">×</button>
+                    </div>
+                    <p style="font-size:13px;color:#555;margin:0 0 14px;">
+                        Renomeie, reordene, adicione ou remova colunas. As 5 colunas automáticas (com 🤖) classificam os leads sozinhas — só podem ser renomeadas/reordenadas. Colunas que você criar recebem leads apenas via arrastar e soltar.
+                    </p>
+                    <div id="crmPipelineList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px;"></div>
+                    <button onclick="addCrmCustomColumn()" style="margin-top:12px;background:transparent;border:1.5px dashed #d1d5db;color:#555;padding:10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">
+                        <i class="ph-bold ph-plus"></i> Adicionar coluna customizada
+                    </button>
+                    <div style="display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:18px;flex-wrap:wrap;">
+                        <button onclick="resetCrmPipeline()" style="background:transparent;border:1px solid #fca5a5;color:#dc2626;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12.5px;">Restaurar padrão</button>
+                        <div style="display:flex;gap:10px;">
+                            <button onclick="closeCrmPipelineModal()" style="background:transparent;border:1px solid #d1d5db;color:#555;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">Cancelar</button>
+                            <button onclick="saveCrmPipeline()" style="background:#7c3aed;border:0;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Salvar</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -5199,14 +5251,50 @@
 
         // ============== CRM (kanban de leads) ==============
         let crmLoaded = false;
+        let crmLeadMapCache = null; // mantido entre renders pra drag-drop não refetchar
 
-        const CRM_COLUMNS = [
-            { key: 'cold',       title: 'Provou e não comprou',           icon: 'ph-user' },
-            { key: 'multiplas',  title: 'Provou + de 1 vez',              icon: 'ph-arrows-clockwise' },
-            { key: 'reengajou',  title: 'Re-engajou',                     icon: 'ph-fire' },
-            { key: 'voltou',     title: 'Voltou outro dia',               icon: 'ph-calendar-check' },
-            { key: 'convertido', title: 'Convertido',                     icon: 'ph-check-circle' }
+        const CRM_DEFAULT_COLUMNS = [
+            { key: 'cold',       title: 'Provou e não comprou', icon: 'ph-user',                auto: true, rule: 'cold' },
+            { key: 'multiplas',  title: 'Provou + de 1 vez',    icon: 'ph-arrows-clockwise',    auto: true, rule: 'multiplas' },
+            { key: 'reengajou',  title: 'Re-engajou',           icon: 'ph-fire',                auto: true, rule: 'reengajou' },
+            { key: 'voltou',     title: 'Voltou outro dia',     icon: 'ph-calendar-check',      auto: true, rule: 'voltou' },
+            { key: 'convertido', title: 'Convertido',           icon: 'ph-check-circle',        auto: true, rule: 'convertido' }
         ];
+
+        function crmConfigKey()    { return 'pl-crm-config-'    + ((activeUser && activeUser.email) || 'default'); }
+        function crmOverridesKey() { return 'pl-crm-overrides-' + ((activeUser && activeUser.email) || 'default'); }
+
+        function getCrmConfig() {
+            try {
+                const raw = localStorage.getItem(crmConfigKey());
+                if (raw) {
+                    const cfg = JSON.parse(raw);
+                    if (cfg && Array.isArray(cfg.columns) && cfg.columns.length) return cfg;
+                }
+            } catch(e) {}
+            return { columns: CRM_DEFAULT_COLUMNS.slice() };
+        }
+        function setCrmConfig(cfg) {
+            try { localStorage.setItem(crmConfigKey(), JSON.stringify(cfg)); } catch(e) {}
+        }
+        function getCrmOverrides() {
+            try {
+                const raw = localStorage.getItem(crmOverridesKey());
+                if (raw) {
+                    const obj = JSON.parse(raw);
+                    if (obj && typeof obj === 'object') return obj;
+                }
+            } catch(e) {}
+            return {};
+        }
+        function setCrmOverrides(obj) {
+            try { localStorage.setItem(crmOverridesKey(), JSON.stringify(obj)); } catch(e) {}
+        }
+        function setCrmLeadOverride(phone, colKey) {
+            const ov = getCrmOverrides();
+            if (colKey) ov[phone] = colKey; else delete ov[phone];
+            setCrmOverrides(ov);
+        }
 
         function crmClassify(d) {
             if (d.bought) return 'convertido';
@@ -5279,6 +5367,113 @@
         function resetCrmMsgTemplate() {
             const ta = document.getElementById('crmMsgTextarea');
             if (ta) ta.value = CRM_MSG_DEFAULT;
+        }
+
+        // ============== Modal Personalizar Funil ==============
+        let _crmPipelineDraft = null; // edição em memória até salvar
+
+        function openCrmPipelineModal() {
+            _crmPipelineDraft = JSON.parse(JSON.stringify(getCrmConfig())); // deep clone
+            renderCrmPipelineList();
+            document.getElementById('crmPipelineModal').style.display = 'flex';
+        }
+        function closeCrmPipelineModal() {
+            document.getElementById('crmPipelineModal').style.display = 'none';
+            _crmPipelineDraft = null;
+        }
+        function renderCrmPipelineList() {
+            const list = document.getElementById('crmPipelineList');
+            list.textContent = '';
+            _crmPipelineDraft.columns.forEach((col, idx) => {
+                const row = document.createElement('div');
+                row.className = 'crm-pipeline-row';
+
+                const ic = document.createElement('i');
+                ic.className = 'ph-bold ' + (col.icon || 'ph-circle') + ' crm-pipe-icon';
+                row.appendChild(ic);
+
+                const inp = document.createElement('input');
+                inp.type = 'text';
+                inp.value = col.title;
+                inp.className = 'crm-col-title-edit';
+                inp.addEventListener('input', () => { _crmPipelineDraft.columns[idx].title = inp.value; });
+                row.appendChild(inp);
+
+                if (col.auto) {
+                    const badge = document.createElement('span');
+                    badge.className = 'crm-pipe-badge';
+                    badge.textContent = 'AUTO';
+                    badge.title = 'Coluna automática — classifica leads pelas regras do provador';
+                    row.appendChild(badge);
+                }
+
+                const arrows = document.createElement('div');
+                arrows.className = 'crm-pipe-arrows';
+                const up = document.createElement('button');
+                up.innerHTML = '▲'; up.title = 'Mover pra cima';
+                up.disabled = idx === 0;
+                up.onclick = () => moveCrmCol(idx, -1);
+                const dn = document.createElement('button');
+                dn.innerHTML = '▼'; dn.title = 'Mover pra baixo';
+                dn.disabled = idx === _crmPipelineDraft.columns.length - 1;
+                dn.onclick = () => moveCrmCol(idx, +1);
+                arrows.append(up, dn);
+                row.appendChild(arrows);
+
+                const del = document.createElement('button');
+                del.className = 'crm-pipe-delete';
+                del.innerHTML = '<i class="ph-bold ph-trash"></i>';
+                del.title = col.auto ? 'Colunas automáticas não podem ser removidas' : 'Remover coluna';
+                del.disabled = !!col.auto;
+                del.onclick = () => removeCrmCol(idx);
+                row.appendChild(del);
+
+                list.appendChild(row);
+            });
+        }
+        function moveCrmCol(idx, dir) {
+            const cols = _crmPipelineDraft.columns;
+            const tgt = idx + dir;
+            if (tgt < 0 || tgt >= cols.length) return;
+            const [moved] = cols.splice(idx, 1);
+            cols.splice(tgt, 0, moved);
+            renderCrmPipelineList();
+        }
+        function removeCrmCol(idx) {
+            const col = _crmPipelineDraft.columns[idx];
+            if (col.auto) return;
+            if (!confirm(`Remover a coluna "${col.title}"? Os leads dela voltam pra classificação automática.`)) return;
+            _crmPipelineDraft.columns.splice(idx, 1);
+            renderCrmPipelineList();
+        }
+        function addCrmCustomColumn() {
+            const title = prompt('Nome da nova coluna:', 'Negociando');
+            if (!title || !title.trim()) return;
+            _crmPipelineDraft.columns.push({
+                key: 'custom-' + Date.now().toString(36),
+                title: title.trim(),
+                icon: 'ph-flag',
+                auto: false
+            });
+            renderCrmPipelineList();
+        }
+        function saveCrmPipeline() {
+            // Limpa títulos vazios
+            _crmPipelineDraft.columns.forEach(c => { if (!c.title || !c.title.trim()) c.title = 'Sem nome'; });
+            setCrmConfig(_crmPipelineDraft);
+            // Remove overrides apontando pra colunas que não existem mais
+            const validKeys = new Set(_crmPipelineDraft.columns.map(c => c.key));
+            const ov = getCrmOverrides();
+            let changed = false;
+            Object.keys(ov).forEach(ph => { if (!validKeys.has(ov[ph])) { delete ov[ph]; changed = true; } });
+            if (changed) setCrmOverrides(ov);
+            closeCrmPipelineModal();
+            renderCrmBoard();
+        }
+        function resetCrmPipeline() {
+            if (!confirm('Restaurar o funil padrão? Suas colunas customizadas serão removidas (os leads delas voltam pra classificação automática).')) return;
+            _crmPipelineDraft = { columns: CRM_DEFAULT_COLUMNS.slice() };
+            renderCrmPipelineList();
         }
 
         function crmWppLink(rawPhone, produto) {
@@ -5395,101 +5590,10 @@
                     if (o[fNome] && !leadMap[ph].name) leadMap[ph].name = o[fNome];
                 });
 
-                // Classifica
-                const buckets = { cold: [], multiplas: [], reengajou: [], voltou: [], convertido: [] };
-                phoneList.forEach(ph => {
-                    const d = leadMap[ph];
-                    buckets[crmClassify(d)].push({ phone: ph, ...d });
-                });
-
-                // Ordena cada bucket por lastDate desc
-                Object.values(buckets).forEach(arr => arr.sort((a,b) => (b.lastDate||'').localeCompare(a.lastDate||'')));
-
-                // Render
-                const board = document.getElementById('crmBoard');
-                board.textContent = '';
-                CRM_COLUMNS.forEach(col => {
-                    const colEl = document.createElement('div');
-                    colEl.className = 'crm-col';
-                    colEl.dataset.key = col.key;
-
-                    const header = document.createElement('div');
-                    header.className = 'crm-col-header';
-                    const title = document.createElement('div');
-                    title.className = 'crm-col-title';
-                    const ic = document.createElement('i'); ic.className = 'ph-bold ' + col.icon;
-                    const tx = document.createElement('span'); tx.textContent = col.title;
-                    title.append(ic, tx);
-                    const cnt = document.createElement('span');
-                    cnt.className = 'crm-col-count';
-                    cnt.textContent = buckets[col.key].length;
-                    header.append(title, cnt);
-
-                    const body = document.createElement('div');
-                    body.className = 'crm-col-body';
-
-                    if (buckets[col.key].length === 0) {
-                        const empty = document.createElement('div');
-                        empty.className = 'crm-col-empty';
-                        empty.textContent = '—';
-                        body.appendChild(empty);
-                    } else {
-                        buckets[col.key].slice(0, 200).forEach(lead => {
-                            const card = document.createElement('div');
-                            card.className = 'crm-card';
-
-                            const name = document.createElement('div');
-                            name.className = 'crm-card-name';
-                            const userIc = document.createElement('i'); userIc.className = 'ph-bold ph-user-circle'; userIc.style.color = 'var(--text-muted)';
-                            const nameTx = document.createElement('span');
-                            nameTx.textContent = lead.name || ('+' + (String(lead.rawPhone || '').replace(/\D/g,'') || lead.phone));
-                            name.append(userIc, nameTx);
-
-                            const meta = document.createElement('div');
-                            meta.className = 'crm-card-meta';
-                            const provasSpan = document.createElement('span');
-                            provasSpan.innerHTML = '<i class="ph-bold ph-eye"></i> ' + lead.provaCount + ' prova' + (lead.provaCount > 1 ? 's' : '');
-                            const dateSpan = document.createElement('span');
-                            dateSpan.innerHTML = '<i class="ph-bold ph-clock"></i> ' + crmFormatRelative(lead.lastDate);
-                            meta.append(provasSpan, dateSpan);
-
-                            card.append(name, meta);
-
-                            if (lead.lastProduct) {
-                                const prod = document.createElement('div');
-                                prod.className = 'crm-card-product';
-                                prod.title = lead.lastProduct;
-                                prod.innerHTML = '<i class="ph-bold ph-t-shirt"></i> ' + lead.lastProduct;
-                                card.appendChild(prod);
-                            }
-
-                            const wppHref = crmWppLink(lead.rawPhone || lead.phone, lead.lastProduct);
-                            if (wppHref) {
-                                const a = document.createElement('a');
-                                a.className = 'crm-card-wpp';
-                                a.href = wppHref;
-                                a.target = '_blank';
-                                a.rel = 'noopener';
-                                a.innerHTML = '<i class="ph-bold ph-whatsapp-logo"></i> Abrir no WhatsApp';
-                                card.appendChild(a);
-                            }
-
-                            body.appendChild(card);
-                        });
-
-                        if (buckets[col.key].length > 200) {
-                            const more = document.createElement('div');
-                            more.className = 'crm-col-empty';
-                            more.textContent = '+' + (buckets[col.key].length - 200) + ' leads (mostrando 200 mais recentes)';
-                            body.appendChild(more);
-                        }
-                    }
-
-                    colEl.append(header, body);
-                    board.appendChild(colEl);
-                });
-
+                crmLeadMapCache = leadMap;
+                renderCrmBoard();
                 if (content) content.style.display = 'block';
+                return;
             } catch (err) {
                 console.error('Erro carregando CRM:', err);
                 if (emptyEl) {
@@ -5500,6 +5604,144 @@
             } finally {
                 if (loader) loader.style.display = 'none';
             }
+        }
+
+        function renderCrmBoard() {
+            if (!crmLeadMapCache) return;
+            const leadMap = crmLeadMapCache;
+            const phoneList = Object.keys(leadMap);
+            const config = getCrmConfig();
+            const overrides = getCrmOverrides();
+
+            // Inicializa buckets pra TODAS as colunas atuais (auto + custom)
+            const buckets = {};
+            config.columns.forEach(c => { buckets[c.key] = []; });
+
+            phoneList.forEach(ph => {
+                const d = leadMap[ph];
+                let targetKey = overrides[ph];
+                if (targetKey && !buckets[targetKey]) targetKey = null; // override aponta pra coluna deletada → ignora
+                if (!targetKey) {
+                    const rule = crmClassify(d);
+                    // Acha a 1ª coluna auto com essa rule (lojista pode ter renomeado mas key continua)
+                    const col = config.columns.find(c => c.auto && c.rule === rule);
+                    targetKey = col ? col.key : rule;
+                }
+                if (!buckets[targetKey]) buckets[targetKey] = [];
+                buckets[targetKey].push({ phone: ph, ...d });
+            });
+
+            Object.values(buckets).forEach(arr => arr.sort((a,b) => (b.lastDate||'').localeCompare(a.lastDate||'')));
+
+            const board = document.getElementById('crmBoard');
+            board.textContent = '';
+            // Ajusta grid pra n colunas
+            board.style.gridTemplateColumns = `repeat(${config.columns.length}, minmax(260px, 1fr))`;
+
+            config.columns.forEach(col => {
+                const colEl = document.createElement('div');
+                colEl.className = 'crm-col';
+                colEl.dataset.key = col.key;
+
+                // Drag-drop: coluna é zona de drop
+                colEl.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    colEl.classList.add('crm-col-dragover');
+                });
+                colEl.addEventListener('dragleave', () => colEl.classList.remove('crm-col-dragover'));
+                colEl.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    colEl.classList.remove('crm-col-dragover');
+                    const phone = e.dataTransfer.getData('text/plain');
+                    if (!phone) return;
+                    setCrmLeadOverride(phone, col.key);
+                    renderCrmBoard();
+                });
+
+                const header = document.createElement('div');
+                header.className = 'crm-col-header';
+                const title = document.createElement('div');
+                title.className = 'crm-col-title';
+                const ic = document.createElement('i'); ic.className = 'ph-bold ' + col.icon;
+                const tx = document.createElement('span'); tx.textContent = col.title;
+                title.append(ic, tx);
+                const cnt = document.createElement('span');
+                cnt.className = 'crm-col-count';
+                cnt.textContent = buckets[col.key].length;
+                header.append(title, cnt);
+
+                const body = document.createElement('div');
+                body.className = 'crm-col-body';
+
+                if (buckets[col.key].length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'crm-col-empty';
+                    empty.textContent = col.auto ? '—' : 'Arraste cards pra cá';
+                    body.appendChild(empty);
+                } else {
+                    buckets[col.key].slice(0, 200).forEach(lead => {
+                        const card = document.createElement('div');
+                        card.className = 'crm-card';
+                        card.draggable = true;
+                        card.dataset.phone = lead.phone;
+
+                        card.addEventListener('dragstart', (e) => {
+                            e.dataTransfer.setData('text/plain', lead.phone);
+                            e.dataTransfer.effectAllowed = 'move';
+                            card.classList.add('crm-card-dragging');
+                        });
+                        card.addEventListener('dragend', () => card.classList.remove('crm-card-dragging'));
+
+                        const name = document.createElement('div');
+                        name.className = 'crm-card-name';
+                        const userIc = document.createElement('i'); userIc.className = 'ph-bold ph-user-circle'; userIc.style.color = 'var(--text-muted)';
+                        const nameTx = document.createElement('span');
+                        nameTx.textContent = lead.name || ('+' + (String(lead.rawPhone || '').replace(/\D/g,'') || lead.phone));
+                        name.append(userIc, nameTx);
+
+                        const meta = document.createElement('div');
+                        meta.className = 'crm-card-meta';
+                        const provasSpan = document.createElement('span');
+                        provasSpan.innerHTML = '<i class="ph-bold ph-eye"></i> ' + lead.provaCount + ' prova' + (lead.provaCount > 1 ? 's' : '');
+                        const dateSpan = document.createElement('span');
+                        dateSpan.innerHTML = '<i class="ph-bold ph-clock"></i> ' + crmFormatRelative(lead.lastDate);
+                        meta.append(provasSpan, dateSpan);
+
+                        card.append(name, meta);
+
+                        if (lead.lastProduct) {
+                            const prod = document.createElement('div');
+                            prod.className = 'crm-card-product';
+                            prod.title = lead.lastProduct;
+                            prod.innerHTML = '<i class="ph-bold ph-t-shirt"></i> ' + lead.lastProduct;
+                            card.appendChild(prod);
+                        }
+
+                        const wppHref = crmWppLink(lead.rawPhone || lead.phone, lead.lastProduct);
+                        if (wppHref) {
+                            const a = document.createElement('a');
+                            a.className = 'crm-card-wpp';
+                            a.href = wppHref;
+                            a.target = '_blank';
+                            a.rel = 'noopener';
+                            a.innerHTML = '<i class="ph-bold ph-whatsapp-logo"></i> Abrir no WhatsApp';
+                            card.appendChild(a);
+                        }
+
+                        body.appendChild(card);
+                    });
+
+                    if (buckets[col.key].length > 200) {
+                        const more = document.createElement('div');
+                        more.className = 'crm-col-empty';
+                        more.textContent = '+' + (buckets[col.key].length - 200) + ' leads (mostrando 200 mais recentes)';
+                        body.appendChild(more);
+                    }
+                }
+
+                colEl.append(header, body);
+                board.appendChild(colEl);
+            });
         }
 
         function renderLeadsTable(searchTerm) {
