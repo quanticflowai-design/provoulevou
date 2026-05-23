@@ -2823,11 +2823,15 @@
             // Master: monta switcher e carrega o último lojista escolhido (ou o primeiro)
             if (isMasterUser(user.email)) {
                 isMasterMode = true;
-                const { data: allLj } = await supabaseClient
+                const { data: allLjRaw } = await supabaseClient
                     .from('lojistas')
-                    .select('email,nome_loja,origem')
+                    .select('email,nome_loja,origem,tabela_pedidos')
                     .order('email', { ascending: true });
-                if (!allLj || allLj.length === 0) return null;
+                // Filtra lojas fake (demo) e lojistas sem tabela de pedidos configurada
+                const allLj = (allLjRaw || []).filter(l =>
+                    l.email && !l.email.endsWith('@fake.com') && l.tabela_pedidos
+                );
+                if (allLj.length === 0) return null;
                 await populateMasterSwitcher(allLj);
                 let savedEmail = null;
                 try { savedEmail = localStorage.getItem('pl-master-active-lojista'); } catch(e) {}
