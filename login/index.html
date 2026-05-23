@@ -4826,6 +4826,9 @@
             if (window._fatMensalChart) { window._fatMensalChart.destroy(); window._fatMensalChart = null; }
             leadsRecupLoaded = false;
             crmLoaded = false;
+            _crmConfigMem = null;
+            _crmOverridesMem = null;
+            crmLeadMapCache = null;
             try {
                 await loadSharedData();
                 loadVisaoGeral();
@@ -5445,7 +5448,67 @@
         function crmConfigKey()    { return 'pl-crm-config-'    + ((activeUser && activeUser.email) || 'default'); }
         function crmOverridesKey() { return 'pl-crm-overrides-' + ((activeUser && activeUser.email) || 'default'); }
 
+        // Cache em memória — populado por loadCrmRemoteState() no início do loadCRM
+        // Reads (getCrmConfig/getCrmOverrides) são SEMPRE síncronos lendo desse cache.
+        // Writes são otimistas: atualizam cache + localStorage backup imediatamente,
+        // e disparam upsert no Supabase em background (fire-and-forget com retry log).
+        let _crmConfigMem    = null;
+        let _crmOverridesMem = null;
+
+        async function loadCrmRemoteState() {
+            const email = (activeUser && activeUser.email) || 'default';
+            // 1) Sempre carrega backup do localStorage primeiro (offline-first)
+            let localCfg = null, localOv = {};
+            try {
+                const raw = localStorage.getItem(crmConfigKey());
+                if (raw) {
+                    const c = JSON.parse(raw);
+                    if (c && Array.isArray(c.columns) && c.columns.length) localCfg = c;
+                }
+            } catch(e) {}
+            try {
+                const raw = localStorage.getItem(crmOverridesKey());
+                if (raw) {
+                    const o = JSON.parse(raw);
+                    if (o && typeof o === 'object') localOv = o;
+                }
+            } catch(e) {}
+
+            // 2) Tenta sincronizar com Supabase (autoritativo se disponível)
+            let remoteCfg = null, remoteOv = null;
+            try {
+                const { data: cfgRow, error: cfgErr } = await supabaseClient
+                    .from('crm_pipeline_config')
+                    .select('columns')
+                    .eq('lojista_email', email)
+                    .maybeSingle();
+                if (!cfgErr && cfgRow && cfgRow.columns && Array.isArray(cfgRow.columns) && cfgRow.columns.length) {
+                    remoteCfg = { columns: cfgRow.columns };
+                }
+            } catch(e) { /* tabela pode não existir ainda — usa local */ }
+
+            try {
+                const { data: ovRows, error: ovErr } = await supabaseClient
+                    .from('crm_lead_overrides')
+                    .select('telefone,column_key')
+                    .eq('lojista_email', email);
+                if (!ovErr && Array.isArray(ovRows)) {
+                    remoteOv = {};
+                    ovRows.forEach(r => { remoteOv[r.telefone] = r.column_key; });
+                }
+            } catch(e) { /* idem */ }
+
+            _crmConfigMem    = remoteCfg || localCfg || { columns: CRM_DEFAULT_COLUMNS.slice() };
+            _crmOverridesMem = remoteOv  != null ? remoteOv : localOv;
+
+            // Atualiza backup local com o estado autoritativo
+            try { localStorage.setItem(crmConfigKey(),    JSON.stringify(_crmConfigMem)); } catch(e) {}
+            try { localStorage.setItem(crmOverridesKey(), JSON.stringify(_crmOverridesMem)); } catch(e) {}
+        }
+
         function getCrmConfig() {
+            if (_crmConfigMem) return _crmConfigMem;
+            // Fallback síncrono (caso loadCrmRemoteState ainda não rodou)
             try {
                 const raw = localStorage.getItem(crmConfigKey());
                 if (raw) {
@@ -5456,9 +5519,19 @@
             return { columns: CRM_DEFAULT_COLUMNS.slice() };
         }
         function setCrmConfig(cfg) {
+            _crmConfigMem = cfg;
             try { localStorage.setItem(crmConfigKey(), JSON.stringify(cfg)); } catch(e) {}
+            const email = (activeUser && activeUser.email) || 'default';
+            supabaseClient.from('crm_pipeline_config').upsert({
+                lojista_email: email,
+                columns: cfg.columns,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'lojista_email' }).then(({ error }) => {
+                if (error) console.warn('[CRM] config não pôde ser sincronizada:', error.message);
+            });
         }
         function getCrmOverrides() {
+            if (_crmOverridesMem) return _crmOverridesMem;
             try {
                 const raw = localStorage.getItem(crmOverridesKey());
                 if (raw) {
@@ -5469,12 +5542,35 @@
             return {};
         }
         function setCrmOverrides(obj) {
+            _crmOverridesMem = obj;
             try { localStorage.setItem(crmOverridesKey(), JSON.stringify(obj)); } catch(e) {}
+            // Sincronização em massa: feita apenas em saveCrmPipeline quando lojista deleta coluna
+            // (atualiza N overrides de uma vez). Movimentos individuais usam setCrmLeadOverride.
         }
         function setCrmLeadOverride(phone, colKey) {
             const ov = getCrmOverrides();
             if (colKey) ov[phone] = colKey; else delete ov[phone];
-            setCrmOverrides(ov);
+            _crmOverridesMem = ov;
+            try { localStorage.setItem(crmOverridesKey(), JSON.stringify(ov)); } catch(e) {}
+            const email = (activeUser && activeUser.email) || 'default';
+            if (colKey) {
+                supabaseClient.from('crm_lead_overrides').upsert({
+                    lojista_email: email,
+                    telefone: phone,
+                    column_key: colKey,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'lojista_email,telefone' }).then(({ error }) => {
+                    if (error) console.warn('[CRM] override não pôde ser sincronizado:', error.message);
+                });
+            } else {
+                supabaseClient.from('crm_lead_overrides')
+                    .delete()
+                    .eq('lojista_email', email)
+                    .eq('telefone', phone)
+                    .then(({ error }) => {
+                        if (error) console.warn('[CRM] override delete falhou:', error.message);
+                    });
+            }
         }
 
         function crmClassify(d) {
@@ -5639,15 +5735,26 @@
             renderCrmPipelineList();
         }
         function saveCrmPipeline() {
-            // Limpa títulos vazios
             _crmPipelineDraft.columns.forEach(c => { if (!c.title || !c.title.trim()) c.title = 'Sem nome'; });
             setCrmConfig(_crmPipelineDraft);
             // Remove overrides apontando pra colunas que não existem mais
             const validKeys = new Set(_crmPipelineDraft.columns.map(c => c.key));
             const ov = getCrmOverrides();
-            let changed = false;
-            Object.keys(ov).forEach(ph => { if (!validKeys.has(ov[ph])) { delete ov[ph]; changed = true; } });
-            if (changed) setCrmOverrides(ov);
+            const orphanPhones = Object.keys(ov).filter(ph => !validKeys.has(ov[ph]));
+            if (orphanPhones.length > 0) {
+                orphanPhones.forEach(ph => delete ov[ph]);
+                _crmOverridesMem = ov;
+                try { localStorage.setItem(crmOverridesKey(), JSON.stringify(ov)); } catch(e) {}
+                // Sincroniza delete no Supabase em massa
+                const email = (activeUser && activeUser.email) || 'default';
+                supabaseClient.from('crm_lead_overrides')
+                    .delete()
+                    .eq('lojista_email', email)
+                    .in('telefone', orphanPhones)
+                    .then(({ error }) => {
+                        if (error) console.warn('[CRM] limpeza de overrides órfãos falhou:', error.message);
+                    });
+            }
             closeCrmPipelineModal();
             renderCrmBoard();
         }
@@ -5674,6 +5781,7 @@
             if (emptyEl) emptyEl.style.display = 'none';
 
             try {
+                await loadCrmRemoteState();
                 const user = activeUser;
                 const fPhone = user.campo_telefone_pedido || 'customer_phone';
                 const fStatus = user.campo_status_pedido || 'payment_status';
