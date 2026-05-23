@@ -1985,6 +1985,14 @@
                         <div class="notif-list" id="notifList"></div>
                     </div>
                 </div>
+                <div id="masterSwitcher" style="display:none;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(124,58,237,0.14),rgba(168,85,247,0.08));border:1px solid rgba(124,58,237,0.35);padding:5px 8px 5px 12px;border-radius:10px;">
+                    <span style="font-size:10.5px;font-weight:700;color:var(--primary-hi);text-transform:uppercase;letter-spacing:0.08em;display:inline-flex;align-items:center;gap:5px;">
+                        <i class="ph-bold ph-crown-simple"></i> Master
+                    </span>
+                    <select id="masterSelect" onchange="switchToLojista(this.value)" style="background:rgba(0,0,0,0.25);border:1px solid var(--border-strong);color:var(--text-main);padding:5px 10px;border-radius:7px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;outline:none;max-width:240px;">
+                        <option value="">Selecione um lojista…</option>
+                    </select>
+                </div>
                 <a href="../index.html" class="btn-refresh" style="text-decoration:none;">
                     <i class="ph-bold ph-house"></i> Home
                 </a>
@@ -2800,9 +2808,36 @@
             }
         }
 
+        // Master users: podem acessar qualquer lojista via dropdown.
+        const MASTER_EMAILS = ['lucasdecamargo2015@gmail.com', 'cionilucas@gmail.com'];
+        let isMasterMode = false;
+
+        function isMasterUser(email) {
+            return email && MASTER_EMAILS.indexOf(email.toLowerCase()) !== -1;
+        }
+
         async function fetchLojista() {
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) return null;
+
+            // Master: monta switcher e carrega o último lojista escolhido (ou o primeiro)
+            if (isMasterUser(user.email)) {
+                isMasterMode = true;
+                const { data: allLj } = await supabaseClient
+                    .from('lojistas')
+                    .select('email,nome_loja,origem')
+                    .order('email', { ascending: true });
+                if (!allLj || allLj.length === 0) return null;
+                await populateMasterSwitcher(allLj);
+                let savedEmail = null;
+                try { savedEmail = localStorage.getItem('pl-master-active-lojista'); } catch(e) {}
+                const chosen = (savedEmail && allLj.find(l => l.email === savedEmail)) || allLj[0];
+                const sel = document.getElementById('masterSelect');
+                if (sel) sel.value = chosen.email;
+                const cfg = await fetchLojistaByEmail(chosen.email);
+                return cfg;
+            }
+
             const { data, error } = await supabaseClient
                 .from('lojistas')
                 .select('*')
@@ -2810,6 +2845,51 @@
                 .single();
             if (error || !data) return null;
             return data;
+        }
+
+        async function fetchLojistaByEmail(email) {
+            const { data, error } = await supabaseClient
+                .from('lojistas')
+                .select('*')
+                .eq('email', email)
+                .single();
+            if (error || !data) return null;
+            return data;
+        }
+
+        async function populateMasterSwitcher(allLj) {
+            const wrap = document.getElementById('masterSwitcher');
+            const sel = document.getElementById('masterSelect');
+            if (!wrap || !sel) return;
+            sel.innerHTML = '';
+            const ph = document.createElement('option');
+            ph.value = ''; ph.textContent = 'Selecione um lojista…'; ph.disabled = true;
+            sel.appendChild(ph);
+            allLj.forEach(l => {
+                const opt = document.createElement('option');
+                opt.value = l.email;
+                const name = l.nome_loja || (l.origem || '').replace(/^https?:\/\/(www\.)?/, '').split('/')[0] || l.email;
+                opt.textContent = name + ' — ' + l.email;
+                sel.appendChild(opt);
+            });
+            wrap.style.display = 'inline-flex';
+        }
+
+        async function switchToLojista(email) {
+            if (!email || !isMasterMode) return;
+            const cfg = await fetchLojistaByEmail(email);
+            if (!cfg) { alert('Não foi possível carregar esse lojista.'); return; }
+            try { localStorage.setItem('pl-master-active-lojista', email); } catch(e) {}
+            activeUser = cfg;
+            // Reseta caches que dependem de activeUser
+            _crmConfigMem = null;
+            _crmOverridesMem = null;
+            crmLeadMapCache = null;
+            crmLoaded = false;
+            leadsRecupLoaded = false;
+            _fatChartOrdersCache = null;
+            if (window._fatMensalChart) { window._fatMensalChart.destroy(); window._fatMensalChart = null; }
+            loadData();
         }
 
         async function doGoogleLogin() {
@@ -2859,6 +2939,9 @@
         async function logout() {
             await supabaseClient.auth.signOut();
             activeUser = null;
+            isMasterMode = false;
+            const switcher = document.getElementById('masterSwitcher');
+            if (switcher) switcher.style.display = 'none';
             document.body.classList.remove('light-mode');
             document.body.classList.add('login-mode');
             document.getElementById('quanticLogoImg').style.filter = 'brightness(0) invert(1)';
