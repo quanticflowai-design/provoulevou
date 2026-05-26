@@ -3712,16 +3712,16 @@
                     // CASO 1: já comprou extras E upgrade já economiza
                     html = `<b>Você já gastou ${brl(totalExtras)} em extras esse ciclo</b> (além dos ${brl(planAtualValor)} do plano ${planAtual}). ` +
                            `Mudando pro plano <b>${nextPlan}</b> (${nextLimite.toLocaleString('pt-BR')} fotos / ${brl(nextValor)}), você economizaria <b style="color:#22c55e;">${brl(economia)}</b> esse mês e teria muito mais folga. ` +
-                           `<a href="https://wa.me/5511965749173?text=Quero%20fazer%20upgrade%20pro%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Provou Levou</a>`;
+                           `<a href="https://wa.me/5511938034714?text=Quero%20fazer%20upgrade%20pro%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Provou Levou</a>`;
                 } else if (totalExtras > 0) {
                     // CASO 2: já comprou extras MAS upgrade ainda não compensa
                     html = `Você comprou ${brl(totalExtras)} em extras esse ciclo. Se isso virar rotina, considera o plano <b>${nextPlan}</b> (${nextLimite.toLocaleString('pt-BR')} fotos / ${brl(nextValor)}) — mais previsibilidade e R$/foto menor. ` +
-                           `<a href="https://wa.me/5511965749173?text=Tenho%20interesse%20em%20conhecer%20o%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Provou Levou</a>`;
+                           `<a href="https://wa.me/5511938034714?text=Tenho%20interesse%20em%20conhecer%20o%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Provou Levou</a>`;
                 } else {
                     // CASO 3: nunca comprou extras — sugere prevenção
                     const extrasParaCompensar = nextValor - planAtualValor;
                     html = `💡 <b>Pensando em comprar extras?</b> O plano <b>${nextPlan}</b> tem ${nextLimite.toLocaleString('pt-BR')} fotos por ${brl(nextValor)} — só ${brl(extrasParaCompensar)} a mais que seu plano atual e te dá ${fotosExtras > 0 ? '+' + fotosExtras.toLocaleString('pt-BR') : 'muito mais'} fotos com R$/foto menor. ` +
-                           `<a href="https://wa.me/5511965749173?text=Tenho%20interesse%20em%20conhecer%20o%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Provou Levou</a>`;
+                           `<a href="https://wa.me/5511938034714?text=Tenho%20interesse%20em%20conhecer%20o%20plano%20${encodeURIComponent(nextPlan)}" target="_blank" style="color:#22c55e;font-weight:700;text-decoration:underline;">Falar com a Provou Levou</a>`;
                 }
                 txt.innerHTML = html;
                 nudge.style.display = 'flex';
