@@ -4817,7 +4817,7 @@
                 if (activeUser.email) {
                     const r1 = await supabaseClient
                         .from('provou_levou_stores')
-                        .select('plan, status, last_payment, implementation_date, plano_personalizado, domain')
+                        .select('plan, status, last_payment, implementation_date, plano_personalizado, valor_personalizado, domain')
                         .eq('email', activeUser.email)
                         .maybeSingle();
                     if (!r1.error && r1.data) store = r1.data;
@@ -4826,7 +4826,7 @@
                     const targetDom = normalizeStoreDomain(activeUser.origem);
                     const r2 = await supabaseClient
                         .from('provou_levou_stores')
-                        .select('plan, status, last_payment, implementation_date, plano_personalizado, domain');
+                        .select('plan, status, last_payment, implementation_date, plano_personalizado, valor_personalizado, domain');
                     if (!r2.error && r2.data) {
                         store = r2.data.find(s => normalizeStoreDomain(s.domain) === targetDom) || null;
                     }
@@ -4862,9 +4862,14 @@
 
                 card.classList.remove('warn', 'danger', 'unlimited');
 
-                document.getElementById('consumoPlanName').textContent = isUnlimited
+                const planValor = isPersonalizado
+                    ? parseFloat(store.valor_personalizado || 0)
+                    : (PACKS_PLAN_VALUES[store.plan] || 0);
+                const fmtBRL = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                const valorSufix = planValor > 0 ? ' · ' + fmtBRL(planValor) + '/mês' : '';
+                document.getElementById('consumoPlanName').textContent = (isUnlimited
                     ? planLabel + ' · Ilimitado'
-                    : planLabel;
+                    : planLabel) + valorSufix;
 
                 const startFmt = fmtPlanDate(startDate);
                 const subEl = document.getElementById('consumoPlanSub');
