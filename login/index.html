@@ -4668,7 +4668,7 @@
                     ? parseFloat(store.valor_personalizado || 0)
                     : (PACKS_PLAN_VALUES[store.plan] || 0);
                 const fmtBRL = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 2 });
-                const valorSufix = planValor > 0 ? ' · ' + fmtBRL(planValor) + '/mês' : '';
+                const valorSufix = (planValor > 0 && !isTeste) ? ' · ' + fmtBRL(planValor) + '/mês' : '';
                 document.getElementById('consumoPlanName').textContent = (isUnlimited
                     ? planLabel + ' · Ilimitado'
                     : planLabel) + valorSufix;
