@@ -3215,7 +3215,7 @@
                         height: 16px; background: rgba(15,15,25,.04);
                         border-radius: 9px; overflow: hidden;
                     }
-                    body:not(.light-mode) .vg-journey-step .vg-js-bar { background: rgba(255,255,255,.04); }
+                    body.dark-mode .vg-journey-step .vg-js-bar { background: rgba(255,255,255,.04); }
                     .vg-journey-step .vg-js-fill {
                         height: 100%;
                         background: linear-gradient(90deg, #7c3aed 0%, #a855f7 100%);
@@ -4868,6 +4868,7 @@
         function toggleTheme() {
             document.body.classList.toggle('light-mode');
             var isLight = document.body.classList.contains('light-mode');
+            document.body.classList.toggle('dark-mode', !isLight);
             localStorage.setItem('pl-theme', isLight ? 'light' : 'dark');
             updateThemeAssets(isLight);
         }
@@ -4890,9 +4891,15 @@
         // Restore saved theme on load (only for dashboard, not login)
         function restoreTheme() {
             // Default = light mode (visual da imagem). Só fica em dark se usuário escolheu explicitamente.
+            if (document.body.classList.contains('login-mode')) return;
             var saved = localStorage.getItem('pl-theme');
-            if (saved !== 'dark' && !document.body.classList.contains('login-mode')) {
+            if (saved === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.body.classList.remove('light-mode');
+                updateThemeAssets(false);
+            } else {
                 document.body.classList.add('light-mode');
+                document.body.classList.remove('dark-mode');
                 updateThemeAssets(true);
             }
         }
@@ -11212,19 +11219,19 @@
     <style>
       /* Light mode default (mas dark mode ainda funciona quando ativado) */
       body { background: #fafaf7 !important; color: #0f1116 !important; }
-      body:not(.light-mode) { background: #08080b !important; color: #edebe7 !important; }
-      body:not(.light-mode) #mainHeader { background: #0e0e12 !important; border-bottom-color: rgba(255,255,255,.06) !important; }
-      body:not(.light-mode) #mainHeader * { color: #edebe7; }
-      body:not(.light-mode) .vg-card, body:not(.light-mode) .vring-card, body:not(.light-mode) .vg-stat,
-      body:not(.light-mode) .chart-container, body:not(.light-mode) .table-container, body:not(.light-mode) .stat-card,
-      body:not(.light-mode) .mp-card, body:not(.light-mode) .mp-aside-card, body:not(.light-mode) .wa-card {
+      body.dark-mode { background: #08080b !important; color: #edebe7 !important; }
+      body.dark-mode #mainHeader { background: #0e0e12 !important; border-bottom-color: rgba(255,255,255,.06) !important; }
+      body.dark-mode #mainHeader * { color: #edebe7; }
+      body.dark-mode .vg-card, body.dark-mode .vring-card, body.dark-mode .vg-stat,
+      body.dark-mode .chart-container, body.dark-mode .table-container, body.dark-mode .stat-card,
+      body.dark-mode .mp-card, body.dark-mode .mp-aside-card, body.dark-mode .wa-card {
         background: #131318 !important; border-color: rgba(255,255,255,.06) !important;
       }
-      body:not(.light-mode) .vg-card-title, body:not(.light-mode) h2, body:not(.light-mode) h3, body:not(.light-mode) h4 { color: #edebe7 !important; }
-      body:not(.light-mode) .vg-impact-amount { color: #edebe7 !important; }
-      body:not(.light-mode) .vg-impact-label, body:not(.light-mode) .vg-impact-sub { color: #94a3b8 !important; }
-      body:not(.light-mode) .vg-journey-step .vg-js-bar { background: rgba(255,255,255,.06) !important; }
-      body:not(.light-mode) #pageTitleRow h1 { color: #edebe7 !important; }
+      body.dark-mode .vg-card-title, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4 { color: #edebe7 !important; }
+      body.dark-mode .vg-impact-amount { color: #edebe7 !important; }
+      body.dark-mode .vg-impact-label, body.dark-mode .vg-impact-sub { color: #94a3b8 !important; }
+      body.dark-mode .vg-journey-step .vg-js-bar { background: rgba(255,255,255,.06) !important; }
+      body.dark-mode #pageTitleRow h1 { color: #edebe7 !important; }
       body.dark-mode #neural-canvas { opacity: 0 !important; }
 
       /* PREVINE SCROLL HORIZONTAL em toda dashboard */
@@ -11316,12 +11323,12 @@
         border-radius: 999px !important;
         max-width: 160px !important;
       }
-      body:not(.light-mode) #mainHeader #masterSwitcher {
+      body.dark-mode #mainHeader #masterSwitcher {
         background: rgba(168,85,247,.10) !important;
         border-color: rgba(168,85,247,.30) !important;
         color: #edebe7 !important;
       }
-      body:not(.light-mode) #mainHeader #masterToggle {
+      body.dark-mode #mainHeader #masterToggle {
         background: rgba(255,255,255,.04) !important;
         color: #edebe7 !important;
         border-color: rgba(255,255,255,.10) !important;
@@ -11333,7 +11340,7 @@
         border: 1px solid var(--pl-line-strong, rgba(15,17,22,.10)) !important;
         box-shadow: 0 18px 48px rgba(15,17,22,.15) !important;
       }
-      body:not(.light-mode) #mainHeader #masterMenu {
+      body.dark-mode #mainHeader #masterMenu {
         background: #131318 !important; color: #edebe7 !important;
         border-color: rgba(255,255,255,.08) !important;
       }
@@ -11367,7 +11374,7 @@
         border-color: #ef4444 !important; color: #ef4444 !important;
       }
       #mainHeader .btn-refresh[onclick*="logout"] i { font-size: 14px !important; }
-      body:not(.light-mode) #mainHeader .btn-refresh[onclick*="logout"] {
+      body.dark-mode #mainHeader .btn-refresh[onclick*="logout"] {
         border-color: rgba(255,255,255,.10) !important; color: #edebe7 !important;
       }
       /* Tour button — texto compacto */
@@ -11389,7 +11396,7 @@
       #mainHeader .btn-refresh[onclick*="startDashboardTour"] i {
         font-size: 14px !important;
       }
-      body:not(.light-mode) #mainHeader .btn-refresh[onclick*="startDashboardTour"] {
+      body.dark-mode #mainHeader .btn-refresh[onclick*="startDashboardTour"] {
         border-color: rgba(255,255,255,.10) !important; color: #edebe7 !important;
       }
 
@@ -11402,11 +11409,11 @@
         background: transparent !important; border: none !important;
       }
       #mainHeader .theme-toggle:hover { background: rgba(0,0,0,.04) !important; border-radius: 8px; }
-      body:not(.light-mode) #mainHeader .theme-toggle:hover { background: rgba(255,255,255,.06) !important; }
+      body.dark-mode #mainHeader .theme-toggle:hover { background: rgba(255,255,255,.06) !important; }
       #mainHeader .theme-toggle-label i {
         font-size: 18px !important; color: #6b7280 !important;
       }
-      body:not(.light-mode) #mainHeader .theme-toggle-label i { color: #94a3b8 !important; }
+      body.dark-mode #mainHeader .theme-toggle-label i { color: #94a3b8 !important; }
 
       /* % do faturamento total da loja (linha extra no card Impacto) */
       .vg-impact-pct {
@@ -12275,22 +12282,22 @@
       }
 
       /* ===== Refinamento de chip em modo escuro ===== */
-      body:not(.light-mode) .plan-chip-group {
+      body.dark-mode .plan-chip-group {
         background: linear-gradient(180deg, #18181f 0%, #131318 100%) !important;
         border-color: rgba(168, 85, 247, .25) !important;
       }
-      body:not(.light-mode) .vg-card,
-      body:not(.light-mode) .vring-card,
-      body:not(.light-mode) .vg-stat,
-      body:not(.light-mode) .mp-card {
+      body.dark-mode .vg-card,
+      body.dark-mode .vring-card,
+      body.dark-mode .vg-stat,
+      body.dark-mode .mp-card {
         background: #131318 !important;
         border-color: rgba(255, 255, 255, .05) !important;
         box-shadow:
           0 1px 0 rgba(255, 255, 255, .02) inset,
           0 8px 24px -16px rgba(0, 0, 0, .5) !important;
       }
-      body:not(.light-mode) .vg-card:hover,
-      body:not(.light-mode) .vring-card:hover {
+      body.dark-mode .vg-card:hover,
+      body.dark-mode .vring-card:hover {
         border-color: rgba(255, 255, 255, .10) !important;
       }
     </style>
