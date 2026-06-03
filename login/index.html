@@ -141,6 +141,9 @@
             color: #1a1a2e;
         }
 
+        /* Esconde o header da dashboard na tela de login */
+        body.login-mode #mainHeader { display: none !important; }
+
         /* ─── LIGHT MODE (toggle) ─── */
         body.light-mode {
             background-color: #f5f4f0;
@@ -323,11 +326,11 @@
 
         .input-label {
             display: block;
-            font-size: 13px;
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 6px;
-            letter-spacing: 0.01em;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+            letter-spacing: 0;
         }
 
         .input-group {
@@ -339,13 +342,33 @@
         .input-field-wrap {
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
+        /* Wrapper opcional pra colocar icone dentro do input */
+        .input-with-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-with-icon > i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 17px;
+            pointer-events: none;
+            transition: color .2s ease;
+        }
+        .input-with-icon:focus-within > i { color: var(--primary, #7c3aed); }
+        .input-with-icon > .login-input { padding-left: 46px; }
+
         .login-input {
-            background: #f9fafb;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 14px 16px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 15px 18px;
             color: #1a1a2e;
             font-family: 'HelveticaNow', 'Inter', system-ui, sans-serif;
             font-size: 15px;
@@ -353,17 +376,31 @@
             width: 100%;
             box-sizing: border-box;
             outline: none;
-            transition: all .25s ease;
+            transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+            box-shadow: 0 1px 2px rgba(15, 17, 22, 0.04);
         }
 
         .login-input::placeholder {
             color: #9ca3af;
+            font-weight: 400;
+        }
+
+        .login-input:hover {
+            border-color: #d1d5db;
         }
 
         .login-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(124,58,237,0.10);
+            border-color: var(--primary, #7c3aed);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12), 0 1px 2px rgba(15,17,22,0.04);
             background: #fff;
+        }
+
+        .login-input:-webkit-autofill,
+        .login-input:-webkit-autofill:hover,
+        .login-input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #1a1a2e;
+            -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+            transition: background-color 5000s ease-in-out 0s;
         }
 
         .btn-login {
@@ -2288,11 +2325,17 @@
                         <div class="input-group">
                             <div class="input-field-wrap">
                                 <label class="input-label" for="loginUser">Seu e-mail</label>
-                                <input type="email" id="loginUser" class="login-input" placeholder="nome@empresa.com.br">
+                                <div class="input-with-icon">
+                                    <i class="ph ph-envelope-simple"></i>
+                                    <input type="email" id="loginUser" class="login-input" placeholder="nome@empresa.com.br" autocomplete="email">
+                                </div>
                             </div>
                             <div class="input-field-wrap">
                                 <label class="input-label" for="loginPass">Senha</label>
-                                <input type="password" id="loginPass" class="login-input" placeholder="Digite sua senha">
+                                <div class="input-with-icon">
+                                    <i class="ph ph-lock-simple"></i>
+                                    <input type="password" id="loginPass" class="login-input" placeholder="Digite sua senha" autocomplete="current-password">
+                                </div>
                             </div>
 
                             <button type="button" class="btn-login" onclick="doLogin()">
