@@ -3978,6 +3978,32 @@
                     </div>
                 </div>
 
+                <div class="disp-actions">
+                    <button class="disp-btn" onclick="openManualSendModal()"><i class="ph-bold ph-paper-plane-tilt"></i> Novo Disparo</button>
+                    <button class="disp-btn ghost" onclick="openWaBulkModal()"><i class="ph-bold ph-users-three"></i> Disparo em Massa</button>
+                    <button class="disp-btn ghost" onclick="waExportLogCSV()"><i class="ph-bold ph-download-simple"></i> Exportar CSV</button>
+                    <button class="disp-btn ghost" onclick="loadDisparos()" style="margin-left:auto;"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
+                </div>
+
+                <div class="disp-card" style="margin-bottom:20px;">
+                    <h3><i class="ph-bold ph-list-checks"></i> Histórico de disparos</h3>
+                    <p class="desc">Últimos 500 envios. Clique em "Reenviar" pra tentar de novo um que falhou.</p>
+                    <div class="disp-log-filters">
+                        <button class="disp-log-pill active" data-dispfilter="all" onclick="dispSetFilter('all')">Todos</button>
+                        <button class="disp-log-pill" data-dispfilter="sent" onclick="dispSetFilter('sent')">Entregues</button>
+                        <button class="disp-log-pill" data-dispfilter="failed" onclick="dispSetFilter('failed')">Falharam</button>
+                    </div>
+                    <div class="disp-log-list" id="dispLogList">
+                        <div class="disp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando…</div>
+                    </div>
+                </div>
+
+                <div class="disp-card" style="margin-bottom:20px;">
+                    <h3><i class="ph-bold ph-chart-line-up"></i> Disparos por dia (últimos 30 dias)</h3>
+                    <p class="desc">Volume diário separado por entregues e falhas.</p>
+                    <div class="disp-chart-wrap" style="height:260px;"><canvas id="dispDailyChart"></canvas></div>
+                </div>
+
                 <div class="disp-charts-row">
                     <div class="disp-card">
                         <h3><i class="ph-bold ph-kanban"></i> Leads por etapa do CRM</h3>
@@ -3988,32 +4014,6 @@
                         <h3><i class="ph-bold ph-chart-donut"></i> Sucesso vs Falha</h3>
                         <p class="desc">Proporção dos seus disparos.</p>
                         <div class="disp-donut-wrap"><canvas id="dispDonut"></canvas></div>
-                    </div>
-                </div>
-
-                <div class="disp-card" style="margin-bottom:20px;">
-                    <h3><i class="ph-bold ph-chart-line-up"></i> Disparos por dia (últimos 30 dias)</h3>
-                    <p class="desc">Volume diário separado por entregues e falhas.</p>
-                    <div class="disp-chart-wrap" style="height:260px;"><canvas id="dispDailyChart"></canvas></div>
-                </div>
-
-                <div class="disp-actions">
-                    <button class="disp-btn" onclick="openManualSendModal()"><i class="ph-bold ph-paper-plane-tilt"></i> Novo Disparo</button>
-                    <button class="disp-btn ghost" onclick="openWaBulkModal()"><i class="ph-bold ph-users-three"></i> Disparo em Massa</button>
-                    <button class="disp-btn ghost" onclick="waExportLogCSV()"><i class="ph-bold ph-download-simple"></i> Exportar CSV</button>
-                    <button class="disp-btn ghost" onclick="loadDisparos()" style="margin-left:auto;"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
-                </div>
-
-                <div class="disp-card">
-                    <h3><i class="ph-bold ph-list-checks"></i> Histórico de disparos</h3>
-                    <p class="desc">Últimos 500 envios. Clique em "Reenviar" pra tentar de novo um que falhou.</p>
-                    <div class="disp-log-filters">
-                        <button class="disp-log-pill active" data-dispfilter="all" onclick="dispSetFilter('all')">Todos</button>
-                        <button class="disp-log-pill" data-dispfilter="sent" onclick="dispSetFilter('sent')">Entregues</button>
-                        <button class="disp-log-pill" data-dispfilter="failed" onclick="dispSetFilter('failed')">Falharam</button>
-                    </div>
-                    <div class="disp-log-list" id="dispLogList">
-                        <div class="disp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando…</div>
                     </div>
                 </div>
             </div>
