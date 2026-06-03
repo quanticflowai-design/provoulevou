@@ -2384,6 +2384,9 @@
                 <button class="tab-btn" data-tab="crm" id="tab-btn-crm" onclick="showTab('crm')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-kanban"></i> CRM
                 </button>
+                <button class="tab-btn" data-tab="disparos" id="tab-btn-disparos" onclick="showTab('disparos')" role="tab" aria-selected="false">
+                    <i class="ph-bold ph-paper-plane-tilt"></i> Disparos
+                </button>
                 <button class="tab-btn" id="tab-btn-clientes" data-tab="clientes" onclick="showTab('clientes')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-users-three"></i> Clientes & LTV
                 </button>
@@ -3808,6 +3811,163 @@
                 </div>
             </div>
 
+            <!-- ====== ABA DISPAROS ====== -->
+            <div class="tab-pane" id="tab-disparos" role="tabpanel" aria-labelledby="tab-btn-disparos">
+                <style>
+                    .disp-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+                    .disp-kpi {
+                        background: var(--card-bg, #fff);
+                        border: 1px solid var(--border, rgba(0,0,0,.08));
+                        border-radius: 14px; padding: 16px 18px;
+                        display: flex; flex-direction: column; gap: 6px;
+                    }
+                    .disp-kpi .label { font-size: 11.5px; color: var(--text-muted, #6b7280); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+                    .disp-kpi .value { font-size: 28px; font-weight: 700; letter-spacing: -.02em; color: var(--text-main); }
+                    .disp-kpi .sub { font-size: 12px; color: var(--text-muted); }
+                    .disp-kpi.success .value { color: #10b981; }
+                    .disp-kpi.danger .value { color: #ef4444; }
+                    .disp-kpi.accent .value { color: #7c3aed; }
+
+                    .disp-charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 20px; }
+                    .disp-card {
+                        background: var(--card-bg, #fff);
+                        border: 1px solid var(--border, rgba(0,0,0,.08));
+                        border-radius: 14px; padding: 18px 20px;
+                    }
+                    .disp-card h3 { margin: 0 0 4px; font-size: 15px; font-weight: 700; letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
+                    .disp-card h3 i { color: #7c3aed; font-size: 17px; }
+                    .disp-card .desc { font-size: 12px; color: var(--text-muted, #6b7280); margin: 0 0 14px; }
+                    .disp-chart-wrap { position: relative; height: 240px; }
+                    .disp-donut-wrap { position: relative; height: 200px; max-width: 200px; margin: 0 auto; }
+
+                    .disp-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+                    .disp-btn {
+                        display: inline-flex; align-items: center; gap: 7px;
+                        background: #7c3aed; color: #fff;
+                        border: none; border-radius: 999px;
+                        padding: 9px 16px; font-size: 13px; font-weight: 600;
+                        cursor: pointer; transition: background .15s;
+                    }
+                    .disp-btn:hover { background: #6d28d9; }
+                    .disp-btn.ghost { background: transparent; color: var(--text-main); border: 1px solid var(--border); }
+                    .disp-btn.ghost:hover { background: rgba(124,58,237,.06); border-color: #7c3aed; color: #7c3aed; }
+                    .disp-btn i { font-size: 14px; }
+
+                    .disp-log-filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+                    .disp-log-pill {
+                        padding: 6px 12px; border-radius: 999px;
+                        font-size: 12px; font-weight: 600;
+                        border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+                        cursor: pointer; transition: all .15s;
+                    }
+                    .disp-log-pill.active { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+                    .disp-log-pill:hover:not(.active) { border-color: #7c3aed; color: #7c3aed; }
+
+                    .disp-log-list { display: flex; flex-direction: column; gap: 8px; }
+                    .disp-log-item {
+                        display: grid;
+                        grid-template-columns: 8px 1fr auto auto auto;
+                        gap: 12px; align-items: center;
+                        padding: 11px 14px;
+                        background: var(--card-bg, #fff);
+                        border: 1px solid var(--border, rgba(0,0,0,.08));
+                        border-radius: 10px;
+                        font-size: 13px;
+                    }
+                    .disp-log-dot { width: 8px; height: 8px; border-radius: 50%; background: #6b7280; }
+                    .disp-log-dot.sent, .disp-log-dot.delivered, .disp-log-dot.read { background: #10b981; }
+                    .disp-log-dot.failed { background: #ef4444; }
+                    .disp-log-dot.pending { background: #f59e0b; }
+                    .disp-log-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+                    .disp-log-phone { font-weight: 600; color: var(--text-main); }
+                    .disp-log-tpl { color: var(--text-muted); font-size: 12px; }
+                    .disp-log-err { color: #ef4444; font-size: 11px; margin-top: 2px; }
+                    .disp-log-badge {
+                        padding: 3px 9px; border-radius: 999px;
+                        font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+                    }
+                    .disp-log-badge.ok { background: rgba(16,185,129,.12); color: #059669; }
+                    .disp-log-badge.fail { background: rgba(239,68,68,.12); color: #dc2626; }
+                    .disp-log-badge.pending { background: rgba(245,158,11,.12); color: #d97706; }
+                    .disp-log-date { color: var(--text-muted); font-size: 11.5px; white-space: nowrap; }
+                    .disp-log-retry {
+                        background: transparent; border: 1px solid var(--border);
+                        border-radius: 8px; padding: 4px 9px; cursor: pointer;
+                        font-size: 11px; color: var(--text-muted);
+                        display: inline-flex; align-items: center; gap: 4px;
+                    }
+                    .disp-log-retry:hover { border-color: #7c3aed; color: #7c3aed; }
+                    .disp-empty { text-align: center; color: var(--text-muted); padding: 40px 20px; font-size: 13px; }
+
+                    @media (max-width: 900px) {
+                        .disp-kpis { grid-template-columns: repeat(2, 1fr); }
+                        .disp-charts-row { grid-template-columns: 1fr; }
+                    }
+                </style>
+
+                <div class="disp-kpis">
+                    <div class="disp-kpi accent">
+                        <span class="label">Total de Disparos</span>
+                        <span class="value" id="dispKpiTotal">—</span>
+                        <span class="sub">desde o início</span>
+                    </div>
+                    <div class="disp-kpi success">
+                        <span class="label">Entregues</span>
+                        <span class="value" id="dispKpiSent">—</span>
+                        <span class="sub" id="dispKpiSentPct">—</span>
+                    </div>
+                    <div class="disp-kpi danger">
+                        <span class="label">Falhas</span>
+                        <span class="value" id="dispKpiFailed">—</span>
+                        <span class="sub" id="dispKpiFailedPct">—</span>
+                    </div>
+                    <div class="disp-kpi">
+                        <span class="label">Últimas 24h</span>
+                        <span class="value" id="dispKpi24h">—</span>
+                        <span class="sub">disparos no dia</span>
+                    </div>
+                </div>
+
+                <div class="disp-charts-row">
+                    <div class="disp-card">
+                        <h3><i class="ph-bold ph-kanban"></i> Leads por etapa do CRM</h3>
+                        <p class="desc">Quantos clientes você tem em cada estágio do funil — base pra escolher pra quem disparar.</p>
+                        <div class="disp-chart-wrap"><canvas id="dispCrmChart"></canvas></div>
+                    </div>
+                    <div class="disp-card">
+                        <h3><i class="ph-bold ph-chart-donut"></i> Sucesso vs Falha</h3>
+                        <p class="desc">Proporção dos seus disparos.</p>
+                        <div class="disp-donut-wrap"><canvas id="dispDonut"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="disp-card" style="margin-bottom:20px;">
+                    <h3><i class="ph-bold ph-chart-line-up"></i> Disparos por dia (últimos 30 dias)</h3>
+                    <p class="desc">Volume diário separado por entregues e falhas.</p>
+                    <div class="disp-chart-wrap" style="height:260px;"><canvas id="dispDailyChart"></canvas></div>
+                </div>
+
+                <div class="disp-actions">
+                    <button class="disp-btn" onclick="openManualSendModal()"><i class="ph-bold ph-paper-plane-tilt"></i> Novo Disparo</button>
+                    <button class="disp-btn ghost" onclick="openWaBulkModal()"><i class="ph-bold ph-users-three"></i> Disparo em Massa</button>
+                    <button class="disp-btn ghost" onclick="waExportLogCSV()"><i class="ph-bold ph-download-simple"></i> Exportar CSV</button>
+                    <button class="disp-btn ghost" onclick="loadDisparos()" style="margin-left:auto;"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
+                </div>
+
+                <div class="disp-card">
+                    <h3><i class="ph-bold ph-list-checks"></i> Histórico de disparos</h3>
+                    <p class="desc">Últimos 500 envios. Clique em "Reenviar" pra tentar de novo um que falhou.</p>
+                    <div class="disp-log-filters">
+                        <button class="disp-log-pill active" data-dispfilter="all" onclick="dispSetFilter('all')">Todos</button>
+                        <button class="disp-log-pill" data-dispfilter="sent" onclick="dispSetFilter('sent')">Entregues</button>
+                        <button class="disp-log-pill" data-dispfilter="failed" onclick="dispSetFilter('failed')">Falharam</button>
+                    </div>
+                    <div class="disp-log-list" id="dispLogList">
+                        <div class="disp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando…</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ====== ABA MEU PLANO ====== -->
             <div class="tab-pane" id="tab-meu-plano" role="tabpanel" aria-labelledby="tab-btn-meu-plano">
                 <!-- ===== NEW MEU PLANO LAYOUT ===== -->
@@ -4725,6 +4885,11 @@
                     console.error('Erro carregando CRM:', err);
                     crmLoaded = false;
                 });
+            }
+            if (name === 'disparos' && activeUser) {
+                if (typeof loadDisparos === 'function') {
+                    loadDisparos().catch(err => console.error('Erro carregando Disparos:', err));
+                }
             }
             try { localStorage.setItem('pl-active-tab', name); } catch(e) {}
         }
@@ -5809,6 +5974,268 @@
                 const active = document.querySelector('.wa-tab.active');
                 if (active && active.dataset.watab === 'disparos') waLoadLog();
             }, 60000);
+        }
+
+        // ============== ABA DISPAROS (Standalone) ==============
+        let _dispFilter = 'all';
+        let _dispLogCache = [];
+        let _dispCrmChart = null;
+        let _dispDonut = null;
+        let _dispDailyChart = null;
+
+        function dispSetFilter(f) {
+            _dispFilter = f;
+            document.querySelectorAll('[data-dispfilter]').forEach(el => {
+                el.classList.toggle('active', el.dataset.dispfilter === f);
+            });
+            dispRenderLog();
+        }
+
+        async function loadDisparos() {
+            if (!supabaseClient || !activeUser) return;
+            const listEl = document.getElementById('dispLogList');
+            if (listEl) listEl.innerHTML = '<div class="disp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando…</div>';
+
+            // 1) CRM bucket counts (sem mostrar leads)
+            try {
+                if (!crmLeadMapCache) {
+                    if (typeof loadCRM === 'function') await loadCRM();
+                }
+                dispRenderCrmChart();
+            } catch (e) { console.warn('[disparos] CRM chart:', e); }
+
+            // 2) Log + stats
+            try {
+                const { data, error } = await supabaseClient
+                    .from('whatsapp_send_log')
+                    .select('*')
+                    .eq('email', activeUser.email)
+                    .order('sent_at', { ascending: false })
+                    .limit(500);
+                if (error) throw error;
+                _dispLogCache = data || [];
+
+                // Stats baseado em janela maior
+                const { data: allData } = await supabaseClient
+                    .from('whatsapp_send_log')
+                    .select('status, sent_at')
+                    .eq('email', activeUser.email)
+                    .limit(10000);
+                const all = allData || [];
+                const total = all.length;
+                const sent = all.filter(r => ['sent','delivered','read'].includes(r.status)).length;
+                const failed = all.filter(r => r.status === 'failed').length;
+                const last24 = all.filter(r => new Date(r.sent_at) > new Date(Date.now() - 86400000)).length;
+
+                document.getElementById('dispKpiTotal').textContent = total.toLocaleString('pt-BR');
+                document.getElementById('dispKpiSent').textContent = sent.toLocaleString('pt-BR');
+                document.getElementById('dispKpiFailed').textContent = failed.toLocaleString('pt-BR');
+                document.getElementById('dispKpi24h').textContent = last24.toLocaleString('pt-BR');
+                document.getElementById('dispKpiSentPct').textContent = total ? ((sent/total*100).toFixed(1) + '% do total') : '—';
+                document.getElementById('dispKpiFailedPct').textContent = total ? ((failed/total*100).toFixed(1) + '% do total') : '—';
+
+                dispRenderDonut(sent, failed);
+                dispRenderDailyChart(all);
+                dispRenderLog();
+            } catch (e) {
+                if (listEl) listEl.innerHTML = '<div class="disp-empty" style="color:#ef4444;">Erro ao carregar: ' + escapeHtml(e.message || String(e)) + '</div>';
+            }
+        }
+
+        function dispRenderCrmChart() {
+            const canvas = document.getElementById('dispCrmChart');
+            if (!canvas) return;
+            const config = (typeof getCrmConfig === 'function') ? getCrmConfig() : null;
+            if (!config || !crmLeadMapCache) {
+                canvas.parentElement.innerHTML = '<div class="disp-empty">Carregue o CRM primeiro pra ver as contagens.</div>';
+                return;
+            }
+            const overrides = (typeof getCrmOverrides === 'function') ? getCrmOverrides() : {};
+            const buckets = {};
+            config.columns.forEach(c => { buckets[c.key] = 0; });
+            Object.keys(crmLeadMapCache).forEach(ph => {
+                const d = crmLeadMapCache[ph];
+                let target = overrides[ph];
+                if (target && buckets[target] === undefined) target = null;
+                if (!target) {
+                    const rule = (typeof crmClassify === 'function') ? crmClassify(d) : 'cold';
+                    const col = config.columns.find(c => c.auto && c.rule === rule);
+                    target = col ? col.key : rule;
+                }
+                if (buckets[target] === undefined) buckets[target] = 0;
+                buckets[target]++;
+            });
+            const labels = config.columns.map(c => c.title);
+            const values = config.columns.map(c => buckets[c.key] || 0);
+            const colors = ['#7c3aed', '#06b6d4', '#10b981', '#f59e0b', '#a855f7', '#ef4444', '#3b82f6', '#ec4899'];
+
+            if (_dispCrmChart) _dispCrmChart.destroy();
+            _dispCrmChart = new Chart(canvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: labels.map((_, i) => colors[i % colors.length]),
+                        borderRadius: 8,
+                        barPercentage: 0.7
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: { label: ctx => ctx.parsed.x.toLocaleString('pt-BR') + ' leads' }
+                        }
+                    },
+                    scales: {
+                        x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { precision: 0 } },
+                        y: { grid: { display: false }, ticks: { font: { size: 12, weight: '600' } } }
+                    }
+                }
+            });
+        }
+
+        function dispRenderDonut(sent, failed) {
+            const canvas = document.getElementById('dispDonut');
+            if (!canvas) return;
+            if (_dispDonut) _dispDonut.destroy();
+            if (sent === 0 && failed === 0) {
+                canvas.parentElement.innerHTML = '<div class="disp-empty">Sem disparos ainda.</div>';
+                return;
+            }
+            _dispDonut = new Chart(canvas.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Entregues', 'Falhas'],
+                    datasets: [{
+                        data: [sent, failed],
+                        backgroundColor: ['#10b981', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    cutout: '68%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 12 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString('pt-BR')
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function dispRenderDailyChart(allData) {
+            const canvas = document.getElementById('dispDailyChart');
+            if (!canvas) return;
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const days = [];
+            for (let i = 29; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(d.getDate() - i);
+                days.push(d.toISOString().slice(0,10));
+            }
+            const sentByDay = {}, failedByDay = {};
+            days.forEach(d => { sentByDay[d] = 0; failedByDay[d] = 0; });
+            (allData || []).forEach(r => {
+                const day = (r.sent_at || '').slice(0, 10);
+                if (sentByDay[day] === undefined) return;
+                if (['sent','delivered','read'].includes(r.status)) sentByDay[day]++;
+                else if (r.status === 'failed') failedByDay[day]++;
+            });
+            const labels = days.map(d => {
+                const dt = new Date(d + 'T00:00:00');
+                return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            });
+
+            if (_dispDailyChart) _dispDailyChart.destroy();
+            _dispDailyChart = new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Entregues',
+                            data: days.map(d => sentByDay[d]),
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16,185,129,.12)',
+                            tension: 0.35, fill: true, borderWidth: 2,
+                            pointRadius: 2, pointHoverRadius: 5
+                        },
+                        {
+                            label: 'Falhas',
+                            data: days.map(d => failedByDay[d]),
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239,68,68,.10)',
+                            tension: 0.35, fill: true, borderWidth: 2,
+                            pointRadius: 2, pointHoverRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 12 } } }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 0 } },
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { precision: 0 } }
+                    }
+                }
+            });
+        }
+
+        function dispRenderLog() {
+            const list = document.getElementById('dispLogList');
+            if (!list) return;
+            const rows = _dispFilter === 'all'
+                ? _dispLogCache
+                : _dispLogCache.filter(r => _dispFilter === 'sent'
+                    ? ['sent','delivered','read'].includes(r.status)
+                    : r.status === 'failed');
+            if (!rows.length) {
+                list.innerHTML = '<div class="disp-empty">Nenhum disparo nessa categoria.</div>';
+                return;
+            }
+            list.innerHTML = rows.map(r => {
+                const dt = new Date(r.sent_at);
+                const dtStr = dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const isFail = r.status === 'failed';
+                const isOk = ['sent','delivered','read'].includes(r.status);
+                const badgeCls = isOk ? 'ok' : (isFail ? 'fail' : 'pending');
+                const retryBtn = isFail
+                    ? `<button class="disp-log-retry" onclick="dispRetry('${escapeHtml(r.lead_phone||'')}','${escapeHtml(r.template_name||'')}','${escapeHtml(r.template_language||'pt_BR')}')"><i class="ph-bold ph-arrow-clockwise"></i> Reenviar</button>`
+                    : '<span></span>';
+                return `
+                    <div class="disp-log-item">
+                        <span class="disp-log-dot ${r.status}"></span>
+                        <div class="disp-log-main">
+                            <span><span class="disp-log-phone">+${escapeHtml(r.lead_phone||'')}</span> <span class="disp-log-tpl">· ${escapeHtml(r.template_name||'—')}</span></span>
+                            ${r.error_message ? '<span class="disp-log-err">' + escapeHtml(r.error_message) + '</span>' : ''}
+                        </div>
+                        <span class="disp-log-badge ${badgeCls}">${escapeHtml(r.status||'—')}</span>
+                        ${retryBtn}
+                        <span class="disp-log-date">${dtStr}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function dispRetry(phone, template, lang) {
+            if (typeof openManualSendModal === 'function') {
+                openManualSendModal(template, lang);
+                setTimeout(() => {
+                    const phEl = document.getElementById('manualPhone');
+                    if (phEl) phEl.value = phone;
+                }, 100);
+            }
         }
 
         function waExportLogCSV() {
