@@ -141,7 +141,9 @@
             color: #1a1a2e;
         }
 
-        /* Esconde o header da dashboard na tela de login */
+        /* Header escondido por padrao — so aparece quando dashboard mode roda showDashboard.
+           Isso elimina o flicker no F5 antes do JS rodar. */
+        #mainHeader { display: none; }
         body.login-mode #mainHeader { display: none !important; }
 
         /* ─── LIGHT MODE (toggle) ─── */
@@ -310,8 +312,8 @@
         .login-card h2 {
             margin: 0 0 8px 0;
             text-align: left;
-            font-weight: 500;
-            color: #1a1a2e;
+            font-weight: 600;
+            color: #000000;
             letter-spacing: -0.03em;
             font-size: 28px;
         }
@@ -367,7 +369,7 @@
         .login-input {
             background: #ffffff;
             border: 1px solid #e5e7eb;
-            border-radius: 14px;
+            border-radius: 10px;
             padding: 15px 18px;
             color: #1a1a2e;
             font-family: 'HelveticaNow', 'Inter', system-ui, sans-serif;
@@ -2235,7 +2237,7 @@
     </style>
 </head>
 
-<body>
+<body class="login-mode">
     <canvas id="neural-canvas"></canvas>
 
     <div class="container">
