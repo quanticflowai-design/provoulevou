@@ -6211,7 +6211,7 @@
                 const isOk = ['sent','delivered','read'].includes(r.status);
                 const badgeCls = isOk ? 'ok' : (isFail ? 'fail' : 'pending');
                 const retryBtn = isFail
-                    ? `<button class="disp-log-retry" onclick="dispRetry('${escapeHtml(r.lead_phone||'')}','${escapeHtml(r.template_name||'')}','${escapeHtml(r.template_language||'pt_BR')}')"><i class="ph-bold ph-arrow-clockwise"></i> Reenviar</button>`
+                    ? `<button class="disp-log-retry" data-disp-retry="1" data-phone="${escapeHtml(r.lead_phone||'')}" data-template="${escapeHtml(r.template_name||'')}" data-lang="${escapeHtml(r.template_language||'pt_BR')}"><i class="ph-bold ph-arrow-clockwise"></i> Reenviar</button>`
                     : '<span></span>';
                 return `
                     <div class="disp-log-item">
@@ -6226,6 +6226,12 @@
                     </div>
                 `;
             }).join('');
+            // Delegated listener — evita interpolar valores em contexto JS de onclick
+            list.querySelectorAll('[data-disp-retry="1"]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    dispRetry(btn.dataset.phone || '', btn.dataset.template || '', btn.dataset.lang || 'pt_BR');
+                });
+            });
         }
 
         function dispRetry(phone, template, lang) {
