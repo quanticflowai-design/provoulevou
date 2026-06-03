@@ -10862,14 +10862,36 @@
       /* Esconde botões antigos não usados, NUNCA o link do logo */
       #mainHeader > div:last-child a[href*="index.html"] { display: none !important; }
       #mainHeader button:has(i.ph-house) { display: none !important; }
-      #mainHeader .btn-refresh:not([onclick*="startDashboardTour"]):not(#notifBtn) {
+      #mainHeader .btn-refresh:not([onclick*="startDashboardTour"]):not([onclick*="logout"]):not(#notifBtn) {
         display: none !important;
       }
 
-      /* Reordena lado direito do header: Tour ANTES do Toggle */
+      /* Reordena lado direito do header: Tour · Toggle · Sair */
       #mainHeader > div:last-child { display: flex !important; }
       #mainHeader .btn-refresh[onclick*="startDashboardTour"] { order: 1 !important; }
       #mainHeader .theme-toggle { order: 2 !important; }
+      #mainHeader .btn-refresh[onclick*="logout"] { order: 3 !important; }
+
+      /* Sair button — estilo igual ao Tour */
+      #mainHeader .btn-refresh[onclick*="logout"] {
+        display: inline-flex !important;
+        align-items: center; gap: 6px;
+        background: transparent !important;
+        border: 1px solid rgba(0,0,0,.08) !important;
+        color: #0f1116 !important;
+        padding: 6px 12px !important;
+        border-radius: 999px !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        cursor: pointer;
+      }
+      #mainHeader .btn-refresh[onclick*="logout"]:hover {
+        border-color: #ef4444 !important; color: #ef4444 !important;
+      }
+      #mainHeader .btn-refresh[onclick*="logout"] i { font-size: 14px !important; }
+      body:not(.light-mode) #mainHeader .btn-refresh[onclick*="logout"] {
+        border-color: rgba(255,255,255,.10) !important; color: #edebe7 !important;
+      }
       /* Tour button — texto compacto */
       #mainHeader .btn-refresh[onclick*="startDashboardTour"] {
         display: inline-flex !important;
