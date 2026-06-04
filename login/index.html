@@ -3777,100 +3777,6 @@
                 </div>
 
                 <!-- Modal disparo em massa -->
-                <div id="waBulkModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-                    <style>
-                        .wa-bulk-field {
-                            width: 100%; box-sizing: border-box;
-                            padding: 12px 13px;
-                            border-radius: 10px;
-                            border: 1.5px solid #d1d5db;
-                            background: #f9fafb;
-                            color: var(--text-main);
-                            font-family: inherit; font-size: 14px; font-weight: 600;
-                            outline: none; cursor: pointer;
-                            transition: border-color .15s, box-shadow .15s, background .15s;
-                        }
-                        .wa-bulk-field:hover { border-color: #9ca3af; }
-                        .wa-bulk-field:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.12); background:#fff; }
-                        select.wa-bulk-field {
-                            appearance: none; -webkit-appearance: none; -moz-appearance: none;
-                            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237c3aed' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-                            background-repeat: no-repeat;
-                            background-position: right 12px center;
-                            padding-right: 36px;
-                        }
-                        body.dark-mode .wa-bulk-field { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.18); }
-                        body.dark-mode .wa-bulk-field:focus { background: rgba(255,255,255,.06); border-color: #a855f7; }
-                        .wa-bulk-field-label {
-                            display: block; font-size: 11px; font-weight: 700;
-                            letter-spacing: .06em; text-transform: uppercase;
-                            color: var(--text-muted); margin-bottom: 7px;
-                        }
-                    </style>
-                    <div style="background:var(--card-bg);border:1px solid var(--border-strong);border-radius:16px;max-width:480px;width:100%;padding:26px;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-                            <h3 style="margin:0;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;">
-                                <i class="ph-fill ph-whatsapp-logo" style="color:#25D366;"></i> Disparar pra todos os leads pendentes
-                            </h3>
-                            <button onclick="closeWaBulkModal()" style="background:transparent;border:none;color:var(--text-muted);font-size:24px;cursor:pointer;line-height:1;">×</button>
-                        </div>
-                        <div id="waBulkBody">
-                            <div style="font-size:13px;line-height:1.6;color:var(--text-muted);margin-bottom:14px;">
-                                Escolha o template e dispare via WhatsApp Business pra todos os leads que <strong>provaram e ainda não compraram</strong>, exceto os que receberam mensagem nos últimos 7 dias.
-                            </div>
-                            <div style="margin-bottom:16px;">
-                                <label class="wa-bulk-field-label">Template a disparar</label>
-                                <select id="waBulkTemplateSelect" class="wa-bulk-field" onchange="waBulkOnTemplateChange()">
-                                    <option value="">Carregando templates…</option>
-                                </select>
-                                <input type="hidden" id="waBulkTemplate">
-                                <div id="waBulkTemplatePreview" style="font-size:12px;line-height:1.5;color:var(--text-muted);margin-top:8px;padding:10px 12px;background:rgba(124,58,237,0.05);border:1px solid var(--border);border-radius:8px;display:none;"></div>
-                            </div>
-                            <div style="display:grid;grid-template-columns:1fr 130px;gap:12px;margin-bottom:16px;">
-                                <div>
-                                    <label class="wa-bulk-field-label">Etapa do CRM</label>
-                                    <select id="waBulkStageSelect" class="wa-bulk-field" onchange="waBulkRecalcTargets()">
-                                        <option value="all">Todas as etapas</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="wa-bulk-field-label">Quantos</label>
-                                    <input type="number" id="waBulkLimit" class="wa-bulk-field" min="1" placeholder="Todos" oninput="waBulkRecalcTargets()" style="cursor:text;">
-                                </div>
-                            </div>
-                            <div id="waBulkStats" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
-                                <div style="background:rgba(124,58,237,0.06);border:1px solid var(--border);border-radius:10px;padding:14px;">
-                                    <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">Total a disparar</div>
-                                    <div style="font-size:24px;font-weight:800;letter-spacing:-.02em;" id="waBulkCount">—</div>
-                                </div>
-                                <div style="background:rgba(37,211,102,0.06);border:1px solid var(--border);border-radius:10px;padding:14px;">
-                                    <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">Custo Meta estimado</div>
-                                    <div style="font-size:18px;font-weight:800;letter-spacing:-.01em;" id="waBulkCost">—</div>
-                                    <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">~R$ 0,40-0,80 por mensagem</div>
-                                </div>
-                            </div>
-                            <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:8px;padding:12px;font-size:12px;line-height:1.5;color:var(--text);margin-bottom:18px;">
-                                <i class="ph-bold ph-info" style="color:#f59e0b;"></i>
-                                <strong>Atenção:</strong> a cobrança vai direto pro cartão cadastrado na sua conta Meta. Disparos são enviados em paralelo (10 por vez) — pode levar alguns minutos.
-                            </div>
-                            <div id="waBulkProgress" style="display:none;margin-bottom:14px;">
-                                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:6px;">
-                                    <span><strong id="waBulkSent">0</strong> enviados · <strong id="waBulkFailed" style="color:#ef4444;">0</strong> falhas</span>
-                                    <span><span id="waBulkProgressPct">0</span>%</span>
-                                </div>
-                                <div style="height:6px;background:rgba(124,58,237,.12);border-radius:3px;overflow:hidden;">
-                                    <div id="waBulkProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#25D366,#128C7E);transition:width .3s;"></div>
-                                </div>
-                            </div>
-                            <div style="display:flex;gap:10px;justify-content:flex-end;">
-                                <button class="wa-btn wa-btn-ghost" onclick="closeWaBulkModal()">Cancelar</button>
-                                <button class="wa-btn wa-btn-primary" id="waBulkConfirmBtn" onclick="executeBulkSend()">
-                                    <i class="ph-bold ph-paper-plane-tilt"></i> Confirmar disparo
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <div id="crmContent" style="display:none;">
                     <div class="crm-board" id="crmBoard"></div>
@@ -4030,17 +3936,136 @@
                     </div>
                 </div>
 
-                <div class="disp-actions">
-                    <button class="disp-btn" onclick="openManualSendModal()"><i class="ph-bold ph-paper-plane-tilt"></i> Novo Disparo</button>
-                    <button class="disp-btn ghost" onclick="openWaBulkModal()"><i class="ph-bold ph-users-three"></i> Disparo em Massa</button>
-                    <button class="disp-btn ghost" onclick="waExportLogCSV()"><i class="ph-bold ph-download-simple"></i> Exportar CSV</button>
-                    <button class="disp-btn ghost" onclick="loadDisparos()" style="margin-left:auto;"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
+                <style>
+                    .wa-bulk-field {
+                        width: 100%; box-sizing: border-box;
+                        padding: 12px 13px; border-radius: 10px;
+                        border: 1.5px solid #d1d5db; background: #f9fafb;
+                        color: var(--text-main);
+                        font-family: inherit; font-size: 14px; font-weight: 600;
+                        outline: none; cursor: pointer;
+                        transition: border-color .15s, box-shadow .15s, background .15s;
+                    }
+                    .wa-bulk-field:hover { border-color: #9ca3af; }
+                    .wa-bulk-field:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.12); background:#fff; }
+                    select.wa-bulk-field {
+                        appearance: none; -webkit-appearance: none; -moz-appearance: none;
+                        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237c3aed' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+                        background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;
+                    }
+                    body.dark-mode .wa-bulk-field { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.18); }
+                    body.dark-mode .wa-bulk-field:focus { background: rgba(255,255,255,.06); border-color: #a855f7; }
+                    .wa-bulk-field-label { display: block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 7px; }
+
+                    .disp-bulk-card { border: 1.5px solid rgba(37,211,102,.35); box-shadow: 0 4px 20px -8px rgba(37,211,102,.25); }
+                    .disp-bulk-head { display:flex; align-items:flex-start; gap:14px; margin-bottom:18px; }
+                    .disp-bulk-icon { width:46px; height:46px; border-radius:12px; flex-shrink:0; background:linear-gradient(135deg,#25D366,#128C7E); display:grid; place-items:center; color:#fff; font-size:24px; box-shadow:0 6px 16px rgba(37,211,102,.28); }
+                    .disp-bulk-grid { display:grid; grid-template-columns:1fr 1fr 130px; gap:14px; margin-bottom:16px; }
+                    .disp-bulk-statsrow { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+                    .disp-bulk-stat { background:rgba(124,58,237,0.06); border:1px solid var(--border); border-radius:12px; padding:14px 16px; }
+                    .disp-bulk-stat.green { background:rgba(37,211,102,0.06); }
+                    .disp-bulk-stat .lbl { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; }
+                    .disp-bulk-stat .big { font-size:26px; font-weight:800; letter-spacing:-.02em; }
+                    .disp-bulk-stat .small { font-size:18px; font-weight:800; letter-spacing:-.01em; }
+                    .disp-bulk-send {
+                        display:inline-flex; align-items:center; gap:8px;
+                        background:linear-gradient(135deg,#25D366,#128C7E); color:#fff;
+                        border:none; border-radius:12px; padding:13px 22px;
+                        font-size:15px; font-weight:700; cursor:pointer;
+                        box-shadow:0 8px 20px -6px rgba(37,211,102,.45); transition:transform .12s, box-shadow .12s;
+                    }
+                    .disp-bulk-send:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 10px 24px -6px rgba(37,211,102,.55); }
+                    .disp-bulk-send:disabled { opacity:.5; cursor:not-allowed; box-shadow:none; }
+                    @media (max-width: 700px) { .disp-bulk-grid { grid-template-columns:1fr; } }
+                </style>
+
+                <!-- ===== PAINEL PRINCIPAL: DISPARO EM MASSA ===== -->
+                <div class="disp-card disp-bulk-card" id="dispBulkCard" style="margin-bottom:20px;">
+                    <div class="disp-bulk-head">
+                        <div class="disp-bulk-icon"><i class="ph-fill ph-megaphone-simple"></i></div>
+                        <div>
+                            <h3 style="margin:0 0 4px;">Disparo em massa — recupere seus clientes</h3>
+                            <p class="desc" style="margin:0;">Mande uma mensagem no WhatsApp pra quem <strong>provou e ainda não comprou</strong>. Escolha o template, a etapa do funil e quantos quer disparar. Quem já recebeu mensagem nos últimos 7 dias é pulado automaticamente.</p>
+                        </div>
+                    </div>
+
+                    <!-- Estado: WhatsApp não conectado -->
+                    <div id="dispBulkNotConnected" style="display:none;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:16px;font-size:13px;line-height:1.5;">
+                        <i class="ph-bold ph-warning-circle" style="color:#f59e0b;"></i>
+                        <strong>Conecte seu WhatsApp Business primeiro</strong> (no card acima) pra liberar os disparos. Leva 2 minutos.
+                    </div>
+
+                    <!-- Formulário de disparo -->
+                    <div id="dispBulkForm">
+                        <div style="margin-bottom:16px;">
+                            <label class="wa-bulk-field-label">Mensagem (template aprovado)</label>
+                            <select id="waBulkTemplateSelect" class="wa-bulk-field" onchange="waBulkOnTemplateChange()">
+                                <option value="">Carregando templates…</option>
+                            </select>
+                            <input type="hidden" id="waBulkTemplate">
+                            <div id="waBulkTemplatePreview" style="font-size:12px;line-height:1.5;color:var(--text-muted);margin-top:8px;padding:10px 12px;background:rgba(124,58,237,0.05);border:1px solid var(--border);border-radius:8px;display:none;"></div>
+                        </div>
+                        <div class="disp-bulk-grid">
+                            <div>
+                                <label class="wa-bulk-field-label">Etapa do funil</label>
+                                <select id="waBulkStageSelect" class="wa-bulk-field" onchange="waBulkRecalcTargets()">
+                                    <option value="all">Todas as etapas</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="wa-bulk-field-label">&nbsp;</label>
+                                <div style="font-size:12px;color:var(--text-muted);padding:13px 0;line-height:1.3;">Filtra os leads por estágio no CRM (provou e não comprou, re-engajou, etc).</div>
+                            </div>
+                            <div>
+                                <label class="wa-bulk-field-label">Quantos</label>
+                                <input type="number" id="waBulkLimit" class="wa-bulk-field" min="1" placeholder="Todos" oninput="waBulkRecalcTargets()" style="cursor:text;">
+                            </div>
+                        </div>
+                        <div class="disp-bulk-statsrow">
+                            <div class="disp-bulk-stat">
+                                <div class="lbl">Vão receber agora</div>
+                                <div class="big" id="waBulkCount">—</div>
+                            </div>
+                            <div class="disp-bulk-stat green">
+                                <div class="lbl">Custo Meta estimado</div>
+                                <div class="small" id="waBulkCost">—</div>
+                                <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">~R$ 0,40-0,80 por mensagem</div>
+                            </div>
+                        </div>
+                        <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:8px;padding:12px;font-size:12px;line-height:1.5;color:var(--text);margin-bottom:16px;">
+                            <i class="ph-bold ph-info" style="color:#f59e0b;"></i>
+                            <strong>Atenção:</strong> a cobrança das mensagens vai direto pro cartão da sua conta Meta. Os disparos saem em paralelo (10 por vez) — pode levar alguns minutos.
+                        </div>
+                        <div id="waBulkProgress" style="display:none;margin-bottom:16px;">
+                            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:6px;">
+                                <span><strong id="waBulkSent">0</strong> enviados · <strong id="waBulkFailed" style="color:#ef4444;">0</strong> falhas</span>
+                                <span><span id="waBulkProgressPct">0</span>%</span>
+                            </div>
+                            <div style="height:6px;background:rgba(124,58,237,.12);border-radius:3px;overflow:hidden;">
+                                <div id="waBulkProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#25D366,#128C7E);transition:width .3s;"></div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+                            <button class="disp-bulk-send" id="waBulkConfirmBtn" onclick="executeBulkSend()">
+                                <i class="ph-bold ph-paper-plane-tilt"></i> Disparar agora
+                            </button>
+                            <button class="disp-btn ghost" onclick="openManualSendModal()"><i class="ph-bold ph-user"></i> Disparo individual</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="disp-card" style="margin-bottom:20px;">
-                    <h3><i class="ph-bold ph-list-checks"></i> Histórico de disparos</h3>
-                    <p class="desc">Últimos 500 envios. Clique em "Reenviar" pra tentar de novo um que falhou.</p>
-                    <div class="disp-log-filters">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                        <div>
+                            <h3><i class="ph-bold ph-list-checks"></i> Histórico de disparos</h3>
+                            <p class="desc" style="margin-bottom:0;">Últimos 500 envios. Clique em "Reenviar" pra tentar de novo um que falhou.</p>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="disp-btn ghost" onclick="waExportLogCSV()"><i class="ph-bold ph-download-simple"></i> Exportar CSV</button>
+                            <button class="disp-btn ghost" onclick="loadDisparos()"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
+                        </div>
+                    </div>
+                    <div class="disp-log-filters" style="margin-top:14px;">
                         <button class="disp-log-pill active" data-dispfilter="all" onclick="dispSetFilter('all')">Todos</button>
                         <button class="disp-log-pill" data-dispfilter="sent" onclick="dispSetFilter('sent')">Entregues</button>
                         <button class="disp-log-pill" data-dispfilter="failed" onclick="dispSetFilter('failed')">Falharam</button>
@@ -5320,7 +5345,7 @@
                 wa.style.marginBottom = '20px';
             }
             // Move TODOS os modais pra direto no <body> — escapa do z-index 1 da dashboard-content
-            ['crmMsgModal','crmPipelineModal','waManualSendModal','waTplModal','waWizardModal','waBulkModal','planDetailsModal','creditsBuyModal','packPixModal']
+            ['crmMsgModal','crmPipelineModal','waManualSendModal','waTplModal','waWizardModal','planDetailsModal','creditsBuyModal','packPixModal']
                 .forEach(id => {
                     const m = document.getElementById(id);
                     if (m && m.parentElement !== document.body) document.body.appendChild(m);
@@ -6084,6 +6109,9 @@
                 dispRenderCrmChart();
             } catch (e) { console.warn('[disparos] CRM chart:', e); }
 
+            // 1b) Inicializa o painel inline de Disparo em Massa
+            try { dispBulkInit(); } catch (e) { console.warn('[disparos] bulk init:', e); }
+
             // 2) Log + stats
             try {
                 const { data, error } = await supabaseClient
@@ -6443,33 +6471,41 @@
             const tplOk = !!(document.getElementById('waBulkTemplate') || {}).value;
             if (targets.length === 0) {
                 confirmBtn.disabled = true;
-                confirmBtn.innerHTML = 'Nenhum lead elegível';
+                confirmBtn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Nenhum lead elegível';
             } else {
                 confirmBtn.disabled = !tplOk;
-                confirmBtn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Confirmar disparo (' + targets.length.toLocaleString('pt-BR') + ')';
+                confirmBtn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Disparar agora (' + targets.length.toLocaleString('pt-BR') + ')';
             }
         }
 
-        async function openWaBulkModal() {
-            if (!_waConfigCache || _waConfigCache.status !== 'connected') {
-                alert('Conecte o WhatsApp primeiro na aba Meu Plano.');
-                return;
-            }
-            document.getElementById('waBulkCount').textContent = 'calculando…';
-            document.getElementById('waBulkCost').textContent = '—';
-            document.getElementById('waBulkProgress').style.display = 'none';
-            document.getElementById('waBulkConfirmBtn').disabled = false;
-            document.getElementById('waBulkConfirmBtn').innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Confirmar disparo';
-            document.getElementById('waBulkModal').style.display = 'flex';
+        // Inicializa o painel inline de Disparo em Massa na aba Disparos
+        async function dispBulkInit() {
+            const form = document.getElementById('dispBulkForm');
+            const notConn = document.getElementById('dispBulkNotConnected');
+            const connected = _waConfigCache && _waConfigCache.status === 'connected';
+            if (form) form.style.display = connected ? 'block' : 'none';
+            if (notConn) notConn.style.display = connected ? 'none' : 'block';
+            if (!connected) return;
 
-            // Popula etapas do CRM (exceto convertido) com contagem por etapa
+            const countEl = document.getElementById('waBulkCount');
+            const costEl = document.getElementById('waBulkCost');
+            const progEl = document.getElementById('waBulkProgress');
+            if (countEl) countEl.textContent = 'calculando…';
+            if (costEl) costEl.textContent = '—';
+            if (progEl) progEl.style.display = 'none';
+
             waBulkPopulateStages();
-            // Limpa limite
             const limitEl = document.getElementById('waBulkLimit');
             if (limitEl) limitEl.value = '';
-
             waBulkPopulateTemplates();
             await waBulkRecalcTargets();
+        }
+
+        // Mantido por compatibilidade: rola até o painel inline em vez de abrir modal
+        function openWaBulkModal() {
+            const card = document.getElementById('dispBulkCard');
+            if (typeof showTab === 'function') showTab('disparos');
+            if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         // Popula o seletor de etapa do CRM no modal de massa
@@ -6502,7 +6538,8 @@
         }
 
         function closeWaBulkModal() {
-            document.getElementById('waBulkModal').style.display = 'none';
+            const m = document.getElementById('waBulkModal');
+            if (m) m.style.display = 'none';
         }
 
         // Popula o seletor de template no modal de disparo em massa (só APROVADOS)
@@ -6643,8 +6680,11 @@
             await Promise.all(workers);
 
             btn.innerHTML = '<i class="ph-bold ph-check-circle"></i> Concluído (' + sent + ' enviados)';
-            // Atualiza CRM pra refletir status (botões dos cards)
-            setTimeout(() => { renderCrmBoard(); closeWaBulkModal(); }, 2500);
+            // Atualiza CRM + recarrega a aba Disparos (KPIs, histórico, gráficos)
+            setTimeout(() => {
+                try { renderCrmBoard(); } catch (e) {}
+                if (typeof loadDisparos === 'function') loadDisparos().catch(() => {});
+            }, 2500);
         }
 
         // Envia template pra 1 lead a partir do CRM
