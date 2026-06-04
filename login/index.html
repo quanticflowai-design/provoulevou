@@ -6300,6 +6300,14 @@
             });
         }
 
+        const DISP_STATUS_PT = {
+            sent: 'Enviada', delivered: 'Entregue', read: 'Lida',
+            failed: 'Falhou', pending: 'Pendente', queued: 'Na fila'
+        };
+        function dispStatusLabel(s) {
+            return DISP_STATUS_PT[(s || '').toLowerCase()] || (s || '—');
+        }
+
         function dispRenderLog() {
             const list = document.getElementById('dispLogList');
             if (!list) return;
@@ -6328,7 +6336,7 @@
                             <span><span class="disp-log-phone">+${escapeHtml(r.lead_phone||'')}</span> <span class="disp-log-tpl">· ${escapeHtml(r.template_name||'—')}</span></span>
                             ${r.error_message ? '<span class="disp-log-err">' + escapeHtml(r.error_message) + '</span>' : ''}
                         </div>
-                        <span class="disp-log-badge ${badgeCls}">${escapeHtml(r.status||'—')}</span>
+                        <span class="disp-log-badge ${badgeCls}">${escapeHtml(dispStatusLabel(r.status))}</span>
                         ${retryBtn}
                         <span class="disp-log-date">${dtStr}</span>
                     </div>
