@@ -3955,6 +3955,9 @@
                     }
                 </style>
 
+                <!-- Host do card WhatsApp Business (waCard é movido pra cá via JS) -->
+                <div id="disparosWaHost"></div>
+
                 <div class="disp-kpis">
                     <div class="disp-kpi accent">
                         <span class="label">Total de Disparos</span>
@@ -5290,12 +5293,13 @@
                 cm.style.cssText = 'display:none;';
                 hostM.appendChild(cm);
             }
-            // Move o waCard pro fim da aba CRM, abaixo dos cenários
+            // Move o waCard pro TOPO da aba Disparos (primeiro item)
             const wa = document.getElementById('waCard');
-            const crmTab = document.getElementById('tab-crm');
-            if (wa && crmTab) {
-                crmTab.appendChild(wa);
-                wa.style.marginTop = '24px';
+            const waHost = document.getElementById('disparosWaHost');
+            if (wa && waHost) {
+                waHost.appendChild(wa);
+                wa.style.marginTop = '0';
+                wa.style.marginBottom = '20px';
             }
             // Move TODOS os modais pra direto no <body> — escapa do z-index 1 da dashboard-content
             ['crmMsgModal','crmPipelineModal','waManualSendModal','waTplModal','waWizardModal','waBulkModal','planDetailsModal','creditsBuyModal','packPixModal']
