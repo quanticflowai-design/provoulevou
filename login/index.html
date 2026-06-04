@@ -4544,9 +4544,6 @@
                         <button class="wa-tab" data-watab="templates" onclick="waSwitchTab('templates')">
                             <i class="ph-bold ph-chat-circle-text"></i> Templates
                         </button>
-                        <button class="wa-tab" data-watab="disparos" onclick="waSwitchTab('disparos')">
-                            <i class="ph-bold ph-paper-plane-tilt"></i> Disparos
-                        </button>
                     </div>
 
                     <div id="waConnectedInfo" style="display:none;margin-bottom:16px;padding:12px 14px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;font-size:13px;">
@@ -4604,34 +4601,6 @@
                     </div>
 
                     <!-- ====== TAB DISPAROS ====== -->
-                    <div class="wa-tabpane" data-watab="disparos" style="display:none;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-                            <div>
-                                <div style="font-size:14px;font-weight:600;">Histórico de disparos</div>
-                                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Auditoria completa de cada mensagem enviada · auto-atualiza a cada minuto</div>
-                            </div>
-                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                                <select class="wa-input" id="waLogFilter" onchange="waLoadLog()" style="width:auto;padding:7px 28px 7px 12px;">
-                                    <option value="all">Todos status</option>
-                                    <option value="sent">Enviadas</option>
-                                    <option value="delivered">Entregues</option>
-                                    <option value="read">Lidas</option>
-                                    <option value="failed">Falharam</option>
-                                </select>
-                                <button class="wa-btn wa-btn-ghost" onclick="waLoadLog()"><i class="ph-bold ph-arrows-clockwise"></i></button>
-                                <button class="wa-btn wa-btn-ghost" onclick="waExportLogCSV()"><i class="ph-bold ph-download-simple"></i> CSV</button>
-                            </div>
-                        </div>
-                        <div id="waLogStats" class="wa-log-stats">
-                            <div class="wa-log-stat"><div class="wa-log-stat-label">Total</div><div class="wa-log-stat-val" id="waStatTotal">—</div></div>
-                            <div class="wa-log-stat"><div class="wa-log-stat-label">Enviadas</div><div class="wa-log-stat-val" style="color:#22c55e" id="waStatSent">—</div></div>
-                            <div class="wa-log-stat"><div class="wa-log-stat-label">Falharam</div><div class="wa-log-stat-val" style="color:#ef4444" id="waStatFailed">—</div></div>
-                            <div class="wa-log-stat"><div class="wa-log-stat-label">Últimas 24h</div><div class="wa-log-stat-val" id="waStat24h">—</div></div>
-                        </div>
-                        <div id="waLogList" class="wa-log-list">
-                            <div class="wa-tpl-empty">Carregando…</div>
-                        </div>
-                    </div>
                 </div>
                 <!-- ====== /WHATSAPP ====== -->
 
@@ -6613,6 +6582,14 @@
             btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Disparando…';
             document.getElementById('waBulkProgress').style.display = 'block';
 
+            // Descobre quantas variáveis {{n}} o template selecionado tem,
+            // pra montar os params na quantidade certa (evita erro da Meta).
+            const tplName = _waBulkTemplate || _waConfigCache.default_template;
+            const tplObj = (_waTemplatesCache || []).find(t => t.name === tplName);
+            const bodyComp = tplObj && (tplObj.components || []).find(c => c.type === 'BODY');
+            const bodyText = (bodyComp && bodyComp.text) || '';
+            const placeholders = (bodyText.match(/\{\{\s*\d+\s*\}\}/g) || []).length;
+
             let sent = 0, failed = 0;
             const total = targets.length;
             const update = () => {
@@ -6625,8 +6602,14 @@
 
             const sendOne = async (lead) => {
                 const firstName = (lead.name || '').split(' ')[0] || 'cliente';
-                const params = [firstName];
-                if (lead.product) params.push(lead.product);
+                const produto = lead.product || 'o modelo que você provou';
+                // Monta exatamente o número de variáveis que o template espera.
+                // Convenção: {{1}} = primeiro nome, {{2}} = produto provado.
+                const fill = [firstName, produto];
+                const params = [];
+                for (let i = 0; i < placeholders; i++) {
+                    params.push(fill[i] != null ? fill[i] : firstName);
+                }
                 try {
                     const res = await fetch(WA_SEND_URL, {
                         method: 'POST',
@@ -10593,6 +10576,10 @@
                 allOrders.forEach(o => {
                     const ph = normalize(o[fPhone]);
                     if (!ph || !leadMap[ph]) return;
+                    // Captura o nome de QUALQUER pedido desse telefone (mesmo pré-prova),
+                    // pra personalizar o disparo de quem provou e não comprou pós-prova
+                    // mas já é cliente conhecido da loja.
+                    if (o[fNome] && !leadMap[ph].name) leadMap[ph].name = o[fNome];
                     // Replica isOrderAfterProva: só conta como "convertido" se o pedido foi após a prova
                     const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
                     const provaDate = leadMap[ph].firstDate;
@@ -10601,7 +10588,6 @@
                     const after = hasRealTime ? (orderTs >= provaTs) : (orderTs.slice(0,10) >= provaDate);
                     if (!after) return;
                     leadMap[ph].bought = true;
-                    if (o[fNome] && !leadMap[ph].name) leadMap[ph].name = o[fNome];
                 });
 
                 crmLeadMapCache = leadMap;
