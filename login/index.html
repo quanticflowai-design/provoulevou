@@ -3778,6 +3778,35 @@
 
                 <!-- Modal disparo em massa -->
                 <div id="waBulkModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+                    <style>
+                        .wa-bulk-field {
+                            width: 100%; box-sizing: border-box;
+                            padding: 12px 13px;
+                            border-radius: 10px;
+                            border: 1.5px solid #d1d5db;
+                            background: #f9fafb;
+                            color: var(--text-main);
+                            font-family: inherit; font-size: 14px; font-weight: 600;
+                            outline: none; cursor: pointer;
+                            transition: border-color .15s, box-shadow .15s, background .15s;
+                        }
+                        .wa-bulk-field:hover { border-color: #9ca3af; }
+                        .wa-bulk-field:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.12); background:#fff; }
+                        select.wa-bulk-field {
+                            appearance: none; -webkit-appearance: none; -moz-appearance: none;
+                            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237c3aed' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+                            background-repeat: no-repeat;
+                            background-position: right 12px center;
+                            padding-right: 36px;
+                        }
+                        body.dark-mode .wa-bulk-field { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.18); }
+                        body.dark-mode .wa-bulk-field:focus { background: rgba(255,255,255,.06); border-color: #a855f7; }
+                        .wa-bulk-field-label {
+                            display: block; font-size: 11px; font-weight: 700;
+                            letter-spacing: .06em; text-transform: uppercase;
+                            color: var(--text-muted); margin-bottom: 7px;
+                        }
+                    </style>
                     <div style="background:var(--card-bg);border:1px solid var(--border-strong);border-radius:16px;max-width:480px;width:100%;padding:26px;">
                         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
                             <h3 style="margin:0;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;">
@@ -3790,9 +3819,8 @@
                                 Escolha o template e dispare via WhatsApp Business pra todos os leads que <strong>provaram e ainda não compraram</strong>, exceto os que receberam mensagem nos últimos 7 dias.
                             </div>
                             <div style="margin-bottom:16px;">
-                                <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Template a disparar</label>
-                                <select id="waBulkTemplateSelect" onchange="waBulkOnTemplateChange()"
-                                    style="width:100%;box-sizing:border-box;padding:11px 12px;border-radius:10px;border:1px solid var(--border-strong,var(--border));background:var(--card-bg);color:var(--text-main);font-family:inherit;font-size:14px;font-weight:600;outline:none;cursor:pointer;">
+                                <label class="wa-bulk-field-label">Template a disparar</label>
+                                <select id="waBulkTemplateSelect" class="wa-bulk-field" onchange="waBulkOnTemplateChange()">
                                     <option value="">Carregando templates…</option>
                                 </select>
                                 <input type="hidden" id="waBulkTemplate">
@@ -3800,16 +3828,14 @@
                             </div>
                             <div style="display:grid;grid-template-columns:1fr 130px;gap:12px;margin-bottom:16px;">
                                 <div>
-                                    <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Etapa do CRM</label>
-                                    <select id="waBulkStageSelect" onchange="waBulkRecalcTargets()"
-                                        style="width:100%;box-sizing:border-box;padding:11px 12px;border-radius:10px;border:1px solid var(--border-strong,var(--border));background:var(--card-bg);color:var(--text-main);font-family:inherit;font-size:13px;font-weight:600;outline:none;cursor:pointer;">
+                                    <label class="wa-bulk-field-label">Etapa do CRM</label>
+                                    <select id="waBulkStageSelect" class="wa-bulk-field" onchange="waBulkRecalcTargets()">
                                         <option value="all">Todas as etapas</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Quantos</label>
-                                    <input type="number" id="waBulkLimit" min="1" placeholder="Todos" oninput="waBulkRecalcTargets()"
-                                        style="width:100%;box-sizing:border-box;padding:11px 12px;border-radius:10px;border:1px solid var(--border-strong,var(--border));background:var(--card-bg);color:var(--text-main);font-family:inherit;font-size:13px;font-weight:600;outline:none;">
+                                    <label class="wa-bulk-field-label">Quantos</label>
+                                    <input type="number" id="waBulkLimit" class="wa-bulk-field" min="1" placeholder="Todos" oninput="waBulkRecalcTargets()" style="cursor:text;">
                                 </div>
                             </div>
                             <div id="waBulkStats" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
