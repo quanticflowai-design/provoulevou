@@ -3786,8 +3786,31 @@
                             <button onclick="closeWaBulkModal()" style="background:transparent;border:none;color:var(--text-muted);font-size:24px;cursor:pointer;line-height:1;">×</button>
                         </div>
                         <div id="waBulkBody">
-                            <div style="font-size:13px;line-height:1.6;color:var(--text-muted);margin-bottom:16px;">
-                                Você vai disparar o template <strong id="waBulkTemplate" style="color:var(--text);">—</strong> via WhatsApp Business pra todos os leads que <strong>provaram e ainda não compraram</strong>, exceto os que receberam mensagem nos últimos 7 dias.
+                            <div style="font-size:13px;line-height:1.6;color:var(--text-muted);margin-bottom:14px;">
+                                Escolha o template e dispare via WhatsApp Business pra todos os leads que <strong>provaram e ainda não compraram</strong>, exceto os que receberam mensagem nos últimos 7 dias.
+                            </div>
+                            <div style="margin-bottom:16px;">
+                                <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Template a disparar</label>
+                                <select id="waBulkTemplateSelect" onchange="waBulkOnTemplateChange()"
+                                    style="width:100%;box-sizing:border-box;padding:11px 12px;border-radius:10px;border:1px solid var(--border-strong,var(--border));background:var(--card-bg);color:var(--text-main);font-family:inherit;font-size:14px;font-weight:600;outline:none;cursor:pointer;">
+                                    <option value="">Carregando templates…</option>
+                                </select>
+                                <input type="hidden" id="waBulkTemplate">
+                                <div id="waBulkTemplatePreview" style="font-size:12px;line-height:1.5;color:var(--text-muted);margin-top:8px;padding:10px 12px;background:rgba(124,58,237,0.05);border:1px solid var(--border);border-radius:8px;display:none;"></div>
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 130px;gap:12px;margin-bottom:16px;">
+                                <div>
+                                    <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Etapa do CRM</label>
+                                    <select id="waBulkStageSelect" onchange="waBulkRecalcTargets()"
+                                        style="width:100%;box-sizing:border-box;padding:11px 12px;border-radius:10px;border:1px solid var(--border-strong,var(--border));background:var(--card-bg);color:var(--text-main);font-family:inherit;font-size:13px;font-weight:600;outline:none;cursor:pointer;">
+                                        <option value="all">Todas as etapas</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Quantos</label>
+                                    <input type="number" id="waBulkLimit" min="1" placeholder="Todos" oninput="waBulkRecalcTargets()"
+                                        style="width:100%;box-sizing:border-box;padding:11px 12px;border-radius:10px;border:1px solid var(--border-strong,var(--border));background:var(--card-bg);color:var(--text-main);font-family:inherit;font-size:13px;font-weight:600;outline:none;">
+                                </div>
                             </div>
                             <div id="waBulkStats" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
                                 <div style="background:rgba(124,58,237,0.06);border:1px solid var(--border);border-radius:10px;padding:14px;">
@@ -6347,14 +6370,37 @@
         }
 
         // Calcula leads elegíveis pra disparo em massa
-        async function waGetBulkTargets() {
+        // Retorna a coluna/etapa do CRM de um lead (mesma lógica do renderCrmBoard)
+        function waLeadStageKey(phone, d, config, overrides) {
+            const validKeys = new Set(config.columns.map(c => c.key));
+            let targetKey = overrides[phone];
+            if (targetKey && !validKeys.has(targetKey)) targetKey = null;
+            if (!targetKey) {
+                const rule = (typeof crmClassify === 'function') ? crmClassify(d) : 'cold';
+                const col = config.columns.find(c => c.auto && c.rule === rule);
+                targetKey = col ? col.key : rule;
+            }
+            return targetKey;
+        }
+
+        // stageKey: 'all' (todos que não compraram) ou a key de uma coluna específica
+        // limit: número máximo de leads (0/null = todos)
+        async function waGetBulkTargets(stageKey, limit) {
             if (!crmLeadMapCache) return [];
+            const config = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+            const overrides = (typeof getCrmOverrides === 'function') ? getCrmOverrides() : {};
+
             const naoCompraram = Object.entries(crmLeadMapCache)
                 .filter(([, lead]) => !lead.bought)
+                .filter(([phone, lead]) => {
+                    if (!stageKey || stageKey === 'all') return true;
+                    return waLeadStageKey(phone, lead, config, overrides) === stageKey;
+                })
                 .map(([phone, lead]) => ({
                     phone: String(lead.rawPhone || phone).replace(/\D/g, ''),
                     name: lead.name || '',
-                    product: lead.lastProduct || ''
+                    product: lead.lastProduct || '',
+                    lastDate: lead.lastDate || ''
                 }))
                 .filter(l => l.phone && l.phone.length >= 10);
 
@@ -6371,11 +6417,42 @@
                 .limit(10000);
             const blocked = new Set((recent || []).map(r => String(r.lead_phone).replace(/\D/g, '')));
 
-            return naoCompraram.filter(l => {
+            let eligible = naoCompraram.filter(l => {
                 let ph = l.phone;
                 if (ph.length === 10 || ph.length === 11) ph = '55' + ph;
                 return !blocked.has(l.phone) && !blocked.has(ph);
             });
+
+            // Prioriza leads mais recentes quando há limite
+            eligible.sort((a, b) => (b.lastDate || '').localeCompare(a.lastDate || ''));
+            if (limit && limit > 0) eligible = eligible.slice(0, limit);
+            return eligible;
+        }
+
+        // Recalcula a lista de alvos com base nos filtros do modal (etapa + limite)
+        async function waBulkRecalcTargets() {
+            const stageKey = (document.getElementById('waBulkStageSelect') || {}).value || 'all';
+            const limitRaw = parseInt((document.getElementById('waBulkLimit') || {}).value, 10);
+            const limit = (!isNaN(limitRaw) && limitRaw > 0) ? limitRaw : 0;
+
+            document.getElementById('waBulkCount').textContent = 'calculando…';
+            document.getElementById('waBulkCost').textContent = '—';
+
+            const targets = await waGetBulkTargets(stageKey, limit);
+            window._waBulkTargets = targets;
+            document.getElementById('waBulkCount').textContent = targets.length.toLocaleString('pt-BR');
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('waBulkCost').textContent = brl(targets.length * 0.40) + ' – ' + brl(targets.length * 0.80);
+
+            const confirmBtn = document.getElementById('waBulkConfirmBtn');
+            const tplOk = !!(document.getElementById('waBulkTemplate') || {}).value;
+            if (targets.length === 0) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = 'Nenhum lead elegível';
+            } else {
+                confirmBtn.disabled = !tplOk;
+                confirmBtn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Confirmar disparo (' + targets.length.toLocaleString('pt-BR') + ')';
+            }
         }
 
         async function openWaBulkModal() {
@@ -6383,7 +6460,6 @@
                 alert('Conecte o WhatsApp primeiro na aba Meu Plano.');
                 return;
             }
-            document.getElementById('waBulkTemplate').textContent = _waConfigCache.default_template || '—';
             document.getElementById('waBulkCount').textContent = 'calculando…';
             document.getElementById('waBulkCost').textContent = '—';
             document.getElementById('waBulkProgress').style.display = 'none';
@@ -6391,21 +6467,116 @@
             document.getElementById('waBulkConfirmBtn').innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Confirmar disparo';
             document.getElementById('waBulkModal').style.display = 'flex';
 
-            const targets = await waGetBulkTargets();
-            window._waBulkTargets = targets;
-            document.getElementById('waBulkCount').textContent = targets.length.toLocaleString('pt-BR');
-            const costMin = targets.length * 0.40;
-            const costMax = targets.length * 0.80;
-            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            document.getElementById('waBulkCost').textContent = brl(costMin) + ' – ' + brl(costMax);
-            if (targets.length === 0) {
-                document.getElementById('waBulkConfirmBtn').disabled = true;
-                document.getElementById('waBulkConfirmBtn').innerHTML = 'Nenhum lead elegível';
+            // Popula etapas do CRM (exceto convertido) com contagem por etapa
+            waBulkPopulateStages();
+            // Limpa limite
+            const limitEl = document.getElementById('waBulkLimit');
+            if (limitEl) limitEl.value = '';
+
+            waBulkPopulateTemplates();
+            await waBulkRecalcTargets();
+        }
+
+        // Popula o seletor de etapa do CRM no modal de massa
+        function waBulkPopulateStages() {
+            const sel = document.getElementById('waBulkStageSelect');
+            if (!sel) return;
+            const config = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+            const overrides = (typeof getCrmOverrides === 'function') ? getCrmOverrides() : {};
+
+            // Conta leads não-comprados por etapa
+            const counts = {};
+            config.columns.forEach(c => { counts[c.key] = 0; });
+            let totalNao = 0;
+            if (crmLeadMapCache) {
+                Object.entries(crmLeadMapCache).forEach(([phone, lead]) => {
+                    if (lead.bought) return;
+                    totalNao++;
+                    const k = waLeadStageKey(phone, lead, config, overrides);
+                    if (counts[k] === undefined) counts[k] = 0;
+                    counts[k]++;
+                });
             }
+            const opts = ['<option value="all">Todas as etapas — provaram e não compraram (' + totalNao + ')</option>'];
+            config.columns
+                .filter(c => !(c.auto && c.rule === 'convertido') && c.key !== 'convertido')
+                .forEach(c => {
+                    opts.push('<option value="' + escapeHtml(c.key) + '">' + escapeHtml(c.title) + ' (' + (counts[c.key] || 0) + ')</option>');
+                });
+            sel.innerHTML = opts.join('');
         }
 
         function closeWaBulkModal() {
             document.getElementById('waBulkModal').style.display = 'none';
+        }
+
+        // Popula o seletor de template no modal de disparo em massa (só APROVADOS)
+        async function waBulkPopulateTemplates() {
+            const sel = document.getElementById('waBulkTemplateSelect');
+            if (!sel) return;
+            sel.innerHTML = '<option value="">Carregando templates…</option>';
+            sel.disabled = true;
+            try {
+                // Usa cache se já tiver; senão busca da Meta
+                let data = _waTemplatesCache;
+                if (!data || data.length === 0) {
+                    const res = await fetch(WA_TPL_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: activeUser.email, action: 'list' })
+                    });
+                    const result = await res.json();
+                    data = (result.body && result.body.data) || [];
+                    _waTemplatesCache = data;
+                }
+                const approved = (data || []).filter(t => (t.status || '').toUpperCase() === 'APPROVED');
+                if (approved.length === 0) {
+                    sel.innerHTML = '<option value="">Nenhum template aprovado</option>';
+                    sel.disabled = true;
+                    document.getElementById('waBulkConfirmBtn').disabled = true;
+                    return;
+                }
+                const def = _waConfigCache.default_template;
+                sel.innerHTML = approved.map(t =>
+                    `<option value="${escapeHtml(t.name)}" data-lang="${t.language || 'pt_BR'}"${t.name === def ? ' selected' : ''}>`
+                    + `${escapeHtml(t.name)}${t.name === def ? ' (padrão)' : ''} · ${(t.category||'').toLowerCase()}`
+                    + `</option>`
+                ).join('');
+                sel.disabled = false;
+                waBulkOnTemplateChange();
+            } catch (e) {
+                sel.innerHTML = '<option value="">Erro ao carregar templates</option>';
+                sel.disabled = true;
+            }
+        }
+
+        let _waBulkTemplate = null;
+        let _waBulkTemplateLang = null;
+
+        function waBulkOnTemplateChange() {
+            const sel = document.getElementById('waBulkTemplateSelect');
+            const opt = sel.options[sel.selectedIndex];
+            const name = sel.value;
+            _waBulkTemplate = name || null;
+            _waBulkTemplateLang = (opt && opt.dataset.lang) || _waConfigCache.default_language || 'pt_BR';
+            const hid = document.getElementById('waBulkTemplate');
+            if (hid) hid.value = name;
+            // Preview do corpo do template
+            const prev = document.getElementById('waBulkTemplatePreview');
+            const tpl = (_waTemplatesCache || []).find(t => t.name === name);
+            const bodyComp = tpl && (tpl.components || []).find(c => c.type === 'BODY');
+            if (prev && bodyComp && bodyComp.text) {
+                prev.style.display = 'block';
+                prev.innerHTML = '<i class="ph-bold ph-chat-text" style="color:#7c3aed;"></i> ' + escapeHtml(bodyComp.text);
+            } else if (prev) {
+                prev.style.display = 'none';
+            }
+            // Reabilita o botão de confirmar se houver alvos
+            const confirmBtn = document.getElementById('waBulkConfirmBtn');
+            const n = (window._waBulkTargets || []).length;
+            if (confirmBtn && n > 0) {
+                confirmBtn.disabled = !name;
+            }
         }
 
         async function executeBulkSend() {
@@ -6437,8 +6608,8 @@
                         body: JSON.stringify({
                             email: activeUser.email,
                             to: lead.phone,
-                            template: _waConfigCache.default_template,
-                            language: _waConfigCache.default_language || 'pt_BR',
+                            template: _waBulkTemplate || _waConfigCache.default_template,
+                            language: _waBulkTemplateLang || _waConfigCache.default_language || 'pt_BR',
                             params: params
                         })
                     });
