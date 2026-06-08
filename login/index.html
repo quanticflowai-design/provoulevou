@@ -3910,10 +3910,38 @@
                     }
                 </style>
 
+                <!-- ===== SUB-NAVEGAÇÃO DA ABA DISPAROS ===== -->
+                <style>
+                    .disp-subnav { display:flex; gap:6px; margin-bottom:20px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+                    .disp-subnav button {
+                        position:relative; background:transparent; border:none; cursor:pointer;
+                        padding:10px 16px; font-family:inherit; font-size:14px; font-weight:600;
+                        color:var(--text-muted); border-bottom:2px solid transparent; margin-bottom:-1px;
+                        display:inline-flex; align-items:center; gap:7px; transition:color .15s;
+                    }
+                    .disp-subnav button:hover { color:var(--text-main); }
+                    .disp-subnav button.active { color:#7c3aed; border-bottom-color:#7c3aed; }
+                    .disp-subnav button i { font-size:16px; }
+                    .disp-subnav .disp-sub-badge { background:#25D366; color:#fff; font-size:10px; font-weight:700; min-width:17px; height:17px; border-radius:9px; display:none; place-items:center; padding:0 5px; }
+                    .disp-subpane { display:none; }
+                    .disp-subpane.active { display:block; animation: dispFade .2s ease; }
+                    @keyframes dispFade { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+                </style>
+                <div class="disp-subnav" id="dispSubnav">
+                    <button data-sub="conversas" class="active" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> Conversas <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
+                    <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-paper-plane-tilt"></i> Disparar</button>
+                    <button data-sub="historico" onclick="dispSwitchSub('historico')"><i class="ph-bold ph-chart-bar"></i> Histórico</button>
+                    <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> Conexão</button>
+                </div>
+                <div class="disp-subpane active" id="dispSubConversas"></div>
+                <div class="disp-subpane" id="dispSubDisparar"></div>
+                <div class="disp-subpane" id="dispSubHistorico"></div>
+                <div class="disp-subpane" id="dispSubConexao"></div>
+
                 <!-- Host do card WhatsApp Business (waCard é movido pra cá via JS) -->
                 <div id="disparosWaHost"></div>
 
-                <div class="disp-kpis">
+                <div class="disp-kpis" id="dispKpisRow">
                     <div class="disp-kpi accent">
                         <span class="label">Total de Disparos</span>
                         <span class="value" id="dispKpiTotal">—</span>
@@ -4089,7 +4117,7 @@
                     .chat-empty-thread { flex:1; display:grid; place-items:center; color:var(--text-muted); font-size:13px; text-align:center; padding:20px; }
                     @media (max-width:760px){ .chat-wrap{ grid-template-columns:1fr; height:auto; } .chat-list{ max-height:200px; } .chat-thread{ height:380px; } }
                 </style>
-                <div class="disp-card" style="margin-bottom:20px;">
+                <div class="disp-card" id="dispChatCard" style="margin-bottom:20px;">
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
                         <div>
                             <h3 style="margin:0 0 4px;"><i class="ph-bold ph-chats-circle"></i> Caixa de entrada</h3>
@@ -4109,7 +4137,7 @@
                     </div>
                 </div>
 
-                <div class="disp-card" style="margin-bottom:20px;">
+                <div class="disp-card" id="dispHistCard" style="margin-bottom:20px;">
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
                         <div>
                             <h3><i class="ph-bold ph-list-checks"></i> Histórico de disparos</h3>
@@ -4130,13 +4158,13 @@
                     </div>
                 </div>
 
-                <div class="disp-card" style="margin-bottom:20px;">
+                <div class="disp-card" id="dispDailyCard" style="margin-bottom:20px;">
                     <h3><i class="ph-bold ph-chart-line-up"></i> Disparos por dia (últimos 30 dias)</h3>
                     <p class="desc">Volume diário separado por entregues e falhas.</p>
                     <div class="disp-chart-wrap" style="height:260px;"><canvas id="dispDailyChart"></canvas></div>
                 </div>
 
-                <div class="disp-charts-row">
+                <div class="disp-charts-row" id="dispChartsRow">
                     <div class="disp-card">
                         <h3><i class="ph-bold ph-kanban"></i> Leads por etapa do CRM</h3>
                         <p class="desc">Quantos clientes você tem em cada estágio do funil — base pra escolher pra quem disparar.</p>
@@ -5475,6 +5503,10 @@
         function chatRenderList() {
             const listEl = document.getElementById('chatList');
             if (!listEl) return;
+            // Badge de não-lidas na sub-aba Conversas
+            const totalUnread = _chatConvs.reduce((s, c) => s + (c.unread || 0), 0);
+            const badge = document.getElementById('dispUnreadBadge');
+            if (badge) { badge.textContent = totalUnread; badge.style.display = totalUnread > 0 ? 'grid' : 'none'; }
             if (!_chatConvs.length) {
                 listEl.innerHTML = '<div class="chat-list-empty"><i class="ph-bold ph-chat-dots" style="font-size:26px;opacity:.4;"></i><br><br>Nenhuma conversa ainda.<br>Quando um cliente responder um disparo, aparece aqui.</div>';
                 return;
@@ -6464,10 +6496,53 @@
             dispRenderLog();
         }
 
+        // Organiza a aba Disparos em sub-abas (Conversas / Disparar / Histórico / Conexão)
+        function dispBuildSubtabs() {
+            if (window._dispSubtabsBuilt) return;
+            const move = (elId, paneId) => {
+                const el = document.getElementById(elId);
+                const p = document.getElementById(paneId);
+                if (el && p) p.appendChild(el);
+            };
+            move('dispChatCard',   'dispSubConversas');
+            move('dispBulkCard',   'dispSubDisparar');
+            move('dispKpisRow',    'dispSubHistorico');
+            move('dispHistCard',   'dispSubHistorico');
+            move('dispDailyCard',  'dispSubHistorico');
+            move('dispChartsRow',  'dispSubHistorico');
+            move('disparosWaHost', 'dispSubConexao');
+            window._dispSubtabsBuilt = true;
+        }
+
+        function dispSwitchSub(name) {
+            document.querySelectorAll('#dispSubnav button').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
+            const map = { conversas: 'dispSubConversas', disparar: 'dispSubDisparar', historico: 'dispSubHistorico', conexao: 'dispSubConexao' };
+            Object.entries(map).forEach(([k, id]) => {
+                const p = document.getElementById(id);
+                if (p) p.classList.toggle('active', k === name);
+            });
+            try { localStorage.setItem('pl-disp-subtab', name); } catch (e) {}
+            // Chart.js renderiza a 0x0 quando o canvas está escondido — redimensiona ao exibir
+            if (name === 'historico') {
+                setTimeout(() => {
+                    [_dispCrmChart, _dispDonut, _dispDailyChart].forEach(c => { try { c && c.resize(); } catch (e) {} });
+                }, 60);
+            }
+        }
+
         async function loadDisparos() {
             if (!supabaseClient || !activeUser) return;
+            dispBuildSubtabs();
             const listEl = document.getElementById('dispLogList');
             if (listEl) listEl.innerHTML = '<div class="disp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando…</div>';
+
+            // Aba padrão: Conversas se conectado; senão Conexão (pra guiar o setup)
+            if (!window._dispSubInit) {
+                window._dispSubInit = true;
+                const saved = (function(){ try { return localStorage.getItem('pl-disp-subtab'); } catch(e){ return null; } })();
+                const connected = _waConfigCache && _waConfigCache.status === 'connected';
+                dispSwitchSub(saved || (connected ? 'conversas' : 'conexao'));
+            }
 
             // 1) CRM bucket counts (sem mostrar leads)
             try {
