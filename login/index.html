@@ -6518,9 +6518,15 @@
             move('dispDailyCard',  'dispSubHistorico');
             move('dispChartsRow',  'dispSubHistorico');
             move('disparosWaHost', 'dispSubConexao');
-            // Templates: move o conteúdo (estava escondido no waCard) e exibe
+            // Templates: move o conteúdo (estava escondido no waCard) e exibe.
+            // Remove a classe wa-tabpane e o data-watab pra waSwitchTab() não escondê-lo.
             const tpl = document.getElementById('dispTemplatesContent');
-            if (tpl) { document.getElementById('dispSubTemplates').appendChild(tpl); tpl.style.display = 'block'; }
+            if (tpl) {
+                document.getElementById('dispSubTemplates').appendChild(tpl);
+                tpl.classList.remove('wa-tabpane');
+                tpl.removeAttribute('data-watab');
+                tpl.style.display = 'block';
+            }
             window._dispSubtabsBuilt = true;
         }
 
