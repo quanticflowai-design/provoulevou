@@ -6369,7 +6369,7 @@
                 const esc = v => '"' + String(v == null ? '' : v).replace(/"/g,'""') + '"';
                 data.forEach(r => rows.push([
                     esc(new Date(r.sent_at).toLocaleString('pt-BR')),
-                    esc('+' + r.lead_phone),
+                    (typeof csvPhone === 'function' ? csvPhone(r.lead_phone) : esc('+' + r.lead_phone)),
                     esc(r.template_name),
                     esc(r.template_language),
                     esc(r.status),
@@ -9925,11 +9925,24 @@
             loadLtv(currentPageLtv);
         }
 
+        // Telefone como TEXTO no CSV (="...") pra o Excel não converter em número
+        // e esconder dígitos em notação científica.
+        function csvPhone(v) {
+            return '="' + String(v == null ? '' : v).replace(/\D/g, '') + '"';
+        }
+
         function downloadCSVLtv() {
             if (!_csvLtvData.length) return alert('Nenhum dado para exportar.');
             const headers = ['Rank', 'Cliente', 'Telefone', 'Nº Pedidos', 'Total Gasto', 'Ticket Médio'];
             const rows = [headers.join(';')];
-            _csvLtvData.forEach(i => rows.push([i.rank, i.cliente, i.telefone, i.pedidos, i.total, i.ticket].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(';')));
+            _csvLtvData.forEach(i => rows.push([
+                '"' + String(i.rank).replace(/"/g,'""') + '"',
+                '"' + String(i.cliente).replace(/"/g,'""') + '"',
+                csvPhone(i.telefone),
+                '"' + String(i.pedidos).replace(/"/g,'""') + '"',
+                '"' + String(i.total).replace(/"/g,'""') + '"',
+                '"' + String(i.ticket).replace(/"/g,'""') + '"'
+            ].join(';')));
             const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = 'provoulevou_ltv_' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
@@ -9940,7 +9953,12 @@
             if (!_csvProvasData.length) return alert('Nenhum dado para exportar.');
             const headers = ['Data', 'Cliente', 'Telefone', 'Produto'];
             const rows = [headers.join(';')];
-            _csvProvasData.forEach(i => rows.push([i.data, i.cliente, i.telefone, i.produto].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(';')));
+            _csvProvasData.forEach(i => rows.push([
+                '"' + String(i.data).replace(/"/g,'""') + '"',
+                '"' + String(i.cliente).replace(/"/g,'""') + '"',
+                csvPhone(i.telefone),
+                '"' + String(i.produto).replace(/"/g,'""') + '"'
+            ].join(';')));
             const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = 'provoulevou_provas_' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
@@ -9951,7 +9969,12 @@
             if (!_csvComprasData.length) return alert('Nenhum dado para exportar.');
             const headers = ['Data', 'Cliente', 'Telefone', 'Valor'];
             const rows = [headers.join(';')];
-            _csvComprasData.forEach(i => rows.push([i.data, i.cliente, i.telefone, i.valor].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(';')));
+            _csvComprasData.forEach(i => rows.push([
+                '"' + String(i.data).replace(/"/g,'""') + '"',
+                '"' + String(i.cliente).replace(/"/g,'""') + '"',
+                csvPhone(i.telefone),
+                '"' + String(i.valor).replace(/"/g,'""') + '"'
+            ].join(';')));
             const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = 'provoulevou_compras_' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
@@ -10669,12 +10692,16 @@
             const rows = [headers.map(h => '"' + h + '"').join(';')];
             Object.entries(crmLeadMapCache).forEach(([ph, lead]) => {
                 const escape = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+                // Telefone como TEXTO (="...") pra o Excel não converter em número
+                // e esconder dígitos em notação científica.
+                const phoneDigits = String(lead.rawPhone || ph).replace(/\D/g, '');
+                const phoneCell = '="' + phoneDigits + '"';
                 const stageKey = (typeof waLeadStageKey === 'function')
                     ? waLeadStageKey(ph, lead, config, overrides)
                     : (lead.bought ? 'convertido' : 'cold');
                 const stageTitle = titleByKey[stageKey] || stageKey;
                 rows.push([
-                    escape(lead.rawPhone || ph),
+                    phoneCell,
                     escape(lead.name || ''),
                     escape(stageTitle),
                     escape(lead.bought ? 'Sim' : 'Não'),
