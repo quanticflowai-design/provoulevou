@@ -10660,30 +10660,27 @@
                 alert('Carregue o CRM primeiro antes de exportar.');
                 return;
             }
-            const headers = ['Telefone', 'Nome', 'Comprou?', 'Provas', 'Última prova', 'Produtos provados', 'Coluna do funil'];
+            const config = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+            const overrides = (typeof getCrmOverrides === 'function') ? getCrmOverrides() : {};
+            const titleByKey = {};
+            (config.columns || []).forEach(c => { titleByKey[c.key] = c.title; });
+
+            const headers = ['Telefone', 'Nome', 'Etapa no CRM', 'Comprou?', 'Provas', 'Última prova', 'Produto provado'];
             const rows = [headers.map(h => '"' + h + '"').join(';')];
-            // mapeia coluna do CRM por phone
-            const colByPhone = {};
-            try {
-                const pipeline = (_crmConfigMem && _crmConfigMem.pipeline) || [];
-                const overrides = _crmOverridesMem || {};
-                Object.entries(crmLeadMapCache).forEach(([ph, lead]) => {
-                    let colId = overrides[ph];
-                    if (!colId) colId = lead.bought ? 'comprou' : (pipeline[0] && pipeline[0].id) || 'lead';
-                    const col = pipeline.find(c => c.id === colId);
-                    colByPhone[ph] = col ? col.label : colId;
-                });
-            } catch (e) {}
             Object.entries(crmLeadMapCache).forEach(([ph, lead]) => {
                 const escape = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+                const stageKey = (typeof waLeadStageKey === 'function')
+                    ? waLeadStageKey(ph, lead, config, overrides)
+                    : (lead.bought ? 'convertido' : 'cold');
+                const stageTitle = titleByKey[stageKey] || stageKey;
                 rows.push([
                     escape(lead.rawPhone || ph),
                     escape(lead.name || ''),
+                    escape(stageTitle),
                     escape(lead.bought ? 'Sim' : 'Não'),
-                    escape(lead.sessions || 0),
+                    escape(lead.provaCount || 0),
                     escape(lead.lastDate || ''),
-                    escape((lead.products || []).join(' | ')),
-                    escape(colByPhone[ph] || '')
+                    escape(lead.lastProduct || '')
                 ].join(';'));
             });
             const blob = new Blob(['﻿' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
