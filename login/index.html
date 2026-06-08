@@ -6544,8 +6544,18 @@
                     [_dispCrmChart, _dispDonut, _dispDailyChart].forEach(c => { try { c && c.resize(); } catch (e) {} });
                 }, 60);
             }
-            // Carrega os templates ao abrir a sub-aba (trata não-conectado lá dentro)
-            if (name === 'templates' && typeof waLoadTemplates === 'function') waLoadTemplates();
+            // Templates: garante que o conteúdo está na sub-aba e visível, depois carrega
+            if (name === 'templates') {
+                const pane = document.getElementById('dispSubTemplates');
+                const tpl = document.getElementById('dispTemplatesContent');
+                if (pane && tpl && tpl.parentElement !== pane) {
+                    pane.appendChild(tpl);
+                    tpl.classList.remove('wa-tabpane');
+                    tpl.removeAttribute('data-watab');
+                }
+                if (tpl) tpl.style.display = 'block';
+                if (typeof waLoadTemplates === 'function') waLoadTemplates();
+            }
         }
 
         async function loadDisparos() {
