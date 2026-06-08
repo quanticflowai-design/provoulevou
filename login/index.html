@@ -3930,11 +3930,13 @@
                 <div class="disp-subnav" id="dispSubnav">
                     <button data-sub="conversas" class="active" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> Conversas <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
                     <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-paper-plane-tilt"></i> Disparar</button>
+                    <button data-sub="templates" onclick="dispSwitchSub('templates')"><i class="ph-bold ph-chat-circle-text"></i> Templates</button>
                     <button data-sub="historico" onclick="dispSwitchSub('historico')"><i class="ph-bold ph-chart-bar"></i> Histórico</button>
                     <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> Conexão</button>
                 </div>
                 <div class="disp-subpane active" id="dispSubConversas"></div>
                 <div class="disp-subpane" id="dispSubDisparar"></div>
+                <div class="disp-subpane" id="dispSubTemplates"></div>
                 <div class="disp-subpane" id="dispSubHistorico"></div>
                 <div class="disp-subpane" id="dispSubConexao"></div>
 
@@ -4644,8 +4646,8 @@
                         </span>
                     </div>
 
-                    <!-- Tabs internas: Conexão | Templates | Disparos -->
-                    <div class="wa-tabs">
+                    <!-- Tabs internas escondidas: Templates virou sub-aba de topo da página -->
+                    <div class="wa-tabs" style="display:none;">
                         <button class="wa-tab active" data-watab="conexao" onclick="waSwitchTab('conexao')">
                             <i class="ph-bold ph-plug"></i> Conexão
                         </button>
@@ -4688,7 +4690,7 @@
                     </div><!-- /tabpane conexao -->
 
                     <!-- ====== TAB TEMPLATES ====== -->
-                    <div class="wa-tabpane" data-watab="templates" style="display:none;">
+                    <div class="wa-tabpane disp-card" id="dispTemplatesContent" data-watab="templates" style="display:none;margin:0;">
                         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
                             <div>
                                 <div style="font-size:14px;font-weight:600;">Seus templates aprovados</div>
@@ -6054,7 +6056,12 @@
         async function waLoadTemplates() {
             const list = document.getElementById('waTemplatesList');
             if (!_waConfigCache || _waConfigCache.status !== 'connected') {
-                list.innerHTML = '<div class="wa-tpl-empty">Conecte o WhatsApp primeiro (aba Conexão).</div>';
+                list.innerHTML = '<div class="wa-tpl-empty" style="padding:28px 18px;">'
+                    + '<i class="ph-bold ph-plug" style="font-size:30px;color:#25D366;opacity:.7;"></i><br><br>'
+                    + '<strong>Conecte seu WhatsApp Business primeiro</strong><br>'
+                    + '<span style="font-size:12px;">Sem número conectado não dá pra ver nem criar templates.</span><br><br>'
+                    + '<button class="wa-btn wa-btn-primary" onclick="dispSwitchSub(\'conexao\')"><i class="ph-bold ph-plug"></i> Ir para Conexão</button>'
+                    + '</div>';
                 return;
             }
             if (!_waConfigCache.waba_id) {
@@ -6511,6 +6518,9 @@
             move('dispDailyCard',  'dispSubHistorico');
             move('dispChartsRow',  'dispSubHistorico');
             move('disparosWaHost', 'dispSubConexao');
+            // Templates: move o conteúdo (estava escondido no waCard) e exibe
+            const tpl = document.getElementById('dispTemplatesContent');
+            if (tpl) { document.getElementById('dispSubTemplates').appendChild(tpl); tpl.style.display = 'block'; }
             window._dispSubtabsBuilt = true;
         }
 
@@ -6528,6 +6538,8 @@
                     [_dispCrmChart, _dispDonut, _dispDailyChart].forEach(c => { try { c && c.resize(); } catch (e) {} });
                 }, 60);
             }
+            // Carrega os templates ao abrir a sub-aba (trata não-conectado lá dentro)
+            if (name === 'templates' && typeof waLoadTemplates === 'function') waLoadTemplates();
         }
 
         async function loadDisparos() {
