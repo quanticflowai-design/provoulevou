@@ -4776,11 +4776,9 @@
                                 <div class="wa-help">Aceita com ou sem DDI/formatação. Brasileiros (10-11 dígitos) ganham 55 automaticamente.</div>
                             </div>
                             <div>
-                                <label class="wa-label">Parâmetros do template <span style="color:var(--text-muted);font-weight:500;">(opcional)</span></label>
-                                <input type="text" class="wa-input" id="manualSendParam1" placeholder="{{1}} ex: Maria">
-                                <input type="text" class="wa-input" id="manualSendParam2" placeholder="{{2}} ex: Aviator Solis" style="margin-top:6px;">
-                                <input type="text" class="wa-input" id="manualSendParam3" placeholder="{{3}} (se houver)" style="margin-top:6px;">
-                                <div class="wa-help">Deixa em branco se o template não tem placeholders. Aceita até 3 parâmetros via UI.</div>
+                                <label class="wa-label">Campos do template</label>
+                                <div id="manualSendFields"></div>
+                                <div class="wa-help" id="manualSendFieldsHelp">Os campos são gerados automaticamente conforme o template selecionado.</div>
                             </div>
                         </div>
 
@@ -5874,18 +5872,101 @@
         function closeCreateTemplateModal() { document.getElementById('waTplModal').style.display = 'none'; }
 
         // ===== Disparo manual de template =====
+        // Lê os componentes do template e devolve a lista ordenada de campos que ele precisa
+        function waParseTemplateParams(tpl) {
+            const specs = [];
+            if (!tpl) return specs;
+            (tpl.components || []).forEach(comp => {
+                const type = (comp.type || '').toUpperCase();
+                const countPh = txt => (String(txt || '').match(/\{\{\s*\d+\s*\}\}/g) || []).length;
+                if (type === 'BODY') {
+                    const n = countPh(comp.text);
+                    const ex = (comp.example && comp.example.body_text && comp.example.body_text[0]) || [];
+                    for (let i = 1; i <= n; i++) specs.push({
+                        id: 'body' + i, kind: 'body',
+                        label: 'Mensagem — variável {{' + i + '}}',
+                        placeholder: ex[i - 1] ? 'ex: ' + ex[i - 1] : 'variável {{' + i + '}}'
+                    });
+                } else if (type === 'HEADER' && comp.format === 'TEXT') {
+                    const n = countPh(comp.text);
+                    const ex = (comp.example && comp.example.header_text) || [];
+                    for (let i = 1; i <= n; i++) specs.push({
+                        id: 'header' + i, kind: 'header',
+                        label: 'Cabeçalho — variável {{' + i + '}}',
+                        placeholder: ex[i - 1] ? 'ex: ' + ex[i - 1] : 'variável {{' + i + '}}'
+                    });
+                } else if (type === 'BUTTONS') {
+                    (comp.buttons || []).forEach((b, idx) => {
+                        const bt = (b.type || '').toUpperCase();
+                        if (bt === 'URL' && /\{\{\s*\d+\s*\}\}/.test(b.url || '')) {
+                            specs.push({
+                                id: 'btnurl' + idx, kind: 'button_url', btnIndex: idx,
+                                label: 'Link do botão "' + (b.text || 'Abrir') + '"',
+                                placeholder: 'parte final da URL (ex: oferta-especial)'
+                            });
+                        } else if (bt === 'COPY_CODE') {
+                            specs.push({
+                                id: 'btncopy' + idx, kind: 'button_copy', btnIndex: idx,
+                                label: 'Código do cupom (botão "' + (b.text || 'Copiar') + '")',
+                                placeholder: 'ex: VOLTEI10'
+                            });
+                        }
+                    });
+                }
+            });
+            return specs;
+        }
+
+        function manualRenderFields(tplName) {
+            const container = document.getElementById('manualSendFields');
+            const help = document.getElementById('manualSendFieldsHelp');
+            container.innerHTML = '';
+            const tpl = (_waTemplatesCache || []).find(t => t.name === tplName);
+            const specs = waParseTemplateParams(tpl);
+            window._manualTplSpecs = specs;
+            if (!tpl) {
+                // Sem cache do template — fallback genérico de 3 campos
+                window._manualTplSpecs = [
+                    { id: 'body1', kind: 'body', label: 'Variável {{1}}', placeholder: '{{1}}' },
+                    { id: 'body2', kind: 'body', label: 'Variável {{2}}', placeholder: '{{2}} (se houver)' },
+                    { id: 'body3', kind: 'body', label: 'Variável {{3}}', placeholder: '{{3}} (se houver)' }
+                ];
+                window._manualTplSpecs.forEach((s, i) => manualAddField(container, s, i));
+                help.textContent = 'Template não carregado — preencha as variáveis manualmente.';
+                return;
+            }
+            if (specs.length === 0) {
+                help.textContent = 'Esse template não tem variáveis. É só disparar. ✅';
+                return;
+            }
+            specs.forEach((s, i) => manualAddField(container, s, i));
+            help.textContent = specs.length + ' campo(s) detectado(s) automaticamente neste template.';
+        }
+
+        function manualAddField(container, spec, i) {
+            const wrap = document.createElement('div');
+            wrap.style.marginTop = i ? '10px' : '0';
+            const lbl = document.createElement('div');
+            lbl.style.cssText = 'font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;';
+            lbl.textContent = spec.label;
+            const inp = document.createElement('input');
+            inp.type = 'text'; inp.className = 'wa-input';
+            inp.id = 'manualField_' + spec.id;
+            inp.placeholder = spec.placeholder;
+            wrap.appendChild(lbl); wrap.appendChild(inp);
+            container.appendChild(wrap);
+        }
+
         function openManualSendModal(tplName, tplLang) {
             document.getElementById('manualSendTpl').textContent = tplName;
             document.getElementById('manualSendLang').textContent = tplLang;
             document.getElementById('manualSendPhone').value = '';
-            document.getElementById('manualSendParam1').value = '';
-            document.getElementById('manualSendParam2').value = '';
-            document.getElementById('manualSendParam3').value = '';
             document.getElementById('manualSendFeedback').className = 'wa-feedback';
             document.getElementById('manualSendFeedback').innerHTML = '';
             document.getElementById('manualSendBtn').disabled = false;
             document.getElementById('manualSendBtn').innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Disparar';
             window._manualSendTpl = { name: tplName, lang: tplLang };
+            manualRenderFields(tplName);
             document.getElementById('waManualSendModal').style.display = 'flex';
         }
         function closeManualSendModal() {
@@ -5896,9 +5977,6 @@
             const tpl = window._manualSendTpl;
             if (!tpl) return;
             const phone = document.getElementById('manualSendPhone').value.trim();
-            const p1 = document.getElementById('manualSendParam1').value.trim();
-            const p2 = document.getElementById('manualSendParam2').value.trim();
-            const p3 = document.getElementById('manualSendParam3').value.trim();
             const fb = document.getElementById('manualSendFeedback');
             const btn = document.getElementById('manualSendBtn');
 
@@ -5907,7 +5985,33 @@
                 fb.innerHTML = 'Telefone inválido (precisa pelo menos 10 dígitos).';
                 return;
             }
-            const params = [p1, p2, p3].filter(p => p !== '');
+
+            // Monta os componentes a partir dos campos dinâmicos do template
+            const specs = window._manualTplSpecs || [];
+            const bodyParams = [];
+            const headerParams = [];
+            const buttonComps = [];
+            let missing = false;
+            specs.forEach(s => {
+                const el = document.getElementById('manualField_' + s.id);
+                const val = el ? el.value.trim() : '';
+                if (!val) missing = true;
+                if (s.kind === 'body') bodyParams.push(val);
+                else if (s.kind === 'header') headerParams.push(val);
+                else if (s.kind === 'button_url') buttonComps.push({ type: 'button', sub_type: 'url', index: String(s.btnIndex), parameters: [{ type: 'text', text: val }] });
+                else if (s.kind === 'button_copy') buttonComps.push({ type: 'button', sub_type: 'copy_code', index: String(s.btnIndex), parameters: [{ type: 'coupon_code', coupon_code: val }] });
+            });
+            if (missing) {
+                fb.className = 'wa-feedback error';
+                fb.innerHTML = 'Preencha todos os campos do template antes de disparar.';
+                return;
+            }
+
+            // Estrutura completa pro Meta (corpo + cabeçalho + botões)
+            const components = [];
+            if (headerParams.length) components.push({ type: 'header', parameters: headerParams.map(t => ({ type: 'text', text: t })) });
+            if (bodyParams.length) components.push({ type: 'body', parameters: bodyParams.map(t => ({ type: 'text', text: t })) });
+            components.push(...buttonComps);
 
             btn.disabled = true;
             btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Enviando…';
@@ -5923,7 +6027,8 @@
                         to: phone,
                         template: tpl.name,
                         language: tpl.lang,
-                        params: params
+                        params: bodyParams,          // compat: corpo
+                        components: components        // estrutura completa (corpo+header+botões)
                     })
                 });
                 const result = await res.json().catch(() => ({}));
