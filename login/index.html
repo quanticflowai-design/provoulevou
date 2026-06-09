@@ -5604,6 +5604,49 @@
             } catch (e) {}
         }
 
+        // Normaliza telefone pro formato do inbound da Meta (55 + DDD + número, só dígitos).
+        // Garante que a mensagem de saída caia na MESMA conversa que a resposta do cliente.
+        function chatWaPhone(raw) {
+            let d = String(raw == null ? '' : raw).replace(/\D/g, '');
+            d = d.replace(/^0+/, '');
+            if (!d) return '';
+            if (!d.startsWith('55')) d = '55' + d;
+            return d;
+        }
+
+        // Renderiza o corpo do template substituindo {{1}}, {{2}}… pelos params (pra preview no chat).
+        function chatRenderTplBody(rawBody, params) {
+            let s = rawBody || '';
+            (params || []).forEach((p, i) => {
+                s = s.replace(new RegExp('\\{\\{\\s*' + (i + 1) + '\\s*\\}\\}', 'g'), p == null ? '' : p);
+            });
+            return s;
+        }
+
+        // Grava uma mensagem de saída (disparo de template) na caixa de entrada, pra conversa
+        // aparecer na hora — sem depender da resposta do cliente.
+        async function chatLogOutbound(phone, opts) {
+            if (!supabaseClient || !activeUser) return;
+            opts = opts || {};
+            const lp = chatWaPhone(phone);
+            if (!lp) return;
+            try {
+                await supabaseClient.from('whatsapp_mensagens').insert({
+                    email: activeUser.email,
+                    lead_phone: lp,
+                    direction: 'out',
+                    msg_type: 'template',
+                    template_name: opts.template_name || null,
+                    body: opts.body || '',
+                    meta_message_id: opts.meta_message_id || null,
+                    status: 'sent',
+                    contact_name: opts.name || null,
+                    read_by_lojista: true,
+                    wa_timestamp: new Date().toISOString()
+                });
+            } catch (e) { console.warn('[chat] log outbound falhou:', e && e.message); }
+        }
+
         async function sendChatReply() {
             const input = document.getElementById('chatReplyInput');
             const btn = document.getElementById('chatSendBtn');
@@ -6335,6 +6378,14 @@
                 });
                 const result = await res.json().catch(() => ({}));
                 if (res.ok && result.ok) {
+                    // Grava a saída na caixa de entrada pra conversa aparecer já
+                    const tplObj = (_waTemplatesCache || []).find(t => t.name === tpl.name);
+                    const bodyComp = tplObj && (tplObj.components || []).find(c => c.type === 'BODY');
+                    chatLogOutbound(phone, {
+                        template_name: tpl.name,
+                        body: chatRenderTplBody((bodyComp && bodyComp.text) || '', bodyParams),
+                        meta_message_id: result.meta_message_id
+                    });
                     fb.className = 'wa-feedback success';
                     fb.innerHTML = '<strong>Enviado!</strong> Meta Message ID: <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;">' + (result.meta_message_id || '—') + '</code><br><span style="font-size:11px;color:var(--text-muted);">Verifique o WhatsApp do destinatário e a aba Disparos pra status.</span>';
                     btn.innerHTML = '<i class="ph-bold ph-check"></i> Enviado';
@@ -7142,7 +7193,15 @@
                         })
                     });
                     const result = await res.json().catch(() => ({}));
-                    if (res.ok && result.ok) sent++; else failed++;
+                    if (res.ok && result.ok) {
+                        sent++;
+                        chatLogOutbound(lead.phone, {
+                            template_name: _waBulkTemplate || _waConfigCache.default_template,
+                            body: chatRenderTplBody(bodyText, params),
+                            name: lead.name,
+                            meta_message_id: result.meta_message_id
+                        });
+                    } else failed++;
                 } catch (e) { failed++; }
                 update();
             };
@@ -7220,6 +7279,14 @@
                 if (res.ok && result.ok) {
                     btn.classList.add('sent');
                     btn.innerHTML = '<i class="ph-bold ph-check-circle"></i> Enviado';
+                    const tplObj = (_waTemplatesCache || []).find(t => t.name === _waConfigCache.default_template);
+                    const bodyComp = tplObj && (tplObj.components || []).find(c => c.type === 'BODY');
+                    chatLogOutbound(phone, {
+                        template_name: _waConfigCache.default_template,
+                        body: chatRenderTplBody((bodyComp && bodyComp.text) || '', params),
+                        name: name,
+                        meta_message_id: result.meta_message_id
+                    });
                 } else {
                     btn.classList.add('failed');
                     btn.innerHTML = '<i class="ph-bold ph-warning"></i> Falhou';
