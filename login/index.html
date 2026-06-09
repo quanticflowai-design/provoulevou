@@ -6532,7 +6532,7 @@
 
         function dispSwitchSub(name) {
             document.querySelectorAll('#dispSubnav button').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
-            const map = { conversas: 'dispSubConversas', disparar: 'dispSubDisparar', historico: 'dispSubHistorico', conexao: 'dispSubConexao' };
+            const map = { conversas: 'dispSubConversas', disparar: 'dispSubDisparar', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao' };
             Object.entries(map).forEach(([k, id]) => {
                 const p = document.getElementById(id);
                 if (p) p.classList.toggle('active', k === name);
