@@ -6982,6 +6982,7 @@
                     phone: String(lead.rawPhone || phone).replace(/\D/g, ''),
                     name: lead.name || '',
                     product: lead.lastProduct || '',
+                    productUrl: lead.lastProductUrl || '',
                     lastDate: lead.lastDate || ''
                 }))
                 .filter(l => l.phone && l.phone.length >= 10);
@@ -7183,9 +7184,8 @@
                     const inp = document.getElementById('waBulkCheckout');
                     if (inp && !inp.value && saved) inp.value = saved;
                     const hint = document.getElementById('waBulkCheckoutHint');
-                    if (hint) hint.innerHTML = urlBtnIndex >= 0
-                        ? 'Esse link vai no <strong>botão</strong> do template — o cliente clica e vai direto pro checkout.'
-                        : 'Esse link entra no <code>{{3}}</code> do template — o cliente clica e vai direto pro checkout.';
+                    const onde = urlBtnIndex >= 0 ? 'no <strong>botão</strong>' : 'no <code>{{3}}</code>';
+                    if (hint) hint.innerHTML = 'Cada cliente recebe o link do <strong>produto que ele provou</strong> ' + onde + '. Este campo é a <strong>reserva</strong>, usada só pra quem provou antes de começarmos a salvar o link (provas antigas).';
                 }
             }
             // Reabilita o botão de confirmar se houver alvos
@@ -7222,11 +7222,15 @@
             const checkoutLink = (document.getElementById('waBulkCheckout')?.value || '').trim();
             const urlBtnIndex = (typeof _waBulkUrlBtnIndex === 'number') ? _waBulkUrlBtnIndex : -1;
             const linkInBody = !!window._waBulkLinkInBody;
-            if (window._waBulkNeedLink && !checkoutLink) {
+            // Cada lead usa o link do produto que ELE provou (produto_url). O campo digitado
+            // é a reserva pra leads sem link salvo (provas antigas, antes de capturarmos a URL).
+            const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
+            const missingLink = window._waBulkNeedLink ? targets.filter(t => !hasUrl(t.productUrl)).length : 0;
+            if (window._waBulkNeedLink && missingLink > 0 && !checkoutLink) {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Disparar agora';
                 document.getElementById('waBulkProgress').style.display = 'none';
-                alert('Esse template usa um link de checkout. Preencha o campo "Link de checkout / carrinho" antes de disparar.');
+                alert(missingLink + ' lead(s) ainda não têm o link do produto provado salvo (provas antigas). Preencha o "Link de checkout / carrinho" como reserva pra esses casos antes de disparar.');
                 return;
             }
 
@@ -7245,18 +7249,20 @@
                 const produto = lead.product || 'o modelo que você provou';
                 // Monta exatamente o número de variáveis que o template espera.
                 // Convenção: {{1}} = primeiro nome, {{2}} = produto provado.
+                // Link deste lead: o do produto que ele provou, ou o digitado (reserva)
+                const leadLink = hasUrl(lead.productUrl) ? lead.productUrl : checkoutLink;
                 const fill = [firstName, produto];
-                if (linkInBody) fill[2] = checkoutLink;   // {{3}} = link no corpo
+                if (linkInBody) fill[2] = leadLink;   // {{3}} = link no corpo
                 const params = [];
                 for (let i = 0; i < placeholders; i++) {
                     params.push(fill[i] != null ? fill[i] : firstName);
                 }
                 // Se o link vai num botão de URL, manda components com o param do botão
                 let components = null;
-                if (urlBtnIndex >= 0 && checkoutLink) {
+                if (urlBtnIndex >= 0 && leadLink) {
                     components = [];
                     if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
-                    components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: checkoutLink }] });
+                    components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: leadLink }] });
                 }
                 try {
                     const payload = {
@@ -11197,7 +11203,7 @@
                     while (true) {
                         const { data: batch } = await supabaseClient
                             .from(user.tabela)
-                            .select('telefone_cliente,produtos,created_at')
+                            .select('telefone_cliente,produtos,produto_url,created_at')
                             .ilike('origin', '%' + user.origem + '%')
                             .order('created_at', { ascending: true })
                             .order('id', { ascending: true })
@@ -11215,7 +11221,7 @@
                     const ph = normalize(s.telefone_cliente);
                     if (!ph) return;
                     if (!leadMap[ph]) {
-                        leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: '', firstDate: '', lastProduct: '', rawPhone: s.telefone_cliente, bought: false, name: '' };
+                        leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: '', firstDate: '', lastProduct: '', lastProductUrl: '', rawPhone: s.telefone_cliente, bought: false, name: '' };
                     }
                     leadMap[ph].provaCount++;
                     const ts = s.created_at || '';
@@ -11226,6 +11232,7 @@
                             leadMap[ph].lastDate = d;
                             const firstProduct = (s.produtos || '').split(',')[0].trim();
                             if (firstProduct) leadMap[ph].lastProduct = firstProduct;
+                            if (s.produto_url) leadMap[ph].lastProductUrl = s.produto_url;
                         }
                         if (!leadMap[ph].firstDate || d < leadMap[ph].firstDate) leadMap[ph].firstDate = d;
                     }
