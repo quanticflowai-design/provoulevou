@@ -5547,7 +5547,7 @@
             try {
                 const res = await fetch(WA_ES_WEBHOOK, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: _waEsToken || '', code: _waEsCode || '', redirect_uri: window.location.origin + window.location.pathname, waba_id: _waEsSession.waba_id || '', phone_number_id: _waEsSession.phone_number_id || '', email: activeUser.email })
+                    body: JSON.stringify({ token: _waEsToken || '', code: _waEsCode || '', redirect_uri: (window.location.origin + window.location.pathname).replace(/index\.html$/, ''), waba_id: _waEsSession.waba_id || '', phone_number_id: _waEsSession.phone_number_id || '', email: activeUser.email })
                 });
                 const r = await res.json().catch(() => ({}));
                 if (res.ok && r.ok) {
