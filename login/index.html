@@ -5468,7 +5468,10 @@
             try {
                 const p = new URLSearchParams(window.location.search);
                 const code = p.get('code'), state = p.get('state');
-                if (code && state && state.indexOf('plwa_') === 0) {
+                // Valida o state contra o que guardamos antes do redirect (anti-CSRF)
+                const stored = sessionStorage.getItem('plwa_oauth_state');
+                if (state) sessionStorage.removeItem('plwa_oauth_state');
+                if (code && state && stored && state === stored) {
                     window._plWaEsRedirect = { code: code, redirect_uri: WA_ES_REDIRECT };
                     history.replaceState(null, '', window.location.pathname);
                 }
@@ -5527,7 +5530,9 @@
             if (!WA_ES_CONFIG_ID) { alert('A conexão automática ainda não foi ativada.'); return; }
             const btn = document.getElementById('waEsBtn');
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Redirecionando…'; }
-            const state = 'plwa_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+            // state anti-CSRF: CSPRNG + guardado na sessão (verificado no retorno)
+            const state = 'plwa_' + Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
+            try { sessionStorage.setItem('plwa_oauth_state', state); } catch (e) {}
             const url = 'https://www.facebook.com/v20.0/dialog/oauth'
                 + '?client_id=' + encodeURIComponent(WA_ES_APP_ID)
                 + '&config_id=' + encodeURIComponent(WA_ES_CONFIG_ID)
