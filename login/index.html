@@ -5482,7 +5482,11 @@
         // Captura phone_number_id + waba_id que o popup do Embedded Signup envia numa mensagem separada.
         // event.data pode vir como STRING (JSON) ou já como OBJETO — tratamos os dois.
         window.addEventListener('message', (event) => {
-            if (!String(event.origin || '').endsWith('facebook.com')) return;
+            // Valida a origem de forma ANCORADA (evita bypass tipo "evil-facebook.com") + exige HTTPS
+            let _h;
+            try { const _u = new URL(event.origin); if (_u.protocol !== 'https:') return; _h = _u.hostname; }
+            catch (e) { return; }
+            if (_h !== 'www.facebook.com' && _h !== 'web.facebook.com' && !_h.endsWith('.facebook.com')) return;
             let data = event.data;
             if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) { return; } }
             if (!data || data.type !== 'WA_EMBEDDED_SIGNUP') return;
