@@ -11178,6 +11178,73 @@
             return 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg);
         }
 
+        // ===== Modal de detalhes do lead (clique no card do CRM) =====
+        function crmFmtDate(d) {
+            if (!d) return '—';
+            const p = String(d).slice(0, 10).split('-');
+            return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : d;
+        }
+        function crmStageTitle(colKey) {
+            try {
+                const cfg = getCrmConfig();
+                const c = (cfg.columns || []).find(x => x.key === colKey);
+                if (c) return c.title;
+            } catch (e) {}
+            const map = { cold: 'Provou e não comprou', multiplas: 'Provou + de 1 vez', reengajou: 'Re-engajou', voltou: 'Voltou outro dia', convertido: 'Convertido' };
+            return map[colKey] || '—';
+        }
+        function openCrmLeadModal(lead, colKey) {
+            let ov = document.getElementById('crmLeadModal');
+            if (!ov) {
+                ov = document.createElement('div');
+                ov.id = 'crmLeadModal';
+                ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:9997;display:flex;align-items:center;justify-content:center;padding:20px;';
+                ov.addEventListener('click', (e) => { if (e.target === ov) ov.style.display = 'none'; });
+                document.body.appendChild(ov);
+            }
+            const phoneDigits = String(lead.rawPhone || lead.phone || '').replace(/\D/g, '');
+            const phoneFmt = phoneDigits ? ('+' + phoneDigits) : '—';
+            const url = lead.lastProductUrl || '';
+            const hasUrl = url && /^https?:\/\//.test(url);
+            const wpp = crmWppLink(lead.rawPhone || lead.phone, lead.lastProduct);
+            const canSend = _waConfigCache && _waConfigCache.status === 'connected' && _waConfigCache.default_template;
+            const boughtBadge = lead.bought
+                ? '<span style="background:rgba(16,185,129,.12);color:#10b981;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;"><i class="ph-bold ph-check-circle"></i> Convertido</span>'
+                : '<span style="background:rgba(124,58,237,.1);color:#7c3aed;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;">Não comprou</span>';
+
+            const row = (label, val) => '<div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text-muted);">' + label + '</span><span style="font-weight:600;text-align:right;">' + val + '</span></div>';
+
+            const produtoLinkHtml = lead.lastProduct
+                ? (hasUrl
+                    ? '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" style="color:#7c3aed;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;word-break:break-all;text-align:right;">' + escapeHtml(lead.lastProduct) + ' <i class="ph-bold ph-arrow-square-out"></i></a>'
+                    : escapeHtml(lead.lastProduct) + ' <span style="color:var(--text-muted);font-size:11px;">(sem link salvo)</span>')
+                : '—';
+
+            ov.innerHTML = '<div style="background:var(--card-bg);border:1px solid var(--border-strong,var(--border));border-radius:16px;max-width:440px;width:100%;box-shadow:0 24px 60px -12px rgba(0,0,0,.5);overflow:hidden;">'
+                + '<div style="padding:20px 22px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">'
+                +   '<div style="display:flex;align-items:center;gap:11px;min-width:0;">'
+                +     '<div style="width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,#7c3aed,#a78bfa);display:grid;place-items:center;color:#fff;font-size:20px;flex-shrink:0;"><i class="ph-bold ph-user"></i></div>'
+                +     '<div style="min-width:0;"><div style="font-weight:700;font-size:16px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(lead.name || phoneFmt) + '</div>'
+                +     '<div style="font-size:12px;color:var(--text-muted);font-family:ui-monospace,monospace;">' + escapeHtml(phoneFmt) + '</div></div>'
+                +   '</div>'
+                +   '<button onclick="document.getElementById(\'crmLeadModal\').style.display=\'none\'" style="background:transparent;border:none;color:var(--text-muted);font-size:24px;cursor:pointer;line-height:1;padding:0;">&times;</button>'
+                + '</div>'
+                + '<div style="padding:8px 22px 4px;">'
+                +   row('Etapa', escapeHtml(crmStageTitle(colKey)))
+                +   row('Status', boughtBadge)
+                +   row('Provas', '<i class="ph-bold ph-eye" style="color:var(--text-muted);"></i> ' + (lead.provaCount || 0))
+                +   row('Primeira prova', crmFmtDate(lead.firstDate))
+                +   row('Última prova', crmFmtDate(lead.lastDate))
+                +   row('Produto provado', produtoLinkHtml)
+                + '</div>'
+                + '<div style="padding:16px 22px 20px;display:flex;gap:10px;flex-wrap:wrap;">'
+                +   (hasUrl ? '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" style="flex:1;min-width:150px;text-align:center;background:rgba(124,58,237,.1);color:#7c3aed;border:1px solid rgba(124,58,237,.25);border-radius:10px;padding:11px;font-weight:600;font-size:13px;text-decoration:none;"><i class="ph-bold ph-link"></i> Página do produto</a>' : '')
+                +   (wpp ? '<a href="' + wpp + '" target="_blank" rel="noopener" style="flex:1;min-width:150px;text-align:center;background:#25D366;color:#fff;border-radius:10px;padding:11px;font-weight:600;font-size:13px;text-decoration:none;"><i class="ph-bold ph-whatsapp-logo"></i> Abrir no WhatsApp</a>' : '')
+                + '</div>'
+                + '</div>';
+            ov.style.display = 'flex';
+        }
+
         async function loadCRM() {
             const loader = document.getElementById('crmLoader');
             const content = document.getElementById('crmContent');
@@ -11425,6 +11492,13 @@
                         card.className = 'crm-card';
                         card.draggable = true;
                         card.dataset.phone = lead.phone;
+                        card.style.cursor = 'pointer';
+
+                        // Clique no card abre os detalhes do cliente (ignora cliques em links/botões)
+                        card.addEventListener('click', (e) => {
+                            if (e.target.closest('a, button')) return;
+                            openCrmLeadModal(lead, col.key);
+                        });
 
                         card.addEventListener('dragstart', (e) => {
                             e.dataTransfer.setData('text/plain', lead.phone);
