@@ -5481,7 +5481,16 @@
 
         // Captura phone_number_id + waba_id que o popup do Embedded Signup envia numa mensagem separada.
         // event.data pode vir como STRING (JSON) ou já como OBJETO — tratamos os dois.
+        window._waEsMsgs = [];
         window.addEventListener('message', (event) => {
+            // DIAGNÓSTICO: captura toda mensagem (origem + preview) durante o signup
+            try {
+                const prev = typeof event.data === 'string' ? event.data.slice(0, 200) : JSON.stringify(event.data).slice(0, 200);
+                if (/facebook|whatsapp|WA_EMBEDDED|waba|phone_number/i.test(prev) || /facebook/i.test(event.origin || '')) {
+                    window._waEsMsgs.push({ origin: event.origin, data: prev });
+                    console.log('[ES msg]', event.origin, '|', prev);
+                }
+            } catch (e) {}
             // Valida a origem de forma ANCORADA (evita bypass tipo "evil-facebook.com") + exige HTTPS
             let _h;
             try { const _u = new URL(event.origin); if (_u.protocol !== 'https:') return; _h = _u.hostname; }
@@ -5542,7 +5551,17 @@
                     if (typeof waLoadConfig === 'function') await waLoadConfig();
                 } else {
                     _waEsSent = false;   // permite tentar de novo
-                    if (fb) { fb.className = 'wa-feedback error'; fb.innerHTML = '<strong>Falha ao conectar:</strong> ' + (r.error || 'erro desconhecido') + '. Tente de novo ou use o setup guiado.'; }
+                    if (fb) {
+                        fb.className = 'wa-feedback error';
+                        let diag = '';
+                        if (!_waEsSession.waba_id && window._waEsMsgs && window._waEsMsgs.length) {
+                            diag = '<br><br><strong>Diagnóstico (mensagens recebidas):</strong><br><pre style="white-space:pre-wrap;font-size:10px;max-height:160px;overflow:auto;background:rgba(0,0,0,.2);padding:8px;border-radius:6px;">'
+                                + window._waEsMsgs.map(m => escapeHtml(m.origin + ' → ' + m.data)).join('\n\n') + '</pre>';
+                        } else if (!_waEsSession.waba_id) {
+                            diag = '<br><br><span style="font-size:11px;">(Nenhuma mensagem do Facebook foi recebida no navegador.)</span>';
+                        }
+                        fb.innerHTML = '<strong>Falha ao conectar:</strong> ' + (r.error || 'erro desconhecido') + diag;
+                    }
                 }
             } catch (e) {
                 _waEsSent = false;
