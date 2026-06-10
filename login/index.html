@@ -5463,6 +5463,7 @@
         const WA_ES_WEBHOOK = 'https://n8n.segredosdodrop.com/webhook/pl-wa-embedded-signup';
         let _waEsSession = {};
         let _waEsCode = null;
+        let _waEsToken = null;
         let _waEsSent = false;
 
         function loadFbSdk() {
@@ -5513,29 +5514,29 @@
                 alert('A conexão automática ainda não foi ativada. Use o setup guiado por enquanto.');
                 return;
             }
-            _waEsSession = {}; _waEsCode = null; _waEsSent = false;
+            _waEsSession = {}; _waEsCode = null; _waEsToken = null; _waEsSent = false;
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Abrindo…'; }
             const reset = () => { if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-whatsapp-logo"></i> Conectar WhatsApp'; } };
             try {
                 await loadFbSdk();
+                // SEM feature flag (que exige Tech Provider) e SEM forçar 'code'.
+                // Pega o token de acesso direto do FB.login (evita a troca de código / redirect_uri).
                 FB.login(function (response) {
-                    if (response.authResponse && response.authResponse.code) {
-                        _waEsCode = response.authResponse.code;
-                        // a info do número chega numa mensagem separada (pode vir antes ou depois do code)
-                        if (_waEsSession.waba_id) { waEsSubmit(); }
-                        else { setTimeout(() => waEsSubmit(), 3000); }   // espera a mensagem chegar
-                    } else { reset(); }
+                    const ar = response.authResponse || {};
+                    _waEsToken = ar.accessToken || null;
+                    _waEsCode = ar.code || null;
+                    if (_waEsToken) { waEsSubmit(); }                       // token direto → envia já
+                    else if (_waEsCode) { setTimeout(() => waEsSubmit(), 2500); }  // só code → espera a sessão
+                    else { reset(); }
                 }, {
                     config_id: WA_ES_CONFIG_ID,
-                    response_type: 'code',
-                    override_default_response_type: true,
-                    extras: { feature: 'whatsapp_embedded_signup', setup: {}, sessionInfoVersion: 2 }
+                    extras: { setup: {}, featureType: '', sessionInfoVersion: 2 }
                 });
             } catch (e) { reset(); }
         }
 
         async function waEsSubmit() {
-            if (_waEsSent || !_waEsCode) return;
+            if (_waEsSent || (!_waEsToken && !_waEsCode)) return;
             _waEsSent = true;
             const btn = document.getElementById('waEsBtn');
             const fb = document.getElementById('waFeedback');
@@ -5543,7 +5544,7 @@
             try {
                 const res = await fetch(WA_ES_WEBHOOK, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: _waEsCode, waba_id: _waEsSession.waba_id || '', phone_number_id: _waEsSession.phone_number_id || '', email: activeUser.email })
+                    body: JSON.stringify({ token: _waEsToken || '', code: _waEsCode || '', waba_id: _waEsSession.waba_id || '', phone_number_id: _waEsSession.phone_number_id || '', email: activeUser.email })
                 });
                 const r = await res.json().catch(() => ({}));
                 if (res.ok && r.ok) {
