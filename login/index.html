@@ -4683,11 +4683,12 @@
                             <i class="ph-bold ph-rocket-launch"></i>
                         </div>
                         <div style="flex:1;min-width:220px;">
-                            <div style="font-weight:700;font-size:14px;letter-spacing:-.01em;">Primeira vez conectando?</div>
-                            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Setup guiado em 7 passos, ~15 minutos. Crio conta Meta, número, App, token e template aprovado.</div>
+                            <div style="font-weight:700;font-size:14px;letter-spacing:-.01em;">Conecte seu WhatsApp em 1 clique</div>
+                            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Você autoriza pelo próprio Facebook e escolhe o número. Sem criar app, sem copiar token.</div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Prefere o jeito manual? <a onclick="openWaWizard()" style="color:#7c3aed;cursor:pointer;">Setup guiado em 7 passos</a></div>
                         </div>
-                        <button class="wa-btn wa-btn-primary" onclick="openWaWizard()" style="white-space:nowrap;">
-                            <i class="ph-bold ph-play"></i> Iniciar setup guiado
+                        <button class="wa-btn wa-btn-primary" id="waEsBtn" onclick="waEmbeddedSignup()" style="white-space:nowrap;">
+                            <i class="ph-bold ph-whatsapp-logo"></i> Conectar WhatsApp
                         </button>
                     </div>
 
@@ -5455,6 +5456,85 @@
         const WA_SEND_URL = 'https://n8n.segredosdodrop.com/webhook/pl-wa-send';
         const WA_SENDTEXT_URL = 'https://n8n.segredosdodrop.com/webhook/pl-wa-sendtext';
         let _waConfigCache = null;
+
+        // ============== EMBEDDED SIGNUP (conectar WhatsApp em 1 clique) ==============
+        const WA_ES_APP_ID = '862459820255554';
+        const WA_ES_CONFIG_ID = '1705426560881734';   // config "Login do Facebook para Empresas" (Embedded Signup)
+        const WA_ES_WEBHOOK = 'https://n8n.segredosdodrop.com/webhook/pl-wa-embedded-signup';
+        let _waEsSession = {};
+
+        function loadFbSdk() {
+            return new Promise((resolve) => {
+                if (window.FB) return resolve();
+                window.fbAsyncInit = function () {
+                    FB.init({ appId: WA_ES_APP_ID, autoLogAppEvents: true, xfbml: false, version: 'v20.0' });
+                    resolve();
+                };
+                const s = document.createElement('script');
+                s.src = 'https://connect.facebook.net/pt_BR/sdk.js';
+                s.async = true; s.defer = true; s.crossOrigin = 'anonymous';
+                document.body.appendChild(s);
+            });
+        }
+
+        // Captura phone_number_id + waba_id que o popup do Embedded Signup envia
+        window.addEventListener('message', (event) => {
+            if (event.origin !== 'https://www.facebook.com' && event.origin !== 'https://web.facebook.com') return;
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'WA_EMBEDDED_SIGNUP' && data.event === 'FINISH') {
+                    _waEsSession.phone_number_id = data.data && data.data.phone_number_id;
+                    _waEsSession.waba_id = data.data && data.data.waba_id;
+                }
+            } catch (e) { /* mensagens não-JSON do FB, ignora */ }
+        });
+
+        async function waEmbeddedSignup() {
+            const btn = document.getElementById('waEsBtn');
+            if (!WA_ES_CONFIG_ID) {
+                alert('A conexão automática ainda não foi ativada. Use o setup guiado por enquanto.');
+                return;
+            }
+            _waEsSession = {};
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Abrindo…'; }
+            const reset = () => { if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-whatsapp-logo"></i> Conectar WhatsApp'; } };
+            try {
+                await loadFbSdk();
+                FB.login(function (response) {
+                    if (response.authResponse && response.authResponse.code) {
+                        waEsFinish(response.authResponse.code);
+                    } else { reset(); }
+                }, {
+                    config_id: WA_ES_CONFIG_ID,
+                    response_type: 'code',
+                    override_default_response_type: true,
+                    extras: { setup: {}, featureType: '', sessionInfoVersion: '3' }
+                });
+            } catch (e) { reset(); }
+        }
+
+        async function waEsFinish(code) {
+            const btn = document.getElementById('waEsBtn');
+            const fb = document.getElementById('waFeedback');
+            if (fb) { fb.className = 'wa-feedback success'; fb.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Conectando seu número…'; }
+            try {
+                const res = await fetch(WA_ES_WEBHOOK, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, waba_id: _waEsSession.waba_id || '', phone_number_id: _waEsSession.phone_number_id || '', email: activeUser.email })
+                });
+                const r = await res.json().catch(() => ({}));
+                if (res.ok && r.ok) {
+                    if (fb) { fb.className = 'wa-feedback success'; fb.innerHTML = '<strong>WhatsApp conectado!</strong> Já dá pra disparar e responder pelo painel.'; }
+                    if (typeof waLoadConfig === 'function') await waLoadConfig();
+                } else {
+                    if (fb) { fb.className = 'wa-feedback error'; fb.innerHTML = '<strong>Falha ao conectar:</strong> ' + (r.error || 'erro desconhecido') + '. Tente de novo ou use o setup guiado.'; }
+                }
+            } catch (e) {
+                if (fb) { fb.className = 'wa-feedback error'; fb.innerHTML = 'Erro de rede ao conectar. Tente de novo.'; }
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-whatsapp-logo"></i> Conectar WhatsApp'; }
+            }
+        }
 
         // ============== CAIXA DE ENTRADA / CHAT ==============
         let _chatConvs = [];          // [{phone, name, lastBody, lastAt, unread, lastInAt}]
