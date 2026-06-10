@@ -5359,6 +5359,7 @@
             loadCredits(userObj);
             waLoadConfig();
             maybeStartTourOnLogin();
+            try { waEsCheckRedirect(); } catch (e) {}
         }
 
         // Move tab-nav pra dentro do mainHeader; plan-chip vai pra uma "page title row" no topo da aba
@@ -5461,6 +5462,18 @@
         const WA_ES_APP_ID = '862459820255554';
         const WA_ES_CONFIG_ID = '1705426560881734';   // config "Login do Facebook para Empresas" (Embedded Signup)
         const WA_ES_WEBHOOK = 'https://n8n.segredosdodrop.com/webhook/pl-wa-embedded-signup';
+        const WA_ES_REDIRECT = window.location.origin + '/login/';   // redirect_uri que NÓS controlamos (precisa estar nos OAuth Redirect URIs do app)
+        // Captura o code do fluxo de REDIRECIONAMENTO (quando volta do Facebook)
+        (function () {
+            try {
+                const p = new URLSearchParams(window.location.search);
+                const code = p.get('code'), state = p.get('state');
+                if (code && state && state.indexOf('plwa_') === 0) {
+                    window._plWaEsRedirect = { code: code, redirect_uri: WA_ES_REDIRECT };
+                    history.replaceState(null, '', window.location.pathname);
+                }
+            } catch (e) {}
+        })();
         let _waEsSession = {};
         let _waEsCode = null;
         let _waEsToken = null;
@@ -5508,34 +5521,46 @@
             }
         });
 
-        async function waEmbeddedSignup() {
+        // Conecta via FLUXO DE REDIRECIONAMENTO — assim NÓS controlamos o redirect_uri
+        // e o n8n consegue trocar o code por token (o FB.login popup usava uma URI interna do FB).
+        function waEmbeddedSignup() {
+            if (!WA_ES_CONFIG_ID) { alert('A conexão automática ainda não foi ativada.'); return; }
             const btn = document.getElementById('waEsBtn');
-            if (!WA_ES_CONFIG_ID) {
-                alert('A conexão automática ainda não foi ativada. Use o setup guiado por enquanto.');
-                return;
-            }
-            _waEsSession = {}; _waEsCode = null; _waEsToken = null; _waEsSent = false;
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Abrindo…'; }
-            const reset = () => { if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-whatsapp-logo"></i> Conectar WhatsApp'; } };
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Redirecionando…'; }
+            const state = 'plwa_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+            const url = 'https://www.facebook.com/v20.0/dialog/oauth'
+                + '?client_id=' + encodeURIComponent(WA_ES_APP_ID)
+                + '&config_id=' + encodeURIComponent(WA_ES_CONFIG_ID)
+                + '&redirect_uri=' + encodeURIComponent(WA_ES_REDIRECT)
+                + '&response_type=code'
+                + '&override_default_response_type=true'
+                + '&state=' + encodeURIComponent(state);
+            window.location.href = url;
+        }
+
+        // Processa o code que voltou no redirect (chamado após o login, no showDashboard)
+        async function waEsCheckRedirect() {
+            if (!window._plWaEsRedirect || !activeUser) return;
+            const data = window._plWaEsRedirect; window._plWaEsRedirect = null;
+            const fb = document.getElementById('waFeedback');
+            if (fb) { fb.className = 'wa-feedback success'; fb.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Conectando seu WhatsApp…'; }
             try {
-                await loadFbSdk();
-                // Fluxo de CÓDIGO (carrega as permissões de WhatsApp do config). O n8n troca o
-                // code por business token usando o redirect_uri da página onde o FB.login roda.
-                FB.login(function (response) {
-                    const ar = response.authResponse || {};
-                    _waEsCode = ar.code || null;
-                    _waEsToken = ar.accessToken || null;
-                    if (_waEsCode || _waEsToken) {
-                        if (_waEsSession.waba_id) { waEsSubmit(); }
-                        else { setTimeout(() => waEsSubmit(), 2500); }
-                    } else { reset(); }
-                }, {
-                    config_id: WA_ES_CONFIG_ID,
-                    response_type: 'code',
-                    override_default_response_type: true,
-                    extras: { setup: {}, featureType: '', sessionInfoVersion: 2 }
+                const res = await fetch(WA_ES_WEBHOOK, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: data.code, redirect_uri: data.redirect_uri, email: activeUser.email })
                 });
-            } catch (e) { reset(); }
+                const r = await res.json().catch(() => ({}));
+                if (res.ok && r.ok) {
+                    if (fb) { fb.className = 'wa-feedback success'; fb.innerHTML = '<strong>WhatsApp conectado!</strong> Já dá pra disparar e responder pelo painel.'; }
+                    if (typeof waLoadConfig === 'function') await waLoadConfig();
+                    alert('WhatsApp conectado com sucesso!');
+                } else {
+                    if (fb) { fb.className = 'wa-feedback error'; fb.innerHTML = '<strong>Falha ao conectar:</strong> ' + (r.error || 'erro desconhecido'); }
+                    alert('Falha ao conectar: ' + (r.error || 'erro desconhecido'));
+                }
+            } catch (e) {
+                if (fb) { fb.className = 'wa-feedback error'; fb.innerHTML = 'Erro de rede ao conectar.'; }
+            }
         }
 
         async function waEsSubmit() {
