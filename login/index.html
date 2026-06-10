@@ -5519,17 +5519,20 @@
             const reset = () => { if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-whatsapp-logo"></i> Conectar WhatsApp'; } };
             try {
                 await loadFbSdk();
-                // SEM feature flag (que exige Tech Provider) e SEM forçar 'code'.
-                // Pega o token de acesso direto do FB.login (evita a troca de código / redirect_uri).
+                // Fluxo de CÓDIGO (carrega as permissões de WhatsApp do config). O n8n troca o
+                // code por business token usando o redirect_uri da página onde o FB.login roda.
                 FB.login(function (response) {
                     const ar = response.authResponse || {};
-                    _waEsToken = ar.accessToken || null;
                     _waEsCode = ar.code || null;
-                    if (_waEsToken) { waEsSubmit(); }                       // token direto → envia já
-                    else if (_waEsCode) { setTimeout(() => waEsSubmit(), 2500); }  // só code → espera a sessão
-                    else { reset(); }
+                    _waEsToken = ar.accessToken || null;
+                    if (_waEsCode || _waEsToken) {
+                        if (_waEsSession.waba_id) { waEsSubmit(); }
+                        else { setTimeout(() => waEsSubmit(), 2500); }
+                    } else { reset(); }
                 }, {
                     config_id: WA_ES_CONFIG_ID,
+                    response_type: 'code',
+                    override_default_response_type: true,
                     extras: { setup: {}, featureType: '', sessionInfoVersion: 2 }
                 });
             } catch (e) { reset(); }
@@ -5544,7 +5547,7 @@
             try {
                 const res = await fetch(WA_ES_WEBHOOK, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: _waEsToken || '', code: _waEsCode || '', waba_id: _waEsSession.waba_id || '', phone_number_id: _waEsSession.phone_number_id || '', email: activeUser.email })
+                    body: JSON.stringify({ token: _waEsToken || '', code: _waEsCode || '', redirect_uri: window.location.origin + window.location.pathname, waba_id: _waEsSession.waba_id || '', phone_number_id: _waEsSession.phone_number_id || '', email: activeUser.email })
                 });
                 const r = await res.json().catch(() => ({}));
                 if (res.ok && r.ok) {
