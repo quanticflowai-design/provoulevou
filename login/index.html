@@ -4035,6 +4035,11 @@
                             <input type="hidden" id="waBulkTemplate">
                             <div id="waBulkTemplatePreview" style="font-size:12px;line-height:1.5;color:var(--text-muted);margin-top:8px;padding:10px 12px;background:rgba(124,58,237,0.05);border:1px solid var(--border);border-radius:8px;display:none;"></div>
                         </div>
+                        <div id="waBulkCheckoutWrap" style="margin-bottom:16px;display:none;">
+                            <label class="wa-bulk-field-label">Link de checkout / carrinho</label>
+                            <input type="url" id="waBulkCheckout" class="wa-bulk-field" placeholder="https://sualoja.com.br/checkout" oninput="waBulkPersistCheckout()" style="cursor:text;">
+                            <div id="waBulkCheckoutHint" style="font-size:11px;color:var(--text-muted);margin-top:5px;">Esse link entra no template (no <code>{{3}}</code> ou no botão) — o cliente clica e vai direto pro checkout.</div>
+                        </div>
                         <div class="disp-bulk-grid">
                             <div>
                                 <label class="wa-bulk-field-label">Etapa do funil</label>
@@ -7157,12 +7162,44 @@
             } else if (prev) {
                 prev.style.display = 'none';
             }
+            // Detecta se o template usa link de checkout: 3+ variáveis no corpo OU botão de URL com variável
+            const bodyText = (bodyComp && bodyComp.text) || '';
+            const placeholders = (bodyText.match(/\{\{\s*\d+\s*\}\}/g) || []).length;
+            const btnComp = tpl && (tpl.components || []).find(c => c.type === 'BUTTONS');
+            const buttons = (btnComp && btnComp.buttons) || [];
+            let urlBtnIndex = -1;
+            buttons.forEach((b, i) => {
+                if ((b.type || '').toUpperCase() === 'URL' && /\{\{\s*\d+\s*\}\}/.test(b.url || '')) urlBtnIndex = i;
+            });
+            window._waBulkUrlBtnIndex = urlBtnIndex;
+            window._waBulkLinkInBody = urlBtnIndex < 0 && placeholders >= 3;
+            const needLink = urlBtnIndex >= 0 || window._waBulkLinkInBody;
+            window._waBulkNeedLink = needLink;
+            const wrap = document.getElementById('waBulkCheckoutWrap');
+            if (wrap) {
+                wrap.style.display = needLink ? 'block' : 'none';
+                if (needLink) {
+                    const saved = (function(){ try { return localStorage.getItem('pl-bulk-checkout-' + activeUser.email); } catch(e){ return ''; } })();
+                    const inp = document.getElementById('waBulkCheckout');
+                    if (inp && !inp.value && saved) inp.value = saved;
+                    const hint = document.getElementById('waBulkCheckoutHint');
+                    if (hint) hint.innerHTML = urlBtnIndex >= 0
+                        ? 'Esse link vai no <strong>botão</strong> do template — o cliente clica e vai direto pro checkout.'
+                        : 'Esse link entra no <code>{{3}}</code> do template — o cliente clica e vai direto pro checkout.';
+                }
+            }
             // Reabilita o botão de confirmar se houver alvos
             const confirmBtn = document.getElementById('waBulkConfirmBtn');
             const n = (window._waBulkTargets || []).length;
             if (confirmBtn && n > 0) {
                 confirmBtn.disabled = !name;
             }
+        }
+
+        function waBulkPersistCheckout() {
+            const inp = document.getElementById('waBulkCheckout');
+            if (!inp) return;
+            try { localStorage.setItem('pl-bulk-checkout-' + activeUser.email, inp.value.trim()); } catch (e) {}
         }
 
         async function executeBulkSend() {
@@ -7181,6 +7218,18 @@
             const bodyText = (bodyComp && bodyComp.text) || '';
             const placeholders = (bodyText.match(/\{\{\s*\d+\s*\}\}/g) || []).length;
 
+            // Link de checkout (quando o template usa): no botão de URL ou no {{3}} do corpo
+            const checkoutLink = (document.getElementById('waBulkCheckout')?.value || '').trim();
+            const urlBtnIndex = (typeof _waBulkUrlBtnIndex === 'number') ? _waBulkUrlBtnIndex : -1;
+            const linkInBody = !!window._waBulkLinkInBody;
+            if (window._waBulkNeedLink && !checkoutLink) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Disparar agora';
+                document.getElementById('waBulkProgress').style.display = 'none';
+                alert('Esse template usa um link de checkout. Preencha o campo "Link de checkout / carrinho" antes de disparar.');
+                return;
+            }
+
             let sent = 0, failed = 0;
             const total = targets.length;
             const update = () => {
@@ -7197,21 +7246,31 @@
                 // Monta exatamente o número de variáveis que o template espera.
                 // Convenção: {{1}} = primeiro nome, {{2}} = produto provado.
                 const fill = [firstName, produto];
+                if (linkInBody) fill[2] = checkoutLink;   // {{3}} = link no corpo
                 const params = [];
                 for (let i = 0; i < placeholders; i++) {
                     params.push(fill[i] != null ? fill[i] : firstName);
                 }
+                // Se o link vai num botão de URL, manda components com o param do botão
+                let components = null;
+                if (urlBtnIndex >= 0 && checkoutLink) {
+                    components = [];
+                    if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
+                    components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: checkoutLink }] });
+                }
                 try {
+                    const payload = {
+                        email: activeUser.email,
+                        to: lead.phone,
+                        template: _waBulkTemplate || _waConfigCache.default_template,
+                        language: _waBulkTemplateLang || _waConfigCache.default_language || 'pt_BR',
+                        params: params
+                    };
+                    if (components) payload.components = components;
                     const res = await fetch(WA_SEND_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            email: activeUser.email,
-                            to: lead.phone,
-                            template: _waBulkTemplate || _waConfigCache.default_template,
-                            language: _waBulkTemplateLang || _waConfigCache.default_language || 'pt_BR',
-                            params: params
-                        })
+                        body: JSON.stringify(payload)
                     });
                     const result = await res.json().catch(() => ({}));
                     if (res.ok && result.ok) {
