@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Política de Privacidade | Provou Levou</title>
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-HDH9028QL5"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-HDH9028QL5', { 'anonymize_ip': true });
+  </script>
+  <link rel="icon" type="image/jpeg" href="assets/favicon.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'HelveticaNow';
+      src: url('helveticanowdisplay-medium.ttf') format('truetype');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --bg-surface: #131313;
+      --bg-clause: #161616;
+      --primary: #7c3aed;
+      --purple: #7c3aed;
+      --purple-light: #a78bfa;
+      --fuchsia: #a78bfa;
+      --grad: linear-gradient(135deg, #7c3aed, #a78bfa);
+      --text: #edebe7;
+      --text-2: #999;
+      --text-3: #666;
+      --border: rgba(255,255,255,0.06);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'HelveticaNow', 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      font-weight: 500;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+    /* ─── Background Atmosphere ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px;
+      right: -200px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -200px;
+      left: -200px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(124,58,237,0.04) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── Header ─── */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,10,0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+    }
+    .header-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+    .logo img {
+      height: 36px;
+    }
+    .logo span {
+      font-weight: 500;
+      font-size: 1rem;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .back-link {
+      font-size: 0.85rem;
+      color: var(--text-2);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--text); }
+    .back-link svg { width: 16px; height: 16px; }
+
+    /* ─── Main Container ─── */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* ─── Hero Title ─── */
+    .hero-title {
+      text-align: center;
+      margin-bottom: 56px;
+      padding-bottom: 48px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(99,102,241,0.08);
+      border: 1px solid rgba(99,102,241,0.15);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 24px;
+    }
+    .hero-badge svg { width: 14px; height: 14px; }
+    .hero-title h1 {
+      font-family: 'HelveticaNow', 'Inter', system-ui, sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 12px;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-title p {
+      font-size: 0.95rem;
+      color: var(--text-2);
+      max-width: 540px;
+      margin: 0 auto;
+    }
+    .hero-title .subtitle {
+      font-size: 1.05rem;
+      color: var(--text);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    /* ─── Table of Contents ─── */
+    .toc {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 48px;
+    }
+    .toc h2 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-3);
+      margin-bottom: 16px;
+    }
+    .toc ol {
+      list-style: none;
+      counter-reset: toc;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 24px;
+    }
+    .toc li { counter-increment: toc; }
+    .toc a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      color: var(--text-2);
+      text-decoration: none;
+      padding: 6px 0;
+      transition: color 0.2s;
+    }
+    .toc a::before {
+      content: counter(toc, decimal-leading-zero);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--primary);
+      opacity: 0.6;
+      min-width: 22px;
+    }
+    .toc a:hover { color: var(--text); }
+
+    /* ─── Clauses ─── */
+    .clause {
+      margin-bottom: 40px;
+      scroll-margin-top: 80px;
+    }
+    .clause-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .clause-number {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.15);
+      border-radius: 8px;
+      padding: 6px 10px;
+      min-width: 42px;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+    .clause-header h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .clause p {
+      font-size: 0.92rem;
+      color: var(--text-2);
+      margin-bottom: 14px;
+      text-align: justify;
+    }
+    .clause p strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .clause ul, .clause ol {
+      margin: 12px 0 16px 0;
+      padding-left: 0;
+      list-style: none;
+    }
+    .clause li {
+      font-size: 0.9rem;
+      color: var(--text-2);
+      padding: 8px 0 8px 28px;
+      position: relative;
+      border-bottom: 1px solid rgba(99,102,241,0.04);
+    }
+    .clause li:last-child { border-bottom: none; }
+    .clause li::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 16px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+      opacity: 0.5;
+    }
+    .clause li strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* ─── Sub-sections (6.1, 6.2, etc.) ─── */
+    .sub-section {
+      background: var(--bg-clause);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 16px 0;
+    }
+    .sub-section h3 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sub-section h3::before {
+      content: '';
+      width: 3px;
+      height: 16px;
+      background: var(--grad);
+      border-radius: 2px;
+    }
+
+    /* ─── Important callout ─── */
+    .callout {
+      background: rgba(217,70,239,0.06);
+      border: 1px solid rgba(217,70,239,0.15);
+      border-left: 3px solid var(--fuchsia);
+      border-radius: 0 12px 12px 0;
+      padding: 16px 20px;
+      margin: 16px 0;
+    }
+    .callout p {
+      color: var(--text) !important;
+      font-size: 0.88rem !important;
+      margin: 0 !important;
+    }
+    .callout strong { color: var(--fuchsia); }
+
+    /* ─── Paragraph Note ─── */
+    .paragrafo {
+      font-size: 0.85rem !important;
+      font-style: italic;
+      opacity: 0.8;
+      padding-left: 16px;
+      border-left: 2px solid rgba(99,102,241,0.2);
+    }
+
+    /* ─── Consent Box ─── */
+    .consent-box {
+      background: var(--bg-surface);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 16px;
+      padding: 32px;
+      margin-top: 48px;
+      text-align: center;
+    }
+    .consent-box h2 {
+      font-family: 'HelveticaNow', 'Inter', system-ui, sans-serif;
+      font-size: 1.4rem;
+      font-weight: 500;
+      margin-bottom: 20px;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .consent-box ol {
+      list-style: none;
+      text-align: left;
+      margin: 20px 0;
+      padding: 0;
+    }
+    .consent-box li {
+      font-size: 0.88rem;
+      color: var(--text-2);
+      padding: 10px 0 10px 32px;
+      position: relative;
+      border-bottom: 1px solid rgba(99,102,241,0.06);
+    }
+    .consent-box li:last-child { border-bottom: none; }
+    .consent-box li::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 17px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid var(--primary);
+      opacity: 0.5;
+    }
+
+    /* ─── Digital Note ─── */
+    .digital-note {
+      background: rgba(99,102,241,0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-top: 24px;
+    }
+    .digital-note h3 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+    .digital-note p {
+      font-size: 0.85rem;
+      color: var(--text-2);
+      margin: 0;
+    }
+
+    /* ─── Version Footer ─── */
+    .version {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--text-3);
+    }
+
+    /* ─── Footer ─── */
+    .footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 0.8rem;
+      color: var(--text-3);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 640px) {
+      .container { padding: 32px 16px 60px; }
+      .toc ol { grid-template-columns: 1fr; }
+      .toc { padding: 20px; }
+      .sub-section { padding: 16px; }
+      .consent-box { padding: 24px 16px; }
+      .clause-header { flex-wrap: wrap; }
+    }
+
+    /* ─── Scrollbar ─── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+
+    /* ─── Animations ─── */
+    .clause, .consent-box, .toc, .digital-note {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp 0.5s ease forwards;
+    }
+    .toc { animation-delay: 0.1s; }
+    .clause:nth-child(1) { animation-delay: 0.15s; }
+    .clause:nth-child(2) { animation-delay: 0.2s; }
+    .clause:nth-child(3) { animation-delay: 0.25s; }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <img src="https://i.ibb.co/MDGF2YDD/Logo-provou-branco-1.png" alt="Provou Levou">
+      </a>
+      <a href="index.html" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        Voltar ao site
+      </a>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- Hero -->
+    <div class="hero-title">
+      <div class="hero-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Privacidade &middot; LGPD
+      </div>
+      <p class="subtitle">Provador Virtual com Inteligência Artificial</p>
+      <h1>Política de Privacidade</h1>
+      <p>Como coletamos, usamos, armazenamos e protegemos os seus dados &mdash; Lei nº 13.709/2018 (LGPD)</p>
+    </div>
+
+    <!-- Índice -->
+    <nav class="toc">
+      <h2>Índice</h2>
+      <ol>
+        <li><a href="#c1">Quem somos</a></li>
+        <li><a href="#c2">A quem esta política se aplica</a></li>
+        <li><a href="#c3">Dados que coletamos</a></li>
+        <li><a href="#c4">Como e por que usamos os dados</a></li>
+        <li><a href="#c5">Integração com WhatsApp e Meta</a></li>
+        <li><a href="#c6">Compartilhamento com terceiros</a></li>
+        <li><a href="#c7">Armazenamento, segurança e retenção</a></li>
+        <li><a href="#c8">Seus direitos (LGPD)</a></li>
+        <li><a href="#c9">Exclusão dos seus dados</a></li>
+        <li><a href="#c10">Cookies e tecnologias</a></li>
+        <li><a href="#c11">Dados de menores</a></li>
+        <li><a href="#c12">Alterações nesta política</a></li>
+        <li><a href="#c13">Contato e Encarregado (DPO)</a></li>
+        <li><a href="#c14">Legislação e foro</a></li>
+      </ol>
+    </nav>
+
+    <section class="clause" id="c1">
+      <div class="clause-header"><div class="clause-number">01</div><h2>Quem somos</h2></div>
+      <p>A plataforma <strong>PROVOU LEVOU</strong> ("Provou Levou", "nós") oferece um serviço de <strong>provador virtual com inteligência artificial</strong> para lojas de e-commerce, além de ferramentas de relacionamento e comunicação com clientes via WhatsApp.</p>
+      <p>Esta Política de Privacidade descreve como tratamos os dados pessoais a que temos acesso, na qualidade de <strong>Controlador</strong> e/ou <strong>Operador</strong>, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 &mdash; LGPD).</p>
+      <p><strong>Contato para assuntos de privacidade:</strong> contato@provoulevou.com.br</p>
+    </section>
+
+    <section class="clause" id="c2">
+      <div class="clause-header"><div class="clause-number">02</div><h2>A quem esta política se aplica</h2></div>
+      <p>Esta política se aplica a:</p>
+      <ul>
+        <li><strong>Consumidores finais</strong> que utilizam o provador virtual nas lojas parceiras (enviam foto, telefone e interagem com o provador);</li>
+        <li><strong>Lojistas</strong> que contratam a Provou Levou e conectam seus canais (incluindo o WhatsApp Business) ao painel;</li>
+        <li><strong>Visitantes</strong> do site provoulevou.com.br.</li>
+      </ul>
+    </section>
+
+    <section class="clause" id="c3">
+      <div class="clause-header"><div class="clause-number">03</div><h2>Dados que coletamos</h2></div>
+      <p>Coletamos apenas os dados necessários para a prestação do serviço:</p>
+      <ul>
+        <li><strong>Dados de contato:</strong> nome e número de telefone (WhatsApp);</li>
+        <li><strong>Imagem:</strong> a foto enviada pelo consumidor para a geração da prova virtual (dado pessoal sensível &mdash; imagem facial), utilizada exclusivamente para gerar o resultado e enviá-lo ao próprio usuário;</li>
+        <li><strong>Dados de uso do provador:</strong> produto provado, link do produto, data e hora da prova;</li>
+        <li><strong>Mensagens de WhatsApp:</strong> conteúdo das conversas trocadas entre lojista e cliente por meio do canal conectado;</li>
+        <li><strong>Dados de pedido</strong> (quando aplicável): número do pedido, status, valor e data, para medir a conversão das provas;</li>
+        <li><strong>Dados técnicos:</strong> endereço IP, identificadores de sessão e dados de navegação.</li>
+      </ul>
+    </section>
+
+    <section class="clause" id="c4">
+      <div class="clause-header"><div class="clause-number">04</div><h2>Como e por que usamos os dados</h2></div>
+      <p>Tratamos os dados para as seguintes finalidades:</p>
+      <ul>
+        <li><strong>Executar o provador virtual</strong> &mdash; gerar a imagem da prova e entregá-la ao usuário;</li>
+        <li><strong>Comunicação e atendimento</strong> &mdash; permitir que o lojista envie mensagens e responda clientes pelo WhatsApp;</li>
+        <li><strong>Recuperação e relacionamento</strong> &mdash; ajudar o lojista a retomar contato com clientes que demonstraram interesse;</li>
+        <li><strong>Métricas e melhoria</strong> &mdash; medir desempenho, conversão e qualidade do serviço (de forma agregada);</li>
+        <li><strong>Segurança e cumprimento legal.</strong></li>
+      </ul>
+      <p>As bases legais utilizadas são, conforme o caso: <strong>consentimento</strong> do titular, <strong>execução de contrato</strong> e <strong>legítimo interesse</strong>, nos termos dos Arts. 7º e 11 da LGPD.</p>
+    </section>
+
+    <section class="clause" id="c5">
+      <div class="clause-header"><div class="clause-number">05</div><h2>Integração com WhatsApp e Meta</h2></div>
+      <p>A Provou Levou utiliza a <strong>Plataforma do WhatsApp Business</strong>, fornecida pela <strong>Meta Platforms, Inc.</strong>, para o envio e recebimento de mensagens entre o lojista e seus clientes.</p>
+      <p>Ao conectar um número de WhatsApp ao painel, o lojista autoriza a Provou Levou a enviar e receber mensagens em seu nome por meio dessa plataforma. O tráfego dessas mensagens está sujeito também às políticas da Meta. Os dados transmitidos via WhatsApp são utilizados <strong>exclusivamente</strong> para a comunicação entre o lojista e o cliente, e não são comercializados.</p>
+      <p>Mais informações sobre o tratamento de dados pela Meta podem ser consultadas na política de privacidade da própria Meta/WhatsApp.</p>
+    </section>
+
+    <section class="clause" id="c6">
+      <div class="clause-header"><div class="clause-number">06</div><h2>Compartilhamento com terceiros</h2></div>
+      <p>Não vendemos dados pessoais. Podemos compartilhá-los apenas com <strong>operadores e prestadores de serviço</strong> estritamente necessários à operação, sempre sob obrigações de confidencialidade e segurança, nas seguintes categorias:</p>
+      <ul>
+        <li><strong>Provedores de infraestrutura e armazenamento em nuvem</strong> (hospedagem e banco de dados);</li>
+        <li><strong>Provedores de mensageria e da plataforma de WhatsApp/Meta;</strong></li>
+        <li><strong>Ferramentas de automação e integração</strong> de fluxos;</li>
+        <li><strong>Provedores de inteligência artificial</strong> para a geração das imagens de prova;</li>
+        <li><strong>Ferramentas de analytics</strong> (de forma agregada/anonimizada quando possível);</li>
+        <li><strong>O próprio lojista</strong> da loja em que o consumidor utilizou o provador.</li>
+      </ul>
+      <p>Também poderemos compartilhar dados quando exigido por <strong>obrigação legal</strong> ou ordem de autoridade competente.</p>
+    </section>
+
+    <section class="clause" id="c7">
+      <div class="clause-header"><div class="clause-number">07</div><h2>Armazenamento, segurança e retenção</h2></div>
+      <p>Adotamos medidas técnicas e organizacionais para proteger os dados contra acessos não autorizados, perda ou vazamento, incluindo controle de acesso e transmissão criptografada.</p>
+      <p>Mantemos os dados apenas pelo tempo necessário às finalidades descritas ou para o cumprimento de obrigações legais. Encerrada a finalidade, os dados são eliminados ou anonimizados, ressalvadas as hipóteses de guarda obrigatória previstas em lei.</p>
+    </section>
+
+    <section class="clause" id="c8">
+      <div class="clause-header"><div class="clause-number">08</div><h2>Seus direitos (LGPD)</h2></div>
+      <p>Como titular, você pode, a qualquer momento e gratuitamente:</p>
+      <ul>
+        <li>Confirmar a existência de tratamento e <strong>acessar</strong> seus dados;</li>
+        <li><strong>Corrigir</strong> dados incompletos, inexatos ou desatualizados;</li>
+        <li>Solicitar <strong>anonimização, bloqueio ou eliminação</strong> de dados desnecessários ou tratados em desconformidade;</li>
+        <li>Solicitar a <strong>portabilidade</strong> dos dados;</li>
+        <li><strong>Revogar o consentimento</strong> e solicitar a exclusão dos dados tratados com base nele;</li>
+        <li>Obter informações sobre o compartilhamento dos seus dados.</li>
+      </ul>
+      <p>Para exercer qualquer desses direitos, escreva para <strong>contato@provoulevou.com.br</strong>.</p>
+    </section>
+
+    <section class="clause" id="c9">
+      <div class="clause-header"><div class="clause-number">09</div><h2>Exclusão dos seus dados</h2></div>
+      <p>Você pode solicitar a <strong>exclusão dos seus dados pessoais</strong> a qualquer momento. Para isso:</p>
+      <ul>
+        <li>Envie um e-mail para <strong>contato@provoulevou.com.br</strong> com o assunto <strong>"Exclusão de dados"</strong>, informando o número de telefone associado;</li>
+        <li>Confirmaremos o recebimento e concluiremos a exclusão em <strong>até 30 dias</strong>, salvo dados que a lei exija manter;</li>
+        <li>Dados tratados em nome de um lojista também podem ser excluídos mediante solicitação do respectivo lojista.</li>
+      </ul>
+      <p>A exclusão é gratuita e não prejudica a licitude do tratamento realizado antes do pedido.</p>
+    </section>
+
+    <section class="clause" id="c10">
+      <div class="clause-header"><div class="clause-number">10</div><h2>Cookies e tecnologias</h2></div>
+      <p>Utilizamos cookies e tecnologias semelhantes para o funcionamento do site, métricas de uso e melhoria da experiência. Você pode gerenciar os cookies nas configurações do seu navegador.</p>
+    </section>
+
+    <section class="clause" id="c11">
+      <div class="clause-header"><div class="clause-number">11</div><h2>Dados de menores</h2></div>
+      <p>O serviço não é direcionado a menores de 18 anos. O tratamento de dados de crianças e adolescentes, quando ocorrer, observará o melhor interesse do menor e o consentimento específico de pelo menos um dos pais ou responsável legal, nos termos do Art. 14 da LGPD.</p>
+    </section>
+
+    <section class="clause" id="c12">
+      <div class="clause-header"><div class="clause-number">12</div><h2>Alterações nesta política</h2></div>
+      <p>Esta Política pode ser atualizada para refletir mudanças legais ou no serviço. A versão vigente estará sempre disponível nesta página, com a respectiva data de atualização.</p>
+    </section>
+
+    <section class="clause" id="c13">
+      <div class="clause-header"><div class="clause-number">13</div><h2>Contato e Encarregado (DPO)</h2></div>
+      <p>Dúvidas, solicitações e exercício de direitos podem ser encaminhados ao nosso canal de privacidade:</p>
+      <p><strong>E-mail:</strong> contato@provoulevou.com.br</p>
+    </section>
+
+    <section class="clause" id="c14">
+      <div class="clause-header"><div class="clause-number">14</div><h2>Legislação e foro</h2></div>
+      <p>Esta Política é regida pelas leis da República Federativa do Brasil, em especial a LGPD. Fica eleito o foro do domicílio do titular para dirimir eventuais controvérsias, quando assim exigido pela legislação consumerista aplicável.</p>
+    </section>
+
+    <div class="version">
+      Versão 1.0 &nbsp;|&nbsp; Última atualização: 11 de junho de 2026
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    &copy; 2026 Provou Levou. Todos os direitos reservados. &nbsp;|&nbsp; <a href="termos.html" style="color:var(--purple-light);text-decoration:none;">Termos de Uso</a>
+  </footer>
+
+</body>
+</html>
