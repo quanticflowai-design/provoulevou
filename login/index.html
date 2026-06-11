@@ -2356,6 +2356,9 @@
                         <span id="masterToggleLabel" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">Selecione um lojista…</span>
                         <i class="ph-bold ph-caret-down" style="font-size:10px;opacity:0.7;"></i>
                     </button>
+                    <button type="button" id="masterHideBtn" onclick="toggleMasterHideName(event)" title="Ocultar o nome do cliente (privacidade)" style="display:inline-flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25);border:1px solid var(--border-strong);color:var(--text-muted);width:30px;height:30px;border-radius:7px;cursor:pointer;flex-shrink:0;outline:none;">
+                        <i class="ph-bold ph-eye"></i>
+                    </button>
                     <div id="masterMenu" role="listbox" style="display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:300px;max-width:380px;max-height:min(60vh,460px);overflow:hidden;background:var(--card-bg);color:var(--text-main);border:1px solid var(--border-strong,var(--border));border-radius:10px;box-shadow:0 18px 48px rgba(0,0,0,0.25);z-index:9999;display:none;flex-direction:column;">
                         <div style="padding:8px 8px 6px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card-bg);">
                             <input type="text" id="masterSearch" placeholder="Buscar lojista..." autocomplete="off"
@@ -5285,10 +5288,9 @@
                 let savedEmail = null;
                 try { savedEmail = localStorage.getItem('pl-master-active-lojista'); } catch(e) {}
                 const chosen = (savedEmail && allLj.find(l => l.email === savedEmail)) || allLj[0];
-                const lbl = document.getElementById('masterToggleLabel');
-                if (lbl && chosen) {
-                    const chosenName = chosen.nome_loja || (chosen.origem || '').replace(/^https?:\/\/(www\.)?/, '').split('/')[0] || chosen.email;
-                    lbl.textContent = chosenName;
+                if (chosen) {
+                    _masterSelectedName = chosen.nome_loja || (chosen.origem || '').replace(/^https?:\/\/(www\.)?/, '').split('/')[0] || chosen.email;
+                    updateMasterLabel();
                 }
                 const cfg = await fetchLojistaByEmail(chosen.email);
                 return cfg;
@@ -5313,7 +5315,31 @@
             return data;
         }
 
+        // ===== Ocultar nome do cliente (privacidade no modo master) =====
+        let _masterHideName = (function(){ try { return localStorage.getItem('pl-master-hide-name') === '1'; } catch(e){ return false; } })();
+        let _masterSelectedName = '';
+        let _masterAllLj = [];
+        function masterMaskName(name) { return _masterHideName ? 'Cliente' : (name || ''); }
+        function updateMasterLabel() {
+            const lbl = document.getElementById('masterToggleLabel');
+            if (lbl && _masterSelectedName) lbl.textContent = masterMaskName(_masterSelectedName);
+            const btn = document.getElementById('masterHideBtn');
+            if (btn) {
+                btn.innerHTML = '<i class="ph-bold ' + (_masterHideName ? 'ph-eye-slash' : 'ph-eye') + '"></i>';
+                btn.style.color = _masterHideName ? '#a855f7' : 'var(--text-muted)';
+                btn.title = _masterHideName ? 'Mostrar o nome do cliente' : 'Ocultar o nome do cliente (privacidade)';
+            }
+        }
+        function toggleMasterHideName(ev) {
+            if (ev) ev.stopPropagation();
+            _masterHideName = !_masterHideName;
+            try { localStorage.setItem('pl-master-hide-name', _masterHideName ? '1' : '0'); } catch(e) {}
+            updateMasterLabel();
+            if (Array.isArray(_masterAllLj) && _masterAllLj.length) populateMasterSwitcher(_masterAllLj);
+        }
+
         async function populateMasterSwitcher(allLj) {
+            _masterAllLj = allLj || [];
             const wrap = document.getElementById('masterSwitcher');
             const menu = document.getElementById('masterMenu');
             const list = document.getElementById('masterMenuList');
@@ -5328,10 +5354,10 @@
                 item.style.cssText = 'display:block;width:100%;text-align:left;background:transparent;border:none;color:var(--text-main);padding:8px 10px;border-radius:7px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
                 const nameEl = document.createElement('span');
                 nameEl.style.cssText = 'display:block;';
-                nameEl.textContent = name;
+                nameEl.textContent = masterMaskName(name);
                 const emailEl = document.createElement('span');
                 emailEl.style.cssText = 'display:block;font-weight:400;font-size:11px;opacity:0.65;';
-                emailEl.textContent = l.email;
+                emailEl.textContent = _masterHideName ? '•••••••' : l.email;
                 item.appendChild(nameEl);
                 item.appendChild(emailEl);
                 const hoverBg = document.body.classList.contains('light-mode') ? 'rgba(124,58,237,0.10)' : 'rgba(124,58,237,0.22)';
@@ -5339,12 +5365,14 @@
                 item.onmouseleave = () => item.style.background = 'transparent';
                 item.onclick = () => {
                     document.getElementById('masterMenu').style.display = 'none';
-                    document.getElementById('masterToggleLabel').textContent = name;
+                    _masterSelectedName = name;
+                    updateMasterLabel();
                     switchToLojista(l.email);
                 };
                 list.appendChild(item);
             });
             wrap.style.display = 'inline-flex';
+            updateMasterLabel();
         }
 
         function toggleMasterMenu(ev) {
