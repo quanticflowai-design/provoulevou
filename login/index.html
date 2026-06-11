@@ -5046,9 +5046,15 @@
                         Cadastre os responsáveis (vendedores/atendentes). Depois é só atribuir cada lead a um responsável — no card ou no detalhe — e acompanhar o desempenho em <strong>Desempenho do time</strong>.
                     </p>
                     <div id="crmTeamList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px;min-height:60px;"></div>
-                    <button onclick="addCrmTeamMember()" style="margin-top:12px;background:transparent;border:1.5px dashed #d1d5db;color:#555;padding:10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">
-                        <i class="ph-bold ph-plus"></i> Adicionar responsável
-                    </button>
+                    <div style="display:flex;gap:8px;margin-top:12px;">
+                        <input type="text" id="crmTeamNewInput" maxlength="40" placeholder="Nome do responsável" autocomplete="off"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();addCrmTeamMember();}"
+                            style="flex:1;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:13px;color:#111;background:#fff;outline:none;">
+                        <button onclick="addCrmTeamMember()" style="background:#7c3aed;border:0;color:#fff;padding:10px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;">
+                            <i class="ph-bold ph-plus"></i> Adicionar
+                        </button>
+                    </div>
+                    <div id="crmTeamMsg" style="font-size:12px;color:#dc2626;margin-top:6px;min-height:16px;"></div>
                     <div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:18px;">
                         <button onclick="closeCrmTeamModal()" style="background:transparent;border:1px solid #d1d5db;color:#555;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">Cancelar</button>
                         <button onclick="saveCrmTeam()" style="background:#7c3aed;border:0;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Salvar</button>
@@ -11849,6 +11855,8 @@
                 if (m.parentElement !== document.body) document.body.appendChild(m);
                 m.style.display = 'flex';
             }
+            const inp = document.getElementById('crmTeamNewInput'); if (inp) inp.value = '';
+            const msg = document.getElementById('crmTeamMsg'); if (msg) msg.textContent = '';
             try { renderCrmTeamList(); } catch (e) { console.warn('[CRM] renderCrmTeamList:', e); }
         }
         function closeCrmTeamModal() {
@@ -11886,12 +11894,20 @@
             });
         }
         function addCrmTeamMember() {
-            const name = prompt('Nome do responsável (membro do time comercial):', '');
-            if (!name || !name.trim()) return;
+            const inp = document.getElementById('crmTeamNewInput');
+            const msg = document.getElementById('crmTeamMsg');
+            const name = inp ? inp.value.trim() : '';
+            if (msg) msg.textContent = '';
+            if (!name) { if (inp) inp.focus(); return; }
             const t = getCrmTeam().slice();
-            if (t.map(x => x.toLowerCase()).includes(name.trim().toLowerCase())) { alert('Esse responsável já existe.'); return; }
-            t.push(name.trim());
+            if (t.map(x => x.toLowerCase()).includes(name.toLowerCase())) {
+                if (msg) msg.textContent = 'Esse responsável já existe.';
+                if (inp) { inp.value = ''; inp.focus(); }
+                return;
+            }
+            t.push(name);
             _crmTeamMem = t;
+            if (inp) { inp.value = ''; inp.focus(); }
             renderCrmTeamList();
         }
         function saveCrmTeam() {
