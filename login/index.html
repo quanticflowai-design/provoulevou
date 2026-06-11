@@ -2089,6 +2089,36 @@
         .crm-rs-stage.zero { opacity:.4; }
         .crm-rs-stage-name { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-main); }
         .crm-rs-stage-count { font-weight:700; font-size:12.5px; min-width:22px; text-align:right; }
+        /* ===== Assistente da primeira campanha ===== */
+        .disp-wiz-overlay { position:fixed; inset:0; z-index:10002; background:rgba(0,0,0,.6); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:20px; }
+        .disp-wiz-card { position:relative; background:#fff; color:#1a1a2e; width:100%; max-width:480px; border-radius:20px; padding:34px 30px 26px; box-shadow:0 30px 80px rgba(0,0,0,.45); text-align:center; max-height:92vh; overflow-y:auto; animation:dispWizIn .25s ease; }
+        @keyframes dispWizIn { from { opacity:0; transform:translateY(12px) scale(.98);} to { opacity:1; transform:none;} }
+        .disp-wiz-close { position:absolute; top:14px; right:16px; background:transparent; border:0; font-size:24px; line-height:1; color:#9aa0a6; cursor:pointer; }
+        .disp-wiz-icon { width:64px; height:64px; margin:0 auto 14px; border-radius:18px; background:linear-gradient(135deg,#7c3aed,#a78bfa); display:grid; place-items:center; color:#fff; font-size:30px; box-shadow:0 10px 24px rgba(124,58,237,.35); }
+        .disp-wiz-step-label { font-size:11.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#7c3aed; margin-bottom:6px; }
+        .disp-wiz-title { margin:0 0 12px; font-size:21px; font-weight:800; letter-spacing:-.02em; color:#15151f; }
+        .disp-wiz-body { font-size:14px; line-height:1.6; color:#444; text-align:left; }
+        .disp-wiz-body p { margin:0 0 11px; }
+        .disp-wiz-body strong { color:#15151f; }
+        .disp-wiz-note { display:flex; gap:9px; align-items:flex-start; background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.3); color:#92600a; border-radius:11px; padding:11px 13px; font-size:12.5px; margin-top:6px; }
+        .disp-wiz-note i { color:#f59e0b; margin-top:1px; }
+        .disp-wiz-vars { display:flex; flex-direction:column; gap:8px; margin:14px 0; }
+        .disp-wiz-var { display:flex; align-items:center; gap:10px; font-size:13.5px; color:#333; }
+        .dwv-tag { font-family:ui-monospace,monospace; font-weight:800; font-size:13px; background:rgba(124,58,237,.12); color:#7c3aed; border-radius:7px; padding:4px 9px; min-width:42px; text-align:center; }
+        .disp-wiz-example { background:#f7f7fb; border:1px solid #ececf3; border-radius:13px; padding:13px 15px; margin-top:6px; }
+        .dwe-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:#9aa0a6; margin:8px 0 4px; }
+        .dwe-label:first-child { margin-top:0; }
+        .dwe-before { font-size:13px; color:#555; font-family:ui-monospace,monospace; background:#fff; border:1px solid #ececf3; border-radius:8px; padding:8px 10px; }
+        .dwe-after { font-size:13px; color:#0d7a3f; background:rgba(37,211,102,.1); border:1px solid rgba(37,211,102,.28); border-radius:8px; padding:8px 10px; font-weight:500; }
+        .disp-wiz-steps { text-align:left; margin:6px 0 11px; padding-left:20px; font-size:13.5px; line-height:1.7; color:#444; }
+        .disp-wiz-dots { display:flex; gap:7px; justify-content:center; margin:20px 0 18px; }
+        .disp-wiz-dot { width:8px; height:8px; border-radius:50%; background:#dcdce4; transition:all .2s; }
+        .disp-wiz-dot.active { background:#7c3aed; width:22px; border-radius:5px; }
+        .disp-wiz-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+        .disp-wiz-btn { border:0; border-radius:11px; padding:12px 20px; font-size:14px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:7px; }
+        .disp-wiz-btn.primary { background:#7c3aed; color:#fff; box-shadow:0 8px 20px rgba(124,58,237,.3); }
+        .disp-wiz-btn.primary:hover { background:#6d28d9; }
+        .disp-wiz-btn.ghost { background:transparent; color:#777; border:1px solid #e0e0e8; }
         .crm-col-empty {
             font-size: 11.5px; color: var(--text-faint); padding: 22px 12px;
             text-align: center; font-style: italic;
@@ -3995,7 +4025,7 @@
                 <div class="disp-subnav" id="dispSubnav">
                     <button data-sub="conversas" class="active" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> Conversas <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
                     <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-paper-plane-tilt"></i> Disparar</button>
-                    <button data-sub="templates" onclick="dispSwitchSub('templates')"><i class="ph-bold ph-chat-circle-text"></i> Templates</button>
+                    <button data-sub="templates" onclick="dispSwitchSub('templates')"><i class="ph-bold ph-chat-circle-text"></i> Mensagens modelo</button>
                     <button data-sub="historico" onclick="dispSwitchSub('historico')"><i class="ph-bold ph-chart-bar"></i> Histórico</button>
                     <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> Conexão</button>
                 </div>
@@ -4078,10 +4108,11 @@
                 <div class="disp-card disp-bulk-card" id="dispBulkCard" style="margin-bottom:20px;">
                     <div class="disp-bulk-head">
                         <div class="disp-bulk-icon"><i class="ph-fill ph-megaphone-simple"></i></div>
-                        <div>
+                        <div style="flex:1;min-width:0;">
                             <h3 style="margin:0 0 4px;">Disparo em massa — recupere seus clientes</h3>
-                            <p class="desc" style="margin:0;">Mande uma mensagem no WhatsApp pra quem <strong>provou e ainda não comprou</strong>. Escolha o template, a etapa do funil e quantos quer disparar. Quem já recebeu mensagem nos últimos 7 dias é pulado automaticamente.</p>
+                            <p class="desc" style="margin:0;">Mande uma mensagem no WhatsApp pra quem <strong>provou e ainda não comprou</strong>. Escolha a mensagem modelo, a etapa do funil e quantos quer disparar. Quem já recebeu mensagem nos últimos 7 dias é pulado automaticamente.</p>
                         </div>
+                        <button onclick="openDispWizard()" title="Ver o passo a passo da primeira campanha" style="flex-shrink:0;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.25);color:#7c3aed;border-radius:9px;padding:8px 12px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;"><i class="ph-bold ph-question"></i> Como funciona?</button>
                     </div>
 
                     <!-- Estado: WhatsApp não conectado -->
@@ -4093,7 +4124,7 @@
                     <!-- Formulário de disparo -->
                     <div id="dispBulkForm">
                         <div style="margin-bottom:16px;">
-                            <label class="wa-bulk-field-label">Mensagem (template aprovado)</label>
+                            <label class="wa-bulk-field-label">Mensagem modelo (aprovada)</label>
                             <select id="waBulkTemplateSelect" class="wa-bulk-field" onchange="waBulkOnTemplateChange()">
                                 <option value="">Carregando templates…</option>
                             </select>
@@ -6915,6 +6946,101 @@
                 if (tpl) tpl.style.display = 'block';
                 if (typeof waLoadTemplates === 'function') waLoadTemplates();
             }
+            if (name === 'disparar') { try { maybeShowDispWizard(); } catch (e) {} }
+        }
+
+        // ============== Assistente: primeira campanha de disparo (uma vez) ==============
+        const DISP_WIZARD_STEPS = [
+            {
+                icon: 'ph-megaphone-simple',
+                title: 'Recupere vendas com disparos',
+                html: '<p>Quem <strong>provou no seu provador e não comprou</strong> ainda pode voltar a comprar. Aqui você manda uma mensagem no WhatsApp pra esses clientes — isso é uma <strong>campanha de disparo</strong>.</p>'
+                    + '<p>Em poucos passos você vai entender como criar a sua primeira. Bora?</p>'
+            },
+            {
+                icon: 'ph-chat-circle-text',
+                title: 'O que é uma mensagem modelo',
+                html: '<p>Pra enviar pra <strong>várias pessoas de uma vez</strong>, o WhatsApp pede uma <strong>mensagem modelo</strong>: um texto que você escreve uma vez, a Meta aprova, e você reutiliza em todas as campanhas.</p>'
+                    + '<p>É como um <strong>molde</strong> da sua mensagem — cria uma vez e dispara quantas vezes quiser.</p>'
+                    + '<div class="disp-wiz-note"><i class="ph-bold ph-clock"></i> A aprovação da Meta leva de <strong>5 minutos a 24 horas</strong>. Depois de aprovada, é só disparar.</div>'
+            },
+            {
+                icon: 'ph-brackets-curly',
+                title: 'As variáveis: personalização automática',
+                html: '<p>Dentro da mensagem modelo você usa <strong>3 espacinhos</strong> que se preenchem <strong>sozinhos</strong> pra cada cliente:</p>'
+                    + '<div class="disp-wiz-vars">'
+                    + '<div class="disp-wiz-var"><span class="dwv-tag">{{1}}</span> nome do cliente</div>'
+                    + '<div class="disp-wiz-var"><span class="dwv-tag">{{2}}</span> produto que ele provou</div>'
+                    + '<div class="disp-wiz-var"><span class="dwv-tag">{{3}}</span> link do produto</div>'
+                    + '</div>'
+                    + '<div class="disp-wiz-example">'
+                    + '<div class="dwe-label">Você escreve:</div>'
+                    + '<div class="dwe-before">Oi {{1}}! Vi que você provou {{2}}. Finaliza aqui: {{3}}</div>'
+                    + '<div class="dwe-label">O cliente recebe:</div>'
+                    + '<div class="dwe-after">Oi Maria! Vi que você provou o Óculos Aviator. Finaliza aqui: loja.com/aviator</div>'
+                    + '</div>'
+                    + '<p style="margin-top:12px;">Cada pessoa recebe uma mensagem <strong>personalizada</strong>, sem você digitar uma por uma. 🎯</p>'
+            },
+            {
+                icon: 'ph-paper-plane-tilt',
+                title: 'Como funciona o disparo',
+                html: '<p>Com a sua mensagem modelo aprovada, disparar é simples:</p>'
+                    + '<ol class="disp-wiz-steps">'
+                    + '<li>Escolhe a <strong>mensagem modelo</strong></li>'
+                    + '<li>Escolhe <strong>quem vai receber</strong> (a etapa do funil — ex: "Provou e não comprou")</li>'
+                    + '<li>Clica em <strong>Disparar</strong></li>'
+                    + '</ol>'
+                    + '<p>Pronto — cada cliente recebe a versão personalizada dele e volta pro seu site pra comprar.</p>'
+            },
+            {
+                icon: 'ph-rocket-launch',
+                title: 'Bora criar a sua primeira?',
+                html: '<p>Agora é com você! Clica abaixo pra criar a sua <strong>primeira mensagem modelo</strong>. É rapidinho — e depois que a Meta aprovar, você já dispara pros seus leads.</p>'
+            }
+        ];
+        let _dispWizStep = 0;
+        function dispWizardSeenKey() { return 'pl-disp-wizard-seen-' + ((activeUser && activeUser.email) || 'default'); }
+        function maybeShowDispWizard() {
+            try { if (localStorage.getItem(dispWizardSeenKey())) return; } catch (e) {}
+            openDispWizard();
+        }
+        function openDispWizard() { _dispWizStep = 0; renderDispWizard(); }
+        function closeDispWizard(markSeen) {
+            if (markSeen) { try { localStorage.setItem(dispWizardSeenKey(), '1'); } catch (e) {} }
+            const ov = document.getElementById('dispWizardOverlay'); if (ov) ov.remove();
+        }
+        function dispWizardNav(dir) {
+            const next = _dispWizStep + dir;
+            if (next < 0) return;
+            if (next >= DISP_WIZARD_STEPS.length) { closeDispWizard(true); return; }
+            _dispWizStep = next; renderDispWizard();
+        }
+        function dispWizardFinish() {
+            closeDispWizard(true);
+            if (typeof dispSwitchSub === 'function') dispSwitchSub('templates');
+            setTimeout(() => { if (typeof openCreateTemplateModal === 'function') openCreateTemplateModal(); }, 200);
+        }
+        function renderDispWizard() {
+            let ov = document.getElementById('dispWizardOverlay');
+            if (!ov) { ov = document.createElement('div'); ov.id = 'dispWizardOverlay'; ov.className = 'disp-wiz-overlay'; document.body.appendChild(ov); }
+            const s = DISP_WIZARD_STEPS[_dispWizStep];
+            const total = DISP_WIZARD_STEPS.length;
+            const isLast = _dispWizStep === total - 1;
+            const dots = DISP_WIZARD_STEPS.map((_, i) => '<span class="disp-wiz-dot' + (i === _dispWizStep ? ' active' : '') + '"></span>').join('');
+            ov.innerHTML = '<div class="disp-wiz-card">'
+                + '<button class="disp-wiz-close" onclick="closeDispWizard(true)" title="Pular">&times;</button>'
+                + '<div class="disp-wiz-icon"><i class="ph-bold ' + s.icon + '"></i></div>'
+                + '<div class="disp-wiz-step-label">Passo ' + (_dispWizStep + 1) + ' de ' + total + '</div>'
+                + '<h2 class="disp-wiz-title">' + s.title + '</h2>'
+                + '<div class="disp-wiz-body">' + s.html + '</div>'
+                + '<div class="disp-wiz-dots">' + dots + '</div>'
+                + '<div class="disp-wiz-actions">'
+                + (_dispWizStep > 0 ? '<button class="disp-wiz-btn ghost" onclick="dispWizardNav(-1)">Anterior</button>' : '<span></span>')
+                + (isLast
+                    ? '<button class="disp-wiz-btn primary" onclick="dispWizardFinish()"><i class="ph-bold ph-plus"></i> Criar minha primeira mensagem</button>'
+                    : '<button class="disp-wiz-btn primary" onclick="dispWizardNav(1)">Próximo <i class="ph-bold ph-arrow-right"></i></button>')
+                + '</div>'
+                + '</div>';
         }
 
         async function loadDisparos() {
