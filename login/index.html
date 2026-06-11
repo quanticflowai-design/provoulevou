@@ -4111,6 +4111,13 @@
                                 <input type="number" id="waBulkLimit" class="wa-bulk-field" min="1" placeholder="Todos" oninput="waBulkRecalcTargets()" style="cursor:text;">
                             </div>
                         </div>
+                        <div style="margin-bottom:16px;">
+                            <label class="wa-bulk-field-label">Mover leads para <span style="color:var(--text-muted);font-weight:500;">(após o disparo)</span></label>
+                            <select id="waBulkMoveTo" class="wa-bulk-field">
+                                <option value="">Não mover (mantém a etapa atual)</option>
+                            </select>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:5px;">Depois de disparar, os leads que receberem a mensagem vão automaticamente pra essa etapa do CRM.</div>
+                        </div>
                         <div class="disp-bulk-statsrow">
                             <div class="disp-bulk-stat">
                                 <div class="lbl">Vão receber agora</div>
@@ -7234,6 +7241,7 @@
                 })
                 .map(([phone, lead]) => ({
                     phone: String(lead.rawPhone || phone).replace(/\D/g, ''),
+                    crmPhone: phone,
                     name: lead.name || '',
                     product: lead.lastProduct || '',
                     productUrl: lead.lastProductUrl || '',
@@ -7349,6 +7357,21 @@
                     opts.push('<option value="' + escapeHtml(c.key) + '">' + escapeHtml(c.title) + ' (' + (counts[c.key] || 0) + ')</option>');
                 });
             sel.innerHTML = opts.join('');
+            waBulkPopulateMoveTo();
+        }
+
+        // Popula o "Mover leads para" (todas as etapas do funil)
+        function waBulkPopulateMoveTo() {
+            const sel = document.getElementById('waBulkMoveTo');
+            if (!sel) return;
+            const config = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+            const cur = sel.value;
+            const opts = ['<option value="">Não mover (mantém a etapa atual)</option>'];
+            config.columns.forEach(c => {
+                opts.push('<option value="' + escapeHtml(c.key) + '">' + escapeHtml(c.title) + '</option>');
+            });
+            sel.innerHTML = opts.join('');
+            if (cur) sel.value = cur;
         }
 
         function closeWaBulkModal() {
@@ -7489,6 +7512,7 @@
             }
 
             let sent = 0, failed = 0;
+            const sentPhones = [];
             const total = targets.length;
             const update = () => {
                 document.getElementById('waBulkSent').textContent = sent;
@@ -7538,6 +7562,7 @@
                     const result = await res.json().catch(() => ({}));
                     if (res.ok && result.ok) {
                         sent++;
+                        if (lead.crmPhone || lead.phone) sentPhones.push(lead.crmPhone || normalize(lead.phone));
                         chatLogOutbound(lead.phone, {
                             template_name: _waBulkTemplate || _waConfigCache.default_template,
                             body: chatRenderTplBody(bodyText, params),
@@ -7563,7 +7588,24 @@
             }
             await Promise.all(workers);
 
+            // Mover leads que receberam pra etapa escolhida no CRM (se selecionado)
+            const moveTo = (document.getElementById('waBulkMoveTo') || {}).value || '';
+            let movedMsg = '';
+            if (moveTo && sentPhones.length && typeof setCrmLeadOverride === 'function') {
+                const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+                const stageTitle = ((cfg.columns || []).find(c => c.key === moveTo) || {}).title || 'a etapa escolhida';
+                sentPhones.forEach(ph => { if (ph) setCrmLeadOverride(ph, moveTo); });
+                movedMsg = ' · ' + sentPhones.length + ' lead' + (sentPhones.length > 1 ? 's' : '') + ' movido' + (sentPhones.length > 1 ? 's' : '') + ' pra "' + stageTitle + '"';
+            }
+
             btn.innerHTML = '<i class="ph-bold ph-check-circle"></i> Concluído (' + sent + ' enviados)';
+            const fbEl = document.getElementById('waBulkProgress');
+            if (fbEl && (sent > 0 || failed > 0)) {
+                const note = document.createElement('div');
+                note.style.cssText = 'margin-top:10px;font-size:12.5px;font-weight:600;color:#10b981;';
+                note.innerHTML = '<i class="ph-bold ph-check-circle"></i> Disparo concluído: ' + sent + ' enviado' + (sent !== 1 ? 's' : '') + (failed ? ' · ' + failed + ' falha' + (failed !== 1 ? 's' : '') : '') + movedMsg;
+                fbEl.appendChild(note);
+            }
             // Atualiza CRM + recarrega a aba Disparos (KPIs, histórico, gráficos)
             setTimeout(() => {
                 try { renderCrmBoard(); } catch (e) {}
