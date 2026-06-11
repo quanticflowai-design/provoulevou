@@ -2045,6 +2045,40 @@
             border-color: rgba(37,211,102,0.32);
             color: #2bd96b;
         }
+        /* ===== Responsável no card ===== */
+        .crm-card-resp-wrap { display:flex; align-items:center; gap:6px; margin-top:6px; }
+        .crm-card-resp-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; border:1px solid var(--border); }
+        .crm-card-resp {
+            flex:1; min-width:0; font-size:11.5px; font-weight:600;
+            border:1px solid var(--border); border-radius:7px; padding:5px 7px;
+            background:var(--card-bg); color:var(--text-muted); cursor:pointer; outline:none;
+            transition: border-color .2s, color .2s;
+        }
+        .crm-card-resp.has-resp { color:var(--text-main); }
+        .crm-card-resp:hover { border-color: var(--primary); }
+        /* ===== Painel de desempenho do time ===== */
+        #crmTeamPanelBtn.active { background: var(--primary); color:#fff; border-color: transparent; }
+        .crm-team-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:14px; }
+        .crm-team-card {
+            background: var(--card-bg); border:1px solid var(--border); border-radius:14px; padding:16px 18px;
+        }
+        .crm-team-card-title { font-size:13.5px; font-weight:700; display:flex; align-items:center; gap:7px; margin-bottom:14px; }
+        .crm-team-card-title i { color: var(--primary); }
+        .crm-team-bars { display:flex; flex-direction:column; gap:11px; }
+        .crm-tb-row { display:flex; align-items:center; gap:10px; }
+        .crm-tb-label { width:118px; flex-shrink:0; font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .crm-tb-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+        .crm-tb-track { flex:1; height:20px; background:var(--bg-soft,rgba(127,127,127,.1)); border-radius:6px; overflow:hidden; display:flex; }
+        .crm-tb-fill { height:100%; border-radius:6px; transition: width .4s ease; min-width:2px; }
+        .crm-tb-val { width:34px; flex-shrink:0; text-align:right; font-size:12.5px; font-weight:700; }
+        .crm-stack { background:var(--bg-soft,rgba(127,127,127,.08)); }
+        .crm-stack-seg { height:100%; transition: width .4s ease; }
+        .crm-stack-empty { font-size:10.5px; color:var(--text-faint); padding-left:8px; align-self:center; font-style:italic; }
+        .crm-stage-legend { display:flex; flex-wrap:wrap; gap:10px 14px; margin-bottom:14px; }
+        .crm-sl-item { font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:5px; }
+        .crm-sl-dot { width:9px; height:9px; border-radius:3px; flex-shrink:0; }
+        .crm-team-empty { font-size:13px; color:var(--text-muted); background:var(--card-bg); border:1.5px dashed var(--border); border-radius:12px; padding:20px; text-align:center; }
+        .crm-team-empty i { color: var(--primary); margin-right:6px; }
         .crm-col-empty {
             font-size: 11.5px; color: var(--text-faint); padding: 22px 12px;
             text-align: center; font-style: italic;
@@ -3770,6 +3804,9 @@
                         <button class="btn-download" onclick="openCrmMsgModal()" title="Editar a mensagem padrão enviada no WhatsApp">
                             <i class="ph-bold ph-chat-circle-text"></i> Mensagem padrão
                         </button>
+                        <button class="btn-download" onclick="openCrmTeamModal()" title="Cadastrar os responsáveis do time comercial">
+                            <i class="ph-bold ph-users"></i> Gerenciar time
+                        </button>
                         <button class="btn-download" onclick="openCrmPipelineModal()" title="Criar, renomear e reordenar colunas do funil">
                             <i class="ph-bold ph-sliders-horizontal"></i> Personalizar Funil
                         </button>
@@ -3788,7 +3825,15 @@
                                 style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;line-height:1;">&times;</button>
                         </div>
                         <span id="crmSearchCount" style="font-size:12px;color:var(--text-muted);"></span>
+                        <select id="crmRespFilter" onchange="crmFilterResp(this.value)" title="Filtrar por responsável"
+                            style="margin-left:auto;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text-main);font-size:13px;cursor:pointer;outline:none;">
+                            <option value="">Todos os responsáveis</option>
+                        </select>
+                        <button id="crmTeamPanelBtn" class="btn-download" onclick="toggleCrmTeamPanel()" title="Ver desempenho por responsável">
+                            <i class="ph-bold ph-chart-bar"></i> Desempenho do time
+                        </button>
                     </div>
+                    <div id="crmTeamPanel" style="display:none;margin-bottom:18px;"></div>
                     <div class="crm-board" id="crmBoard"></div>
                 </div>
                 <div class="loader" id="crmLoader" style="display:none;">
@@ -4972,6 +5017,29 @@
                             <button onclick="closeCrmPipelineModal()" style="background:transparent;border:1px solid #d1d5db;color:#555;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">Cancelar</button>
                             <button onclick="saveCrmPipeline()" style="background:#7c3aed;border:0;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Salvar</button>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Gerenciar Time -->
+            <div id="crmTeamModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+                <div style="background:#ffffff;color:#111;border:1px solid #e5e7eb;border-radius:14px;max-width:520px;width:100%;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.4);max-height:85vh;display:flex;flex-direction:column;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                        <h3 style="margin:0;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;">
+                            <i class="ph-bold ph-users" style="color:#7c3aed;"></i> Gerenciar time comercial
+                        </h3>
+                        <button onclick="closeCrmTeamModal()" style="background:transparent;border:0;color:#666;cursor:pointer;font-size:20px;line-height:1;padding:4px;">×</button>
+                    </div>
+                    <p style="font-size:13px;color:#555;margin:0 0 14px;">
+                        Cadastre os responsáveis (vendedores/atendentes). Depois é só atribuir cada lead a um responsável — no card ou no detalhe — e acompanhar o desempenho em <strong>Desempenho do time</strong>.
+                    </p>
+                    <div id="crmTeamList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px;min-height:60px;"></div>
+                    <button onclick="addCrmTeamMember()" style="margin-top:12px;background:transparent;border:1.5px dashed #d1d5db;color:#555;padding:10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">
+                        <i class="ph-bold ph-plus"></i> Adicionar responsável
+                    </button>
+                    <div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:18px;">
+                        <button onclick="closeCrmTeamModal()" style="background:transparent;border:1px solid #d1d5db;color:#555;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">Cancelar</button>
+                        <button onclick="saveCrmTeam()" style="background:#7c3aed;border:0;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Salvar</button>
                     </div>
                 </div>
             </div>
@@ -11013,6 +11081,8 @@
 
         function crmConfigKey()    { return 'pl-crm-config-'    + ((activeUser && activeUser.email) || 'default'); }
         function crmOverridesKey() { return 'pl-crm-overrides-' + ((activeUser && activeUser.email) || 'default'); }
+        function crmRespKey()      { return 'pl-crm-resp-'      + ((activeUser && activeUser.email) || 'default'); }
+        function crmTeamKey()      { return 'pl-crm-team-'      + ((activeUser && activeUser.email) || 'default'); }
 
         // Cache em memória — populado por loadCrmRemoteState() no início do loadCRM
         // Reads (getCrmConfig/getCrmOverrides) são SEMPRE síncronos lendo desse cache.
@@ -11020,6 +11090,9 @@
         // e disparam upsert no Supabase em background (fire-and-forget com retry log).
         let _crmConfigMem    = null;
         let _crmOverridesMem = null;
+        let _crmRespMem      = null;   // { telefone: 'Nome do responsável' }
+        let _crmTeamMem      = null;   // ['Ana', 'Bruno', ...] (time comercial do lojista)
+        let _crmRespFilter   = '';     // filtro ativo por responsável ('' = todos)
 
         async function loadCrmRemoteState() {
             const email = (activeUser && activeUser.email) || 'default';
@@ -11064,12 +11137,32 @@
                 }
             } catch(e) { /* idem */ }
 
+            // --- Responsáveis (por lead) + time comercial (mesma estratégia: local primeiro, Supabase autoritativo) ---
+            let localResp = {}, localTeam = [];
+            try { const r = localStorage.getItem(crmRespKey()); if (r) { const o = JSON.parse(r); if (o && typeof o === 'object') localResp = o; } } catch(e) {}
+            try { const t = localStorage.getItem(crmTeamKey()); if (t) { const a = JSON.parse(t); if (Array.isArray(a)) localTeam = a; } } catch(e) {}
+            let remoteResp = null, remoteTeam = null;
+            try {
+                const { data: rRows, error: rErr } = await supabaseClient
+                    .from('crm_lead_responsavel').select('telefone,responsavel').eq('lojista_email', email);
+                if (!rErr && Array.isArray(rRows)) { remoteResp = {}; rRows.forEach(r => { if (r.responsavel) remoteResp[r.telefone] = r.responsavel; }); }
+            } catch(e) { /* tabela pode não existir ainda — usa local */ }
+            try {
+                const { data: tRow, error: tErr } = await supabaseClient
+                    .from('crm_team').select('membros').eq('lojista_email', email).maybeSingle();
+                if (!tErr && tRow && Array.isArray(tRow.membros)) remoteTeam = tRow.membros;
+            } catch(e) { /* idem */ }
+
             _crmConfigMem    = remoteCfg || localCfg || { columns: CRM_DEFAULT_COLUMNS.slice() };
             _crmOverridesMem = remoteOv  != null ? remoteOv : localOv;
+            _crmRespMem      = remoteResp != null ? remoteResp : localResp;
+            _crmTeamMem      = remoteTeam != null ? remoteTeam : localTeam;
 
             // Atualiza backup local com o estado autoritativo
             try { localStorage.setItem(crmConfigKey(),    JSON.stringify(_crmConfigMem)); } catch(e) {}
             try { localStorage.setItem(crmOverridesKey(), JSON.stringify(_crmOverridesMem)); } catch(e) {}
+            try { localStorage.setItem(crmRespKey(),      JSON.stringify(_crmRespMem)); } catch(e) {}
+            try { localStorage.setItem(crmTeamKey(),      JSON.stringify(_crmTeamMem)); } catch(e) {}
         }
 
         function getCrmConfig() {
@@ -11137,6 +11230,54 @@
                         if (error) console.warn('[CRM] override delete falhou:', error.message);
                     });
             }
+        }
+
+        // ===== Responsável por lead (atribuição ao time comercial) =====
+        function getCrmResp() {
+            if (_crmRespMem) return _crmRespMem;
+            try { const r = localStorage.getItem(crmRespKey()); if (r) { const o = JSON.parse(r); if (o && typeof o === 'object') return o; } } catch(e) {}
+            return {};
+        }
+        function setCrmLeadResp(phone, resp) {
+            const map = getCrmResp();
+            if (resp) map[phone] = resp; else delete map[phone];
+            _crmRespMem = map;
+            try { localStorage.setItem(crmRespKey(), JSON.stringify(map)); } catch(e) {}
+            const email = (activeUser && activeUser.email) || 'default';
+            if (resp) {
+                supabaseClient.from('crm_lead_responsavel').upsert({
+                    lojista_email: email, telefone: phone, responsavel: resp, updated_at: new Date().toISOString()
+                }, { onConflict: 'lojista_email,telefone' }).then(({ error }) => {
+                    if (error) console.warn('[CRM] responsável não sincronizado:', error.message);
+                });
+            } else {
+                supabaseClient.from('crm_lead_responsavel').delete()
+                    .eq('lojista_email', email).eq('telefone', phone)
+                    .then(({ error }) => { if (error) console.warn('[CRM] del responsável falhou:', error.message); });
+            }
+        }
+        function getCrmTeam() {
+            if (_crmTeamMem) return _crmTeamMem;
+            try { const t = localStorage.getItem(crmTeamKey()); if (t) { const a = JSON.parse(t); if (Array.isArray(a)) return a; } } catch(e) {}
+            return [];
+        }
+        function setCrmTeam(list) {
+            _crmTeamMem = Array.isArray(list) ? list : [];
+            try { localStorage.setItem(crmTeamKey(), JSON.stringify(_crmTeamMem)); } catch(e) {}
+            const email = (activeUser && activeUser.email) || 'default';
+            supabaseClient.from('crm_team').upsert({
+                lojista_email: email, membros: _crmTeamMem, updated_at: new Date().toISOString()
+            }, { onConflict: 'lojista_email' }).then(({ error }) => {
+                if (error) console.warn('[CRM] time não sincronizado:', error.message);
+            });
+        }
+        // Cor estável por responsável (pra gráficos/badges)
+        const CRM_RESP_COLORS = ['#7c3aed','#2563eb','#0891b2','#059669','#d97706','#dc2626','#db2777','#4f46e5','#0d9488','#ca8a04'];
+        function crmRespColor(name) {
+            const team = getCrmTeam();
+            let idx = team.indexOf(name);
+            if (idx < 0) { let h = 0; for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0; idx = h % CRM_RESP_COLORS.length; }
+            return CRM_RESP_COLORS[idx % CRM_RESP_COLORS.length];
         }
 
         function crmClassify(d) {
@@ -11380,6 +11521,15 @@
                     : escapeHtml(lead.lastProduct) + ' <span style="color:var(--text-muted);font-size:11px;">(sem link salvo)</span>')
                 : '—';
 
+            // Seletor de responsável no modal
+            const _mResp = getCrmResp()[lead.phone] || '';
+            const _mTeam = getCrmTeam().slice();
+            if (_mResp && !_mTeam.includes(_mResp)) _mTeam.push(_mResp);
+            const respSelectHtml = '<select onchange="crmModalSetResp(this,\'' + String(lead.phone).replace(/[^0-9]/g,'') + '\')" style="font-weight:600;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:5px 8px;background:var(--card-bg);color:var(--text-main);cursor:pointer;max-width:200px;">'
+                + '<option value="">— sem responsável —</option>'
+                + _mTeam.map(n => '<option value="' + escapeHtml(n) + '"' + (n === _mResp ? ' selected' : '') + '>' + escapeHtml(n) + '</option>').join('')
+                + '</select>';
+
             ov.innerHTML = '<div style="background:var(--card-bg);border:1px solid var(--border-strong,var(--border));border-radius:16px;max-width:440px;width:100%;box-shadow:0 24px 60px -12px rgba(0,0,0,.5);overflow:hidden;">'
                 + '<div style="padding:20px 22px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">'
                 +   '<div style="display:flex;align-items:center;gap:11px;min-width:0;">'
@@ -11396,6 +11546,7 @@
                 +   row('Primeira prova', crmFmtDate(lead.firstDate))
                 +   row('Última prova', crmFmtDate(lead.lastDate))
                 +   row('Produto provado', produtoLinkHtml)
+                +   '<div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;font-size:13px;align-items:center;"><span style="color:var(--text-muted);">Responsável</span>' + respSelectHtml + '</div>'
                 + '</div>'
                 + '<div style="padding:16px 22px 20px;display:flex;gap:10px;flex-wrap:wrap;">'
                 +   (hasUrl ? '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" style="flex:1;min-width:150px;text-align:center;background:rgba(124,58,237,.1);color:#7c3aed;border:1px solid rgba(124,58,237,.25);border-radius:10px;padding:11px;font-weight:600;font-size:13px;text-decoration:none;"><i class="ph-bold ph-link"></i> Página do produto</a>' : '')
@@ -11403,6 +11554,12 @@
                 + '</div>'
                 + '</div>';
             ov.style.display = 'flex';
+        }
+        function crmModalSetResp(sel, phone) {
+            setCrmLeadResp(phone, sel.value);
+            renderCrmBoard();
+            const tp = document.getElementById('crmTeamPanel');
+            if (tp && tp.style.display && tp.style.display !== 'none') renderCrmTeamPanel();
         }
 
         async function loadCRM() {
@@ -11582,12 +11739,171 @@
             renderCrmBoard();
         }
 
+        // ===== Modal Gerenciar Time =====
+        function openCrmTeamModal() {
+            renderCrmTeamList();
+            const m = document.getElementById('crmTeamModal');
+            if (m) m.style.display = 'flex';
+        }
+        function closeCrmTeamModal() {
+            const m = document.getElementById('crmTeamModal');
+            if (m) m.style.display = 'none';
+        }
+        function renderCrmTeamList() {
+            const list = document.getElementById('crmTeamList');
+            if (!list) return;
+            const team = getCrmTeam();
+            list.textContent = '';
+            if (!team.length) {
+                const e = document.createElement('div');
+                e.style.cssText = 'color:var(--text-muted);font-size:13px;padding:10px 2px;';
+                e.textContent = 'Nenhum responsável cadastrado. Adicione os membros do seu time comercial.';
+                list.appendChild(e);
+            }
+            team.forEach((name, idx) => {
+                const row = document.createElement('div');
+                row.className = 'crm-pipeline-row';
+                const dot = document.createElement('span');
+                dot.style.cssText = 'width:12px;height:12px;border-radius:50%;flex-shrink:0;background:' + crmRespColor(name) + ';';
+                row.appendChild(dot);
+                const inp = document.createElement('input');
+                inp.type = 'text'; inp.value = name; inp.className = 'crm-col-title-edit';
+                inp.addEventListener('input', () => { const t = getCrmTeam().slice(); t[idx] = inp.value; _crmTeamMem = t; });
+                row.appendChild(inp);
+                const del = document.createElement('button');
+                del.className = 'crm-pipe-delete';
+                del.innerHTML = '<i class="ph-bold ph-trash"></i>';
+                del.title = 'Remover membro';
+                del.onclick = () => { const t = getCrmTeam().slice(); t.splice(idx, 1); _crmTeamMem = t; renderCrmTeamList(); };
+                row.appendChild(del);
+                list.appendChild(row);
+            });
+        }
+        function addCrmTeamMember() {
+            const name = prompt('Nome do responsável (membro do time comercial):', '');
+            if (!name || !name.trim()) return;
+            const t = getCrmTeam().slice();
+            if (t.map(x => x.toLowerCase()).includes(name.trim().toLowerCase())) { alert('Esse responsável já existe.'); return; }
+            t.push(name.trim());
+            _crmTeamMem = t;
+            renderCrmTeamList();
+        }
+        function saveCrmTeam() {
+            const seen = new Set(), clean = [];
+            getCrmTeam().forEach(n => { const v = (n || '').trim(); if (v && !seen.has(v.toLowerCase())) { seen.add(v.toLowerCase()); clean.push(v); } });
+            setCrmTeam(clean);
+            closeCrmTeamModal();
+            populateCrmRespControls();
+            renderCrmBoard();
+        }
+
+        // Preenche o filtro de responsável (toolbar) com o time atual
+        function populateCrmRespControls() {
+            const sel = document.getElementById('crmRespFilter');
+            if (!sel) return;
+            const team = getCrmTeam();
+            const cur = _crmRespFilter;
+            sel.innerHTML = '<option value="">Todos os responsáveis</option>'
+                + '<option value="__none__">Sem responsável</option>'
+                + team.map(n => '<option value="' + escapeHtml(n) + '">' + escapeHtml(n) + '</option>').join('');
+            sel.value = cur || '';
+        }
+        function crmFilterResp(val) {
+            _crmRespFilter = val || '';
+            renderCrmBoard();
+        }
+        function toggleCrmTeamPanel() {
+            const p = document.getElementById('crmTeamPanel');
+            if (!p) return;
+            const show = !(p.style.display && p.style.display !== 'none');
+            p.style.display = show ? 'block' : 'none';
+            const btn = document.getElementById('crmTeamPanelBtn');
+            if (btn) btn.classList.toggle('active', show);
+            if (show) renderCrmTeamPanel();
+        }
+
+        // cor por etapa (índice na config do funil)
+        function crmStageColor(key, cols) {
+            const palette = ['#94a3b8','#7c3aed','#f59e0b','#3b82f6','#10b981','#ec4899','#06b6d4','#ef4444'];
+            const idx = Math.max(0, cols.findIndex(c => c.key === key));
+            return palette[idx % palette.length];
+        }
+
+        // ===== Painel de desempenho por responsável (gráficos) =====
+        function renderCrmTeamPanel() {
+            const panel = document.getElementById('crmTeamPanel');
+            if (!panel || !crmLeadMapCache) return;
+            const config = getCrmConfig();
+            const overrides = getCrmOverrides();
+            const resp = getCrmResp();
+            const team = getCrmTeam();
+            const NONE = 'Sem responsável';
+
+            const agg = {};   // nome -> { total, stages:{} }
+            const ensure = (n) => { if (!agg[n]) agg[n] = { total: 0, stages: {} }; return agg[n]; };
+            team.forEach(n => ensure(n));
+            Object.entries(crmLeadMapCache).forEach(([ph, lead]) => {
+                const who = resp[ph] || NONE;
+                const a = ensure(who);
+                a.total++;
+                const sk = waLeadStageKey(ph, lead, config, overrides);
+                a.stages[sk] = (a.stages[sk] || 0) + 1;
+            });
+
+            const names = Object.keys(agg).filter(n => agg[n].total > 0 || team.includes(n));
+            names.sort((x, y) => (x === NONE) - (y === NONE) || agg[y].total - agg[x].total);
+
+            if (!team.length && names.every(n => n === NONE)) {
+                panel.innerHTML = '<div class="crm-team-empty"><i class="ph-bold ph-users-three"></i> Cadastre seu time em <strong>Gerenciar time</strong> e atribua os leads (no card ou no detalhe) pra ver o desempenho de cada responsável.</div>';
+                return;
+            }
+
+            const maxTotal = Math.max(1, ...names.map(n => agg[n].total));
+            const cols = config.columns;
+
+            let h = '<div class="crm-team-grid">';
+            // Gráfico 1: total por responsável
+            h += '<div class="crm-team-card"><div class="crm-team-card-title"><i class="ph-bold ph-chart-bar"></i> Leads por responsável</div><div class="crm-team-bars">';
+            names.forEach(n => {
+                const a = agg[n];
+                const pct = Math.round(a.total / maxTotal * 100);
+                const color = n === NONE ? '#94a3b8' : crmRespColor(n);
+                h += '<div class="crm-tb-row"><div class="crm-tb-label" title="' + escapeHtml(n) + '"><span class="crm-tb-dot" style="background:' + color + '"></span>' + escapeHtml(n) + '</div>'
+                  + '<div class="crm-tb-track"><div class="crm-tb-fill" style="width:' + pct + '%;background:' + color + '"></div></div>'
+                  + '<div class="crm-tb-val">' + a.total + '</div></div>';
+            });
+            h += '</div></div>';
+
+            // Gráfico 2: por etapa, por responsável (empilhado)
+            h += '<div class="crm-team-card"><div class="crm-team-card-title"><i class="ph-bold ph-funnel"></i> Leads por etapa, por responsável</div>';
+            h += '<div class="crm-stage-legend">' + cols.map(c => '<span class="crm-sl-item"><span class="crm-sl-dot" style="background:' + crmStageColor(c.key, cols) + '"></span>' + escapeHtml(c.title) + '</span>').join('') + '</div>';
+            h += '<div class="crm-team-bars">';
+            names.forEach(n => {
+                const a = agg[n];
+                const color = n === NONE ? '#94a3b8' : crmRespColor(n);
+                let seg = '';
+                cols.forEach(c => {
+                    const v = a.stages[c.key] || 0;
+                    if (!v) return;
+                    const pct = Math.round(v / Math.max(1, a.total) * 100);
+                    seg += '<div class="crm-stack-seg" title="' + escapeHtml(c.title) + ': ' + v + '" style="width:' + pct + '%;background:' + crmStageColor(c.key, cols) + '"></div>';
+                });
+                h += '<div class="crm-tb-row"><div class="crm-tb-label" title="' + escapeHtml(n) + '"><span class="crm-tb-dot" style="background:' + color + '"></span>' + escapeHtml(n) + '</div>'
+                  + '<div class="crm-tb-track crm-stack">' + (seg || '<div class="crm-stack-empty">—</div>') + '</div>'
+                  + '<div class="crm-tb-val">' + a.total + '</div></div>';
+            });
+            h += '</div></div></div>';
+            panel.innerHTML = h;
+        }
+
         function renderCrmBoard() {
             if (!crmLeadMapCache) return;
             const leadMap = crmLeadMapCache;
             const phoneList = Object.keys(leadMap);
             const config = getCrmConfig();
             const overrides = getCrmOverrides();
+            const resp = getCrmResp();
+            const team = getCrmTeam();
 
             // Filtro de busca por telefone ou nome
             const q = _crmSearchTerm;
@@ -11611,6 +11927,12 @@
             phoneList.forEach(ph => {
                 const d = leadMap[ph];
                 if (!matchesSearch(ph, d)) return;
+                // Filtro por responsável
+                if (_crmRespFilter) {
+                    const who = resp[ph] || '';
+                    if (_crmRespFilter === '__none__') { if (who) return; }
+                    else if (who !== _crmRespFilter) return;
+                }
                 matchCount++;
                 let targetKey = overrides[ph];
                 if (targetKey && !buckets[targetKey]) targetKey = null; // override aponta pra coluna deletada → ignora
@@ -11712,6 +12034,31 @@
 
                         card.append(name, meta);
 
+                        // Seletor de responsável (atribuição rápida ao time comercial)
+                        const curResp = resp[lead.phone] || '';
+                        const respWrap = document.createElement('div');
+                        respWrap.className = 'crm-card-resp-wrap';
+                        const respDot = document.createElement('span');
+                        respDot.className = 'crm-card-resp-dot';
+                        respDot.style.background = curResp ? crmRespColor(curResp) : 'transparent';
+                        const respSel = document.createElement('select');
+                        respSel.className = 'crm-card-resp' + (curResp ? ' has-resp' : '');
+                        let respOpts = '<option value="">+ Responsável</option>';
+                        const teamPlus = team.slice();
+                        if (curResp && !teamPlus.includes(curResp)) teamPlus.push(curResp);
+                        teamPlus.forEach(n => { respOpts += '<option value="' + escapeHtml(n) + '"' + (n === curResp ? ' selected' : '') + '>' + escapeHtml(n) + '</option>'; });
+                        respSel.innerHTML = respOpts;
+                        respSel.addEventListener('click', (e) => e.stopPropagation());
+                        respSel.addEventListener('change', (e) => {
+                            e.stopPropagation();
+                            setCrmLeadResp(lead.phone, respSel.value);
+                            renderCrmBoard();
+                            const tp = document.getElementById('crmTeamPanel');
+                            if (tp && tp.style.display && tp.style.display !== 'none') renderCrmTeamPanel();
+                        });
+                        respWrap.append(respDot, respSel);
+                        card.appendChild(respWrap);
+
                         if (lead.lastProduct) {
                             const prod = document.createElement('div');
                             prod.className = 'crm-card-product';
@@ -11760,6 +12107,10 @@
                 colEl.append(header, body);
                 board.appendChild(colEl);
             });
+
+            try { populateCrmRespControls(); } catch(e) {}
+            const _tp = document.getElementById('crmTeamPanel');
+            if (_tp && _tp.style.display && _tp.style.display !== 'none') { try { renderCrmTeamPanel(); } catch(e) {} }
         }
 
         function renderLeadsTable(searchTerm) {
