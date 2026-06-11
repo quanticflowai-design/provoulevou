@@ -4971,8 +4971,8 @@
                             </div>
                             <div>
                                 <label class="wa-label">Corpo da mensagem</label>
-                                <textarea class="wa-input" id="newTplBody" rows="5" placeholder="Oi {{1}}, você provou o {{2}} mas ainda não comprou. Que tal aproveitar agora?"></textarea>
-                                <div class="wa-help">Use <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;">{{1}}</code> pra nome, <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;">{{2}}</code> pra produto provado</div>
+                                <textarea class="wa-input" id="newTplBody" rows="5" placeholder="Oi {{1}}, você provou o {{2}} mas ainda não comprou. Finalize aqui: {{3}}"></textarea>
+                                <div class="wa-help">Use <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;">{{1}}</code> pra nome, <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;">{{2}}</code> pra produto provado e <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;">{{3}}</code> pro link do produto (o disparo preenche o link de cada lead automaticamente)</div>
                             </div>
                             <div class="wa-form-row">
                                 <div>
@@ -6676,7 +6676,7 @@
 
             // Conta placeholders e gera exemplos (obrigatório pra Meta aceitar)
             const placeholderCount = (body.match(/\{\{(\d+)\}\}/g) || []).length;
-            const sampleValues = ['Maria', 'Aviator Solis Dourado', 'R$ 199,90', 'CUPOM10', 'amanhã'];
+            const sampleValues = ['Maria', 'Aviator Solis Dourado', 'https://sualoja.com.br/produto', 'CUPOM10', 'amanhã'];
             const bodyExamples = placeholderCount > 0
                 ? { body_text: [sampleValues.slice(0, placeholderCount)] }
                 : null;
