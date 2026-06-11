@@ -11143,12 +11143,36 @@
         let crmLeadMapCache = null; // mantido entre renders pra drag-drop não refetchar
 
         const CRM_DEFAULT_COLUMNS = [
-            { key: 'cold',       title: 'Provou e não comprou', icon: 'ph-user',                auto: true, rule: 'cold' },
-            { key: 'multiplas',  title: 'Provou + de 1 vez',    icon: 'ph-arrows-clockwise',    auto: true, rule: 'multiplas' },
-            { key: 'reengajou',  title: 'Re-engajou',           icon: 'ph-fire',                auto: true, rule: 'reengajou' },
-            { key: 'voltou',     title: 'Voltou outro dia',     icon: 'ph-calendar-check',      auto: true, rule: 'voltou' },
-            { key: 'convertido', title: 'Convertido',           icon: 'ph-check-circle',        auto: true, rule: 'convertido' }
+            { key: 'cold',       title: 'Provou e não comprou', icon: 'ph-user',           auto: true,  rule: 'cold' },
+            { key: 'em-contato', title: 'Em contato',           icon: 'ph-chats-circle',   auto: false },
+            { key: 'negociando', title: 'Negociando',           icon: 'ph-handshake',      auto: false },
+            { key: 'convertido', title: 'Convertido',           icon: 'ph-check-circle',   auto: true,  rule: 'convertido' },
+            { key: 'perdido',    title: 'Perdido',              icon: 'ph-x-circle',       auto: false }
         ];
+
+        // Migra configs antigas (etapas comportamentais) → funil de vendas.
+        // Remove as automáticas redundantes (multiplas/reengajou/voltou) e, se o lojista
+        // ainda não tem etapas de venda próprias, adiciona Em contato/Negociando/Perdido.
+        function migrateCrmConfig(cfg) {
+            if (!cfg || !Array.isArray(cfg.columns) || !cfg.columns.length) {
+                return { columns: CRM_DEFAULT_COLUMNS.slice(), _migrated: true };
+            }
+            const deadRules = new Set(['multiplas', 'reengajou', 'voltou']);
+            let cols = cfg.columns.filter(c => !(c.auto && deadRules.has(c.rule)));
+            let changed = cols.length !== cfg.columns.length;
+            if (!cols.some(c => c.key === 'cold')) { cols.unshift(CRM_DEFAULT_COLUMNS[0]); changed = true; }
+            if (!cols.some(c => c.key === 'convertido')) { cols.push({ key: 'convertido', title: 'Convertido', icon: 'ph-check-circle', auto: true, rule: 'convertido' }); changed = true; }
+            const salesDefaults = CRM_DEFAULT_COLUMNS.filter(c => !c.auto);
+            const salesKeys = salesDefaults.map(s => s.key);
+            const hasCustom = cols.some(c => !c.auto);
+            const hasSalesKey = cols.some(c => salesKeys.includes(c.key));
+            if (!hasCustom && !hasSalesKey) {
+                const convIdx = cols.findIndex(c => c.key === 'convertido');
+                cols.splice(convIdx < 0 ? cols.length : convIdx, 0, ...salesDefaults);
+                changed = true;
+            }
+            return { columns: cols, _migrated: changed };
+        }
 
         function crmConfigKey()    { return 'pl-crm-config-'    + ((activeUser && activeUser.email) || 'default'); }
         function crmOverridesKey() { return 'pl-crm-overrides-' + ((activeUser && activeUser.email) || 'default'); }
@@ -11228,6 +11252,13 @@
             _crmOverridesMem = remoteOv  != null ? remoteOv : localOv;
             _crmRespMem      = remoteResp != null ? remoteResp : localResp;
             _crmTeamMem      = remoteTeam != null ? remoteTeam : localTeam;
+
+            // Migra funil antigo (etapas comportamentais) → funil de vendas (uma vez)
+            try {
+                const _mig = migrateCrmConfig(_crmConfigMem);
+                _crmConfigMem = { columns: _mig.columns };
+                if (_mig._migrated) { setCrmConfig(_crmConfigMem); }
+            } catch (e) { /* mantém config atual em caso de erro */ }
 
             // Atualiza backup local com o estado autoritativo
             try { localStorage.setItem(crmConfigKey(),    JSON.stringify(_crmConfigMem)); } catch(e) {}
@@ -11352,14 +11383,9 @@
         }
 
         function crmClassify(d) {
-            if (d.bought) return 'convertido';
-            const dates = Array.from(d.uniqueDates).sort();
-            if (dates.length >= 2) {
-                const gap = (new Date(dates[dates.length-1]) - new Date(dates[0])) / 86400000;
-                return gap > 7 ? 'voltou' : 'reengajou';
-            }
-            if (d.provaCount >= 2) return 'multiplas';
-            return 'cold';
+            // Funil de vendas: só 2 automáticas. Quem comprou (pós-prova) = Convertido;
+            // todos os outros entram em "Provou e não comprou", e o time move pelas etapas.
+            return d.bought ? 'convertido' : 'cold';
         }
 
         function crmFormatRelative(dateStr) {
