@@ -5020,11 +5020,16 @@
                         Renomeie, reordene, adicione ou remova colunas. As 5 colunas automáticas (com 🤖) classificam os leads sozinhas — só podem ser renomeadas/reordenadas. Colunas que você criar recebem leads apenas via arrastar e soltar.
                     </p>
                     <div id="crmPipelineList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px;"></div>
-                    <button onclick="addCrmCustomColumn()" style="margin-top:12px;background:transparent;border:1.5px dashed #d1d5db;color:#555;padding:10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">
-                        <i class="ph-bold ph-plus"></i> Adicionar coluna customizada
-                    </button>
+                    <div style="display:flex;gap:8px;margin-top:12px;">
+                        <input type="text" id="crmNewColInput" maxlength="30" placeholder="Nome da nova coluna (ex: Em negociação)" autocomplete="off"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();addCrmCustomColumn();}"
+                            style="flex:1;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:13px;color:#111;background:#fff;outline:none;">
+                        <button onclick="addCrmCustomColumn()" style="background:transparent;border:1.5px dashed #d1d5db;color:#555;padding:10px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;">
+                            <i class="ph-bold ph-plus"></i> Adicionar
+                        </button>
+                    </div>
                     <div style="display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:18px;flex-wrap:wrap;">
-                        <button onclick="resetCrmPipeline()" style="background:transparent;border:1px solid #fca5a5;color:#dc2626;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12.5px;">Restaurar padrão</button>
+                        <button id="crmResetBtn" onclick="resetCrmPipeline()" style="background:transparent;border:1px solid #fca5a5;color:#dc2626;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12.5px;">Restaurar padrão</button>
                         <div style="display:flex;gap:10px;">
                             <button onclick="closeCrmPipelineModal()" style="background:transparent;border:1px solid #d1d5db;color:#555;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">Cancelar</button>
                             <button onclick="saveCrmPipeline()" style="background:#7c3aed;border:0;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Salvar</button>
@@ -11461,10 +11466,28 @@
 
         // ============== Modal Personalizar Funil ==============
         let _crmPipelineDraft = null; // edição em memória até salvar
+        let _crmColPendingDelete = -1; // índice da coluna aguardando confirmação de remoção (inline)
+
+        // Toast inline (substitui alert do navegador)
+        function crmToast(msg, isError) {
+            let t = document.getElementById('crmToast');
+            if (!t) {
+                t = document.createElement('div'); t.id = 'crmToast';
+                t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:10001;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:opacity .3s;color:#fff;';
+                document.body.appendChild(t);
+            }
+            t.style.background = isError ? '#dc2626' : '#111';
+            t.textContent = msg;
+            t.style.opacity = '1';
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2800);
+        }
 
         function openCrmPipelineModal() {
             _crmPipelineDraft = JSON.parse(JSON.stringify(getCrmConfig())); // deep clone
+            _crmColPendingDelete = -1;
             renderCrmPipelineList();
+            const inp = document.getElementById('crmNewColInput'); if (inp) inp.value = '';
             const m = document.getElementById('crmPipelineModal');
             if (m.parentElement !== document.body) document.body.appendChild(m);
             m.style.display = 'flex';
@@ -11514,8 +11537,10 @@
 
                 const del = document.createElement('button');
                 del.className = 'crm-pipe-delete';
-                del.innerHTML = '<i class="ph-bold ph-trash"></i>';
-                del.title = col.auto ? 'Colunas automáticas não podem ser removidas' : 'Remover coluna';
+                const pendingDel = (idx === _crmColPendingDelete);
+                del.innerHTML = pendingDel ? 'Remover?' : '<i class="ph-bold ph-trash"></i>';
+                if (pendingDel) del.style.cssText = 'color:#dc2626;font-weight:700;font-size:11px;';
+                del.title = col.auto ? 'Colunas automáticas não podem ser removidas' : (pendingDel ? 'Clique de novo pra confirmar' : 'Remover coluna');
                 del.disabled = !!col.auto;
                 del.onclick = () => removeCrmCol(idx);
                 row.appendChild(del);
@@ -11534,19 +11559,24 @@
         function removeCrmCol(idx) {
             const col = _crmPipelineDraft.columns[idx];
             if (col.auto) return;
-            if (!confirm(`Remover a coluna "${col.title}"? Os leads dela voltam pra classificação automática.`)) return;
+            // Confirmação inline: 1º clique pede confirmação, 2º remove
+            if (_crmColPendingDelete !== idx) { _crmColPendingDelete = idx; renderCrmPipelineList(); return; }
+            _crmColPendingDelete = -1;
             _crmPipelineDraft.columns.splice(idx, 1);
             renderCrmPipelineList();
         }
         function addCrmCustomColumn() {
-            const title = prompt('Nome da nova coluna:', 'Negociando');
-            if (!title || !title.trim()) return;
+            const inp = document.getElementById('crmNewColInput');
+            const title = inp ? inp.value.trim() : '';
+            if (!title) { if (inp) inp.focus(); return; }
+            _crmColPendingDelete = -1;
             _crmPipelineDraft.columns.push({
                 key: 'custom-' + Date.now().toString(36),
-                title: title.trim(),
+                title: title,
                 icon: 'ph-flag',
                 auto: false
             });
+            if (inp) { inp.value = ''; inp.focus(); }
             renderCrmPipelineList();
         }
         function saveCrmPipeline() {
@@ -11573,8 +11603,19 @@
             closeCrmPipelineModal();
             renderCrmBoard();
         }
+        let _crmResetPending = false;
         function resetCrmPipeline() {
-            if (!confirm('Restaurar o funil padrão? Suas colunas customizadas serão removidas (os leads delas voltam pra classificação automática).')) return;
+            const btn = document.getElementById('crmResetBtn');
+            const restore = () => { if (btn) { btn.textContent = 'Restaurar padrão'; btn.style.background = 'transparent'; btn.style.color = '#dc2626'; btn.style.borderColor = '#fca5a5'; } };
+            if (!_crmResetPending) {
+                _crmResetPending = true;
+                if (btn) { btn.textContent = 'Confirmar restauração?'; btn.style.background = '#dc2626'; btn.style.color = '#fff'; btn.style.borderColor = '#dc2626'; }
+                setTimeout(() => { _crmResetPending = false; restore(); }, 3500);
+                return;
+            }
+            _crmResetPending = false;
+            restore();
+            _crmColPendingDelete = -1;
             _crmPipelineDraft = { columns: CRM_DEFAULT_COLUMNS.slice() };
             renderCrmPipelineList();
         }
@@ -11800,7 +11841,7 @@
 
         function exportCrmCSV() {
             if (!crmLeadMapCache) {
-                alert('Carregue o CRM primeiro antes de exportar.');
+                crmToast('Carregue o CRM primeiro antes de exportar.', true);
                 return;
             }
             const config = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
