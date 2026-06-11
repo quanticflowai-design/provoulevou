@@ -11425,7 +11425,10 @@
             const modal = document.getElementById('crmMsgModal');
             const ta = document.getElementById('crmMsgTextarea');
             if (ta) ta.value = getCrmMsgTemplate();
-            if (modal) modal.style.display = 'flex';
+            if (modal) {
+                if (modal.parentElement !== document.body) document.body.appendChild(modal);
+                modal.style.display = 'flex';
+            }
         }
         function closeCrmMsgModal() {
             const modal = document.getElementById('crmMsgModal');
@@ -11456,7 +11459,9 @@
         function openCrmPipelineModal() {
             _crmPipelineDraft = JSON.parse(JSON.stringify(getCrmConfig())); // deep clone
             renderCrmPipelineList();
-            document.getElementById('crmPipelineModal').style.display = 'flex';
+            const m = document.getElementById('crmPipelineModal');
+            if (m.parentElement !== document.body) document.body.appendChild(m);
+            m.style.display = 'flex';
         }
         function closeCrmPipelineModal() {
             document.getElementById('crmPipelineModal').style.display = 'none';
@@ -11839,7 +11844,11 @@
         // ===== Modal Gerenciar Time =====
         function openCrmTeamModal() {
             const m = document.getElementById('crmTeamModal');
-            if (m) m.style.display = 'flex';        // mostra o modal PRIMEIRO (à prova de erro)
+            if (m) {
+                // O modal está dentro de uma aba oculta (#tab-meu-plano) → tira do body pra exibir
+                if (m.parentElement !== document.body) document.body.appendChild(m);
+                m.style.display = 'flex';
+            }
             try { renderCrmTeamList(); } catch (e) { console.warn('[CRM] renderCrmTeamList:', e); }
         }
         function closeCrmTeamModal() {
