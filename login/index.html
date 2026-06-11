@@ -4984,6 +4984,11 @@
                                     <input type="text" class="wa-input" id="newTplFooter" placeholder="Provou Levou">
                                 </div>
                             </div>
+                            <div style="margin-top:14px;">
+                                <label class="wa-label">Botão de link do produto <span style="color:var(--text-muted);font-weight:500;">(opcional — recomendado pela Meta)</span></label>
+                                <input type="text" class="wa-input" id="newTplBtnText" maxlength="25" placeholder="Ex: Comprar agora">
+                                <div class="wa-help">Se preencher, cria um <strong>botão</strong> que leva o cliente direto pro <strong>produto que ele provou</strong> — botão converte mais que link no texto. Deixe vazio pra não ter botão.</div>
+                            </div>
                         </div>
                         <div class="wa-feedback" id="waTplFeedback"></div>
                         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
@@ -6693,6 +6698,27 @@
             components.push(bodyComp);
             if (footer) components.push({ type: 'FOOTER', text: footer });
 
+            // Botão de link do produto (URL dinâmica: domínio da loja + {{1}} = caminho do produto)
+            const btnText = (document.getElementById('newTplBtnText')?.value || '').trim();
+            if (btnText) {
+                const cleanDomain = (activeUser.origem || '')
+                    .replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '').replace(/\/$/, '');
+                if (!cleanDomain) {
+                    fb.className = 'wa-feedback error';
+                    fb.innerHTML = 'Não consegui identificar o domínio da loja pra montar o botão. Remova o texto do botão ou configure a origem da loja.';
+                    return;
+                }
+                components.push({
+                    type: 'BUTTONS',
+                    buttons: [{
+                        type: 'URL',
+                        text: btnText,
+                        url: 'https://' + cleanDomain + '/{{1}}',
+                        example: ['https://' + cleanDomain + '/produto-exemplo']
+                    }]
+                });
+            }
+
             const payload = { name, category, language: lang, components };
             const btn = document.getElementById('waTplSubmitBtn');
             btn.disabled = true;
@@ -7488,9 +7514,12 @@
                 // Se o link vai num botão de URL, manda components com o param do botão
                 let components = null;
                 if (urlBtnIndex >= 0 && leadLink) {
+                    // Botão de URL dinâmico = base fixa (domínio) + {{1}}. Manda só o CAMINHO
+                    // (tira esquema+host), pra Meta concatenar com a base do botão sem duplicar o domínio.
+                    const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || leadLink;
                     components = [];
                     if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
-                    components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: leadLink }] });
+                    components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
                 }
                 try {
                     const payload = {
