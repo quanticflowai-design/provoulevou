@@ -11838,9 +11838,9 @@
 
         // ===== Modal Gerenciar Time =====
         function openCrmTeamModal() {
-            renderCrmTeamList();
             const m = document.getElementById('crmTeamModal');
-            if (m) m.style.display = 'flex';
+            if (m) m.style.display = 'flex';        // mostra o modal PRIMEIRO (à prova de erro)
+            try { renderCrmTeamList(); } catch (e) { console.warn('[CRM] renderCrmTeamList:', e); }
         }
         function closeCrmTeamModal() {
             const m = document.getElementById('crmTeamModal');
