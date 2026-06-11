@@ -2508,9 +2508,6 @@
                 <button class="tab-btn active" id="tab-btn-visao-geral" data-tab="visao-geral" onclick="showTab('visao-geral')" role="tab" aria-selected="true">
                     <i class="ph-bold ph-chart-pie-slice"></i> Visão Geral
                 </button>
-                <button class="tab-btn" data-tab="crm" id="tab-btn-crm" onclick="showTab('crm')" role="tab" aria-selected="false">
-                    <i class="ph-bold ph-kanban"></i> CRM
-                </button>
                 <button class="tab-btn" data-tab="disparos" id="tab-btn-disparos" onclick="showTab('disparos')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-paper-plane-tilt"></i> Disparos
                 </button>
@@ -4026,13 +4023,15 @@
                     @keyframes dispFade { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
                 </style>
                 <div class="disp-subnav" id="dispSubnav">
-                    <button data-sub="conversas" class="active" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> Conversas <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
+                    <button data-sub="crm" class="active" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> CRM</button>
+                    <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> Conversas <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
                     <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-paper-plane-tilt"></i> Disparar</button>
                     <button data-sub="templates" onclick="dispSwitchSub('templates')"><i class="ph-bold ph-chat-circle-text"></i> Mensagens modelo</button>
                     <button data-sub="historico" onclick="dispSwitchSub('historico')"><i class="ph-bold ph-chart-bar"></i> Histórico</button>
                     <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> Conexão</button>
                 </div>
-                <div class="disp-subpane active" id="dispSubConversas"></div>
+                <div class="disp-subpane active" id="dispSubCrm"></div>
+                <div class="disp-subpane" id="dispSubConversas"></div>
                 <div class="disp-subpane" id="dispSubDisparar"></div>
                 <div class="disp-subpane" id="dispSubTemplates"></div>
                 <div class="disp-subpane" id="dispSubHistorico"></div>
@@ -4088,7 +4087,7 @@
                     .disp-bulk-card { border: 1.5px solid rgba(37,211,102,.35); box-shadow: 0 4px 20px -8px rgba(37,211,102,.25); }
                     .disp-bulk-head { display:flex; align-items:flex-start; gap:14px; margin-bottom:18px; }
                     .disp-bulk-icon { width:46px; height:46px; border-radius:12px; flex-shrink:0; background:linear-gradient(135deg,#25D366,#128C7E); display:grid; place-items:center; color:#fff; font-size:24px; box-shadow:0 6px 16px rgba(37,211,102,.28); }
-                    .disp-bulk-grid { display:grid; grid-template-columns:1fr 1fr 130px; gap:14px; margin-bottom:16px; }
+                    .disp-bulk-grid { display:grid; grid-template-columns:1fr 130px; gap:14px; margin-bottom:16px; }
                     .disp-bulk-statsrow { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
                     .disp-bulk-stat { background:rgba(124,58,237,0.06); border:1px solid var(--border); border-radius:12px; padding:14px 16px; }
                     .disp-bulk-stat.green { background:rgba(37,211,102,0.06); }
@@ -4145,10 +4144,6 @@
                                 <select id="waBulkStageSelect" class="wa-bulk-field" onchange="waBulkRecalcTargets()">
                                     <option value="all">Todas as etapas</option>
                                 </select>
-                            </div>
-                            <div>
-                                <label class="wa-bulk-field-label">&nbsp;</label>
-                                <div style="font-size:12px;color:var(--text-muted);padding:13px 0;line-height:1.3;">Filtra os leads por estágio no CRM (provou e não comprou, re-engajou, etc).</div>
                             </div>
                             <div>
                                 <label class="wa-bulk-field-label">Quantos</label>
@@ -5232,7 +5227,8 @@
         }
 
         function restoreTab() {
-            const saved = (function(){ try { return localStorage.getItem('pl-active-tab'); } catch(e) { return null; } })();
+            let saved = (function(){ try { return localStorage.getItem('pl-active-tab'); } catch(e) { return null; } })();
+            if (saved === 'crm') saved = 'disparos';   // CRM agora vive dentro de Disparos
             showTab(saved || 'visao-geral');
         }
 
@@ -6929,6 +6925,13 @@
                 const p = document.getElementById(paneId);
                 if (el && p) p.appendChild(el);
             };
+            // CRM: move a aba inteira pra dentro do sub-pane (centraliza tudo em Disparos)
+            const crm = document.getElementById('tab-crm');
+            if (crm) {
+                document.getElementById('dispSubCrm').appendChild(crm);
+                crm.classList.remove('tab-pane');
+                crm.style.display = 'block';
+            }
             move('dispChatCard',   'dispSubConversas');
             move('dispBulkCard',   'dispSubDisparar');
             move('dispKpisRow',    'dispSubHistorico');
@@ -6950,7 +6953,7 @@
 
         function dispSwitchSub(name) {
             document.querySelectorAll('#dispSubnav button').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
-            const map = { conversas: 'dispSubConversas', disparar: 'dispSubDisparar', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao' };
+            const map = { crm: 'dispSubCrm', conversas: 'dispSubConversas', disparar: 'dispSubDisparar', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao' };
             Object.entries(map).forEach(([k, id]) => {
                 const p = document.getElementById(id);
                 if (p) p.classList.toggle('active', k === name);
@@ -6975,6 +6978,12 @@
                 if (typeof waLoadTemplates === 'function') waLoadTemplates();
             }
             if (name === 'disparar') { try { maybeShowDispWizard(); } catch (e) {} }
+            if (name === 'crm') {
+                try {
+                    if (!crmLeadMapCache && typeof loadCRM === 'function') { crmLoaded = true; loadCRM().catch(() => { crmLoaded = false; }); }
+                    else if (typeof renderCrmBoard === 'function') renderCrmBoard();
+                } catch (e) {}
+            }
         }
 
         // ============== Assistente: primeira campanha de disparo (uma vez) ==============
@@ -7081,8 +7090,7 @@
             if (!window._dispSubInit) {
                 window._dispSubInit = true;
                 const saved = (function(){ try { return localStorage.getItem('pl-disp-subtab'); } catch(e){ return null; } })();
-                const connected = _waConfigCache && _waConfigCache.status === 'connected';
-                dispSwitchSub(saved || (connected ? 'conversas' : 'conexao'));
+                dispSwitchSub(saved || 'crm');
             }
 
             // 1) CRM bucket counts (sem mostrar leads)
@@ -7500,9 +7508,12 @@
 
         // Mantido por compatibilidade: rola até o painel inline em vez de abrir modal
         function openWaBulkModal() {
-            const card = document.getElementById('dispBulkCard');
             if (typeof showTab === 'function') showTab('disparos');
-            if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (typeof dispSwitchSub === 'function') dispSwitchSub('disparar');
+            setTimeout(() => {
+                const card = document.getElementById('dispBulkCard');
+                if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 120);
         }
 
         // Popula o seletor de etapa do CRM no modal de massa
