@@ -6020,20 +6020,24 @@
         // self-hosted), faz polling leve a cada 12s enquanto a aba Conversas está visível.
         // Assim novas mensagens aparecem sozinhas, sem precisar clicar em "Atualizar".
         let _chatPollTimer = null;
+        async function chatRefreshIfActive() {
+            const pane = document.getElementById('dispSubConversas');
+            if (!pane || !pane.classList.contains('active') || document.hidden) return;
+            const active = _chatActivePhone;
+            const prevLast = active ? ((_chatConvs.find(c => c.phone === active) || {}).lastAt || '') : '';
+            await loadConversas();
+            // Só re-renderiza a thread aberta se chegou mensagem nova (evita pulo de scroll)
+            if (active) {
+                const nowLast = (_chatConvs.find(c => c.phone === active) || {}).lastAt || '';
+                if (nowLast !== prevLast) openConversa(active);
+            }
+        }
         function chatStartPolling() {
             if (_chatPollTimer) return;
-            _chatPollTimer = setInterval(async () => {
-                const pane = document.getElementById('dispSubConversas');
-                if (!pane || !pane.classList.contains('active') || document.hidden) return;
-                const active = _chatActivePhone;
-                const prevLast = active ? ((_chatConvs.find(c => c.phone === active) || {}).lastAt || '') : '';
-                await loadConversas();
-                // Só re-renderiza a thread aberta se chegou mensagem nova (evita pulo de scroll)
-                if (active) {
-                    const nowLast = (_chatConvs.find(c => c.phone === active) || {}).lastAt || '';
-                    if (nowLast !== prevLast) openConversa(active);
-                }
-            }, 12000);
+            _chatPollTimer = setInterval(chatRefreshIfActive, 5000);
+            // Atualiza NA HORA quando o usuário volta pra aba/janela (ex: depois de responder no WhatsApp)
+            document.addEventListener('visibilitychange', () => { if (!document.hidden) chatRefreshIfActive(); });
+            window.addEventListener('focus', chatRefreshIfActive);
         }
 
         async function waLoadConfig() {
