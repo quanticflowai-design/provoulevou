@@ -2079,6 +2079,16 @@
         .crm-sl-dot { width:9px; height:9px; border-radius:3px; flex-shrink:0; }
         .crm-team-empty { font-size:13px; color:var(--text-muted); background:var(--card-bg); border:1.5px dashed var(--border); border-radius:12px; padding:20px; text-align:center; }
         .crm-team-empty i { color: var(--primary); margin-right:6px; }
+        /* Leads por etapa, por responsável (nome + etapas abaixo) */
+        .crm-resp-stages { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:14px; }
+        .crm-rs-block { border:1px solid var(--border); border-radius:11px; padding:12px 14px; background:var(--bg-soft,rgba(127,127,127,.03)); }
+        .crm-rs-name { font-size:13px; font-weight:700; display:flex; align-items:center; gap:7px; margin-bottom:10px; padding-bottom:9px; border-bottom:1px solid var(--border); }
+        .crm-rs-total { margin-left:auto; font-size:12px; font-weight:700; color:var(--text-muted); background:var(--card-bg); border:1px solid var(--border); border-radius:99px; padding:1px 9px; }
+        .crm-rs-stages { display:flex; flex-direction:column; gap:7px; }
+        .crm-rs-stage { display:flex; align-items:center; gap:7px; font-size:12px; }
+        .crm-rs-stage.zero { opacity:.4; }
+        .crm-rs-stage-name { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-main); }
+        .crm-rs-stage-count { font-weight:700; font-size:12.5px; min-width:22px; text-align:right; }
         .crm-col-empty {
             font-size: 11.5px; color: var(--text-faint); padding: 22px 12px;
             text-align: center; font-style: italic;
@@ -12037,23 +12047,23 @@
             });
             h += '</div></div>';
 
-            // Gráfico 2: por etapa, por responsável (empilhado)
+            // Gráfico 2: nome do responsável + etapas abaixo, com total por etapa
             h += '<div class="crm-team-card"><div class="crm-team-card-title"><i class="ph-bold ph-funnel"></i> Leads por etapa, por responsável</div>';
-            h += '<div class="crm-stage-legend">' + cols.map(c => '<span class="crm-sl-item"><span class="crm-sl-dot" style="background:' + crmStageColor(c.key, cols) + '"></span>' + escapeHtml(c.title) + '</span>').join('') + '</div>';
-            h += '<div class="crm-team-bars">';
+            h += '<div class="crm-resp-stages">';
             names.forEach(n => {
                 const a = agg[n];
                 const color = n === NONE ? '#94a3b8' : crmRespColor(n);
-                let seg = '';
+                h += '<div class="crm-rs-block">';
+                h += '<div class="crm-rs-name"><span class="crm-tb-dot" style="background:' + color + '"></span>' + escapeHtml(n) + '<span class="crm-rs-total">' + a.total + '</span></div>';
+                h += '<div class="crm-rs-stages">';
                 cols.forEach(c => {
                     const v = a.stages[c.key] || 0;
-                    if (!v) return;
-                    const pct = Math.round(v / Math.max(1, a.total) * 100);
-                    seg += '<div class="crm-stack-seg" title="' + escapeHtml(c.title) + ': ' + v + '" style="width:' + pct + '%;background:' + crmStageColor(c.key, cols) + '"></div>';
+                    h += '<div class="crm-rs-stage' + (v ? '' : ' zero') + '">'
+                       + '<span class="crm-sl-dot" style="background:' + crmStageColor(c.key, cols) + '"></span>'
+                       + '<span class="crm-rs-stage-name">' + escapeHtml(c.title) + '</span>'
+                       + '<span class="crm-rs-stage-count">' + v + '</span></div>';
                 });
-                h += '<div class="crm-tb-row"><div class="crm-tb-label" title="' + escapeHtml(n) + '"><span class="crm-tb-dot" style="background:' + color + '"></span>' + escapeHtml(n) + '</div>'
-                  + '<div class="crm-tb-track crm-stack">' + (seg || '<div class="crm-stack-empty">—</div>') + '</div>'
-                  + '<div class="crm-tb-val">' + a.total + '</div></div>';
+                h += '</div></div>';
             });
             h += '</div></div></div>';
             panel.innerHTML = h;
