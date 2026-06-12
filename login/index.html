@@ -4956,12 +4956,15 @@
                             </h3>
                             <button onclick="closeManualSendModal()" style="background:transparent;border:none;color:var(--text-muted);font-size:24px;cursor:pointer;line-height:1;">×</button>
                         </div>
-                        <div style="font-size:13px;color:var(--text-muted);line-height:1.5;margin-bottom:18px;">
-                            Template: <strong id="manualSendTpl" style="color:var(--text);font-family:'JetBrains Mono',monospace;">—</strong>
-                            <span id="manualSendLang" style="margin-left:8px;font-size:11px;background:rgba(255,255,255,.05);padding:2px 7px;border-radius:4px;"></span>
-                        </div>
-
                         <div class="wa-form" style="gap:14px;">
+                            <div>
+                                <label class="wa-label">Mensagem modelo</label>
+                                <select class="wa-input" id="manualSendSelect" onchange="manualOnSelectTpl()" style="cursor:pointer;">
+                                    <option value="">Selecione uma mensagem modelo…</option>
+                                </select>
+                                <span id="manualSendTpl" style="display:none;"></span>
+                                <span id="manualSendLang" style="display:none;"></span>
+                            </div>
                             <div>
                                 <label class="wa-label">Telefone destino</label>
                                 <input type="text" class="wa-input" id="manualSendPhone" placeholder="ex: 11947721456 ou +55 11 94772-1456">
@@ -6459,11 +6462,21 @@
             }
             list.innerHTML = '<div class="wa-tpl-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando templates da Meta…</div>';
             try {
-                const res = await fetch(WA_TPL_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: activeUser.email, action: 'list' })
-                });
+                let res;
+                for (let attempt = 0; attempt < 2; attempt++) {
+                    try {
+                        res = await fetch(WA_TPL_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: activeUser.email, action: 'list' })
+                        });
+                        break;
+                    } catch (netErr) {
+                        // cold start do n8n: 1ª chamada pode falhar/demorar — tenta de novo
+                        if (attempt === 0) { await new Promise(r => setTimeout(r, 1800)); continue; }
+                        throw netErr;
+                    }
+                }
                 const result = await res.json();
                 if (!result.ok) {
                     list.innerHTML = '<div class="wa-tpl-empty" style="color:#ef4444;">' + (result.error || result.body?.error?.message || 'Erro ao listar') + '</div>';
@@ -6648,17 +6661,55 @@
             container.appendChild(wrap);
         }
 
-        function openManualSendModal(tplName, tplLang) {
-            document.getElementById('manualSendTpl').textContent = tplName;
-            document.getElementById('manualSendLang').textContent = tplLang;
+        async function openManualSendModal(tplName, tplLang) {
             document.getElementById('manualSendPhone').value = '';
             document.getElementById('manualSendFeedback').className = 'wa-feedback';
             document.getElementById('manualSendFeedback').innerHTML = '';
             document.getElementById('manualSendBtn').disabled = false;
             document.getElementById('manualSendBtn').innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Disparar';
-            window._manualSendTpl = { name: tplName, lang: tplLang };
-            manualRenderFields(tplName);
             document.getElementById('waManualSendModal').style.display = 'flex';
+            // Garante que as mensagens modelo estão carregadas pra popular o seletor
+            if (!(_waTemplatesCache && _waTemplatesCache.length) && typeof waLoadTemplates === 'function') {
+                const sel = document.getElementById('manualSendSelect');
+                if (sel) sel.innerHTML = '<option value="">Carregando mensagens modelo…</option>';
+                try { await waLoadTemplates(); } catch (e) {}
+            }
+            manualPopulateTemplates(tplName);
+        }
+        function manualPopulateTemplates(preselectName) {
+            const sel = document.getElementById('manualSendSelect');
+            if (!sel) return;
+            const approved = (_waTemplatesCache || []).filter(t => (t.status || '').toUpperCase() === 'APPROVED');
+            const preselect = preselectName || (_waConfigCache && _waConfigCache.default_template) || '';
+            sel.innerHTML = '<option value="">Selecione uma mensagem modelo…</option>'
+                + approved.map(t => '<option value="' + escapeHtml(t.name) + '" data-lang="' + escapeHtml(t.language || 'pt_BR') + '"' + (t.name === preselect ? ' selected' : '') + '>' + escapeHtml(t.name) + '</option>').join('');
+            const fields = document.getElementById('manualSendFields');
+            const help = document.getElementById('manualSendFieldsHelp');
+            if (!approved.length) {
+                if (fields) fields.innerHTML = '';
+                if (help) help.textContent = 'Nenhuma mensagem modelo aprovada. Crie/aprove uma na aba "Mensagens modelo".';
+                window._manualSendTpl = null;
+                return;
+            }
+            manualOnSelectTpl();
+        }
+        function manualOnSelectTpl() {
+            const sel = document.getElementById('manualSendSelect');
+            const name = sel ? sel.value : '';
+            const opt = sel && sel.selectedOptions[0];
+            const lang = (opt && opt.dataset.lang) || 'pt_BR';
+            const fields = document.getElementById('manualSendFields');
+            const help = document.getElementById('manualSendFieldsHelp');
+            if (!name) {
+                window._manualSendTpl = null;
+                if (fields) fields.innerHTML = '';
+                if (help) help.textContent = 'Selecione uma mensagem modelo acima.';
+                return;
+            }
+            window._manualSendTpl = { name: name, lang: lang };
+            document.getElementById('manualSendTpl').textContent = name;
+            document.getElementById('manualSendLang').textContent = lang;
+            manualRenderFields(name);
         }
         function closeManualSendModal() {
             document.getElementById('waManualSendModal').style.display = 'none';
@@ -6666,9 +6717,13 @@
 
         async function executeManualSend() {
             const tpl = window._manualSendTpl;
-            if (!tpl) return;
-            const phone = document.getElementById('manualSendPhone').value.trim();
             const fb = document.getElementById('manualSendFeedback');
+            if (!tpl || !tpl.name) {
+                fb.className = 'wa-feedback error';
+                fb.innerHTML = 'Selecione uma mensagem modelo primeiro.';
+                return;
+            }
+            const phone = document.getElementById('manualSendPhone').value.trim();
             const btn = document.getElementById('manualSendBtn');
 
             if (!phone || phone.replace(/\D/g,'').length < 10) {
