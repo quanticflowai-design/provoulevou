@@ -6659,11 +6659,16 @@
                     const ex = (comp.example && comp.example.body_text && comp.example.body_text[0]) || [];
                     // Convenção Provou Levou: {{1}}=nome, {{2}}=produto, {{3}}=link
                     const friendly = ['Nome do cliente', 'Produto que ele provou', 'Link do produto'];
-                    for (let i = 1; i <= n; i++) specs.push({
-                        id: 'body' + i, kind: 'body', pos: i,
-                        label: (friendly[i - 1] || 'Variável {{' + i + '}}') + ' (vai no {{' + i + '}})',
-                        placeholder: ex[i - 1] ? 'ex: ' + ex[i - 1] : 'preencha o {{' + i + '}}'
-                    });
+                    for (let i = 1; i <= n; i++) {
+                        const isName = (i === 1);   // {{1}} = nome (pode não existir p/ quem só provou)
+                        specs.push({
+                            id: 'body' + i, kind: 'body', pos: i,
+                            label: (friendly[i - 1] || 'Variável {{' + i + '}}') + (isName ? ' (opcional)' : '') + ' — vai no {{' + i + '}}',
+                            placeholder: isName ? 'deixe em branco se não souber o nome' : (ex[i - 1] ? 'ex: ' + ex[i - 1] : 'preencha o {{' + i + '}}'),
+                            optional: isName,
+                            fallback: isName ? '👋' : ''
+                        });
+                    }
                 } else if (type === 'HEADER' && comp.format === 'TEXT') {
                     const n = countPh(comp.text);
                     const ex = (comp.example && comp.example.header_text) || [];
@@ -6742,6 +6747,12 @@
                 hint.innerHTML = '⚠️ Cole o <strong>link do produto</strong> (o endereço da página). Não é o texto do botão.';
                 wrap.appendChild(hint);
             }
+            if (spec.optional) {
+                const hint = document.createElement('div');
+                hint.className = 'wa-help';
+                hint.innerHTML = '💡 Não sabe o nome (cliente que só provou)? <strong>Deixe em branco</strong> — a mensagem vai com um 👋 no lugar.';
+                wrap.appendChild(hint);
+            }
             container.appendChild(wrap);
         }
 
@@ -6757,7 +6768,7 @@
             // Coleta os valores das variáveis de corpo na ordem
             const vals = (window._manualTplSpecs || [])
                 .filter(s => s.kind === 'body')
-                .map(s => { const el = document.getElementById('manualField_' + s.id); return (el && el.value.trim()) || ''; });
+                .map(s => { const el = document.getElementById('manualField_' + s.id); let v = (el && el.value.trim()) || ''; if (!v && s.optional) v = s.fallback || ''; return v; });
             const rendered = chatRenderTplBody(bodyText, vals);
             // Botão (se houver) aparece como rótulo
             const btnComp = tplObj && (tplObj.components || []).find(c => c.type === 'BUTTONS');
@@ -6856,6 +6867,7 @@
             specs.forEach(s => {
                 const el = document.getElementById('manualField_' + s.id);
                 let val = el ? el.value.trim() : '';
+                if (!val && s.optional) val = s.fallback || '';   // nome em branco -> 👋
                 if (!val) missing = true;
                 if (s.kind === 'body') bodyParams.push(val);
                 else if (s.kind === 'header') headerParams.push(val);
