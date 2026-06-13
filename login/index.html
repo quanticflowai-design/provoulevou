@@ -4135,11 +4135,6 @@
                             <input type="hidden" id="waBulkTemplate">
                             <div id="waBulkTemplatePreview" style="font-size:12px;line-height:1.5;color:var(--text-muted);margin-top:8px;padding:10px 12px;background:rgba(124,58,237,0.05);border:1px solid var(--border);border-radius:8px;display:none;"></div>
                         </div>
-                        <div id="waBulkCheckoutWrap" style="margin-bottom:16px;display:none;">
-                            <label class="wa-bulk-field-label">Link de checkout / carrinho</label>
-                            <input type="url" id="waBulkCheckout" class="wa-bulk-field" placeholder="https://sualoja.com.br/checkout" oninput="waBulkPersistCheckout()" style="cursor:text;">
-                            <div id="waBulkCheckoutHint" style="font-size:11px;color:var(--text-muted);margin-top:5px;">Esse link entra no template (no <code>{{3}}</code> ou no botão) — o cliente clica e vai direto pro checkout.</div>
-                        </div>
                         <div class="disp-bulk-grid">
                             <div>
                                 <label class="wa-bulk-field-label">Etapa do funil</label>
@@ -7769,30 +7764,14 @@
             window._waBulkLinkInBody = urlBtnIndex < 0 && placeholders >= 3;
             const needLink = urlBtnIndex >= 0 || window._waBulkLinkInBody;
             window._waBulkNeedLink = needLink;
-            const wrap = document.getElementById('waBulkCheckoutWrap');
-            if (wrap) {
-                wrap.style.display = needLink ? 'block' : 'none';
-                if (needLink) {
-                    const saved = (function(){ try { return localStorage.getItem('pl-bulk-checkout-' + activeUser.email); } catch(e){ return ''; } })();
-                    const inp = document.getElementById('waBulkCheckout');
-                    if (inp && !inp.value && saved) inp.value = saved;
-                    const hint = document.getElementById('waBulkCheckoutHint');
-                    const onde = urlBtnIndex >= 0 ? 'no <strong>botão</strong>' : 'no <code>{{3}}</code>';
-                    if (hint) hint.innerHTML = 'Cada cliente recebe o link do <strong>produto que ele provou</strong> ' + onde + '. Este campo é a <strong>reserva</strong>, usada só pra quem provou antes de começarmos a salvar o link (provas antigas).';
-                }
-            }
+            // O link de cada lead é sempre o do produto que ELE provou (produto_url),
+            // preenchido automaticamente. Não há campo manual de checkout.
             // Reabilita o botão de confirmar se houver alvos
             const confirmBtn = document.getElementById('waBulkConfirmBtn');
             const n = (window._waBulkTargets || []).length;
             if (confirmBtn && n > 0) {
                 confirmBtn.disabled = !name;
             }
-        }
-
-        function waBulkPersistCheckout() {
-            const inp = document.getElementById('waBulkCheckout');
-            if (!inp) return;
-            try { localStorage.setItem('pl-bulk-checkout-' + activeUser.email, inp.value.trim()); } catch (e) {}
         }
 
         async function executeBulkSend() {
@@ -7811,25 +7790,29 @@
             const bodyText = (bodyComp && bodyComp.text) || '';
             const placeholders = (bodyText.match(/\{\{\s*\d+\s*\}\}/g) || []).length;
 
-            // Link de checkout (quando o template usa): no botão de URL ou no {{3}} do corpo
-            const checkoutLink = (document.getElementById('waBulkCheckout')?.value || '').trim();
+            // Link do produto: cada lead usa o link do produto que ELE provou (produto_url),
+            // preenchido automaticamente. Não existe campo manual de checkout.
             const urlBtnIndex = (typeof _waBulkUrlBtnIndex === 'number') ? _waBulkUrlBtnIndex : -1;
             const linkInBody = !!window._waBulkLinkInBody;
-            // Cada lead usa o link do produto que ELE provou (produto_url). O campo digitado
-            // é a reserva pra leads sem link salvo (provas antigas, antes de capturarmos a URL).
             const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
-            const missingLink = window._waBulkNeedLink ? targets.filter(t => !hasUrl(t.productUrl)).length : 0;
-            if (window._waBulkNeedLink && missingLink > 0 && !checkoutLink) {
+            // Quando o template usa link, leads sem o link salvo (provas antigas) são
+            // automaticamente pulados — não dá pra mandar o template sem o link deles.
+            const skipNoLink = window._waBulkNeedLink ? targets.filter(t => !hasUrl(t.productUrl)) : [];
+            if (skipNoLink.length) {
+                window._waBulkTargets = targets.filter(t => hasUrl(t.productUrl));
+            }
+            const sendTargets = window._waBulkTargets || [];
+            if (sendTargets.length === 0) {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Disparar agora';
                 document.getElementById('waBulkProgress').style.display = 'none';
-                alert(missingLink + ' lead(s) ainda não têm o link do produto provado salvo (provas antigas). Preencha o "Link de checkout / carrinho" como reserva pra esses casos antes de disparar.');
+                crmToast('Nenhum lead com link do produto salvo pra este modelo. Esses leads são de provas antigas (antes de salvarmos o link).', 'erro');
                 return;
             }
 
             let sent = 0, failed = 0;
             const sentPhones = [];
-            const total = targets.length;
+            const total = sendTargets.length;
             const update = () => {
                 document.getElementById('waBulkSent').textContent = sent;
                 document.getElementById('waBulkFailed').textContent = failed;
@@ -7892,7 +7875,7 @@
 
             // Paralelismo controlado: 10 disparos simultâneos
             const CONCURRENCY = 10;
-            const queue = [...targets];
+            const queue = [...sendTargets];
             const workers = [];
             for (let i = 0; i < CONCURRENCY; i++) {
                 workers.push((async () => {
@@ -7919,7 +7902,8 @@
             if (fbEl && (sent > 0 || failed > 0)) {
                 const note = document.createElement('div');
                 note.style.cssText = 'margin-top:10px;font-size:12.5px;font-weight:600;color:#10b981;';
-                note.innerHTML = '<i class="ph-bold ph-check-circle"></i> Disparo concluído: ' + sent + ' enviado' + (sent !== 1 ? 's' : '') + (failed ? ' · ' + failed + ' falha' + (failed !== 1 ? 's' : '') : '') + movedMsg;
+                const skipMsg = skipNoLink.length ? ' · ' + skipNoLink.length + ' pulado' + (skipNoLink.length !== 1 ? 's' : '') + ' (sem link do produto salvo)' : '';
+                note.innerHTML = '<i class="ph-bold ph-check-circle"></i> Disparo concluído: ' + sent + ' enviado' + (sent !== 1 ? 's' : '') + (failed ? ' · ' + failed + ' falha' + (failed !== 1 ? 's' : '') : '') + skipMsg + movedMsg;
                 fbEl.appendChild(note);
             }
             // Atualiza CRM + recarrega a aba Disparos (KPIs, histórico, gráficos)
