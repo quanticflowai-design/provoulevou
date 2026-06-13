@@ -2422,6 +2422,8 @@
                                 </div>
                             </div>
 
+                            <div id="loginCaptcha" style="display:none;justify-content:center;margin:2px 0 4px;"></div>
+
                             <button type="button" class="btn-login" onclick="doLogin()">
                                 Entrar
                             </button>
@@ -5446,25 +5448,93 @@
             }
         }
 
+        // ============== Segurança do login: rate limit + CAPTCHA ==============
+        // Cole aqui a Site Key do Cloudflare Turnstile pra ativar o CAPTCHA (vazio = só rate limit)
+        const TURNSTILE_SITE_KEY = '';
+        const LOGIN_MAX_FAILS = 5;          // tentativas erradas antes de bloquear
+        const LOGIN_LOCK_BASE_MS = 60000;   // 1 min (escalona: 1min → 5min → 25min)
+        let _captchaToken = '';
+        let _captchaWidgetId = null;
+
+        function loginLockState() { try { return JSON.parse(localStorage.getItem('pl-login-lock') || '{}'); } catch (e) { return {}; } }
+        function loginLockRemaining() { const st = loginLockState(); return st.until ? Math.max(0, st.until - Date.now()) : 0; }
+        function registerLoginFail() {
+            const st = loginLockState();
+            st.fails = (st.fails || 0) + 1;
+            if (st.fails >= LOGIN_MAX_FAILS) {
+                const tier = Math.min(st.fails - LOGIN_MAX_FAILS, 2);   // 0,1,2 → 1min,5min,25min
+                st.until = Date.now() + LOGIN_LOCK_BASE_MS * Math.pow(5, tier);
+            }
+            try { localStorage.setItem('pl-login-lock', JSON.stringify(st)); } catch (e) {}
+        }
+        function clearLoginFails() { try { localStorage.removeItem('pl-login-lock'); } catch (e) {} }
+        function resetCaptcha() { _captchaToken = ''; if (_captchaWidgetId !== null && window.turnstile) { try { window.turnstile.reset(_captchaWidgetId); } catch (e) {} } }
+
+        // Renderiza o widget Turnstile quando o script carrega (se a site key estiver setada)
+        function onTurnstileLoad() {
+            if (!TURNSTILE_SITE_KEY || !window.turnstile) return;
+            const el = document.getElementById('loginCaptcha');
+            if (!el) return;
+            el.style.display = 'flex';
+            try {
+                _captchaWidgetId = window.turnstile.render('#loginCaptcha', {
+                    sitekey: TURNSTILE_SITE_KEY,
+                    callback: (t) => { _captchaToken = t; },
+                    'expired-callback': () => { _captchaToken = ''; },
+                    'error-callback': () => { _captchaToken = ''; }
+                });
+            } catch (e) {}
+        }
+        // Carrega o script do Turnstile só se a site key estiver configurada
+        (function loadTurnstile() {
+            if (!TURNSTILE_SITE_KEY) return;
+            const s = document.createElement('script');
+            s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad';
+            s.async = true; s.defer = true;
+            document.head.appendChild(s);
+        })();
+
         async function doLogin() {
-            const u = document.getElementById('loginUser').value.trim().toLowerCase();
-            const p = document.getElementById('loginPass').value.trim();
             const errorElement = document.getElementById('loginErrorMsg');
+            const showErr = (msg) => { errorElement.innerText = msg; errorElement.style.display = 'block'; };
 
-            // Chamada de autenticação oficial do Supabase
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
-                email: u,
-                password: p,
-            });
-
-            if (error || !data.user) {
-                errorElement.innerText = "E-mail ou senha inválidos.";
-                errorElement.style.display = 'block';
+            // 1) Rate limit — bloqueado?
+            const rem = loginLockRemaining();
+            if (rem > 0) {
+                const mins = Math.ceil(rem / 60000);
+                showErr('Muitas tentativas. Tente novamente em ' + (rem > 60000 ? mins + ' min' : Math.ceil(rem / 1000) + 's') + '.');
                 return;
             }
 
-            const cfg = await fetchLojista();
+            const u = document.getElementById('loginUser').value.trim().toLowerCase();
+            const p = document.getElementById('loginPass').value.trim();
 
+            // 2) CAPTCHA (se configurado)
+            if (TURNSTILE_SITE_KEY && !_captchaToken) {
+                showErr('Confirme que você não é um robô (CAPTCHA).');
+                return;
+            }
+
+            const opts = {};
+            if (_captchaToken) opts.captchaToken = _captchaToken;
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email: u, password: p, options: opts });
+
+            if (error || !data.user) {
+                registerLoginFail();
+                resetCaptcha();
+                const st = loginLockState();
+                const r2 = loginLockRemaining();
+                if (r2 > 0) {
+                    showErr('Muitas tentativas. Bloqueado por ' + (r2 > 60000 ? Math.ceil(r2 / 60000) + ' min' : Math.ceil(r2 / 1000) + 's') + '.');
+                } else {
+                    const left = LOGIN_MAX_FAILS - (st.fails || 0);
+                    showErr('E-mail ou senha inválidos.' + (left > 0 && left <= 3 ? ' (' + left + ' tentativa' + (left === 1 ? '' : 's') + ' restante' + (left === 1 ? '' : 's') + ')' : ''));
+                }
+                return;
+            }
+
+            clearLoginFails();
+            const cfg = await fetchLojista();
             if (cfg) {
                 errorElement.style.display = 'none';
                 activeUser = cfg;
