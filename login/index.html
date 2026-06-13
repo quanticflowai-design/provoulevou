@@ -6819,11 +6819,18 @@
                 return;
             }
 
-            // Estrutura completa pro Meta (corpo + cabeçalho + botões)
-            const components = [];
-            if (headerParams.length) components.push({ type: 'header', parameters: headerParams.map(t => ({ type: 'text', text: t })) });
-            if (bodyParams.length) components.push({ type: 'body', parameters: bodyParams.map(t => ({ type: 'text', text: t })) });
-            components.push(...buttonComps);
+            // Mesma lógica do disparo em massa (comprovada): só manda `components`
+            // quando há cabeçalho ou botão. Pra template só de corpo, manda apenas
+            // `params` — senão o backend monta o corpo a partir de `params` E de
+            // `components` ao mesmo tempo e a Meta rejeita (#132018, corpo duplicado).
+            const hasExtra = headerParams.length > 0 || buttonComps.length > 0;
+            let components = null;
+            if (hasExtra) {
+                components = [];
+                if (headerParams.length) components.push({ type: 'header', parameters: headerParams.map(t => ({ type: 'text', text: t })) });
+                if (bodyParams.length) components.push({ type: 'body', parameters: bodyParams.map(t => ({ type: 'text', text: t })) });
+                components.push(...buttonComps);
+            }
 
             btn.disabled = true;
             btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Enviando…';
@@ -6834,14 +6841,13 @@
                 const res = await fetch(WA_SEND_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
+                    body: JSON.stringify(Object.assign({
                         email: activeUser.email,
                         to: phone,
                         template: tpl.name,
                         language: tpl.lang,
-                        params: bodyParams,          // compat: corpo
-                        components: components        // estrutura completa (corpo+header+botões)
-                    })
+                        params: bodyParams           // corpo (backend monta o body com isso)
+                    }, components ? { components: components } : {}))   // só com header/botão
                 });
                 const result = await res.json().catch(() => ({}));
                 if (res.ok && result.ok) {
