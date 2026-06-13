@@ -4950,28 +4950,33 @@
                     <div style="background:var(--card-bg);border:1px solid var(--border-strong);border-radius:16px;max-width:480px;width:100%;padding:26px;">
                         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
                             <h3 style="margin:0;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;">
-                                <i class="ph-fill ph-paper-plane-tilt" style="color:#25D366;"></i> Disparar template manualmente
+                                <i class="ph-fill ph-paper-plane-tilt" style="color:#25D366;"></i> Enviar mensagem pra 1 cliente
                             </h3>
                             <button onclick="closeManualSendModal()" style="background:transparent;border:none;color:var(--text-muted);font-size:24px;cursor:pointer;line-height:1;">×</button>
                         </div>
-                        <div class="wa-form" style="gap:14px;">
+                        <div style="font-size:12.5px;line-height:1.5;color:var(--text-muted);margin:-6px 0 16px;background:rgba(37,211,102,.06);border:1px solid rgba(37,211,102,.18);border-radius:10px;padding:10px 12px;">
+                            Envia uma <strong>mensagem modelo já aprovada</strong> pra <strong>um número específico</strong>. Bom pra testar como a mensagem chega ou falar com um cliente pontual. É só seguir os 3 passos abaixo. 👇
+                        </div>
+                        <div class="wa-form" style="gap:16px;">
                             <div>
-                                <label class="wa-label">Mensagem modelo</label>
+                                <label class="wa-label"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#25D366;color:#fff;font-size:11px;font-weight:700;margin-right:6px;">1</span> Qual mensagem enviar</label>
                                 <select class="wa-input" id="manualSendSelect" onchange="manualOnSelectTpl()" style="cursor:pointer;">
                                     <option value="">Selecione uma mensagem modelo…</option>
                                 </select>
+                                <div class="wa-help">Escolha uma das suas mensagens modelo aprovadas pela Meta.</div>
                                 <span id="manualSendTpl" style="display:none;"></span>
                                 <span id="manualSendLang" style="display:none;"></span>
                             </div>
                             <div>
-                                <label class="wa-label">Telefone destino</label>
+                                <label class="wa-label"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#25D366;color:#fff;font-size:11px;font-weight:700;margin-right:6px;">2</span> Pra qual número (WhatsApp do cliente)</label>
                                 <input type="text" class="wa-input" id="manualSendPhone" placeholder="ex: 11947721456 ou +55 11 94772-1456">
-                                <div class="wa-help">Aceita com ou sem DDI/formatação. Brasileiros (10-11 dígitos) ganham 55 automaticamente.</div>
+                                <div class="wa-help">Pode colar com ou sem DDI/formatação. Número do Brasil (10-11 dígitos) ganha o 55 automaticamente.</div>
                             </div>
                             <div>
-                                <label class="wa-label">Campos do template</label>
+                                <label class="wa-label"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#25D366;color:#fff;font-size:11px;font-weight:700;margin-right:6px;">3</span> Preencha os dados da mensagem</label>
                                 <div id="manualSendFields"></div>
-                                <div class="wa-help" id="manualSendFieldsHelp">Os campos são gerados automaticamente conforme o template selecionado.</div>
+                                <div class="wa-help" id="manualSendFieldsHelp">Selecione uma mensagem modelo acima pra aparecerem os campos.</div>
+                                <div id="manualSendPreview" style="display:none;margin-top:12px;padding:12px 14px;background:#e6ddd3;border-radius:10px 10px 10px 2px;font-size:13px;line-height:1.5;color:#111;box-shadow:0 1px 2px rgba(0,0,0,.12);"></div>
                             </div>
                         </div>
 
@@ -6652,10 +6657,12 @@
                 if (type === 'BODY') {
                     const n = countPh(comp.text);
                     const ex = (comp.example && comp.example.body_text && comp.example.body_text[0]) || [];
+                    // Convenção Provou Levou: {{1}}=nome, {{2}}=produto, {{3}}=link
+                    const friendly = ['Nome do cliente', 'Produto que ele provou', 'Link do produto'];
                     for (let i = 1; i <= n; i++) specs.push({
-                        id: 'body' + i, kind: 'body',
-                        label: 'Mensagem — variável {{' + i + '}}',
-                        placeholder: ex[i - 1] ? 'ex: ' + ex[i - 1] : 'variável {{' + i + '}}'
+                        id: 'body' + i, kind: 'body', pos: i,
+                        label: (friendly[i - 1] || 'Variável {{' + i + '}}') + ' (vai no {{' + i + '}})',
+                        placeholder: ex[i - 1] ? 'ex: ' + ex[i - 1] : 'preencha o {{' + i + '}}'
                     });
                 } else if (type === 'HEADER' && comp.format === 'TEXT') {
                     const n = countPh(comp.text);
@@ -6671,8 +6678,9 @@
                         if (bt === 'URL' && /\{\{\s*\d+\s*\}\}/.test(b.url || '')) {
                             specs.push({
                                 id: 'btnurl' + idx, kind: 'button_url', btnIndex: idx,
-                                label: 'Link do botão "' + (b.text || 'Abrir') + '"',
-                                placeholder: 'parte final da URL (ex: oferta-especial)'
+                                label: 'Link do produto (botão "' + (b.text || 'Abrir') + '")',
+                                placeholder: 'cole o link completo, ex: https://sualoja.com.br/produto/oculos-x',
+                                isLink: true
                             });
                         } else if (bt === 'COPY_CODE') {
                             specs.push({
@@ -6706,25 +6714,63 @@
                 return;
             }
             if (specs.length === 0) {
-                help.textContent = 'Esse template não tem variáveis. É só disparar. ✅';
+                help.textContent = 'Essa mensagem não tem campos pra preencher. É só conferir a prévia e enviar. ✅';
+                manualUpdatePreview();
                 return;
             }
             specs.forEach((s, i) => manualAddField(container, s, i));
-            help.textContent = specs.length + ' campo(s) detectado(s) automaticamente neste template.';
+            help.textContent = 'Preencha os campos acima — a prévia abaixo mostra como o cliente vai receber.';
+            manualUpdatePreview();
         }
 
         function manualAddField(container, spec, i) {
             const wrap = document.createElement('div');
-            wrap.style.marginTop = i ? '10px' : '0';
+            wrap.style.marginTop = i ? '12px' : '0';
             const lbl = document.createElement('div');
-            lbl.style.cssText = 'font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;';
+            lbl.style.cssText = 'font-size:11.5px;font-weight:600;color:var(--text-main);margin-bottom:4px;';
             lbl.textContent = spec.label;
             const inp = document.createElement('input');
             inp.type = 'text'; inp.className = 'wa-input';
             inp.id = 'manualField_' + spec.id;
             inp.placeholder = spec.placeholder;
+            inp.setAttribute('oninput', 'manualUpdatePreview()');
             wrap.appendChild(lbl); wrap.appendChild(inp);
+            if (spec.isLink) {
+                const hint = document.createElement('div');
+                hint.className = 'wa-help';
+                hint.style.color = '#d97706';
+                hint.innerHTML = '⚠️ Cole o <strong>link do produto</strong> (o endereço da página). Não é o texto do botão.';
+                wrap.appendChild(hint);
+            }
             container.appendChild(wrap);
+        }
+
+        // Prévia ao vivo: mostra a mensagem com os valores preenchidos (igual o cliente vai ver)
+        function manualUpdatePreview() {
+            const prev = document.getElementById('manualSendPreview');
+            const tpl = window._manualSendTpl;
+            if (!prev || !tpl || !tpl.name) { if (prev) prev.style.display = 'none'; return; }
+            const tplObj = (_waTemplatesCache || []).find(t => t.name === tpl.name);
+            const bodyComp = tplObj && (tplObj.components || []).find(c => c.type === 'BODY');
+            const bodyText = (bodyComp && bodyComp.text) || '';
+            if (!bodyText) { prev.style.display = 'none'; return; }
+            // Coleta os valores das variáveis de corpo na ordem
+            const vals = (window._manualTplSpecs || [])
+                .filter(s => s.kind === 'body')
+                .map(s => { const el = document.getElementById('manualField_' + s.id); return (el && el.value.trim()) || ''; });
+            const rendered = chatRenderTplBody(bodyText, vals);
+            // Botão (se houver) aparece como rótulo
+            const btnComp = tplObj && (tplObj.components || []).find(c => c.type === 'BUTTONS');
+            const btns = (btnComp && btnComp.buttons) || [];
+            let btnHtml = '';
+            if (btns.length) {
+                btnHtml = '<div style="margin-top:8px;border-top:1px solid rgba(0,0,0,.1);padding-top:7px;display:flex;flex-direction:column;gap:5px;">'
+                    + btns.map(b => '<div style="text-align:center;color:#0a7cff;font-weight:600;font-size:12.5px;"><i class="ph-bold ph-arrow-square-out" style="font-size:13px;"></i> ' + escapeHtml(b.text || 'Abrir') + '</div>').join('')
+                    + '</div>';
+            }
+            prev.innerHTML = '<div style="font-size:10px;font-weight:700;color:#25883f;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;">Prévia — como o cliente vai ver</div>'
+                + escapeHtml(rendered).replace(/\n/g, '<br>') + btnHtml;
+            prev.style.display = 'block';
         }
 
         async function openManualSendModal(tplName, tplLang) {
@@ -6769,7 +6815,9 @@
             if (!name) {
                 window._manualSendTpl = null;
                 if (fields) fields.innerHTML = '';
-                if (help) help.textContent = 'Selecione uma mensagem modelo acima.';
+                if (help) help.textContent = 'Selecione uma mensagem modelo acima pra aparecerem os campos.';
+                const prev = document.getElementById('manualSendPreview');
+                if (prev) prev.style.display = 'none';
                 return;
             }
             window._manualSendTpl = { name: name, lang: lang };
@@ -6804,18 +6852,31 @@
             const headerParams = [];
             const buttonComps = [];
             let missing = false;
+            let badLink = '';
             specs.forEach(s => {
                 const el = document.getElementById('manualField_' + s.id);
-                const val = el ? el.value.trim() : '';
+                let val = el ? el.value.trim() : '';
                 if (!val) missing = true;
                 if (s.kind === 'body') bodyParams.push(val);
                 else if (s.kind === 'header') headerParams.push(val);
-                else if (s.kind === 'button_url') buttonComps.push({ type: 'button', sub_type: 'url', index: String(s.btnIndex), parameters: [{ type: 'text', text: val }] });
+                else if (s.kind === 'button_url') {
+                    // O lojista cola o link completo do produto. A Meta concatena com a base
+                    // fixa do botão (domínio), então mandamos só o CAMINHO (sem esquema+host).
+                    // Tira espaços e valida pra não montar URL inválida (#132018).
+                    const suffix = val.replace(/^https?:\/\/[^/]+\/?/, '').trim();
+                    if (!suffix || /\s/.test(suffix)) badLink = val;
+                    buttonComps.push({ type: 'button', sub_type: 'url', index: String(s.btnIndex), parameters: [{ type: 'text', text: suffix }] });
+                }
                 else if (s.kind === 'button_copy') buttonComps.push({ type: 'button', sub_type: 'copy_code', index: String(s.btnIndex), parameters: [{ type: 'coupon_code', coupon_code: val }] });
             });
             if (missing) {
                 fb.className = 'wa-feedback error';
-                fb.innerHTML = 'Preencha todos os campos do template antes de disparar.';
+                fb.innerHTML = 'Preencha todos os campos antes de enviar.';
+                return;
+            }
+            if (badLink) {
+                fb.className = 'wa-feedback error';
+                fb.innerHTML = '<strong>O campo do link parece inválido:</strong> "' + escapeHtml(badLink) + '".<br><span style="font-size:11px;">Cole o <strong>link do produto</strong> (ex: https://sualoja.com.br/produto/oculos-x). Não é o texto do botão.</span>';
                 return;
             }
 
