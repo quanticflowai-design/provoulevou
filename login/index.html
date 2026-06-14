@@ -4222,6 +4222,15 @@
                     .chat-window-warn { font-size:11.5px; color:#d97706; background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.25); border-radius:8px; padding:8px 11px; margin-bottom:10px; }
                     .chat-empty-thread { flex:1; display:grid; place-items:center; color:var(--text-muted); font-size:13px; text-align:center; padding:20px; }
                     @media (max-width:760px){ .chat-wrap{ grid-template-columns:1fr; height:auto; } .chat-list{ max-height:200px; } .chat-thread{ height:380px; } }
+                    #chatFilterUnreadBtn.active { background: var(--primary, #7c3aed); color:#fff; border-color: var(--primary, #7c3aed); }
+                    .chat-ctx-menu { position: fixed; z-index: 10000; min-width: 210px; background: var(--card-bg); border: 1px solid var(--border-strong); border-radius: 10px; box-shadow: 0 12px 34px -8px rgba(0,0,0,.4); padding: 6px; }
+                    .chat-ctx-menu > button { display:flex; align-items:center; gap:9px; width:100%; background:transparent; border:none; color:var(--text-main); padding:9px 10px; border-radius:7px; cursor:pointer; text-align:left; font-size:13px; font-family:inherit; }
+                    .chat-ctx-menu > button:hover { background: rgba(124,58,237,.10); }
+                    .chat-ctx-menu > button.danger { color:#ef4444; }
+                    .chat-ctx-menu > button.danger:hover { background: rgba(239,68,68,.12); }
+                    .chat-ctx-confirm { padding: 9px 11px; }
+                    .chat-ctx-confirm button { padding:8px; border-radius:7px; border:1px solid var(--border); background:var(--card-bg); color:var(--text-main); cursor:pointer; font-size:12.5px; font-family:inherit; }
+                    .chat-ctx-confirm button.danger { background:#ef4444; color:#fff; border-color:#ef4444; }
                 </style>
                 <div class="disp-card" id="dispChatCard" style="margin-bottom:20px;">
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
@@ -4229,7 +4238,10 @@
                             <h3 style="margin:0 0 4px;"><i class="ph-bold ph-chats-circle"></i> Caixa de entrada</h3>
                             <p class="desc" style="margin:0;">Veja as respostas dos clientes e converse direto por aqui. Atualiza ao vivo.</p>
                         </div>
-                        <button class="disp-btn ghost" onclick="loadConversas()"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <button class="disp-btn ghost" id="chatFilterUnreadBtn" onclick="chatToggleUnreadFilter()"><i class="ph-bold ph-envelope-simple"></i> Não lidas</button>
+                            <button class="disp-btn ghost" onclick="loadConversas()"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
+                        </div>
                     </div>
                     <div class="chat-wrap">
                         <div class="chat-list" id="chatList">
@@ -5907,7 +5919,12 @@
                 listEl.innerHTML = '<div class="chat-list-empty"><i class="ph-bold ph-chat-dots" style="font-size:26px;opacity:.4;"></i><br><br>Nenhuma conversa ainda.<br>Quando um cliente responder um disparo, aparece aqui.</div>';
                 return;
             }
-            listEl.innerHTML = _chatConvs.map(c => `
+            const convs = _chatFilterUnread ? _chatConvs.filter(c => (c.unread || 0) > 0 || c.phone === _chatActivePhone) : _chatConvs;
+            if (!convs.length) {
+                listEl.innerHTML = '<div class="chat-list-empty"><i class="ph-bold ph-check-circle" style="font-size:26px;opacity:.4;color:#10b981;"></i><br><br>Nenhuma conversa não lida. 🎉<br><span style="font-size:11px;">Clique em "Não lidas" de novo pra ver todas.</span></div>';
+                return;
+            }
+            listEl.innerHTML = convs.map(c => `
                 <div class="chat-conv ${c.phone === _chatActivePhone ? 'active' : ''}" data-chatphone="${escapeHtml(c.phone)}">
                     <div class="chat-conv-av">${escapeHtml(chatInitials(c.name, c.phone))}</div>
                     <div class="chat-conv-main">
@@ -5922,7 +5939,112 @@
             `).join('');
             listEl.querySelectorAll('[data-chatphone]').forEach(el => {
                 el.addEventListener('click', () => openConversa(el.dataset.chatphone));
+                el.addEventListener('contextmenu', (e) => chatShowCtxMenu(e, el.dataset.chatphone));
             });
+        }
+
+        // ── Filtro de não lidas ──
+        let _chatFilterUnread = false;
+        function chatToggleUnreadFilter() {
+            _chatFilterUnread = !_chatFilterUnread;
+            const btn = document.getElementById('chatFilterUnreadBtn');
+            if (btn) btn.classList.toggle('active', _chatFilterUnread);
+            chatRenderList();
+        }
+
+        // ── Menu de contexto (botão direito) numa conversa ──
+        let _chatCtxPhone = null;
+        function chatEnsureCtxMenu() {
+            let m = document.getElementById('chatCtxMenu');
+            if (m) return m;
+            m = document.createElement('div');
+            m.id = 'chatCtxMenu';
+            m.className = 'chat-ctx-menu';
+            m.style.display = 'none';
+            document.body.appendChild(m);
+            document.addEventListener('click', (e) => { if (!m.contains(e.target)) chatCloseCtxMenu(); });
+            window.addEventListener('resize', chatCloseCtxMenu);
+            document.addEventListener('scroll', chatCloseCtxMenu, true);
+            return m;
+        }
+        function chatCloseCtxMenu() {
+            const m = document.getElementById('chatCtxMenu');
+            if (m) m.style.display = 'none';
+            _chatCtxPhone = null;
+        }
+        function chatShowCtxMenu(e, phone) {
+            e.preventDefault();
+            _chatCtxPhone = phone;
+            const conv = _chatConvs.find(c => c.phone === phone);
+            const isUnread = conv && (conv.unread || 0) > 0;
+            const m = chatEnsureCtxMenu();
+            m.innerHTML =
+                '<button onclick="chatCtxToggleRead()"><i class="ph-bold ' + (isUnread ? 'ph-envelope-open' : 'ph-envelope-simple') + '"></i> ' + (isUnread ? 'Marcar como lida' : 'Marcar como não lida') + '</button>' +
+                '<button class="danger" onclick="chatCtxAskDelete()"><i class="ph-bold ph-trash"></i> Deletar conversa</button>';
+            m.style.display = 'block';
+            const mw = m.offsetWidth || 210, mh = m.offsetHeight || 92;
+            let x = e.clientX, y = e.clientY;
+            if (x + mw > window.innerWidth) x = window.innerWidth - mw - 8;
+            if (y + mh > window.innerHeight) y = window.innerHeight - mh - 8;
+            m.style.left = Math.max(8, x) + 'px';
+            m.style.top = Math.max(8, y) + 'px';
+        }
+        async function chatCtxToggleRead() {
+            const phone = _chatCtxPhone;
+            chatCloseCtxMenu();
+            if (!phone) return;
+            const conv = _chatConvs.find(c => c.phone === phone);
+            const isUnread = conv && (conv.unread || 0) > 0;
+            if (isUnread) { await chatMarkRead(phone); return; }
+            try {
+                const { data } = await supabaseClient.from('whatsapp_mensagens')
+                    .select('id').eq('email', activeUser.email).eq('lead_phone', phone)
+                    .eq('direction', 'in').order('created_at', { ascending: false }).limit(1);
+                if (data && data[0]) {
+                    await supabaseClient.from('whatsapp_mensagens').update({ read_by_lojista: false }).eq('id', data[0].id);
+                    if (conv) conv.unread = Math.max(1, conv.unread || 0);
+                    if (phone === _chatActivePhone) _chatActivePhone = null; // sai pra não re-marcar lida na hora
+                    chatRenderList();
+                    if (typeof crmToast === 'function') crmToast('Conversa marcada como não lida.', 'ok');
+                } else if (typeof crmToast === 'function') {
+                    crmToast('Essa conversa não tem mensagem recebida pra marcar.', 'erro');
+                }
+            } catch (e) { if (typeof crmToast === 'function') crmToast('Não consegui marcar como não lida.', 'erro'); }
+        }
+        function chatCtxAskDelete() {
+            const phone = _chatCtxPhone;
+            const m = document.getElementById('chatCtxMenu');
+            if (!m || !phone) return;
+            const conv = _chatConvs.find(c => c.phone === phone);
+            const nm = conv ? (conv.name || ('+' + phone)) : ('+' + phone);
+            m.innerHTML =
+                '<div class="chat-ctx-confirm">' +
+                    '<div style="font-weight:700;font-size:13px;margin-bottom:3px;">Excluir conversa?</div>' +
+                    '<div style="font-size:11px;color:var(--text-muted);margin-bottom:9px;line-height:1.4;">' + escapeHtml(nm) + ' — apaga todo o histórico. Não dá pra desfazer.</div>' +
+                    '<div style="display:flex;gap:6px;">' +
+                        '<button class="danger" onclick="chatCtxDoDelete()" style="flex:1;">Excluir</button>' +
+                        '<button onclick="chatCloseCtxMenu()" style="flex:1;">Cancelar</button>' +
+                    '</div>' +
+                '</div>';
+            _chatCtxPhone = phone;
+        }
+        async function chatCtxDoDelete() {
+            const phone = _chatCtxPhone;
+            chatCloseCtxMenu();
+            if (!phone) return;
+            try {
+                const { error } = await supabaseClient.from('whatsapp_mensagens').delete()
+                    .eq('email', activeUser.email).eq('lead_phone', phone);
+                if (error) throw error;
+                _chatConvs = _chatConvs.filter(c => c.phone !== phone);
+                if (phone === _chatActivePhone) {
+                    _chatActivePhone = null;
+                    const thread = document.getElementById('chatThread');
+                    if (thread) thread.innerHTML = '<div class="chat-empty-thread"><div><i class="ph-bold ph-chat-centered-dots" style="font-size:32px;opacity:.4;"></i><br><br>Selecione uma conversa à esquerda<br>pra ver as mensagens.</div></div>';
+                }
+                chatRenderList();
+                if (typeof crmToast === 'function') crmToast('Conversa excluída.', 'ok');
+            } catch (e) { if (typeof crmToast === 'function') crmToast('Não consegui excluir a conversa.', 'erro'); }
         }
 
         async function openConversa(phone) {
