@@ -7725,6 +7725,9 @@
         // Retorna a coluna/etapa do CRM de um lead (mesma lógica do renderCrmBoard)
         function waLeadStageKey(phone, d, config, overrides) {
             const validKeys = new Set(config.columns.map(c => c.key));
+            // Compra vence: lead que comprou APÓS a prova vai pra "Convertido" mesmo que
+            // tenha sido movido manualmente (ex: estava em "Em contato" e fechou).
+            if (d && d.bought && validKeys.has('convertido')) return 'convertido';
             let targetKey = overrides[phone];
             if (targetKey && !validKeys.has(targetKey)) targetKey = null;
             if (!targetKey) {
@@ -8809,6 +8812,23 @@
             const n = normalizeFull(p);
             return n.length >= 9 ? n.slice(-9) : n;
         };
+
+        // Telefones candidatos de um pedido: o campo configurado da loja + entrega/cobrança
+        // e variações comuns. Assim, se o cliente provou com o número dele mas comprou com
+        // outro (e o dele ficou na entrega/cobrança), a venda é detectada mesmo assim.
+        const ORDER_PHONE_FIELDS = ['customer_phone','shipping_phone','billing_phone','cliente_telefone','telefone','celular','phone','customer_telefone'];
+        function orderPhones(o) {
+            if (!o) return [];
+            const cfg = (activeUser && activeUser.campo_telefone_pedido) || 'customer_phone';
+            const keys = new Set([cfg].concat(ORDER_PHONE_FIELDS));
+            const out = [];
+            keys.forEach(k => { const v = o[k]; if (v != null && v !== '') out.push(v); });
+            return out;
+        }
+        // Telefones (normalizados, sem repetir) de um pedido
+        function orderPhoneKeys(o) {
+            return [...new Set(orderPhones(o).map(normalize).filter(Boolean))];
+        }
 
         // Verifica se pedido foi feito após a prova:
         // - Se pedido tem horário real: compara timestamp completo
@@ -10201,11 +10221,13 @@
             // inflando "compradores" e divergindo de comprasPedidosCount (que filtra direito).
             boughtPhonesSet = new Set();
             allOrdersCache.forEach(o => {
-                const ph = normalize(o[fPhone]);
-                if (!ph || !generationPhones.has(ph)) return;
                 const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
-                if (!isOrderAfterProva(orderTs, ph)) return;
-                boughtPhonesSet.add(ph);
+                // Casa o pedido por QUALQUER telefone dele (cliente/entrega/cobrança)
+                orderPhoneKeys(o).forEach(ph => {
+                    if (!generationPhones.has(ph)) return;
+                    if (!isOrderAfterProva(orderTs, ph)) return;
+                    boughtPhonesSet.add(ph);
+                });
             });
 
             nameMap = {};
@@ -12296,20 +12318,23 @@
                 }
 
                 allOrders.forEach(o => {
-                    const ph = normalize(o[fPhone]);
-                    if (!ph || !leadMap[ph]) return;
-                    // Captura o nome de QUALQUER pedido desse telefone (mesmo pré-prova),
-                    // pra personalizar o disparo de quem provou e não comprou pós-prova
-                    // mas já é cliente conhecido da loja.
-                    if (o[fNome] && !leadMap[ph].name) leadMap[ph].name = o[fNome];
-                    // Replica isOrderAfterProva: só conta como "convertido" se o pedido foi após a prova
                     const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
-                    const provaDate = leadMap[ph].firstDate;
-                    const provaTs = provaMinTs[ph] || '';
-                    const hasRealTime = orderTs && orderTs.includes('T') && !orderTs.includes('T00:00:00');
-                    const after = hasRealTime ? (orderTs >= provaTs) : (orderTs.slice(0,10) >= provaDate);
-                    if (!after) return;
-                    leadMap[ph].bought = true;
+                    // Casa por QUALQUER telefone do pedido (cliente/entrega/cobrança) — pega
+                    // quem provou com o número dele mas comprou com outro deixando o dele na entrega.
+                    orderPhoneKeys(o).forEach(ph => {
+                        if (!leadMap[ph]) return;
+                        // Captura o nome de QUALQUER pedido desse telefone (mesmo pré-prova),
+                        // pra personalizar o disparo de quem provou e não comprou pós-prova
+                        // mas já é cliente conhecido da loja.
+                        if (o[fNome] && !leadMap[ph].name) leadMap[ph].name = o[fNome];
+                        // Replica isOrderAfterProva: só conta como "convertido" se o pedido foi após a prova
+                        const provaDate = leadMap[ph].firstDate;
+                        const provaTs = provaMinTs[ph] || '';
+                        const hasRealTime = orderTs && orderTs.includes('T') && !orderTs.includes('T00:00:00');
+                        const after = hasRealTime ? (orderTs >= provaTs) : (orderTs.slice(0,10) >= provaDate);
+                        if (!after) return;
+                        leadMap[ph].bought = true;
+                    });
                 });
 
                 crmLeadMapCache = leadMap;
