@@ -11666,7 +11666,8 @@
         let crmLeadMapCache = null; // mantido entre renders pra drag-drop não refetchar
 
         const CRM_DEFAULT_COLUMNS = [
-            { key: 'cold',       title: 'Provou e não comprou', icon: 'ph-user',           auto: true,  rule: 'cold' },
+            { key: 'cold',           title: 'Provou e não comprou',              icon: 'ph-user',         auto: true,  rule: 'cold' },
+            { key: 'clicou-comprar', title: 'Clicaram em comprar e não compraram', icon: 'ph-cursor-click', auto: true,  rule: 'clicou' },
             { key: 'em-contato', title: 'Em contato',           icon: 'ph-chats-circle',   auto: false },
             { key: 'negociando', title: 'Negociando',           icon: 'ph-handshake',      auto: false },
             { key: 'convertido', title: 'Convertido',           icon: 'ph-check-circle',   auto: true,  rule: 'convertido' },
@@ -11684,6 +11685,11 @@
             let cols = cfg.columns.filter(c => !(c.auto && deadRules.has(c.rule)));
             let changed = cols.length !== cfg.columns.length;
             if (!cols.some(c => c.key === 'cold')) { cols.unshift(CRM_DEFAULT_COLUMNS[0]); changed = true; }
+            if (!cols.some(c => c.key === 'clicou-comprar')) {
+                const coldIdx = cols.findIndex(c => c.key === 'cold');
+                cols.splice(coldIdx < 0 ? 0 : coldIdx + 1, 0, { key: 'clicou-comprar', title: 'Clicaram em comprar e não compraram', icon: 'ph-cursor-click', auto: true, rule: 'clicou' });
+                changed = true;
+            }
             if (!cols.some(c => c.key === 'convertido')) { cols.push({ key: 'convertido', title: 'Convertido', icon: 'ph-check-circle', auto: true, rule: 'convertido' }); changed = true; }
             const salesDefaults = CRM_DEFAULT_COLUMNS.filter(c => !c.auto);
             const salesKeys = salesDefaults.map(s => s.key);
@@ -11906,9 +11912,11 @@
         }
 
         function crmClassify(d) {
-            // Funil de vendas: só 2 automáticas. Quem comprou (pós-prova) = Convertido;
-            // todos os outros entram em "Provou e não comprou", e o time move pelas etapas.
-            return d.bought ? 'convertido' : 'cold';
+            // Funil automático: comprou (pós-prova) = Convertido; clicou em "Comprar Agora"
+            // no provador mas não comprou = lead quentíssimo; o resto = "Provou e não comprou".
+            if (d.bought) return 'convertido';
+            if (d.clicked) return 'clicou';
+            return 'cold';
         }
 
         function crmFormatRelative(dateStr) {
@@ -12248,7 +12256,7 @@
                     while (true) {
                         const { data: batch } = await supabaseClient
                             .from(user.tabela)
-                            .select('telefone_cliente,produtos,produto_url,created_at')
+                            .select('telefone_cliente,produtos,produto_url,created_at,carrinho_adicionado')
                             .ilike('origin', '%' + user.origem + '%')
                             .order('created_at', { ascending: true })
                             .order('id', { ascending: true })
@@ -12266,9 +12274,10 @@
                     const ph = normalize(s.telefone_cliente);
                     if (!ph) return;
                     if (!leadMap[ph]) {
-                        leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: '', firstDate: '', lastProduct: '', lastProductUrl: '', rawPhone: s.telefone_cliente, bought: false, name: '' };
+                        leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: '', firstDate: '', lastProduct: '', lastProductUrl: '', rawPhone: s.telefone_cliente, bought: false, clicked: false, name: '' };
                     }
                     leadMap[ph].provaCount++;
+                    if (s.carrinho_adicionado) leadMap[ph].clicked = true;   // clicou em "Comprar Agora" no provador
                     const ts = s.created_at || '';
                     const d = ts.slice(0, 10);
                     if (d) {
