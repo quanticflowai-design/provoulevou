@@ -4119,6 +4119,16 @@
                         <button onclick="openDispWizard()" title="Ver o passo a passo da primeira campanha" style="flex-shrink:0;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.25);color:#7c3aed;border-radius:9px;padding:8px 12px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;"><i class="ph-bold ph-question"></i> Como funciona?</button>
                     </div>
 
+                    <!-- Informativo: quantos disparos já saíram hoje -->
+                    <div id="dispHojeBanner" style="display:flex;align-items:center;gap:13px;background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.28);border-radius:10px;padding:13px 16px;margin-bottom:16px;">
+                        <i class="ph-fill ph-paper-plane-tilt" style="font-size:24px;color:#128C7E;flex-shrink:0;"></i>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Disparos hoje</div>
+                            <div style="font-size:25px;font-weight:800;letter-spacing:-.02em;line-height:1.1;"><span id="dispHojeCount">—</span> <span style="font-size:13px;font-weight:600;color:var(--text-muted);">enviados hoje</span></div>
+                        </div>
+                        <div style="font-size:11.5px;color:var(--text-muted);text-align:right;line-height:1.5;" id="dispHojeSub">—</div>
+                    </div>
+
                     <!-- Estado: WhatsApp não conectado -->
                     <div id="dispBulkNotConnected" style="display:none;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:16px;font-size:13px;line-height:1.5;">
                         <i class="ph-bold ph-warning-circle" style="color:#f59e0b;"></i>
@@ -7488,11 +7498,19 @@
                 const sent = all.filter(r => ['sent','delivered','read'].includes(r.status)).length;
                 const failed = all.filter(r => r.status === 'failed').length;
                 const last24 = all.filter(r => new Date(r.sent_at) > new Date(Date.now() - 86400000)).length;
+                // Disparos HOJE (dia do calendário, fuso local do lojista)
+                const _startHoje = new Date(); _startHoje.setHours(0, 0, 0, 0);
+                const hoje = all.filter(r => r.sent_at && new Date(r.sent_at) >= _startHoje).length;
+                const hojeOk = all.filter(r => r.sent_at && new Date(r.sent_at) >= _startHoje && ['sent','delivered','read'].includes(r.status)).length;
 
                 document.getElementById('dispKpiTotal').textContent = total.toLocaleString('pt-BR');
                 document.getElementById('dispKpiSent').textContent = sent.toLocaleString('pt-BR');
                 document.getElementById('dispKpiFailed').textContent = failed.toLocaleString('pt-BR');
                 document.getElementById('dispKpi24h').textContent = last24.toLocaleString('pt-BR');
+                const _hojeCountEl = document.getElementById('dispHojeCount');
+                if (_hojeCountEl) _hojeCountEl.textContent = hoje.toLocaleString('pt-BR');
+                const _hojeSubEl = document.getElementById('dispHojeSub');
+                if (_hojeSubEl) _hojeSubEl.innerHTML = hoje ? (hojeOk.toLocaleString('pt-BR') + ' entregues<br>' + new Date().toLocaleDateString('pt-BR')) : 'nenhum disparo ainda hoje';
                 document.getElementById('dispKpiSentPct').textContent = total ? ((sent/total*100).toFixed(1) + '% do total') : '—';
                 document.getElementById('dispKpiFailedPct').textContent = total ? ((failed/total*100).toFixed(1) + '% do total') : '—';
 
