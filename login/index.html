@@ -4150,9 +4150,9 @@
                         <div style="margin-bottom:16px;">
                             <label class="wa-bulk-field-label">Mover leads para <span style="color:var(--text-muted);font-weight:500;">(após o disparo)</span></label>
                             <select id="waBulkMoveTo" class="wa-bulk-field">
-                                <option value="">Não mover (mantém a etapa atual)</option>
+                                <option value="">Em contato (padrão ao disparar)</option>
                             </select>
-                            <div style="font-size:11px;color:var(--text-muted);margin-top:5px;">Depois de disparar, os leads que receberem a mensagem vão automaticamente pra essa etapa do CRM.</div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:5px;">Quem recebe disparo vai automaticamente pra <strong>Em contato</strong>. Você pode escolher outra etapa aqui se quiser.</div>
                         </div>
                         <div class="disp-bulk-statsrow">
                             <div class="disp-bulk-stat">
@@ -7054,6 +7054,10 @@
                         body: chatRenderTplBody((bodyComp && bodyComp.text) || '', bodyParams),
                         meta_message_id: result.meta_message_id
                     });
+                    // Quem recebe disparo vira "Em contato" automaticamente
+                    if (typeof setCrmLeadOverride === 'function') {
+                        try { setCrmLeadOverride(normalize(phone), 'em-contato'); } catch (e) {}
+                    }
                     fb.className = 'wa-feedback success';
                     fb.innerHTML = '<strong>Enviado!</strong> Meta Message ID: <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;">' + (result.meta_message_id || '—') + '</code><br><span style="font-size:11px;color:var(--text-muted);">Verifique o WhatsApp do destinatário e a aba Disparos pra status.</span>';
                     btn.innerHTML = '<i class="ph-bold ph-check"></i> Enviado';
@@ -7910,8 +7914,10 @@
             if (!sel) return;
             const config = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
             const cur = sel.value;
-            const opts = ['<option value="">Não mover (mantém a etapa atual)</option>'];
+            // Padrão: disparou → "Em contato". Lojista pode escolher outra etapa.
+            const opts = ['<option value="">Em contato (padrão ao disparar)</option>'];
             config.columns.forEach(c => {
+                if (c.key === 'em-contato') return;   // já é o padrão acima
                 opts.push('<option value="' + escapeHtml(c.key) + '">' + escapeHtml(c.title) + '</option>');
             });
             sel.innerHTML = opts.join('');
@@ -8120,8 +8126,9 @@
             }
             await Promise.all(workers);
 
-            // Mover leads que receberam pra etapa escolhida no CRM (se selecionado)
-            const moveTo = (document.getElementById('waBulkMoveTo') || {}).value || '';
+            // Mover leads que receberam pra etapa escolhida no CRM.
+            // Padrão: quem recebe disparo vira "Em contato" (a menos que outra etapa seja escolhida).
+            const moveTo = ((document.getElementById('waBulkMoveTo') || {}).value) || 'em-contato';
             let movedMsg = '';
             if (moveTo && sentPhones.length && typeof setCrmLeadOverride === 'function') {
                 const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
@@ -8205,6 +8212,11 @@
                         name: name,
                         meta_message_id: result.meta_message_id
                     });
+                    // Quem recebe disparo vira "Em contato" automaticamente
+                    if (typeof setCrmLeadOverride === 'function') {
+                        try { setCrmLeadOverride(normalize(phone), 'em-contato'); } catch (e) {}
+                        setTimeout(() => { try { renderCrmBoard(); } catch (e) {} }, 1500);
+                    }
                 } else {
                     btn.classList.add('failed');
                     btn.innerHTML = '<i class="ph-bold ph-warning"></i> Falhou';
