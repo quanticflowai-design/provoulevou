@@ -7304,13 +7304,42 @@
                 if (typeof waLoadTemplates === 'function') waLoadTemplates();
             }
             if (name === 'disparar') { try { maybeShowDispWizard(); } catch (e) {} }
+            _crmSubActive = (name === 'crm');
             if (name === 'crm') {
                 try {
                     if (!crmLeadMapCache && typeof loadCRM === 'function') { crmLoaded = true; loadCRM().catch(() => { crmLoaded = false; }); }
                     else if (typeof renderCrmBoard === 'function') renderCrmBoard();
+                    crmStartAutoRefresh();
                 } catch (e) {}
+            } else {
+                try { crmStopAutoRefresh(); } catch (e) {}
             }
         }
+
+        // ===== Auto-verificação do CRM =====
+        // Re-checa os pedidos periodicamente (e ao voltar pra aba) enquanto o CRM
+        // está aberto, pra mover quem COMPROU DEPOIS pra "Convertido" sozinho —
+        // assim "Provou e não comprou" e "Clicaram em comprar" não ficam desatualizados.
+        let _crmSubActive = false;
+        let _crmAutoTimer = null;
+        let _crmLastRefresh = 0;
+        const CRM_AUTO_REFRESH_MS = 300000; // 5 min
+        function crmAutoRefresh(force) {
+            if (!_crmSubActive || document.hidden) return;
+            if (!crmLeadMapCache) return;                                   // ainda não carregou a 1ª vez
+            if (!force && Date.now() - _crmLastRefresh < 90000) return;     // throttle 90s
+            if (typeof loadCRM !== 'function') return;
+            loadCRM(true).catch(() => {});                                  // silencioso, sem flash
+        }
+        function crmStartAutoRefresh() {
+            crmStopAutoRefresh();
+            _crmAutoTimer = setInterval(() => crmAutoRefresh(false), CRM_AUTO_REFRESH_MS);
+        }
+        function crmStopAutoRefresh() {
+            if (_crmAutoTimer) { clearInterval(_crmAutoTimer); _crmAutoTimer = null; }
+        }
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) crmAutoRefresh(false); });
+        window.addEventListener('focus', () => crmAutoRefresh(false));
 
         // ============== Assistente: primeira campanha de disparo (uma vez) ==============
         const DISP_WIZARD_STEPS = [
@@ -12231,13 +12260,18 @@
             if (tp && tp.style.display && tp.style.display !== 'none') renderCrmTeamPanel();
         }
 
-        async function loadCRM() {
+        async function loadCRM(silent) {
             const loader = document.getElementById('crmLoader');
             const content = document.getElementById('crmContent');
             const emptyEl = document.getElementById('crmEmptyState');
-            if (loader) loader.style.display = 'flex';
-            if (content) content.style.display = 'none';
-            if (emptyEl) emptyEl.style.display = 'none';
+            // silent = auto-refresh: NÃO mostra "carregando" nem esconde o board,
+            // atualiza em silêncio pra não atrapalhar quem está mexendo.
+            if (!silent) {
+                if (loader) loader.style.display = 'flex';
+                if (content) content.style.display = 'none';
+                if (emptyEl) emptyEl.style.display = 'none';
+            }
+            _crmLastRefresh = Date.now();
 
             try {
                 await loadCrmRemoteState();
