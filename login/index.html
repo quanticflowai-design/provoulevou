@@ -14148,6 +14148,78 @@
         border-radius: 8px !important;
       }
       .dashboard-content input::placeholder { color: #7b7487 !important; }
+
+      /* ============================================================
+         BLINDAGEM MOBILE — aplica só em celular (<=600px).
+         Tudo aqui dentro NÃO afeta o desktop.
+         ============================================================ */
+      @media (max-width: 600px) {
+        /* base: sem estouro lateral, menos padding */
+        html, body { overflow-x: hidden !important; }
+        .container { padding: 10px 10px !important; }
+        .dashboard-content { min-width: 0 !important; }
+        .dashboard-content img, .dashboard-content canvas,
+        .dashboard-content svg, .dashboard-content video { max-width: 100% !important; height: auto; }
+
+        /* topbar: empilha; menu de abas vira linha cheia que rola */
+        .dash-topbar { gap: 10px !important; row-gap: 8px !important; flex-wrap: wrap !important; justify-content: center !important; }
+        #topbarCenter { width: 100% !important; order: 3 !important; }
+        #topbarCenter .tab-nav, .tab-nav {
+          width: 100% !important; max-width: 100% !important;
+          gap: 4px !important; flex-wrap: nowrap !important;
+          overflow-x: auto !important; -webkit-overflow-scrolling: touch;
+          justify-content: flex-start !important; margin-bottom: 16px !important;
+        }
+        .tab-nav button, .tab-nav a, #topbarCenter .tab-nav button { flex: 0 0 auto !important; white-space: nowrap !important; }
+        #masterSwitcher { max-width: 100% !important; }
+
+        /* todos os grids multi-coluna -> 1 coluna */
+        .stats-grid, .pl-grid-2, .pl-scenarios-grid, .crm-team-grid, .crm-resp-stages,
+        .products-grid, .disp-bulk-grid, .disp-bulk-statsrow, .credits-stats,
+        .vfunnel-row, .vg-row1, .crm-stage-legend {
+          grid-template-columns: 1fr !important;
+        }
+        /* KPIs e cards pequenos: 2 colunas (mais compacto) */
+        .recompra-cards, .consumo-stats, .disp-kpis { grid-template-columns: 1fr 1fr !important; }
+
+        /* CRM kanban: uma coluna por vez, no tamanho da tela, com snap */
+        .crm-board {
+          grid-auto-flow: column !important; grid-template-columns: none !important;
+          grid-auto-columns: 85vw !important; gap: 12px !important;
+          overflow-x: auto !important; scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch;
+        }
+        .crm-col { scroll-snap-align: start; }
+
+        /* gráficos e tabelas: largura total + scroll interno */
+        .chart-container { padding: 14px !important; }
+        .chart-canvas-wrap { height: 200px !important; }
+        .table-container { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+        .table-container table { min-width: 520px; }
+
+        /* modais: largura cheia, altura controlada, rola dentro */
+        .credits-modal, .plan-modal, .modal {
+          width: 94vw !important; max-width: 94vw !important;
+          max-height: 90vh !important; overflow-y: auto !important;
+          padding: 18px !important; box-sizing: border-box !important;
+        }
+
+        /* disparos: sub-nav rola, card e botão full */
+        .disp-subnav { overflow-x: auto !important; flex-wrap: nowrap !important; -webkit-overflow-scrolling: touch; }
+        .disp-bulk-card { padding: 16px !important; }
+        .disp-bulk-send { width: 100% !important; }
+
+        /* títulos sem estourar */
+        .dashboard-content h1 { font-size: 22px !important; line-height: 1.2 !important; }
+        .dashboard-content h2 { font-size: 18px !important; line-height: 1.25 !important; }
+      }
+
+      /* celulares estreitos: tudo 1 coluna */
+      @media (max-width: 400px) {
+        .recompra-cards, .consumo-stats, .disp-kpis { grid-template-columns: 1fr !important; }
+        .crm-board { grid-auto-columns: 88vw !important; }
+        .container { padding: 8px 7px !important; }
+      }
     </style>
 
     <!-- ============================================================
