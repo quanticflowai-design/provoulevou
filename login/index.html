@@ -4193,12 +4193,28 @@
                         </div>
                         <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
                             <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;"><i class="ph-bold ph-clock"></i> Ou agende pra depois</div>
-                            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                                <input type="datetime-local" id="waBulkScheduleAt" class="wa-bulk-field" style="max-width:220px;">
-                                <button class="disp-btn ghost" id="waBulkScheduleBtn" onclick="scheduleBulkSend()"><i class="ph-bold ph-calendar-plus"></i> Agendar disparo</button>
-                                <span id="waBulkScheduleFeedback" style="font-size:12.5px;font-weight:600;"></span>
+                            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+                                <button type="button" id="schedTabOnce" class="disp-btn" onclick="schedSwitchMode('once')">Uma vez</button>
+                                <button type="button" id="schedTabDaily" class="disp-btn ghost" onclick="schedSwitchMode('daily')"><i class="ph-bold ph-repeat"></i> Todo dia</button>
                             </div>
-                            <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">No horário marcado, os mesmos leads selecionados acima recebem automaticamente. Acompanhe abaixo.</div>
+                            <div id="schedBlockOnce">
+                                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                    <input type="datetime-local" id="waBulkScheduleAt" class="wa-bulk-field" style="max-width:220px;">
+                                    <button class="disp-btn ghost" id="waBulkScheduleBtn" onclick="scheduleBulkSend()"><i class="ph-bold ph-calendar-plus"></i> Agendar disparo</button>
+                                    <span id="waBulkScheduleFeedback" style="font-size:12.5px;font-weight:600;"></span>
+                                </div>
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">No horário marcado, os mesmos leads selecionados acima recebem (lista congelada agora).</div>
+                            </div>
+                            <div id="schedBlockDaily" style="display:none;">
+                                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                    <input type="time" id="recurTime" class="wa-bulk-field" style="max-width:120px;" value="10:00">
+                                    <select id="recurStage" class="wa-bulk-field" style="max-width:250px;"></select>
+                                    <input type="number" id="recurMax" class="wa-bulk-field" style="max-width:120px;" value="100" min="1" title="máximo por dia">
+                                    <button class="disp-btn ghost" id="recurBtn" onclick="scheduleRecurring()"><i class="ph-bold ph-repeat"></i> Ativar diário</button>
+                                    <span id="recurFeedback" style="font-size:12.5px;font-weight:600;"></span>
+                                </div>
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Todo dia nesse horário, manda pros leads da <strong>etapa escolhida</strong> que ainda não receberam disparo nos últimos 7 dias. Usa o modelo selecionado acima e o limite por dia.</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -8261,7 +8277,19 @@
                 if (error) throw error;
                 if (!data || !data.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Nenhum disparo agendado ainda.</div>'; return; }
                 const stMap = { agendado: ['Agendado', '#f59e0b'], enviando: ['Enviando…', '#3b82f6'], concluido: ['Concluído', '#10b981'], cancelado: ['Cancelado', '#9ca3af'] };
+                const stageTitle = (k) => { const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] }; const c = (cfg.columns || []).find(x => x.key === k); return c ? c.title : (k || ''); };
                 el.innerHTML = data.map(d => {
+                    if (d.recurrence === 'diario') {
+                        // Disparo recorrente (todo dia)
+                        const ativo = !!d.active;
+                        const cor = ativo ? '#10b981' : '#9ca3af';
+                        const lbl = ativo ? 'Ativo' : 'Pausado';
+                        const lastRun = d.executed_at ? (' · último envio ' + new Date(d.executed_at).toLocaleDateString('pt-BR') + (d.sent_count ? ' (' + d.sent_count + ')' : '')) : ' · ainda não rodou';
+                        const tog = '<button onclick="toggleRecurring(\'' + d.id + '\',' + (ativo ? 'false' : 'true') + ')" style="background:transparent;border:1px solid var(--border);border-radius:7px;padding:4px 9px;font-size:11.5px;cursor:pointer;color:' + (ativo ? '#ef4444' : '#10b981') + ';">' + (ativo ? 'Pausar' : 'Ativar') + '</button>';
+                        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13px;">'
+                            + '<div style="min-width:0;"><i class="ph-bold ph-repeat" style="color:#7c3aed;"></i> <strong>Todo dia às ' + escapeHtml(d.recur_time || '') + '</strong> · ' + escapeHtml(stageTitle(d.stage_key)) + '<br><span style="color:var(--text-muted);font-size:12px;">' + escapeHtml(d.template || '') + ' · máx ' + (d.max_per_run || '—') + '/dia' + lastRun + '</span></div>'
+                            + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;"><span style="color:' + cor + ';font-weight:700;font-size:12px;white-space:nowrap;">' + lbl + '</span>' + tog + '</div></div>';
+                    }
                     const st = stMap[d.status] || [d.status, '#6b7280'];
                     const when = new Date(d.scheduled_at).toLocaleString('pt-BR');
                     const counts = d.status === 'concluido' ? (' · ' + (d.sent_count || 0) + ' enviados' + (d.failed_count ? ' · ' + d.failed_count + ' falhas' : '')) : '';
@@ -8280,6 +8308,57 @@
                 await supabaseClient.from('disparos_agendados').update({ status: 'cancelado' }).eq('id', id).eq('status', 'agendado');
                 loadDisparosAgendados();
             } catch (e) { crmToast && crmToast('Não foi possível cancelar.', true); }
+        }
+
+        // ===== Disparo recorrente (todo dia, por etapa do CRM) =====
+        function schedSwitchMode(m) {
+            const once = document.getElementById('schedBlockOnce'), daily = document.getElementById('schedBlockDaily');
+            const to = document.getElementById('schedTabOnce'), td = document.getElementById('schedTabDaily');
+            if (!once || !daily) return;
+            if (m === 'daily') { once.style.display = 'none'; daily.style.display = 'block'; td.className = 'disp-btn'; to.className = 'disp-btn ghost'; populateRecurStage(); }
+            else { once.style.display = 'block'; daily.style.display = 'none'; to.className = 'disp-btn'; td.className = 'disp-btn ghost'; }
+        }
+        function populateRecurStage() {
+            const sel = document.getElementById('recurStage'); if (!sel) return;
+            const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+            sel.innerHTML = (cfg.columns || []).filter(c => c.key !== 'convertido')
+                .map(c => '<option value="' + c.key + '">' + escapeHtml(c.title) + '</option>').join('');
+        }
+        async function scheduleRecurring() {
+            const fb = document.getElementById('recurFeedback');
+            const time = (document.getElementById('recurTime') || {}).value;
+            const stage = (document.getElementById('recurStage') || {}).value;
+            const max = parseInt((document.getElementById('recurMax') || {}).value, 10) || 100;
+            if (!time || !stage) { fb.style.color = '#ef4444'; fb.textContent = 'Escolha horário e etapa.'; return; }
+            const tplName = _waBulkTemplate || _waConfigCache.default_template;
+            const tplLang = _waBulkTemplateLang || _waConfigCache.default_language || 'pt_BR';
+            if (!tplName) { fb.style.color = '#ef4444'; fb.textContent = 'Escolha o modelo de mensagem acima primeiro.'; return; }
+            const tplObj = (_waTemplatesCache || []).find(t => t.name === tplName);
+            const bodyComp = tplObj && (tplObj.components || []).find(c => c.type === 'BODY');
+            const placeholders = (((bodyComp && bodyComp.text) || '').match(/\{\{\s*\d+\s*\}\}/g) || []).length;
+            const btn = document.getElementById('recurBtn'); btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Ativando…';
+            try {
+                const { error } = await supabaseClient.from('disparos_agendados').insert({
+                    lojista_email: activeUser.email, scheduled_at: new Date().toISOString(),
+                    recurrence: 'diario', recur_time: time, stage_key: stage, max_per_run: max,
+                    template: tplName, language: tplLang,
+                    link_in_body: !!window._waBulkLinkInBody,
+                    url_btn_index: (typeof _waBulkUrlBtnIndex === 'number') ? _waBulkUrlBtnIndex : -1,
+                    placeholders: placeholders, active: true, status: 'agendado', total: 0
+                });
+                if (error) throw error;
+                fb.style.color = '#10b981'; fb.textContent = '✓ Disparo diário ativado às ' + time;
+                loadDisparosAgendados();
+            } catch (e) {
+                fb.style.color = '#ef4444'; fb.textContent = 'Erro: ' + (e && e.message ? e.message : e);
+            }
+            btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-repeat"></i> Ativar diário';
+        }
+        async function toggleRecurring(id, ativar) {
+            try {
+                await supabaseClient.from('disparos_agendados').update({ active: ativar }).eq('id', id);
+                loadDisparosAgendados();
+            } catch (e) { crmToast && crmToast('Não foi possível atualizar.', true); }
         }
 
         // Envia template pra 1 lead a partir do CRM
