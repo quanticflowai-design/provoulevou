@@ -2753,9 +2753,6 @@
                                 <span class="num-secondary">/ <span id="creditsTitleCap">—</span> fotos</span>
                             </div>
                         </div>
-                        <button class="credits-buy-btn" onclick="openCreditsModal()">
-                            Comprar créditos <span class="arrow">→</span>
-                        </button>
                     </div>
 
                     <div class="credits-progress-wrap">
@@ -14163,7 +14160,10 @@
 
         /* topbar: empilha; menu de abas vira linha cheia que rola */
         .dash-topbar { gap: 10px !important; row-gap: 8px !important; flex-wrap: wrap !important; justify-content: center !important; }
-        #topbarCenter { width: 100% !important; order: 3 !important; }
+        /* header NÃO-fixo no mobile: o menu (nav) cabe numa 2ª linha sem ser cortado pela altura fixa */
+        #mainHeader { position: static !important; height: auto !important; min-height: 0 !important; flex-wrap: wrap !important; row-gap: 6px !important; padding: 8px 12px !important; }
+        .dashboard-content { padding-top: 14px !important; }
+        #topbarCenter { width: 100% !important; order: 3 !important; flex-basis: 100% !important; padding-left: 0 !important; }
         #topbarCenter .tab-nav, .tab-nav {
           width: 100% !important; max-width: 100% !important;
           gap: 4px !important; flex-wrap: nowrap !important;
@@ -14181,6 +14181,14 @@
         }
         /* KPIs e cards pequenos: 2 colunas (mais compacto) */
         .recompra-cards, .consumo-stats, .disp-kpis { grid-template-columns: 1fr 1fr !important; }
+
+        /* Sinais de engajamento: força 2 colunas (tinha regra !important de 5 col), donut e padding menores */
+        .vg-row3 { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+        .vg-row3 .vring-card, .vring-card { padding: 16px 10px !important; gap: 10px !important; border-radius: 14px !important; }
+        .vring { width: 92px !important; height: 92px !important; }
+        .vring-value { font-size: 22px !important; }
+        .vring-label { font-size: 13px !important; }
+        .vring-desc { font-size: 11px !important; line-height: 1.35 !important; }
 
         /* CRM kanban: uma coluna por vez, no tamanho da tela, com snap */
         .crm-board {
