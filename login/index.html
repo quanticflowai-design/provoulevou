@@ -4193,28 +4193,12 @@
                         </div>
                         <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
                             <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;"><i class="ph-bold ph-clock"></i> Ou agende pra depois</div>
-                            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-                                <button type="button" id="schedTabOnce" class="disp-btn" onclick="schedSwitchMode('once')">Uma vez</button>
-                                <button type="button" id="schedTabDaily" class="disp-btn ghost" onclick="schedSwitchMode('daily')"><i class="ph-bold ph-repeat"></i> Todo dia</button>
+                            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                <input type="datetime-local" id="waBulkScheduleAt" class="wa-bulk-field" style="max-width:220px;">
+                                <button class="disp-btn ghost" id="waBulkScheduleBtn" onclick="scheduleBulkSend()"><i class="ph-bold ph-calendar-plus"></i> Agendar disparo</button>
+                                <span id="waBulkScheduleFeedback" style="font-size:12.5px;font-weight:600;"></span>
                             </div>
-                            <div id="schedBlockOnce">
-                                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                                    <input type="datetime-local" id="waBulkScheduleAt" class="wa-bulk-field" style="max-width:220px;">
-                                    <button class="disp-btn ghost" id="waBulkScheduleBtn" onclick="scheduleBulkSend()"><i class="ph-bold ph-calendar-plus"></i> Agendar disparo</button>
-                                    <span id="waBulkScheduleFeedback" style="font-size:12.5px;font-weight:600;"></span>
-                                </div>
-                                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">No horário marcado, os mesmos leads selecionados acima recebem (lista congelada agora).</div>
-                            </div>
-                            <div id="schedBlockDaily" style="display:none;">
-                                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                                    <input type="time" id="recurTime" class="wa-bulk-field" style="max-width:120px;" value="10:00">
-                                    <select id="recurStage" class="wa-bulk-field" style="max-width:250px;"></select>
-                                    <input type="number" id="recurMax" class="wa-bulk-field" style="max-width:120px;" value="100" min="1" title="máximo por dia">
-                                    <button class="disp-btn ghost" id="recurBtn" onclick="scheduleRecurring()"><i class="ph-bold ph-repeat"></i> Ativar diário</button>
-                                    <span id="recurFeedback" style="font-size:12.5px;font-weight:600;"></span>
-                                </div>
-                                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Todo dia nesse horário, manda pros leads da <strong>etapa escolhida</strong> que ainda não receberam disparo nos últimos 7 dias. Usa o modelo selecionado acima e o limite por dia.</div>
-                            </div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">No horário marcado, os mesmos leads selecionados acima recebem (lista congelada agora). Pra um disparo que <strong>repete todo dia</strong>, use a seção <strong>"Disparos agendados"</strong> abaixo.</div>
                         </div>
                     </div>
                 </div>
@@ -4225,6 +4209,32 @@
                         <h3 style="margin:0;"><i class="ph-bold ph-calendar-check"></i> Disparos agendados</h3>
                         <button class="disp-btn ghost" onclick="loadDisparosAgendados()" style="font-size:12px;"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
                     </div>
+
+                    <!-- Configurar disparo automático diário -->
+                    <div style="background:rgba(124,58,237,.045);border:1px solid rgba(124,58,237,.18);border-radius:12px;padding:18px;margin-bottom:18px;">
+                        <div style="font-weight:700;font-size:14.5px;margin-bottom:3px;"><i class="ph-bold ph-repeat" style="color:#7c3aed;"></i> Criar disparo automático diário</div>
+                        <div style="font-size:12.5px;color:var(--text-muted);line-height:1.5;margin-bottom:16px;">Todo dia no horário escolhido, envia para os leads de uma etapa do CRM que <strong>ainda não receberam disparo nos últimos 7 dias</strong>. Usa o modelo de mensagem selecionado no disparo em massa acima.</div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:13px;margin-bottom:16px;">
+                            <div>
+                                <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;">Etapa do CRM</label>
+                                <select id="recurStage" class="wa-bulk-field" style="width:100%;"></select>
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;">Horário</label>
+                                <input type="time" id="recurTime" class="wa-bulk-field" style="width:100%;" value="10:00">
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;">Máximo por dia</label>
+                                <input type="number" id="recurMax" class="wa-bulk-field" style="width:100%;" value="100" min="1">
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                            <button id="recurBtn" onclick="scheduleRecurring()" style="background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border:none;border-radius:10px;padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;"><i class="ph-bold ph-repeat"></i> Ativar disparo diário</button>
+                            <span id="recurFeedback" style="font-size:12.5px;font-weight:600;"></span>
+                        </div>
+                    </div>
+
+                    <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Agendados e automáticos</div>
                     <div id="dispAgendadosList"><div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Carregando…</div></div>
                 </div>
 
@@ -8270,6 +8280,7 @@
         async function loadDisparosAgendados() {
             const el = document.getElementById('dispAgendadosList');
             if (!el || !activeUser) return;
+            if (typeof populateRecurStage === 'function') populateRecurStage();
             try {
                 const { data, error } = await supabaseClient.from('disparos_agendados')
                     .select('*').eq('lojista_email', activeUser.email)
@@ -8311,13 +8322,6 @@
         }
 
         // ===== Disparo recorrente (todo dia, por etapa do CRM) =====
-        function schedSwitchMode(m) {
-            const once = document.getElementById('schedBlockOnce'), daily = document.getElementById('schedBlockDaily');
-            const to = document.getElementById('schedTabOnce'), td = document.getElementById('schedTabDaily');
-            if (!once || !daily) return;
-            if (m === 'daily') { once.style.display = 'none'; daily.style.display = 'block'; td.className = 'disp-btn'; to.className = 'disp-btn ghost'; populateRecurStage(); }
-            else { once.style.display = 'block'; daily.style.display = 'none'; to.className = 'disp-btn'; td.className = 'disp-btn ghost'; }
-        }
         function populateRecurStage() {
             const sel = document.getElementById('recurStage'); if (!sel) return;
             const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
