@@ -2321,7 +2321,9 @@
 
     <div class="container">
         <header id="mainHeader" style="display: none;">
+            <div id="mobileMenuOverlay" onclick="closeMobileMenu()"></div>
             <div style="display:flex;align-items:center;gap:20px;">
+                <button id="mobileMenuBtn" onclick="toggleMobileMenu()" aria-label="Abrir menu" style="display:none;background:transparent;border:none;cursor:pointer;padding:4px 6px;color:inherit;font-size:25px;line-height:1;"><i class="ph-bold ph-list"></i></button>
                 <a href="../index.html" style="display:flex;align-items:center;">
                     <img src="https://i.ibb.co/MDGF2YDD/Logo-provou-branco-1.png" alt="Provou Levou" style="height:34px;width:auto;" id="headerLogo">
                 </a>
@@ -5212,11 +5214,16 @@
         let supabaseClient = null;
         let activeUser = null;
 
+        // Menu hambúrguer (mobile): abre/fecha o drawer da esquerda
+        function toggleMobileMenu() { document.body.classList.toggle('mobile-menu-open'); }
+        function closeMobileMenu() { document.body.classList.remove('mobile-menu-open'); }
+
         function showTab(name) {
             const pane = document.getElementById('tab-' + name);
             const btn = document.querySelector('.tab-btn[data-tab="' + name + '"]');
             if (!pane && !btn && name !== 'visao-geral') { return showTab('visao-geral'); }
             if (typeof window._updatePageTitle === 'function') window._updatePageTitle(name);
+            closeMobileMenu();   // ao escolher uma aba no mobile, fecha o menu
             // Marca a aba ativa no body pra esconder o chip de créditos no CRM
             document.body.setAttribute('data-active-tab', name);
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
@@ -8398,7 +8405,7 @@
                     if (usados >= cap && saldo === 0) {
                         smartBody.innerHTML = 'Seu plano esgotou. Considere fazer <strong>upgrade</strong> pra evitar interrupção do provador.';
                     } else if (pct >= 80) {
-                        smartBody.innerHTML = 'Você está em <strong>' + pct + '%</strong> do limite mensal. Bom momento pra <strong>comprar créditos extras</strong> antes de estourar.';
+                        smartBody.innerHTML = 'Você está em <strong>' + pct + '%</strong> do limite mensal do seu plano.';
                     } else if (saldo > 0 && saldo > cap * 0.5) {
                         smartBody.innerHTML = 'Você tem <strong>' + saldo + ' créditos extras</strong> que cobrem mais um ciclo. Ótimo cushion.';
                     } else {
@@ -11010,7 +11017,7 @@
                             if (excedente > 0) {
                                 smartBody.innerHTML = 'Você passou <strong>' + excedente + '</strong> provas além do plano. Fale com a Quantic pra ajustar.';
                             } else if (pct >= 80) {
-                                smartBody.innerHTML = 'Você está em <strong>' + pct.toFixed(0) + '%</strong> do limite do plano. Boa hora pra <strong>comprar créditos</strong> antes de estourar.';
+                                smartBody.innerHTML = 'Você está em <strong>' + pct.toFixed(0) + '%</strong> do limite do seu plano.';
                             } else if (isTeste) {
                                 smartBody.innerHTML = 'Você está em <strong>teste gratuito</strong>. Acompanhe o impacto na Visão Geral pra decidir o plano ideal.';
                             } else {
@@ -14146,6 +14153,12 @@
       }
       .dashboard-content input::placeholder { color: #7b7487 !important; }
 
+      /* Compra de créditos removida da dashboard (header, aba Meu Plano, modal) */
+      .plan-chip-buy, .mp-buy-cta, .plan-modal-cta { display: none !important; }
+
+      /* Overlay do menu mobile — escondido por padrão (só aparece no drawer aberto) */
+      #mobileMenuOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 2999; }
+
       /* ============================================================
          BLINDAGEM MOBILE — aplica só em celular (<=600px).
          Tudo aqui dentro NÃO afeta o desktop.
@@ -14160,18 +14173,42 @@
 
         /* topbar: empilha; menu de abas vira linha cheia que rola */
         .dash-topbar { gap: 10px !important; row-gap: 8px !important; flex-wrap: wrap !important; justify-content: center !important; }
-        /* header NÃO-fixo no mobile: o menu (nav) cabe numa 2ª linha sem ser cortado pela altura fixa */
-        #mainHeader { position: static !important; height: auto !important; min-height: 0 !important; flex-wrap: wrap !important; row-gap: 6px !important; padding: 8px 12px !important; }
-        .dashboard-content { padding-top: 14px !important; }
-        #topbarCenter { width: 100% !important; order: 3 !important; flex-basis: 100% !important; padding-left: 0 !important; }
-        #topbarCenter .tab-nav, .tab-nav {
-          width: 100% !important; max-width: 100% !important;
-          gap: 4px !important; flex-wrap: nowrap !important;
-          overflow-x: auto !important; -webkit-overflow-scrolling: touch;
-          justify-content: flex-start !important; margin-bottom: 16px !important;
+        /* MENU HAMBÚRGUER no mobile: botão à esquerda abre um drawer com as abas */
+        #mobileMenuBtn { display: inline-flex !important; align-items: center; justify-content: center; }
+        #mainHeader { position: fixed !important; height: 56px !important; min-height: 56px !important; padding: 0 12px !important; gap: 10px !important; }
+        #mainHeader .header-title { display: none !important; }
+        #mainHeader > div:first-child { gap: 10px !important; }
+        .dashboard-content { padding-top: 70px !important; }
+
+        /* o nav vira um drawer que desliza da esquerda */
+        #topbarCenter {
+          position: fixed !important; top: 0 !important; left: 0 !important; bottom: 0 !important;
+          width: 80vw !important; max-width: 310px !important; height: 100% !important;
+          background: var(--card-bg, #ffffff) !important;
+          z-index: 3000 !important; padding: 62px 0 24px !important;
+          flex-direction: column !important; align-items: stretch !important;
+          justify-content: flex-start !important; overflow-y: auto !important;
+          transform: translateX(-100%); transition: transform .26s ease;
+          box-shadow: 4px 0 30px rgba(0,0,0,.2); order: 0 !important;
         }
-        .tab-nav button, .tab-nav a, #topbarCenter .tab-nav button { flex: 0 0 auto !important; white-space: nowrap !important; }
-        #masterSwitcher { max-width: 100% !important; }
+        body.mobile-menu-open #topbarCenter { transform: translateX(0) !important; }
+        #topbarCenter .tab-nav, .tab-nav {
+          flex-direction: column !important; width: 100% !important; gap: 2px !important;
+          overflow: visible !important; align-items: stretch !important; margin: 0 !important;
+        }
+        .tab-btn {
+          width: 100% !important; justify-content: flex-start !important;
+          padding: 15px 22px !important; font-size: 15.5px !important;
+          border-radius: 0 !important; gap: 12px !important;
+        }
+        body.mobile-menu-open #mobileMenuOverlay { display: block !important; }
+        body.mobile-menu-open { overflow: hidden !important; }
+        #masterSwitcher { max-width: 52vw !important; }
+        /* enxuga o lado direito do header pra não estourar */
+        #mainHeader .theme-toggle { display: none !important; }
+        #mainHeader > div:last-child { gap: 8px !important; }
+        #mainHeader .btn-refresh { padding: 6px 9px !important; font-size: 12px !important; }
+        #headerLogo { height: 28px !important; }
 
         /* todos os grids multi-coluna -> 1 coluna */
         .stats-grid, .pl-grid-2, .pl-scenarios-grid, .crm-team-grid, .crm-resp-stages,
