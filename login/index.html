@@ -4191,7 +4191,25 @@
                             </button>
                             <button class="disp-btn ghost" onclick="openManualSendModal()"><i class="ph-bold ph-user"></i> Disparo individual</button>
                         </div>
+                        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+                            <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;"><i class="ph-bold ph-clock"></i> Ou agende pra depois</div>
+                            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                <input type="datetime-local" id="waBulkScheduleAt" class="wa-bulk-field" style="max-width:220px;">
+                                <button class="disp-btn ghost" id="waBulkScheduleBtn" onclick="scheduleBulkSend()"><i class="ph-bold ph-calendar-plus"></i> Agendar disparo</button>
+                                <span id="waBulkScheduleFeedback" style="font-size:12.5px;font-weight:600;"></span>
+                            </div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">No horário marcado, os mesmos leads selecionados acima recebem automaticamente. Acompanhe abaixo.</div>
+                        </div>
                     </div>
+                </div>
+
+                <!-- ===== DISPAROS AGENDADOS (histórico) ===== -->
+                <div class="disp-card" id="dispAgendadosCard" style="margin-bottom:20px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+                        <h3 style="margin:0;"><i class="ph-bold ph-calendar-check"></i> Disparos agendados</h3>
+                        <button class="disp-btn ghost" onclick="loadDisparosAgendados()" style="font-size:12px;"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
+                    </div>
+                    <div id="dispAgendadosList"><div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Carregando…</div></div>
                 </div>
 
                 <!-- ===== CAIXA DE ENTRADA / CHAT ===== -->
@@ -7508,6 +7526,7 @@
                 if (_hojeCountEl) _hojeCountEl.textContent = hoje.toLocaleString('pt-BR');
                 const _hojeSubEl = document.getElementById('dispHojeSub');
                 if (_hojeSubEl) _hojeSubEl.innerHTML = hoje ? (hojeOk.toLocaleString('pt-BR') + ' entregues<br>' + new Date().toLocaleDateString('pt-BR')) : 'nenhum disparo ainda hoje';
+                if (typeof loadDisparosAgendados === 'function') loadDisparosAgendados();
                 document.getElementById('dispKpiSentPct').textContent = total ? ((sent/total*100).toFixed(1) + '% do total') : '—';
                 document.getElementById('dispKpiFailedPct').textContent = total ? ((failed/total*100).toFixed(1) + '% do total') : '—';
 
@@ -8166,6 +8185,101 @@
                 try { renderCrmBoard(); } catch (e) {}
                 if (typeof loadDisparos === 'function') loadDisparos().catch(() => {});
             }, 2500);
+        }
+
+        // ===== Agendar disparo (congela os destinatários e grava pra o cron do n8n enviar na hora marcada) =====
+        async function scheduleBulkSend() {
+            const fb = document.getElementById('waBulkScheduleFeedback');
+            const whenStr = (document.getElementById('waBulkScheduleAt') || {}).value;
+            if (!whenStr) { fb.style.color = '#ef4444'; fb.textContent = 'Escolha data e hora.'; return; }
+            const when = new Date(whenStr);
+            if (isNaN(when.getTime()) || when.getTime() < Date.now() + 60000) { fb.style.color = '#ef4444'; fb.textContent = 'Escolha um horário no futuro.'; return; }
+            const targets = window._waBulkTargets || [];
+            if (!targets.length) { fb.style.color = '#ef4444'; fb.textContent = 'Selecione os leads (acima) antes de agendar.'; return; }
+
+            const tplName = _waBulkTemplate || _waConfigCache.default_template;
+            const tplLang = _waBulkTemplateLang || _waConfigCache.default_language || 'pt_BR';
+            const tplObj = (_waTemplatesCache || []).find(t => t.name === tplName);
+            const bodyComp = tplObj && (tplObj.components || []).find(c => c.type === 'BODY');
+            const bodyText = (bodyComp && bodyComp.text) || '';
+            const placeholders = (bodyText.match(/\{\{\s*\d+\s*\}\}/g) || []).length;
+            const urlBtnIndex = (typeof _waBulkUrlBtnIndex === 'number') ? _waBulkUrlBtnIndex : -1;
+            const linkInBody = !!window._waBulkLinkInBody;
+            const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
+            const sendTargets = window._waBulkNeedLink ? targets.filter(t => hasUrl(t.productUrl)) : targets;
+            if (!sendTargets.length) { fb.style.color = '#ef4444'; fb.textContent = 'Nenhum lead com link do produto salvo pra este modelo.'; return; }
+
+            // Monta o MESMO payload do envio imediato, pra cada lead (congelado)
+            const payloads = sendTargets.map(lead => {
+                const firstName = (lead.name || '').split(' ')[0] || '👋';
+                const produto = lead.product || 'o modelo que você provou';
+                const leadLink = hasUrl(lead.productUrl) ? lead.productUrl : '';
+                const fill = [firstName, produto];
+                if (linkInBody) fill[2] = leadLink;
+                const params = [];
+                for (let i = 0; i < placeholders; i++) params.push(fill[i] != null ? fill[i] : firstName);
+                const p = { to: lead.phone, params: params };
+                if (urlBtnIndex >= 0 && leadLink) {
+                    const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || leadLink;
+                    const components = [];
+                    if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
+                    components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
+                    p.components = components;
+                }
+                return p;
+            });
+
+            const moveTo = ((document.getElementById('waBulkMoveTo') || {}).value) || 'em-contato';
+            const btn = document.getElementById('waBulkScheduleBtn');
+            btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Agendando…';
+            try {
+                const { error } = await supabaseClient.from('disparos_agendados').insert({
+                    lojista_email: activeUser.email,
+                    scheduled_at: when.toISOString(),
+                    template: tplName, language: tplLang,
+                    payloads: payloads, total: payloads.length,
+                    move_to_stage: moveTo, status: 'agendado'
+                });
+                if (error) throw error;
+                fb.style.color = '#10b981';
+                fb.textContent = '✓ ' + payloads.length + ' disparo(s) agendado(s) para ' + when.toLocaleString('pt-BR');
+                loadDisparosAgendados();
+            } catch (e) {
+                fb.style.color = '#ef4444';
+                fb.textContent = 'Erro ao agendar: ' + (e && e.message ? e.message : e);
+            }
+            btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-calendar-plus"></i> Agendar disparo';
+        }
+
+        async function loadDisparosAgendados() {
+            const el = document.getElementById('dispAgendadosList');
+            if (!el || !activeUser) return;
+            try {
+                const { data, error } = await supabaseClient.from('disparos_agendados')
+                    .select('*').eq('lojista_email', activeUser.email)
+                    .order('scheduled_at', { ascending: false }).limit(50);
+                if (error) throw error;
+                if (!data || !data.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Nenhum disparo agendado ainda.</div>'; return; }
+                const stMap = { agendado: ['Agendado', '#f59e0b'], enviando: ['Enviando…', '#3b82f6'], concluido: ['Concluído', '#10b981'], cancelado: ['Cancelado', '#9ca3af'] };
+                el.innerHTML = data.map(d => {
+                    const st = stMap[d.status] || [d.status, '#6b7280'];
+                    const when = new Date(d.scheduled_at).toLocaleString('pt-BR');
+                    const counts = d.status === 'concluido' ? (' · ' + (d.sent_count || 0) + ' enviados' + (d.failed_count ? ' · ' + d.failed_count + ' falhas' : '')) : '';
+                    const cancel = d.status === 'agendado' ? '<button onclick="cancelDisparoAgendado(\'' + d.id + '\')" style="background:transparent;border:1px solid var(--border);border-radius:7px;padding:4px 9px;font-size:11.5px;color:#ef4444;cursor:pointer;">Cancelar</button>' : '';
+                    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13px;">'
+                        + '<div style="min-width:0;"><strong>' + (d.total || 0) + '</strong> disparo(s) · ' + escapeHtml(d.template || '') + '<br><span style="color:var(--text-muted);font-size:12px;">' + when + counts + '</span></div>'
+                        + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;"><span style="color:' + st[1] + ';font-weight:700;font-size:12px;white-space:nowrap;">' + st[0] + '</span>' + cancel + '</div></div>';
+                }).join('');
+            } catch (e) {
+                el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Histórico indisponível (a tabela ainda pode não ter sido criada).</div>';
+            }
+        }
+
+        async function cancelDisparoAgendado(id) {
+            try {
+                await supabaseClient.from('disparos_agendados').update({ status: 'cancelado' }).eq('id', id).eq('status', 'agendado');
+                loadDisparosAgendados();
+            } catch (e) { crmToast && crmToast('Não foi possível cancelar.', true); }
         }
 
         // Envia template pra 1 lead a partir do CRM
