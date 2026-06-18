@@ -5308,7 +5308,7 @@
             document.getElementById('quanticLogoImg').style.filter = 'brightness(0) invert(1)';
 
             const SUPABASE_URL = (window.ENV && window.ENV.SUPABASE_URL) || 'https://quantic-supabase.k5jwra.easypanel.host';
-            const SUPABASE_KEY = (window.ENV && window.ENV.SUPABASE_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.pCFnSnrlSUM2EwXi9gxAegpoC-9U0Mjx3iAtROR-E20';
+            const SUPABASE_KEY = (window.ENV && window.ENV.SUPABASE_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNjQxNzY5MjAwLCJleHAiOjIxNDc0ODM2NDd9.u4oeODEUKfS8mgxK7GK-OjUj5tFKcnqFWK7Oo3efPls';
 
             // Init core client once
             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -5513,7 +5513,8 @@
 
         // ============== Segurança do login: rate limit + CAPTCHA ==============
         // Cole aqui a Site Key do Cloudflare Turnstile pra ativar o CAPTCHA (vazio = só rate limit)
-        const TURNSTILE_SITE_KEY = '0x4AAAAAADj39wnh2G1OzJoP';
+        // CAPTCHA desativado temporariamente (site key original: 0x4AAAAAADj39wnh2G1OzJoP)
+        const TURNSTILE_SITE_KEY = '';
         const LOGIN_MAX_FAILS = 5;          // tentativas erradas antes de bloquear
         const LOGIN_LOCK_BASE_MS = 60000;   // 1 min (escalona: 1min → 5min → 25min)
         let _captchaToken = '';
