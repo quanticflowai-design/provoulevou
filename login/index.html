@@ -71,6 +71,10 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7"></script>
+    <!-- Drawflow (construtor visual de fluxos da aba Automações). Carregado de forma
+         resiliente: se o CSS/JS não chegar daqui, o initAutomacoes() reinjeta sob demanda. -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/drawflow@0.0.59/dist/drawflow.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/drawflow@0.0.59/dist/drawflow.min.js"></script>
     <script src="../env.js"></script>
 
     <style>
@@ -4021,6 +4025,86 @@
                     .disp-subpane.active { display:block; animation: dispFade .2s ease; }
                     @keyframes dispFade { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
                 </style>
+
+                <!-- ===== ESTILOS DA SUB-ABA AUTOMAÇÕES (construtor Drawflow) ===== -->
+                <style>
+                    /* Inputs/controles comuns do builder */
+                    .autom-input { background:var(--bg-card); border:1px solid var(--border); color:var(--text-main); border-radius:8px; padding:8px 10px; font-family:inherit; font-size:13px; outline:none; width:100%; box-sizing:border-box; }
+                    .autom-input:focus { border-color:#7c3aed; }
+                    .autom-switch { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--text-muted); cursor:pointer; white-space:nowrap; }
+                    .autom-switch input { accent-color:#7c3aed; cursor:pointer; }
+                    .autom-switch.sm { font-size:12px; }
+                    .autom-check { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--text-muted); cursor:pointer; }
+                    .autom-check input { accent-color:#7c3aed; cursor:pointer; }
+                    .disp-btn.sm { padding:6px 10px; font-size:12px; }
+                    .disp-btn.ghost.danger { color:#ef4444; }
+
+                    /* Cards da lista */
+                    .autom-card { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:10px; }
+                    .autom-card-name { font-weight:700; font-size:15px; }
+                    .autom-card-sub { color:var(--text-muted); font-size:12.5px; margin-top:3px; display:flex; align-items:center; gap:5px; }
+                    .autom-card-stats { display:flex; gap:16px; margin-top:8px; font-size:12px; color:var(--text-muted); }
+                    .autom-card-stats b { color:var(--text-main); }
+                    .autom-card-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+
+                    /* Cabeçalho do editor */
+                    .autom-ed-head { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+                    .autom-ed-exits { display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-bottom:14px; }
+                    .autom-edmsg { font-size:12.5px; margin-left:auto; }
+
+                    /* Grid 3 colunas: paleta | canvas | config */
+                    .autom-ed-grid { display:grid; grid-template-columns:200px 1fr 300px; gap:14px; align-items:stretch; }
+                    .autom-palette, .autom-config { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:14px; }
+                    .autom-palette-title, .autom-config-title { font-weight:700; font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:.4px; color:var(--text-muted); }
+                    .autom-pal-item { display:flex; align-items:center; gap:8px; background:rgba(124,58,237,.08); border:1px solid var(--border); border-radius:9px; padding:10px 12px; font-size:13px; font-weight:600; margin-bottom:9px; cursor:grab; user-select:none; transition:background .15s, transform .1s; }
+                    .autom-pal-item:hover { background:rgba(124,58,237,.16); }
+                    .autom-pal-item:active { cursor:grabbing; transform:scale(.98); }
+                    .autom-pal-item i { color:#7c3aed; font-size:16px; }
+                    .autom-pal-hint { font-size:11.5px; color:var(--text-muted); margin-top:12px; line-height:1.5; }
+
+                    .autom-canvas-wrap { border:1px solid var(--border); border-radius:12px; overflow:hidden; min-height:440px; }
+                    .autom-canvas { width:100%; height:440px; background:var(--bg-deep, #0f0f17); background-image:radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px); background-size:22px 22px; }
+                    body.light-mode .autom-canvas { background:#f3f4f8; background-image:radial-gradient(rgba(0,0,0,.06) 1px, transparent 1px); }
+
+                    /* Nós do Drawflow (tema escuro adaptado ao dashboard) */
+                    .autom-canvas .drawflow .drawflow-node { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; color:var(--text-main); box-shadow:0 4px 14px rgba(0,0,0,.25); padding:0; min-width:150px; }
+                    .autom-canvas .drawflow .drawflow-node.selected { border-color:#7c3aed; box-shadow:0 0 0 2px rgba(124,58,237,.4); }
+                    .autom-canvas .drawflow .drawflow-node .drawflow_content_node { width:100%; }
+                    .autom-node { padding:11px 13px; font-size:13px; }
+                    .autom-node b { font-weight:700; }
+                    .autom-node i { color:#7c3aed; margin-right:3px; }
+                    .autom-node-sub { color:var(--text-muted); font-size:11.5px; margin-top:4px; word-break:break-word; }
+                    .autom-node-gatilho i { color:#f59e0b; }
+                    .autom-canvas .drawflow .connection .main-path { stroke:#7c3aed; stroke-width:2px; }
+                    .autom-canvas .drawflow .drawflow-node .input, .autom-canvas .drawflow .drawflow-node .output { background:#7c3aed; border:2px solid var(--bg-card); }
+
+                    /* Painel de config */
+                    .autom-cfg-title { font-weight:700; font-size:14px; margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+                    .autom-cfg-title i { color:#7c3aed; }
+                    .autom-cfg-subtitle { font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--text-muted); margin:14px 0 7px; }
+                    .autom-cfg-label { display:block; font-size:12px; color:var(--text-muted); margin:10px 0 5px; }
+                    .autom-map-row { display:flex; align-items:center; gap:7px; margin-bottom:7px; }
+                    .autom-map-tag { flex-shrink:0; min-width:34px; text-align:center; background:rgba(124,58,237,.14); color:#a855f7; border-radius:6px; padding:5px 6px; font-size:11.5px; font-weight:700; }
+                    .autom-param-sel { flex:1; }
+                    .autom-param-lit { flex:1; }
+                    .autom-preview { background:var(--bg-card); border:1px dashed var(--border); border-radius:8px; padding:10px; font-size:12.5px; color:var(--text-muted); white-space:pre-wrap; line-height:1.5; }
+
+                    /* Modal janela de envio */
+                    .autom-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; z-index:9999; padding:16px; }
+                    .autom-modal { background:var(--bg-card); border:1px solid var(--border); border-radius:14px; padding:20px; width:380px; max-width:100%; box-shadow:0 18px 50px rgba(0,0,0,.4); }
+                    .autom-modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:15px; }
+                    .autom-modal-x { background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:18px; }
+                    .autom-modal-foot { margin-top:16px; text-align:right; }
+                    .autom-dias { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px; }
+                    .autom-dia { display:flex; flex-direction:column; align-items:center; gap:3px; font-size:11px; color:var(--text-muted); cursor:pointer; }
+                    .autom-dia input { accent-color:#7c3aed; }
+
+                    @media (max-width: 900px) {
+                        .autom-ed-grid { grid-template-columns:1fr; }
+                        .autom-canvas, .autom-canvas-wrap { min-height:340px; }
+                        .autom-canvas { height:340px; }
+                    }
+                </style>
                 <div class="disp-subnav" id="dispSubnav">
                     <button data-sub="crm" class="active" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> CRM</button>
                     <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> Conversas <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
@@ -4028,6 +4112,7 @@
                     <button data-sub="templates" onclick="dispSwitchSub('templates')"><i class="ph-bold ph-chat-circle-text"></i> Mensagens modelo</button>
                     <button data-sub="historico" onclick="dispSwitchSub('historico')"><i class="ph-bold ph-chart-bar"></i> Histórico</button>
                     <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> Conexão</button>
+                    <button data-sub="automacoes" onclick="dispSwitchSub('automacoes')"><i class="ph-bold ph-flow-arrow"></i> Automações</button>
                 </div>
                 <div class="disp-subpane active" id="dispSubCrm"></div>
                 <div class="disp-subpane" id="dispSubConversas"></div>
@@ -4035,6 +4120,7 @@
                 <div class="disp-subpane" id="dispSubTemplates"></div>
                 <div class="disp-subpane" id="dispSubHistorico"></div>
                 <div class="disp-subpane" id="dispSubConexao"></div>
+                <div class="disp-subpane" id="dispSubAutomacoes"></div>
 
                 <!-- Host do card WhatsApp Business (waCard é movido pra cá via JS) -->
                 <div id="disparosWaHost"></div>
@@ -7335,7 +7421,7 @@
 
         function dispSwitchSub(name) {
             document.querySelectorAll('#dispSubnav button').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
-            const map = { crm: 'dispSubCrm', conversas: 'dispSubConversas', disparar: 'dispSubDisparar', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao' };
+            const map = { crm: 'dispSubCrm', conversas: 'dispSubConversas', disparar: 'dispSubDisparar', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao', automacoes: 'dispSubAutomacoes' };
             Object.entries(map).forEach(([k, id]) => {
                 const p = document.getElementById(id);
                 if (p) p.classList.toggle('active', k === name);
@@ -7360,6 +7446,7 @@
                 if (typeof waLoadTemplates === 'function') waLoadTemplates();
             }
             if (name === 'disparar') { try { maybeShowDispWizard(); } catch (e) {} }
+            if (name === 'automacoes') { try { initAutomacoes(); } catch (e) { console.error(e); } }
             _crmSubActive = (name === 'crm');
             if (name === 'crm') {
                 try {
@@ -7369,6 +7456,741 @@
                 } catch (e) {}
             } else {
                 try { crmStopAutoRefresh(); } catch (e) {}
+            }
+        }
+
+        /* =====================================================================
+           ====== AUTOMAÇÕES — construtor visual de fluxos (Drawflow) ==========
+           =====================================================================
+           Sub-aba dentro de Disparos. O lojista monta fluxos lineares de
+           automação de WhatsApp (estilo n8n: clica-e-arrasta) e salva na tabela
+           `flows` do Supabase. O backend (motor n8n + inscrição) já existe — aqui
+           só criamos/editamos/listamos os fluxos.
+
+           CONTRATO `passos` (o MOTOR lê EXATAMENTE isto — não inventar campos):
+             - Espera:    { tipo:'espera',    qtd:<número>, unidade:'min'|'hora'|'dia' }
+             - Enviar:    { tipo:'enviar',    template:'<nome>', language:'pt_BR',
+                            params:[<chave|literal>, ...], button:<chave|literal|null> }
+             - Mover CRM: { tipo:'mover_crm', estagio:'<column key>' }
+           O Gatilho NÃO é passo (é metadado `flows.gatilho`). Janela e saídas
+           também não são passos (são `janela_envio` / `exits`).
+           ===================================================================== */
+        const AUTOM = {
+            built: false,            // guard de idempotência do initAutomacoes()
+            editor: null,            // instância Drawflow
+            flows: [],               // cache da lista
+            editing: null,           // id do fluxo em edição (null = novo)
+            selectedNode: null,      // id do nó selecionado no canvas
+            triggerNodeId: null,     // id do nó "Gatilho" fixo
+            janela: null,            // {dias, hora_ini, hora_fim, tz, max_dia}
+            exits: null              // {para_se_comprou, para_se_respondeu}
+        };
+        const AUTOM_GATILHOS = [
+            { key: 'carrinho_abandonado',          label: 'Carrinho abandonado' },
+            { key: 'provou_nao_comprou',           label: 'Provou e não comprou' },
+            { key: 'clicou_comprar_nao_comprou',   label: 'Clicou em comprar e não comprou' }
+        ];
+        const AUTOM_GATILHO_LABEL = (k) => (AUTOM_GATILHOS.find(g => g.key === k) || {}).label || k || '—';
+        // Chaves de contexto que o motor entende (qualquer outra string vai literal).
+        const AUTOM_CTX_KEYS = [
+            { key: 'nome',    label: 'Nome do cliente' },
+            { key: 'produto', label: 'Produto' },
+            { key: 'link',    label: 'Link' }
+        ];
+        const AUTOM_JANELA_DEFAULT = () => ({ dias: [1,2,3,4,5,6,7], hora_ini: 9, hora_fim: 21, tz: 'America/Sao_Paulo', max_dia: 200 });
+        const AUTOM_EXITS_DEFAULT  = () => ({ para_se_comprou: true, para_se_respondeu: true });
+
+        // Garante que window.Drawflow exista (reinjeta o script/css se o CDN do <head> falhou).
+        function automEnsureDrawflow() {
+            return new Promise((resolve, reject) => {
+                if (window.Drawflow) return resolve();
+                try {
+                    if (!document.querySelector('link[data-autom-df]')) {
+                        const css = document.createElement('link');
+                        css.rel = 'stylesheet';
+                        css.href = 'https://cdn.jsdelivr.net/npm/drawflow@0.0.59/dist/drawflow.min.css';
+                        css.setAttribute('data-autom-df', '1');
+                        document.head.appendChild(css);
+                    }
+                    let s = document.querySelector('script[data-autom-df]');
+                    if (!s) {
+                        s = document.createElement('script');
+                        s.src = 'https://cdn.jsdelivr.net/npm/drawflow@0.0.59/dist/drawflow.min.js';
+                        s.setAttribute('data-autom-df', '1');
+                        s.onload = () => resolve();
+                        s.onerror = () => reject(new Error('Não foi possível carregar o Drawflow (CDN).'));
+                        document.head.appendChild(s);
+                    } else {
+                        s.addEventListener('load', () => resolve());
+                        s.addEventListener('error', () => reject(new Error('Não foi possível carregar o Drawflow (CDN).')));
+                    }
+                } catch (e) { reject(e); }
+            });
+        }
+
+        // Idempotente: monta o shell (LISTA + EDITOR) uma única vez e mostra a LISTA.
+        function initAutomacoes() {
+            const pane = document.getElementById('dispSubAutomacoes');
+            if (!pane) return;
+            if (AUTOM.built) { automShowList(); automLoadFlows(); return; }
+            pane.innerHTML = automShellHTML();
+            AUTOM.built = true;
+            automShowList();
+            automLoadFlows();
+        }
+
+        function automShellHTML() {
+            return ''
+              + '<div id="automList">'
+              + '  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">'
+              + '    <div><h3 style="margin:0;font-size:18px;">Automações</h3><p style="margin:4px 0 0;color:var(--text-muted);font-size:13px;">Monte fluxos de WhatsApp que disparam sozinhos a partir de um gatilho.</p></div>'
+              + '    <button class="disp-btn" onclick="automNewFlow()"><i class="ph-bold ph-plus"></i> Novo fluxo</button>'
+              + '  </div>'
+              + '  <div id="automCards"><div style="color:var(--text-muted);font-size:13px;padding:14px 0;"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando fluxos…</div></div>'
+              + '</div>'
+              + '<div id="automEditor" style="display:none;">' + automEditorHTML() + '</div>';
+        }
+
+        function automEditorHTML() {
+            return ''
+              + '<div class="autom-ed-head">'
+              + '  <button class="disp-btn ghost" onclick="automBackToList()"><i class="ph-bold ph-arrow-left"></i></button>'
+              + '  <input id="automNome" class="autom-input" placeholder="Nome do fluxo" style="flex:1;min-width:140px;">'
+              + '  <select id="automGatilho" class="autom-input" style="min-width:180px;">'
+              +      AUTOM_GATILHOS.map(g => '<option value="' + g.key + '">' + escapeHtml(g.label) + '</option>').join('')
+              + '  </select>'
+              + '  <label class="autom-switch"><input type="checkbox" id="automAtivo"><span>Ativo</span></label>'
+              + '  <button class="disp-btn ghost" onclick="automOpenJanela()"><i class="ph-bold ph-clock"></i> Janela de envio</button>'
+              + '  <button class="disp-btn" onclick="automSave()"><i class="ph-bold ph-floppy-disk"></i> Salvar</button>'
+              + '</div>'
+              + '<div class="autom-ed-exits">'
+              + '  <label class="autom-check"><input type="checkbox" id="automExitComprou"><span>Parar se o cliente comprar</span></label>'
+              + '  <label class="autom-check"><input type="checkbox" id="automExitRespondeu"><span>Parar se o cliente responder</span></label>'
+              + '  <span id="automEdMsg" class="autom-edmsg"></span>'
+              + '</div>'
+              + '<div class="autom-ed-grid">'
+              + '  <div class="autom-palette">'
+              + '    <div class="autom-palette-title">Blocos</div>'
+              + '    <div class="autom-pal-item" draggable="true" data-node="espera"><i class="ph-bold ph-hourglass-medium"></i> Espera</div>'
+              + '    <div class="autom-pal-item" draggable="true" data-node="enviar"><i class="ph-bold ph-paper-plane-tilt"></i> Enviar template</div>'
+              + '    <div class="autom-pal-item" draggable="true" data-node="mover_crm"><i class="ph-bold ph-kanban"></i> Mover etapa no CRM</div>'
+              + '    <p class="autom-pal-hint">Arraste pro canvas e ligue os blocos em sequência. v1 é linear (1 saída por bloco).</p>'
+              + '  </div>'
+              + '  <div class="autom-canvas-wrap"><div id="automCanvas" class="autom-canvas"></div></div>'
+              + '  <div class="autom-config">'
+              + '    <div class="autom-config-title">Configuração</div>'
+              + '    <div id="automConfigBody"><p style="color:var(--text-muted);font-size:13px;">Selecione um bloco no canvas para configurá-lo.</p></div>'
+              + '  </div>'
+              + '</div>';
+        }
+
+        // ---------- LISTA ----------
+        function automShowList() {
+            const l = document.getElementById('automList');
+            const e = document.getElementById('automEditor');
+            if (l) l.style.display = 'block';
+            if (e) e.style.display = 'none';
+        }
+        function automShowEditor() {
+            const l = document.getElementById('automList');
+            const e = document.getElementById('automEditor');
+            if (l) l.style.display = 'none';
+            if (e) e.style.display = 'block';
+        }
+        function automBackToList() { automShowList(); automLoadFlows(); }
+
+        async function automLoadFlows() {
+            const box = document.getElementById('automCards');
+            if (!box || !activeUser) return;
+            try {
+                const { data, error } = await supabaseClient.from('flows')
+                    .select('*').eq('lojista_email', activeUser.email)
+                    .order('id', { ascending: true });
+                if (error) throw error;
+                AUTOM.flows = data || [];
+                if (!AUTOM.flows.length) {
+                    box.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:36px 18px;border:1px dashed var(--border);border-radius:12px;">'
+                        + '<i class="ph-bold ph-flow-arrow" style="font-size:30px;opacity:.7;"></i><br><br>'
+                        + '<strong>Nenhum fluxo ainda</strong><br>Crie seu primeiro fluxo de automação.</div>';
+                    return;
+                }
+                box.innerHTML = AUTOM.flows.map(automCardHTML).join('');
+                // Conta inscritos/enviados de cada fluxo (silencioso, não bloqueia render).
+                AUTOM.flows.forEach(f => automLoadCardCounts(f.id));
+            } catch (e) {
+                box.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:14px 0;">Não foi possível carregar os fluxos' + (e && e.message ? ' (' + escapeHtml(e.message) + ')' : '') + '.</div>';
+            }
+        }
+
+        function automCardHTML(f) {
+            const ativo = !!f.ativo;
+            return '<div class="autom-card" data-flow="' + f.id + '">'
+              + '  <div class="autom-card-main">'
+              + '    <div class="autom-card-name">' + escapeHtml(f.nome || 'Fluxo sem nome') + '</div>'
+              + '    <div class="autom-card-sub"><i class="ph-bold ph-lightning"></i> ' + escapeHtml(AUTOM_GATILHO_LABEL(f.gatilho)) + '</div>'
+              + '    <div class="autom-card-stats" id="automStats-' + f.id + '">'
+              + '      <span><i class="ph-bold ph-users"></i> <b id="automEnr-' + f.id + '">…</b> inscritos</span>'
+              + '      <span><i class="ph-bold ph-paper-plane-tilt"></i> <b id="automSent-' + f.id + '">…</b> enviados</span>'
+              + '    </div>'
+              + '  </div>'
+              + '  <div class="autom-card-actions">'
+              + '    <label class="autom-switch sm"><input type="checkbox" ' + (ativo ? 'checked' : '') + ' onchange="automToggleAtivo(\'' + f.id + '\', this.checked)"><span>Ativo</span></label>'
+              + '    <button class="disp-btn ghost sm" onclick="automEditFlow(\'' + f.id + '\')"><i class="ph-bold ph-pencil-simple"></i> Editar</button>'
+              + '    <button class="disp-btn ghost sm danger" onclick="automDeleteFlow(\'' + f.id + '\')"><i class="ph-bold ph-trash"></i></button>'
+              + '  </div>'
+              + '</div>';
+        }
+
+        async function automLoadCardCounts(flowId) {
+            try {
+                const enrEl = document.getElementById('automEnr-' + flowId);
+                const sentEl = document.getElementById('automSent-' + flowId);
+                const enrP = supabaseClient.from('flow_enrollments')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('flow_id', flowId).eq('status', 'ativo');
+                const sentP = supabaseClient.from('flow_runs_log')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('flow_id', flowId).eq('resultado', 'enviado');
+                const [enrR, sentR] = await Promise.all([enrP, sentP]);
+                if (enrEl) enrEl.textContent = (enrR && !enrR.error && enrR.count != null) ? enrR.count : 0;
+                if (sentEl) sentEl.textContent = (sentR && !sentR.error && sentR.count != null) ? sentR.count : 0;
+            } catch (e) {
+                const enrEl = document.getElementById('automEnr-' + flowId);
+                const sentEl = document.getElementById('automSent-' + flowId);
+                if (enrEl) enrEl.textContent = '0';
+                if (sentEl) sentEl.textContent = '0';
+            }
+        }
+
+        async function automToggleAtivo(flowId, checked) {
+            try {
+                const { error } = await supabaseClient.from('flows')
+                    .update({ ativo: !!checked })
+                    .eq('id', flowId).eq('lojista_email', activeUser.email);
+                if (error) throw error;
+                const f = AUTOM.flows.find(x => String(x.id) === String(flowId));
+                if (f) f.ativo = !!checked;
+            } catch (e) {
+                alert('Não foi possível alterar o status: ' + (e && e.message ? e.message : e));
+                automLoadFlows();
+            }
+        }
+
+        async function automDeleteFlow(flowId) {
+            const f = AUTOM.flows.find(x => String(x.id) === String(flowId));
+            if (!confirm('Excluir o fluxo "' + ((f && f.nome) || 'sem nome') + '"? Os inscritos e o histórico deste fluxo também serão removidos.')) return;
+            try {
+                const { error } = await supabaseClient.from('flows')
+                    .delete().eq('id', flowId).eq('lojista_email', activeUser.email);
+                if (error) throw error;
+                automLoadFlows();
+            } catch (e) {
+                alert('Não foi possível excluir: ' + (e && e.message ? e.message : e));
+            }
+        }
+
+        // ---------- EDITOR ----------
+        function automNewFlow() { automOpenEditor(null); }
+        function automEditFlow(flowId) {
+            const f = AUTOM.flows.find(x => String(x.id) === String(flowId));
+            automOpenEditor(f || null);
+        }
+
+        async function automOpenEditor(flow) {
+            try { await automEnsureDrawflow(); }
+            catch (e) { alert(e.message || 'Falha ao carregar o editor de fluxos.'); return; }
+            // Garante templates carregados (pro select de Enviar).
+            try { if ((!_waTemplatesCache || !_waTemplatesCache.length) && typeof waLoadTemplates === 'function') await waLoadTemplates(); } catch (e) {}
+
+            AUTOM.editing = flow ? flow.id : null;
+            AUTOM.selectedNode = null;
+            AUTOM.janela = (flow && flow.janela_envio) ? Object.assign(AUTOM_JANELA_DEFAULT(), flow.janela_envio) : AUTOM_JANELA_DEFAULT();
+            AUTOM.exits  = (flow && flow.exits) ? Object.assign(AUTOM_EXITS_DEFAULT(), flow.exits) : AUTOM_EXITS_DEFAULT();
+
+            automShowEditor();
+            // Preenche cabeçalho.
+            const nomeEl = document.getElementById('automNome');
+            const gatEl  = document.getElementById('automGatilho');
+            const ativoEl = document.getElementById('automAtivo');
+            const exC = document.getElementById('automExitComprou');
+            const exR = document.getElementById('automExitRespondeu');
+            if (nomeEl) nomeEl.value = (flow && flow.nome) || '';
+            if (gatEl)  gatEl.value  = (flow && flow.gatilho) || AUTOM_GATILHOS[0].key;
+            if (ativoEl) ativoEl.checked = flow ? !!flow.ativo : false;
+            if (exC) exC.checked = !!AUTOM.exits.para_se_comprou;
+            if (exR) exR.checked = !!AUTOM.exits.para_se_respondeu;
+            automSetEdMsg('');
+            automRenderConfig(null);
+
+            automInitCanvas(flow);
+        }
+
+        function automSetEdMsg(msg, isError) {
+            const el = document.getElementById('automEdMsg');
+            if (!el) return;
+            el.textContent = msg || '';
+            el.style.color = isError ? '#ef4444' : 'var(--text-muted)';
+        }
+
+        function automInitCanvas(flow) {
+            const container = document.getElementById('automCanvas');
+            if (!container) return;
+            // (re)cria a instância do Drawflow a cada abertura — estado limpo.
+            try { if (AUTOM.editor && AUTOM.editor.clear) AUTOM.editor.clear(); } catch (e) {}
+            container.innerHTML = '';
+            const editor = new Drawflow(container);
+            editor.reroute = true;
+            editor.start();
+            AUTOM.editor = editor;
+            AUTOM.triggerNodeId = null;
+
+            // Seleção de nó → painel de config.
+            editor.on('nodeSelected', (id) => { AUTOM.selectedNode = id; automRenderConfig(id); });
+            editor.on('nodeUnselected', () => { AUTOM.selectedNode = null; automRenderConfig(null); });
+            editor.on('nodeRemoved', () => { if (AUTOM.selectedNode) { AUTOM.selectedNode = null; automRenderConfig(null); } });
+
+            // Drag-and-drop da paleta → addNode.
+            container.addEventListener('drop', automCanvasDrop);
+            container.addEventListener('dragover', (ev) => ev.preventDefault());
+            document.querySelectorAll('#automEditor .autom-pal-item').forEach(it => {
+                it.addEventListener('dragstart', (ev) => {
+                    ev.dataTransfer.setData('node', it.getAttribute('data-node'));
+                });
+            });
+
+            if (flow && flow.definicao && flow.definicao.drawflow) {
+                // Re-render da definição salva.
+                try {
+                    editor.import(flow.definicao);
+                    // Localiza o nó Gatilho pelo data.tipo.
+                    automFindTriggerNode();
+                } catch (e) {
+                    console.error('[Automações] falha ao importar definição, recriando gatilho', e);
+                    automAddTriggerNode();
+                }
+            }
+            if (!AUTOM.triggerNodeId) automAddTriggerNode();
+        }
+
+        function automFindTriggerNode() {
+            try {
+                const data = AUTOM.editor.export().drawflow.Home.data;
+                Object.keys(data).forEach(k => {
+                    if (data[k] && data[k].data && data[k].data.tipo === 'gatilho') AUTOM.triggerNodeId = data[k].id;
+                });
+            } catch (e) {}
+        }
+
+        // Nó fixo "Gatilho": sem entrada, 1 saída.
+        function automAddTriggerNode() {
+            const html = '<div class="autom-node autom-node-gatilho"><i class="ph-bold ph-lightning"></i> <b>Gatilho</b><div class="autom-node-sub">início do fluxo</div></div>';
+            const id = AUTOM.editor.addNode('gatilho', 0, 1, 60, 80, 'autom-gatilho', { tipo: 'gatilho' }, html);
+            AUTOM.triggerNodeId = id;
+        }
+
+        function automCanvasDrop(ev) {
+            ev.preventDefault();
+            const tipo = ev.dataTransfer.getData('node');
+            if (!tipo) return;
+            const rect = ev.currentTarget.getBoundingClientRect();
+            const zoom = (AUTOM.editor && AUTOM.editor.zoom) || 1;
+            const x = (ev.clientX - rect.left) / zoom - (AUTOM.editor.canvas_x || 0) / zoom;
+            const y = (ev.clientY - rect.top) / zoom - (AUTOM.editor.canvas_y || 0) / zoom;
+            automAddStepNode(tipo, x, y);
+        }
+
+        function automAddStepNode(tipo, x, y) {
+            let html, data, cls, title, icon;
+            if (tipo === 'espera') {
+                icon = 'ph-hourglass-medium'; title = 'Espera';
+                data = { tipo: 'espera', qtd: 1, unidade: 'dia' };
+                cls = 'autom-espera';
+            } else if (tipo === 'enviar') {
+                icon = 'ph-paper-plane-tilt'; title = 'Enviar';
+                data = { tipo: 'enviar', template: '', language: 'pt_BR', params: [], button: null };
+                cls = 'autom-enviar';
+            } else if (tipo === 'mover_crm') {
+                icon = 'ph-kanban'; title = 'Mover CRM';
+                data = { tipo: 'mover_crm', estagio: '' };
+                cls = 'autom-mover';
+            } else { return; }
+            html = '<div class="autom-node autom-node-' + tipo + '"><i class="ph-bold ' + icon + '"></i> <b>' + title + '</b><div class="autom-node-sub" data-nodesub>' + automNodeSummary(data) + '</div></div>';
+            // 1 entrada, 1 saída — linear.
+            AUTOM.editor.addNode(cls, 1, 1, Math.max(0, x), Math.max(0, y), cls, data, html);
+        }
+
+        // Resumo curto exibido dentro do nó.
+        function automNodeSummary(d) {
+            if (!d) return '';
+            if (d.tipo === 'espera') return escapeHtml(d.qtd + ' ' + automUnidadeLabel(d.unidade, d.qtd));
+            if (d.tipo === 'enviar') return d.template ? escapeHtml(d.template) : '<i style="opacity:.7;">escolha o template</i>';
+            if (d.tipo === 'mover_crm') return d.estagio ? escapeHtml(automStageTitle(d.estagio)) : '<i style="opacity:.7;">escolha a etapa</i>';
+            return '';
+        }
+        function automUnidadeLabel(u, qtd) {
+            const n = Number(qtd) || 0;
+            if (u === 'min')  return n === 1 ? 'minuto' : 'minutos';
+            if (u === 'hora') return n === 1 ? 'hora' : 'horas';
+            return n === 1 ? 'dia' : 'dias';
+        }
+        function automStageTitle(key) {
+            try {
+                const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+                const c = (cfg.columns || []).find(x => x.key === key);
+                return c ? c.title : key;
+            } catch (e) { return key; }
+        }
+
+        // Atualiza o data de um nó e o resumo visível dentro dele.
+        function automUpdateNodeData(nodeId, patch) {
+            try {
+                const node = AUTOM.editor.getNodeFromId(nodeId);
+                if (!node) return;
+                const newData = Object.assign({}, node.data, patch);
+                AUTOM.editor.updateNodeDataFromId(nodeId, newData);
+                const el = document.querySelector('#node-' + nodeId + ' [data-nodesub]');
+                if (el) el.innerHTML = automNodeSummary(newData);
+            } catch (e) { console.error('[Automações] updateNodeData', e); }
+        }
+
+        // ---------- PAINEL DE CONFIG (direita) ----------
+        function automRenderConfig(nodeId) {
+            const body = document.getElementById('automConfigBody');
+            if (!body) return;
+            if (!nodeId) { body.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Selecione um bloco no canvas para configurá-lo.</p>'; return; }
+            let node;
+            try { node = AUTOM.editor.getNodeFromId(nodeId); } catch (e) { node = null; }
+            if (!node) { body.innerHTML = ''; return; }
+            const d = node.data || {};
+            if (d.tipo === 'gatilho') {
+                body.innerHTML = '<p style="color:var(--text-muted);font-size:13px;"><i class="ph-bold ph-lightning"></i> Este é o ponto de início do fluxo. O gatilho é definido no cabeçalho (campo "' + escapeHtml(AUTOM_GATILHO_LABEL(document.getElementById('automGatilho').value)) + '").</p>';
+                return;
+            }
+            if (d.tipo === 'espera')    return automRenderConfigEspera(nodeId, d, body);
+            if (d.tipo === 'enviar')    return automRenderConfigEnviar(nodeId, d, body);
+            if (d.tipo === 'mover_crm') return automRenderConfigMover(nodeId, d, body);
+            body.innerHTML = '';
+        }
+
+        function automRenderConfigEspera(nodeId, d, body) {
+            body.innerHTML = ''
+              + '<div class="autom-cfg-title"><i class="ph-bold ph-hourglass-medium"></i> Espera</div>'
+              + '<label class="autom-cfg-label">Quantidade</label>'
+              + '<input type="number" min="1" id="automCfgQtd" class="autom-input" value="' + (Number(d.qtd) || 1) + '">'
+              + '<label class="autom-cfg-label">Unidade</label>'
+              + '<select id="automCfgUnidade" class="autom-input">'
+              + '  <option value="min"' + (d.unidade === 'min' ? ' selected' : '') + '>Minutos</option>'
+              + '  <option value="hora"' + (d.unidade === 'hora' ? ' selected' : '') + '>Horas</option>'
+              + '  <option value="dia"' + (d.unidade === 'dia' || !d.unidade ? ' selected' : '') + '>Dias</option>'
+              + '</select>';
+            const sync = () => {
+                const qtd = Math.max(1, parseInt(document.getElementById('automCfgQtd').value, 10) || 1);
+                const unidade = document.getElementById('automCfgUnidade').value;
+                automUpdateNodeData(nodeId, { qtd: qtd, unidade: unidade });
+            };
+            document.getElementById('automCfgQtd').addEventListener('input', sync);
+            document.getElementById('automCfgUnidade').addEventListener('change', sync);
+        }
+
+        // Conta os {{n}} distintos do corpo do template.
+        function automCountBodyParams(tpl) {
+            const body = (tpl && tpl.components || []).find(c => c.type === 'BODY');
+            const text = (body && body.text) || '';
+            const nums = new Set();
+            (text.match(/\{\{\s*(\d+)\s*\}\}/g) || []).forEach(m => {
+                const n = parseInt(m.replace(/[^\d]/g, ''), 10);
+                if (n) nums.add(n);
+            });
+            return nums.size; // assume 1..N contíguos (padrão WhatsApp)
+        }
+        function automBodyText(tpl) {
+            const body = (tpl && tpl.components || []).find(c => c.type === 'BODY');
+            return (body && body.text) || '';
+        }
+        // Detecta botão URL com variável {{1}} no template.
+        function automHasUrlButtonVar(tpl) {
+            const btns = (tpl && tpl.components || []).find(c => c.type === 'BUTTONS');
+            if (!btns || !btns.buttons) return false;
+            return btns.buttons.some(b => b.type === 'URL' && /\{\{\s*\d+\s*\}\}/.test(b.url || ''));
+        }
+
+        function automRenderConfigEnviar(nodeId, d, body) {
+            const tpls = (_waTemplatesCache || []).filter(t => (t.status || '').toUpperCase() === 'APPROVED' || !t.status);
+            let html = '<div class="autom-cfg-title"><i class="ph-bold ph-paper-plane-tilt"></i> Enviar template</div>';
+            if (!tpls.length) {
+                html += '<p style="color:var(--text-muted);font-size:12.5px;">Nenhum template aprovado encontrado. Crie/aprove um template na aba "Mensagens modelo".</p>';
+                body.innerHTML = html;
+                return;
+            }
+            html += '<label class="autom-cfg-label">Template</label><select id="automCfgTpl" class="autom-input"><option value="">— escolher —</option>'
+                 + tpls.map(t => '<option value="' + escapeHtml(t.name) + '"' + (t.name === d.template ? ' selected' : '') + '>' + escapeHtml(t.name) + '</option>').join('')
+                 + '</select>';
+            html += '<div id="automCfgMap"></div>';
+            body.innerHTML = html;
+
+            const sel = document.getElementById('automCfgTpl');
+            sel.addEventListener('change', () => automRenderEnviarMapping(nodeId, sel.value));
+            // Render inicial do mapeamento se já tem template escolhido.
+            if (d.template) automRenderEnviarMapping(nodeId, d.template, d);
+        }
+
+        // Monta as linhas de mapeamento de parâmetros + botão + preview.
+        function automRenderEnviarMapping(nodeId, tplName, existing) {
+            const wrap = document.getElementById('automCfgMap');
+            if (!wrap) return;
+            const tpl = (_waTemplatesCache || []).find(t => t.name === tplName);
+            if (!tplName || !tpl) {
+                wrap.innerHTML = '';
+                automUpdateNodeData(nodeId, { template: '', language: 'pt_BR', params: [], button: null });
+                return;
+            }
+            const lang = tpl.language || 'pt_BR';
+            const nParams = automCountBodyParams(tpl);
+            const hasBtn = automHasUrlButtonVar(tpl);
+            // Valores existentes (ao reabrir o nó) vêm de existing.params/button.
+            const prevParams = (existing && Array.isArray(existing.params)) ? existing.params : [];
+            const prevButton = existing ? existing.button : null;
+
+            const ctxOptions = (selVal) => AUTOM_CTX_KEYS.map(k => '<option value="' + k.key + '"' + (selVal === k.key ? ' selected' : '') + '>' + escapeHtml(k.label) + '</option>').join('')
+                + '<option value="__literal__"' + ((selVal != null && !AUTOM_CTX_KEYS.some(k => k.key === selVal)) ? ' selected' : '') + '>Texto fixo</option>';
+
+            let html = '';
+            if (nParams > 0) {
+                html += '<div class="autom-cfg-subtitle">Parâmetros do corpo</div>';
+                for (let i = 0; i < nParams; i++) {
+                    const cur = prevParams[i];
+                    const isLiteral = (cur != null && !AUTOM_CTX_KEYS.some(k => k.key === cur));
+                    html += '<div class="autom-map-row">'
+                         + '<span class="autom-map-tag">{{' + (i + 1) + '}}</span>'
+                         + '<select class="autom-input autom-param-sel" data-idx="' + i + '">' + ctxOptions(cur == null ? 'nome' : cur) + '</select>'
+                         + '<input type="text" class="autom-input autom-param-lit" data-idx="' + i + '" placeholder="Texto fixo" value="' + (isLiteral ? escapeHtml(cur) : '') + '" style="' + (isLiteral ? '' : 'display:none;') + '">'
+                         + '</div>';
+                }
+            }
+            if (hasBtn) {
+                const litBtn = (prevButton != null && prevButton !== 'link');
+                html += '<div class="autom-cfg-subtitle">Botão (URL com variável)</div>'
+                     + '<div class="autom-map-row">'
+                     + '<span class="autom-map-tag"><i class="ph-bold ph-link"></i></span>'
+                     + '<select class="autom-input" id="automBtnSel">'
+                     +   '<option value="link"' + (!litBtn ? ' selected' : '') + '>Link do produto</option>'
+                     +   '<option value="__literal__"' + (litBtn ? ' selected' : '') + '>Texto fixo</option>'
+                     + '</select>'
+                     + '<input type="text" class="autom-input" id="automBtnLit" placeholder="valor fixo" value="' + (litBtn ? escapeHtml(prevButton) : '') + '" style="' + (litBtn ? '' : 'display:none;') + '">'
+                     + '</div>';
+            }
+            html += '<div class="autom-cfg-subtitle">Prévia</div><div class="autom-preview">' + escapeHtml(automBodyText(tpl)) + '</div>';
+            wrap.innerHTML = html;
+
+            const collect = () => {
+                const params = [];
+                wrap.querySelectorAll('.autom-param-sel').forEach(s => {
+                    const idx = parseInt(s.getAttribute('data-idx'), 10);
+                    const lit = wrap.querySelector('.autom-param-lit[data-idx="' + idx + '"]');
+                    if (s.value === '__literal__') params[idx] = (lit && lit.value) || '';
+                    else params[idx] = s.value;
+                });
+                let button = null;
+                if (hasBtn) {
+                    const bs = document.getElementById('automBtnSel');
+                    const bl = document.getElementById('automBtnLit');
+                    if (bs) button = (bs.value === '__literal__') ? ((bl && bl.value) || '') : bs.value;
+                }
+                automUpdateNodeData(nodeId, { template: tplName, language: lang, params: params, button: button });
+            };
+
+            // Liga eventos: toggle do input literal + recoleta.
+            wrap.querySelectorAll('.autom-param-sel').forEach(s => {
+                s.addEventListener('change', () => {
+                    const idx = s.getAttribute('data-idx');
+                    const lit = wrap.querySelector('.autom-param-lit[data-idx="' + idx + '"]');
+                    if (lit) lit.style.display = (s.value === '__literal__') ? '' : 'none';
+                    collect();
+                });
+            });
+            wrap.querySelectorAll('.autom-param-lit').forEach(l => l.addEventListener('input', collect));
+            const bs = document.getElementById('automBtnSel');
+            const bl = document.getElementById('automBtnLit');
+            if (bs) bs.addEventListener('change', () => { if (bl) bl.style.display = (bs.value === '__literal__') ? '' : 'none'; collect(); });
+            if (bl) bl.addEventListener('input', collect);
+
+            collect(); // grava o estado inicial no nó
+        }
+
+        function automRenderConfigMover(nodeId, d, body) {
+            let cols = [];
+            try { cols = ((typeof getCrmConfig === 'function' ? getCrmConfig() : {}).columns) || []; } catch (e) {}
+            body.innerHTML = ''
+              + '<div class="autom-cfg-title"><i class="ph-bold ph-kanban"></i> Mover etapa no CRM</div>'
+              + '<label class="autom-cfg-label">Etapa de destino</label>'
+              + '<select id="automCfgStage" class="autom-input"><option value="">— escolher —</option>'
+              +   cols.map(c => '<option value="' + escapeHtml(c.key) + '"' + (c.key === d.estagio ? ' selected' : '') + '>' + escapeHtml(c.title) + '</option>').join('')
+              + '</select>';
+            document.getElementById('automCfgStage').addEventListener('change', (ev) => {
+                automUpdateNodeData(nodeId, { estagio: ev.target.value });
+            });
+        }
+
+        // ---------- JANELA DE ENVIO (modal) ----------
+        function automOpenJanela() {
+            const j = AUTOM.janela || AUTOM_JANELA_DEFAULT();
+            const diasLbl = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+            let overlay = document.getElementById('automJanelaModal');
+            if (overlay) overlay.remove();
+            overlay = document.createElement('div');
+            overlay.id = 'automJanelaModal';
+            overlay.className = 'autom-modal-overlay';
+            overlay.innerHTML = ''
+              + '<div class="autom-modal">'
+              + '  <div class="autom-modal-head"><b><i class="ph-bold ph-clock"></i> Janela de envio</b><button class="autom-modal-x" onclick="document.getElementById(\'automJanelaModal\').remove()"><i class="ph-bold ph-x"></i></button></div>'
+              + '  <label class="autom-cfg-label">Dias da semana</label>'
+              + '  <div class="autom-dias">' + diasLbl.map((lbl, i) => {
+                    const dia = i + 1; // 1=seg..7=dom
+                    return '<label class="autom-dia"><input type="checkbox" data-dia="' + dia + '" ' + ((j.dias || []).indexOf(dia) >= 0 ? 'checked' : '') + '><span>' + lbl + '</span></label>';
+                }).join('') + '</div>'
+              + '  <div style="display:flex;gap:12px;">'
+              + '    <div style="flex:1;"><label class="autom-cfg-label">Hora início</label><input type="number" min="0" max="23" id="automJanIni" class="autom-input" value="' + (j.hora_ini != null ? j.hora_ini : 9) + '"></div>'
+              + '    <div style="flex:1;"><label class="autom-cfg-label">Hora fim</label><input type="number" min="0" max="23" id="automJanFim" class="autom-input" value="' + (j.hora_fim != null ? j.hora_fim : 21) + '"></div>'
+              + '  </div>'
+              + '  <label class="autom-cfg-label">Máximo de envios por dia</label><input type="number" min="1" id="automJanMax" class="autom-input" value="' + (j.max_dia != null ? j.max_dia : 200) + '">'
+              + '  <div class="autom-modal-foot"><button class="disp-btn" onclick="automSaveJanela()"><i class="ph-bold ph-check"></i> Aplicar</button></div>'
+              + '</div>';
+            overlay.addEventListener('click', (ev) => { if (ev.target === overlay) overlay.remove(); });
+            document.body.appendChild(overlay);
+        }
+        function automSaveJanela() {
+            const dias = [];
+            document.querySelectorAll('#automJanelaModal [data-dia]').forEach(c => { if (c.checked) dias.push(parseInt(c.getAttribute('data-dia'), 10)); });
+            const ini = Math.min(23, Math.max(0, parseInt(document.getElementById('automJanIni').value, 10) || 0));
+            const fim = Math.min(23, Math.max(0, parseInt(document.getElementById('automJanFim').value, 10) || 23));
+            const max = Math.max(1, parseInt(document.getElementById('automJanMax').value, 10) || 200);
+            AUTOM.janela = { dias: dias.length ? dias : [1,2,3,4,5,6,7], hora_ini: ini, hora_fim: fim, tz: 'America/Sao_Paulo', max_dia: max };
+            const m = document.getElementById('automJanelaModal');
+            if (m) m.remove();
+            automSetEdMsg('Janela de envio atualizada.');
+        }
+
+        // ---------- SERIALIZAÇÃO + VALIDAÇÃO + SALVAR ----------
+        // Caminha o grafo do Drawflow a partir do Gatilho, valida que é LINEAR e
+        // monta o array `passos` na ordem de execução (contrato do motor).
+        function automBuildPassos() {
+            const exported = AUTOM.editor.export();
+            const nodes = exported.drawflow.Home.data;
+            const ids = Object.keys(nodes);
+            if (!ids.length) throw new Error('O fluxo está vazio — adicione ao menos um bloco.');
+
+            // 1) Exatamente 1 nó Gatilho.
+            const gatilhos = ids.filter(k => nodes[k].data && nodes[k].data.tipo === 'gatilho');
+            if (gatilhos.length !== 1) throw new Error('O fluxo precisa ter exatamente 1 bloco de Gatilho.');
+            const startId = gatilhos[0];
+
+            // 2) Cada nó com no máximo 1 conexão de saída (sem ramificação).
+            ids.forEach(k => {
+                const outs = nodes[k].outputs || {};
+                let conns = 0;
+                Object.keys(outs).forEach(o => { conns += (outs[o].connections || []).length; });
+                if (conns > 1) throw new Error('Fluxos v1 são lineares — remova as ramificações (um bloco não pode ligar a dois).');
+            });
+
+            // 3) Caminha do Gatilho seguindo a única saída de cada nó.
+            const passos = [];
+            const visited = new Set();
+            let currentId = startId;
+            visited.add(currentId);
+            while (true) {
+                const node = nodes[currentId];
+                const outs = node.outputs || {};
+                const outKeys = Object.keys(outs);
+                let nextId = null;
+                for (const ok of outKeys) {
+                    const c = (outs[ok].connections || [])[0];
+                    if (c) { nextId = String(c.node); break; }
+                }
+                if (!nextId) break;                 // fim da cadeia
+                if (visited.has(nextId)) throw new Error('O fluxo tem um ciclo — remova a ligação que volta pra um bloco anterior.');
+                visited.add(nextId);
+                const d = nodes[nextId].data || {};
+                passos.push(automPassoFromData(d, nodes[nextId]));
+                currentId = nextId;
+            }
+
+            // 4) Sem nós órfãos (todo nó não-gatilho precisa estar no caminho).
+            const orphans = ids.filter(k => k !== startId && !visited.has(k));
+            if (orphans.length) throw new Error('Há ' + orphans.length + ' bloco(s) solto(s) sem ligação ao fluxo — conecte-os ou remova-os.');
+
+            if (!passos.length) throw new Error('Conecte ao menos um bloco ao Gatilho.');
+            return passos;
+        }
+
+        // Converte o data de um nó para o formato EXATO do contrato `passos`.
+        function automPassoFromData(d, node) {
+            if (d.tipo === 'espera') {
+                const qtd = Number(d.qtd);
+                if (!qtd || qtd < 1) throw new Error('Um bloco de Espera está sem quantidade válida.');
+                const unidade = (d.unidade === 'min' || d.unidade === 'hora' || d.unidade === 'dia') ? d.unidade : 'dia';
+                return { tipo: 'espera', qtd: qtd, unidade: unidade };
+            }
+            if (d.tipo === 'enviar') {
+                if (!d.template) throw new Error('Um bloco de Envio está sem template selecionado.');
+                const params = Array.isArray(d.params) ? d.params.map(p => (p == null ? '' : p)) : [];
+                let button = (d.button === undefined) ? null : d.button;
+                if (button === '' ) button = null;
+                return { tipo: 'enviar', template: d.template, language: d.language || 'pt_BR', params: params, button: button };
+            }
+            if (d.tipo === 'mover_crm') {
+                if (!d.estagio) throw new Error('Um bloco de Mover CRM está sem etapa selecionada.');
+                return { tipo: 'mover_crm', estagio: d.estagio };
+            }
+            throw new Error('Bloco desconhecido no fluxo: ' + (d.tipo || '?'));
+        }
+
+        async function automSave() {
+            automSetEdMsg('');
+            const nome = (document.getElementById('automNome').value || '').trim();
+            const gatilho = document.getElementById('automGatilho').value;
+            const ativo = !!document.getElementById('automAtivo').checked;
+            const exits = {
+                para_se_comprou: !!document.getElementById('automExitComprou').checked,
+                para_se_respondeu: !!document.getElementById('automExitRespondeu').checked
+            };
+            AUTOM.exits = exits;
+            if (!nome) { automSetEdMsg('Dê um nome ao fluxo.', true); return; }
+            if (!gatilho) { automSetEdMsg('Escolha um gatilho.', true); return; }
+
+            let passos, definicao;
+            try {
+                definicao = AUTOM.editor.export();
+                passos = automBuildPassos();
+            } catch (e) {
+                automSetEdMsg(e && e.message ? e.message : String(e), true);
+                return;
+            }
+
+            const row = {
+                lojista_email: activeUser.email,
+                nome: nome,
+                ativo: ativo,
+                gatilho: gatilho,
+                definicao: definicao,
+                passos: passos,
+                janela_envio: AUTOM.janela || AUTOM_JANELA_DEFAULT(),
+                exits: exits
+            };
+
+            const btnMsgEl = document.getElementById('automEdMsg');
+            if (btnMsgEl) { btnMsgEl.style.color = 'var(--text-muted)'; btnMsgEl.textContent = 'Salvando…'; }
+            try {
+                if (AUTOM.editing) {
+                    const { error } = await supabaseClient.from('flows')
+                        .update(row).eq('id', AUTOM.editing).eq('lojista_email', activeUser.email);
+                    if (error) throw error;
+                } else {
+                    const { error } = await supabaseClient.from('flows').insert(row);
+                    if (error) throw error;
+                }
+                automBackToList();
+            } catch (e) {
+                automSetEdMsg('Erro ao salvar: ' + (e && e.message ? e.message : e), true);
             }
         }
 
