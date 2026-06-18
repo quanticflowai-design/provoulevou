@@ -47,9 +47,16 @@ for(const e of due){
     } else if(no.tipo==='enviar'){
       const c=e.contexto||{};
       const dict={image:'',nome:c.nome||'👋',produto:c.produto||'o modelo que você provou',link:c.url||''};
-      const params=(no.params||[]).map(k=>(Object.prototype.hasOwnProperty.call(dict,k)?dict[k]:k));
-      const body={email:e.lojista_email,to:e.lead_phone,template:no.template,language:no.language||'pt_BR',params};
-      if(no.components)body.components=no.components;
+      const mapk=k=>(Object.prototype.hasOwnProperty.call(dict,k)?dict[k]:k);
+      const bodyParams=(no.params||[]).map(mapk);
+      const body={email:e.lojista_email,to:e.lead_phone,template:no.template,language:no.language||'pt_BR',params:bodyParams};
+      // botão URL com variável {{1}}: monta components com body + button personalizados por lead
+      if(no.button!=null && no.button!==''){
+        body.components=[
+          {type:'body',parameters:bodyParams.map(t=>({type:'text',text:String(t)}))},
+          {type:'button',sub_type:'url',index:'0',parameters:[{type:'text',text:String(mapk(no.button))}]}
+        ];
+      } else if(no.components){ body.components=no.components; }   // back-compat (components literal)
       let r; try{r=await send(body);}catch(se){r={ok:false,error:String(se.message||se).slice(0,160)};}
       if(r&&r.ok){
         enviados++;
