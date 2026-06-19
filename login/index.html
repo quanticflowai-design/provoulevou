@@ -11322,97 +11322,6 @@
                 allOrdersCache = Array.from(compositeMap.values());
             }
 
-            // Baseline pré-provador: pedidos pagos da loja nos 90 dias antes da primeira prova
-            preProvadorBaseline = null;
-            yoyBaseline = null;
-            if (earliestProvaDate) {
-                const provaStartMs = new Date(earliestProvaDate + 'T00:00:00-03:00').getTime();
-                const baselineSinceMs = provaStartMs - 90 * 24 * 60 * 60 * 1000;
-                const baselineSinceIso = new Date(baselineSinceMs).toISOString();
-                const preRows = [];
-                let _bp = 0;
-                const _bps = 1000;
-                while (true) {
-                    let baseQ = supabaseClient
-                        .from(activeUser.tabela_pedidos)
-                        .select(`${fDataPedido || 'created_at'}, ${fTotal}, ${fPhone}, id_pedido`)
-                        .in(fStatus, fStatusValues)
-                        .gte(fDataPedido || 'created_at', baselineSinceIso)
-                        .lt(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00')
-                        .order(fDataPedido || 'created_at', { ascending: true })
-                        .order('id_pedido', { ascending: true });
-                    if (activeUser.canal_provador) baseQ = baseQ.eq('channel', activeUser.canal_provador);
-                    const { data: batch } = await baseQ.range(_bp * _bps, (_bp + 1) * _bps - 1);
-                    if (!batch || batch.length === 0) break;
-                    preRows.push(...batch);
-                    if (batch.length < _bps) break;
-                    _bp++;
-                }
-                if (preRows.length > 0) {
-                    let totalFat = 0, totalPedidos = 0;
-                    const phones = new Set();
-                    let minDate = null;
-                    for (const r of preRows) {
-                        totalFat += parseFloat(r[fTotal]) || 0;
-                        totalPedidos++;
-                        const ph = normalize(r[fPhone]);
-                        if (ph) phones.add(ph);
-                        const d = (r[fDataPedido || 'created_at'] || '').slice(0, 10);
-                        if (d && (!minDate || d < minDate)) minDate = d;
-                    }
-                    if (minDate) {
-                        const startMs = new Date(minDate + 'T00:00:00-03:00').getTime();
-                        const days = Math.max(1, Math.round((provaStartMs - startMs) / (24 * 60 * 60 * 1000)));
-                        preProvadorBaseline = {
-                            pedidosPerDay: totalPedidos / days,
-                            fatPerDay: totalFat / days,
-                            unicosPerDay: phones.size / days,
-                            days,
-                            firstProvaDate: earliestProvaDate
-                        };
-                    }
-                }
-
-                // YoY baseline: mesmo período pós-instalação do ano anterior
-                // Neutraliza sazonalidade (Black Friday, Natal etc) que distorce o baseline de 90 dias
-                // quando a instalação cai logo depois desses picos.
-                const yoyEndMs = Date.now() - 365 * 24 * 60 * 60 * 1000;
-                const yoyStartMs = provaStartMs - 365 * 24 * 60 * 60 * 1000;
-                const yoyStartIso = new Date(yoyStartMs).toISOString();
-                const yoyEndIso = new Date(yoyEndMs).toISOString();
-                const yoyRows = [];
-                let _yp = 0;
-                const _yps = 1000;
-                while (true) {
-                    let yQ = supabaseClient
-                        .from(activeUser.tabela_pedidos)
-                        .select(`${fDataPedido || 'created_at'}, ${fTotal}, id_pedido`)
-                        .in(fStatus, fStatusValues)
-                        .gte(fDataPedido || 'created_at', yoyStartIso)
-                        .lt(fDataPedido || 'created_at', yoyEndIso)
-                        .order(fDataPedido || 'created_at', { ascending: true })
-                        .order('id_pedido', { ascending: true });
-                    if (activeUser.canal_provador) yQ = yQ.eq('channel', activeUser.canal_provador);
-                    const { data: batch } = await yQ.range(_yp * _yps, (_yp + 1) * _yps - 1);
-                    if (!batch || batch.length === 0) break;
-                    yoyRows.push(...batch);
-                    if (batch.length < _yps) break;
-                    _yp++;
-                }
-                if (yoyRows.length > 0) {
-                    let yoyFat = 0;
-                    for (const r of yoyRows) yoyFat += parseFloat(r[fTotal]) || 0;
-                    const yoyDays = Math.max(1, Math.round((yoyEndMs - yoyStartMs) / (24 * 60 * 60 * 1000)));
-                    yoyBaseline = {
-                        fatPerDay: yoyFat / yoyDays,
-                        pedidosPerDay: yoyRows.length / yoyDays,
-                        days: yoyDays,
-                        windowStart: new Date(yoyStartMs).toISOString().slice(0,10),
-                        windowEnd: new Date(yoyEndMs).toISOString().slice(0,10),
-                    };
-                }
-            }
-
             // Compraram = phones que provaram E têm pelo menos um pedido pago APÓS a prova.
             // Sem o check isOrderAfterProva, pedidos feitos ANTES da prova seriam contados —
             // inflando "compradores" e divergindo de comprasPedidosCount (que filtra direito).
@@ -11427,27 +11336,12 @@
                 });
             });
 
+            // Nomes: derivados dos pedidos JÁ carregados (selectFields inclui fNome).
+            // Antes era um scan separado da tabela INTEIRA (sem filtro de pago) — o passo
+            // mais caro do load (ex: Cacifé ~64k linhas / ~64 páginas em série). Agora é grátis.
             nameMap = {};
             if (fNome) {
-                const allNomes = [];
-                {
-                    const pageSize = 1000;
-                    let pFrom = 0;
-                    while (true) {
-                        let nameQuery = supabaseClient
-                            .from(activeUser.tabela_pedidos)
-                            .select(`${fPhone}, ${fNome}`)
-                            .range(pFrom, pFrom + pageSize - 1);
-                        if (earliestProvaDate) nameQuery = nameQuery.gte(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00');
-                        if (activeUser.canal_provador) nameQuery = nameQuery.eq('channel', activeUser.canal_provador);
-                        const { data: batch } = await nameQuery;
-                        if (!batch || batch.length === 0) break;
-                        allNomes.push(...batch);
-                        if (batch.length < pageSize) break;
-                        pFrom += pageSize;
-                    }
-                }
-                allNomes.forEach(o => {
+                allOrdersCache.forEach(o => {
                     const ph = normalize(o[fPhone]);
                     if (ph && o[fNome] && !nameMap[ph]) nameMap[ph] = o[fNome];
                 });
