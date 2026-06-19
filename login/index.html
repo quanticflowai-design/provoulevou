@@ -4032,7 +4032,11 @@
                     .autom-input { background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); border-radius:8px; padding:8px 10px; font-family:inherit; font-size:13px; outline:none; width:100%; box-sizing:border-box; }
                     .autom-input:focus { border-color:#7c3aed; }
                     .autom-switch { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--text-muted); cursor:pointer; white-space:nowrap; }
-                    .autom-switch input { accent-color:#7c3aed; cursor:pointer; }
+                    .autom-switch input { appearance:none; -webkit-appearance:none; flex:none; position:relative; width:36px; height:20px; border-radius:999px; background:var(--border); border:1px solid var(--border); cursor:pointer; transition:background .15s; }
+                    .autom-switch input::before { content:''; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.35); transition:transform .15s; }
+                    .autom-switch input:checked { background:#7c3aed; border-color:#7c3aed; }
+                    .autom-switch input:checked::before { transform:translateX(16px); }
+                    .autom-switch input:focus-visible { outline:2px solid rgba(124,58,237,.5); outline-offset:2px; }
                     .autom-switch.sm { font-size:12px; }
                     .autom-check { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--text-muted); cursor:pointer; }
                     .autom-check input { accent-color:#7c3aed; cursor:pointer; }
@@ -4080,6 +4084,9 @@
                     .autom-pal-item:hover { background:rgba(124,58,237,.16); }
                     .autom-pal-item:active { cursor:grabbing; transform:scale(.98); }
                     .autom-pal-item i { color:#7c3aed; font-size:16px; }
+                    .autom-dropmenu { position:fixed; z-index:9999; min-width:190px; background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:6px; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+                    .autom-dropmenu .autom-pal-item { margin-bottom:4px; cursor:pointer; }
+                    .autom-dropmenu .autom-pal-item:last-child { margin-bottom:0; }
                     .autom-pal-hint { font-size:11.5px; color:var(--text-muted); margin-top:12px; line-height:1.5; }
 
                     .autom-canvas-wrap { border:1px solid var(--border); border-radius:12px; overflow:hidden; min-height:440px; }
@@ -7780,6 +7787,7 @@
               + '  <div class="autom-card-actions">'
               + '    <label class="autom-switch sm"><input type="checkbox" ' + (ativo ? 'checked' : '') + ' onchange="automToggleAtivo(\'' + f.id + '\', this.checked)"><span>Ativo</span></label>'
               + '    <button class="disp-btn ghost sm" onclick="automEditFlow(\'' + f.id + '\')"><i class="ph-bold ph-pencil-simple"></i> Editar</button>'
+              + '    <button class="disp-btn ghost sm" onclick="automDuplicateFlow(\'' + f.id + '\')" title="Duplicar este fluxo"><i class="ph-bold ph-copy"></i> Duplicar</button>'
               + '    <button class="disp-btn ghost sm danger" onclick="automDeleteFlow(\'' + f.id + '\')"><i class="ph-bold ph-trash"></i></button>'
               + '  </div>'
               + '</div>';
@@ -7830,6 +7838,36 @@
                 automLoadFlows();
             } catch (e) {
                 alert('Não foi possível excluir: ' + (e && e.message ? e.message : e));
+            }
+        }
+
+        async function automDuplicateFlow(flowId) {
+            try {
+                let f = AUTOM.flows.find(x => String(x.id) === String(flowId));
+                // Se a definição não estiver em memória, busca a linha completa.
+                if (!f || !f.definicao) {
+                    const { data, error } = await supabaseClient.from('flows')
+                        .select('*').eq('id', flowId).eq('lojista_email', activeUser.email).single();
+                    if (error) throw error;
+                    f = data;
+                }
+                if (!f) throw new Error('Fluxo não encontrado.');
+                const row = {
+                    lojista_email: activeUser.email,
+                    nome: ((f.nome || 'Fluxo sem nome') + ' (cópia)').slice(0, 120),
+                    ativo: false,                       // cópia nasce inativa — revisar antes de ligar
+                    gatilho: f.gatilho,
+                    gatilho_etapa: f.gatilho_etapa || null,
+                    definicao: f.definicao,
+                    passos: f.passos,
+                    janela_envio: f.janela_envio || AUTOM_JANELA_DEFAULT(),
+                    exits: f.exits || AUTOM_EXITS_DEFAULT()
+                };
+                const { error } = await supabaseClient.from('flows').insert(row);
+                if (error) throw error;
+                await automLoadFlows();
+            } catch (e) {
+                alert('Não foi possível duplicar: ' + (e && e.message ? e.message : e));
             }
         }
 
@@ -7907,6 +7945,24 @@
                 });
             });
 
+            // Arrastar a linha de um nó e soltar no vazio → menu pra criar bloco já conectado.
+            AUTOM._connFrom = null;
+            AUTOM._lastPointer = { x: 0, y: 0 };
+            container.addEventListener('mousedown', automTrackPointer, true);
+            container.addEventListener('mousemove', automTrackPointer, true);
+            container.addEventListener('mouseup', automTrackPointer, true);
+            editor.on('connectionStart', (info) => {
+                // info: { output_id, output_class } — guardamos a origem da linha.
+                AUTOM._connFrom = info ? { node: info.output_id, output: info.output_class } : null;
+            });
+            // Soltar em cima de um nó cria a conexão de verdade (connectionCreated): nada a fazer.
+            editor.on('connectionCreated', () => { AUTOM._connFrom = null; automCloseDropMenu(); });
+            // Soltar no vazio cancela a conexão → abrimos o menu no ponto do mouse.
+            editor.on('connectionCancel', () => {
+                if (!AUTOM._connFrom) return;
+                automOpenDropMenu(AUTOM._lastPointer.x, AUTOM._lastPointer.y, AUTOM._connFrom);
+            });
+
             if (flow && flow.definicao && flow.definicao.drawflow) {
                 // Re-render da definição salva.
                 try {
@@ -7980,7 +8036,83 @@
             } else { return; }
             html = '<div class="autom-node autom-node-' + tipo + '"><i class="ph-bold ' + icon + '"></i> <b>' + title + '</b><div class="autom-node-sub" data-nodesub>' + automNodeSummary(data) + '</div></div>';
             // 1 entrada, 1 saída — linear.
-            AUTOM.editor.addNode(cls, 1, 1, Math.max(0, x), Math.max(0, y), cls, data, html);
+            return AUTOM.editor.addNode(cls, 1, 1, Math.max(0, x), Math.max(0, y), cls, data, html);
+        }
+
+        // Guarda a posição do mouse no canvas (pra saber onde a linha foi solta).
+        function automTrackPointer(ev) {
+            AUTOM._lastPointer = { x: ev.clientX, y: ev.clientY };
+        }
+
+        // Itens do menu de criação rápida na ponta da linha.
+        const AUTOM_DROP_ITENS = [
+            { node: 'espera',    icon: 'ph-hourglass-medium',  label: 'Espera' },
+            { node: 'enviar',    icon: 'ph-paper-plane-tilt',  label: 'Enviar template' },
+            { node: 'mover_crm', icon: 'ph-kanban',            label: 'Mover etapa no CRM' }
+        ];
+
+        function automOpenDropMenu(px, py, from) {
+            automCloseDropMenu();
+            const menu = document.createElement('div');
+            menu.className = 'autom-dropmenu';
+            menu.innerHTML = AUTOM_DROP_ITENS.map(it =>
+                '<div class="autom-pal-item" data-node="' + it.node + '"><i class="ph-bold ' + it.icon + '"></i> ' + it.label + '</div>'
+            ).join('');
+            menu.style.left = px + 'px';
+            menu.style.top = py + 'px';
+            document.body.appendChild(menu);
+            // Não deixa o menu sair da tela à direita/embaixo.
+            const r = menu.getBoundingClientRect();
+            if (r.right > window.innerWidth - 8) menu.style.left = Math.max(8, px - r.width) + 'px';
+            if (r.bottom > window.innerHeight - 8) menu.style.top = Math.max(8, py - r.height) + 'px';
+            menu._from = from;
+            menu.addEventListener('mousedown', (ev) => {
+                const item = ev.target.closest('.autom-pal-item');
+                if (!item) return;
+                ev.preventDefault(); ev.stopPropagation();
+                automDropMenuPick(item.getAttribute('data-node'));
+            });
+            AUTOM._dropMenu = menu;
+            // Fecha ao clicar fora ou apertar Esc (na próxima interação).
+            setTimeout(() => {
+                document.addEventListener('mousedown', automDropMenuOutside, true);
+                document.addEventListener('keydown', automDropMenuEsc, true);
+            }, 0);
+        }
+
+        function automDropMenuOutside(ev) {
+            if (AUTOM._dropMenu && !AUTOM._dropMenu.contains(ev.target)) automCloseDropMenu();
+        }
+        function automDropMenuEsc(ev) {
+            if (ev.key === 'Escape') automCloseDropMenu();
+        }
+
+        function automCloseDropMenu() {
+            document.removeEventListener('mousedown', automDropMenuOutside, true);
+            document.removeEventListener('keydown', automDropMenuEsc, true);
+            if (AUTOM._dropMenu && AUTOM._dropMenu.parentNode) AUTOM._dropMenu.parentNode.removeChild(AUTOM._dropMenu);
+            AUTOM._dropMenu = null;
+        }
+
+        function automDropMenuPick(tipo) {
+            const menu = AUTOM._dropMenu;
+            const from = menu ? menu._from : null;
+            const px = (AUTOM._lastPointer || {}).x || 0;
+            const py = (AUTOM._lastPointer || {}).y || 0;
+            automCloseDropMenu();
+            AUTOM._connFrom = null;
+            if (!from || !AUTOM.editor) return;
+            // Converte a posição do mouse em coordenadas do canvas (mesma conta do drop da paleta).
+            const container = document.getElementById('automCanvas');
+            if (!container) return;
+            const rect = container.getBoundingClientRect();
+            const zoom = AUTOM.editor.zoom || 1;
+            const x = (px - rect.left) / zoom - (AUTOM.editor.canvas_x || 0) / zoom;
+            const y = (py - rect.top) / zoom - (AUTOM.editor.canvas_y || 0) / zoom;
+            const newId = automAddStepNode(tipo, x, y);
+            try {
+                if (newId != null) AUTOM.editor.addConnection(from.node, newId, from.output, 'input_1');
+            } catch (e) { console.error('[Automações] conectar bloco do menu', e); }
         }
 
         // Resumo curto exibido dentro do nó.
