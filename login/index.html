@@ -4051,6 +4051,12 @@
                     .autom-ed-head { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
                     .autom-ed-exits { display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-bottom:14px; }
                     .autom-edmsg { font-size:12.5px; margin-left:auto; }
+                    /* ---- Bloco do gatilho (claro) ---- */
+                    .autom-ed-trigger { background:var(--bg-card); border:1px solid var(--border); border-left:3px solid #7c3aed; border-radius:10px; padding:12px 14px; margin-bottom:14px; }
+                    .autom-trigger-label { font-size:13px; font-weight:700; display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+                    .autom-trigger-label i { color:#7c3aed; }
+                    .autom-trigger-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+                    .autom-trigger-desc { font-size:12.5px; color:var(--text-muted); line-height:1.5; margin-top:8px; }
                     /* ---- Tour guiado ---- */
                     .autom-tour-overlay { position:fixed; inset:0; z-index:99999; display:none; pointer-events:none; }
                     .autom-tour-ring { position:fixed; border-radius:10px; border:2px solid #7c3aed; box-shadow:0 0 0 9999px rgba(0,0,0,.62); transition:left .25s ease,top .25s ease,width .25s ease,height .25s ease; pointer-events:none; }
@@ -7501,10 +7507,10 @@
             exits: null              // {para_se_comprou, para_se_respondeu}
         };
         const AUTOM_GATILHOS = [
-            { key: 'carrinho_abandonado',          label: 'Carrinho abandonado' },
-            { key: 'provou_nao_comprou',           label: 'Provou e não comprou' },
-            { key: 'clicou_comprar_nao_comprou',   label: 'Clicou em comprar e não comprou' },
-            { key: 'crm_etapa',                    label: 'Cliente entrou numa etapa do CRM' }
+            { key: 'carrinho_abandonado',          label: '🛒 Carrinho abandonado',              desc: 'Dispara quando o cliente adiciona produtos ao carrinho na loja e sai sem finalizar a compra.' },
+            { key: 'provou_nao_comprou',           label: '🕶️ Provou e não comprou',             desc: 'Dispara quando o cliente usa o provador virtual (experimenta um produto) mas não compra.' },
+            { key: 'clicou_comprar_nao_comprou',   label: '🛍️ Clicou em comprar e não comprou',  desc: 'Dispara quando o cliente, dentro do provador, clica em comprar / adiciona ao carrinho, mas não finaliza a compra.' },
+            { key: 'crm_etapa',                    label: '📋 Entrou numa etapa do CRM',          desc: 'Dispara quando você move um cliente para a etapa escolhida no seu CRM (aba CRM). Escolha a etapa ao lado.' }
         ];
         const AUTOM_GATILHO_LABEL = (k) => (AUTOM_GATILHOS.find(g => g.key === k) || {}).label || k || '—';
         // Chaves de contexto que o motor entende (qualquer outra string vai literal).
@@ -7575,14 +7581,24 @@
               + '<div class="autom-ed-head">'
               + '  <button class="disp-btn ghost" onclick="automBackToList()"><i class="ph-bold ph-arrow-left"></i></button>'
               + '  <input id="automNome" class="autom-input" placeholder="Nome do fluxo" style="flex:1;min-width:140px;">'
-              + '  <select id="automGatilho" class="autom-input" style="min-width:180px;" onchange="automOnGatilhoChange()">'
-              +      AUTOM_GATILHOS.map(g => '<option value="' + g.key + '">' + escapeHtml(g.label) + '</option>').join('')
-              + '  </select>'
-              + '  <select id="automGatilhoEtapa" class="autom-input" style="min-width:160px;display:none;" title="Etapa do CRM que dispara o fluxo"></select>'
               + '  <label class="autom-switch"><input type="checkbox" id="automAtivo"><span>Ativo</span></label>'
               + '  <button class="disp-btn ghost" onclick="automOpenJanela()"><i class="ph-bold ph-clock"></i> Janela de envio</button>'
               + '  <button class="disp-btn ghost" onclick="automTourStart()" title="Como funciona"><i class="ph-bold ph-question"></i></button>'
               + '  <button class="disp-btn" data-autom-save onclick="automSave()"><i class="ph-bold ph-floppy-disk"></i> Salvar</button>'
+              + '</div>'
+              + '<div class="autom-ed-trigger">'
+              + '  <div class="autom-trigger-label"><i class="ph-bold ph-flag-pennant"></i> Quando este fluxo deve disparar?</div>'
+              + '  <div class="autom-trigger-row">'
+              + '    <select id="automGatilho" class="autom-input" style="min-width:240px;" onchange="automOnGatilhoChange()">'
+              +        AUTOM_GATILHOS.map(g => '<option value="' + g.key + '">' + escapeHtml(g.label) + '</option>').join('')
+              + '    </select>'
+              + '    <span id="automEtapaWrap" style="display:none;align-items:center;gap:6px;">'
+              + '      <i class="ph-bold ph-arrow-right" style="color:var(--text-muted);"></i>'
+              + '      <span style="font-size:12.5px;color:var(--text-muted);">na etapa</span>'
+              + '      <select id="automGatilhoEtapa" class="autom-input" style="min-width:170px;"></select>'
+              + '    </span>'
+              + '  </div>'
+              + '  <div id="automGatilhoDesc" class="autom-trigger-desc"></div>'
               + '</div>'
               + '<div class="autom-ed-exits">'
               + '  <label class="autom-check"><input type="checkbox" id="automExitComprou"><span>Parar se o cliente comprar</span></label>'
@@ -7605,14 +7621,18 @@
               + '</div>';
         }
 
-        // Mostra/popula o seletor de etapa do CRM só quando o gatilho é "crm_etapa".
+        // Mostra a descrição do gatilho escolhido + revela o seletor de etapa quando é "crm_etapa".
         function automOnGatilhoChange() {
             const gatEl = document.getElementById('automGatilho');
             const etEl = document.getElementById('automGatilhoEtapa');
-            if (!gatEl || !etEl) return;
+            const wrap = document.getElementById('automEtapaWrap');
+            const descEl = document.getElementById('automGatilhoDesc');
+            if (!gatEl) return;
+            const g = AUTOM_GATILHOS.find(x => x.key === gatEl.value) || {};
+            if (descEl) descEl.textContent = g.desc || '';
             const isCrm = gatEl.value === 'crm_etapa';
-            etEl.style.display = isCrm ? '' : 'none';
-            if (isCrm && !etEl.options.length) {
+            if (wrap) wrap.style.display = isCrm ? 'inline-flex' : 'none';
+            if (isCrm && etEl && !etEl.options.length) {
                 let cols = [];
                 try { cols = (typeof getCrmConfig === 'function' && (getCrmConfig().columns || [])) || []; } catch (e) {}
                 etEl.innerHTML = '<option value="">— escolha a etapa —</option>'
@@ -7622,7 +7642,7 @@
 
         // ---------- TOUR GUIADO ----------
         const AUTOM_TOUR_STEPS = [
-            { sel: '#automGatilho', title: '1. Escolha o gatilho', text: 'É o que <b>inicia</b> o fluxo: carrinho abandonado, provou e não comprou, clicou em comprar, ou cliente que <b>entrou numa etapa do CRM</b>.' },
+            { sel: '.autom-ed-trigger', title: '1. Escolha o gatilho', text: 'É o evento que <b>inicia</b> o fluxo. Ao escolher, a descrição embaixo explica exatamente quando ele dispara. Para "entrou numa etapa do CRM", escolha também qual etapa.' },
             { sel: '.autom-palette', title: '2. Pegue os blocos', text: 'Arraste pro canvas: <b>Espera</b> (aguardar um tempo), <b>Enviar template</b> (mandar WhatsApp) e <b>Mover etapa no CRM</b>.' },
             { sel: '#automCanvas', title: '3. Monte a sequência', text: 'Ligue os blocos em linha, começando no <b>Gatilho</b>, na ordem em que devem rodar. Cada bloco tem uma saída (fluxo linear).' },
             { sel: '.autom-config', title: '4. Configure cada bloco', text: 'Clique num bloco do canvas pra ajustar aqui — tempo de espera, qual template e o que preenche as variáveis, ou a etapa de destino.' },
@@ -10293,16 +10313,36 @@
                 }
                 const pad = n => String(n).padStart(2,'0');
                 const since = sinceDate.getFullYear() + '-' + pad(sinceDate.getMonth()+1) + '-01T00:00:00-03:00';
-                allOrders = await fetchPagesParallel(() => {
-                    let q = supabaseClient
-                        .from(activeUser.tabela_pedidos)
-                        .select(`${fTotal},${fDataPedido},${fPhone}`)
-                        .in(fStatus, fStatusVals)
-                        .gte(fDataPedido, since)
-                        .order(fDataPedido, { ascending: true });
-                    if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
-                    return q;
-                });
+                // Fast path: loadSharedData já carregou os pedidos pagos DESDE a instalação
+                // (allOrdersCache, mesmo filtro de status). Reaproveita e busca SÓ a fatia
+                // pré-instalação que falta — evita re-baixar a tabela inteira de novo.
+                // Só vale quando valores_status_pago está configurado (garante filtro idêntico).
+                if (installDate && activeUser.valores_status_pago && Array.isArray(allOrdersCache) && allOrdersCache.length) {
+                    const preCutoff = installDate.slice(0,10) + 'T00:00:00-03:00';
+                    const preSlice = await fetchPagesParallel(() => {
+                        let q = supabaseClient
+                            .from(activeUser.tabela_pedidos)
+                            .select(`${fTotal},${fDataPedido},${fPhone}`)
+                            .in(fStatus, fStatusVals)
+                            .gte(fDataPedido, since)
+                            .lt(fDataPedido, preCutoff)
+                            .order(fDataPedido, { ascending: true });
+                        if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
+                        return q;
+                    });
+                    allOrders = preSlice.concat(allOrdersCache);
+                } else {
+                    allOrders = await fetchPagesParallel(() => {
+                        let q = supabaseClient
+                            .from(activeUser.tabela_pedidos)
+                            .select(`${fTotal},${fDataPedido},${fPhone}`)
+                            .in(fStatus, fStatusVals)
+                            .gte(fDataPedido, since)
+                            .order(fDataPedido, { ascending: true });
+                        if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
+                        return q;
+                    });
+                }
                 _fatChartOrdersCache = allOrders;
             }
 
@@ -11218,7 +11258,7 @@
 
         // Busca TODAS as páginas de uma query paginada em LOTES PARALELOS (em vez de
         // página-a-página em série). makeQuery() deve devolver um builder novo a cada chamada.
-        async function fetchPagesParallel(makeQuery, pageSize = 1000, concurrency = 5) {
+        async function fetchPagesParallel(makeQuery, pageSize = 1000, concurrency = 8) {
             const out = [];
             let base = 0;
             while (true) {
