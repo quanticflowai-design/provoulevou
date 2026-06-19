@@ -7611,7 +7611,7 @@
               + '    <div class="autom-pal-item" draggable="true" data-node="espera"><i class="ph-bold ph-hourglass-medium"></i> Espera</div>'
               + '    <div class="autom-pal-item" draggable="true" data-node="enviar"><i class="ph-bold ph-paper-plane-tilt"></i> Enviar template</div>'
               + '    <div class="autom-pal-item" draggable="true" data-node="mover_crm"><i class="ph-bold ph-kanban"></i> Mover etapa no CRM</div>'
-              + '    <p class="autom-pal-hint">Arraste pro canvas e ligue os blocos em sequência. v1 é linear (1 saída por bloco).</p>'
+              + '    <p class="autom-pal-hint">Arraste pro canvas e ligue em sequência (fluxo linear). <b>Dica:</b> um bloco <b>Espera</b> logo após o Gatilho faz o fluxo disparar X tempo depois (ex.: 15 min após o carrinho abandonado).</p>'
               + '  </div>'
               + '  <div class="autom-canvas-wrap"><div id="automCanvas" class="autom-canvas"></div></div>'
               + '  <div class="autom-config">'
@@ -7919,6 +7919,21 @@
                 }
             }
             if (!AUTOM.triggerNodeId) automAddTriggerNode();
+            // Fluxo novo: já deixa um bloco Espera (15 min) ligado ao Gatilho, deixando
+            // claro que dá pra disparar "X tempo depois do gatilho" — é só ajustar o tempo.
+            const isNovo = !(flow && flow.definicao && flow.definicao.drawflow);
+            if (isNovo) automSeedEspera();
+        }
+
+        // Pré-monta Gatilho -> Espera(15 min) num fluxo novo.
+        function automSeedEspera() {
+            try {
+                if (AUTOM.triggerNodeId == null) return;
+                const data = { tipo: 'espera', qtd: 15, unidade: 'min' };
+                const html = '<div class="autom-node autom-node-espera"><i class="ph-bold ph-hourglass-medium"></i> <b>Espera</b><div class="autom-node-sub" data-nodesub>' + automNodeSummary(data) + '</div></div>';
+                const id = AUTOM.editor.addNode('autom-espera', 1, 1, 250, 78, 'autom-espera', data, html);
+                AUTOM.editor.addConnection(AUTOM.triggerNodeId, id, 'output_1', 'input_1');
+            } catch (e) { console.error('[Automações] seed espera', e); }
         }
 
         function automFindTriggerNode() {
