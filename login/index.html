@@ -13584,7 +13584,9 @@
                 let earliestDate = '9999';
                 phoneList.forEach(ph => { if (leadMap[ph].firstDate && leadMap[ph].firstDate < earliestDate) earliestDate = leadMap[ph].firstDate; });
 
-                const selectFields = [fPhone, fStatus, fDataPedido, fNome].filter((v, i, a) => a.indexOf(v) === i).join(',');
+                // '*' pra trazer TODAS as colunas de telefone do pedido (entrega/cobrança etc.) —
+                // o orderPhoneKeys(o) abaixo casa por qualquer uma delas, igual ao disparo agendado.
+                const selectFields = '*';
                 const allOrders = [];
                 {
                     const pageSize = 1000;
