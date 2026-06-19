@@ -7402,6 +7402,7 @@
             }
             move('dispChatCard',   'dispSubConversas');
             move('dispBulkCard',   'dispSubDisparar');
+            move('dispAgendadosCard', 'dispSubDisparar');
             move('dispKpisRow',    'dispSubHistorico');
             move('dispHistCard',   'dispSubHistorico');
             move('dispDailyCard',  'dispSubHistorico');
@@ -7488,7 +7489,8 @@
         const AUTOM_GATILHOS = [
             { key: 'carrinho_abandonado',          label: 'Carrinho abandonado' },
             { key: 'provou_nao_comprou',           label: 'Provou e não comprou' },
-            { key: 'clicou_comprar_nao_comprou',   label: 'Clicou em comprar e não comprou' }
+            { key: 'clicou_comprar_nao_comprou',   label: 'Clicou em comprar e não comprou' },
+            { key: 'crm_etapa',                    label: 'Cliente entrou numa etapa do CRM' }
         ];
         const AUTOM_GATILHO_LABEL = (k) => (AUTOM_GATILHOS.find(g => g.key === k) || {}).label || k || '—';
         // Chaves de contexto que o motor entende (qualquer outra string vai literal).
@@ -7556,9 +7558,10 @@
               + '<div class="autom-ed-head">'
               + '  <button class="disp-btn ghost" onclick="automBackToList()"><i class="ph-bold ph-arrow-left"></i></button>'
               + '  <input id="automNome" class="autom-input" placeholder="Nome do fluxo" style="flex:1;min-width:140px;">'
-              + '  <select id="automGatilho" class="autom-input" style="min-width:180px;">'
+              + '  <select id="automGatilho" class="autom-input" style="min-width:180px;" onchange="automOnGatilhoChange()">'
               +      AUTOM_GATILHOS.map(g => '<option value="' + g.key + '">' + escapeHtml(g.label) + '</option>').join('')
               + '  </select>'
+              + '  <select id="automGatilhoEtapa" class="autom-input" style="min-width:160px;display:none;" title="Etapa do CRM que dispara o fluxo"></select>'
               + '  <label class="autom-switch"><input type="checkbox" id="automAtivo"><span>Ativo</span></label>'
               + '  <button class="disp-btn ghost" onclick="automOpenJanela()"><i class="ph-bold ph-clock"></i> Janela de envio</button>'
               + '  <button class="disp-btn" onclick="automSave()"><i class="ph-bold ph-floppy-disk"></i> Salvar</button>'
@@ -7582,6 +7585,21 @@
               + '    <div id="automConfigBody"><p style="color:var(--text-muted);font-size:13px;">Selecione um bloco no canvas para configurá-lo.</p></div>'
               + '  </div>'
               + '</div>';
+        }
+
+        // Mostra/popula o seletor de etapa do CRM só quando o gatilho é "crm_etapa".
+        function automOnGatilhoChange() {
+            const gatEl = document.getElementById('automGatilho');
+            const etEl = document.getElementById('automGatilhoEtapa');
+            if (!gatEl || !etEl) return;
+            const isCrm = gatEl.value === 'crm_etapa';
+            etEl.style.display = isCrm ? '' : 'none';
+            if (isCrm && !etEl.options.length) {
+                let cols = [];
+                try { cols = (typeof getCrmConfig === 'function' && (getCrmConfig().columns || [])) || []; } catch (e) {}
+                etEl.innerHTML = '<option value="">— escolha a etapa —</option>'
+                    + cols.map(c => '<option value="' + escapeHtml(c.key) + '">' + escapeHtml(c.title || c.key) + '</option>').join('');
+            }
         }
 
         // ---------- LISTA ----------
@@ -7716,6 +7734,9 @@
             const exR = document.getElementById('automExitRespondeu');
             if (nomeEl) nomeEl.value = (flow && flow.nome) || '';
             if (gatEl)  gatEl.value  = (flow && flow.gatilho) || AUTOM_GATILHOS[0].key;
+            automOnGatilhoChange();   // popula/mostra o seletor de etapa se gatilho = crm_etapa
+            const etEl = document.getElementById('automGatilhoEtapa');
+            if (etEl && flow && flow.gatilho_etapa) etEl.value = flow.gatilho_etapa;
             if (ativoEl) ativoEl.checked = flow ? !!flow.ativo : false;
             if (exC) exC.checked = !!AUTOM.exits.para_se_comprou;
             if (exR) exR.checked = !!AUTOM.exits.para_se_respondeu;
@@ -8154,8 +8175,10 @@
                 para_se_respondeu: !!document.getElementById('automExitRespondeu').checked
             };
             AUTOM.exits = exits;
+            const gatilhoEtapa = (document.getElementById('automGatilhoEtapa') || {}).value || null;
             if (!nome) { automSetEdMsg('Dê um nome ao fluxo.', true); return; }
             if (!gatilho) { automSetEdMsg('Escolha um gatilho.', true); return; }
+            if (gatilho === 'crm_etapa' && !gatilhoEtapa) { automSetEdMsg('Escolha qual etapa do CRM dispara o fluxo.', true); return; }
 
             let passos, definicao;
             try {
@@ -8171,6 +8194,7 @@
                 nome: nome,
                 ativo: ativo,
                 gatilho: gatilho,
+                gatilho_etapa: (gatilho === 'crm_etapa') ? gatilhoEtapa : null,
                 definicao: definicao,
                 passos: passos,
                 janela_envio: AUTOM.janela || AUTOM_JANELA_DEFAULT(),
@@ -11143,25 +11167,122 @@
             // Filtra pedidos a partir da data da primeira prova (evita trazer pedidos antigos demais)
             const earliestProva = Object.values(provaMinDateMap).sort()[0] || '';
             const earliestProvaDate = earliestProva.slice(0, 10);
-            let ordQuery = supabaseClient
-                .from(activeUser.tabela_pedidos)
-                .select(selectFields)
-                .in(fStatus, fStatusValues)
-                .order('created_at', { ascending: true })
-                .order('id', { ascending: true });
-            if (earliestProvaDate) ordQuery = ordQuery.gte(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00');
-            if (activeUser.canal_provador) ordQuery = ordQuery.eq('channel', activeUser.canal_provador);
-            // Fetch all rows (Supabase defaults to 1000)
-            const allOrdersArr = [];
-            let _page = 0;
-            const _pageSize = 1000;
-            while (true) {
-                const { data: batch } = await ordQuery.range(_page * _pageSize, (_page + 1) * _pageSize - 1);
-                if (!batch || batch.length === 0) break;
-                allOrdersArr.push(...batch);
-                if (batch.length < _pageSize) break;
-                _page++;
-            }
+
+            // Helper de paginação (Supabase corta em 1000 linhas/query).
+            // Recebe uma FACTORY de query (uma nova a cada página) p/ evitar reuso de builder.
+            const paginateAll = async (makeQuery) => {
+                const out = [];
+                const ps = 1000;
+                let p = 0;
+                while (true) {
+                    const { data: batch } = await makeQuery().range(p * ps, (p + 1) * ps - 1);
+                    if (!batch || batch.length === 0) break;
+                    out.push(...batch);
+                    if (batch.length < ps) break;
+                    p++;
+                }
+                return out;
+            };
+
+            // --- Pass 1: pedidos pagos desde a primeira prova (dataset principal) ---
+            const loadOrders = () => paginateAll(() => {
+                let q = supabaseClient
+                    .from(activeUser.tabela_pedidos)
+                    .select(selectFields)
+                    .in(fStatus, fStatusValues)
+                    .order('created_at', { ascending: true })
+                    .order('id', { ascending: true });
+                if (earliestProvaDate) q = q.gte(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00');
+                if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
+                return q;
+            });
+
+            // --- Pass 2 (baseline pré-provador) e Pass 3 (YoY) — definidos como funções
+            //     p/ rodarem EM PARALELO com o Pass 1 (antes eram ~130 round-trips em série). ---
+            preProvadorBaseline = null;
+            yoyBaseline = null;
+            const provaStartMs = earliestProvaDate ? new Date(earliestProvaDate + 'T00:00:00-03:00').getTime() : 0;
+
+            const loadBaseline = async () => {
+                if (!earliestProvaDate) return;
+                const baselineSinceMs = provaStartMs - 90 * 24 * 60 * 60 * 1000;
+                const baselineSinceIso = new Date(baselineSinceMs).toISOString();
+                const preRows = await paginateAll(() => {
+                    let q = supabaseClient
+                        .from(activeUser.tabela_pedidos)
+                        .select(`${fDataPedido || 'created_at'}, ${fTotal}, ${fPhone}, id_pedido`)
+                        .in(fStatus, fStatusValues)
+                        .gte(fDataPedido || 'created_at', baselineSinceIso)
+                        .lt(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00')
+                        .order(fDataPedido || 'created_at', { ascending: true })
+                        .order('id_pedido', { ascending: true });
+                    if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
+                    return q;
+                });
+                if (preRows.length > 0) {
+                    let totalFat = 0, totalPedidos = 0;
+                    const phones = new Set();
+                    let minDate = null;
+                    for (const r of preRows) {
+                        totalFat += parseFloat(r[fTotal]) || 0;
+                        totalPedidos++;
+                        const ph = normalize(r[fPhone]);
+                        if (ph) phones.add(ph);
+                        const d = (r[fDataPedido || 'created_at'] || '').slice(0, 10);
+                        if (d && (!minDate || d < minDate)) minDate = d;
+                    }
+                    if (minDate) {
+                        const startMs = new Date(minDate + 'T00:00:00-03:00').getTime();
+                        const days = Math.max(1, Math.round((provaStartMs - startMs) / (24 * 60 * 60 * 1000)));
+                        preProvadorBaseline = {
+                            pedidosPerDay: totalPedidos / days,
+                            fatPerDay: totalFat / days,
+                            unicosPerDay: phones.size / days,
+                            days,
+                            firstProvaDate: earliestProvaDate
+                        };
+                    }
+                }
+            };
+
+            const loadYoy = async () => {
+                if (!earliestProvaDate) return;
+                // YoY baseline: mesmo período pós-instalação do ano anterior.
+                // Neutraliza sazonalidade (Black Friday, Natal etc) que distorce o baseline de 90 dias
+                // quando a instalação cai logo depois desses picos.
+                const yoyEndMs = Date.now() - 365 * 24 * 60 * 60 * 1000;
+                const yoyStartMs = provaStartMs - 365 * 24 * 60 * 60 * 1000;
+                const yoyStartIso = new Date(yoyStartMs).toISOString();
+                const yoyEndIso = new Date(yoyEndMs).toISOString();
+                const yoyRows = await paginateAll(() => {
+                    let q = supabaseClient
+                        .from(activeUser.tabela_pedidos)
+                        .select(`${fDataPedido || 'created_at'}, ${fTotal}, id_pedido`)
+                        .in(fStatus, fStatusValues)
+                        .gte(fDataPedido || 'created_at', yoyStartIso)
+                        .lt(fDataPedido || 'created_at', yoyEndIso)
+                        .order(fDataPedido || 'created_at', { ascending: true })
+                        .order('id_pedido', { ascending: true });
+                    if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
+                    return q;
+                });
+                if (yoyRows.length > 0) {
+                    let yoyFat = 0;
+                    for (const r of yoyRows) yoyFat += parseFloat(r[fTotal]) || 0;
+                    const yoyDays = Math.max(1, Math.round((yoyEndMs - yoyStartMs) / (24 * 60 * 60 * 1000)));
+                    yoyBaseline = {
+                        fatPerDay: yoyFat / yoyDays,
+                        pedidosPerDay: yoyRows.length / yoyDays,
+                        days: yoyDays,
+                        windowStart: new Date(yoyStartMs).toISOString().slice(0,10),
+                        windowEnd: new Date(yoyEndMs).toISOString().slice(0,10),
+                    };
+                }
+            };
+
+            // Dispara os 3 passes concorrentemente; só o dataset principal precisa do retorno.
+            const [allOrdersArr] = await Promise.all([loadOrders(), loadBaseline(), loadYoy()]);
+
             // Defensive dedup em 2 níveis:
             // 1) Por id_pedido — pega duplicação de paginação (mesma row em 2 páginas).
             // 2) Por composite (phone + timestamp + total) — pega duplicação ESTRUTURAL,
