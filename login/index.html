@@ -9093,12 +9093,40 @@
             if (skipNoLink.length) {
                 window._waBulkTargets = targets.filter(t => hasUrl(t.productUrl));
             }
-            const sendTargets = window._waBulkTargets || [];
+            let sendTargets = window._waBulkTargets || [];
             if (sendTargets.length === 0) {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Disparar agora';
                 document.getElementById('waBulkProgress').style.display = 'none';
-                crmToast('Nenhum lead com link do produto salvo pra este modelo. Esses leads são de provas antigas (antes de salvarmos o link).', 'erro');
+                crmToast('Nenhum lead com link do produto salvo pra este modelo. Esses leads são de provas antigas (antes de salvarmos o link).', true);
+                return;
+            }
+
+            // Revalidação anti-"já comprou": crmLeadMapCache pode estar velho (o cliente pode
+            // ter comprado depois que a página abriu). Antes de disparar, recalcula o estado de
+            // compra — loadCRM(true) reconstrói bought cruzando pedidos pagos pós-prova — e
+            // remove quem já comprou. Se a recarga falhar, segue com o filtro já aplicado.
+            let boughtSkipped = 0;
+            try {
+                btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Conferindo quem já comprou…';
+                if (typeof loadCRM === 'function') await loadCRM(true);
+                if (crmLeadMapCache) {
+                    const before = sendTargets.length;
+                    sendTargets = sendTargets.filter(t => {
+                        const lead = crmLeadMapCache[t.crmPhone];
+                        return !(lead && lead.bought);
+                    });
+                    boughtSkipped = before - sendTargets.length;
+                    window._waBulkTargets = sendTargets;
+                }
+            } catch (e) { console.warn('[disparos] revalidação de compra falhou, seguindo com filtro anterior:', e); }
+            btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Disparando…';
+
+            if (sendTargets.length === 0) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Disparar agora';
+                document.getElementById('waBulkProgress').style.display = 'none';
+                crmToast(boughtSkipped > 0 ? ('Todos os ' + boughtSkipped + ' lead(s) selecionados já compraram — nada a disparar.') : 'Nenhum lead elegível.', boughtSkipped === 0);
                 return;
             }
 
@@ -9196,7 +9224,8 @@
                 const note = document.createElement('div');
                 note.style.cssText = 'margin-top:10px;font-size:12.5px;font-weight:600;color:#10b981;';
                 const skipMsg = skipNoLink.length ? ' · ' + skipNoLink.length + ' pulado' + (skipNoLink.length !== 1 ? 's' : '') + ' (sem link do produto salvo)' : '';
-                note.innerHTML = '<i class="ph-bold ph-check-circle"></i> Disparo concluído: ' + sent + ' enviado' + (sent !== 1 ? 's' : '') + (failed ? ' · ' + failed + ' falha' + (failed !== 1 ? 's' : '') : '') + skipMsg + movedMsg;
+                const boughtMsg = boughtSkipped ? ' · ' + boughtSkipped + ' pulado' + (boughtSkipped !== 1 ? 's' : '') + ' (já compraram)' : '';
+                note.innerHTML = '<i class="ph-bold ph-check-circle"></i> Disparo concluído: ' + sent + ' enviado' + (sent !== 1 ? 's' : '') + (failed ? ' · ' + failed + ' falha' + (failed !== 1 ? 's' : '') : '') + skipMsg + boughtMsg + movedMsg;
                 fbEl.appendChild(note);
             }
             // Atualiza CRM + recarrega a aba Disparos (KPIs, histórico, gráficos)
