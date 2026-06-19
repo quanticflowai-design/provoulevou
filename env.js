@@ -3,5 +3,5 @@ window.ENV = {
     SUPABASE_URL: 'https://quantic-supabase.k5jwra.easypanel.host',
 
     // Chave pública anon/public (segura para expor no cliente — protegida por RLS)
-    SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNjQxNzY5MjAwLCJleHAiOjIxNDc0ODM2NDd9.u4oeODEUKfS8mgxK7GK-OjUj5tFKcnqFWK7Oo3efPls'
+    SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.pCFnSnrlSUM2EwXi9gxAegpoC-9U0Mjx3iAtROR-E20'
 };
