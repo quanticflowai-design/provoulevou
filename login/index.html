@@ -8118,6 +8118,9 @@
             const ctxOptions = (selVal) => AUTOM_CTX_KEYS.map(k => '<option value="' + k.key + '"' + (selVal === k.key ? ' selected' : '') + '>' + escapeHtml(k.label) + '</option>').join('')
                 + '<option value="__literal__"' + ((selVal != null && !AUTOM_CTX_KEYS.some(k => k.key === selVal)) ? ' selected' : '') + '>Texto fixo</option>';
 
+            // Convenção Provou Levou: {{1}}=nome, {{2}}=produto, {{3}}=link.
+            // Default por posição quando o parâmetro ainda não foi configurado.
+            const paramDefault = ['nome', 'produto', 'link'];
             let html = '';
             if (nParams > 0) {
                 html += '<div class="autom-cfg-subtitle">Parâmetros do corpo</div>';
@@ -8126,7 +8129,7 @@
                     const isLiteral = (cur != null && !AUTOM_CTX_KEYS.some(k => k.key === cur));
                     html += '<div class="autom-map-row">'
                          + '<span class="autom-map-tag">{{' + (i + 1) + '}}</span>'
-                         + '<select class="autom-input autom-param-sel" data-idx="' + i + '">' + ctxOptions(cur == null ? 'nome' : cur) + '</select>'
+                         + '<select class="autom-input autom-param-sel" data-idx="' + i + '">' + ctxOptions(cur == null ? (paramDefault[i] || 'nome') : cur) + '</select>'
                          + '<input type="text" class="autom-input autom-param-lit" data-idx="' + i + '" placeholder="Texto fixo" value="' + (isLiteral ? escapeHtml(cur) : '') + '" style="' + (isLiteral ? '' : 'display:none;') + '">'
                          + '</div>';
                 }
