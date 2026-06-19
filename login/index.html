@@ -4051,6 +4051,20 @@
                     .autom-ed-head { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
                     .autom-ed-exits { display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-bottom:14px; }
                     .autom-edmsg { font-size:12.5px; margin-left:auto; }
+                    /* ---- Tour guiado ---- */
+                    .autom-tour-overlay { position:fixed; inset:0; z-index:99999; display:none; pointer-events:none; }
+                    .autom-tour-ring { position:fixed; border-radius:10px; border:2px solid #7c3aed; box-shadow:0 0 0 9999px rgba(0,0,0,.62); transition:left .25s ease,top .25s ease,width .25s ease,height .25s ease; pointer-events:none; }
+                    .autom-tour-tip { position:fixed; max-width:330px; background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:14px 16px; box-shadow:0 14px 40px rgba(0,0,0,.45); pointer-events:auto; }
+                    .autom-tour-step { font-size:11px; color:#7c3aed; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+                    .autom-tour-title { font-size:15px; font-weight:700; margin:4px 0 6px; }
+                    .autom-tour-text { font-size:13px; color:var(--text-muted); line-height:1.55; }
+                    .autom-tour-actions { display:flex; align-items:center; gap:8px; margin-top:14px; }
+                    .autom-tour-skip { background:none; border:none; color:var(--text-muted); font-size:12.5px; cursor:pointer; font-family:inherit; padding:6px 0; }
+                    .autom-empty { background:var(--bg-card); border:1px solid var(--border); border-radius:14px; padding:22px; }
+                    .autom-empty h4 { margin:0 0 4px; font-size:16px; }
+                    .autom-empty p { margin:0 0 16px; color:var(--text-muted); font-size:13px; }
+                    .autom-empty ol { margin:0 0 18px; padding-left:18px; color:var(--text-muted); font-size:13px; line-height:1.7; }
+                    .autom-empty ol b { color:var(--text-main); }
 
                     /* Grid 3 colunas: paleta | canvas | config */
                     .autom-ed-grid { display:grid; grid-template-columns:200px 1fr 300px; gap:14px; align-items:stretch; }
@@ -7546,7 +7560,10 @@
               + '<div id="automList">'
               + '  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">'
               + '    <div><h3 style="margin:0;font-size:18px;">Automações</h3><p style="margin:4px 0 0;color:var(--text-muted);font-size:13px;">Monte fluxos de WhatsApp que disparam sozinhos a partir de um gatilho.</p></div>'
-              + '    <button class="disp-btn" onclick="automNewFlow()"><i class="ph-bold ph-plus"></i> Novo fluxo</button>'
+              + '    <div style="display:flex;gap:8px;">'
+              + '      <button class="disp-btn ghost" onclick="automTourStart()"><i class="ph-bold ph-question"></i> Como funciona</button>'
+              + '      <button class="disp-btn" onclick="automNewFlow()"><i class="ph-bold ph-plus"></i> Novo fluxo</button>'
+              + '    </div>'
               + '  </div>'
               + '  <div id="automCards"><div style="color:var(--text-muted);font-size:13px;padding:14px 0;"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando fluxos…</div></div>'
               + '</div>'
@@ -7564,7 +7581,8 @@
               + '  <select id="automGatilhoEtapa" class="autom-input" style="min-width:160px;display:none;" title="Etapa do CRM que dispara o fluxo"></select>'
               + '  <label class="autom-switch"><input type="checkbox" id="automAtivo"><span>Ativo</span></label>'
               + '  <button class="disp-btn ghost" onclick="automOpenJanela()"><i class="ph-bold ph-clock"></i> Janela de envio</button>'
-              + '  <button class="disp-btn" onclick="automSave()"><i class="ph-bold ph-floppy-disk"></i> Salvar</button>'
+              + '  <button class="disp-btn ghost" onclick="automTourStart()" title="Como funciona"><i class="ph-bold ph-question"></i></button>'
+              + '  <button class="disp-btn" data-autom-save onclick="automSave()"><i class="ph-bold ph-floppy-disk"></i> Salvar</button>'
               + '</div>'
               + '<div class="autom-ed-exits">'
               + '  <label class="autom-check"><input type="checkbox" id="automExitComprou"><span>Parar se o cliente comprar</span></label>'
@@ -7602,6 +7620,81 @@
             }
         }
 
+        // ---------- TOUR GUIADO ----------
+        const AUTOM_TOUR_STEPS = [
+            { sel: '#automGatilho', title: '1. Escolha o gatilho', text: 'É o que <b>inicia</b> o fluxo: carrinho abandonado, provou e não comprou, clicou em comprar, ou cliente que <b>entrou numa etapa do CRM</b>.' },
+            { sel: '.autom-palette', title: '2. Pegue os blocos', text: 'Arraste pro canvas: <b>Espera</b> (aguardar um tempo), <b>Enviar template</b> (mandar WhatsApp) e <b>Mover etapa no CRM</b>.' },
+            { sel: '#automCanvas', title: '3. Monte a sequência', text: 'Ligue os blocos em linha, começando no <b>Gatilho</b>, na ordem em que devem rodar. Cada bloco tem uma saída (fluxo linear).' },
+            { sel: '.autom-config', title: '4. Configure cada bloco', text: 'Clique num bloco do canvas pra ajustar aqui — tempo de espera, qual template e o que preenche as variáveis, ou a etapa de destino.' },
+            { sel: '#automEditor .autom-ed-exits', title: '5. Janela e saídas', text: 'Em <b>Janela de envio</b> você define horário e dias. E marca pra <b>parar sozinho</b> se o cliente comprar ou responder.' },
+            { sel: '#automEditor [data-autom-save]', title: '6. Salve e ative', text: 'Salve o fluxo. Quando quiser que ele rode de verdade, marque <b>Ativo</b> no topo.' }
+        ];
+        let _automTourIdx = 0;
+        function automTourStart() {
+            const ed = document.getElementById('automEditor');
+            if (!ed || ed.style.display === 'none') { automNewFlow(); setTimeout(() => automTourShow(0), 650); }
+            else automTourShow(0);
+        }
+        function automTourEnsure() {
+            let ov = document.getElementById('automTourOverlay');
+            if (!ov) {
+                ov = document.createElement('div');
+                ov.id = 'automTourOverlay';
+                ov.className = 'autom-tour-overlay';
+                ov.innerHTML = '<div class="autom-tour-ring"></div><div class="autom-tour-tip"></div>';
+                document.body.appendChild(ov);
+                window.addEventListener('resize', () => { if (ov.style.display === 'block') automTourShow(_automTourIdx); });
+            }
+            return ov;
+        }
+        function automTourShow(idx) {
+            const ov = automTourEnsure();
+            if (idx == null || idx < 0) idx = 0;
+            if (idx >= AUTOM_TOUR_STEPS.length) return automTourEnd();
+            const step = AUTOM_TOUR_STEPS[idx];
+            const el = document.querySelector(step.sel);
+            if (!el || el.offsetParent === null) {   // elemento ausente/escondido: pula
+                if (idx < AUTOM_TOUR_STEPS.length - 1) return automTourShow(idx + 1);
+                return automTourEnd();
+            }
+            _automTourIdx = idx;
+            try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
+            const r = el.getBoundingClientRect();
+            const pad = 6;
+            const ring = ov.querySelector('.autom-tour-ring');
+            ring.style.left = (r.left - pad) + 'px';
+            ring.style.top = (r.top - pad) + 'px';
+            ring.style.width = (r.width + pad * 2) + 'px';
+            ring.style.height = (r.height + pad * 2) + 'px';
+            const isLast = idx === AUTOM_TOUR_STEPS.length - 1;
+            const tip = ov.querySelector('.autom-tour-tip');
+            tip.innerHTML = ''
+                + '<div class="autom-tour-step">Passo ' + (idx + 1) + ' de ' + AUTOM_TOUR_STEPS.length + '</div>'
+                + '<div class="autom-tour-title">' + step.title + '</div>'
+                + '<div class="autom-tour-text">' + step.text + '</div>'
+                + '<div class="autom-tour-actions">'
+                + '  <button class="autom-tour-skip" onclick="automTourEnd()">Pular</button>'
+                + '  <span style="flex:1"></span>'
+                + (idx > 0 ? '<button class="disp-btn ghost" onclick="automTourShow(' + (idx - 1) + ')">Anterior</button>' : '')
+                + '  <button class="disp-btn" onclick="' + (isLast ? 'automTourEnd()' : 'automTourShow(' + (idx + 1) + ')') + '">' + (isLast ? 'Concluir' : 'Próximo') + '</button>'
+                + '</div>';
+            // posiciona o balão (abaixo do alvo; acima se não couber)
+            ov.style.display = 'block';
+            tip.style.visibility = 'hidden';
+            const th = tip.offsetHeight, tw = tip.offsetWidth;
+            let top = r.bottom + 12;
+            if (top + th > window.innerHeight - 8) top = Math.max(8, r.top - th - 12);
+            let left = Math.min(Math.max(8, r.left), window.innerWidth - tw - 8);
+            tip.style.top = top + 'px';
+            tip.style.left = left + 'px';
+            tip.style.visibility = 'visible';
+        }
+        function automTourEnd() {
+            const ov = document.getElementById('automTourOverlay');
+            if (ov) ov.style.display = 'none';
+            try { localStorage.setItem('pl-autom-tour-done', '1'); } catch (e) {}
+        }
+
         // ---------- LISTA ----------
         function automShowList() {
             const l = document.getElementById('automList');
@@ -7627,9 +7720,22 @@
                 if (error) throw error;
                 AUTOM.flows = data || [];
                 if (!AUTOM.flows.length) {
-                    box.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:36px 18px;border:1px dashed var(--border);border-radius:12px;">'
-                        + '<i class="ph-bold ph-flow-arrow" style="font-size:30px;opacity:.7;"></i><br><br>'
-                        + '<strong>Nenhum fluxo ainda</strong><br>Crie seu primeiro fluxo de automação.</div>';
+                    box.innerHTML = '<div class="autom-empty">'
+                        + '<h4><i class="ph-bold ph-flow-arrow"></i> Crie sua primeira automação</h4>'
+                        + '<p>Fluxos disparam mensagens de WhatsApp sozinhos a partir de um gatilho — em 6 passos:</p>'
+                        + '<ol>'
+                        + '  <li><b>Escolha o gatilho</b> (carrinho abandonado, provou e não comprou, entrou numa etapa do CRM…)</li>'
+                        + '  <li><b>Arraste os blocos</b> da paleta pro canvas</li>'
+                        + '  <li><b>Ligue em sequência</b>, começando no Gatilho</li>'
+                        + '  <li><b>Configure</b> cada bloco (espera, template, etapa)</li>'
+                        + '  <li>Defina <b>janela de envio</b> e quando parar sozinho</li>'
+                        + '  <li><b>Salve e ative</b></li>'
+                        + '</ol>'
+                        + '<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+                        + '  <button class="disp-btn" onclick="automNewFlow()"><i class="ph-bold ph-plus"></i> Criar meu primeiro fluxo</button>'
+                        + '  <button class="disp-btn ghost" onclick="automTourStart()"><i class="ph-bold ph-play-circle"></i> Ver tutorial guiado</button>'
+                        + '</div>'
+                        + '</div>';
                     return;
                 }
                 box.innerHTML = AUTOM.flows.map(automCardHTML).join('');
@@ -7744,6 +7850,8 @@
             automRenderConfig(null);
 
             automInitCanvas(flow);
+            // tour guiado automático na 1ª vez que o lojista abre um fluxo novo
+            if (!flow) { try { if (!localStorage.getItem('pl-autom-tour-done')) setTimeout(() => automTourShow(0), 750); } catch (e) {} }
         }
 
         function automSetEdMsg(msg, isError) {
@@ -10185,24 +10293,16 @@
                 }
                 const pad = n => String(n).padStart(2,'0');
                 const since = sinceDate.getFullYear() + '-' + pad(sinceDate.getMonth()+1) + '-01T00:00:00-03:00';
-                allOrders = [];
-                const pageSize = 1000;
-                let from = 0;
-                while (true) {
+                allOrders = await fetchPagesParallel(() => {
                     let q = supabaseClient
                         .from(activeUser.tabela_pedidos)
                         .select(`${fTotal},${fDataPedido},${fPhone}`)
                         .in(fStatus, fStatusVals)
                         .gte(fDataPedido, since)
-                        .order(fDataPedido, { ascending: true })
-                        .range(from, from + pageSize - 1);
+                        .order(fDataPedido, { ascending: true });
                     if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
-                    const { data: batch } = await q;
-                    if (!batch || batch.length === 0) break;
-                    allOrders.push(...batch);
-                    if (batch.length < pageSize) break;
-                    from += pageSize;
-                }
+                    return q;
+                });
                 _fatChartOrdersCache = allOrders;
             }
 
@@ -11116,6 +11216,29 @@
             ).join('');
         }
 
+        // Busca TODAS as páginas de uma query paginada em LOTES PARALELOS (em vez de
+        // página-a-página em série). makeQuery() deve devolver um builder novo a cada chamada.
+        async function fetchPagesParallel(makeQuery, pageSize = 1000, concurrency = 5) {
+            const out = [];
+            let base = 0;
+            while (true) {
+                const reqs = [];
+                for (let k = 0; k < concurrency; k++) {
+                    const p = base + k;
+                    reqs.push(makeQuery().range(p * pageSize, (p + 1) * pageSize - 1).then(r => (r && r.data) || []));
+                }
+                const groups = await Promise.all(reqs);
+                let done = false;
+                for (const batch of groups) {
+                    out.push(...batch);
+                    if (batch.length < pageSize) done = true;
+                }
+                if (done) break;
+                base += concurrency;
+            }
+            return out;
+        }
+
         async function loadSharedData() {
             const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
             const fTotal = activeUser.campo_total_pedido || 'total';
@@ -11125,25 +11248,13 @@
             const fNome = activeUser.campo_nome_pedido || null;
             const selectFields = [fPhone, fTotal, fStatus, 'created_at', fDataPedido, fNome].filter(Boolean).join(', ');
 
-            // Paginate to avoid Supabase's default 1000-row limit
-            const allGens = [];
-            {
-                const pageSize = 1000;
-                let pFrom = 0;
-                while (true) {
-                    const { data: batch } = await supabaseClient
-                        .from(activeUser.tabela)
-                        .select('telefone_cliente, created_at, produtos')
-                        .ilike('origin', `%${activeUser.origem}%`)
-                        .order('created_at', { ascending: true })
-                        .order('id', { ascending: true })
-                        .range(pFrom, pFrom + pageSize - 1);
-                    if (!batch || batch.length === 0) break;
-                    allGens.push(...batch);
-                    if (batch.length < pageSize) break;
-                    pFrom += pageSize;
-                }
-            }
+            // Carrega TODAS as provas em lotes paralelos (antes era página-a-página em série).
+            const allGens = await fetchPagesParallel(() => supabaseClient
+                .from(activeUser.tabela)
+                .select('telefone_cliente, created_at, produtos')
+                .ilike('origin', `%${activeUser.origem}%`)
+                .order('created_at', { ascending: true })
+                .order('id', { ascending: true }));
             generationPhones = new Set(allGens.map(r => normalize(r.telefone_cliente)));
             provaMinDateMap = {};
             provaMinTsMap = {};
@@ -11168,21 +11279,8 @@
             const earliestProva = Object.values(provaMinDateMap).sort()[0] || '';
             const earliestProvaDate = earliestProva.slice(0, 10);
 
-            // Helper de paginação (Supabase corta em 1000 linhas/query).
-            // Recebe uma FACTORY de query (uma nova a cada página) p/ evitar reuso de builder.
-            const paginateAll = async (makeQuery) => {
-                const out = [];
-                const ps = 1000;
-                let p = 0;
-                while (true) {
-                    const { data: batch } = await makeQuery().range(p * ps, (p + 1) * ps - 1);
-                    if (!batch || batch.length === 0) break;
-                    out.push(...batch);
-                    if (batch.length < ps) break;
-                    p++;
-                }
-                return out;
-            };
+            // Paginação em lotes PARALELOS (ver fetchPagesParallel no escopo do módulo).
+            const paginateAll = (makeQuery) => fetchPagesParallel(makeQuery);
 
             // --- Pass 1: pedidos pagos desde a primeira prova (dataset principal) ---
             const loadOrders = () => paginateAll(() => {
