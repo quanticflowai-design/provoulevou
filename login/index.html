@@ -13588,7 +13588,9 @@
             const canSend = _waConfigCache && _waConfigCache.status === 'connected' && _waConfigCache.default_template;
             const boughtBadge = lead.bought
                 ? '<span style="background:rgba(16,185,129,.12);color:#10b981;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;"><i class="ph-bold ph-check-circle"></i> Convertido</span>'
-                : '<span style="background:rgba(124,58,237,.1);color:#7c3aed;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;">Não comprou</span>';
+                : (lead.jaCliente
+                    ? '<span style="background:rgba(217,119,6,.12);color:#d97706;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;"><i class="ph-bold ph-warning"></i> Já é cliente (comprou antes da prova)</span>'
+                    : '<span style="background:rgba(124,58,237,.1);color:#7c3aed;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;">Não comprou</span>');
 
             const row = (label, val) => '<div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text-muted);">' + label + '</span><span style="font-weight:600;text-align:right;">' + val + '</span></div>';
 
@@ -13687,7 +13689,7 @@
                     const ph = normalize(s.telefone_cliente);
                     if (!ph) return;
                     if (!leadMap[ph]) {
-                        leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: '', firstDate: '', lastProduct: '', lastProductUrl: '', rawPhone: s.telefone_cliente, bought: false, clicked: false, name: '' };
+                        leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: '', firstDate: '', lastProduct: '', lastProductUrl: '', rawPhone: s.telefone_cliente, bought: false, jaCliente: false, clicked: false, name: '' };
                     }
                     leadMap[ph].provaCount++;
                     if (s.carrinho_adicionado) leadMap[ph].clicked = true;   // clicou em "Comprar Agora" no provador
@@ -13751,6 +13753,9 @@
                         // pra personalizar o disparo de quem provou e não comprou pós-prova
                         // mas já é cliente conhecido da loja.
                         if (o[fNome] && !leadMap[ph].name) leadMap[ph].name = o[fNome];
+                        // Qualquer pedido pago (pré OU pós prova) = já é cliente da loja.
+                        // Usado só pro selo "já comprou"; NÃO mexe em bought (conversão pós-prova) nem no faturamento.
+                        leadMap[ph].jaCliente = true;
                         // Replica isOrderAfterProva: só conta como "convertido" se o pedido foi após a prova
                         const provaDate = leadMap[ph].firstDate;
                         const provaTs = provaMinTs[ph] || '';
@@ -14135,6 +14140,17 @@
                         meta.append(provasSpan, dateSpan);
 
                         card.append(name, meta);
+
+                        // Selo "já comprou na loja" — cliente que comprou ANTES de provar (não é lead novo
+                        // nem conversão do provador). Mostra só fora de Convertido pra evitar trabalhar cliente como lead.
+                        if (lead.jaCliente && !lead.bought) {
+                            const cliBadge = document.createElement('div');
+                            cliBadge.style.cssText = 'margin-top:6px;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#d97706;background:rgba(217,119,6,.12);border:1px solid rgba(217,119,6,.25);padding:3px 8px;border-radius:99px;';
+                            const cliIc = document.createElement('i'); cliIc.className = 'ph-bold ph-warning';
+                            const cliTx = document.createElement('span'); cliTx.textContent = 'Já comprou na loja';
+                            cliBadge.append(cliIc, cliTx);
+                            card.appendChild(cliBadge);
+                        }
 
                         // Seletor de responsável (atribuição rápida ao time comercial)
                         const curResp = resp[lead.phone] || '';
