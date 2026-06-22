@@ -13771,23 +13771,25 @@
                     });
                 });
 
-                // === Carrinho abandonado: link de checkout (piloto Cacifé) ===
-                // Casa o checkout abandonado da loja (tabela <loja>_checkouts, alimentada pelo
-                // webhook checkout/created do Nuvemshop) ao lead do provador POR TELEFONE, pra o
+                // === Carrinho abandonado: link de checkout ===
+                // Casa o carrinho abandonado da loja com o lead do provador POR TELEFONE, pra o
                 // disparo mandar o link de retomar a compra no lugar do link do produto provado.
-                // Generalizar p/ outra loja = criar a tabela+webhook e adicionar 1 entrada aqui
-                // (ou setar a coluna lojistas.tabela_checkouts).
-                const CHECKOUT_TABLES = { cacife_orders: 'cacife_checkouts' };
-                const checkoutTable = user.tabela_checkouts || CHECKOUT_TABLES[user.tabela_pedidos] || null;
-                if (checkoutTable) {
+                // Fonte = tabela compartilhada abandoned_checkouts (alimentada pelos syncs do
+                // Nuvemshop) — A MESMA que a automação do gatilho carrinho_abandonado usa, então
+                // disparo manual e automação ficam consistentes. Vale p/ qualquer loja cujos
+                // checkouts caiam nessa tabela; filtra por origem e ignora os já concluídos.
+                if (user.origem) {
                     try {
                         const chk = [];
                         let cFrom = 0; const cPage = 1000;
                         while (true) {
                             const { data: cb } = await supabaseClient
-                                .from(checkoutTable)
-                                .select('telefone,abandoned_checkout_url,created_at')
-                                .order('created_at', { ascending: false })
+                                .from('abandoned_checkouts')
+                                .select('contact_phone,shipping_phone,abandoned_checkout_url,updated_at')
+                                .ilike('abandoned_checkout_url', '%' + user.origem + '%')
+                                .is('completed_at', null)
+                                .is('recovered_at', null)
+                                .order('updated_at', { ascending: false })
                                 .range(cFrom, cFrom + cPage - 1);
                             if (!cb || cb.length === 0) break;
                             chk.push(...cb);
@@ -13796,9 +13798,9 @@
                         }
                         chk.forEach(c => {
                             if (!c.abandoned_checkout_url) return;
-                            const ph = normalize(c.telefone);
+                            const ph = normalize(c.contact_phone || c.shipping_phone);
                             if (!ph || !leadMap[ph]) return;
-                            // ordenado por created_at desc → o 1º (mais recente) vence
+                            // ordenado por updated_at desc → o 1º (mais recente) vence
                             if (!leadMap[ph].checkoutUrl) leadMap[ph].checkoutUrl = c.abandoned_checkout_url;
                         });
                     } catch (e) { console.warn('[crm] enriquecimento de checkout falhou:', e); }
