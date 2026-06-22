@@ -14245,6 +14245,20 @@
                             card.appendChild(a);
                         }
 
+                        // Link do carrinho abandonado do cliente (retomar a compra) — só aparece
+                        // quando o lead tem checkout aberto casado por telefone.
+                        if (lead.checkoutUrl) {
+                            const ca = document.createElement('a');
+                            ca.className = 'crm-card-wpp';
+                            ca.href = lead.checkoutUrl;
+                            ca.target = '_blank';
+                            ca.rel = 'noopener';
+                            ca.style.cssText = 'background:rgba(124,58,237,.10);border-color:rgba(124,58,237,.30);color:#a78bfa;';
+                            ca.innerHTML = '<i class="ph-bold ph-shopping-cart"></i> Abrir carrinho';
+                            ca.addEventListener('click', (e) => e.stopPropagation());
+                            card.appendChild(ca);
+                        }
+
                         // Botão de disparo automático (só aparece se WA configurado)
                         if (_waConfigCache && _waConfigCache.status === 'connected' && _waConfigCache.default_template) {
                             const sendBtn = document.createElement('button');
