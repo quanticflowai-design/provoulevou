@@ -13081,6 +13081,7 @@
         const CRM_DEFAULT_COLUMNS = [
             { key: 'cold',           title: 'Provou e não comprou',              icon: 'ph-user',         auto: true,  rule: 'cold' },
             { key: 'clicou-comprar', title: 'Clicaram em comprar e não compraram', icon: 'ph-cursor-click', auto: true,  rule: 'clicou' },
+            { key: 'carrinho-abandonado', title: 'Carrinho abandonado',          icon: 'ph-shopping-cart', auto: true, rule: 'carrinho' },
             { key: 'em-contato', title: 'Em contato',           icon: 'ph-chats-circle',   auto: false },
             { key: 'negociando', title: 'Negociando',           icon: 'ph-handshake',      auto: false },
             { key: 'convertido', title: 'Convertido',           icon: 'ph-check-circle',   auto: true,  rule: 'convertido' },
@@ -13101,6 +13102,11 @@
             if (!cols.some(c => c.key === 'clicou-comprar')) {
                 const coldIdx = cols.findIndex(c => c.key === 'cold');
                 cols.splice(coldIdx < 0 ? 0 : coldIdx + 1, 0, { key: 'clicou-comprar', title: 'Clicaram em comprar e não compraram', icon: 'ph-cursor-click', auto: true, rule: 'clicou' });
+                changed = true;
+            }
+            if (!cols.some(c => c.key === 'carrinho-abandonado')) {
+                const clicouIdx = cols.findIndex(c => c.key === 'clicou-comprar');
+                cols.splice(clicouIdx < 0 ? 0 : clicouIdx + 1, 0, { key: 'carrinho-abandonado', title: 'Carrinho abandonado', icon: 'ph-shopping-cart', auto: true, rule: 'carrinho' });
                 changed = true;
             }
             if (!cols.some(c => c.key === 'convertido')) { cols.push({ key: 'convertido', title: 'Convertido', icon: 'ph-check-circle', auto: true, rule: 'convertido' }); changed = true; }
@@ -13325,9 +13331,12 @@
         }
 
         function crmClassify(d) {
-            // Funil automático: comprou (pós-prova) = Convertido; clicou em "Comprar Agora"
-            // no provador mas não comprou = lead quentíssimo; o resto = "Provou e não comprou".
+            // Funil automático: comprou (pós-prova) = Convertido; tem carrinho abandonado real
+            // na loja (checkout aberto, casado por telefone) = Carrinho abandonado; clicou em
+            // "Comprar Agora" no provador mas não comprou = lead quentíssimo; o resto = "Provou e
+            // não comprou". Carrinho abandonado vence "clicou" por ser sinal mais avançado no funil.
             if (d.bought) return 'convertido';
+            if (d.checkoutUrl) return 'carrinho';
             if (d.clicked) return 'clicou';
             return 'cold';
         }
