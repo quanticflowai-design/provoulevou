@@ -775,14 +775,15 @@
 
       // ========= Paste support =========
       document.addEventListener('paste', function(e) {
-        if (currentStep !== 2 && currentStep !== 3) return;
+        // step 3 = foto do produto, step 4 = foto da pessoa
+        if (currentStep !== 3 && currentStep !== 4) return;
         var items = e.clipboardData && e.clipboardData.items;
         if (!items) return;
         for (var i = 0; i < items.length; i++) {
           if (items[i].type.indexOf('image/') === 0) {
             var file = items[i].getAsFile();
             if (!file) continue;
-            if (currentStep === 2) {
+            if (currentStep === 3) {
               processFile(file, productPreview, 'product');
             } else {
               processFile(file, modelPreview, 'model');
