@@ -14246,13 +14246,21 @@
                         }
 
                         // Link do carrinho abandonado do cliente (retomar a compra) — só aparece
-                        // quando o lead tem checkout aberto casado por telefone.
+                        // quando o lead tem checkout aberto casado por telefone. Valida o esquema
+                        // (só http/https) antes de virar href, pra não renderizar javascript:/data:.
+                        let safeCheckoutUrl = '';
                         if (lead.checkoutUrl) {
+                            try {
+                                const u = new URL(lead.checkoutUrl, location.origin);
+                                if (u.protocol === 'https:' || u.protocol === 'http:') safeCheckoutUrl = u.href;
+                            } catch (_) {}
+                        }
+                        if (safeCheckoutUrl) {
                             const ca = document.createElement('a');
                             ca.className = 'crm-card-wpp';
-                            ca.href = lead.checkoutUrl;
+                            ca.href = safeCheckoutUrl;
                             ca.target = '_blank';
-                            ca.rel = 'noopener';
+                            ca.rel = 'noopener noreferrer';
                             ca.style.cssText = 'background:rgba(124,58,237,.10);border-color:rgba(124,58,237,.30);color:#a78bfa;';
                             ca.innerHTML = '<i class="ph-bold ph-shopping-cart"></i> Abrir carrinho';
                             ca.addEventListener('click', (e) => e.stopPropagation());
