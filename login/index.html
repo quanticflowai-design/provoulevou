@@ -13789,6 +13789,10 @@
                 // checkouts caiam nessa tabela; filtra por origem e ignora os já concluídos.
                 if (user.origem) {
                     try {
+                        // Só carrinhos do MÊS CORRENTE (BRT) — não trabalhar lead de meses atrás
+                        // com link de checkout já vencido. Dinâmico: vira sozinho a cada mês.
+                        const nowBR = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+                        const monthStart = nowBR.getFullYear() + '-' + String(nowBR.getMonth() + 1).padStart(2, '0') + '-01T00:00:00-03:00';
                         const chk = [];
                         let cFrom = 0; const cPage = 1000;
                         while (true) {
@@ -13798,6 +13802,7 @@
                                 .ilike('abandoned_checkout_url', '%' + user.origem + '%')
                                 .is('completed_at', null)
                                 .is('recovered_at', null)
+                                .gte('customer_visit_created_at', monthStart)
                                 .order('updated_at', { ascending: false })
                                 .range(cFrom, cFrom + cPage - 1);
                             if (!cb || cb.length === 0) break;
