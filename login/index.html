@@ -13711,14 +13711,15 @@
                     const d = ts.slice(0, 10);
                     if (d) {
                         leadMap[ph].uniqueDates.add(d);
-                        if (!leadMap[ph].lastDate || d > leadMap[ph].lastDate) {
-                            leadMap[ph].lastDate = d;
-                            const firstProduct = (s.produtos || '').split(',')[0].trim();
-                            if (firstProduct) leadMap[ph].lastProduct = firstProduct;
-                            if (s.produto_url) leadMap[ph].lastProductUrl = s.produto_url;
-                        }
+                        if (!leadMap[ph].lastDate || d > leadMap[ph].lastDate) leadMap[ph].lastDate = d;
                         if (!leadMap[ph].firstDate || d < leadMap[ph].firstDate) leadMap[ph].firstDate = d;
                     }
+                    // Produto/link da prova MAIS RECENTE: as sessões vêm ordenadas por created_at
+                    // ASC, então o último processado vence (antes pegava a 1ª prova do dia quando
+                    // havia várias no mesmo dia — mostrava um modelo aleatório).
+                    const provaProduct = (s.produtos || '').split(',')[0].trim();
+                    if (provaProduct) leadMap[ph].lastProduct = provaProduct;
+                    if (s.produto_url) leadMap[ph].lastProductUrl = s.produto_url;
                     if (ts && (!provaMinTs[ph] || ts < provaMinTs[ph])) provaMinTs[ph] = ts;
                 });
 
