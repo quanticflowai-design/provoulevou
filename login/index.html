@@ -13722,6 +13722,50 @@
                     if (ts && (!provaMinTs[ph] || ts < provaMinTs[ph])) provaMinTs[ph] = ts;
                 });
 
+                // === Carrinho abandonado (independe do provador) ===
+                // Puxa os carrinhos abandonados da loja (tabela compartilhada abandoned_checkouts,
+                // a MESMA que a automação carrinho_abandonado usa) e adiciona ao CRM:
+                //  - telefone bate com lead do provador → grava o link de checkout nele;
+                //  - NÃO bate → entra como lead NOVO (0 provas), só pra etapa Carrinho abandonado.
+                // Só do mês corrente (BRT) pra não trabalhar carrinho velho com link já vencido.
+                // Roda ANTES do loop de pedidos: assim quem já comprou é marcado bought e sai da
+                // recuperação (regra de ouro — nunca recuperar quem já comprou).
+                if (user.origem) {
+                    try {
+                        const nowBR = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+                        const monthStart = nowBR.getFullYear() + '-' + String(nowBR.getMonth() + 1).padStart(2, '0') + '-01T00:00:00-03:00';
+                        const chk = [];
+                        let cFrom = 0; const cPage = 1000;
+                        while (true) {
+                            const { data: cb } = await supabaseClient
+                                .from('abandoned_checkouts')
+                                .select('contact_phone,shipping_phone,contact_name,abandoned_checkout_url,customer_visit_created_at,updated_at')
+                                .ilike('abandoned_checkout_url', '%' + user.origem + '%')
+                                .is('completed_at', null)
+                                .is('recovered_at', null)
+                                .gte('customer_visit_created_at', monthStart)
+                                .order('updated_at', { ascending: false })
+                                .range(cFrom, cFrom + cPage - 1);
+                            if (!cb || cb.length === 0) break;
+                            chk.push(...cb);
+                            if (cb.length < cPage) break;
+                            cFrom += cPage;
+                        }
+                        chk.forEach(c => {
+                            if (!c.abandoned_checkout_url) return;
+                            const rawPh = c.contact_phone || c.shipping_phone;
+                            const ph = normalize(rawPh);
+                            if (!ph) return;
+                            if (!leadMap[ph]) {
+                                // abandonou carrinho mas NÃO usou o provador — lead novo, 0 provas
+                                leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: (c.customer_visit_created_at || '').slice(0, 10), firstDate: '', lastProduct: '', lastProductUrl: '', checkoutUrl: '', rawPhone: rawPh || ph, bought: false, jaCliente: false, clicked: false, name: (c.contact_name || '').split(' ')[0] || '' };
+                            }
+                            // ordenado por updated_at desc → o 1º (mais recente) vence
+                            if (!leadMap[ph].checkoutUrl) leadMap[ph].checkoutUrl = c.abandoned_checkout_url;
+                        });
+                    } catch (e) { console.warn('[crm] carrinho abandonado falhou:', e); }
+                }
+
                 const phoneList = Object.keys(leadMap);
                 if (phoneList.length === 0) {
                     if (emptyEl) emptyEl.style.display = 'block';
@@ -13779,46 +13823,6 @@
                         leadMap[ph].bought = true;
                     });
                 });
-
-                // === Carrinho abandonado: link de checkout ===
-                // Casa o carrinho abandonado da loja com o lead do provador POR TELEFONE, pra o
-                // disparo mandar o link de retomar a compra no lugar do link do produto provado.
-                // Fonte = tabela compartilhada abandoned_checkouts (alimentada pelos syncs do
-                // Nuvemshop) — A MESMA que a automação do gatilho carrinho_abandonado usa, então
-                // disparo manual e automação ficam consistentes. Vale p/ qualquer loja cujos
-                // checkouts caiam nessa tabela; filtra por origem e ignora os já concluídos.
-                if (user.origem) {
-                    try {
-                        // Só carrinhos do MÊS CORRENTE (BRT) — não trabalhar lead de meses atrás
-                        // com link de checkout já vencido. Dinâmico: vira sozinho a cada mês.
-                        const nowBR = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-                        const monthStart = nowBR.getFullYear() + '-' + String(nowBR.getMonth() + 1).padStart(2, '0') + '-01T00:00:00-03:00';
-                        const chk = [];
-                        let cFrom = 0; const cPage = 1000;
-                        while (true) {
-                            const { data: cb } = await supabaseClient
-                                .from('abandoned_checkouts')
-                                .select('contact_phone,shipping_phone,abandoned_checkout_url,updated_at')
-                                .ilike('abandoned_checkout_url', '%' + user.origem + '%')
-                                .is('completed_at', null)
-                                .is('recovered_at', null)
-                                .gte('customer_visit_created_at', monthStart)
-                                .order('updated_at', { ascending: false })
-                                .range(cFrom, cFrom + cPage - 1);
-                            if (!cb || cb.length === 0) break;
-                            chk.push(...cb);
-                            if (cb.length < cPage) break;
-                            cFrom += cPage;
-                        }
-                        chk.forEach(c => {
-                            if (!c.abandoned_checkout_url) return;
-                            const ph = normalize(c.contact_phone || c.shipping_phone);
-                            if (!ph || !leadMap[ph]) return;
-                            // ordenado por updated_at desc → o 1º (mais recente) vence
-                            if (!leadMap[ph].checkoutUrl) leadMap[ph].checkoutUrl = c.abandoned_checkout_url;
-                        });
-                    } catch (e) { console.warn('[crm] enriquecimento de checkout falhou:', e); }
-                }
 
                 crmLeadMapCache = leadMap;
                 renderCrmBoard();
@@ -14188,7 +14192,9 @@
                         const meta = document.createElement('div');
                         meta.className = 'crm-card-meta';
                         const provasSpan = document.createElement('span');
-                        provasSpan.innerHTML = '<i class="ph-bold ph-eye"></i> ' + lead.provaCount + ' prova' + (lead.provaCount > 1 ? 's' : '');
+                        provasSpan.innerHTML = (lead.provaCount > 0)
+                            ? ('<i class="ph-bold ph-eye"></i> ' + lead.provaCount + ' prova' + (lead.provaCount > 1 ? 's' : ''))
+                            : '<i class="ph-bold ph-shopping-cart"></i> Carrinho (sem prova)';
                         const dateSpan = document.createElement('span');
                         dateSpan.innerHTML = '<i class="ph-bold ph-clock"></i> ' + crmFormatRelative(lead.lastDate);
                         meta.append(provasSpan, dateSpan);
