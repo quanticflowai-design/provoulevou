@@ -9220,8 +9220,13 @@
             const urlBtnIndex = (typeof _waBulkUrlBtnIndex === 'number') ? _waBulkUrlBtnIndex : -1;
             const linkInBody = !!window._waBulkLinkInBody;
             const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
-            // Link do lead: prioriza o checkout abandonado da loja; se não houver, cai no produto provado.
-            const leadLinkOf = (l) => hasUrl(l.checkoutUrl) ? l.checkoutUrl : (hasUrl(l.productUrl) ? l.productUrl : '');
+            // Link decidido pela ETAPA do disparo (não pelo dado do lead): etapa "Carrinho
+            // abandonado" → link do checkout; qualquer outra etapa (ou "Todas") → link do produto.
+            const bulkStageKey = (document.getElementById('waBulkStageSelect') || {}).value || 'all';
+            const isCarrinhoSeg = bulkStageKey === 'carrinho-abandonado';
+            const leadLinkOf = (l) => isCarrinhoSeg
+                ? (hasUrl(l.checkoutUrl) ? l.checkoutUrl : (hasUrl(l.productUrl) ? l.productUrl : ''))
+                : (hasUrl(l.productUrl) ? l.productUrl : '');
             // Quando o template usa link, leads sem NENHUM link (nem checkout nem produto) são
             // automaticamente pulados — não dá pra mandar o template sem o link deles.
             const skipNoLink = window._waBulkNeedLink ? targets.filter(t => !leadLinkOf(t)) : [];
@@ -9389,8 +9394,13 @@
             const urlBtnIndex = (typeof _waBulkUrlBtnIndex === 'number') ? _waBulkUrlBtnIndex : -1;
             const linkInBody = !!window._waBulkLinkInBody;
             const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
-            // Link do lead: prioriza o checkout abandonado da loja; senão, o produto provado.
-            const leadLinkOf = (l) => hasUrl(l.checkoutUrl) ? l.checkoutUrl : (hasUrl(l.productUrl) ? l.productUrl : '');
+            // Link decidido pela ETAPA do disparo (não pelo dado do lead): etapa "Carrinho
+            // abandonado" → link do checkout; qualquer outra etapa (ou "Todas") → link do produto.
+            const bulkStageKey = (document.getElementById('waBulkStageSelect') || {}).value || 'all';
+            const isCarrinhoSeg = bulkStageKey === 'carrinho-abandonado';
+            const leadLinkOf = (l) => isCarrinhoSeg
+                ? (hasUrl(l.checkoutUrl) ? l.checkoutUrl : (hasUrl(l.productUrl) ? l.productUrl : ''))
+                : (hasUrl(l.productUrl) ? l.productUrl : '');
             const sendTargets = window._waBulkNeedLink ? targets.filter(t => !!leadLinkOf(t)) : targets;
             if (!sendTargets.length) { fb.style.color = '#ef4444'; fb.textContent = 'Nenhum lead com link salvo (checkout ou produto) pra este modelo.'; return; }
 
