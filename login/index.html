@@ -5213,9 +5213,9 @@
                                 </div>
                             </div>
                             <div style="margin-top:14px;">
-                                <label class="wa-label">Botão de link do produto <span style="color:var(--text-muted);font-weight:500;">(opcional — recomendado pela Meta)</span></label>
+                                <label class="wa-label">Botão de ação (CTA) <span style="color:var(--text-muted);font-weight:500;">(opcional — recomendado pela Meta)</span></label>
                                 <input type="text" class="wa-input" id="newTplBtnText" maxlength="25" placeholder="Ex: Comprar agora">
-                                <div class="wa-help">Se preencher, cria um <strong>botão</strong> que leva o cliente direto pro <strong>produto que ele provou</strong> — botão converte mais que link no texto. Deixe vazio pra não ter botão.</div>
+                                <div class="wa-help">Aqui vai só o <strong>texto do botão</strong> (ex: "Comprar agora"). O <strong>link é preenchido automaticamente</strong> pra cada lead — você <strong>não precisa colar nada</strong>. Cria um botão que leva o cliente direto pro produto que ele provou (converte mais que link no texto). Deixe vazio pra não ter botão.</div>
                             </div>
                         </div>
                         <div class="wa-feedback" id="waTplFeedback"></div>
@@ -8975,6 +8975,7 @@
                     name: lead.name || '',
                     product: lead.lastProduct || '',
                     productUrl: lead.lastProductUrl || '',
+                    checkoutUrl: lead.checkoutUrl || '',
                     lastDate: lead.lastDate || ''
                 }))
                 .filter(l => l.phone && l.phone.length >= 10);
@@ -9219,18 +9220,20 @@
             const urlBtnIndex = (typeof _waBulkUrlBtnIndex === 'number') ? _waBulkUrlBtnIndex : -1;
             const linkInBody = !!window._waBulkLinkInBody;
             const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
-            // Quando o template usa link, leads sem o link salvo (provas antigas) são
+            // Link do lead: prioriza o checkout abandonado da loja; se não houver, cai no produto provado.
+            const leadLinkOf = (l) => hasUrl(l.checkoutUrl) ? l.checkoutUrl : (hasUrl(l.productUrl) ? l.productUrl : '');
+            // Quando o template usa link, leads sem NENHUM link (nem checkout nem produto) são
             // automaticamente pulados — não dá pra mandar o template sem o link deles.
-            const skipNoLink = window._waBulkNeedLink ? targets.filter(t => !hasUrl(t.productUrl)) : [];
+            const skipNoLink = window._waBulkNeedLink ? targets.filter(t => !leadLinkOf(t)) : [];
             if (skipNoLink.length) {
-                window._waBulkTargets = targets.filter(t => hasUrl(t.productUrl));
+                window._waBulkTargets = targets.filter(t => !!leadLinkOf(t));
             }
             let sendTargets = window._waBulkTargets || [];
             if (sendTargets.length === 0) {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Disparar agora';
                 document.getElementById('waBulkProgress').style.display = 'none';
-                crmToast('Nenhum lead com link do produto salvo pra este modelo. Esses leads são de provas antigas (antes de salvarmos o link).', true);
+                crmToast('Nenhum lead com link salvo (checkout ou produto) pra este modelo. Esses leads são de provas antigas (antes de salvarmos o link).', true);
                 return;
             }
 
@@ -9278,8 +9281,8 @@
                 const produto = lead.product || 'o modelo que você provou';
                 // Monta exatamente o número de variáveis que o template espera.
                 // Convenção: {{1}} = primeiro nome, {{2}} = produto provado.
-                // Link deste lead: o do produto que ele provou, ou o digitado (reserva)
-                const leadLink = hasUrl(lead.productUrl) ? lead.productUrl : checkoutLink;
+                // Link deste lead: prioriza o checkout abandonado da loja; senão, o produto provado.
+                const leadLink = leadLinkOf(lead);
                 const fill = [firstName, produto];
                 if (linkInBody) fill[2] = leadLink;   // {{3}} = link no corpo
                 const params = [];
@@ -9386,14 +9389,16 @@
             const urlBtnIndex = (typeof _waBulkUrlBtnIndex === 'number') ? _waBulkUrlBtnIndex : -1;
             const linkInBody = !!window._waBulkLinkInBody;
             const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
-            const sendTargets = window._waBulkNeedLink ? targets.filter(t => hasUrl(t.productUrl)) : targets;
-            if (!sendTargets.length) { fb.style.color = '#ef4444'; fb.textContent = 'Nenhum lead com link do produto salvo pra este modelo.'; return; }
+            // Link do lead: prioriza o checkout abandonado da loja; senão, o produto provado.
+            const leadLinkOf = (l) => hasUrl(l.checkoutUrl) ? l.checkoutUrl : (hasUrl(l.productUrl) ? l.productUrl : '');
+            const sendTargets = window._waBulkNeedLink ? targets.filter(t => !!leadLinkOf(t)) : targets;
+            if (!sendTargets.length) { fb.style.color = '#ef4444'; fb.textContent = 'Nenhum lead com link salvo (checkout ou produto) pra este modelo.'; return; }
 
             // Monta o MESMO payload do envio imediato, pra cada lead (congelado)
             const payloads = sendTargets.map(lead => {
                 const firstName = (lead.name || '').split(' ')[0] || '👋';
                 const produto = lead.product || 'o modelo que você provou';
-                const leadLink = hasUrl(lead.productUrl) ? lead.productUrl : '';
+                const leadLink = leadLinkOf(lead);
                 const fill = [firstName, produto];
                 if (linkInBody) fill[2] = leadLink;
                 const params = [];
@@ -13689,7 +13694,7 @@
                     const ph = normalize(s.telefone_cliente);
                     if (!ph) return;
                     if (!leadMap[ph]) {
-                        leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: '', firstDate: '', lastProduct: '', lastProductUrl: '', rawPhone: s.telefone_cliente, bought: false, jaCliente: false, clicked: false, name: '' };
+                        leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: '', firstDate: '', lastProduct: '', lastProductUrl: '', checkoutUrl: '', rawPhone: s.telefone_cliente, bought: false, jaCliente: false, clicked: false, name: '' };
                     }
                     leadMap[ph].provaCount++;
                     if (s.carrinho_adicionado) leadMap[ph].clicked = true;   // clicou em "Comprar Agora" no provador
@@ -13765,6 +13770,39 @@
                         leadMap[ph].bought = true;
                     });
                 });
+
+                // === Carrinho abandonado: link de checkout (piloto Cacifé) ===
+                // Casa o checkout abandonado da loja (tabela <loja>_checkouts, alimentada pelo
+                // webhook checkout/created do Nuvemshop) ao lead do provador POR TELEFONE, pra o
+                // disparo mandar o link de retomar a compra no lugar do link do produto provado.
+                // Generalizar p/ outra loja = criar a tabela+webhook e adicionar 1 entrada aqui
+                // (ou setar a coluna lojistas.tabela_checkouts).
+                const CHECKOUT_TABLES = { cacife_orders: 'cacife_checkouts' };
+                const checkoutTable = user.tabela_checkouts || CHECKOUT_TABLES[user.tabela_pedidos] || null;
+                if (checkoutTable) {
+                    try {
+                        const chk = [];
+                        let cFrom = 0; const cPage = 1000;
+                        while (true) {
+                            const { data: cb } = await supabaseClient
+                                .from(checkoutTable)
+                                .select('telefone,abandoned_checkout_url,created_at')
+                                .order('created_at', { ascending: false })
+                                .range(cFrom, cFrom + cPage - 1);
+                            if (!cb || cb.length === 0) break;
+                            chk.push(...cb);
+                            if (cb.length < cPage) break;
+                            cFrom += cPage;
+                        }
+                        chk.forEach(c => {
+                            if (!c.abandoned_checkout_url) return;
+                            const ph = normalize(c.telefone);
+                            if (!ph || !leadMap[ph]) return;
+                            // ordenado por created_at desc → o 1º (mais recente) vence
+                            if (!leadMap[ph].checkoutUrl) leadMap[ph].checkoutUrl = c.abandoned_checkout_url;
+                        });
+                    } catch (e) { console.warn('[crm] enriquecimento de checkout falhou:', e); }
+                }
 
                 crmLeadMapCache = leadMap;
                 renderCrmBoard();
