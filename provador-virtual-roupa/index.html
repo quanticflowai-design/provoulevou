@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <script src="../env.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Experimentar Roupa Online — Provador Virtual (Digital) de Roupa com IA | Provou Levou</title>
@@ -554,7 +555,7 @@ th { font-weight: 600; font-size: 13px; color: var(--text); }
   if (_p.indexOf('/Users/') === 0 || _p.indexOf('/home/') === 0) return;
   if (/^\/test(\/|$|-)/i.test(_p)) return;
   var SUPA_URL = 'https://quantic-supabase.k5jwra.easypanel.host';
-  var SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.g2PgdtfvvAFY_Dyylnh9dRVKudf1RWiw1WqwogmsHTA';
+  var SUPA_ANON = ((window.ENV && window.ENV.SUPABASE_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.pCFnSnrlSUM2EwXi9gxAegpoC-9U0Mjx3iAtROR-E20');
   var SESSION_KEY = 'pl_session_id';
   function getSessionId() {
     try { var sid = sessionStorage.getItem(SESSION_KEY); if (!sid) { sid = Date.now().toString(36) + Math.random().toString(36).substr(2, 9); sessionStorage.setItem(SESSION_KEY, sid); } return sid; }
