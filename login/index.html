@@ -4446,6 +4446,21 @@
                     <div class="disp-chart-wrap" style="height:260px;"><canvas id="dispDailyChart"></canvas></div>
                 </div>
 
+                <div class="disp-card" id="dispSalesCard" style="margin-bottom:20px;">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                        <div>
+                            <h3><i class="ph-bold ph-currency-circle-dollar" style="color:#10b981;"></i> Vendas recuperadas pelos disparos</h3>
+                            <p class="desc" style="margin-bottom:0;">Faturamento de clientes que <strong>compraram em até 7 dias depois</strong> de receber um disparo. Por dia, últimos 30 dias.</p>
+                        </div>
+                        <div style="text-align:right;flex-shrink:0;">
+                            <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Total recuperado (30d)</div>
+                            <div style="font-size:26px;font-weight:800;letter-spacing:-.02em;color:#10b981;line-height:1.1;" id="dispSalesTotal">—</div>
+                            <div style="font-size:11.5px;color:var(--text-muted);" id="dispSalesSub">—</div>
+                        </div>
+                    </div>
+                    <div class="disp-chart-wrap" style="height:260px;margin-top:14px;"><canvas id="dispSalesChart"></canvas></div>
+                </div>
+
                 <div class="disp-charts-row" id="dispChartsRow">
                     <div class="disp-card">
                         <h3><i class="ph-bold ph-kanban"></i> Leads por etapa do CRM</h3>
@@ -7435,6 +7450,7 @@
         let _dispCrmChart = null;
         let _dispDonut = null;
         let _dispDailyChart = null;
+        let _dispSalesChart = null;
 
         function dispSetFilter(f) {
             _dispFilter = f;
@@ -7490,7 +7506,7 @@
             // Chart.js renderiza a 0x0 quando o canvas está escondido — redimensiona ao exibir
             if (name === 'historico') {
                 setTimeout(() => {
-                    [_dispCrmChart, _dispDonut, _dispDailyChart].forEach(c => { try { c && c.resize(); } catch (e) {} });
+                    [_dispCrmChart, _dispDonut, _dispDailyChart, _dispSalesChart].forEach(c => { try { c && c.resize(); } catch (e) {} });
                 }, 60);
             }
             // Templates: garante que o conteúdo está na sub-aba e visível, depois carrega
@@ -8715,6 +8731,7 @@
 
                 dispRenderDonut(sent, failed);
                 dispRenderDailyChart(all);
+                dispRenderSalesChart().catch(e => console.warn('[disparos] sales chart:', e));
                 dispRenderLog();
             } catch (e) {
                 if (listEl) listEl.innerHTML = '<div class="disp-empty" style="color:#ef4444;">Erro ao carregar: ' + escapeHtml(e.message || String(e)) + '</div>';
@@ -8866,6 +8883,115 @@
                     scales: {
                         x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 0 } },
                         y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { precision: 0 } }
+                    }
+                }
+            });
+        }
+
+        // Gráfico de vendas recuperadas: pedidos pagos de clientes que compraram
+        // em até 7 dias DEPOIS de receber um disparo (não-falho). Mesma janela de 30 dias
+        // e mesmo bucketing por dia do gráfico "Disparos por dia", pra alinhar os dois.
+        async function dispRenderSalesChart() {
+            const canvas = document.getElementById('dispSalesChart');
+            if (!canvas) return;
+            const totalEl = document.getElementById('dispSalesTotal');
+            const subEl = document.getElementById('dispSalesSub');
+
+            if (!activeUser.tabela_pedidos) {
+                canvas.parentElement.innerHTML = '<div class="disp-empty">Esta loja ainda não tem pedidos integrados.</div>';
+                if (totalEl) totalEl.textContent = '—';
+                if (subEl) subEl.textContent = '—';
+                return;
+            }
+
+            // allOrdersCache (pedidos pagos desde a 1ª prova) vem do dashboard principal.
+            if (!allOrdersCache || !allOrdersCache.length) {
+                try { await loadSharedData(); } catch (e) { console.warn('[disparos] sales sharedData:', e); }
+            }
+
+            // Disparos não-falhos por telefone -> lista de timestamps (ms)
+            let dispRows = [];
+            try {
+                const { data } = await supabaseClient
+                    .from('whatsapp_send_log')
+                    .select('lead_phone, sent_at, status')
+                    .eq('email', activeUser.email)
+                    .limit(10000);
+                dispRows = data || [];
+            } catch (e) { console.warn('[disparos] sales log:', e); }
+
+            const dispByPhone = {};
+            dispRows.forEach(r => {
+                if (r.status === 'failed') return;
+                const ph = normalize(r.lead_phone);
+                if (!ph || !r.sent_at) return;
+                const ms = new Date(r.sent_at).getTime();
+                if (!ms) return;
+                (dispByPhone[ph] = dispByPhone[ph] || []).push(ms);
+            });
+
+            const fTotal = activeUser.campo_total_pedido || 'total';
+            const fDataPedido = activeUser.campo_data_pedido || null;
+            const WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const days = [];
+            for (let i = 29; i >= 0; i--) { const d = new Date(today); d.setDate(d.getDate() - i); days.push(d.toISOString().slice(0, 10)); }
+            const revByDay = {}, cntByDay = {};
+            days.forEach(d => { revByDay[d] = 0; cntByDay[d] = 0; });
+
+            let totalRev = 0, totalCnt = 0;
+            (allOrdersCache || []).forEach(o => {
+                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                if (!orderTs) return;
+                const orderMs = new Date(orderTs).getTime();
+                if (!orderMs) return;
+                const recovered = orderPhoneKeys(o).some(ph =>
+                    (dispByPhone[ph] || []).some(ms => ms <= orderMs && (orderMs - ms) <= WINDOW_MS));
+                if (!recovered) return;
+                const day = orderTs.slice(0, 10);
+                if (revByDay[day] === undefined) return; // fora da janela de 30 dias
+                const val = parseFloat(o[fTotal]) || 0;
+                revByDay[day] += val; cntByDay[day]++;
+                totalRev += val; totalCnt++;
+            });
+
+            if (totalEl) totalEl.textContent = 'R$ ' + totalRev.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (subEl) subEl.textContent = totalCnt.toLocaleString('pt-BR') + (totalCnt === 1 ? ' pedido recuperado' : ' pedidos recuperados');
+
+            const labels = days.map(d => {
+                const dt = new Date(d + 'T00:00:00');
+                return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            });
+
+            if (_dispSalesChart) _dispSalesChart.destroy();
+            _dispSalesChart = new Chart(canvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Vendas recuperadas (R$)',
+                        data: days.map(d => +revByDay[d].toFixed(2)),
+                        backgroundColor: 'rgba(16,185,129,.85)',
+                        hoverBackgroundColor: '#10b981',
+                        borderRadius: 6,
+                        maxBarThickness: 26
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => 'R$ ' + ctx.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                                afterLabel: ctx => { const c = cntByDay[days[ctx.dataIndex]] || 0; return c + (c === 1 ? ' pedido' : ' pedidos'); }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 0 } },
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { callback: v => 'R$ ' + v.toLocaleString('pt-BR') } }
                     }
                 }
             });
