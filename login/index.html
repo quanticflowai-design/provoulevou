@@ -6052,7 +6052,9 @@
                     const at = m.wa_timestamp || m.created_at;
                     if (!c.lastAt || at > c.lastAt) {
                         c.lastAt = at;
-                        c.lastBody = (m.direction === 'out' ? 'Você: ' : '') + (m.body || ('[' + (m.msg_type||'') + ']'));
+                        const mediaPrev = { image:'🖼️ Imagem', sticker:'🩹 Figurinha', video:'🎥 Vídeo', audio:'🎧 Áudio', document:'📎 Documento' };
+                        const preview = (m.body && m.body.charAt(0) !== '[') ? m.body : (mediaPrev[m.msg_type] || m.body || ('[' + (m.msg_type||'') + ']'));
+                        c.lastBody = (m.direction === 'out' ? 'Você: ' : '') + preview;
                     }
                     if (m.contact_name && !c.name) c.name = m.contact_name;
                     if (m.direction === 'in') {
@@ -6240,6 +6242,31 @@
             }
         }
 
+        // Conteúdo da bolha: renderiza mídia (imagem/vídeo/áudio/documento/figurinha) quando há
+        // media_url; sem ela (não resolvida ou expirada após 24h) mostra um rótulo do tipo.
+        const CHAT_MEDIA_TYPES = { image:1, sticker:1, video:1, audio:1, document:1 };
+        function chatBubbleBody(m) {
+            const url = m.media_url;
+            const hasCaption = m.body && m.body.charAt(0) !== '[';
+            const cap = hasCaption ? '<div class="chat-msg-cap" style="margin-top:5px;">' + escapeHtml(m.body) + '</div>' : '';
+            if (CHAT_MEDIA_TYPES[m.msg_type]) {
+                if (url) {
+                    const u = escapeHtml(url);
+                    if (m.msg_type === 'image' || m.msg_type === 'sticker')
+                        return '<a href="' + u + '" target="_blank" rel="noopener noreferrer"><img src="' + u + '" loading="lazy" style="max-width:220px;max-height:260px;border-radius:10px;display:block;"></a>' + cap;
+                    if (m.msg_type === 'video')
+                        return '<video src="' + u + '" controls preload="metadata" style="max-width:240px;max-height:280px;border-radius:10px;display:block;"></video>' + cap;
+                    if (m.msg_type === 'audio')
+                        return '<audio src="' + u + '" controls preload="none" style="max-width:240px;"></audio>' + cap;
+                    if (m.msg_type === 'document')
+                        return '<a href="' + u + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;color:inherit;text-decoration:underline;"><i class="ph-bold ph-file-arrow-down"></i> ' + escapeHtml(hasCaption ? m.body : 'Documento') + '</a>';
+                }
+                const labels = { image:'🖼️ Imagem', sticker:'🩹 Figurinha', video:'🎥 Vídeo', audio:'🎧 Áudio', document:'📎 Documento' };
+                return '<span style="opacity:.85;">' + (labels[m.msg_type] || '[mídia]') + ' <span style="opacity:.55;font-size:11px;">(indisponível)</span></span>';
+            }
+            return escapeHtml(m.body || ('[' + (m.msg_type || '') + ']'));
+        }
+
         function chatRenderThread(msgs) {
             const body = document.getElementById('chatThreadBody');
             if (!body) return;
@@ -6249,7 +6276,7 @@
                 body.innerHTML = msgs.map(m => {
                     const at = m.wa_timestamp || m.created_at;
                     const tpl = (m.direction === 'out' && m.template_name) ? '<div class="chat-msg-tpl">template: ' + escapeHtml(m.template_name) + '</div>' : '';
-                    return `<div class="chat-msg ${m.direction === 'in' ? 'in' : 'out'}">${tpl}${escapeHtml(m.body || ('['+(m.msg_type||'')+']'))}<div class="chat-msg-time">${chatFmtTime(at)}${m.direction==='out' && m.status ? ' · ' + escapeHtml(dispStatusLabel(m.status)) : ''}</div></div>`;
+                    return `<div class="chat-msg ${m.direction === 'in' ? 'in' : 'out'}">${tpl}${chatBubbleBody(m)}<div class="chat-msg-time">${chatFmtTime(at)}${m.direction==='out' && m.status ? ' · ' + escapeHtml(dispStatusLabel(m.status)) : ''}</div></div>`;
                 }).join('');
             }
             body.scrollTop = body.scrollHeight;
