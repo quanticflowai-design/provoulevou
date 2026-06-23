@@ -6245,8 +6245,13 @@
         // Conteúdo da bolha: renderiza mídia (imagem/vídeo/áudio/documento/figurinha) quando há
         // media_url; sem ela (não resolvida ou expirada após 24h) mostra um rótulo do tipo.
         const CHAT_MEDIA_TYPES = { image:1, sticker:1, video:1, audio:1, document:1 };
+        function chatSafeMediaUrl(u) {
+            if (!u) return '';
+            try { const p = new URL(u, location.href); return (p.protocol === 'https:' || p.protocol === 'http:') ? p.href : ''; }
+            catch (e) { return ''; }
+        }
         function chatBubbleBody(m) {
-            const url = m.media_url;
+            const url = chatSafeMediaUrl(m.media_url);
             const hasCaption = m.body && m.body.charAt(0) !== '[';
             const cap = hasCaption ? '<div class="chat-msg-cap" style="margin-top:5px;">' + escapeHtml(m.body) + '</div>' : '';
             if (CHAT_MEDIA_TYPES[m.msg_type]) {
