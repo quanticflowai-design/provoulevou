@@ -1,5 +1,5 @@
 // [PL] Fluxos — Motor (cron interpretador). Roda a cada 1 min.
-const SVC='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE2NDE3NjkyMDAsImV4cCI6MjE0NzQ4MzY0N30.JHL5vWMfoj2266HGBfecfDzmYKdILojVNspL9lUMu7M';
+const SVC='<SUPABASE_SERVICE_ROLE_KEY>';
 const BASE='https://quantic-supabase.k5jwra.easypanel.host/rest/v1';
 const H={apikey:SVC,Authorization:'Bearer '+SVC,'Content-Type':'application/json'};
 const get=u=>this.helpers.httpRequest({method:'GET',url:BASE+u,headers:H,json:true});
