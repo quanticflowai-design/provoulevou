@@ -3487,6 +3487,14 @@
                             <div class="value" id="comprasPedidosCount">0</div>
                         </div>
                     </div>
+                    <div class="stat-card" id="vgRecuperadoCard" title="Vendas de clientes que compraram em até 7 dias após receber um disparo no WhatsApp. Pode incluir clientes que também usaram o provador — não some este valor ao faturamento atribuído.">
+                        <div class="stat-icon" style="background:rgba(37,211,102,0.1);color:#25D366;"><i class="ph-bold ph-arrow-u-up-left"></i></div>
+                        <div class="stat-info">
+                            <h4>Recuperado via Disparo</h4>
+                            <div class="value" id="vgRecuperadoVal">R$ 0,00</div>
+                            <div class="stat-sub" id="vgRecuperadoSub">—</div>
+                        </div>
+                    </div>
                     <div class="stat-card" style="display:none !important;">
                         <span class="kpi-delta neutral" id="kpiDeltaFat">—</span>
                         <div class="stat-icon" style="background:rgba(139,92,246,0.1);color:var(--primary);"><i class="ph-bold ph-currency-circle-dollar"></i></div>
@@ -12054,6 +12062,56 @@
             }
         }
 
+        // Card "Recuperado via Disparo" na Visão Geral — mesma lógica do gráfico da aba Disparos
+        // (pedido pago em até 7 dias após disparo não-falho), respeitando o período selecionado.
+        // Atenção: pode sobrepor o faturamento atribuído (cliente que provou E foi recuperado) — NÃO somar.
+        async function loadVgRecuperadoDisparo() {
+            const valEl = document.getElementById('vgRecuperadoVal');
+            const subEl = document.getElementById('vgRecuperadoSub');
+            if (!valEl || !supabaseClient || !activeUser) return;
+            if (!activeUser.tabela_pedidos) { valEl.textContent = 'R$ 0,00'; if (subEl) subEl.textContent = 'loja sem pedidos integrados'; return; }
+            if (!allOrdersCache || !allOrdersCache.length) {
+                try { await loadSharedData(); } catch (e) { console.warn('[vg recuperado] sharedData:', e); }
+            }
+            let dispRows = [];
+            try {
+                const { data } = await supabaseClient
+                    .from('whatsapp_send_log')
+                    .select('lead_phone, sent_at, status')
+                    .eq('email', activeUser.email)
+                    .limit(10000);
+                dispRows = data || [];
+            } catch (e) { console.warn('[vg recuperado] log:', e); }
+            const dispByPhone = {};
+            dispRows.forEach(r => {
+                if (r.status === 'failed') return;
+                const ph = normalize(r.lead_phone);
+                if (!ph || !r.sent_at) return;
+                const ms = new Date(r.sent_at).getTime();
+                if (!ms) return;
+                (dispByPhone[ph] = dispByPhone[ph] || []).push(ms);
+            });
+            const fTotal = activeUser.campo_total_pedido || 'total';
+            const fDataPedido = activeUser.campo_data_pedido || null;
+            const WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+            let rev = 0, cnt = 0;
+            (allOrdersCache || []).forEach(o => {
+                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                if (!orderTs) return;
+                const d = orderTs.slice(0, 10);
+                if (dateFromCompras && d < dateFromCompras) return;
+                if (dateToCompras && d > dateToCompras) return;
+                const orderMs = new Date(orderTs).getTime();
+                if (!orderMs) return;
+                const recovered = orderPhoneKeys(o).some(ph =>
+                    (dispByPhone[ph] || []).some(ms => ms <= orderMs && (orderMs - ms) <= WINDOW_MS));
+                if (!recovered) return;
+                rev += parseFloat(o[fTotal]) || 0; cnt++;
+            });
+            valEl.textContent = rev.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            if (subEl) subEl.textContent = cnt.toLocaleString('pt-BR') + (cnt === 1 ? ' venda recuperada' : ' vendas recuperadas');
+        }
+
         async function loadCompras(page) {
             currentPageCompras = page;
             _lastSearchQuery.compras = '';
@@ -12126,6 +12184,7 @@
             document.getElementById('provasConversao').textContent = pctFatProvador + '%';
 
             renderComprasChart(filtered, fDataPedido, fTotal);
+            loadVgRecuperadoDisparo().catch(e => console.warn('[vg recuperado]', e));
 
             _csvComprasData = filtered.map(o => {
                 const d = (fDataPedido && o[fDataPedido]) || o.created_at || '';
