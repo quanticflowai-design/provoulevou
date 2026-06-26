@@ -9634,7 +9634,7 @@
                         const tog = '<button onclick="toggleRecurring(\'' + d.id + '\',' + (ativo ? 'false' : 'true') + ')" style="background:transparent;border:1px solid var(--border);border-radius:7px;padding:4px 9px;font-size:11.5px;cursor:pointer;color:' + (ativo ? '#ef4444' : '#10b981') + ';">' + (ativo ? 'Pausar' : 'Ativar') + '</button>';
                         return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13px;">'
                             + '<div style="min-width:0;"><i class="ph-bold ph-repeat" style="color:#7c3aed;"></i> <strong>Todo dia às ' + escapeHtml(d.recur_time || '') + '</strong> · ' + escapeHtml(stageTitle(d.stage_key)) + '<br><span style="color:var(--text-muted);font-size:12px;">' + escapeHtml(d.template || '') + ' · máx ' + (d.max_per_run || '—') + '/dia' + lastRun + '</span></div>'
-                            + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;"><span style="color:' + cor + ';font-weight:700;font-size:12px;white-space:nowrap;">' + lbl + '</span>' + tog + '</div></div>';
+                            + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;"><span style="color:' + cor + ';font-weight:700;font-size:12px;white-space:nowrap;">' + lbl + '</span>' + tog + '<button onclick="deleteDisparoAgendado(\'' + d.id + '\')" title="Excluir" style="background:transparent;border:1px solid var(--border);border-radius:7px;padding:4px 8px;font-size:11.5px;cursor:pointer;color:#ef4444;"><i class="ph-bold ph-trash"></i></button>' + '</div></div>';
                     }
                     const st = stMap[d.status] || [d.status, '#6b7280'];
                     const when = new Date(d.scheduled_at).toLocaleString('pt-BR');
@@ -9642,7 +9642,7 @@
                     const cancel = d.status === 'agendado' ? '<button onclick="cancelDisparoAgendado(\'' + d.id + '\')" style="background:transparent;border:1px solid var(--border);border-radius:7px;padding:4px 9px;font-size:11.5px;color:#ef4444;cursor:pointer;">Cancelar</button>' : '';
                     return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13px;">'
                         + '<div style="min-width:0;"><strong>' + (d.total || 0) + '</strong> disparo(s) · ' + escapeHtml(d.template || '') + '<br><span style="color:var(--text-muted);font-size:12px;">' + when + counts + '</span></div>'
-                        + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;"><span style="color:' + st[1] + ';font-weight:700;font-size:12px;white-space:nowrap;">' + st[0] + '</span>' + cancel + '</div></div>';
+                        + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;"><span style="color:' + st[1] + ';font-weight:700;font-size:12px;white-space:nowrap;">' + st[0] + '</span>' + cancel + '<button onclick="deleteDisparoAgendado(\'' + d.id + '\')" title="Excluir" style="background:transparent;border:1px solid var(--border);border-radius:7px;padding:4px 8px;font-size:11.5px;cursor:pointer;color:#ef4444;"><i class="ph-bold ph-trash"></i></button>' + '</div></div>';
                 }).join('');
             } catch (e) {
                 el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Histórico indisponível (a tabela ainda pode não ter sido criada).</div>';
@@ -9654,6 +9654,17 @@
                 await supabaseClient.from('disparos_agendados').update({ status: 'cancelado' }).eq('id', id).eq('status', 'agendado');
                 loadDisparosAgendados();
             } catch (e) { crmToast && crmToast('Não foi possível cancelar.', true); }
+        }
+
+        async function deleteDisparoAgendado(id) {
+            if (!confirm('Excluir este disparo agendado? Esta ação não pode ser desfeita.')) return;
+            try {
+                const { error } = await supabaseClient.from('disparos_agendados')
+                    .delete().eq('id', id).eq('lojista_email', activeUser.email);
+                if (error) throw error;
+                crmToast && crmToast('Disparo excluído.');
+                loadDisparosAgendados();
+            } catch (e) { crmToast && crmToast('Não foi possível excluir: ' + (e && e.message ? e.message : e), true); }
         }
 
         // ===== Disparo recorrente (todo dia, por etapa do CRM) =====
