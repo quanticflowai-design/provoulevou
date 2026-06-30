@@ -3586,6 +3586,26 @@
                 </div>
 
 
+                <!-- Vendas por Produto (qual produto vende mais) -->
+                <div class="table-container" id="vendasProdutoSection" style="display:none;margin-bottom:24px;">
+                    <div class="table-header">
+                        <h2><i class="ph-fill ph-package"></i> Vendas por Produto</h2>
+                        <span style="font-size:12px;color:var(--text-muted);" id="vendasProdutoSub"></span>
+                    </div>
+                    <table id="vendasProdutoTable">
+                        <thead>
+                            <tr>
+                                <th style="width:36px;">#</th>
+                                <th>Produto</th>
+                                <th style="text-align:right;">Vendas</th>
+                                <th style="text-align:right;">Faturamento</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vendasProdutoBody"></tbody>
+                    </table>
+                </div>
+
+
                 <!-- Modal PIX -->
                 <div id="packPixModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;padding:20px;">
                     <div style="background:var(--card-bg,#0f0f15);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:420px;width:100%;text-align:center;">
@@ -11683,7 +11703,8 @@
             const fStatusValues = activeUser.valores_status_pago || ['paid', 'Confirmado'];
             const fDataPedido = activeUser.campo_data_pedido || null;
             const fNome = activeUser.campo_nome_pedido || null;
-            const selectFields = [fPhone, fTotal, fStatus, 'created_at', fDataPedido, fNome].filter(Boolean).join(', ');
+            const fProduto = activeUser.campo_produto_pedido || null;
+            const selectFields = [fPhone, fTotal, fStatus, 'created_at', fDataPedido, fNome, fProduto].filter(Boolean).join(', ');
 
             // Carrega TODAS as provas em lotes paralelos (antes era página-a-página em série).
             const allGens = await fetchPagesParallel(() => supabaseClient
@@ -12407,6 +12428,39 @@
             }
         }
 
+        // Vendas por produto (todas as vendas pagas, agrupadas pelo campo de produto da loja).
+        // Mostra quais produtos mais vendem (unidades) e o faturamento de cada um.
+        function loadVendasPorProduto() {
+            const sec = document.getElementById('vendasProdutoSection');
+            const body = document.getElementById('vendasProdutoBody');
+            const sub = document.getElementById('vendasProdutoSub');
+            if (!sec || !body) return;
+            const fProduto = activeUser && activeUser.campo_produto_pedido;
+            const fTotal = (activeUser && activeUser.campo_total_pedido) || 'total';
+            if (!fProduto || !allOrdersCache || !allOrdersCache.length) { sec.style.display = 'none'; return; }
+            const map = {};
+            allOrdersCache.forEach(o => {
+                const nome = String(o[fProduto] || '').trim();
+                if (!nome) return;
+                const m = map[nome] || (map[nome] = { count: 0, rev: 0 });
+                m.count++; m.rev += parseFloat(o[fTotal]) || 0;
+            });
+            const rows = Object.keys(map).map(nome => ({ nome, count: map[nome].count, rev: map[nome].rev }))
+                .sort((a, b) => b.count - a.count);
+            if (rows.length === 0) { sec.style.display = 'none'; return; }
+            const TOP = 20;
+            const totalVendas = rows.reduce((s, r) => s + r.count, 0);
+            body.innerHTML = rows.slice(0, TOP).map((r, i) =>
+                '<tr>'
+                + '<td style="color:var(--text-muted);font-weight:600;">' + (i + 1) + '</td>'
+                + '<td>' + escapeHtml(r.nome) + '</td>'
+                + '<td style="text-align:right;font-weight:600;">' + r.count.toLocaleString('pt-BR') + '</td>'
+                + '<td style="text-align:right;">' + r.rev.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) + '</td>'
+                + '</tr>').join('');
+            if (sub) sub.textContent = rows.length + ' produtos · ' + totalVendas.toLocaleString('pt-BR') + ' vendas' + (rows.length > TOP ? ' (top ' + TOP + ')' : '');
+            sec.style.display = '';
+        }
+
         async function loadConsumoPlano() {
             const card = document.getElementById('consumoPlanoCard');
             if (!card || !activeUser) { if (card) card.style.display = 'none'; return; }
@@ -12694,6 +12748,7 @@
                 loadRecompra();
                 loadConsumoPlano();
                 loadProvasExtras();
+                loadVendasPorProduto();
 
                 // Mostra dashboard com visibility:hidden (ocupa espaço, canvas pega dimensões corretas)
                 // mas continua coberto pelo loader. Depois que o gráfico principal renderizar,
