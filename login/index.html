@@ -6858,6 +6858,25 @@
         const WA_TPL_URL = 'https://n8n.segredosdodrop.com/webhook/pl-wa-templates';
         let _waTemplatesCache = [];
 
+        // Mostrar só templates criados na Provou Levou (tabela pl_wa_templates).
+        // Fail-open: se a consulta falhar, NÃO esconde nada (mantém o comportamento antigo).
+        let _plTplNamesCache = null;
+        async function plTemplateNames() {
+            if (_plTplNamesCache) return _plTplNamesCache;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('pl_wa_templates').select('name').eq('email', activeUser.email);
+                if (error) throw error;
+                _plTplNamesCache = new Set((data || []).map(r => r.name));
+            } catch (e) { console.warn('[pl-templates] load:', e); return null; }
+            return _plTplNamesCache;
+        }
+        async function keepPLTemplates(list) {
+            const allowed = await plTemplateNames();
+            if (!allowed) return list; // erro na consulta -> não filtra
+            return (list || []).filter(t => allowed.has(t.name));
+        }
+
         async function waLoadTemplates() {
             const list = document.getElementById('waTemplatesList');
             if (!_waConfigCache || _waConfigCache.status !== 'connected') {
@@ -6895,7 +6914,8 @@
                     list.innerHTML = '<div class="wa-tpl-empty" style="color:#ef4444;">' + (result.error || result.body?.error?.message || 'Erro ao listar') + '</div>';
                     return;
                 }
-                const data = (result.body && result.body.data) || [];
+                let data = (result.body && result.body.data) || [];
+                data = await keepPLTemplates(data);
                 _waTemplatesCache = data;
                 if (data.length === 0) {
                     list.innerHTML = '<div class="wa-tpl-empty">Nenhuma mensagem modelo criada ainda. Clique em <strong>Criar mensagem modelo</strong>.</div>';
@@ -7366,6 +7386,11 @@
                 });
                 const result = await res.json();
                 if (result.ok && result.body && result.body.id) {
+                    // Registra como template da Provou Levou (pra aparecer na lista filtrada)
+                    try {
+                        await supabaseClient.from('pl_wa_templates').insert({ email: activeUser.email, name });
+                        _plTplNamesCache = null; _waTemplatesCache = [];
+                    } catch (e) { console.warn('[pl-templates] insert:', e); }
                     fb.className = 'wa-feedback success';
                     fb.innerHTML = '<strong>Enviado pra Meta!</strong> Status inicial: ' + (result.body.status || 'PENDING') + '. Aguarde aprovação.';
                     setTimeout(() => { closeCreateTemplateModal(); waLoadTemplates(); }, 1800);
@@ -9298,6 +9323,7 @@
                     });
                     const result = await res.json();
                     data = (result.body && result.body.data) || [];
+                    data = await keepPLTemplates(data);
                     _waTemplatesCache = data;
                 }
                 const approved = (data || []).filter(t => (t.status || '').toUpperCase() === 'APPROVED');
