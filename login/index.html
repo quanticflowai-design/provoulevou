@@ -3487,7 +3487,7 @@
                             <div class="value" id="comprasPedidosCount">0</div>
                         </div>
                     </div>
-                    <div class="stat-card" id="vgRecuperadoCard" title="Vendas de clientes que compraram em até 7 dias após receber um disparo no WhatsApp. Pode incluir clientes que também usaram o provador — não some este valor ao faturamento atribuído.">
+                    <div class="stat-card" id="vgRecuperadoCard" title="Vendas de clientes que compraram em até 30 dias após receber um disparo no WhatsApp. Pode incluir clientes que também usaram o provador — não some este valor ao faturamento atribuído.">
                         <div class="stat-icon" style="background:rgba(37,211,102,0.1);color:#25D366;"><i class="ph-bold ph-arrow-u-up-left"></i></div>
                         <div class="stat-info">
                             <h4>Recuperado via Disparo</h4>
@@ -4458,7 +4458,7 @@
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
                         <div>
                             <h3><i class="ph-bold ph-currency-circle-dollar" style="color:#10b981;"></i> Vendas recuperadas pelos disparos</h3>
-                            <p class="desc" style="margin-bottom:0;">Faturamento de clientes que <strong>compraram em até 7 dias depois</strong> de receber um disparo. Por dia, últimos 30 dias.</p>
+                            <p class="desc" style="margin-bottom:0;">Faturamento de clientes que <strong>compraram em até 30 dias depois</strong> de receber um disparo. Por dia, últimos 30 dias.</p>
                         </div>
                         <div style="text-align:right;flex-shrink:0;">
                             <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Total recuperado (30d)</div>
@@ -8897,7 +8897,7 @@
         }
 
         // Gráfico de vendas recuperadas: pedidos pagos de clientes que compraram
-        // em até 7 dias DEPOIS de receber um disparo (não-falho). Mesma janela de 30 dias
+        // em até 30 dias DEPOIS de receber um disparo (não-falho). Mesma janela de 30 dias
         // e mesmo bucketing por dia do gráfico "Disparos por dia", pra alinhar os dois.
         async function dispRenderSalesChart() {
             const canvas = document.getElementById('dispSalesChart');
@@ -8940,7 +8940,7 @@
 
             const fTotal = activeUser.campo_total_pedido || 'total';
             const fDataPedido = activeUser.campo_data_pedido || null;
-            const WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+            const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
             const today = new Date(); today.setHours(0, 0, 0, 0);
             const days = [];
@@ -12074,7 +12074,7 @@
         }
 
         // Card "Recuperado via Disparo" na Visão Geral — mesma lógica do gráfico da aba Disparos
-        // (pedido pago em até 7 dias após disparo não-falho), respeitando o período selecionado.
+        // (pedido pago em até 30 dias após disparo não-falho), respeitando o período selecionado.
         // Atenção: pode sobrepor o faturamento atribuído (cliente que provou E foi recuperado) — NÃO somar.
         async function loadVgRecuperadoDisparo() {
             const valEl = document.getElementById('vgRecuperadoVal');
@@ -12104,7 +12104,7 @@
             });
             const fTotal = activeUser.campo_total_pedido || 'total';
             const fDataPedido = activeUser.campo_data_pedido || null;
-            const WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+            const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
             let rev = 0, cnt = 0;
             (allOrdersCache || []).forEach(o => {
                 const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
