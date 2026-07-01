@@ -4186,7 +4186,8 @@
                 </style>
                 <div class="disp-layout">
                 <div class="disp-subnav" id="dispSubnav">
-                    <button data-sub="crm" class="active" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> <span class="disp-nav-txt">CRM</span></button>
+                    <button data-sub="dashboard" class="active" onclick="dispSwitchSub('dashboard')"><i class="ph-bold ph-chart-line-up"></i> <span class="disp-nav-txt">Dashboard</span></button>
+                    <button data-sub="crm" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> <span class="disp-nav-txt">CRM</span></button>
                     <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> <span class="disp-nav-txt">Conversas</span> <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
                     <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-paper-plane-tilt"></i> <span class="disp-nav-txt">Disparar</span></button>
                     <button data-sub="templates" onclick="dispSwitchSub('templates')"><i class="ph-bold ph-chat-circle-text"></i> <span class="disp-nav-txt">Mensagens modelo</span></button>
@@ -4195,7 +4196,8 @@
                     <button data-sub="automacoes" onclick="dispSwitchSub('automacoes')"><i class="ph-bold ph-flow-arrow"></i> <span class="disp-nav-txt">Automações</span></button>
                     <button type="button" class="disp-nav-burger" onclick="dispToggleNav()" title="Recolher/expandir menu" aria-label="Recolher menu"><i class="ph-bold ph-caret-double-left"></i> <span class="disp-nav-txt">Recolher</span></button>
                 </div>
-                <div class="disp-subpane active" id="dispSubCrm"></div>
+                <div class="disp-subpane active" id="dispSubDashboard"></div>
+                <div class="disp-subpane" id="dispSubCrm"></div>
                 <div class="disp-subpane" id="dispSubConversas"></div>
                 <div class="disp-subpane" id="dispSubDisparar"></div>
                 <div class="disp-subpane" id="dispSubTemplates"></div>
@@ -7671,7 +7673,7 @@
 
         function dispSwitchSub(name) {
             document.querySelectorAll('#dispSubnav button[data-sub]').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
-            const map = { crm: 'dispSubCrm', conversas: 'dispSubConversas', disparar: 'dispSubDisparar', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao', automacoes: 'dispSubAutomacoes' };
+            const map = { dashboard: 'dispSubDashboard', crm: 'dispSubCrm', conversas: 'dispSubConversas', disparar: 'dispSubDisparar', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao', automacoes: 'dispSubAutomacoes' };
             Object.entries(map).forEach(([k, id]) => {
                 const p = document.getElementById(id);
                 if (p) p.classList.toggle('active', k === name);
@@ -7697,6 +7699,7 @@
             }
             if (name === 'disparar') { try { maybeShowDispWizard(); } catch (e) {} }
             if (name === 'automacoes') { try { initAutomacoes(); } catch (e) { console.error(e); } }
+            if (name === 'dashboard') { try { initDispDashboard(); } catch (e) { console.error(e); } }
             _crmSubActive = (name === 'crm');
             if (name === 'crm') {
                 try {
@@ -8847,7 +8850,7 @@
             if (!window._dispSubInit) {
                 window._dispSubInit = true;
                 const saved = (function(){ try { return localStorage.getItem('pl-disp-subtab'); } catch(e){ return null; } })();
-                dispSwitchSub(saved || 'crm');
+                dispSwitchSub(saved || 'dashboard');
             }
 
             // 1) CRM bucket counts (sem mostrar leads)
@@ -9060,6 +9063,237 @@
                     }
                 }
             });
+        }
+
+        /* ===== Dashboard de Efetividade dos Disparos (1ª sub-aba) ===== */
+        let _dispDashPeriod = 30; // 30 | 90 | 'all'
+
+        function _dispPeriodCutoffMs(period) {
+            if (period === 'all') return 0;
+            const d = new Date(); d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() - (Number(period) - 1));
+            return d.getTime();
+        }
+
+        function _extractAgendPhones(payloads) {
+            const out = [];
+            const visit = (v) => {
+                if (!v) return;
+                if (Array.isArray(v)) return v.forEach(visit);
+                if (typeof v === 'object') {
+                    ['to', 'phone', 'telefone', 'lead_phone', 'celular', 'numero', 'number'].forEach(k => { if (v[k]) out.push(String(v[k])); });
+                    Object.values(v).forEach(visit);
+                }
+            };
+            try { visit(typeof payloads === 'string' ? JSON.parse(payloads) : payloads); } catch (e) {}
+            return out;
+        }
+
+        // Retorna totais + quebra por campanha (last-touch). Reusa allOrdersCache (dedup),
+        // normalize() e orderPhoneKeys(). Regra de recuperação fixa: compra até 30d após disparo.
+        async function computeDispEfetividade(period) {
+            const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+            const cutoff = _dispPeriodCutoffMs(period);
+
+            if (!allOrdersCache || !allOrdersCache.length) {
+                try { await loadSharedData(); } catch (e) { console.warn('[dashboard] sharedData:', e); }
+            }
+
+            // send_log = fonte-verdade p/ total recuperado e "disparos feitos"
+            let sendRows = [];
+            try {
+                const { data } = await supabaseClient.from('whatsapp_send_log')
+                    .select('lead_phone, sent_at, status').eq('email', activeUser.email).limit(20000);
+                sendRows = data || [];
+            } catch (e) { console.warn('[dashboard] send_log:', e); }
+            const dispByPhone = {};
+            let disparosTotal = 0; const alcancadosTotalSet = new Set();
+            sendRows.forEach(r => {
+                if (r.status === 'failed' || !r.sent_at) return;
+                const ph = normalize(r.lead_phone); if (!ph) return;
+                const ms = new Date(r.sent_at).getTime(); if (!ms) return;
+                (dispByPhone[ph] = dispByPhone[ph] || []).push(ms);
+                if (cutoff === 0 || ms >= cutoff) { disparosTotal++; alcancadosTotalSet.add(ph); }
+            });
+
+            // campanhas: flows
+            let flows = [];
+            try {
+                const { data } = await supabaseClient.from('flows')
+                    .select('id, nome, ativo').eq('lojista_email', activeUser.email);
+                flows = data || [];
+            } catch (e) { console.warn('[dashboard] flows:', e); }
+
+            // eventos de envio dos flows (contagem + atribuição)
+            let runRows = [];
+            try {
+                const { data } = await supabaseClient.from('flow_runs_log')
+                    .select('flow_id, lead_phone, created_at, tipo_no, resultado')
+                    .eq('lojista_email', activeUser.email).limit(50000);
+                runRows = (data || []).filter(r => r.tipo_no === 'enviar' && r.resultado === 'enviado');
+            } catch (e) { console.warn('[dashboard] flow_runs_log:', e); }
+
+            // campanhas: agendados
+            let agend = [];
+            try {
+                const { data } = await supabaseClient.from('disparos_agendados')
+                    .select('id, template, status, active, recurrence, sent_count, executed_at, scheduled_at, payloads')
+                    .eq('lojista_email', activeUser.email);
+                agend = data || [];
+            } catch (e) { console.warn('[dashboard] agendados:', e); }
+
+            const eventsByPhone = {};
+            const disparosPorCamp = {}; const alcancadosPorCamp = {};
+            const bump = (cid, ph, ms) => {
+                (eventsByPhone[ph] = eventsByPhone[ph] || []).push({ ms, cid });
+                if (cutoff === 0 || ms >= cutoff) {
+                    disparosPorCamp[cid] = (disparosPorCamp[cid] || 0) + 1;
+                    (alcancadosPorCamp[cid] = alcancadosPorCamp[cid] || new Set()).add(ph);
+                }
+            };
+            runRows.forEach(r => {
+                const ph = normalize(r.lead_phone); const ms = new Date(r.created_at).getTime();
+                if (ph && ms) bump('flow:' + r.flow_id, ph, ms);
+            });
+            agend.forEach(a => {
+                const ms = new Date(a.executed_at || a.scheduled_at || 0).getTime() || 0;
+                _extractAgendPhones(a.payloads).forEach(p => { const ph = normalize(p); if (ph && ms) bump('ag:' + a.id, ph, ms); });
+            });
+
+            const fTotal = activeUser.campo_total_pedido || 'total';
+            const fDataPedido = activeUser.campo_data_pedido || null;
+            const total = { valor: 0, pedidos: 0 };
+            const naoAtribuido = { valor: 0, pedidos: 0 };
+            const recPorCamp = {};
+            (allOrdersCache || []).forEach(o => {
+                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                if (!orderTs) return;
+                const orderMs = new Date(orderTs).getTime(); if (!orderMs) return;
+                if (cutoff !== 0 && orderMs < cutoff) return;
+                const keys = orderPhoneKeys(o);
+                const recovered = keys.some(ph => (dispByPhone[ph] || []).some(ms => ms <= orderMs && (orderMs - ms) <= WINDOW_MS));
+                if (!recovered) return;
+                const val = parseFloat(o[fTotal]) || 0;
+                total.valor += val; total.pedidos++;
+                let best = null;
+                keys.forEach(ph => (eventsByPhone[ph] || []).forEach(ev => {
+                    if (ev.ms <= orderMs && (orderMs - ev.ms) <= WINDOW_MS) { if (!best || ev.ms > best.ms) best = ev; }
+                }));
+                if (best) { const r = recPorCamp[best.cid] = recPorCamp[best.cid] || { valor: 0, pedidos: 0 }; r.valor += val; r.pedidos++; }
+                else { naoAtribuido.valor += val; naoAtribuido.pedidos++; }
+            });
+
+            const campativas = flows.filter(f => f.ativo).length + agend.filter(a => a.active).length;
+            return { period, total, naoAtribuido, recPorCamp, disparosPorCamp, alcancadosPorCamp, disparosTotal, alcancadosTotal: alcancadosTotalSet.size, flows, agend, campativas };
+        }
+
+        function _brl(v) { return 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+        function _esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+        function dispDashboardHTML(d) {
+            const perLabel = { 30: 'últimos 30 dias', 90: 'últimos 90 dias', all: 'todo o período' }[d.period];
+            const pill = (p, txt) => '<button class="disp-dash-pill' + (String(d.period) === String(p) ? ' active' : '') + '" onclick="dispDashSetPeriod(\'' + p + '\')">' + txt + '</button>';
+
+            // monta linhas de campanha
+            const rows = [];
+            d.flows.forEach(f => rows.push({ cid: 'flow:' + f.id, nome: f.nome || 'Automação sem nome', tipo: 'Automação', ativa: !!f.ativo }));
+            d.agend.forEach(a => rows.push({ cid: 'ag:' + a.id, nome: a.template || 'Disparo agendado', tipo: 'Agendado', ativa: !!a.active }));
+            const maxRec = Math.max(1, ...rows.map(r => (d.recPorCamp[r.cid] || {}).valor || 0));
+
+            let listHTML = rows.map(r => {
+                const disp = d.disparosPorCamp[r.cid] || 0;
+                const alc = (d.alcancadosPorCamp[r.cid] ? d.alcancadosPorCamp[r.cid].size : 0);
+                const rec = d.recPorCamp[r.cid] || { valor: 0, pedidos: 0 };
+                const pct = Math.round(((rec.valor || 0) / maxRec) * 100);
+                const badge = r.ativa ? '<span class="disp-dash-badge on">Ativa</span>' : '<span class="disp-dash-badge off">Pausada</span>';
+                return ''
+                    + '<div class="disp-dash-camp">'
+                    + '  <div class="ddc-head"><span class="ddc-tipo">' + r.tipo + '</span> <strong>' + _esc(r.nome) + '</strong> ' + badge + '</div>'
+                    + '  <div class="ddc-metrics">'
+                    + '    <div><span class="ddc-n">' + disp.toLocaleString('pt-BR') + '</span><span class="ddc-l">disparos</span></div>'
+                    + '    <div><span class="ddc-n">' + alc.toLocaleString('pt-BR') + '</span><span class="ddc-l">alcançados</span></div>'
+                    + '    <div><span class="ddc-n ddc-rec">' + _brl(rec.valor) + '</span><span class="ddc-l">' + rec.pedidos + (rec.pedidos === 1 ? ' pedido' : ' pedidos') + ' recuperado' + (rec.pedidos === 1 ? '' : 's') + '</span></div>'
+                    + '  </div>'
+                    + '  <div class="ddc-bar"><div class="ddc-bar-fill" style="width:' + pct + '%"></div></div>'
+                    + '</div>';
+            }).join('');
+
+            if ((d.naoAtribuido.pedidos || 0) > 0) {
+                listHTML += ''
+                    + '<div class="disp-dash-camp na">'
+                    + '  <div class="ddc-head"><strong>Não atribuído</strong> <span class="ddc-hint">recuperação sem campanha identificada</span></div>'
+                    + '  <div class="ddc-metrics"><div><span class="ddc-n ddc-rec">' + _brl(d.naoAtribuido.valor) + '</span><span class="ddc-l">' + d.naoAtribuido.pedidos + ' pedido' + (d.naoAtribuido.pedidos === 1 ? '' : 's') + '</span></div></div>'
+                    + '</div>';
+            }
+            if (!rows.length) {
+                listHTML = '<div class="disp-empty">Você ainda não tem campanhas. <button class="disp-btn" onclick="dispSwitchSub(\'automacoes\')"><i class="ph-bold ph-plus"></i> Criar automação</button></div>';
+            }
+
+            return ''
+                + '<div class="disp-dash">'
+                + '  <div class="disp-dash-top">'
+                + '    <div><h3 style="margin:0;font-size:18px;">Efetividade dos disparos</h3><p style="margin:4px 0 0;color:var(--text-muted);font-size:13px;">Visão geral das campanhas · ' + perLabel + '</p></div>'
+                + '    <div class="disp-dash-pills">' + pill(30, '30 dias') + pill(90, '90 dias') + pill('all', 'Tudo') + '</div>'
+                + '  </div>'
+                + '  <div class="disp-dash-cards">'
+                + '    <div class="disp-dash-card"><div class="ddk-ic">💰</div><div><div class="ddk-v">' + _brl(d.total.valor) + '</div><div class="ddk-l">Recuperado · ' + d.total.pedidos + (d.total.pedidos === 1 ? ' pedido' : ' pedidos') + '</div></div></div>'
+                + '    <div class="disp-dash-card"><div class="ddk-ic">📤</div><div><div class="ddk-v">' + d.disparosTotal.toLocaleString('pt-BR') + '</div><div class="ddk-l">Disparos feitos · ' + d.alcancadosTotal.toLocaleString('pt-BR') + ' pessoas</div></div></div>'
+                + '    <div class="disp-dash-card"><div class="ddk-ic">🎯</div><div><div class="ddk-v">' + d.campativas.toLocaleString('pt-BR') + '</div><div class="ddk-l">Campanhas ativas</div></div></div>'
+                + '  </div>'
+                + '  <div class="disp-dash-list">' + listHTML + '</div>'
+                + '</div>';
+        }
+
+        function dispDashSetPeriod(p) {
+            _dispDashPeriod = (p === 'all') ? 'all' : Number(p);
+            initDispDashboard();
+        }
+
+        function _dispDashInjectCSS() {
+            if (document.getElementById('dispDashStyle')) return;
+            const s = document.createElement('style');
+            s.id = 'dispDashStyle';
+            s.textContent = ''
+                + '.disp-dash{padding:4px 2px 24px;}'
+                + '.disp-dash-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:16px;}'
+                + '.disp-dash-pills{display:flex;gap:6px;}'
+                + '.disp-dash-pill{border:1px solid var(--border,#e5e7eb);background:transparent;color:var(--text-muted);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;}'
+                + '.disp-dash-pill.active{background:var(--primary,#7c3aed);border-color:var(--primary,#7c3aed);color:#fff;}'
+                + '.disp-dash-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:20px;}'
+                + '.disp-dash-card{display:flex;align-items:center;gap:12px;background:var(--card-bg,#fff);border:1px solid var(--border,#e5e7eb);border-radius:14px;padding:16px;}'
+                + '.disp-dash-card .ddk-ic{font-size:24px;line-height:1;}'
+                + '.disp-dash-card .ddk-v{font-size:22px;font-weight:800;letter-spacing:-.02em;}'
+                + '.disp-dash-card .ddk-l{font-size:12px;color:var(--text-muted);margin-top:2px;}'
+                + '.disp-dash-list{display:flex;flex-direction:column;gap:10px;}'
+                + '.disp-dash-camp{background:var(--card-bg,#fff);border:1px solid var(--border,#e5e7eb);border-radius:14px;padding:14px 16px;}'
+                + '.disp-dash-camp.na{border-style:dashed;opacity:.85;}'
+                + '.ddc-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}'
+                + '.ddc-tipo{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary,#7c3aed);background:color-mix(in srgb,var(--primary,#7c3aed) 12%,transparent);padding:2px 7px;border-radius:6px;}'
+                + '.disp-dash-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:auto;}'
+                + '.disp-dash-badge.on{background:rgba(16,185,129,.15);color:#059669;}'
+                + '.disp-dash-badge.off{background:rgba(156,163,175,.2);color:#6b7280;}'
+                + '.ddc-hint{font-size:11px;color:var(--text-muted);font-weight:500;}'
+                + '.ddc-metrics{display:flex;gap:24px;flex-wrap:wrap;}'
+                + '.ddc-metrics .ddc-n{display:block;font-size:16px;font-weight:800;}'
+                + '.ddc-metrics .ddc-n.ddc-rec{color:#059669;}'
+                + '.ddc-metrics .ddc-l{font-size:11px;color:var(--text-muted);}'
+                + '.ddc-bar{height:5px;border-radius:999px;background:var(--border,#eee);margin-top:10px;overflow:hidden;}'
+                + '.ddc-bar-fill{height:100%;background:linear-gradient(90deg,#7c3aed,#a78bfa);border-radius:999px;}';
+            document.head.appendChild(s);
+        }
+
+        async function initDispDashboard() {
+            const pane = document.getElementById('dispSubDashboard');
+            if (!pane || !activeUser) return;
+            _dispDashInjectCSS();
+            pane.innerHTML = '<div class="disp-empty"><i class="ph-bold ph-spinner"></i> Carregando painel…</div>';
+            try {
+                const d = await computeDispEfetividade(_dispDashPeriod);
+                pane.innerHTML = dispDashboardHTML(d);
+            } catch (e) {
+                console.error('[dashboard]', e);
+                pane.innerHTML = '<div class="disp-empty">Não foi possível carregar o painel. Tente novamente.</div>';
+            }
         }
 
         // Gráfico de vendas recuperadas: pedidos pagos de clientes que compraram
