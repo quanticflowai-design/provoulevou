@@ -4430,7 +4430,14 @@
                             <h3 style="margin:0 0 4px;"><i class="ph-bold ph-chats-circle"></i> Caixa de entrada</h3>
                             <p class="desc" style="margin:0;">Veja as respostas dos clientes e converse direto por aqui. Atualiza ao vivo.</p>
                         </div>
-                        <div style="display:flex;gap:8px;align-items:center;">
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <select id="chatFilterCatSel" onchange="chatSetCatFilter(this.value)" class="disp-btn ghost" style="cursor:pointer;padding:6px 10px;font-family:inherit;">
+                                <option value="">Todas as categorias</option>
+                                <option value="cold">🕶️ Provou, não comprou</option>
+                                <option value="carrinho">🛒 Carrinho abandonado</option>
+                                <option value="clicou">🔥 Clicou em comprar</option>
+                                <option value="convertido">✅ Comprou</option>
+                            </select>
                             <button class="disp-btn ghost" id="chatFilterUnreadBtn" onclick="chatToggleUnreadFilter()"><i class="ph-bold ph-envelope-simple"></i> Não lidas</button>
                             <button class="disp-btn ghost" onclick="loadConversas()"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
                         </div>
@@ -6155,6 +6162,16 @@
             return M[crmClassify(d)] || null;
         }
 
+        // Chave crua da categoria ('carrinho'/'cold'/'clicou'/'convertido') pro filtro.
+        function chatLeadCatKey(phone) {
+            if (typeof crmClassify !== 'function') return null;
+            const d = crmLeadBy8(phone);
+            return d ? crmClassify(d) : null;
+        }
+
+        let _chatFilterCat = '';
+        function chatSetCatFilter(v) { _chatFilterCat = v || ''; chatRenderList(); }
+
         function chatRenderList() {
             const listEl = document.getElementById('chatList');
             if (!listEl) return;
@@ -6166,7 +6183,8 @@
                 listEl.innerHTML = '<div class="chat-list-empty"><i class="ph-bold ph-chat-dots" style="font-size:26px;opacity:.4;"></i><br><br>Nenhuma conversa ainda.<br>Quando um cliente responder um disparo, aparece aqui.</div>';
                 return;
             }
-            const convs = _chatFilterUnread ? _chatConvs.filter(c => (c.unread || 0) > 0 || c.phone === _chatActivePhone) : _chatConvs;
+            let convs = _chatFilterUnread ? _chatConvs.filter(c => (c.unread || 0) > 0 || c.phone === _chatActivePhone) : _chatConvs;
+            if (_chatFilterCat) convs = convs.filter(c => chatLeadCatKey(c.phone) === _chatFilterCat);
             if (!convs.length) {
                 listEl.innerHTML = '<div class="chat-list-empty"><i class="ph-bold ph-check-circle" style="font-size:26px;opacity:.4;color:#10b981;"></i><br><br>Nenhuma conversa não lida. 🎉<br><span style="font-size:11px;">Clique em "Não lidas" de novo pra ver todas.</span></div>';
                 return;
