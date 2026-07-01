@@ -6123,11 +6123,28 @@
             }
         }
 
+        // Índice do CRM por ÚLTIMOS 8 dígitos — reconcilia o 9º dígito (o número da conversa
+        // às vezes vem sem o 9, mas a prova tem). Reconstrói só quando o cache do CRM muda.
+        let _crmBy8Cache = null, _crmBy8Src = null;
+        function crmLeadBy8(phone) {
+            if (!crmLeadMapCache) return null;
+            if (_crmBy8Src !== crmLeadMapCache) {
+                _crmBy8Src = crmLeadMapCache;
+                _crmBy8Cache = {};
+                for (const k in crmLeadMapCache) {
+                    const l8 = String(k).replace(/\D/g, '').slice(-8);
+                    if (l8.length === 8 && !_crmBy8Cache[l8]) _crmBy8Cache[l8] = crmLeadMapCache[k];
+                }
+            }
+            const l8 = String(phone).replace(/\D/g, '').slice(-8);
+            return (l8.length === 8 && _crmBy8Cache[l8]) || null;
+        }
+
         // Categoria do lead na Conversas — reusa a classificação do CRM (crmClassify):
         // comprou / carrinho abandonado / clicou em comprar / provou e não comprou.
         function chatLeadCategory(phone) {
-            if (!crmLeadMapCache || typeof crmClassify !== 'function') return null;
-            const d = crmLeadMapCache[normalize(phone)];
+            if (typeof crmClassify !== 'function') return null;
+            const d = crmLeadBy8(phone);
             if (!d) return null;
             const M = {
                 convertido: { label: '✅ Comprou',             bg: 'rgba(16,185,129,.15)', fg: '#059669' },
@@ -6287,7 +6304,7 @@
                 <div class="chat-thread-head">
                     <div class="chat-conv-av">${escapeHtml(chatInitials(conv.name, phone))}</div>
                     <div><div style="font-weight:600;font-size:14px;">${escapeHtml(conv.name || ('+' + phone))}</div>
-                    <div style="font-size:11px;color:var(--text-muted);">+${escapeHtml(phone)}</div></div>
+                    <div style="font-size:11px;color:var(--text-muted);">+${escapeHtml(phone)} ${(() => { const t = chatLeadCategory(phone); return t ? '<span style="display:inline-block;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:' + t.bg + ';color:' + t.fg + ';">' + escapeHtml(t.label) + '</span>' : ''; })()}</div></div>
                 </div>
                 <div class="chat-thread-body" id="chatThreadBody"><div style="margin:auto;color:var(--text-muted);"><i class="ph-bold ph-circle-notch ph-spin"></i></div></div>
                 <div class="chat-thread-foot" id="chatThreadFoot"></div>`;
