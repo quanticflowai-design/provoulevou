@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Relatório SEO — Provou Levou</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f4f0;--card:#fff;--elev:#fafaf8;--bd:rgba(0,0,0,.08);--tx:#0a0a0a;--sub:#555;--mut:#888;--grid:#eeebe5;
+--pp:#7c3aed;--ppl:#a78bfa;--gn:#10b981;--rd:#ef4444;--yl:#f59e0b;--bl:#3b82f6;--pk:#ec4899;--r:14px}
+[data-theme=dark]{--bg:#0a0a0a;--card:#131313;--elev:#1a1a1a;--bd:rgba(255,255,255,.08);--tx:#edebe7;--sub:#999;--mut:#666;--grid:#1a1a1a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;padding-bottom:60px}
+.wrap{max-width:1280px;margin:0 auto;padding:24px}
+header{display:flex;justify-content:space-between;align-items:flex-start;margin:8px 0 24px;flex-wrap:wrap;gap:16px}
+.logo{font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--pp);text-transform:uppercase}
+h1{font-size:28px;font-weight:800;letter-spacing:-.5px;margin-top:4px}
+.meta{font-size:13px;color:var(--mut);margin-top:6px}
+.toggle{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:8px 14px;cursor:pointer;font:inherit;font-size:13px;color:var(--tx)}
+.banner{background:linear-gradient(100deg,var(--pp),var(--ppl));color:#fff;border-radius:var(--r);padding:18px 22px;margin-bottom:22px;font-size:15px;line-height:1.5}
+.banner b{font-weight:700}
+h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin:30px 0 14px;display:flex;align-items:center;gap:8px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.kpi{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:18px}
+.kpi .lab{font-size:12px;color:var(--mut);font-weight:500}
+.kpi .val{font-size:30px;font-weight:800;letter-spacing:-1px;margin-top:4px}
+.kpi .sub{font-size:12px;color:var(--sub);margin-top:2px}
+.kpi.accent .val{color:var(--pp)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.grid3{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-top:16px}
+@media(max-width:880px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:20px}
+.card h3{font-size:14px;font-weight:600;margin-bottom:14px}
+.card h3 small{color:var(--mut);font-weight:400;font-size:12px}
+.chart{position:relative;height:260px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--mut);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:6px 8px;border-bottom:1px solid var(--bd)}
+td{padding:8px;border-bottom:1px solid var(--bd)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.pill.good{background:rgba(16,185,129,.12);color:var(--gn)}
+.pill.warn{background:rgba(245,158,11,.14);color:var(--yl)}
+.pill.bad{background:rgba(239,68,68,.12);color:var(--rd)}
+.insight{background:var(--elev);border-left:3px solid var(--pp);border-radius:8px;padding:12px 16px;margin-top:12px;font-size:13px;line-height:1.55;color:var(--sub)}
+.insight b{color:var(--tx)}
+footer{text-align:center;color:var(--mut);font-size:12px;margin-top:40px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div><div class="logo">Provou Levou &middot; SEO</div><h1>Relat&oacute;rio de Visibilidade Org&acirc;nica</h1>
+<div class="meta">Gerado em 2026-06-22 &middot; fontes: Google Search Console, Bing Webmaster, analytics do site (Supabase)</div></div>
+<button class="toggle" onclick="tg()">&#127763; Tema</button>
+</header>
+
+<div class="banner">&#128204; <b>Leitura de uma frase:</b> o SEO org&acirc;nico ainda &eacute; embrion&aacute;rio &mdash; o tr&aacute;fego vive de <b>campanha paga</b>. O Google entrega clique s&oacute; na <b>marca</b>; em termos gen&eacute;ricos de alto valor o site <b>aparece mas n&atilde;o ranqueia</b> (p&aacute;gina 3&ndash;8). Maior trava: <b>zero backlinks</b>.</div>
+
+<h2>Google Search Console <span class="pill warn" style="text-transform:none;letter-spacing:0">gap 04&ndash;14/06</span></h2>
+<div class="kpis">
+<div class="kpi accent"><div class="lab">Cliques</div><div class="val" id="k_cl"></div><div class="sub" id="k_cl_s"></div></div>
+<div class="kpi"><div class="lab">Impress&otilde;es</div><div class="val" id="k_im"></div><div class="sub">apareceu na busca</div></div>
+<div class="kpi"><div class="lab">CTR</div><div class="val" id="k_ct"></div><div class="sub">cliques / impress&otilde;es</div></div>
+<div class="kpi"><div class="lab">Posi&ccedil;&atilde;o m&eacute;dia</div><div class="val" id="k_po"></div><div class="sub">na SERP</div></div>
+</div>
+<div class="grid3">
+<div class="card"><h3>Cliques &times; Impress&otilde;es por dia <small id="g_range"></small></h3><div class="chart"><canvas id="c_trend"></canvas></div>
+<div class="insight">&#9888;&#65039; <b>Branded-dependente:</b> 39 dos 41 cliques s&atilde;o a query <b>"provou levou"</b> (pos 1,4). Tirando a marca, restam ~2 cliques no per&iacute;odo.</div></div>
+<div class="card"><h3>Origem do tr&aacute;fego do site</h3><div class="chart"><canvas id="c_src"></canvas></div>
+<div class="insight">S&oacute; <b>~3%</b> dos acessos s&atilde;o org&acirc;nicos. <b>82%</b> v&ecirc;m de campanha paga (UTM).</div></div>
+</div>
+<div class="grid2">
+<div class="card"><h3>Top queries por cliques</h3><table><thead><tr><th>Query</th><th class="num">Cl</th><th class="num">Impr</th><th class="num">CTR</th><th class="num">Pos</th></tr></thead><tbody id="t-cl"></tbody></table></div>
+<div class="card"><h3>Oportunidades <small>muita impress&atilde;o &middot; 0 clique &middot; posi&ccedil;&atilde;o ruim</small></h3><table><thead><tr><th>Query</th><th class="num">Impr</th><th class="num">Cl</th><th class="num">Pos</th></tr></thead><tbody id="t-im"></tbody></table>
+<div class="insight">Demanda <b>existe</b> (impress&otilde;es), falta <b>ranquear</b>. Termos como <b>provador virtual</b>, <b>experimentar &oacute;culos online</b> e <b>provador de &oacute;culos online</b> est&atilde;o na pos 27&ndash;64 &rarr; backlinks + on-page sobem isso pro top 10.</div></div>
+</div>
+<div class="card" style="margin-top:16px"><h3>Top p&aacute;ginas (por impress&atilde;o)</h3><table><thead><tr><th>P&aacute;gina</th><th class="num">Cliques</th><th class="num">Impress&otilde;es</th><th class="num">CTR</th></tr></thead><tbody id="t-pg"></tbody></table></div>
+
+<h2>Bing / SearchGPT</h2>
+<div class="grid2">
+<div class="card"><h3>Top queries no Bing <small id="b_snap"></small></h3><table><thead><tr><th>Query</th><th class="num">Impr</th><th class="num">Cl</th><th class="num">Pos</th></tr></thead><tbody id="t-bg"></tbody></table></div>
+<div class="card"><h3>Por que o Bing importa</h3>
+<div class="insight">&#9989; O Bing <b>ranqueia gen&eacute;ricos muito melhor</b> que o Google: <b>provador online</b> pos 3,7 &middot; <b>provador digital/tryon</b> pos 4 &middot; <b>provador virtual</b> pos 7,5.</div>
+<div class="insight">&#129302; Bing <b>alimenta o SearchGPT/ChatGPT browsing</b> &mdash; e o site j&aacute; recebeu <b>36 leads vindos de chatgpt.com</b>. Custo baixo, retorno de IA-search em alta.</div>
+<div class="insight">&#128279; <b>Backlinks (Bing): 0.</b> &Eacute; a trava n&ordm; 1 pra subir as posi&ccedil;&otilde;es gen&eacute;ricas no Google.</div></div>
+</div>
+
+<h2>Tr&aacute;fego do site &amp; Leads</h2>
+<div class="kpis">
+<div class="kpi"><div class="lab">Pageviews</div><div class="val" id="k_pv"></div><div class="sub" id="k_pv_s"></div></div>
+<div class="kpi"><div class="lab">Sess&otilde;es distintas</div><div class="val" id="k_se"></div><div class="sub">visitantes &uacute;nicos</div></div>
+<div class="kpi accent"><div class="lab">Leads capturados</div><div class="val" id="k_ld"></div><div class="sub" id="k_ld_s"></div></div>
+<div class="kpi"><div class="lab">% org&acirc;nico</div><div class="val" id="k_og"></div><div class="sub">do tr&aacute;fego total</div></div>
+</div>
+<div class="grid3">
+<div class="card"><h3>Pageviews por dia <small id="p_range"></small></h3><div class="chart"><canvas id="c_pv"></canvas></div>
+<div class="insight">&#9888;&#65039; Queda em 07&ndash;08/06 e parada em <b>12/06</b> = bug de RLS no tracker (<b>j&aacute; corrigido</b>). Volta a contar com tr&aacute;fego novo.</div></div>
+<div class="card"><h3>Leads por origem</h3><div class="chart"><canvas id="c_ld"></canvas></div></div>
+</div>
+
+<footer>Snapshot est&aacute;tico gerado em 2026-06-22 &middot; Provou Levou. Os dados p&oacute;s-12/06 do site voltam a popular ap&oacute;s o fix de RLS.</footer>
+</div>
+
+<script>
+const DATA={"generated": "2026-06-22", "gsc": {"days": 25, "range": ["2026-05-03", "2026-06-20"], "clicks": 41, "impr": 525, "ctr": 7.8, "pos": 18.6, "trend": {"labels": ["2026-05-03", "2026-05-04", "2026-05-05", "2026-05-06", "2026-05-07", "2026-05-09", "2026-05-11", "2026-05-13", "2026-05-24", "2026-05-25", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-05-30", "2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-19", "2026-06-20"], "clicks": [0, 4, 1, 1, 0, 3, 2, 1, 0, 5, 1, 1, 3, 2, 0, 0, 3, 7, 1, 3, 1, 2, 0, 0, 0], "impr": [1, 5, 1, 1, 1, 7, 5, 2, 10, 31, 23, 14, 27, 20, 31, 89, 35, 49, 19, 19, 22, 56, 17, 22, 18]}, "top_clicks": [{"q": "provou levou", "clicks": 39, "impr": 219, "ctr": 17.80821917808219, "pos": 1.4115044247787611}, {"q": "ótica com provador virtual", "clicks": 1, "impr": 1, "ctr": 100.0, "pos": 19.0}, {"q": "otica online com provador", "clicks": 1, "impr": 1, "ctr": 100.0, "pos": 22.0}, {"q": "civou", "clicks": 0, "impr": 1, "ctr": 0.0, "pos": 2.0}, {"q": "nuvemshop api rate limit 50 requests per minute", "clicks": 0, "impr": 1, "ctr": 0.0, "pos": 12.0}, {"q": "provador de oculos online", "clicks": 0, "impr": 8, "ctr": 0.0, "pos": 27.5}, {"q": "provador virtual de oculos de grau", "clicks": 0, "impr": 2, "ctr": 0.0, "pos": 51.0}, {"q": "provador de oculos virtual", "clicks": 0, "impr": 10, "ctr": 0.0, "pos": 33.2}], "top_impr": [{"q": "provou levou", "clicks": 39, "impr": 219, "ctr": 17.80821917808219, "pos": 1.4115044247787611}, {"q": "provou", "clicks": 0, "impr": 115, "ctr": 0.0, "pos": 8.385261707988981}, {"q": "experimentar oculos online", "clicks": 0, "impr": 50, "ctr": 0.0, "pos": 38.06785714285714}, {"q": "provador virtual", "clicks": 0, "impr": 23, "ctr": 0.0, "pos": 64.41666666666667}, {"q": "provador virtual de óculos", "clicks": 0, "impr": 12, "ctr": 0.0, "pos": 30.6}, {"q": "provador de oculos virtual", "clicks": 0, "impr": 10, "ctr": 0.0, "pos": 33.2}, {"q": "provador de oculos online", "clicks": 0, "impr": 8, "ctr": 0.0, "pos": 27.5}, {"q": "provadores virtuais", "clicks": 0, "impr": 8, "ctr": 0.0, "pos": 56.357142857142854}, {"q": "provador de óculos virtual", "clicks": 0, "impr": 6, "ctr": 0.0, "pos": 35.166666666666664}, {"q": "provador online", "clicks": 0, "impr": 5, "ctr": 0.0, "pos": 77.33333333333333}], "top_pages": [{"page": "/", "clicks": 35, "impr": 191}, {"page": "/provador-virtual-oculos/", "clicks": 3, "impr": 100}, {"page": "/provador-virtual-roupa/", "clicks": 0, "impr": 72}, {"page": "/blog/provador-virtual-oculos.html", "clicks": 1, "impr": 58}, {"page": "/blog/virtual-try-on-brasil.html", "clicks": 0, "impr": 29}, {"page": "/loja-teste.html", "clicks": 0, "impr": 29}, {"page": "/blog/", "clicks": 0, "impr": 22}, {"page": "/index-en.html", "clicks": 1, "impr": 11}], "gap": "04–14/06 sem dado (fora da janela de 7 dias)"}, "bing": {"snapshot": "2026-06-22", "impr": 72, "clicks": 9, "top": [{"q": "provou levou", "impr": 21, "clicks": 5, "pos": 5}, {"q": "provador virtual", "impr": 10, "clicks": 0, "pos": 7.5}, {"q": "provador digital digital tryon", "impr": 6, "clicks": 0, "pos": 4}, {"q": "provador online", "impr": 3, "clicks": 2, "pos": 3.6666666666666665}, {"q": "provo", "impr": 3, "clicks": 0, "pos": 4}, {"q": "provador virtual bottero", "impr": 3, "clicks": 0, "pos": 6}, {"q": "dash provou levou", "impr": 2, "clicks": 2, "pos": 1}, {"q": "provador", "impr": 2, "clicks": 0, "pos": 7.5}]}, "pv": {"total": 4519, "sessions": 3839, "range": ["2026-05-09", "2026-06-12"], "trend": {"labels": ["2026-05-09", "2026-05-10", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-16", "2026-05-17", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-23", "2026-05-24", "2026-05-25", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-05-30", "2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-06", "2026-06-07", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12"], "views": [1, 64, 61, 99, 117, 124, 73, 57, 32, 35, 25, 26, 36, 41, 28, 14, 182, 184, 166, 179, 230, 253, 329, 140, 284, 391, 334, 255, 390, 155, 38, 46, 45, 50, 35]}, "src": [{"k": "Campanha (UTM)", "v": 3695}, {"k": "Direto", "v": 625}, {"k": "Orgânico", "v": 152}, {"k": "Referral/Social", "v": 47}]}, "leads": {"total": 3389, "site": 2554, "src": [{"src": "fb", "n": 1516}, {"src": "widget", "n": 796}, {"src": "meta", "n": 690}, {"src": "loja-teste", "n": 129}, {"src": "ig", "n": 107}, {"src": "instagram", "n": 81}, {"src": "chatgpt.com", "n": 36}, {"src": "dropads", "n": 33}]}};
+const css=v=>getComputedStyle(document.body).getPropertyValue(v).trim();
+const fmt=n=>n>=1000?(n/1000).toFixed(n>=10000?0:1)+'k':n;
+let charts=[];
+function setKPI(){
+ const g=DATA.gsc;
+ k_cl.textContent=g.clicks; k_cl_s.textContent=g.days+' dias · '+g.range[0].slice(5)+'→'+g.range[1].slice(5);
+ k_im.textContent=fmt(g.impr); k_ct.textContent=g.ctr+'%'; k_po.textContent=g.pos;
+ g_range.textContent='('+g.range[0].slice(5)+' a '+g.range[1].slice(5)+')';
+ const p=DATA.pv;
+ k_pv.textContent=fmt(p.total); k_pv_s.textContent=p.range[0].slice(5)+'→'+p.range[1].slice(5);
+ k_se.textContent=fmt(p.sessions);
+ k_ld.textContent=fmt(DATA.leads.total); k_ld_s.textContent=DATA.leads.site+' origem site';
+ const org=p.src.find(x=>x.k==='Orgânico'); k_og.textContent=org?((org.v/p.total*100).toFixed(1)+'%'):'0%';
+ p_range.textContent='('+p.range[0].slice(5)+' a '+p.range[1].slice(5)+')';
+ b_snap.textContent='(snapshot '+DATA.bing.snapshot.slice(5)+')';
+}
+function rowsQ(id,arr,cols){
+ document.getElementById(id).innerHTML=arr.map(r=>{
+  const posPill=r.pos?('<span class="pill '+(r.pos<=10?'good':r.pos<=20?'warn':'bad')+'">'+r.pos.toFixed(1)+'</span>'):'-';
+  if(cols==='cl')return '<tr><td>'+(r.q||'—')+'</td><td class="num">'+r.clicks+'</td><td class="num">'+r.impr+'</td><td class="num">'+r.ctr.toFixed(1)+'%</td><td class="num">'+posPill+'</td></tr>';
+  return '<tr><td>'+(r.q||'—')+'</td><td class="num">'+r.impr+'</td><td class="num">'+r.clicks+'</td><td class="num">'+posPill+'</td></tr>';
+ }).join('');
+}
+function tables(){
+ rowsQ('t-cl',DATA.gsc.top_clicks,'cl');
+ rowsQ('t-im',DATA.gsc.top_impr,'im');
+ rowsQ('t-bg',DATA.bing.top.map(b=>({q:b.q,impr:b.impr,clicks:b.clicks,pos:b.pos})),'im');
+ document.getElementById('t-pg').innerHTML=DATA.gsc.top_pages.map(r=>{
+  const ctr=r.impr?(r.clicks/r.impr*100).toFixed(1):'0.0';
+  return '<tr><td>'+r.page+'</td><td class="num">'+r.clicks+'</td><td class="num">'+r.impr+'</td><td class="num">'+ctr+'%</td></tr>';
+ }).join('');
+}
+function mkCharts(){
+ charts.forEach(c=>c.destroy()); charts=[];
+ const gr=css('--grid'),tx=css('--sub'),pp=css('--pp'),ppl=css('--ppl');
+ Chart.defaults.color=tx; Chart.defaults.font.family='Inter';
+ const g=DATA.gsc.trend;
+ charts.push(new Chart(c_trend,{type:'line',data:{labels:g.labels.map(d=>d.slice(5)),datasets:[
+   {label:'Cliques',data:g.clicks,borderColor:pp,backgroundColor:pp+'22',fill:true,tension:.3,yAxisID:'y'},
+   {label:'Impressões',data:g.impr,borderColor:ppl,borderDash:[4,4],tension:.3,yAxisID:'y1'}]},
+   options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12}}},scales:{
+    y:{position:'left',grid:{color:gr},title:{display:true,text:'cliques'}},
+    y1:{position:'right',grid:{display:false},title:{display:true,text:'impr'}},x:{grid:{display:false}}}}}));
+ const s=DATA.pv.src;
+ charts.push(new Chart(c_src,{type:'doughnut',data:{labels:s.map(x=>x.k),datasets:[{data:s.map(x=>x.v),
+   backgroundColor:[pp,'#3b82f6','#10b981','#f59e0b','#ec4899']}]},
+   options:{maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{boxWidth:12}}}}}));
+ const p=DATA.pv.trend;
+ charts.push(new Chart(c_pv,{type:'bar',data:{labels:p.labels.map(d=>d.slice(5)),datasets:[{label:'Pageviews',data:p.views,backgroundColor:pp}]},
+   options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:gr}},x:{grid:{display:false}}}}}));
+ const l=DATA.leads.src;
+ charts.push(new Chart(c_ld,{type:'bar',data:{labels:l.map(x=>x.src),datasets:[{label:'Leads',data:l.map(x=>x.n),backgroundColor:ppl}]},
+   options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gr}},y:{grid:{display:false}}}}}));
+}
+function tg(){const d=document.body.getAttribute('data-theme')==='dark';document.body.setAttribute('data-theme',d?'light':'dark');localStorage.setItem('seoTheme',d?'light':'dark');mkCharts();}
+if(localStorage.getItem('seoTheme')==='dark')document.body.setAttribute('data-theme','dark');
+setKPI();tables();mkCharts();
+</script>
+</body></html>

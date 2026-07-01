@@ -3487,14 +3487,6 @@
                             <div class="value" id="comprasPedidosCount">0</div>
                         </div>
                     </div>
-                    <div class="stat-card" id="vgRecuperadoCard" title="Vendas de clientes que compraram em até 30 dias após receber um disparo no WhatsApp. Pode incluir clientes que também usaram o provador — não some este valor ao faturamento atribuído.">
-                        <div class="stat-icon" style="background:rgba(37,211,102,0.1);color:#25D366;"><i class="ph-bold ph-arrow-u-up-left"></i></div>
-                        <div class="stat-info">
-                            <h4>Recuperado via Disparo</h4>
-                            <div class="value" id="vgRecuperadoVal">R$ 0,00</div>
-                            <div class="stat-sub" id="vgRecuperadoSub">—</div>
-                        </div>
-                    </div>
                     <div class="stat-card" style="display:none !important;">
                         <span class="kpi-delta neutral" id="kpiDeltaFat">—</span>
                         <div class="stat-icon" style="background:rgba(139,92,246,0.1);color:var(--primary);"><i class="ph-bold ph-currency-circle-dollar"></i></div>
@@ -3583,28 +3575,6 @@
                         <div class="consumo-bar-fill" id="consumoBarFill" style="width:0%"></div>
                     </div>
                     <div class="consumo-footer" id="consumoFooter"></div>
-                </div>
-
-
-                <!-- Vendas por Produto (qual produto vende mais) -->
-                <div class="table-container" id="vendasProdutoSection" style="display:none;margin-bottom:24px;">
-                    <div class="table-header">
-                        <h2><i class="ph-fill ph-package"></i> Vendas por Produto</h2>
-                        <span style="font-size:12px;color:var(--text-muted);" id="vendasProdutoSub"></span>
-                    </div>
-                    <div style="max-height:420px;overflow-y:auto;">
-                        <table id="vendasProdutoTable">
-                            <thead>
-                                <tr>
-                                    <th style="width:36px;position:sticky;top:0;background:var(--card-bg);z-index:1;">#</th>
-                                    <th style="position:sticky;top:0;background:var(--card-bg);z-index:1;">Produto</th>
-                                    <th style="text-align:right;position:sticky;top:0;background:var(--card-bg);z-index:1;">Vendas</th>
-                                    <th style="text-align:right;position:sticky;top:0;background:var(--card-bg);z-index:1;">Faturamento</th>
-                                </tr>
-                            </thead>
-                            <tbody id="vendasProdutoBody"></tbody>
-                        </table>
-                    </div>
                 </div>
 
 
@@ -4040,32 +4010,19 @@
 
                 <!-- ===== SUB-NAVEGAÇÃO DA ABA DISPAROS ===== -->
                 <style>
-                    /* Menu da aba Disparos à ESQUERDA (vertical), conteúdo à direita — app-shell full-width */
-                    .disp-layout { display:flex; gap:0; align-items:stretch; margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw); max-width:100vw; min-height:calc(100vh - 168px); margin-top:-6px; }
-                    .disp-layout > .disp-subpane.active { flex:1; min-width:0; padding:2px 34px 44px 34px; }
-                    .disp-subnav { display:flex; flex-direction:column; gap:2px; width:238px; flex-shrink:0; border-right:1px solid var(--border); background:var(--card-bg); padding:20px 14px 24px 24px; }
-                    /* Alinha o título "Disparos" + créditos acima do conteúdo (fora do container de 1200px) */
-                    body[data-active-tab="disparos"] #pageTitleRow { margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw); max-width:100vw; padding-left:272px; padding-right:34px; box-sizing:border-box; }
+                    .disp-subnav { display:flex; gap:6px; margin-bottom:20px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
                     .disp-subnav button {
                         position:relative; background:transparent; border:none; cursor:pointer;
-                        padding:10px 14px; font-family:inherit; font-size:14px; font-weight:600;
-                        color:var(--text-muted); border-radius:9px; width:100%; text-align:left;
-                        display:inline-flex; align-items:center; gap:9px; transition:color .15s, background .15s;
+                        padding:10px 16px; font-family:inherit; font-size:14px; font-weight:600;
+                        color:var(--text-muted); border-bottom:2px solid transparent; margin-bottom:-1px;
+                        display:inline-flex; align-items:center; gap:7px; transition:color .15s;
                     }
-                    .disp-subnav button:hover { color:var(--text-main); background:rgba(124,58,237,0.06); }
-                    .disp-subnav button.active { color:#7c3aed; background:rgba(124,58,237,0.10); }
+                    .disp-subnav button:hover { color:var(--text-main); }
+                    .disp-subnav button.active { color:#7c3aed; border-bottom-color:#7c3aed; }
                     .disp-subnav button i { font-size:16px; }
-                    .disp-subnav .disp-sub-badge { background:#25D366; color:#fff; font-size:10px; font-weight:700; min-width:17px; height:17px; border-radius:9px; display:none; place-items:center; padding:0 5px; margin-left:auto; }
+                    .disp-subnav .disp-sub-badge { background:#25D366; color:#fff; font-size:10px; font-weight:700; min-width:17px; height:17px; border-radius:9px; display:none; place-items:center; padding:0 5px; }
                     .disp-subpane { display:none; }
                     .disp-subpane.active { display:block; animation: dispFade .2s ease; }
-                    @media (max-width: 760px) {
-                        .disp-layout { flex-direction:column; gap:14px; min-height:0; margin-top:0; }
-                        .disp-subnav { flex-direction:row; width:auto; position:static; border-right:none; border-bottom:1px solid var(--border); background:transparent; padding:0 16px 6px; overflow-x:auto; flex-wrap:nowrap; }
-                        .disp-subnav button { width:auto; white-space:nowrap; }
-                        .disp-subnav .disp-sub-badge { margin-left:6px; }
-                        .disp-layout > .disp-subpane.active { padding:0 16px; }
-                        body[data-active-tab="disparos"] #pageTitleRow { padding-left:0; padding-right:0; }
-                    }
                     @keyframes dispFade { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
                 </style>
 
@@ -4175,7 +4132,6 @@
                         .autom-canvas { height:340px; }
                     }
                 </style>
-                <div class="disp-layout">
                 <div class="disp-subnav" id="dispSubnav">
                     <button data-sub="crm" class="active" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> CRM</button>
                     <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> Conversas <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
@@ -4192,7 +4148,6 @@
                 <div class="disp-subpane" id="dispSubHistorico"></div>
                 <div class="disp-subpane" id="dispSubConexao"></div>
                 <div class="disp-subpane" id="dispSubAutomacoes"></div>
-                </div>
 
                 <!-- Host do card WhatsApp Business (waCard é movido pra cá via JS) -->
                 <div id="disparosWaHost"></div>
@@ -4447,14 +4402,7 @@
                             <h3 style="margin:0 0 4px;"><i class="ph-bold ph-chats-circle"></i> Caixa de entrada</h3>
                             <p class="desc" style="margin:0;">Veja as respostas dos clientes e converse direto por aqui. Atualiza ao vivo.</p>
                         </div>
-                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                            <select id="chatFilterCatSel" onchange="chatSetCatFilter(this.value)" class="disp-btn ghost" style="cursor:pointer;padding:6px 10px;font-family:inherit;">
-                                <option value="">Todas as categorias</option>
-                                <option value="cold">🕶️ Provou, não comprou</option>
-                                <option value="carrinho">🛒 Carrinho abandonado</option>
-                                <option value="clicou">🔥 Clicou em comprar</option>
-                                <option value="convertido">✅ Comprou</option>
-                            </select>
+                        <div style="display:flex;gap:8px;align-items:center;">
                             <button class="disp-btn ghost" id="chatFilterUnreadBtn" onclick="chatToggleUnreadFilter()"><i class="ph-bold ph-envelope-simple"></i> Não lidas</button>
                             <button class="disp-btn ghost" onclick="loadConversas()"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
                         </div>
@@ -4496,22 +4444,6 @@
                     <h3><i class="ph-bold ph-chart-line-up"></i> Disparos por dia (últimos 30 dias)</h3>
                     <p class="desc">Volume diário separado por entregues e falhas.</p>
                     <div class="disp-chart-wrap" style="height:260px;"><canvas id="dispDailyChart"></canvas></div>
-                </div>
-
-                <!-- Vendas recuperadas: REMOVIDO da UI temporariamente (guardar lógica: dispRenderSalesChart + skill recuperados_provador). Reencaixar depois em outro lugar. -->
-                <div class="disp-card" id="dispSalesCard" style="margin-bottom:20px;display:none;">
-                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-                        <div>
-                            <h3><i class="ph-bold ph-currency-circle-dollar" style="color:#10b981;"></i> Vendas recuperadas pelos disparos</h3>
-                            <p class="desc" style="margin-bottom:0;">Faturamento de clientes que <strong>compraram em até 30 dias depois</strong> de receber um disparo. Por dia, últimos 30 dias.</p>
-                        </div>
-                        <div style="text-align:right;flex-shrink:0;">
-                            <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Total recuperado (30d)</div>
-                            <div style="font-size:26px;font-weight:800;letter-spacing:-.02em;color:#10b981;line-height:1.1;" id="dispSalesTotal">—</div>
-                            <div style="font-size:11.5px;color:var(--text-muted);" id="dispSalesSub">—</div>
-                        </div>
-                    </div>
-                    <div class="disp-chart-wrap" style="height:260px;margin-top:14px;"><canvas id="dispSalesChart"></canvas></div>
                 </div>
 
                 <div class="disp-charts-row" id="dispChartsRow">
@@ -5281,9 +5213,9 @@
                                 </div>
                             </div>
                             <div style="margin-top:14px;">
-                                <label class="wa-label">Botão de ação (CTA) <span style="color:var(--text-muted);font-weight:500;">(opcional — recomendado pela Meta)</span></label>
+                                <label class="wa-label">Botão de link do produto <span style="color:var(--text-muted);font-weight:500;">(opcional — recomendado pela Meta)</span></label>
                                 <input type="text" class="wa-input" id="newTplBtnText" maxlength="25" placeholder="Ex: Comprar agora">
-                                <div class="wa-help">Aqui vai só o <strong>texto do botão</strong> (ex: "Comprar agora"). O <strong>link é preenchido automaticamente</strong> pra cada lead — você <strong>não precisa colar nada</strong>. Cria um botão que leva o cliente direto pro produto que ele provou (converte mais que link no texto). Deixe vazio pra não ter botão.</div>
+                                <div class="wa-help">Se preencher, cria um <strong>botão</strong> que leva o cliente direto pro <strong>produto que ele provou</strong> — botão converte mais que link no texto. Deixe vazio pra não ter botão.</div>
                             </div>
                         </div>
                         <div class="wa-feedback" id="waTplFeedback"></div>
@@ -6120,9 +6052,7 @@
                     const at = m.wa_timestamp || m.created_at;
                     if (!c.lastAt || at > c.lastAt) {
                         c.lastAt = at;
-                        const mediaPrev = { image:'🖼️ Imagem', sticker:'🩹 Figurinha', video:'🎥 Vídeo', audio:'🎧 Áudio', document:'📎 Documento' };
-                        const preview = (m.body && m.body.charAt(0) !== '[') ? m.body : (mediaPrev[m.msg_type] || m.body || ('[' + (m.msg_type||'') + ']'));
-                        c.lastBody = (m.direction === 'out' ? 'Você: ' : '') + preview;
+                        c.lastBody = (m.direction === 'out' ? 'Você: ' : '') + (m.body || ('[' + (m.msg_type||'') + ']'));
                     }
                     if (m.contact_name && !c.name) c.name = m.contact_name;
                     if (m.direction === 'in') {
@@ -6133,11 +6063,6 @@
                 _chatConvs = Object.values(byPhone).sort((a,b) => (b.lastAt||'').localeCompare(a.lastAt||''));
                 chatRenderList();
                 chatSubscribeRealtime();
-                // Categoria do lead (carrinho abandonado / provou não comprou / etc.) vem do CRM.
-                // Se ainda não carregou, carrega em background e re-renderiza pra pintar os badges.
-                if (!crmLeadMapCache && typeof loadCRM === 'function') {
-                    loadCRM().then(() => chatRenderList()).catch(() => {});
-                }
             } catch (e) {
                 const msg = (e && e.message) || '';
                 if (/relation|does not exist|not find the table|schema cache/i.test(msg)) {
@@ -6147,48 +6072,6 @@
                 }
             }
         }
-
-        // Índice do CRM por ÚLTIMOS 8 dígitos — reconcilia o 9º dígito (o número da conversa
-        // às vezes vem sem o 9, mas a prova tem). Reconstrói só quando o cache do CRM muda.
-        let _crmBy8Cache = null, _crmBy8Src = null;
-        function crmLeadBy8(phone) {
-            if (!crmLeadMapCache) return null;
-            if (_crmBy8Src !== crmLeadMapCache) {
-                _crmBy8Src = crmLeadMapCache;
-                _crmBy8Cache = {};
-                for (const k in crmLeadMapCache) {
-                    const l8 = String(k).replace(/\D/g, '').slice(-8);
-                    if (l8.length === 8 && !_crmBy8Cache[l8]) _crmBy8Cache[l8] = crmLeadMapCache[k];
-                }
-            }
-            const l8 = String(phone).replace(/\D/g, '').slice(-8);
-            return (l8.length === 8 && _crmBy8Cache[l8]) || null;
-        }
-
-        // Categoria do lead na Conversas — reusa a classificação do CRM (crmClassify):
-        // comprou / carrinho abandonado / clicou em comprar / provou e não comprou.
-        function chatLeadCategory(phone) {
-            if (typeof crmClassify !== 'function') return null;
-            const d = crmLeadBy8(phone);
-            if (!d) return null;
-            const M = {
-                convertido: { label: '✅ Comprou',             bg: 'rgba(16,185,129,.15)', fg: '#059669' },
-                carrinho:   { label: '🛒 Carrinho abandonado', bg: 'rgba(245,158,11,.15)', fg: '#b45309' },
-                clicou:     { label: '🔥 Clicou em comprar',   bg: 'rgba(239,68,68,.13)',  fg: '#dc2626' },
-                cold:       { label: '🕶️ Provou, não comprou', bg: 'rgba(124,58,237,.12)', fg: '#7c3aed' },
-            };
-            return M[crmClassify(d)] || null;
-        }
-
-        // Chave crua da categoria ('carrinho'/'cold'/'clicou'/'convertido') pro filtro.
-        function chatLeadCatKey(phone) {
-            if (typeof crmClassify !== 'function') return null;
-            const d = crmLeadBy8(phone);
-            return d ? crmClassify(d) : null;
-        }
-
-        let _chatFilterCat = '';
-        function chatSetCatFilter(v) { _chatFilterCat = v || ''; chatRenderList(); }
 
         function chatRenderList() {
             const listEl = document.getElementById('chatList');
@@ -6201,8 +6084,7 @@
                 listEl.innerHTML = '<div class="chat-list-empty"><i class="ph-bold ph-chat-dots" style="font-size:26px;opacity:.4;"></i><br><br>Nenhuma conversa ainda.<br>Quando um cliente responder um disparo, aparece aqui.</div>';
                 return;
             }
-            let convs = _chatFilterUnread ? _chatConvs.filter(c => (c.unread || 0) > 0 || c.phone === _chatActivePhone) : _chatConvs;
-            if (_chatFilterCat) convs = convs.filter(c => chatLeadCatKey(c.phone) === _chatFilterCat);
+            const convs = _chatFilterUnread ? _chatConvs.filter(c => (c.unread || 0) > 0 || c.phone === _chatActivePhone) : _chatConvs;
             if (!convs.length) {
                 listEl.innerHTML = '<div class="chat-list-empty"><i class="ph-bold ph-check-circle" style="font-size:26px;opacity:.4;color:#10b981;"></i><br><br>Nenhuma conversa não lida. 🎉<br><span style="font-size:11px;">Clique em "Não lidas" de novo pra ver todas.</span></div>';
                 return;
@@ -6213,7 +6095,6 @@
                     <div class="chat-conv-main">
                         <div class="chat-conv-name">${escapeHtml(c.name || ('+' + c.phone))}</div>
                         <div class="chat-conv-last">${escapeHtml(c.lastBody || '')}</div>
-                        ${(() => { const t = chatLeadCategory(c.phone); return t ? '<span style="display:inline-block;margin-top:3px;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:' + t.bg + ';color:' + t.fg + ';">' + escapeHtml(t.label) + '</span>' : ''; })()}
                     </div>
                     <div class="chat-conv-meta">
                         <span class="chat-conv-time">${chatFmtTime(c.lastAt)}</span>
@@ -6263,7 +6144,8 @@
             const isUnread = conv && (conv.unread || 0) > 0;
             const m = chatEnsureCtxMenu();
             m.innerHTML =
-                '<button onclick="chatCtxToggleRead()"><i class="ph-bold ' + (isUnread ? 'ph-envelope-open' : 'ph-envelope-simple') + '"></i> ' + (isUnread ? 'Marcar como lida' : 'Marcar como não lida') + '</button>';
+                '<button onclick="chatCtxToggleRead()"><i class="ph-bold ' + (isUnread ? 'ph-envelope-open' : 'ph-envelope-simple') + '"></i> ' + (isUnread ? 'Marcar como lida' : 'Marcar como não lida') + '</button>' +
+                '<button class="danger" onclick="chatCtxAskDelete()"><i class="ph-bold ph-trash"></i> Deletar conversa</button>';
             m.style.display = 'block';
             const mw = m.offsetWidth || 210, mh = m.offsetHeight || 92;
             let x = e.clientX, y = e.clientY;
@@ -6311,30 +6193,16 @@
                 '</div>';
             _chatCtxPhone = phone;
         }
-        // Delete pela lixeira visível no cabeçalho da conversa (clique normal, funciona em
-        // qualquer dispositivo — o menu de botão-direito não abre em trackpad/mobile).
-        async function chatDeleteConversa(phone) {
-            if (!phone) return;
-            if (!window.confirm('Excluir esta conversa? Apaga todo o histórico e não dá pra desfazer.')) return;
-            _chatCtxPhone = phone;
-            await chatCtxDoDelete();
-        }
         async function chatCtxDoDelete() {
             const phone = _chatCtxPhone;
             chatCloseCtxMenu();
             if (!phone) return;
-            // Casa por ÚLTIMOS 8 dígitos: apaga todas as variantes da mesma pessoa (com/sem 55,
-            // com/sem o 9º dígito) que a Meta cria e que viram conversas separadas. Antes casava
-            // por telefone exato → apagava uma variante e a outra ficava.
-            const last8 = String(phone).replace(/\D/g, '').slice(-8);
-            const sameLead = p => String(p).replace(/\D/g, '').slice(-8) === last8 && last8.length === 8;
             try {
-                let del = supabaseClient.from('whatsapp_mensagens').delete().eq('email', activeUser.email);
-                del = last8.length === 8 ? del.ilike('lead_phone', '%' + last8 + '%') : del.eq('lead_phone', phone);
-                const { error } = await del;
+                const { error } = await supabaseClient.from('whatsapp_mensagens').delete()
+                    .eq('email', activeUser.email).eq('lead_phone', phone);
                 if (error) throw error;
-                _chatConvs = _chatConvs.filter(c => !sameLead(c.phone));
-                if (sameLead(_chatActivePhone)) {
+                _chatConvs = _chatConvs.filter(c => c.phone !== phone);
+                if (phone === _chatActivePhone) {
                     _chatActivePhone = null;
                     const thread = document.getElementById('chatThread');
                     if (thread) thread.innerHTML = '<div class="chat-empty-thread"><div><i class="ph-bold ph-chat-centered-dots" style="font-size:32px;opacity:.4;"></i><br><br>Selecione uma conversa à esquerda<br>pra ver as mensagens.</div></div>';
@@ -6353,8 +6221,7 @@
                 <div class="chat-thread-head">
                     <div class="chat-conv-av">${escapeHtml(chatInitials(conv.name, phone))}</div>
                     <div><div style="font-weight:600;font-size:14px;">${escapeHtml(conv.name || ('+' + phone))}</div>
-                    <div style="font-size:11px;color:var(--text-muted);">+${escapeHtml(phone)} ${(() => { const t = chatLeadCategory(phone); return t ? '<span style="display:inline-block;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:' + t.bg + ';color:' + t.fg + ';">' + escapeHtml(t.label) + '</span>' : ''; })()}</div></div>
-                    <button onclick="chatDeleteConversa('${escapeHtml(phone)}')" title="Excluir conversa" style="margin-left:auto;background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:#ef4444;cursor:pointer;font-size:15px;line-height:1;"><i class="ph-bold ph-trash"></i></button>
+                    <div style="font-size:11px;color:var(--text-muted);">+${escapeHtml(phone)}</div></div>
                 </div>
                 <div class="chat-thread-body" id="chatThreadBody"><div style="margin:auto;color:var(--text-muted);"><i class="ph-bold ph-circle-notch ph-spin"></i></div></div>
                 <div class="chat-thread-foot" id="chatThreadFoot"></div>`;
@@ -6373,36 +6240,6 @@
             }
         }
 
-        // Conteúdo da bolha: renderiza mídia (imagem/vídeo/áudio/documento/figurinha) quando há
-        // media_url; sem ela (não resolvida ou expirada após 24h) mostra um rótulo do tipo.
-        const CHAT_MEDIA_TYPES = { image:1, sticker:1, video:1, audio:1, document:1 };
-        function chatSafeMediaUrl(u) {
-            if (!u) return '';
-            try { const p = new URL(u, location.href); return (p.protocol === 'https:' || p.protocol === 'http:') ? p.href : ''; }
-            catch (e) { return ''; }
-        }
-        function chatBubbleBody(m) {
-            const url = chatSafeMediaUrl(m.media_url);
-            const hasCaption = m.body && m.body.charAt(0) !== '[';
-            const cap = hasCaption ? '<div class="chat-msg-cap" style="margin-top:5px;">' + escapeHtml(m.body) + '</div>' : '';
-            if (CHAT_MEDIA_TYPES[m.msg_type]) {
-                if (url) {
-                    const u = escapeHtml(url);
-                    if (m.msg_type === 'image' || m.msg_type === 'sticker')
-                        return '<a href="' + u + '" target="_blank" rel="noopener noreferrer"><img src="' + u + '" loading="lazy" style="max-width:220px;max-height:260px;border-radius:10px;display:block;"></a>' + cap;
-                    if (m.msg_type === 'video')
-                        return '<video src="' + u + '" controls preload="metadata" style="max-width:240px;max-height:280px;border-radius:10px;display:block;"></video>' + cap;
-                    if (m.msg_type === 'audio')
-                        return '<audio src="' + u + '" controls preload="none" style="max-width:240px;"></audio>' + cap;
-                    if (m.msg_type === 'document')
-                        return '<a href="' + u + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;color:inherit;text-decoration:underline;"><i class="ph-bold ph-file-arrow-down"></i> ' + escapeHtml(hasCaption ? m.body : 'Documento') + '</a>';
-                }
-                const labels = { image:'🖼️ Imagem', sticker:'🩹 Figurinha', video:'🎥 Vídeo', audio:'🎧 Áudio', document:'📎 Documento' };
-                return '<span style="opacity:.85;">' + (labels[m.msg_type] || '[mídia]') + ' <span style="opacity:.55;font-size:11px;">(indisponível)</span></span>';
-            }
-            return escapeHtml(m.body || ('[' + (m.msg_type || '') + ']'));
-        }
-
         function chatRenderThread(msgs) {
             const body = document.getElementById('chatThreadBody');
             if (!body) return;
@@ -6412,7 +6249,7 @@
                 body.innerHTML = msgs.map(m => {
                     const at = m.wa_timestamp || m.created_at;
                     const tpl = (m.direction === 'out' && m.template_name) ? '<div class="chat-msg-tpl">template: ' + escapeHtml(m.template_name) + '</div>' : '';
-                    return `<div class="chat-msg ${m.direction === 'in' ? 'in' : 'out'}">${tpl}${chatBubbleBody(m)}<div class="chat-msg-time">${chatFmtTime(at)}${m.direction==='out' && m.status ? ' · ' + escapeHtml(dispStatusLabel(m.status)) : ''}</div></div>`;
+                    return `<div class="chat-msg ${m.direction === 'in' ? 'in' : 'out'}">${tpl}${escapeHtml(m.body || ('['+(m.msg_type||'')+']'))}<div class="chat-msg-time">${chatFmtTime(at)}${m.direction==='out' && m.status ? ' · ' + escapeHtml(dispStatusLabel(m.status)) : ''}</div></div>`;
                 }).join('');
             }
             body.scrollTop = body.scrollHeight;
@@ -6966,25 +6803,6 @@
         const WA_TPL_URL = 'https://n8n.segredosdodrop.com/webhook/pl-wa-templates';
         let _waTemplatesCache = [];
 
-        // Mostrar só templates criados na Provou Levou (tabela pl_wa_templates).
-        // Fail-open: se a consulta falhar, NÃO esconde nada (mantém o comportamento antigo).
-        let _plTplNamesCache = null;
-        async function plTemplateNames() {
-            if (_plTplNamesCache) return _plTplNamesCache;
-            try {
-                const { data, error } = await supabaseClient
-                    .from('pl_wa_templates').select('name').eq('email', activeUser.email);
-                if (error) throw error;
-                _plTplNamesCache = new Set((data || []).map(r => r.name));
-            } catch (e) { console.warn('[pl-templates] load:', e); return null; }
-            return _plTplNamesCache;
-        }
-        async function keepPLTemplates(list) {
-            const allowed = await plTemplateNames();
-            if (!allowed) return list; // erro na consulta -> não filtra
-            return (list || []).filter(t => allowed.has(t.name));
-        }
-
         async function waLoadTemplates() {
             const list = document.getElementById('waTemplatesList');
             if (!_waConfigCache || _waConfigCache.status !== 'connected') {
@@ -7022,8 +6840,7 @@
                     list.innerHTML = '<div class="wa-tpl-empty" style="color:#ef4444;">' + (result.error || result.body?.error?.message || 'Erro ao listar') + '</div>';
                     return;
                 }
-                let data = (result.body && result.body.data) || [];
-                data = await keepPLTemplates(data);
+                const data = (result.body && result.body.data) || [];
                 _waTemplatesCache = data;
                 if (data.length === 0) {
                     list.innerHTML = '<div class="wa-tpl-empty">Nenhuma mensagem modelo criada ainda. Clique em <strong>Criar mensagem modelo</strong>.</div>';
@@ -7494,11 +7311,6 @@
                 });
                 const result = await res.json();
                 if (result.ok && result.body && result.body.id) {
-                    // Registra como template da Provou Levou (pra aparecer na lista filtrada)
-                    try {
-                        await supabaseClient.from('pl_wa_templates').insert({ email: activeUser.email, name });
-                        _plTplNamesCache = null; _waTemplatesCache = [];
-                    } catch (e) { console.warn('[pl-templates] insert:', e); }
                     fb.className = 'wa-feedback success';
                     fb.innerHTML = '<strong>Enviado pra Meta!</strong> Status inicial: ' + (result.body.status || 'PENDING') + '. Aguarde aprovação.';
                     setTimeout(() => { closeCreateTemplateModal(); waLoadTemplates(); }, 1800);
@@ -7591,7 +7403,6 @@
         let _dispCrmChart = null;
         let _dispDonut = null;
         let _dispDailyChart = null;
-        let _dispSalesChart = null;
 
         function dispSetFilter(f) {
             _dispFilter = f;
@@ -7647,7 +7458,7 @@
             // Chart.js renderiza a 0x0 quando o canvas está escondido — redimensiona ao exibir
             if (name === 'historico') {
                 setTimeout(() => {
-                    [_dispCrmChart, _dispDonut, _dispDailyChart, _dispSalesChart].forEach(c => { try { c && c.resize(); } catch (e) {} });
+                    [_dispCrmChart, _dispDonut, _dispDailyChart].forEach(c => { try { c && c.resize(); } catch (e) {} });
                 }, 60);
             }
             // Templates: garante que o conteúdo está na sub-aba e visível, depois carrega
@@ -8872,7 +8683,6 @@
 
                 dispRenderDonut(sent, failed);
                 dispRenderDailyChart(all);
-                dispRenderSalesChart().catch(e => console.warn('[disparos] sales chart:', e));
                 dispRenderLog();
             } catch (e) {
                 if (listEl) listEl.innerHTML = '<div class="disp-empty" style="color:#ef4444;">Erro ao carregar: ' + escapeHtml(e.message || String(e)) + '</div>';
@@ -9029,115 +8839,6 @@
             });
         }
 
-        // Gráfico de vendas recuperadas: pedidos pagos de clientes que compraram
-        // em até 30 dias DEPOIS de receber um disparo (não-falho). Mesma janela de 30 dias
-        // e mesmo bucketing por dia do gráfico "Disparos por dia", pra alinhar os dois.
-        async function dispRenderSalesChart() {
-            const canvas = document.getElementById('dispSalesChart');
-            if (!canvas) return;
-            const totalEl = document.getElementById('dispSalesTotal');
-            const subEl = document.getElementById('dispSalesSub');
-
-            if (!activeUser.tabela_pedidos) {
-                canvas.parentElement.innerHTML = '<div class="disp-empty">Esta loja ainda não tem pedidos integrados.</div>';
-                if (totalEl) totalEl.textContent = '—';
-                if (subEl) subEl.textContent = '—';
-                return;
-            }
-
-            // allOrdersCache (pedidos pagos desde a 1ª prova) vem do dashboard principal.
-            if (!allOrdersCache || !allOrdersCache.length) {
-                try { await loadSharedData(); } catch (e) { console.warn('[disparos] sales sharedData:', e); }
-            }
-
-            // Disparos não-falhos por telefone -> lista de timestamps (ms)
-            let dispRows = [];
-            try {
-                const { data } = await supabaseClient
-                    .from('whatsapp_send_log')
-                    .select('lead_phone, sent_at, status')
-                    .eq('email', activeUser.email)
-                    .limit(10000);
-                dispRows = data || [];
-            } catch (e) { console.warn('[disparos] sales log:', e); }
-
-            const dispByPhone = {};
-            dispRows.forEach(r => {
-                if (r.status === 'failed') return;
-                const ph = normalize(r.lead_phone);
-                if (!ph || !r.sent_at) return;
-                const ms = new Date(r.sent_at).getTime();
-                if (!ms) return;
-                (dispByPhone[ph] = dispByPhone[ph] || []).push(ms);
-            });
-
-            const fTotal = activeUser.campo_total_pedido || 'total';
-            const fDataPedido = activeUser.campo_data_pedido || null;
-            const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
-
-            const today = new Date(); today.setHours(0, 0, 0, 0);
-            const days = [];
-            for (let i = 29; i >= 0; i--) { const d = new Date(today); d.setDate(d.getDate() - i); days.push(d.toISOString().slice(0, 10)); }
-            const revByDay = {}, cntByDay = {};
-            days.forEach(d => { revByDay[d] = 0; cntByDay[d] = 0; });
-
-            let totalRev = 0, totalCnt = 0;
-            (allOrdersCache || []).forEach(o => {
-                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
-                if (!orderTs) return;
-                const orderMs = new Date(orderTs).getTime();
-                if (!orderMs) return;
-                const recovered = orderPhoneKeys(o).some(ph =>
-                    (dispByPhone[ph] || []).some(ms => ms <= orderMs && (orderMs - ms) <= WINDOW_MS));
-                if (!recovered) return;
-                const day = orderTs.slice(0, 10);
-                if (revByDay[day] === undefined) return; // fora da janela de 30 dias
-                const val = parseFloat(o[fTotal]) || 0;
-                revByDay[day] += val; cntByDay[day]++;
-                totalRev += val; totalCnt++;
-            });
-
-            if (totalEl) totalEl.textContent = 'R$ ' + totalRev.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            if (subEl) subEl.textContent = totalCnt.toLocaleString('pt-BR') + (totalCnt === 1 ? ' pedido recuperado' : ' pedidos recuperados');
-
-            const labels = days.map(d => {
-                const dt = new Date(d + 'T00:00:00');
-                return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-            });
-
-            if (_dispSalesChart) _dispSalesChart.destroy();
-            _dispSalesChart = new Chart(canvas.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'Vendas recuperadas (R$)',
-                        data: days.map(d => +revByDay[d].toFixed(2)),
-                        backgroundColor: 'rgba(16,185,129,.85)',
-                        hoverBackgroundColor: '#10b981',
-                        borderRadius: 6,
-                        maxBarThickness: 26
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: ctx => 'R$ ' + ctx.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                                afterLabel: ctx => { const c = cntByDay[days[ctx.dataIndex]] || 0; return c + (c === 1 ? ' pedido' : ' pedidos'); }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 0 } },
-                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { callback: v => 'R$ ' + v.toLocaleString('pt-BR') } }
-                    }
-                }
-            });
-        }
-
         const DISP_STATUS_PT = {
             sent: 'Enviada', delivered: 'Entregue', read: 'Lida',
             failed: 'Falhou', pending: 'Pendente', queued: 'Na fila'
@@ -9274,7 +8975,6 @@
                     name: lead.name || '',
                     product: lead.lastProduct || '',
                     productUrl: lead.lastProductUrl || '',
-                    checkoutUrl: lead.checkoutUrl || '',
                     lastDate: lead.lastDate || ''
                 }))
                 .filter(l => l.phone && l.phone.length >= 10);
@@ -9431,7 +9131,6 @@
                     });
                     const result = await res.json();
                     data = (result.body && result.body.data) || [];
-                    data = await keepPLTemplates(data);
                     _waTemplatesCache = data;
                 }
                 const approved = (data || []).filter(t => (t.status || '').toUpperCase() === 'APPROVED');
@@ -9520,25 +9219,18 @@
             const urlBtnIndex = (typeof _waBulkUrlBtnIndex === 'number') ? _waBulkUrlBtnIndex : -1;
             const linkInBody = !!window._waBulkLinkInBody;
             const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
-            // Link decidido pela ETAPA do disparo (não pelo dado do lead): etapa "Carrinho
-            // abandonado" → link do checkout; qualquer outra etapa (ou "Todas") → link do produto.
-            const bulkStageKey = (document.getElementById('waBulkStageSelect') || {}).value || 'all';
-            const isCarrinhoSeg = bulkStageKey === 'carrinho-abandonado';
-            const leadLinkOf = (l) => isCarrinhoSeg
-                ? (hasUrl(l.checkoutUrl) ? l.checkoutUrl : (hasUrl(l.productUrl) ? l.productUrl : ''))
-                : (hasUrl(l.productUrl) ? l.productUrl : '');
-            // Quando o template usa link, leads sem NENHUM link (nem checkout nem produto) são
+            // Quando o template usa link, leads sem o link salvo (provas antigas) são
             // automaticamente pulados — não dá pra mandar o template sem o link deles.
-            const skipNoLink = window._waBulkNeedLink ? targets.filter(t => !leadLinkOf(t)) : [];
+            const skipNoLink = window._waBulkNeedLink ? targets.filter(t => !hasUrl(t.productUrl)) : [];
             if (skipNoLink.length) {
-                window._waBulkTargets = targets.filter(t => !!leadLinkOf(t));
+                window._waBulkTargets = targets.filter(t => hasUrl(t.productUrl));
             }
             let sendTargets = window._waBulkTargets || [];
             if (sendTargets.length === 0) {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Disparar agora';
                 document.getElementById('waBulkProgress').style.display = 'none';
-                crmToast('Nenhum lead com link salvo (checkout ou produto) pra este modelo. Esses leads são de provas antigas (antes de salvarmos o link).', true);
+                crmToast('Nenhum lead com link do produto salvo pra este modelo. Esses leads são de provas antigas (antes de salvarmos o link).', true);
                 return;
             }
 
@@ -9586,8 +9278,8 @@
                 const produto = lead.product || 'o modelo que você provou';
                 // Monta exatamente o número de variáveis que o template espera.
                 // Convenção: {{1}} = primeiro nome, {{2}} = produto provado.
-                // Link deste lead: prioriza o checkout abandonado da loja; senão, o produto provado.
-                const leadLink = leadLinkOf(lead);
+                // Link deste lead: o do produto que ele provou, ou o digitado (reserva)
+                const leadLink = hasUrl(lead.productUrl) ? lead.productUrl : checkoutLink;
                 const fill = [firstName, produto];
                 if (linkInBody) fill[2] = leadLink;   // {{3}} = link no corpo
                 const params = [];
@@ -9694,21 +9386,14 @@
             const urlBtnIndex = (typeof _waBulkUrlBtnIndex === 'number') ? _waBulkUrlBtnIndex : -1;
             const linkInBody = !!window._waBulkLinkInBody;
             const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
-            // Link decidido pela ETAPA do disparo (não pelo dado do lead): etapa "Carrinho
-            // abandonado" → link do checkout; qualquer outra etapa (ou "Todas") → link do produto.
-            const bulkStageKey = (document.getElementById('waBulkStageSelect') || {}).value || 'all';
-            const isCarrinhoSeg = bulkStageKey === 'carrinho-abandonado';
-            const leadLinkOf = (l) => isCarrinhoSeg
-                ? (hasUrl(l.checkoutUrl) ? l.checkoutUrl : (hasUrl(l.productUrl) ? l.productUrl : ''))
-                : (hasUrl(l.productUrl) ? l.productUrl : '');
-            const sendTargets = window._waBulkNeedLink ? targets.filter(t => !!leadLinkOf(t)) : targets;
-            if (!sendTargets.length) { fb.style.color = '#ef4444'; fb.textContent = 'Nenhum lead com link salvo (checkout ou produto) pra este modelo.'; return; }
+            const sendTargets = window._waBulkNeedLink ? targets.filter(t => hasUrl(t.productUrl)) : targets;
+            if (!sendTargets.length) { fb.style.color = '#ef4444'; fb.textContent = 'Nenhum lead com link do produto salvo pra este modelo.'; return; }
 
             // Monta o MESMO payload do envio imediato, pra cada lead (congelado)
             const payloads = sendTargets.map(lead => {
                 const firstName = (lead.name || '').split(' ')[0] || '👋';
                 const produto = lead.product || 'o modelo que você provou';
-                const leadLink = leadLinkOf(lead);
+                const leadLink = hasUrl(lead.productUrl) ? lead.productUrl : '';
                 const fill = [firstName, produto];
                 if (linkInBody) fill[2] = leadLink;
                 const params = [];
@@ -9768,7 +9453,7 @@
                         const tog = '<button onclick="toggleRecurring(\'' + d.id + '\',' + (ativo ? 'false' : 'true') + ')" style="background:transparent;border:1px solid var(--border);border-radius:7px;padding:4px 9px;font-size:11.5px;cursor:pointer;color:' + (ativo ? '#ef4444' : '#10b981') + ';">' + (ativo ? 'Pausar' : 'Ativar') + '</button>';
                         return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13px;">'
                             + '<div style="min-width:0;"><i class="ph-bold ph-repeat" style="color:#7c3aed;"></i> <strong>Todo dia às ' + escapeHtml(d.recur_time || '') + '</strong> · ' + escapeHtml(stageTitle(d.stage_key)) + '<br><span style="color:var(--text-muted);font-size:12px;">' + escapeHtml(d.template || '') + ' · máx ' + (d.max_per_run || '—') + '/dia' + lastRun + '</span></div>'
-                            + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;"><span style="color:' + cor + ';font-weight:700;font-size:12px;white-space:nowrap;">' + lbl + '</span>' + tog + '<button onclick="deleteDisparoAgendado(\'' + d.id + '\')" title="Excluir" style="background:transparent;border:1px solid var(--border);border-radius:7px;padding:4px 8px;font-size:11.5px;cursor:pointer;color:#ef4444;"><i class="ph-bold ph-trash"></i></button>' + '</div></div>';
+                            + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;"><span style="color:' + cor + ';font-weight:700;font-size:12px;white-space:nowrap;">' + lbl + '</span>' + tog + '</div></div>';
                     }
                     const st = stMap[d.status] || [d.status, '#6b7280'];
                     const when = new Date(d.scheduled_at).toLocaleString('pt-BR');
@@ -9776,7 +9461,7 @@
                     const cancel = d.status === 'agendado' ? '<button onclick="cancelDisparoAgendado(\'' + d.id + '\')" style="background:transparent;border:1px solid var(--border);border-radius:7px;padding:4px 9px;font-size:11.5px;color:#ef4444;cursor:pointer;">Cancelar</button>' : '';
                     return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13px;">'
                         + '<div style="min-width:0;"><strong>' + (d.total || 0) + '</strong> disparo(s) · ' + escapeHtml(d.template || '') + '<br><span style="color:var(--text-muted);font-size:12px;">' + when + counts + '</span></div>'
-                        + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;"><span style="color:' + st[1] + ';font-weight:700;font-size:12px;white-space:nowrap;">' + st[0] + '</span>' + cancel + '<button onclick="deleteDisparoAgendado(\'' + d.id + '\')" title="Excluir" style="background:transparent;border:1px solid var(--border);border-radius:7px;padding:4px 8px;font-size:11.5px;cursor:pointer;color:#ef4444;"><i class="ph-bold ph-trash"></i></button>' + '</div></div>';
+                        + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;"><span style="color:' + st[1] + ';font-weight:700;font-size:12px;white-space:nowrap;">' + st[0] + '</span>' + cancel + '</div></div>';
                 }).join('');
             } catch (e) {
                 el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Histórico indisponível (a tabela ainda pode não ter sido criada).</div>';
@@ -9788,17 +9473,6 @@
                 await supabaseClient.from('disparos_agendados').update({ status: 'cancelado' }).eq('id', id).eq('status', 'agendado');
                 loadDisparosAgendados();
             } catch (e) { crmToast && crmToast('Não foi possível cancelar.', true); }
-        }
-
-        async function deleteDisparoAgendado(id) {
-            if (!confirm('Excluir este disparo agendado? Esta ação não pode ser desfeita.')) return;
-            try {
-                const { error } = await supabaseClient.from('disparos_agendados')
-                    .delete().eq('id', id).eq('lojista_email', activeUser.email);
-                if (error) throw error;
-                crmToast && crmToast('Disparo excluído.');
-                loadDisparosAgendados();
-            } catch (e) { crmToast && crmToast('Não foi possível excluir: ' + (e && e.message ? e.message : e), true); }
         }
 
         // ===== Disparo recorrente (todo dia, por etapa do CRM) =====
@@ -11791,8 +11465,7 @@
             const fStatusValues = activeUser.valores_status_pago || ['paid', 'Confirmado'];
             const fDataPedido = activeUser.campo_data_pedido || null;
             const fNome = activeUser.campo_nome_pedido || null;
-            const fProduto = activeUser.campo_produto_pedido || null;
-            const selectFields = [fPhone, fTotal, fStatus, 'created_at', fDataPedido, fNome, fProduto].filter(Boolean).join(', ');
+            const selectFields = [fPhone, fTotal, fStatus, 'created_at', fDataPedido, fNome].filter(Boolean).join(', ');
 
             // Carrega TODAS as provas em lotes paralelos (antes era página-a-página em série).
             const allGens = await fetchPagesParallel(() => supabaseClient
@@ -12208,56 +11881,6 @@
             }
         }
 
-        // Card "Recuperado via Disparo" na Visão Geral — mesma lógica do gráfico da aba Disparos
-        // (pedido pago em até 30 dias após disparo não-falho), respeitando o período selecionado.
-        // Atenção: pode sobrepor o faturamento atribuído (cliente que provou E foi recuperado) — NÃO somar.
-        async function loadVgRecuperadoDisparo() {
-            const valEl = document.getElementById('vgRecuperadoVal');
-            const subEl = document.getElementById('vgRecuperadoSub');
-            if (!valEl || !supabaseClient || !activeUser) return;
-            if (!activeUser.tabela_pedidos) { valEl.textContent = 'R$ 0,00'; if (subEl) subEl.textContent = 'loja sem pedidos integrados'; return; }
-            if (!allOrdersCache || !allOrdersCache.length) {
-                try { await loadSharedData(); } catch (e) { console.warn('[vg recuperado] sharedData:', e); }
-            }
-            let dispRows = [];
-            try {
-                const { data } = await supabaseClient
-                    .from('whatsapp_send_log')
-                    .select('lead_phone, sent_at, status')
-                    .eq('email', activeUser.email)
-                    .limit(10000);
-                dispRows = data || [];
-            } catch (e) { console.warn('[vg recuperado] log:', e); }
-            const dispByPhone = {};
-            dispRows.forEach(r => {
-                if (r.status === 'failed') return;
-                const ph = normalize(r.lead_phone);
-                if (!ph || !r.sent_at) return;
-                const ms = new Date(r.sent_at).getTime();
-                if (!ms) return;
-                (dispByPhone[ph] = dispByPhone[ph] || []).push(ms);
-            });
-            const fTotal = activeUser.campo_total_pedido || 'total';
-            const fDataPedido = activeUser.campo_data_pedido || null;
-            const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
-            let rev = 0, cnt = 0;
-            (allOrdersCache || []).forEach(o => {
-                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
-                if (!orderTs) return;
-                const d = orderTs.slice(0, 10);
-                if (dateFromCompras && d < dateFromCompras) return;
-                if (dateToCompras && d > dateToCompras) return;
-                const orderMs = new Date(orderTs).getTime();
-                if (!orderMs) return;
-                const recovered = orderPhoneKeys(o).some(ph =>
-                    (dispByPhone[ph] || []).some(ms => ms <= orderMs && (orderMs - ms) <= WINDOW_MS));
-                if (!recovered) return;
-                rev += parseFloat(o[fTotal]) || 0; cnt++;
-            });
-            valEl.textContent = rev.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            if (subEl) subEl.textContent = cnt.toLocaleString('pt-BR') + (cnt === 1 ? ' venda recuperada' : ' vendas recuperadas');
-        }
-
         async function loadCompras(page) {
             currentPageCompras = page;
             _lastSearchQuery.compras = '';
@@ -12330,7 +11953,6 @@
             document.getElementById('provasConversao').textContent = pctFatProvador + '%';
 
             renderComprasChart(filtered, fDataPedido, fTotal);
-            loadVgRecuperadoDisparo().catch(e => console.warn('[vg recuperado]', e));
 
             _csvComprasData = filtered.map(o => {
                 const d = (fDataPedido && o[fDataPedido]) || o.created_at || '';
@@ -12514,39 +12136,6 @@
                 console.error('loadProvasExtras error', err);
                 if (card) card.style.display = 'none';
             }
-        }
-
-        // Vendas por produto (todas as vendas pagas, agrupadas pelo campo de produto da loja).
-        // Mostra quais produtos mais vendem (unidades) e o faturamento de cada um.
-        function loadVendasPorProduto() {
-            const sec = document.getElementById('vendasProdutoSection');
-            const body = document.getElementById('vendasProdutoBody');
-            const sub = document.getElementById('vendasProdutoSub');
-            if (!sec || !body) return;
-            const fProduto = activeUser && activeUser.campo_produto_pedido;
-            const fTotal = (activeUser && activeUser.campo_total_pedido) || 'total';
-            if (!fProduto || !allOrdersCache || !allOrdersCache.length) { sec.style.display = 'none'; return; }
-            const map = {};
-            allOrdersCache.forEach(o => {
-                const nome = String(o[fProduto] || '').trim();
-                if (!nome) return;
-                const m = map[nome] || (map[nome] = { count: 0, rev: 0 });
-                m.count++; m.rev += parseFloat(o[fTotal]) || 0;
-            });
-            const rows = Object.keys(map).map(nome => ({ nome, count: map[nome].count, rev: map[nome].rev }))
-                .sort((a, b) => b.count - a.count);
-            if (rows.length === 0) { sec.style.display = 'none'; return; }
-            const TOP = 20;
-            const totalVendas = rows.reduce((s, r) => s + r.count, 0);
-            body.innerHTML = rows.slice(0, TOP).map((r, i) =>
-                '<tr>'
-                + '<td style="color:var(--text-muted);font-weight:600;">' + (i + 1) + '</td>'
-                + '<td>' + escapeHtml(r.nome) + '</td>'
-                + '<td style="text-align:right;font-weight:600;">' + r.count.toLocaleString('pt-BR') + '</td>'
-                + '<td style="text-align:right;">' + r.rev.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) + '</td>'
-                + '</tr>').join('');
-            if (sub) sub.textContent = rows.length + ' produtos · ' + totalVendas.toLocaleString('pt-BR') + ' vendas' + (rows.length > TOP ? ' (top ' + TOP + ')' : '');
-            sec.style.display = '';
         }
 
         async function loadConsumoPlano() {
@@ -12836,7 +12425,6 @@
                 loadRecompra();
                 loadConsumoPlano();
                 loadProvasExtras();
-                loadVendasPorProduto();
 
                 // Mostra dashboard com visibility:hidden (ocupa espaço, canvas pega dimensões corretas)
                 // mas continua coberto pelo loader. Depois que o gráfico principal renderizar,
@@ -13488,7 +13076,6 @@
         const CRM_DEFAULT_COLUMNS = [
             { key: 'cold',           title: 'Provou e não comprou',              icon: 'ph-user',         auto: true,  rule: 'cold' },
             { key: 'clicou-comprar', title: 'Clicaram em comprar e não compraram', icon: 'ph-cursor-click', auto: true,  rule: 'clicou' },
-            { key: 'carrinho-abandonado', title: 'Carrinho abandonado',          icon: 'ph-shopping-cart', auto: true, rule: 'carrinho' },
             { key: 'em-contato', title: 'Em contato',           icon: 'ph-chats-circle',   auto: false },
             { key: 'negociando', title: 'Negociando',           icon: 'ph-handshake',      auto: false },
             { key: 'convertido', title: 'Convertido',           icon: 'ph-check-circle',   auto: true,  rule: 'convertido' },
@@ -13509,11 +13096,6 @@
             if (!cols.some(c => c.key === 'clicou-comprar')) {
                 const coldIdx = cols.findIndex(c => c.key === 'cold');
                 cols.splice(coldIdx < 0 ? 0 : coldIdx + 1, 0, { key: 'clicou-comprar', title: 'Clicaram em comprar e não compraram', icon: 'ph-cursor-click', auto: true, rule: 'clicou' });
-                changed = true;
-            }
-            if (!cols.some(c => c.key === 'carrinho-abandonado')) {
-                const clicouIdx = cols.findIndex(c => c.key === 'clicou-comprar');
-                cols.splice(clicouIdx < 0 ? 0 : clicouIdx + 1, 0, { key: 'carrinho-abandonado', title: 'Carrinho abandonado', icon: 'ph-shopping-cart', auto: true, rule: 'carrinho' });
                 changed = true;
             }
             if (!cols.some(c => c.key === 'convertido')) { cols.push({ key: 'convertido', title: 'Convertido', icon: 'ph-check-circle', auto: true, rule: 'convertido' }); changed = true; }
@@ -13738,12 +13320,9 @@
         }
 
         function crmClassify(d) {
-            // Funil automático: comprou (pós-prova) = Convertido; tem carrinho abandonado real
-            // na loja (checkout aberto, casado por telefone) = Carrinho abandonado; clicou em
-            // "Comprar Agora" no provador mas não comprou = lead quentíssimo; o resto = "Provou e
-            // não comprou". Carrinho abandonado vence "clicou" por ser sinal mais avançado no funil.
+            // Funil automático: comprou (pós-prova) = Convertido; clicou em "Comprar Agora"
+            // no provador mas não comprou = lead quentíssimo; o resto = "Provou e não comprou".
             if (d.bought) return 'convertido';
-            if (d.checkoutUrl) return 'carrinho';
             if (d.clicked) return 'clicou';
             return 'cold';
         }
@@ -14009,9 +13588,7 @@
             const canSend = _waConfigCache && _waConfigCache.status === 'connected' && _waConfigCache.default_template;
             const boughtBadge = lead.bought
                 ? '<span style="background:rgba(16,185,129,.12);color:#10b981;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;"><i class="ph-bold ph-check-circle"></i> Convertido</span>'
-                : (lead.jaCliente
-                    ? '<span style="background:rgba(217,119,6,.12);color:#d97706;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;"><i class="ph-bold ph-warning"></i> Já é cliente (comprou antes da prova)</span>'
-                    : '<span style="background:rgba(124,58,237,.1);color:#7c3aed;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;">Não comprou</span>');
+                : '<span style="background:rgba(124,58,237,.1);color:#7c3aed;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;">Não comprou</span>';
 
             const row = (label, val) => '<div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text-muted);">' + label + '</span><span style="font-weight:600;text-align:right;">' + val + '</span></div>';
 
@@ -14110,7 +13687,7 @@
                     const ph = normalize(s.telefone_cliente);
                     if (!ph) return;
                     if (!leadMap[ph]) {
-                        leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: '', firstDate: '', lastProduct: '', lastProductUrl: '', checkoutUrl: '', rawPhone: s.telefone_cliente, bought: false, jaCliente: false, clicked: false, name: '' };
+                        leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: '', firstDate: '', lastProduct: '', lastProductUrl: '', rawPhone: s.telefone_cliente, bought: false, clicked: false, name: '' };
                     }
                     leadMap[ph].provaCount++;
                     if (s.carrinho_adicionado) leadMap[ph].clicked = true;   // clicou em "Comprar Agora" no provador
@@ -14118,61 +13695,16 @@
                     const d = ts.slice(0, 10);
                     if (d) {
                         leadMap[ph].uniqueDates.add(d);
-                        if (!leadMap[ph].lastDate || d > leadMap[ph].lastDate) leadMap[ph].lastDate = d;
+                        if (!leadMap[ph].lastDate || d > leadMap[ph].lastDate) {
+                            leadMap[ph].lastDate = d;
+                            const firstProduct = (s.produtos || '').split(',')[0].trim();
+                            if (firstProduct) leadMap[ph].lastProduct = firstProduct;
+                            if (s.produto_url) leadMap[ph].lastProductUrl = s.produto_url;
+                        }
                         if (!leadMap[ph].firstDate || d < leadMap[ph].firstDate) leadMap[ph].firstDate = d;
                     }
-                    // Produto/link da prova MAIS RECENTE: as sessões vêm ordenadas por created_at
-                    // ASC, então o último processado vence (antes pegava a 1ª prova do dia quando
-                    // havia várias no mesmo dia — mostrava um modelo aleatório).
-                    const provaProduct = (s.produtos || '').split(',')[0].trim();
-                    if (provaProduct) leadMap[ph].lastProduct = provaProduct;
-                    if (s.produto_url) leadMap[ph].lastProductUrl = s.produto_url;
                     if (ts && (!provaMinTs[ph] || ts < provaMinTs[ph])) provaMinTs[ph] = ts;
                 });
-
-                // === Carrinho abandonado (independe do provador) ===
-                // Puxa os carrinhos abandonados da loja (tabela compartilhada abandoned_checkouts,
-                // a MESMA que a automação carrinho_abandonado usa) e adiciona ao CRM:
-                //  - telefone bate com lead do provador → grava o link de checkout nele;
-                //  - NÃO bate → entra como lead NOVO (0 provas), só pra etapa Carrinho abandonado.
-                // Só do mês corrente (BRT) pra não trabalhar carrinho velho com link já vencido.
-                // Roda ANTES do loop de pedidos: assim quem já comprou é marcado bought e sai da
-                // recuperação (regra de ouro — nunca recuperar quem já comprou).
-                if (user.origem) {
-                    try {
-                        const nowBR = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-                        const monthStart = nowBR.getFullYear() + '-' + String(nowBR.getMonth() + 1).padStart(2, '0') + '-01T00:00:00-03:00';
-                        const chk = [];
-                        let cFrom = 0; const cPage = 1000;
-                        while (true) {
-                            const { data: cb } = await supabaseClient
-                                .from('abandoned_checkouts')
-                                .select('contact_phone,shipping_phone,contact_name,abandoned_checkout_url,customer_visit_created_at,updated_at')
-                                .ilike('abandoned_checkout_url', '%' + user.origem + '%')
-                                .is('completed_at', null)
-                                .is('recovered_at', null)
-                                .gte('customer_visit_created_at', monthStart)
-                                .order('updated_at', { ascending: false })
-                                .range(cFrom, cFrom + cPage - 1);
-                            if (!cb || cb.length === 0) break;
-                            chk.push(...cb);
-                            if (cb.length < cPage) break;
-                            cFrom += cPage;
-                        }
-                        chk.forEach(c => {
-                            if (!c.abandoned_checkout_url) return;
-                            const rawPh = c.contact_phone || c.shipping_phone;
-                            const ph = normalize(rawPh);
-                            if (!ph) return;
-                            if (!leadMap[ph]) {
-                                // abandonou carrinho mas NÃO usou o provador — lead novo, 0 provas
-                                leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: (c.customer_visit_created_at || '').slice(0, 10), firstDate: '', lastProduct: '', lastProductUrl: '', checkoutUrl: '', rawPhone: rawPh || ph, bought: false, jaCliente: false, clicked: false, name: (c.contact_name || '').split(' ')[0] || '' };
-                            }
-                            // ordenado por updated_at desc → o 1º (mais recente) vence
-                            if (!leadMap[ph].checkoutUrl) leadMap[ph].checkoutUrl = c.abandoned_checkout_url;
-                        });
-                    } catch (e) { console.warn('[crm] carrinho abandonado falhou:', e); }
-                }
 
                 const phoneList = Object.keys(leadMap);
                 if (phoneList.length === 0) {
@@ -14219,9 +13751,6 @@
                         // pra personalizar o disparo de quem provou e não comprou pós-prova
                         // mas já é cliente conhecido da loja.
                         if (o[fNome] && !leadMap[ph].name) leadMap[ph].name = o[fNome];
-                        // Qualquer pedido pago (pré OU pós prova) = já é cliente da loja.
-                        // Usado só pro selo "já comprou"; NÃO mexe em bought (conversão pós-prova) nem no faturamento.
-                        leadMap[ph].jaCliente = true;
                         // Replica isOrderAfterProva: só conta como "convertido" se o pedido foi após a prova
                         const provaDate = leadMap[ph].firstDate;
                         const provaTs = provaMinTs[ph] || '';
@@ -14600,25 +14129,12 @@
                         const meta = document.createElement('div');
                         meta.className = 'crm-card-meta';
                         const provasSpan = document.createElement('span');
-                        provasSpan.innerHTML = (lead.provaCount > 0)
-                            ? ('<i class="ph-bold ph-eye"></i> ' + lead.provaCount + ' prova' + (lead.provaCount > 1 ? 's' : ''))
-                            : '<i class="ph-bold ph-shopping-cart"></i> Carrinho (sem prova)';
+                        provasSpan.innerHTML = '<i class="ph-bold ph-eye"></i> ' + lead.provaCount + ' prova' + (lead.provaCount > 1 ? 's' : '');
                         const dateSpan = document.createElement('span');
                         dateSpan.innerHTML = '<i class="ph-bold ph-clock"></i> ' + crmFormatRelative(lead.lastDate);
                         meta.append(provasSpan, dateSpan);
 
                         card.append(name, meta);
-
-                        // Selo "já comprou na loja" — cliente que comprou ANTES de provar (não é lead novo
-                        // nem conversão do provador). Mostra só fora de Convertido pra evitar trabalhar cliente como lead.
-                        if (lead.jaCliente && !lead.bought) {
-                            const cliBadge = document.createElement('div');
-                            cliBadge.style.cssText = 'margin-top:6px;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#d97706;background:rgba(217,119,6,.12);border:1px solid rgba(217,119,6,.25);padding:3px 8px;border-radius:99px;';
-                            const cliIc = document.createElement('i'); cliIc.className = 'ph-bold ph-warning';
-                            const cliTx = document.createElement('span'); cliTx.textContent = 'Já comprou na loja';
-                            cliBadge.append(cliIc, cliTx);
-                            card.appendChild(cliBadge);
-                        }
 
                         // Seletor de responsável (atribuição rápida ao time comercial)
                         const curResp = resp[lead.phone] || '';
@@ -14662,28 +14178,6 @@
                             a.rel = 'noopener';
                             a.innerHTML = '<i class="ph-bold ph-whatsapp-logo"></i> Abrir no WhatsApp';
                             card.appendChild(a);
-                        }
-
-                        // Link do carrinho abandonado do cliente (retomar a compra) — só aparece
-                        // quando o lead tem checkout aberto casado por telefone. Valida o esquema
-                        // (só http/https) antes de virar href, pra não renderizar javascript:/data:.
-                        let safeCheckoutUrl = '';
-                        if (lead.checkoutUrl) {
-                            try {
-                                const u = new URL(lead.checkoutUrl, location.origin);
-                                if (u.protocol === 'https:' || u.protocol === 'http:') safeCheckoutUrl = u.href;
-                            } catch (_) {}
-                        }
-                        if (safeCheckoutUrl) {
-                            const ca = document.createElement('a');
-                            ca.className = 'crm-card-wpp';
-                            ca.href = safeCheckoutUrl;
-                            ca.target = '_blank';
-                            ca.rel = 'noopener noreferrer';
-                            ca.style.cssText = 'background:rgba(124,58,237,.10);border-color:rgba(124,58,237,.30);color:#a78bfa;';
-                            ca.innerHTML = '<i class="ph-bold ph-shopping-cart"></i> Abrir carrinho';
-                            ca.addEventListener('click', (e) => e.stopPropagation());
-                            card.appendChild(ca);
                         }
 
                         // Botão de disparo automático (só aparece se WA configurado)

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Visão Geral Cacifé (DADOS REAIS)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0a; --card:#131313; --card2:#1a1a1a; --line:#262626;
+    --txt:#f5f5f5; --mut:#9a9a9a; --mut2:#6b6b6b;
+    --pri:#7c3aed; --pri2:#a78bfa; --pri-soft:rgba(124,58,237,.12);
+    --green:#22c55e; --green-soft:rgba(34,197,94,.12);
+    --yellow:#eab308; --yellow-soft:rgba(234,179,8,.12);
+    --red:#ef4444; --red-soft:rgba(239,68,68,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Inter',system-ui,sans-serif;padding:32px;line-height:1.4}
+  .wrap{max-width:1180px;margin:0 auto}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--pri),var(--pri2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px}
+  h1{font-size:20px;font-weight:700;letter-spacing:-.02em}
+  .sub{color:var(--mut);font-size:13px}
+  .badge-real{font-size:11px;font-weight:600;color:var(--green);background:var(--green-soft);border:1px solid rgba(34,197,94,.3);padding:5px 10px;border-radius:999px}
+  .filters{display:flex;gap:8px;margin:20px 0 24px;flex-wrap:wrap}
+  .chip{font-size:12px;color:var(--mut);background:var(--card);border:1px solid var(--line);padding:7px 14px;border-radius:8px;cursor:pointer}
+  .chip.active{color:#fff;background:var(--pri-soft);border-color:var(--pri)}
+  .section-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut2);margin:28px 0 12px;display:flex;align-items:center;gap:8px}
+  .section-label .num{width:18px;height:18px;border-radius:5px;background:var(--pri-soft);color:var(--pri2);font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:700}
+  .note{color:var(--mut2);text-transform:none;letter-spacing:0;font-weight:500;font-size:11px}
+
+  .health{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .hcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden}
+  .hcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+  .hcard.ok::before{background:var(--green)} .hcard.warn::before{background:var(--yellow)} .hcard.bad::before{background:var(--red)}
+  .hstatus{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;margin-bottom:12px}
+  .ok .hstatus{color:var(--green);background:var(--green-soft)} .warn .hstatus{color:var(--yellow);background:var(--yellow-soft)} .bad .hstatus{color:var(--red);background:var(--red-soft)}
+  .dot{width:7px;height:7px;border-radius:50%}.ok .dot{background:var(--green)}.warn .dot{background:var(--yellow)}.bad .dot{background:var(--red)}
+  .hlabel{font-size:13px;color:var(--mut);margin-bottom:4px}
+  .hval{font-size:30px;font-weight:800;letter-spacing:-.03em}
+  .hbench{font-size:12px;color:var(--mut2);margin-top:5px}
+  .hbench b{color:var(--pri2);font-weight:600}
+
+  .funnel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px}
+  .funnel-row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:0}
+  .fstage{text-align:center}
+  .fbar{height:90px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--pri),var(--pri2))}
+  .fbar.s2{background:linear-gradient(135deg,#6d28d9,#8b5cf6);height:74px;opacity:.92}
+  .fbar.s3{background:linear-gradient(135deg,#5b21b6,#7c3aed);height:58px;opacity:.84}
+  .fnum{font-size:24px;font-weight:800;letter-spacing:-.02em}
+  .fname{font-size:12px;color:rgba(255,255,255,.85);margin-top:2px}
+  .farrow{padding:0 8px;text-align:center}
+  .frate{font-size:17px;font-weight:800;color:var(--pri2)}
+  .fratelbl{font-size:10px;color:var(--mut2);text-transform:uppercase;letter-spacing:.05em}
+  .fhint{font-size:12px;color:var(--mut);margin-top:16px;text-align:center;background:var(--card2);padding:10px 14px;border-radius:8px;border:1px dashed var(--line)}
+  .fhint b{color:var(--green)} .fhint .warn{color:var(--yellow)}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .kpi .lbl{font-size:12px;color:var(--mut);margin-bottom:6px}
+  .kpi .val{font-size:24px;font-weight:800;letter-spacing:-.02em}
+  .kpi .delta{font-size:12px;margin-top:6px;font-weight:600}
+  .up{color:var(--green)} .down{color:var(--red)} .flat{color:var(--mut2)}
+  .kpi .ctx{font-size:11px;color:var(--mut2);margin-top:3px}
+
+  .twocol{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .panel h3{font-size:14px;font-weight:600;margin-bottom:4px}
+  .panel .psub{font-size:12px;color:var(--mut2);margin-bottom:16px}
+  .spark{width:100%;height:96px}
+  .spark-x{display:flex;justify-content:space-between;font-size:10px;color:var(--mut2);margin-top:6px}
+  .barwrap{display:flex;align-items:flex-end;gap:18px;height:110px;padding:0 6px}
+  .barcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  .bar{width:100%;border-radius:8px 8px 0 0;background:linear-gradient(180deg,var(--pri2),var(--pri))}
+  .barval{font-size:11px;color:var(--txt);margin-bottom:6px;font-weight:600}
+  .barlbl{font-size:11px;color:var(--mut2);margin-top:8px}
+  .insight{margin-top:14px;font-size:12px;color:var(--mut);background:var(--card2);border:1px dashed var(--line);border-radius:8px;padding:11px 13px}
+  .insight b{color:var(--pri2)}
+  .foot{margin-top:32px;font-size:12px;color:var(--mut2);text-align:center}
+  .foot code{color:var(--mut)}
+  @media(max-width:880px){.health,.kpis{grid-template-columns:1fr 1fr}.twocol{grid-template-columns:1fr}.funnel-row{grid-template-columns:1fr;gap:14px}.farrow{transform:rotate(90deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">C</div>
+      <div>
+        <h1>Cacifé Brand — Painel Lojista</h1>
+        <div class="sub">Provador de óculos · Nuvemshop</div>
+      </div>
+    </div>
+    <span class="badge-real">● DADOS REAIS · 20/mar → 20/jun/2026</span>
+  </div>
+
+  <div class="filters">
+    <span class="chip">Hoje</span>
+    <span class="chip">7 dias</span>
+    <span class="chip">30 dias</span>
+    <span class="chip active">Desde a 1ª prova (3 meses)</span>
+  </div>
+
+  <!-- 1. HEALTH ROW -->
+  <div class="section-label"><span class="num">1</span> Tá saudável? <span class="note">— status com threshold</span></div>
+  <div class="health">
+    <div class="hcard ok">
+      <span class="hstatus"><span class="dot"></span> ACIMA DO BENCHMARK</span>
+      <div class="hlabel">Conversão (provou → comprou pós-prova)</div>
+      <div class="hval">16,5%</div>
+      <div class="hbench">Benchmark moda/óculos BR <b>~12%</b> · +4,5 p.p.</div>
+    </div>
+    <div class="hcard bad">
+      <span class="hstatus"><span class="dot"></span> CAINDO</span>
+      <div class="hlabel">Provas por dia (últimos 7d)</div>
+      <div class="hval">214<span style="font-size:15px;color:var(--mut2);font-weight:600">/dia</span></div>
+      <div class="hbench">Caiu <b style="color:var(--red)">20,5%</b> vs 7d anteriores (269/dia)</div>
+    </div>
+    <div class="hcard warn">
+      <span class="hstatus"><span class="dot"></span> OPORTUNIDADE</span>
+      <div class="hlabel">% do faturamento via provador</div>
+      <div class="hval">9,0%</div>
+      <div class="hbench">R$ 176.462 de R$ 1,95M · converte bem, dá pra crescer</div>
+    </div>
+  </div>
+
+  <!-- 2. FUNNEL -->
+  <div class="section-label"><span class="num">2</span> Onde está o gargalo? <span class="note">— funil real</span></div>
+  <div class="funnel">
+    <div class="funnel-row">
+      <div class="fstage"><div class="fbar"><div class="fnum">19.999</div><div class="fname">Provas geradas</div></div></div>
+      <div class="farrow"><div class="frate">42%</div><div class="fratelbl">pessoas únicas</div></div>
+      <div class="fstage"><div class="fbar s2"><div class="fnum">8.316</div><div class="fname">Pessoas que provaram</div></div></div>
+      <div class="farrow"><div class="frate">16,5%</div><div class="fratelbl">viraram comprador</div></div>
+      <div class="fstage"><div class="fbar s3"><div class="fnum">1.368</div><div class="fname">Compradores pós-prova</div></div></div>
+    </div>
+    <div class="fhint">A conversão <b>16,5%</b> está acima do benchmark — o gargalo <span class="warn">não é conversão, é volume</span>: provas/dia caíram 20%. Reativar tráfego pro provador = receita quase garantida (cada provador rende R$ 122,80 de ticket).</div>
+  </div>
+
+  <!-- 3. KPIs -->
+  <div class="section-label"><span class="num">3</span> Números que importam <span class="note">— cada um com comparação</span></div>
+  <div class="kpis">
+    <div class="kpi">
+      <div class="lbl">Ticket médio — com provador</div>
+      <div class="val">R$ 122,80</div>
+      <div class="delta up">▲ 43% vs sem provador</div>
+      <div class="ctx">Sem provador: R$ 85,85</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">Faturamento via provador</div>
+      <div class="val">R$ 176.462</div>
+      <div class="delta up">1.437 pedidos pagos</div>
+      <div class="ctx">9,0% do faturamento total</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">Compradores pós-prova</div>
+      <div class="val">1.368</div>
+      <div class="delta flat">de 8.316 que provaram</div>
+      <div class="ctx">~1,05 pedido por cliente</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">Re-engajamento</div>
+      <div class="val">1.360</div>
+      <div class="delta flat">voltaram em outro dia</div>
+      <div class="ctx">16,4% de quem provou</div>
+    </div>
+  </div>
+
+  <!-- 4 + 5 -->
+  <div class="section-label"><span class="num">4</span> O que mudou &nbsp;·&nbsp; <span class="num">5</span> Que ação tomar</div>
+  <div class="twocol">
+    <div class="panel">
+      <h3>Faturamento via provador — mês a mês</h3>
+      <div class="psub">Real · jun é mês parcial (até dia 20)</div>
+      <div class="barwrap">
+        <div class="barcol"><span class="barval">R$ 12,3k</span><div class="bar" style="height:19%"></div><span class="barlbl">Mar</span></div>
+        <div class="barcol"><span class="barval">R$ 54,7k</span><div class="bar" style="height:86%"></div><span class="barlbl">Abr</span></div>
+        <div class="barcol"><span class="barval">R$ 63,6k</span><div class="bar" style="height:100%"></div><span class="barlbl">Mai</span></div>
+        <div class="barcol"><span class="barval">R$ 45,9k</span><div class="bar" style="height:72%;opacity:.6"></div><span class="barlbl">Jun*</span></div>
+      </div>
+      <div class="insight">Subiu forte Mar→Mai. Jun (parcial) já em R$ 45,9k mas no ritmo de provas caindo 20% — <b>sinal pra reativar tráfego antes de fechar o mês</b>.</div>
+    </div>
+
+    <div class="panel">
+      <h3>Ação prioritária</h3>
+      <div class="psub">O que o operador faz hoje</div>
+      <div class="insight" style="margin-top:0">
+        <b>1.</b> Provas/dia caindo 20% → revisar campanha/tráfego que leva ao provador.<br><br>
+        <b>2.</b> 6.948 pessoas provaram e <b>não compraram</b> (8.316 − 1.368) → fila quente de remarketing WhatsApp.<br><br>
+        <b>3.</b> Provador converte 16,5% e sobe ticket +43%, mas é só 9% do faturamento → empurrar o widget pra mais produtos/páginas.
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    Dados reais via Supabase (<code>geracoes_provou_levou</code> + <code>cacife_orders</code>) · período 20/03→20/06/2026 · paginado + regra timestamp pós-prova ·
+    <b style="color:var(--mut)">somente leitura — não altera <code>login/index.html</code></b>
+  </div>
+
+</div>
+</body>
+</html>
