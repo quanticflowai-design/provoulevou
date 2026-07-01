@@ -4048,12 +4048,13 @@
                     .disp-layout { display:flex; gap:0; align-items:stretch; margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw); max-width:100vw; min-height:calc(100vh - 64px); margin-top:0; }
                     .disp-layout > .disp-subpane.active { flex:1; min-width:0; padding:22px 30px 30px; }
                     .disp-subnav { display:flex; flex-direction:column; gap:3px; width:236px; flex-shrink:0; border-right:1px solid var(--border); background:var(--card-bg); padding:14px 12px 18px; transition:width .18s ease; }
-                    .disp-nav-burger { color:var(--text-muted) !important; margin-bottom:8px !important; }
+                    .disp-nav-burger { color:var(--text-muted) !important; margin-top:auto !important; margin-bottom:0 !important; border-top:1px solid var(--border); border-radius:0 !important; padding-top:14px !important; font-size:12.5px !important; }
                     .disp-nav-burger:hover { color:#7c3aed !important; background:rgba(124,58,237,0.06) !important; }
-                    .disp-nav-burger i { font-size:19px !important; }
-                    .disp-subnav.mini { width:60px; padding:14px 8px 18px; }
-                    .disp-subnav.mini .disp-nav-txt { display:none; }
-                    .disp-subnav.mini button { justify-content:center; padding:11px 0; }
+                    .disp-nav-burger i { font-size:17px !important; }
+                    .disp-subnav.mini { width:62px !important; padding:14px 8px 18px !important; }
+                    .disp-subnav.mini .disp-nav-txt { display:none !important; }
+                    .disp-subnav.mini button { justify-content:center !important; padding:11px 0 !important; }
+                    .disp-subnav.mini .disp-nav-burger { padding-top:14px !important; }
                     .disp-subnav.mini .disp-sub-badge { position:absolute; top:2px; right:6px; margin-left:0; }
                     /* Aba Disparos: esconde a linha de título + créditos inteira (empurrava o menu) — menu sobe pro topo */
                     body[data-active-tab="disparos"] #pageTitleRow { display:none !important; }
@@ -4188,7 +4189,6 @@
                 </style>
                 <div class="disp-layout">
                 <div class="disp-subnav" id="dispSubnav">
-                    <button class="disp-nav-burger" onclick="dispToggleNav()" title="Recolher/expandir menu" aria-label="Menu"><i class="ph-bold ph-list"></i></button>
                     <button data-sub="crm" class="active" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> <span class="disp-nav-txt">CRM</span></button>
                     <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> <span class="disp-nav-txt">Conversas</span> <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
                     <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-paper-plane-tilt"></i> <span class="disp-nav-txt">Disparar</span></button>
@@ -4196,6 +4196,7 @@
                     <button data-sub="historico" onclick="dispSwitchSub('historico')"><i class="ph-bold ph-chart-bar"></i> <span class="disp-nav-txt">Histórico</span></button>
                     <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> <span class="disp-nav-txt">Conexão</span></button>
                     <button data-sub="automacoes" onclick="dispSwitchSub('automacoes')"><i class="ph-bold ph-flow-arrow"></i> <span class="disp-nav-txt">Automações</span></button>
+                    <button type="button" class="disp-nav-burger" onclick="dispToggleNav()" title="Recolher/expandir menu" aria-label="Recolher menu"><i class="ph-bold ph-caret-double-left"></i> <span class="disp-nav-txt">Recolher</span></button>
                 </div>
                 <div class="disp-subpane active" id="dispSubCrm"></div>
                 <div class="disp-subpane" id="dispSubConversas"></div>
@@ -4410,9 +4411,13 @@
 
                 <!-- ===== CAIXA DE ENTRADA / CHAT ===== -->
                 <style>
-                    /* Conversas dentro do painel único: sem card/borda própria, encosta no menu */
-                    #dispChatCard { background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; margin:0 !important; }
-                    .chat-wrap { display:grid; grid-template-columns: 320px 1fr; gap:0; height:calc(100vh - 210px); min-height:460px; border-top:1px solid var(--border); overflow:hidden; }
+                    /* Conversas = inbox flush (menu | lista | conversa), sem cards nem vãos */
+                    body[data-active-tab="disparos"] #dispSubConversas.disp-subpane.active { padding:0 !important; display:flex; flex-direction:column; }
+                    #dispChatCard { background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; margin:0 !important; display:flex; flex-direction:column; flex:1; min-height:0; }
+                    .chat-inbox-head { padding:13px 22px; border-bottom:1px solid var(--border); }
+                    .chat-inbox-head .desc { display:none; }
+                    .chat-wrap { display:grid; grid-template-columns: 340px 1fr; gap:0; flex:1; min-height:0; overflow:hidden; }
+                    .chat-list { border-right:1px solid var(--border); }
                     .chat-list { border-right:1px solid var(--border); overflow-y:auto; background:var(--card-bg); }
                     .chat-list-empty { padding:30px 18px; text-align:center; color:var(--text-muted); font-size:13px; }
                     .chat-conv { display:flex; gap:10px; padding:12px 14px; cursor:pointer; border-bottom:1px solid var(--border); transition:background .12s; }
@@ -4456,7 +4461,7 @@
                     .chat-ctx-confirm button.danger { background:#ef4444; color:#fff; border-color:#ef4444; }
                 </style>
                 <div class="disp-card" id="dispChatCard" style="margin-bottom:20px;">
-                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+                    <div class="chat-inbox-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
                         <div>
                             <h3 style="margin:0 0 4px;"><i class="ph-bold ph-chats-circle"></i> Caixa de entrada</h3>
                             <p class="desc" style="margin:0;">Veja as respostas dos clientes e converse direto por aqui. Atualiza ao vivo.</p>
