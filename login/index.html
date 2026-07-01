@@ -6300,12 +6300,18 @@
             const phone = _chatCtxPhone;
             chatCloseCtxMenu();
             if (!phone) return;
+            // Casa por ÚLTIMOS 8 dígitos: apaga todas as variantes da mesma pessoa (com/sem 55,
+            // com/sem o 9º dígito) que a Meta cria e que viram conversas separadas. Antes casava
+            // por telefone exato → apagava uma variante e a outra ficava.
+            const last8 = String(phone).replace(/\D/g, '').slice(-8);
+            const sameLead = p => String(p).replace(/\D/g, '').slice(-8) === last8 && last8.length === 8;
             try {
-                const { error } = await supabaseClient.from('whatsapp_mensagens').delete()
-                    .eq('email', activeUser.email).eq('lead_phone', phone);
+                let del = supabaseClient.from('whatsapp_mensagens').delete().eq('email', activeUser.email);
+                del = last8.length === 8 ? del.ilike('lead_phone', '%' + last8 + '%') : del.eq('lead_phone', phone);
+                const { error } = await del;
                 if (error) throw error;
-                _chatConvs = _chatConvs.filter(c => c.phone !== phone);
-                if (phone === _chatActivePhone) {
+                _chatConvs = _chatConvs.filter(c => !sameLead(c.phone));
+                if (sameLead(_chatActivePhone)) {
                     _chatActivePhone = null;
                     const thread = document.getElementById('chatThread');
                     if (thread) thread.innerHTML = '<div class="chat-empty-thread"><div><i class="ph-bold ph-chat-centered-dots" style="font-size:32px;opacity:.4;"></i><br><br>Selecione uma conversa à esquerda<br>pra ver as mensagens.</div></div>';
