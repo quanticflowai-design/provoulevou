@@ -6108,6 +6108,11 @@
                 _chatConvs = Object.values(byPhone).sort((a,b) => (b.lastAt||'').localeCompare(a.lastAt||''));
                 chatRenderList();
                 chatSubscribeRealtime();
+                // Categoria do lead (carrinho abandonado / provou não comprou / etc.) vem do CRM.
+                // Se ainda não carregou, carrega em background e re-renderiza pra pintar os badges.
+                if (!crmLeadMapCache && typeof loadCRM === 'function') {
+                    loadCRM().then(() => chatRenderList()).catch(() => {});
+                }
             } catch (e) {
                 const msg = (e && e.message) || '';
                 if (/relation|does not exist|not find the table|schema cache/i.test(msg)) {
@@ -6116,6 +6121,21 @@
                     listEl.innerHTML = '<div class="chat-list-empty" style="color:#ef4444;">Erro: ' + escapeHtml(msg) + '</div>';
                 }
             }
+        }
+
+        // Categoria do lead na Conversas — reusa a classificação do CRM (crmClassify):
+        // comprou / carrinho abandonado / clicou em comprar / provou e não comprou.
+        function chatLeadCategory(phone) {
+            if (!crmLeadMapCache || typeof crmClassify !== 'function') return null;
+            const d = crmLeadMapCache[normalize(phone)];
+            if (!d) return null;
+            const M = {
+                convertido: { label: '✅ Comprou',             bg: 'rgba(16,185,129,.15)', fg: '#059669' },
+                carrinho:   { label: '🛒 Carrinho abandonado', bg: 'rgba(245,158,11,.15)', fg: '#b45309' },
+                clicou:     { label: '🔥 Clicou em comprar',   bg: 'rgba(239,68,68,.13)',  fg: '#dc2626' },
+                cold:       { label: '🕶️ Provou, não comprou', bg: 'rgba(124,58,237,.12)', fg: '#7c3aed' },
+            };
+            return M[crmClassify(d)] || null;
         }
 
         function chatRenderList() {
@@ -6140,6 +6160,7 @@
                     <div class="chat-conv-main">
                         <div class="chat-conv-name">${escapeHtml(c.name || ('+' + c.phone))}</div>
                         <div class="chat-conv-last">${escapeHtml(c.lastBody || '')}</div>
+                        ${(() => { const t = chatLeadCategory(c.phone); return t ? '<span style="display:inline-block;margin-top:3px;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:' + t.bg + ';color:' + t.fg + ';">' + escapeHtml(t.label) + '</span>' : ''; })()}
                     </div>
                     <div class="chat-conv-meta">
                         <span class="chat-conv-time">${chatFmtTime(c.lastAt)}</span>
