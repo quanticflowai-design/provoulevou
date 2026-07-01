@@ -9075,93 +9075,58 @@
             return d.getTime();
         }
 
-        function _extractAgendPhones(payloads) {
-            const out = [];
-            const visit = (v) => {
-                if (!v) return;
-                if (Array.isArray(v)) return v.forEach(visit);
-                if (typeof v === 'object') {
-                    ['to', 'phone', 'telefone', 'lead_phone', 'celular', 'numero', 'number'].forEach(k => { if (v[k]) out.push(String(v[k])); });
-                    Object.values(v).forEach(visit);
-                }
-            };
-            try { visit(typeof payloads === 'string' ? JSON.parse(payloads) : payloads); } catch (e) {}
-            return out;
-        }
-
-        // Base = whatsapp_send_log (fonte-verdade de todo disparo). Cada disparo é rotulado por
-        // campanha: casa com evento de flow (flow_runs_log.at) -> aquela automação; com um agendado
-        // -> aquele agendado; senão -> "avulsos" (disparo manual pela aba Disparar). Nada fica órfão.
-        // Recuperado reusa allOrdersCache (dedup) + normalize() + orderPhoneKeys(); janela fixa 30d.
+        // Atribuição por TEMPLATE: cada flow/agendado tem seu(s) template(s); o template_name do
+        // disparo (whatsapp_send_log) identifica a campanha. Sends com template fora de qualquer
+        // campanha -> "Disparos avulsos". Recuperado reusa allOrdersCache (dedup) + normalize() +
+        // orderPhoneKeys(); janela de compra fixa 30d; atribuição last-touch.
         async function computeDispEfetividade(period) {
             const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
-            const TOL = 6 * 60 * 1000; // tolerância p/ casar send_log <-> flow_runs_log
             const cutoff = _dispPeriodCutoffMs(period);
 
             if (!allOrdersCache || !allOrdersCache.length) {
                 try { await loadSharedData(); } catch (e) { console.warn('[dashboard] sharedData:', e); }
             }
 
-            // 1) send_log -> dispByPhone (regra de recuperação) + eventsByPhone (rótulo inicial "avulsos")
+            // campanhas: flows (nome + templates dos passos) e agendados (template) -> mapa template->cid
+            let flows = [];
+            try { const { data } = await supabaseClient.from('flows').select('id, nome, ativo, passos').eq('lojista_email', activeUser.email); flows = data || []; }
+            catch (e) { console.warn('[dashboard] flows:', e); }
+            let agend = [];
+            try { const { data } = await supabaseClient.from('disparos_agendados').select('id, template, status, active, sent_count').eq('lojista_email', activeUser.email); agend = data || []; }
+            catch (e) { console.warn('[dashboard] agendados:', e); }
+
+            const tplToCid = {};
+            flows.forEach(f => {
+                const cid = 'flow:' + f.id;
+                (f.passos || []).forEach(p => { if (p && p.tipo === 'enviar' && p.template && !(p.template in tplToCid)) tplToCid[p.template] = cid; });
+            });
+            agend.forEach(a => { const cid = 'ag:' + a.id; if (a.template && !(a.template in tplToCid)) tplToCid[a.template] = cid; });
+
+            // send_log -> dispByPhone (regra de recuperação) + eventsByPhone (cid pelo template)
             let sendRows = [];
             try {
                 const { data } = await supabaseClient.from('whatsapp_send_log')
-                    .select('lead_phone, sent_at, status').eq('email', activeUser.email).limit(20000);
+                    .select('lead_phone, sent_at, status, template_name').eq('email', activeUser.email).limit(20000);
                 sendRows = data || [];
             } catch (e) { console.warn('[dashboard] send_log:', e); }
-            const dispByPhone = {}, eventsByPhone = {};
+
+            const dispByPhone = {}, eventsByPhone = {}, disparosPorCamp = {}, alcancadosPorCamp = {};
+            let disparosTotal = 0; const alcTotal = new Set();
             sendRows.forEach(r => {
                 if (r.status === 'failed' || !r.sent_at) return;
                 const ph = normalize(r.lead_phone); if (!ph) return;
                 const ms = new Date(r.sent_at).getTime(); if (!ms) return;
+                const cid = tplToCid[r.template_name] || 'avulsos';
                 (dispByPhone[ph] = dispByPhone[ph] || []).push(ms);
-                (eventsByPhone[ph] = eventsByPhone[ph] || []).push({ ms, cid: 'avulsos', used: false });
+                (eventsByPhone[ph] = eventsByPhone[ph] || []).push({ ms, cid });
+                if (cutoff === 0 || ms >= cutoff) {
+                    disparosTotal++; alcTotal.add(ph);
+                    disparosPorCamp[cid] = (disparosPorCamp[cid] || 0) + 1;
+                    (alcancadosPorCamp[cid] = alcancadosPorCamp[cid] || new Set()).add(ph);
+                }
             });
 
-            // 2) campanhas: flows + eventos de envio (relabel do evento avulso mais próximo)
-            let flows = [];
-            try { const { data } = await supabaseClient.from('flows').select('id, nome, ativo').eq('lojista_email', activeUser.email); flows = data || []; }
-            catch (e) { console.warn('[dashboard] flows:', e); }
-            let runRows = [];
-            try {
-                const { data } = await supabaseClient.from('flow_runs_log')
-                    .select('flow_id, lead_phone, at').eq('lojista_email', activeUser.email)
-                    .eq('tipo_no', 'enviar').eq('resultado', 'enviado').limit(50000);
-                runRows = data || [];
-            } catch (e) { console.warn('[dashboard] flow_runs_log:', e); }
-            const relabel = (ph, ms, cid) => {
-                const arr = eventsByPhone[ph];
-                if (!arr) { (eventsByPhone[ph] = [{ ms, cid, used: true }]); return; }
-                let best = -1, bd = TOL + 1;
-                arr.forEach((e, i) => { if (e.cid === 'avulsos' && !e.used) { const d = Math.abs(e.ms - ms); if (d < bd) { bd = d; best = i; } } });
-                if (best >= 0) { arr[best].cid = cid; arr[best].used = true; } else arr.push({ ms, cid, used: true });
-            };
-            runRows.forEach(r => { const ph = normalize(r.lead_phone); const ms = new Date(r.at).getTime(); if (ph && ms) relabel(ph, ms, 'flow:' + r.flow_id); });
-
-            // 3) campanhas: agendados
-            let agend = [];
-            try {
-                const { data } = await supabaseClient.from('disparos_agendados')
-                    .select('id, template, status, active, recurrence, sent_count, executed_at, scheduled_at, payloads')
-                    .eq('lojista_email', activeUser.email);
-                agend = data || [];
-            } catch (e) { console.warn('[dashboard] agendados:', e); }
-            agend.forEach(a => {
-                const ms = new Date(a.executed_at || a.scheduled_at || 0).getTime() || 0;
-                _extractAgendPhones(a.payloads).forEach(p => { const ph = normalize(p); if (ph && ms) relabel(ph, ms, 'ag:' + a.id); });
-            });
-
-            // 4) disparos/alcançados por campanha (no período)
-            const disparosPorCamp = {}, alcancadosPorCamp = {};
-            let disparosTotal = 0; const alcTotal = new Set();
-            Object.entries(eventsByPhone).forEach(([ph, arr]) => arr.forEach(e => {
-                if (cutoff !== 0 && e.ms < cutoff) return;
-                disparosTotal++; alcTotal.add(ph);
-                disparosPorCamp[e.cid] = (disparosPorCamp[e.cid] || 0) + 1;
-                (alcancadosPorCamp[e.cid] = alcancadosPorCamp[e.cid] || new Set()).add(ph);
-            }));
-
-            // 5) recuperado (total) + atribuição last-touch
+            // recuperado (total) + atribuição last-touch
             const fTotal = activeUser.campo_total_pedido || 'total';
             const fData = activeUser.campo_data_pedido || null;
             const total = { valor: 0, pedidos: 0 };
@@ -9197,7 +9162,6 @@
             const perLabel = { 30: 'nos últimos 30 dias', 90: 'nos últimos 90 dias', all: 'em todo o período' }[d.period];
             const pill = (p, txt) => '<button class="dd-seg' + (String(d.period) === String(p) ? ' on' : '') + '" onclick="dispDashSetPeriod(\'' + p + '\')">' + txt + '</button>';
 
-            // campanhas -> ranking por recuperado
             const camps = [];
             d.flows.forEach(f => camps.push({ cid: 'flow:' + f.id, nome: f.nome || 'Automação sem nome', tipo: 'Automação', ativa: !!f.ativo }));
             d.agend.forEach(a => camps.push({ cid: 'ag:' + a.id, nome: a.template || 'Disparo agendado', tipo: 'Agendado', ativa: !!a.active }));
@@ -9211,10 +9175,10 @@
             });
             camps.sort((a, b) => (b.rec.valor - a.rec.valor) || (b.disp - a.disp));
             const maxRec = Math.max(1, ...camps.map(c => c.rec.valor));
+            const camposComDisp = camps.filter(c => c.disp > 0 || c.rec.valor > 0);
+            const shown = camposComDisp.length ? camposComDisp : camps;
 
-            const taxa = d.disparosTotal ? Math.round((d.total.pedidos / d.disparosTotal) * 1000) / 10 : 0;
-
-            let list = camps.map((c, i) => {
+            let list = shown.map((c, i) => {
                 const pct = Math.round((c.rec.valor / maxRec) * 100);
                 const tipoCls = c.tipo === 'Automação' ? 'auto' : (c.tipo === 'Agendado' ? 'sched' : 'manual');
                 const badge = c.ativa === null ? '' : (c.ativa ? '<span class="dd-badge on">Ativa</span>' : '<span class="dd-badge off">Pausada</span>');
@@ -9230,7 +9194,7 @@
                     + '  <div class="dd-camp-rec"><div class="dd-rec-v">' + _brl(c.rec.valor) + '</div><div class="dd-rec-l">' + _int(c.rec.pedidos) + (c.rec.pedidos === 1 ? ' pedido' : ' pedidos') + '</div></div>'
                     + '</div>';
             }).join('');
-            if (!camps.length) {
+            if (!shown.length) {
                 list = '<div class="dd-empty">Você ainda não tem campanhas nem disparos neste período. <button class="dd-cta" onclick="dispSwitchSub(\'automacoes\')">Criar automação</button></div>';
             }
 
