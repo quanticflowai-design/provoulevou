@@ -4040,19 +4040,28 @@
 
                 <!-- ===== SUB-NAVEGAÇÃO DA ABA DISPAROS ===== -->
                 <style>
-                    .disp-subnav { display:flex; gap:6px; margin-bottom:20px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+                    /* Menu da aba Disparos à ESQUERDA (vertical), conteúdo à direita */
+                    .disp-layout { display:flex; gap:24px; align-items:flex-start; }
+                    .disp-layout > .disp-subpane.active { flex:1; min-width:0; }
+                    .disp-subnav { display:flex; flex-direction:column; gap:2px; width:214px; flex-shrink:0; border-right:1px solid var(--border); padding-right:10px; }
                     .disp-subnav button {
                         position:relative; background:transparent; border:none; cursor:pointer;
-                        padding:10px 16px; font-family:inherit; font-size:14px; font-weight:600;
-                        color:var(--text-muted); border-bottom:2px solid transparent; margin-bottom:-1px;
-                        display:inline-flex; align-items:center; gap:7px; transition:color .15s;
+                        padding:10px 14px; font-family:inherit; font-size:14px; font-weight:600;
+                        color:var(--text-muted); border-radius:9px; width:100%; text-align:left;
+                        display:inline-flex; align-items:center; gap:9px; transition:color .15s, background .15s;
                     }
-                    .disp-subnav button:hover { color:var(--text-main); }
-                    .disp-subnav button.active { color:#7c3aed; border-bottom-color:#7c3aed; }
+                    .disp-subnav button:hover { color:var(--text-main); background:rgba(124,58,237,0.06); }
+                    .disp-subnav button.active { color:#7c3aed; background:rgba(124,58,237,0.10); }
                     .disp-subnav button i { font-size:16px; }
-                    .disp-subnav .disp-sub-badge { background:#25D366; color:#fff; font-size:10px; font-weight:700; min-width:17px; height:17px; border-radius:9px; display:none; place-items:center; padding:0 5px; }
+                    .disp-subnav .disp-sub-badge { background:#25D366; color:#fff; font-size:10px; font-weight:700; min-width:17px; height:17px; border-radius:9px; display:none; place-items:center; padding:0 5px; margin-left:auto; }
                     .disp-subpane { display:none; }
                     .disp-subpane.active { display:block; animation: dispFade .2s ease; }
+                    @media (max-width: 760px) {
+                        .disp-layout { flex-direction:column; gap:14px; }
+                        .disp-subnav { flex-direction:row; width:auto; border-right:none; border-bottom:1px solid var(--border); padding-right:0; padding-bottom:6px; overflow-x:auto; flex-wrap:nowrap; }
+                        .disp-subnav button { width:auto; white-space:nowrap; }
+                        .disp-subnav .disp-sub-badge { margin-left:6px; }
+                    }
                     @keyframes dispFade { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
                 </style>
 
@@ -4162,6 +4171,7 @@
                         .autom-canvas { height:340px; }
                     }
                 </style>
+                <div class="disp-layout">
                 <div class="disp-subnav" id="dispSubnav">
                     <button data-sub="crm" class="active" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> CRM</button>
                     <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> Conversas <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
@@ -4178,6 +4188,7 @@
                 <div class="disp-subpane" id="dispSubHistorico"></div>
                 <div class="disp-subpane" id="dispSubConexao"></div>
                 <div class="disp-subpane" id="dispSubAutomacoes"></div>
+                </div>
 
                 <!-- Host do card WhatsApp Business (waCard é movido pra cá via JS) -->
                 <div id="disparosWaHost"></div>
