@@ -2375,9 +2375,6 @@
                         <div id="masterMenuEmpty" style="display:none;padding:14px;text-align:center;font-size:12px;color:var(--text-muted);">Nenhum lojista encontrado</div>
                     </div>
                 </div>
-                <button class="btn-refresh" onclick="startDashboardTour()" title="Rever tutorial" style="margin-left:12px;">
-                    <i class="ph-bold ph-compass"></i> Tour
-                </button>
                 <button class="btn-refresh" onclick="logout()">
                     <i class="ph-bold ph-sign-out"></i> Sair
                 </button>
@@ -4042,10 +4039,10 @@
                 <style>
                     /* Menu da aba Disparos à ESQUERDA (vertical), conteúdo à direita — app-shell full-width */
                     /* TELA CHEIA sem card: menu drawer colado na borda esquerda, conteúdo preenche o resto */
-                    /* Cola o layout no header (remove a faixa de respiro acima do menu) — só na aba Disparos */
-                    body[data-active-tab="disparos"] .container { padding-top:0 !important; }
-                    body[data-active-tab="disparos"] .dashboard-content { padding-top:64px !important; padding-bottom:0 !important; }
-                    .disp-layout { display:flex; gap:0; align-items:stretch; margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw); max-width:100vw; min-height:calc(100vh - 64px); margin-top:0; }
+                    /* Cola o layout no header E nas bordas: tira padding/max-width do container só na aba Disparos (sem hack de vw, que erra por causa da scrollbar) */
+                    body[data-active-tab="disparos"] .container { padding:0 !important; max-width:none !important; }
+                    body[data-active-tab="disparos"] .dashboard-content { padding:64px 0 0 0 !important; max-width:none !important; margin:0 !important; }
+                    .disp-layout { display:flex; gap:0; align-items:stretch; min-height:calc(100vh - 64px); margin-top:0; }
                     .disp-layout > .disp-subpane.active { flex:1; min-width:0; padding:22px 30px 30px; }
                     .disp-subnav { display:flex; flex-direction:column; gap:3px; width:236px; flex-shrink:0; border-right:1px solid var(--border); background:var(--card-bg); padding:14px 12px 18px; transition:width .18s ease; position:sticky; top:64px; height:calc(100vh - 64px); align-self:flex-start; overflow-y:auto; }
                     .disp-nav-burger { color:var(--text-muted) !important; margin-top:auto !important; margin-bottom:0 !important; border-top:1px solid var(--border); border-radius:0 !important; padding-top:14px !important; font-size:12.5px !important; }
