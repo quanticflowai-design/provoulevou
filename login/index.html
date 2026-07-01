@@ -4041,10 +4041,17 @@
                 <!-- ===== SUB-NAVEGAÇÃO DA ABA DISPAROS ===== -->
                 <style>
                     /* Menu da aba Disparos à ESQUERDA (vertical), conteúdo à direita — app-shell full-width */
-                    /* PAINEL ÚNICO: menu + conteúdo numa só superfície (sem cards separados) */
-                    .disp-layout { display:flex; gap:0; align-items:stretch; background:var(--card-bg); border:1px solid var(--border); border-radius:16px; overflow:hidden; box-shadow:var(--shadow-sm); min-height:calc(100vh - 150px); margin-top:-6px; }
-                    .disp-layout > .disp-subpane.active { flex:1; min-width:0; padding:20px 24px 26px; }
-                    .disp-subnav { display:flex; flex-direction:column; gap:2px; width:238px; flex-shrink:0; border-right:1px solid var(--border); background:transparent; padding:20px 14px 24px 20px; }
+                    /* TELA CHEIA sem card: menu drawer colado na borda esquerda, conteúdo preenche o resto */
+                    .disp-layout { display:flex; gap:0; align-items:stretch; margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw); max-width:100vw; min-height:calc(100vh - 92px); margin-top:-10px; }
+                    .disp-layout > .disp-subpane.active { flex:1; min-width:0; padding:22px 30px 30px; }
+                    .disp-subnav { display:flex; flex-direction:column; gap:3px; width:236px; flex-shrink:0; border-right:1px solid var(--border); background:var(--card-bg); padding:14px 12px 18px; transition:width .18s ease; }
+                    .disp-nav-burger { color:var(--text-muted) !important; margin-bottom:8px !important; }
+                    .disp-nav-burger:hover { color:#7c3aed !important; background:rgba(124,58,237,0.06) !important; }
+                    .disp-nav-burger i { font-size:19px !important; }
+                    .disp-subnav.mini { width:60px; padding:14px 8px 18px; }
+                    .disp-subnav.mini .disp-nav-txt { display:none; }
+                    .disp-subnav.mini button { justify-content:center; padding:11px 0; }
+                    .disp-subnav.mini .disp-sub-badge { position:absolute; top:2px; right:6px; margin-left:0; }
                     /* Aba Disparos: esconde a linha de título + créditos inteira (empurrava o menu) — menu sobe pro topo */
                     body[data-active-tab="disparos"] #pageTitleRow { display:none !important; }
                     .disp-subnav button {
@@ -4178,13 +4185,14 @@
                 </style>
                 <div class="disp-layout">
                 <div class="disp-subnav" id="dispSubnav">
-                    <button data-sub="crm" class="active" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> CRM</button>
-                    <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> Conversas <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
-                    <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-paper-plane-tilt"></i> Disparar</button>
-                    <button data-sub="templates" onclick="dispSwitchSub('templates')"><i class="ph-bold ph-chat-circle-text"></i> Mensagens modelo</button>
-                    <button data-sub="historico" onclick="dispSwitchSub('historico')"><i class="ph-bold ph-chart-bar"></i> Histórico</button>
-                    <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> Conexão</button>
-                    <button data-sub="automacoes" onclick="dispSwitchSub('automacoes')"><i class="ph-bold ph-flow-arrow"></i> Automações</button>
+                    <button class="disp-nav-burger" onclick="dispToggleNav()" title="Recolher/expandir menu" aria-label="Menu"><i class="ph-bold ph-list"></i></button>
+                    <button data-sub="crm" class="active" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> <span class="disp-nav-txt">CRM</span></button>
+                    <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> <span class="disp-nav-txt">Conversas</span> <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
+                    <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-paper-plane-tilt"></i> <span class="disp-nav-txt">Disparar</span></button>
+                    <button data-sub="templates" onclick="dispSwitchSub('templates')"><i class="ph-bold ph-chat-circle-text"></i> <span class="disp-nav-txt">Mensagens modelo</span></button>
+                    <button data-sub="historico" onclick="dispSwitchSub('historico')"><i class="ph-bold ph-chart-bar"></i> <span class="disp-nav-txt">Histórico</span></button>
+                    <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> <span class="disp-nav-txt">Conexão</span></button>
+                    <button data-sub="automacoes" onclick="dispSwitchSub('automacoes')"><i class="ph-bold ph-flow-arrow"></i> <span class="disp-nav-txt">Automações</span></button>
                 </div>
                 <div class="disp-subpane active" id="dispSubCrm"></div>
                 <div class="disp-subpane" id="dispSubConversas"></div>
@@ -4401,7 +4409,7 @@
                 <style>
                     /* Conversas dentro do painel único: sem card/borda própria, encosta no menu */
                     #dispChatCard { background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; margin:0 !important; }
-                    .chat-wrap { display:grid; grid-template-columns: 300px 1fr; gap:0; height:calc(100vh - 250px); min-height:460px; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+                    .chat-wrap { display:grid; grid-template-columns: 320px 1fr; gap:0; height:calc(100vh - 210px); min-height:460px; border-top:1px solid var(--border); overflow:hidden; }
                     .chat-list { border-right:1px solid var(--border); overflow-y:auto; background:var(--card-bg); }
                     .chat-list-empty { padding:30px 18px; text-align:center; color:var(--text-muted); font-size:13px; }
                     .chat-conv { display:flex; gap:10px; padding:12px 14px; cursor:pointer; border-bottom:1px solid var(--border); transition:background .12s; }
@@ -7639,8 +7647,25 @@
             window._dispSubtabsBuilt = true;
         }
 
+        // Menu drawer da aba Disparos: recolhe/expande (só ícones) e persiste
+        function dispToggleNav() {
+            const nav = document.getElementById('dispSubnav');
+            if (!nav) return;
+            const mini = nav.classList.toggle('mini');
+            try { localStorage.setItem('pl-disp-nav-mini', mini ? '1' : '0'); } catch (e) {}
+            setTimeout(() => { try { window.dispatchEvent(new Event('resize')); } catch (e) {} }, 220);
+        }
+        (function restoreDispNavMini() {
+            try {
+                if (localStorage.getItem('pl-disp-nav-mini') === '1') {
+                    const nav = document.getElementById('dispSubnav');
+                    if (nav) nav.classList.add('mini');
+                }
+            } catch (e) {}
+        })();
+
         function dispSwitchSub(name) {
-            document.querySelectorAll('#dispSubnav button').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
+            document.querySelectorAll('#dispSubnav button[data-sub]').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
             const map = { crm: 'dispSubCrm', conversas: 'dispSubConversas', disparar: 'dispSubDisparar', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao', automacoes: 'dispSubAutomacoes' };
             Object.entries(map).forEach(([k, id]) => {
                 const p = document.getElementById(id);
