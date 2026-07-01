@@ -6296,6 +6296,14 @@
                 '</div>';
             _chatCtxPhone = phone;
         }
+        // Delete pela lixeira visível no cabeçalho da conversa (clique normal, funciona em
+        // qualquer dispositivo — o menu de botão-direito não abre em trackpad/mobile).
+        async function chatDeleteConversa(phone) {
+            if (!phone) return;
+            if (!window.confirm('Excluir esta conversa? Apaga todo o histórico e não dá pra desfazer.')) return;
+            _chatCtxPhone = phone;
+            await chatCtxDoDelete();
+        }
         async function chatCtxDoDelete() {
             const phone = _chatCtxPhone;
             chatCloseCtxMenu();
@@ -6331,6 +6339,7 @@
                     <div class="chat-conv-av">${escapeHtml(chatInitials(conv.name, phone))}</div>
                     <div><div style="font-weight:600;font-size:14px;">${escapeHtml(conv.name || ('+' + phone))}</div>
                     <div style="font-size:11px;color:var(--text-muted);">+${escapeHtml(phone)} ${(() => { const t = chatLeadCategory(phone); return t ? '<span style="display:inline-block;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:' + t.bg + ';color:' + t.fg + ';">' + escapeHtml(t.label) + '</span>' : ''; })()}</div></div>
+                    <button onclick="chatDeleteConversa('${escapeHtml(phone)}')" title="Excluir conversa" style="margin-left:auto;background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:#ef4444;cursor:pointer;font-size:15px;line-height:1;"><i class="ph-bold ph-trash"></i></button>
                 </div>
                 <div class="chat-thread-body" id="chatThreadBody"><div style="margin:auto;color:var(--text-muted);"><i class="ph-bold ph-circle-notch ph-spin"></i></div></div>
                 <div class="chat-thread-foot" id="chatThreadFoot"></div>`;
