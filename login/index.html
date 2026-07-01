@@ -2375,7 +2375,7 @@
                         <div id="masterMenuEmpty" style="display:none;padding:14px;text-align:center;font-size:12px;color:var(--text-muted);">Nenhum lojista encontrado</div>
                     </div>
                 </div>
-                <button class="btn-refresh" onclick="startDashboardTour()" title="Rever tutorial">
+                <button class="btn-refresh" onclick="startDashboardTour()" title="Rever tutorial" style="margin-left:12px;">
                     <i class="ph-bold ph-compass"></i> Tour
                 </button>
                 <button class="btn-refresh" onclick="logout()">
@@ -4412,7 +4412,7 @@
                 <!-- ===== CAIXA DE ENTRADA / CHAT ===== -->
                 <style>
                     /* Conversas = inbox flush (menu | lista | conversa), sem cards nem vãos */
-                    body[data-active-tab="disparos"] #dispSubConversas.disp-subpane.active { padding:0 !important; display:flex; flex-direction:column; }
+                    body[data-active-tab="disparos"] #dispSubConversas.disp-subpane.active { padding:0 !important; display:flex; flex-direction:column; height:calc(100vh - 64px); max-height:calc(100vh - 64px); overflow:hidden; }
                     #dispChatCard { background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; margin:0 !important; display:flex; flex-direction:column; flex:1; min-height:0; }
                     .chat-inbox-head { padding:13px 22px; border-bottom:1px solid var(--border); }
                     .chat-inbox-head .desc { display:none; }
