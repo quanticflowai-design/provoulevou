@@ -2525,7 +2525,7 @@
                     <i class="ph-bold ph-chart-pie-slice"></i> Visão Geral
                 </button>
                 <button class="tab-btn" data-tab="disparos" id="tab-btn-disparos" onclick="showTab('disparos')" role="tab" aria-selected="false">
-                    <i class="ph-bold ph-megaphone"></i> Campanhas
+                    <i class="ph-bold ph-megaphone"></i> Disparos
                 </button>
                 <button class="tab-btn" id="tab-btn-clientes" data-tab="clientes" onclick="showTab('clientes')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-users-three"></i> Clientes & LTV
@@ -3247,6 +3247,12 @@
                     }
                     .vg-impact-sub .num { color: var(--primary-hi, #a855f7); font-weight: 700; }
                     .vg-impact-sub strong { color: var(--text-main, var(--text)); font-weight: 600; }
+                    .vg-impact-orders {
+                        margin-top: 10px; font-size: 13px; color: var(--text-muted);
+                        display: flex; align-items: center; gap: 6px;
+                    }
+                    .vg-impact-orders i { font-size: 15px; color: #25D366; }
+                    .vg-impact-orders .num { color: var(--text-main, var(--text)); font-weight: 700; }
                     .vg-impact-delta {
                         margin-top: auto; padding-top: 14px;
                         font-size: 13px; font-weight: 600; color: #10b981;
@@ -3396,6 +3402,7 @@
                             <div class="vg-impact-label">Faturamento atribuído</div>
                             <div class="vg-impact-amount" id="vheroAttrAmount">—</div>
                             <div class="vg-impact-sub" id="vheroAttrExtra"></div>
+                            <div class="vg-impact-orders"><i class="ph-bold ph-handbag"></i> <span class="num" id="comprasPedidosCount">0</span> pedidos no período</div>
                             <div class="vg-impact-delta" id="vgImpactDelta" style="display:none;">
                                 <i class="ph-bold ph-trend-up"></i> <span></span>
                             </div>
@@ -3489,22 +3496,6 @@
 
 
                 <div class="stats-grid" style="margin-bottom:20px;">
-                    <div class="stat-card">
-                        <span class="kpi-delta neutral" id="kpiDeltaPedidos" style="display:none;">—</span>
-                        <div class="stat-icon" style="background:rgba(37,211,102,0.1);color:#25D366;"><i class="ph-bold ph-handbag"></i></div>
-                        <div class="stat-info">
-                            <h4>Nº de Pedidos</h4>
-                            <div class="value" id="comprasPedidosCount">0</div>
-                        </div>
-                    </div>
-                    <div class="stat-card" id="vgRecuperadoCard" title="Vendas de clientes que compraram em até 30 dias após receber um disparo no WhatsApp. Pode incluir clientes que também usaram o provador — não some este valor ao faturamento atribuído.">
-                        <div class="stat-icon" style="background:rgba(37,211,102,0.1);color:#25D366;"><i class="ph-bold ph-arrow-u-up-left"></i></div>
-                        <div class="stat-info">
-                            <h4>Recuperado via Disparo</h4>
-                            <div class="value" id="vgRecuperadoVal">R$ 0,00</div>
-                            <div class="stat-sub" id="vgRecuperadoSub">—</div>
-                        </div>
-                    </div>
                     <div class="stat-card" style="display:none !important;">
                         <span class="kpi-delta neutral" id="kpiDeltaFat">—</span>
                         <div class="stat-icon" style="background:rgba(139,92,246,0.1);color:var(--primary);"><i class="ph-bold ph-currency-circle-dollar"></i></div>
