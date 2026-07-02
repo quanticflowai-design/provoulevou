@@ -1488,20 +1488,7 @@
             }
         }
 
-        // Botão copiar PIX
-        document.getElementById('q-pix-copy-btn').onclick = () => {
-            const code = document.getElementById('q-pix-code').value;
-            navigator.clipboard.writeText(code).then(() => {
-                document.getElementById('q-pix-copy-btn').textContent = 'Copiado!';
-                setTimeout(() => { document.getElementById('q-pix-copy-btn').textContent = 'Copiar'; }, 2000);
-            });
-        };
-
-        // Botão cancelar PIX
-        document.getElementById('q-pix-cancel').onclick = () => {
-            hidePixScreen();
-            uploadStep.style.display = 'block';
-        };
+        // (PIX removido — Univisão usa fluxo "volte amanhã", sem tela de PIX)
 
         // ── GERAÇÃO PRINCIPAL ──
         async function runGeneration() {
