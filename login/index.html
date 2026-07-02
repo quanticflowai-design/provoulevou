@@ -4048,13 +4048,12 @@
                     body[data-active-tab="disparos"] .dashboard-content { padding:64px 0 0 0 !important; max-width:none !important; margin:0 !important; }
                     .disp-layout { display:flex; gap:0; align-items:stretch; min-height:calc(100vh - 64px); margin-top:0; }
                     .disp-layout > .disp-subpane.active { flex:1; min-width:0; padding:22px 30px 30px; }
-                    .disp-subnav { display:flex; flex-direction:column; width:236px; flex-shrink:0; border-right:1px solid var(--border); background:var(--card-bg); transition:width .18s ease; align-self:stretch; }
-                    .disp-subnav-inner { display:flex; flex-direction:column; gap:3px; padding:14px 12px 18px; position:sticky; top:64px; height:calc(100vh - 64px); overflow-y:auto; box-sizing:border-box; }
+                    .disp-subnav { display:flex; flex-direction:column; width:236px; flex-shrink:0; border-right:1px solid var(--border); background:var(--card-bg); transition:width .18s ease; align-self:stretch; padding:14px 12px 18px; box-sizing:border-box; }
+                    .disp-subnav-inner { display:flex; flex-direction:column; gap:3px; position:sticky; top:78px; }
                     .disp-nav-burger { color:var(--text-muted) !important; margin-top:auto !important; margin-bottom:0 !important; border-top:1px solid var(--border); border-radius:0 !important; padding-top:14px !important; font-size:12.5px !important; }
                     .disp-nav-burger:hover { color:#7c3aed !important; background:rgba(124,58,237,0.06) !important; }
                     .disp-nav-burger i { font-size:17px !important; }
-                    .disp-subnav.mini { width:62px !important; }
-                    .disp-subnav.mini .disp-subnav-inner { padding:14px 8px 18px !important; }
+                    .disp-subnav.mini { width:62px !important; padding:14px 8px 18px !important; }
                     .disp-subnav.mini .disp-nav-txt { display:none !important; }
                     .disp-subnav.mini button { justify-content:center !important; padding:11px 0 !important; }
                     .disp-subnav.mini .disp-nav-burger { padding-top:14px !important; }
@@ -4204,8 +4203,8 @@
                     <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-megaphone"></i> <span class="disp-nav-txt">Campanhas</span></button>
                     <button data-sub="automacoes" onclick="dispSwitchSub('automacoes')"><i class="ph-bold ph-flow-arrow"></i> <span class="disp-nav-txt">Automações</span></button>
                     <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> <span class="disp-nav-txt">Conexão</span></button>
-                    <button type="button" class="disp-nav-burger" onclick="dispToggleNav()" title="Recolher/expandir menu" aria-label="Recolher menu"><i class="ph-bold ph-caret-double-left"></i> <span class="disp-nav-txt">Recolher</span></button>
                   </div>
+                  <button type="button" class="disp-nav-burger" onclick="dispToggleNav()" title="Recolher/expandir menu" aria-label="Recolher menu"><i class="ph-bold ph-caret-double-left"></i> <span class="disp-nav-txt">Recolher</span></button>
                 </div>
                 <div class="disp-subpane active" id="dispSubDashboard"></div>
                 <div class="disp-subpane" id="dispSubCrm"></div>
@@ -7086,6 +7085,7 @@
                 list.innerHTML = data.map(t => {
                     const status = (t.status || 'pending').toUpperCase();
                     const badge = status === 'APPROVED' ? 'approved' : status === 'REJECTED' ? 'rejected' : 'pending';
+                    const statusPt = { APPROVED: 'Aprovada', PENDING: 'Aguardando aprovação', REJECTED: 'Reprovada' }[status] || status;
                     const isDefault = t.name === defaultName;
                     const bodyComp = (t.components || []).find(c => c.type === 'BODY');
                     const bodyText = (bodyComp && bodyComp.text) || '';
@@ -7094,11 +7094,10 @@
                             <div>
                                 <div class="wa-tpl-name">${escapeHtml(t.name)}</div>
                                 <div class="wa-tpl-meta">
-                                    <span class="wa-tpl-badge ${badge}">${status}</span>
+                                    <span class="wa-tpl-badge ${badge}">${statusPt}</span>
                                     ${isDefault ? '<span class="wa-tpl-badge default">PADRÃO</span>' : ''}
                                     <span>${t.language || ''}</span>
                                     <span>${(t.category || '').toLowerCase()}</span>
-                                    ${t.quality_score?.score ? '<span>qualidade: ' + t.quality_score.score + '</span>' : ''}
                                 </div>
                                 <div class="wa-tpl-body-preview">${escapeHtml(bodyText)}</div>
                                 ${(t.rejected_reason && t.rejected_reason !== 'NONE') ? '<div style="color:#ef4444;font-size:11px;margin-top:6px;"><i class="ph-bold ph-warning"></i> ' + t.rejected_reason + '</div>' : ''}
