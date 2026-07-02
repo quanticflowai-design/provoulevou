@@ -2068,6 +2068,13 @@
         .crm-card-resp:hover { border-color: var(--primary); }
         /* ===== Painel de desempenho do time ===== */
         #crmTeamPanelBtn.active { background: var(--primary); color:#fff; border-color: transparent; }
+        /* Toolbar do CRM — busca/filtro em pill com focus ring */
+        #crmSearchInput { border-radius: 999px !important; transition: border-color .15s, box-shadow .15s; }
+        #crmSearchInput:focus { border-color: var(--primary) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent); }
+        #crmRespFilter { border-radius: 999px !important; transition: border-color .15s; }
+        #crmRespFilter:hover { border-color: var(--border-strong, rgba(127,127,127,.3)) !important; }
+        .crm-board::-webkit-scrollbar { height: 8px; }
+        .crm-board::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
         .crm-team-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:14px; }
         .crm-team-card {
             background: var(--card-bg); border:1px solid var(--border); border-radius:14px; padding:16px 18px;
@@ -4970,6 +4977,16 @@
                     .wa-tpl-act.danger:hover { color: #ef4444; border-color: rgba(239,68,68,.4); }
                     .wa-tpl-act.primary:hover { color: #25D366; border-color: rgba(37,211,102,.4); }
 
+                    /* Mensagens modelo — superfície única (header dentro + linhas com divisor) */
+                    .wa-tpl-head { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:18px 22px; border-bottom:1px solid var(--border); }
+                    #dispSubTemplates #dispTemplatesContent { padding:0; overflow:hidden; border-radius:16px; }
+                    #dispSubTemplates .wa-tpl-list { gap:0; }
+                    #dispSubTemplates .wa-tpl-item { background:transparent; border:0; border-bottom:1px solid var(--border); border-radius:0; padding:15px 22px; }
+                    #dispSubTemplates .wa-tpl-item:last-child { border-bottom:0; }
+                    #dispSubTemplates .wa-tpl-item:hover { background:rgba(127,127,127,.05); }
+                    #dispSubTemplates .wa-tpl-item.is-default { box-shadow:inset 3px 0 0 #25D366; }
+                    #dispSubTemplates .wa-tpl-empty { border:0; background:transparent; padding:34px 22px; }
+
                     /* Log stats + list */
                     .wa-log-stats {
                         display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -5071,16 +5088,16 @@
 
                     <!-- ====== TAB TEMPLATES ====== -->
                     <div class="wa-tabpane disp-card" id="dispTemplatesContent" data-watab="templates" style="display:none;margin:0;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                        <div class="wa-tpl-head">
                             <div>
-                                <div style="font-size:14px;font-weight:600;">Seus templates aprovados</div>
-                                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Templates são criados via Meta. Aprovação leva 5min-24h.</div>
+                                <h3 style="margin:0;font-size:18px;">Mensagens modelo</h3>
+                                <p class="desc" style="margin:2px 0 0;">Templates aprovados pela Meta pros seus disparos e campanhas. Aprovação leva de 5min a 24h.</p>
                             </div>
                             <div style="display:flex;gap:8px;">
                                 <button class="wa-btn wa-btn-ghost" onclick="waLoadTemplates()" title="Atualizar lista">
                                     <i class="ph-bold ph-arrows-clockwise"></i>
                                 </button>
-                                <button class="wa-btn wa-btn-primary" onclick="openCreateTemplateModal()">
+                                <button class="camp-btn primary" onclick="openCreateTemplateModal()">
                                     <i class="ph-bold ph-plus"></i> Criar mensagem modelo
                                 </button>
                             </div>
@@ -7657,6 +7674,7 @@
                 crm.classList.remove('tab-pane');
                 crm.style.display = 'block';
             }
+            try { _campInjectCSS(); } catch (e) {}   // .camp-btn (botão primário) usado em vários sub-panes
             move('dispChatCard',   'dispSubConversas');
             // Campanhas: lista + wizard no topo; envio imediato/histórico técnico ficam em "Envio avançado"
             const dispPane = document.getElementById('dispSubDisparar');
@@ -7864,7 +7882,7 @@
               + '  <label class="autom-switch"><input type="checkbox" id="automAtivo"><span>Ativo</span></label>'
               + '  <button class="disp-btn ghost" onclick="automOpenJanela()"><i class="ph-bold ph-clock"></i> Janela de envio</button>'
               + '  <button class="disp-btn ghost" onclick="automTourStart()" title="Como funciona"><i class="ph-bold ph-question"></i></button>'
-              + '  <button class="disp-btn" data-autom-save onclick="automSave()"><i class="ph-bold ph-floppy-disk"></i> Salvar</button>'
+              + '  <button class="camp-btn primary" data-autom-save onclick="automSave()"><i class="ph-bold ph-floppy-disk"></i> Salvar</button>'
               + '</div>'
               + '<div class="autom-ed-surface">'
               + '<div class="autom-ed-trigger">'
@@ -8328,7 +8346,8 @@
               #automEditor .autom-zoom button{width:32px;height:32px;border-radius:9px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-main);font-size:16px;font-weight:700;cursor:pointer;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.08);transition:border-color .15s;}
               #automEditor .autom-zoom button:hover{border-color:var(--primary);}
               #automEditor .autom-drop-hint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);background:var(--card-bg);border:1px dashed var(--border-strong,rgba(127,127,127,.32));border-radius:999px;padding:6px 14px;z-index:4;pointer-events:none;opacity:.9;}
-              #automEditor .autom-ed-head{align-items:flex-end;}
+              #automEditor .autom-ed-head{align-items:flex-end;background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:12px;}
+              #automEditor .autom-config-title{font-size:10px;font-weight:800;letter-spacing:.08em;}
               #automEditor .autom-name-field{flex:1;min-width:200px;display:flex;flex-direction:column;gap:5px;}
               #automEditor .autom-name-label{font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;}
               #automEditor .autom-req{color:#dc2626;}
@@ -9417,7 +9436,8 @@
                 + '.dd-seg:hover{color:var(--text-main);}'
                 + '.dd-seg.on{background:var(--primary);color:#fff;box-shadow:0 2px 8px var(--primary-glow,rgba(124,58,237,.3));}'
                 + '.dd-seg:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}'
-                + '.dd-hero{display:flex;justify-content:space-between;align-items:center;gap:28px;flex-wrap:wrap;background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:24px 28px;position:relative;overflow:hidden;margin-bottom:22px;}'
+                + '.dd-hero{display:flex;justify-content:space-between;align-items:center;gap:28px;flex-wrap:wrap;background:linear-gradient(135deg,color-mix(in srgb,#10b981 8%,var(--card-bg)),var(--card-bg) 55%);border:1px solid var(--border);border-radius:20px;padding:24px 28px;position:relative;overflow:hidden;margin-bottom:22px;}'
+                + '.dd-hero::after{content:"";position:absolute;right:-70px;top:-70px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,.13),transparent 70%);pointer-events:none;}'
                 + '.dd-hero-eyebrow{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;}'
                 + '.dd-hero-eyebrow i{color:var(--dd-money-2);font-size:15px;}'
                 + '.dd-hero-val{font-size:44px;line-height:1;font-weight:800;letter-spacing:-.03em;color:var(--dd-money);}'
@@ -9467,7 +9487,8 @@
                 + '.dd-cta:hover{filter:brightness(1.08);}'
                 + '.dd-cta:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}'
                 + '.dd-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px;}'
-                + '.dd-kpi{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;}'
+                + '.dd-kpi{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;transition:border-color .18s,transform .18s,box-shadow .18s;}'
+                + '.dd-kpi:hover{transform:translateY(-1px);border-color:var(--border-strong,rgba(127,127,127,.25));box-shadow:0 4px 14px rgba(0,0,0,.06);}'
                 + '.dd-kpi-l{font-size:11px;color:var(--text-muted);font-weight:600;}'
                 + '.dd-kpi-v{font-size:22px;font-weight:800;color:var(--text-main);letter-spacing:-.02em;}'
                 + '.dd-kpi-s{font-size:11px;color:var(--text-muted);}'
@@ -10177,15 +10198,14 @@
         }
 
         /* ===== Campanhas — assistente guiado (nome → público → mensagem → agendar) ===== */
-        const CAMP = { step: 0, nome: '', stage: '', stageTitle: '', tplMode: 'aprovado', tplName: '', tplLang: 'pt_BR', tplPending: false, sched: 'diario', dia: '', hora1: '', hora2: '', targetCount: null };
+        const CAMP = { step: 0, nome: '', stage: '', stageTitle: '', tplMode: 'novo', tplName: '', tplLang: 'pt_BR', tplPending: false, sched: 'diario', dia: '', hora1: '', hora2: '', targetCount: null };
         const CAMP_STEPS = ['Nome', 'Público', 'Mensagem', 'Agendar'];
 
         function _campInjectCSS() {
             if (document.getElementById('campCSS')) return;
             const s = document.createElement('style'); s.id = 'campCSS';
             s.textContent = `
-              #campWizardHost .camp-surface{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
-              #campWizardHost .camp-body>*{max-width:720px;}
+              #campWizardHost .camp-surface{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;max-width:860px;margin:0 auto;}
               #campWizardHost .camp-steps{display:flex;gap:0;border-bottom:1px solid var(--border);}
               #campWizardHost .camp-step{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 8px;font-size:12.5px;font-weight:700;color:var(--text-muted);position:relative;}
               #campWizardHost .camp-step .n{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:rgba(127,127,127,.14);font-size:12px;}
@@ -10319,7 +10339,7 @@
         // ---- Wizard ----
         function campWizardOpen() {
             _campInjectCSS();
-            CAMP.step = 0; CAMP.nome = ''; CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.tplMode = 'aprovado'; CAMP.tplName = ''; CAMP.tplLang = 'pt_BR'; CAMP.tplPending = false; CAMP.sched = 'diario'; CAMP.dia = ''; CAMP.hora1 = ''; CAMP.hora2 = ''; CAMP.targetCount = null;
+            CAMP.step = 0; CAMP.nome = ''; CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.tplMode = 'novo'; CAMP.tplName = ''; CAMP.tplLang = 'pt_BR'; CAMP.tplPending = false; CAMP.sched = 'diario'; CAMP.dia = ''; CAMP.hora1 = ''; CAMP.hora2 = ''; CAMP.targetCount = null;
             document.getElementById('campListCard').style.display = 'none';
             const adv = document.getElementById('campAdvanced'); if (adv) adv.style.display = 'none';
             const host = document.getElementById('campWizardHost'); host.style.display = 'block';
@@ -10350,12 +10370,12 @@
             } else if (CAMP.step === 2) {
                 const approved = (_waTemplatesCache || []).filter(t => (t.status || '').toUpperCase() === 'APPROVED');
                 const tplOpts = approved.map(t => '<option value="' + escapeHtml(t.name) + '"' + (t.name === CAMP.tplName ? ' selected' : '') + '>' + escapeHtml(t.name) + '</option>').join('');
-                body = '<h3 class="camp-h">Mensagem</h3><p class="camp-p">Use um template já aprovado (envia sem espera) ou crie um novo.</p>'
-                    + '<label class="camp-opt ' + (CAMP.tplMode === 'aprovado' ? 'sel' : '') + '"><input type="radio" name="campTpl" ' + (CAMP.tplMode === 'aprovado' ? 'checked' : '') + ' onchange="campSetTplMode(\'aprovado\')"><div><b>Usar template aprovado</b><br><span>Dispara sem esperar. ' + approved.length + ' aprovado(s).</span>'
-                    + (CAMP.tplMode === 'aprovado' ? ('<div style="margin-top:9px;">' + (approved.length ? ('<select id="campTplSel" class="camp-sel" onchange="CAMP.tplName=this.value;CAMP.tplPending=false"><option value="">Selecione o template…</option>' + tplOpts + '</select>') : '<span style="color:#dc2626;">Nenhum template aprovado ainda — crie um novo abaixo.</span>') + '</div>') : '')
-                    + '</div></label>'
+                body = '<h3 class="camp-h">Mensagem</h3><p class="camp-p">Crie um template novo ou use um já aprovado (envia sem espera).</p>'
                     + '<label class="camp-opt ' + (CAMP.tplMode === 'novo' ? 'sel' : '') + '"><input type="radio" name="campTpl" ' + (CAMP.tplMode === 'novo' ? 'checked' : '') + ' onchange="campSetTplMode(\'novo\')"><div><b>Criar novo template</b><br><span>Vai pra aprovação da Meta antes de enviar.</span>'
                     + (CAMP.tplMode === 'novo' ? ('<div style="margin-top:9px;">' + (CAMP.tplName ? ('<span style="color:#10b981;font-size:13px;"><i class="ph-bold ph-check-circle"></i> ' + escapeHtml(CAMP.tplName) + ' criado (aguardando Meta)</span> ') : '') + '<button class="camp-btn" type="button" onclick="campCreateTpl()"><i class="ph-bold ph-plus"></i> ' + (CAMP.tplName ? 'Criar outro' : 'Criar template') + '</button></div>') : '')
+                    + '</div></label>'
+                    + '<label class="camp-opt ' + (CAMP.tplMode === 'aprovado' ? 'sel' : '') + '"><input type="radio" name="campTpl" ' + (CAMP.tplMode === 'aprovado' ? 'checked' : '') + ' onchange="campSetTplMode(\'aprovado\')"><div><b>Usar template aprovado</b><br><span>Dispara sem esperar. ' + approved.length + ' aprovado(s).</span>'
+                    + (CAMP.tplMode === 'aprovado' ? ('<div style="margin-top:9px;">' + (approved.length ? ('<select id="campTplSel" class="camp-sel" onchange="CAMP.tplName=this.value;CAMP.tplPending=false"><option value="">Selecione o template…</option>' + tplOpts + '</select>') : '<span style="color:#dc2626;">Nenhum template aprovado ainda — crie um novo acima.</span>') + '</div>') : '')
                     + '</div></label>'
                     + '<div class="camp-note"><i class="ph-bold ph-clock"></i><div>A Meta pode levar <b>até 24h</b> para aprovar um template novo. A campanha fica <b>Aguardando aprovação</b> e é enviada automaticamente assim que aprovar.</div></div>'
                     + '<div class="camp-vars"><b>Variáveis</b> (use as chaves no texto do template): <code>{{1}}</code> = primeiro nome do cliente · <code>{{2}}</code> = produto provado · <code>{{3}}</code> ou botão = link. Ex.: <i>"Oi {{1}}, o {{2}} te espera 👉 {{3}}"</i>.</div>';
