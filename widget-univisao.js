@@ -204,7 +204,7 @@
                 width: 440px; max-width: 92vw; min-height: auto;
                 max-height: 96vh; border: none;
                 box-shadow: 0 32px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06);
-                overflow: hidden;
+                overflow: hidden; border-radius: 22px;
             }
         }
 
@@ -690,7 +690,7 @@
                     <!-- Persistent header (all steps) -->
                     <div id="q-header-provador">
                         <h1>Provador Virtual</h1>
-                        <img src="https://cdn.dooca.store/101255/files/logo-branca-3.png?v=1700778518" alt="Univisão" style="height:18px;width:auto;filter:brightness(0);"/>
+                        <img src="https://cdn.dooca.store/101255/files/logo-branca-3.png?v=1700778518" alt="Univisão Ótica" style="height:28px;width:auto;"/>
                     </div>
 
                     <!-- Main step -->
