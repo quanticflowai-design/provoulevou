@@ -690,7 +690,7 @@
                     <!-- Persistent header (all steps) -->
                     <div id="q-header-provador">
                         <h1>Provador Virtual</h1>
-                        <img src="https://cdn.dooca.store/101255/files/logo-branca-3.png?v=1700778518" alt="Univisão Ótica" style="height:46px;width:auto;"/>
+                        <img src="https://cdn.dooca.store/101255/files/logo-branca-3.png?v=1700778518" alt="Univisão Ótica" style="height:68px;width:auto;"/>
                     </div>
 
                     <!-- Main step -->
