@@ -4057,11 +4057,13 @@
                     body[data-active-tab="disparos"] .dashboard-content { padding:64px 0 0 0 !important; max-width:none !important; margin:0 !important; }
                     .disp-layout { display:flex; gap:0; align-items:stretch; min-height:calc(100vh - 64px); margin-top:0; }
                     .disp-layout > .disp-subpane.active { flex:1; min-width:0; padding:22px 30px 30px; }
-                    .disp-subnav { display:flex; flex-direction:column; gap:3px; width:236px; flex-shrink:0; border-right:1px solid var(--border); background:var(--card-bg); padding:14px 12px 18px; transition:width .18s ease; position:sticky; top:64px; height:calc(100vh - 64px); align-self:flex-start; overflow-y:auto; }
+                    .disp-subnav { display:flex; flex-direction:column; width:236px; flex-shrink:0; border-right:1px solid var(--border); background:var(--card-bg); transition:width .18s ease; align-self:stretch; }
+                    .disp-subnav-inner { display:flex; flex-direction:column; gap:3px; padding:14px 12px 18px; position:sticky; top:64px; height:calc(100vh - 64px); overflow-y:auto; box-sizing:border-box; }
                     .disp-nav-burger { color:var(--text-muted) !important; margin-top:auto !important; margin-bottom:0 !important; border-top:1px solid var(--border); border-radius:0 !important; padding-top:14px !important; font-size:12.5px !important; }
                     .disp-nav-burger:hover { color:#7c3aed !important; background:rgba(124,58,237,0.06) !important; }
                     .disp-nav-burger i { font-size:17px !important; }
-                    .disp-subnav.mini { width:62px !important; padding:14px 8px 18px !important; }
+                    .disp-subnav.mini { width:62px !important; }
+                    .disp-subnav.mini .disp-subnav-inner { padding:14px 8px 18px !important; }
                     .disp-subnav.mini .disp-nav-txt { display:none !important; }
                     .disp-subnav.mini button { justify-content:center !important; padding:11px 0 !important; }
                     .disp-subnav.mini .disp-nav-burger { padding-top:14px !important; }
@@ -4082,7 +4084,8 @@
                     .disp-subpane.active { display:block; animation: dispFade .2s ease; }
                     @media (max-width: 760px) {
                         .disp-layout { flex-direction:column; gap:14px; min-height:0; margin-top:0; }
-                        .disp-subnav { flex-direction:row; width:auto; position:static; border-right:none; border-bottom:1px solid var(--border); background:transparent; padding:0 16px 6px; overflow-x:auto; flex-wrap:nowrap; }
+                        .disp-subnav { flex-direction:row; width:auto; position:static; border-right:none; border-bottom:1px solid var(--border); background:transparent; padding:0 16px 6px; overflow-x:auto; flex-wrap:nowrap; align-self:auto; }
+                        .disp-subnav-inner { display:contents; }
                         .disp-subnav button { width:auto; white-space:nowrap; }
                         .disp-subnav .disp-sub-badge { margin-left:6px; }
                         .disp-layout > .disp-subpane.active { padding:0 16px; }
@@ -4203,13 +4206,15 @@
                 </style>
                 <div class="disp-layout">
                 <div class="disp-subnav" id="dispSubnav">
+                  <div class="disp-subnav-inner">
                     <button data-sub="dashboard" class="active" onclick="dispSwitchSub('dashboard')"><i class="ph-bold ph-chart-line-up"></i> <span class="disp-nav-txt">Dashboard</span></button>
                     <button data-sub="crm" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> <span class="disp-nav-txt">CRM</span></button>
-                    <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-megaphone"></i> <span class="disp-nav-txt">Campanhas</span></button>
                     <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> <span class="disp-nav-txt">Conversas</span> <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
-                    <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> <span class="disp-nav-txt">Conexão</span></button>
+                    <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-megaphone"></i> <span class="disp-nav-txt">Campanhas</span></button>
                     <button data-sub="automacoes" onclick="dispSwitchSub('automacoes')"><i class="ph-bold ph-flow-arrow"></i> <span class="disp-nav-txt">Automações</span></button>
+                    <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> <span class="disp-nav-txt">Conexão</span></button>
                     <button type="button" class="disp-nav-burger" onclick="dispToggleNav()" title="Recolher/expandir menu" aria-label="Recolher menu"><i class="ph-bold ph-caret-double-left"></i> <span class="disp-nav-txt">Recolher</span></button>
+                  </div>
                 </div>
                 <div class="disp-subpane active" id="dispSubDashboard"></div>
                 <div class="disp-subpane" id="dispSubCrm"></div>
