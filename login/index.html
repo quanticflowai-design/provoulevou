@@ -2518,7 +2518,7 @@
                     <i class="ph-bold ph-chart-pie-slice"></i> Visão Geral
                 </button>
                 <button class="tab-btn" data-tab="disparos" id="tab-btn-disparos" onclick="showTab('disparos')" role="tab" aria-selected="false">
-                    <i class="ph-bold ph-paper-plane-tilt"></i> Disparos
+                    <i class="ph-bold ph-megaphone"></i> Campanhas
                 </button>
                 <button class="tab-btn" id="tab-btn-clientes" data-tab="clientes" onclick="showTab('clientes')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-users-three"></i> Clientes & LTV
@@ -4195,7 +4195,7 @@
                     <button data-sub="dashboard" class="active" onclick="dispSwitchSub('dashboard')"><i class="ph-bold ph-chart-line-up"></i> <span class="disp-nav-txt">Dashboard</span></button>
                     <button data-sub="crm" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> <span class="disp-nav-txt">CRM</span></button>
                     <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> <span class="disp-nav-txt">Conversas</span> <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
-                    <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-paper-plane-tilt"></i> <span class="disp-nav-txt">Disparar</span></button>
+                    <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-megaphone"></i> <span class="disp-nav-txt">Campanhas</span></button>
                     <button data-sub="templates" onclick="dispSwitchSub('templates')"><i class="ph-bold ph-chat-circle-text"></i> <span class="disp-nav-txt">Mensagens modelo</span></button>
                     <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> <span class="disp-nav-txt">Conexão</span></button>
                     <button data-sub="automacoes" onclick="dispSwitchSub('automacoes')"><i class="ph-bold ph-flow-arrow"></i> <span class="disp-nav-txt">Automações</span></button>
@@ -7654,8 +7654,19 @@
                 crm.style.display = 'block';
             }
             move('dispChatCard',   'dispSubConversas');
-            move('dispBulkCard',   'dispSubDisparar');
-            move('dispAgendadosCard', 'dispSubDisparar');
+            // Campanhas: lista + wizard no topo; envio imediato/histórico técnico ficam em "Envio avançado"
+            const dispPane = document.getElementById('dispSubDisparar');
+            if (dispPane && !document.getElementById('campListCard')) {
+                dispPane.insertAdjacentHTML('afterbegin', ''
+                    + '<div id="campListCard"></div>'
+                    + '<div id="campWizardHost" style="display:none;"></div>'
+                    + '<details id="campAdvanced" style="margin-bottom:20px;">'
+                    + '  <summary style="cursor:pointer;font-size:13px;font-weight:700;color:var(--text-muted);padding:10px 2px;"><i class="ph-bold ph-wrench"></i> Envio avançado (enviar agora / histórico técnico)</summary>'
+                    + '  <div id="campAdvancedBody"></div>'
+                    + '</details>');
+            }
+            move('dispBulkCard',   'campAdvancedBody');
+            move('dispAgendadosCard', 'campAdvancedBody');
             move('dispKpisRow',    'dispSubHistorico');
             move('dispHistCard',   'dispSubDashboard');
             move('dispDailyCard',  'dispSubHistorico');
@@ -7717,7 +7728,7 @@
                 if (tpl) tpl.style.display = 'block';
                 if (typeof waLoadTemplates === 'function') waLoadTemplates();
             }
-            if (name === 'disparar') { try { maybeShowDispWizard(); } catch (e) {} }
+            if (name === 'disparar') { try { maybeShowDispWizard(); } catch (e) {} try { campLoadList(); } catch (e) {} }
             if (name === 'automacoes') { try { initAutomacoes(); } catch (e) { console.error(e); } }
             if (name === 'dashboard') { try { initDispDashboard(); } catch (e) { console.error(e); } }
             _crmSubActive = (name === 'crm');
@@ -10150,6 +10161,286 @@
                 try { renderCrmBoard(); } catch (e) {}
                 if (typeof loadDisparos === 'function') loadDisparos().catch(() => {});
             }, 2500);
+        }
+
+        /* ===== Campanhas — assistente guiado (nome → público → mensagem → agendar) ===== */
+        const CAMP = { step: 0, nome: '', stage: '', stageTitle: '', tplMode: 'aprovado', tplName: '', tplLang: 'pt_BR', tplPending: false, sched: 'diario', dia: '', hora1: '', hora2: '', targetCount: null };
+        const CAMP_STEPS = ['Nome', 'Público', 'Mensagem', 'Agendar'];
+
+        function _campInjectCSS() {
+            if (document.getElementById('campCSS')) return;
+            const s = document.createElement('style'); s.id = 'campCSS';
+            s.textContent = `
+              #campWizardHost .camp-surface{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;max-width:820px;}
+              #campWizardHost .camp-steps{display:flex;gap:0;border-bottom:1px solid var(--border);}
+              #campWizardHost .camp-step{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 8px;font-size:12.5px;font-weight:700;color:var(--text-muted);position:relative;}
+              #campWizardHost .camp-step .n{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:rgba(127,127,127,.14);font-size:12px;}
+              #campWizardHost .camp-step.on{color:var(--primary);}
+              #campWizardHost .camp-step.on .n{background:var(--primary);color:#fff;}
+              #campWizardHost .camp-step.done .n{background:var(--primary);color:#fff;}
+              #campWizardHost .camp-body{padding:22px 24px;}
+              #campWizardHost .camp-h{font-size:17px;font-weight:800;margin:0 0 4px;color:var(--text-main);}
+              #campWizardHost .camp-p{font-size:13px;color:var(--text-muted);margin:0 0 16px;}
+              #campWizardHost .camp-inp,#campWizardHost .camp-sel{width:100%;box-sizing:border-box;background:var(--card-bg);border:1px solid var(--border);color:var(--text-main);border-radius:10px;padding:11px 12px;font-family:inherit;font-size:14px;outline:none;}
+              #campWizardHost .camp-inp:focus,#campWizardHost .camp-sel:focus{border-color:var(--primary);}
+              #campWizardHost .camp-inp.err{border-color:#dc2626;box-shadow:0 0 0 3px rgba(220,38,38,.15);}
+              #campWizardHost .camp-opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:10px;cursor:pointer;}
+              #campWizardHost .camp-opt.sel{border-color:var(--primary);background:color-mix(in srgb,var(--primary) 7%,transparent);}
+              #campWizardHost .camp-opt input{margin-top:3px;accent-color:var(--primary);}
+              #campWizardHost .camp-opt b{font-size:13.5px;color:var(--text-main);}
+              #campWizardHost .camp-opt span{font-size:12px;color:var(--text-muted);}
+              #campWizardHost .camp-note{display:flex;gap:8px;align-items:flex-start;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.28);border-radius:10px;padding:11px 13px;font-size:12.5px;color:var(--text-main);margin:12px 0;}
+              #campWizardHost .camp-note i{color:#b45309;font-size:16px;margin-top:1px;}
+              #campWizardHost .camp-vars{font-size:12.5px;color:var(--text-muted);background:rgba(127,127,127,.08);border-radius:10px;padding:11px 13px;margin-top:10px;line-height:1.7;}
+              #campWizardHost .camp-vars code{background:rgba(124,58,237,.14);color:var(--primary);padding:1px 6px;border-radius:5px;font-size:12px;}
+              #campWizardHost .camp-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 24px;border-top:1px solid var(--border);}
+              #campWizardHost .camp-btn{border:1px solid var(--border);background:var(--card-bg);color:var(--text-main);border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+              #campWizardHost .camp-btn.primary{background:var(--primary);border-color:var(--primary);color:#fff;}
+              #campWizardHost .camp-btn:disabled{opacity:.5;cursor:not-allowed;}
+              #campWizardHost .camp-lbl{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px;display:block;}
+              #campWizardHost .camp-msg{font-size:12.5px;margin-top:10px;}
+              #campListCard .camp-item{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+              #campListCard .camp-item-name{font-weight:700;font-size:14.5px;color:var(--text-main);}
+              #campListCard .camp-item-sub{font-size:12px;color:var(--text-muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+              #campListCard .camp-badge{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:999px;}
+              #campListCard .camp-empty{background:var(--card-bg);border:1px dashed var(--border);border-radius:14px;padding:30px;text-align:center;color:var(--text-muted);}
+            `;
+            document.head.appendChild(s);
+        }
+
+        // ---- Lista de campanhas (agrupa disparos_agendados por nome) ----
+        async function campLoadList() {
+            _campInjectCSS();
+            const el = document.getElementById('campListCard'); if (!el || !activeUser) return;
+            el.innerHTML = '<div class="camp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando campanhas…</div>';
+            let rows = [];
+            try {
+                const { data } = await supabaseClient.from('disparos_agendados')
+                    .select('*').eq('lojista_email', activeUser.email).order('created_at', { ascending: false }).limit(200);
+                rows = data || [];
+            } catch (e) { el.innerHTML = '<div class="camp-empty">Não foi possível carregar as campanhas.</div>'; return; }
+
+            // auto-ativação: aguardando aprovação cujo template já foi aprovado pela Meta
+            const approved = new Set((_waTemplatesCache || []).filter(t => (t.status || '').toUpperCase() === 'APPROVED').map(t => t.name));
+            for (const r of rows) {
+                if (r.status === 'aguardando_aprovacao' && approved.has(r.template)) {
+                    try {
+                        await supabaseClient.from('disparos_agendados').update({ status: 'agendado', active: (r.recurrence === 'diario') ? true : r.active }).eq('id', r.id);
+                        r.status = 'agendado'; if (r.recurrence === 'diario') r.active = true;
+                        if (typeof crmToast === 'function') crmToast('Campanha "' + (r.nome || r.template) + '" aprovada pela Meta e ativada.');
+                    } catch (e) {}
+                }
+            }
+
+            // agrupa por nome (fallback: id) — junta as 2 linhas de "diário 2 horários"
+            const groups = {};
+            rows.forEach(r => { const k = (r.nome && r.nome.trim()) ? ('n:' + r.nome.trim().toLowerCase()) : ('id:' + r.id); (groups[k] = groups[k] || []).push(r); });
+            const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+            const stageTitle = k => { const c = (cfg.columns || []).find(x => x.key === k); return c ? c.title : (k || '—'); };
+            const items = Object.values(groups);
+            if (!items.length) {
+                el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;"><div><h3 style="margin:0;font-size:18px;">Campanhas</h3><p class="desc" style="margin:2px 0 0;">Crie campanhas de WhatsApp pros seus clientes.</p></div><button class="camp-btn primary" onclick="campWizardOpen()"><i class="ph-bold ph-plus"></i> Nova campanha</button></div>'
+                    + '<div class="camp-empty"><i class="ph-bold ph-megaphone" style="font-size:26px;opacity:.4;"></i><br><br>Nenhuma campanha ainda.<br><button class="camp-btn primary" style="margin-top:12px;" onclick="campWizardOpen()"><i class="ph-bold ph-plus"></i> Criar primeira campanha</button></div>';
+                return;
+            }
+            const STB = { agendado: ['Agendada', '#f59e0b', 'rgba(245,158,11,.15)'], aguardando_aprovacao: ['Aguardando aprovação da Meta', '#b45309', 'rgba(217,119,6,.16)'], concluido: ['Concluída', '#10b981', 'rgba(16,185,129,.15)'], cancelado: ['Cancelada', '#9ca3af', 'rgba(127,127,127,.15)'] };
+            let html = '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;"><div><h3 style="margin:0;font-size:18px;">Campanhas</h3><p class="desc" style="margin:2px 0 0;">Crie e acompanhe suas campanhas de WhatsApp.</p></div><button class="camp-btn primary" onclick="campWizardOpen()"><i class="ph-bold ph-plus"></i> Nova campanha</button></div>';
+            html += items.map(g => {
+                const first = g[0];
+                const nome = (first.nome && first.nome.trim()) || first.template || 'Campanha';
+                const isDiario = first.recurrence === 'diario';
+                const horarios = isDiario ? g.map(r => r.recur_time).filter(Boolean).sort().join(' e ') : '';
+                const tipo = isDiario ? ('Diária · ' + horarios) : ('Pontual · ' + (first.scheduled_at ? new Date(first.scheduled_at).toLocaleString('pt-BR') : ''));
+                const ativoDiario = isDiario && g.some(r => r.active);
+                let stKey = first.status;
+                let stLabel, stFg, stBg;
+                if (isDiario && stKey === 'agendado') { stLabel = ativoDiario ? 'Ativa' : 'Pausada'; stFg = ativoDiario ? '#10b981' : '#9ca3af'; stBg = ativoDiario ? 'rgba(16,185,129,.15)' : 'rgba(127,127,127,.15)'; }
+                else { const s = STB[stKey] || [stKey, '#6b7280', 'rgba(127,127,127,.15)']; stLabel = s[0]; stFg = s[1]; stBg = s[2]; }
+                const ids = g.map(r => r.id);
+                let actions = '';
+                if (isDiario && stKey === 'agendado') {
+                    actions = '<button class="camp-btn" style="padding:6px 12px;font-size:12px;" onclick="campToggle(' + JSON.stringify(ids).replace(/"/g, '&quot;') + ',' + (ativoDiario ? 'false' : 'true') + ')">' + (ativoDiario ? 'Pausar' : 'Ativar') + '</button>';
+                } else if (!isDiario && stKey === 'agendado') {
+                    actions = '<button class="camp-btn" style="padding:6px 12px;font-size:12px;color:#dc2626;" onclick="campCancel(' + JSON.stringify(ids).replace(/"/g, '&quot;') + ')">Cancelar</button>';
+                }
+                actions += '<button class="camp-btn" title="Excluir" style="padding:6px 10px;font-size:12px;color:#dc2626;" onclick="campDelete(' + JSON.stringify(ids).replace(/"/g, '&quot;') + ')"><i class="ph-bold ph-trash"></i></button>';
+                return '<div class="camp-item"><div style="min-width:0;">'
+                    + '<div class="camp-item-name">' + escapeHtml(nome) + '</div>'
+                    + '<div class="camp-item-sub"><span><i class="ph-bold ph-users-three"></i> ' + escapeHtml(stageTitle(first.stage_key)) + '</span><span><i class="ph-bold ' + (isDiario ? 'ph-repeat' : 'ph-calendar') + '"></i> ' + escapeHtml(tipo) + '</span><span><i class="ph-bold ph-chat-text"></i> ' + escapeHtml(first.template || '—') + '</span></div>'
+                    + '</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0;"><span class="camp-badge" style="color:' + stFg + ';background:' + stBg + ';">' + escapeHtml(stLabel) + '</span>' + actions + '</div></div>';
+            }).join('');
+            el.innerHTML = html;
+        }
+
+        async function campToggle(ids, ativar) {
+            try { for (const id of ids) await supabaseClient.from('disparos_agendados').update({ active: ativar }).eq('id', id); campLoadList(); }
+            catch (e) { crmToast && crmToast('Não foi possível atualizar.', true); }
+        }
+        async function campCancel(ids) {
+            try { for (const id of ids) await supabaseClient.from('disparos_agendados').update({ status: 'cancelado' }).eq('id', id).eq('status', 'agendado'); campLoadList(); }
+            catch (e) { crmToast && crmToast('Não foi possível cancelar.', true); }
+        }
+        async function campDelete(ids) {
+            if (!confirm('Excluir esta campanha? Não dá pra desfazer.')) return;
+            try { for (const id of ids) await supabaseClient.from('disparos_agendados').delete().eq('id', id).eq('lojista_email', activeUser.email); crmToast && crmToast('Campanha excluída.'); campLoadList(); }
+            catch (e) { crmToast && crmToast('Não foi possível excluir.', true); }
+        }
+
+        // ---- Wizard ----
+        function campWizardOpen() {
+            _campInjectCSS();
+            CAMP.step = 0; CAMP.nome = ''; CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.tplMode = 'aprovado'; CAMP.tplName = ''; CAMP.tplLang = 'pt_BR'; CAMP.tplPending = false; CAMP.sched = 'diario'; CAMP.dia = ''; CAMP.hora1 = ''; CAMP.hora2 = ''; CAMP.targetCount = null;
+            document.getElementById('campListCard').style.display = 'none';
+            const adv = document.getElementById('campAdvanced'); if (adv) adv.style.display = 'none';
+            const host = document.getElementById('campWizardHost'); host.style.display = 'block';
+            campWizardRender();
+        }
+        function campWizardClose() {
+            const host = document.getElementById('campWizardHost'); host.style.display = 'none'; host.innerHTML = '';
+            document.getElementById('campListCard').style.display = 'block';
+            const adv = document.getElementById('campAdvanced'); if (adv) adv.style.display = 'block';
+            campLoadList();
+        }
+
+        function campWizardRender() {
+            const host = document.getElementById('campWizardHost'); if (!host) return;
+            const steps = CAMP_STEPS.map((s, i) => '<div class="camp-step ' + (i === CAMP.step ? 'on' : (i < CAMP.step ? 'done' : '')) + '"><span class="n">' + (i < CAMP.step ? '<i class="ph-bold ph-check"></i>' : (i + 1)) + '</span> ' + s + '</div>').join('');
+            let body = '';
+            if (CAMP.step === 0) {
+                body = '<h3 class="camp-h">Nome da campanha</h3><p class="camp-p">Um nome pra você identificar (o cliente não vê).</p>'
+                    + '<label class="camp-lbl" for="campNome">Nome <span style="color:#dc2626;">*</span></label>'
+                    + '<input id="campNome" class="camp-inp" placeholder="Ex.: Promoção de inverno" value="' + escapeHtml(CAMP.nome) + '" oninput="CAMP.nome=this.value;this.classList.remove(\'err\')">';
+            } else if (CAMP.step === 1) {
+                const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+                const opts = (cfg.columns || []).filter(c => c.key !== 'convertido').map(c => '<option value="' + escapeHtml(c.key) + '"' + (c.key === CAMP.stage ? ' selected' : '') + '>' + escapeHtml(c.title) + '</option>').join('');
+                body = '<h3 class="camp-h">Para quem?</h3><p class="camp-p">Escolha a etapa do CRM que vai receber esta campanha.</p>'
+                    + '<label class="camp-lbl" for="campStage">Público (etapa do CRM) <span style="color:#dc2626;">*</span></label>'
+                    + '<select id="campStage" class="camp-sel" onchange="campOnStage(this.value)"><option value="">Selecione…</option>' + opts + '</select>'
+                    + '<div id="campStageCount" class="camp-msg" style="color:var(--text-muted);">' + (CAMP.targetCount != null ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa') : '') + '</div>';
+            } else if (CAMP.step === 2) {
+                const approved = (_waTemplatesCache || []).filter(t => (t.status || '').toUpperCase() === 'APPROVED');
+                const tplOpts = approved.map(t => '<option value="' + escapeHtml(t.name) + '"' + (t.name === CAMP.tplName ? ' selected' : '') + '>' + escapeHtml(t.name) + '</option>').join('');
+                body = '<h3 class="camp-h">Mensagem</h3><p class="camp-p">Use um template já aprovado (envia sem espera) ou crie um novo.</p>'
+                    + '<label class="camp-opt ' + (CAMP.tplMode === 'aprovado' ? 'sel' : '') + '"><input type="radio" name="campTpl" ' + (CAMP.tplMode === 'aprovado' ? 'checked' : '') + ' onchange="campSetTplMode(\'aprovado\')"><div><b>Usar template aprovado</b><br><span>Dispara sem esperar. ' + approved.length + ' aprovado(s).</span>'
+                    + (CAMP.tplMode === 'aprovado' ? ('<div style="margin-top:9px;">' + (approved.length ? ('<select id="campTplSel" class="camp-sel" onchange="CAMP.tplName=this.value;CAMP.tplPending=false"><option value="">Selecione o template…</option>' + tplOpts + '</select>') : '<span style="color:#dc2626;">Nenhum template aprovado ainda — crie um novo abaixo.</span>') + '</div>') : '')
+                    + '</div></label>'
+                    + '<label class="camp-opt ' + (CAMP.tplMode === 'novo' ? 'sel' : '') + '"><input type="radio" name="campTpl" ' + (CAMP.tplMode === 'novo' ? 'checked' : '') + ' onchange="campSetTplMode(\'novo\')"><div><b>Criar novo template</b><br><span>Vai pra aprovação da Meta antes de enviar.</span>'
+                    + (CAMP.tplMode === 'novo' ? ('<div style="margin-top:9px;">' + (CAMP.tplName ? ('<span style="color:#10b981;font-size:13px;"><i class="ph-bold ph-check-circle"></i> ' + escapeHtml(CAMP.tplName) + ' criado (aguardando Meta)</span> ') : '') + '<button class="camp-btn" type="button" onclick="campCreateTpl()"><i class="ph-bold ph-plus"></i> ' + (CAMP.tplName ? 'Criar outro' : 'Criar template') + '</button></div>') : '')
+                    + '</div></label>'
+                    + '<div class="camp-note"><i class="ph-bold ph-clock"></i><div>A Meta pode levar <b>até 24h</b> para aprovar um template novo. A campanha fica <b>Aguardando aprovação</b> e é enviada automaticamente assim que aprovar.</div></div>'
+                    + '<div class="camp-vars"><b>Variáveis</b> (use as chaves no texto do template): <code>{{1}}</code> = primeiro nome do cliente · <code>{{2}}</code> = produto provado · <code>{{3}}</code> ou botão = link. Ex.: <i>"Oi {{1}}, o {{2}} te espera 👉 {{3}}"</i>.</div>';
+            } else if (CAMP.step === 3) {
+                body = '<h3 class="camp-h">Quando enviar?</h3><p class="camp-p">Um dia específico ou todos os dias em horário(s) fixo(s).</p>'
+                    + '<label class="camp-opt ' + (CAMP.sched === 'diario' ? 'sel' : '') + '"><input type="radio" name="campSched" ' + (CAMP.sched === 'diario' ? 'checked' : '') + ' onchange="campSetSched(\'diario\')"><div><b>Todo dia (contínuo)</b><br><span>Dispara diariamente pros novos clientes da etapa.</span>'
+                    + (CAMP.sched === 'diario' ? ('<div style="margin-top:9px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;"><span style="font-size:12.5px;color:var(--text-muted);">Horário 1</span><input type="time" class="camp-inp" style="width:auto;" value="' + escapeHtml(CAMP.hora1) + '" oninput="CAMP.hora1=this.value"><span style="font-size:12.5px;color:var(--text-muted);">Horário 2 (opcional)</span><input type="time" class="camp-inp" style="width:auto;" value="' + escapeHtml(CAMP.hora2) + '" oninput="CAMP.hora2=this.value"></div>') : '')
+                    + '</div></label>'
+                    + '<label class="camp-opt ' + (CAMP.sched === 'dia' ? 'sel' : '') + '"><input type="radio" name="campSched" ' + (CAMP.sched === 'dia' ? 'checked' : '') + ' onchange="campSetSched(\'dia\')"><div><b>Dia específico</b><br><span>Envia uma vez, na data e hora escolhidas.</span>'
+                    + (CAMP.sched === 'dia' ? ('<div style="margin-top:9px;"><input type="datetime-local" class="camp-inp" style="width:auto;" value="' + escapeHtml(CAMP.dia) + '" oninput="CAMP.dia=this.value"></div>') : '')
+                    + '</div></label>'
+                    + '<div id="campMsg" class="camp-msg"></div>';
+            }
+            const backBtn = CAMP.step > 0 ? '<button class="camp-btn" onclick="campWizardNav(-1)"><i class="ph-bold ph-arrow-left"></i> Voltar</button>' : '<button class="camp-btn" onclick="campWizardClose()">Cancelar</button>';
+            const nextBtn = CAMP.step < 3 ? '<button class="camp-btn primary" onclick="campWizardNav(1)">Continuar <i class="ph-bold ph-arrow-right"></i></button>' : '<button class="camp-btn primary" id="campCreateBtn" onclick="campCreate()"><i class="ph-bold ph-megaphone"></i> Criar campanha</button>';
+            host.innerHTML = '<div class="camp-surface"><div class="camp-steps">' + steps + '</div><div class="camp-body">' + body + '</div><div class="camp-foot">' + backBtn + nextBtn + '</div></div>';
+        }
+
+        async function campOnStage(key) {
+            CAMP.stage = key;
+            const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+            const c = (cfg.columns || []).find(x => x.key === key); CAMP.stageTitle = c ? c.title : key;
+            const box = document.getElementById('campStageCount'); if (box) box.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> contando…';
+            try { const t = await waGetBulkTargets(key, ''); CAMP.targetCount = t.length; }
+            catch (e) { CAMP.targetCount = null; }
+            const b2 = document.getElementById('campStageCount'); if (b2) b2.innerHTML = CAMP.targetCount != null ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa') : '';
+        }
+        function campSetTplMode(m) { CAMP.tplMode = m; campWizardRender(); }
+        function campSetSched(m) { CAMP.sched = m; campWizardRender(); }
+        function campCreateTpl() {
+            // reusa o modal de criação existente; ao fechar/aprovar, o lojista volta e a lista de templates recarrega
+            if (typeof openCreateTemplateModal === 'function') openCreateTemplateModal();
+            crmToast && crmToast('Crie o template. Ao voltar, selecione-o aqui (ficará como "aguardando Meta").');
+            // ao criar, o fluxo existente adiciona em _waTemplatesCache; deixamos o lojista escolher via "Criar outro"/reabrir
+            CAMP.tplPending = true;
+        }
+        function campWizardNav(dir) {
+            if (dir > 0) {
+                if (CAMP.step === 0) { if (!CAMP.nome.trim()) { const el = document.getElementById('campNome'); if (el) { el.classList.add('err'); el.focus(); } return; } }
+                if (CAMP.step === 1) { if (!CAMP.stage) { const el = document.getElementById('campStage'); if (el) el.classList.add('err'); return; } }
+                if (CAMP.step === 2) {
+                    if (CAMP.tplMode === 'aprovado') { const sel = document.getElementById('campTplSel'); CAMP.tplName = sel ? sel.value : CAMP.tplName; if (!CAMP.tplName) { crmToast && crmToast('Escolha um template aprovado ou crie um novo.', true); return; } CAMP.tplPending = false; }
+                    else { if (!CAMP.tplName) { crmToast && crmToast('Crie o template novo antes de continuar.', true); return; } CAMP.tplPending = true; }
+                }
+            }
+            CAMP.step = Math.max(0, Math.min(3, CAMP.step + dir));
+            campWizardRender();
+        }
+
+        async function campCreate() {
+            const msg = document.getElementById('campMsg');
+            const setMsg = (t, err) => { if (msg) { msg.style.color = err ? '#dc2626' : '#10b981'; msg.textContent = t; } };
+            // valida agendamento
+            let scheduled_at, recurTimes = [];
+            if (CAMP.sched === 'dia') {
+                if (!CAMP.dia) return setMsg('Escolha a data e hora.', true);
+                const d = new Date(CAMP.dia); if (isNaN(d.getTime())) return setMsg('Data inválida.', true);
+                scheduled_at = d.toISOString();
+            } else {
+                if (!CAMP.hora1) return setMsg('Informe pelo menos o horário 1.', true);
+                recurTimes = [CAMP.hora1]; if (CAMP.hora2 && CAMP.hora2 !== CAMP.hora1) recurTimes.push(CAMP.hora2);
+            }
+            const tplObj = (_waTemplatesCache || []).find(t => t.name === CAMP.tplName);
+            const tplLang = (tplObj && tplObj.language) || CAMP.tplLang || 'pt_BR';
+            const bodyComp = tplObj && (tplObj.components || []).find(c => (c.type || '').toUpperCase() === 'BODY');
+            const placeholders = (((bodyComp && bodyComp.text) || '').match(/\{\{\s*\d+\s*\}\}/g) || []).length;
+            const aprovado = !CAMP.tplPending && !!tplObj && (tplObj.status || '').toUpperCase() === 'APPROVED';
+            const status = aprovado ? 'agendado' : 'aguardando_aprovacao';
+            const btn = document.getElementById('campCreateBtn'); if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Criando…'; }
+            // Insere na disparos_agendados; se a coluna `nome` ainda não existir no banco (setup pendente),
+            // reenvia sem `nome` para a campanha não falhar (o nome volta a persistir assim que a coluna for criada).
+            async function campSafeInsert(row) {
+                let r = await supabaseClient.from('disparos_agendados').insert(row);
+                if (r.error && /nome/i.test(r.error.message || '') && ('nome' in row)) {
+                    window.__campNomeMissing = true;
+                    const rest = Object.assign({}, row); delete rest.nome;
+                    r = await supabaseClient.from('disparos_agendados').insert(rest);
+                }
+                return r;
+            }
+            try {
+                if (CAMP.sched === 'dia') {
+                    const targets = await waGetBulkTargets(CAMP.stage, '');
+                    const payloads = targets.map(lead => {
+                        const firstName = (lead.name || '').split(' ')[0] || '👋';
+                        const produto = lead.product || 'o modelo que você provou';
+                        const link = (typeof leadLinkOf === 'function' ? leadLinkOf(lead) : '') || '';
+                        const fill = [firstName, produto, link];
+                        const params = []; for (let i = 0; i < placeholders; i++) params.push(fill[i] != null ? fill[i] : firstName);
+                        return { to: lead.phone, params: params };
+                    });
+                    const { error } = await campSafeInsert({
+                        lojista_email: activeUser.email, nome: CAMP.nome.trim(), scheduled_at: scheduled_at,
+                        template: CAMP.tplName, language: tplLang, payloads: payloads, total: payloads.length,
+                        move_to_stage: 'em-contato', status: status
+                    });
+                    if (error) throw error;
+                } else {
+                    for (const tm of recurTimes) {
+                        const { error } = await campSafeInsert({
+                            lojista_email: activeUser.email, nome: CAMP.nome.trim(), scheduled_at: new Date().toISOString(),
+                            recurrence: 'diario', recur_time: tm, stage_key: CAMP.stage, max_per_run: 100,
+                            template: CAMP.tplName, language: tplLang, placeholders: placeholders,
+                            active: aprovado, status: status, total: 0
+                        });
+                        if (error) throw error;
+                    }
+                }
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-megaphone"></i> Criar campanha'; }
+                crmToast && crmToast(aprovado ? 'Campanha criada e agendada! 🎉' : 'Campanha criada! Envia automaticamente quando a Meta aprovar o template.');
+                campWizardClose();
+            } catch (e) {
+                setMsg('Erro ao criar: ' + (e && e.message ? e.message : e), true);
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-megaphone"></i> Criar campanha'; }
+            }
         }
 
         // ===== Agendar disparo (congela os destinatários e grava pra o cron do n8n enviar na hora marcada) =====
