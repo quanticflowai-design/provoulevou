@@ -4471,6 +4471,10 @@
                             <p class="desc" style="margin:0;">Veja as respostas dos clientes e converse direto por aqui. Atualiza ao vivo.</p>
                         </div>
                         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <div style="position:relative;display:flex;align-items:center;">
+                                <i class="ph-bold ph-magnifying-glass" style="position:absolute;left:9px;color:var(--text-muted);font-size:14px;pointer-events:none;"></i>
+                                <input id="chatSearchInput" type="search" placeholder="Buscar nome ou número…" oninput="chatSetSearch(this.value)" aria-label="Buscar conversa por nome ou número" style="border:1px solid var(--border);background:var(--card-bg);color:var(--text-main);border-radius:8px;padding:6px 10px 6px 28px;font-family:inherit;font-size:13px;min-width:210px;outline:none;">
+                            </div>
                             <select id="chatFilterCatSel" onchange="chatSetCatFilter(this.value)" class="disp-btn ghost" style="cursor:pointer;padding:6px 10px;font-family:inherit;">
                                 <option value="">Todas as categorias</option>
                                 <option value="cold">🕶️ Provou, não comprou</option>
@@ -6105,6 +6109,8 @@
 
         // ============== CAIXA DE ENTRADA / CHAT ==============
         let _chatConvs = [];          // [{phone, name, lastBody, lastAt, unread, lastInAt}]
+        let _chatSearch = '';         // busca por nome ou número na caixa de entrada
+        function chatSetSearch(v) { _chatSearch = (v || '').trim().toLowerCase(); chatRenderList(); }
         let _chatActivePhone = null;
         let _chatRealtimeSub = null;
 
@@ -6226,7 +6232,15 @@
             }
             let convs = _chatFilterUnread ? _chatConvs.filter(c => (c.unread || 0) > 0 || c.phone === _chatActivePhone) : _chatConvs;
             if (_chatFilterCat) convs = convs.filter(c => chatLeadCatKey(c.phone) === _chatFilterCat);
+            if (_chatSearch) {
+                const q = _chatSearch, qd = q.replace(/\D/g, '');
+                convs = convs.filter(c => (c.name || '').toLowerCase().includes(q) || (qd && String(c.phone).replace(/\D/g, '').includes(qd)));
+            }
             if (!convs.length) {
+                if (_chatSearch) {
+                    listEl.innerHTML = '<div class="chat-list-empty"><i class="ph-bold ph-magnifying-glass" style="font-size:24px;opacity:.4;"></i><br><br>Nada encontrado para "' + escapeHtml(_chatSearch) + '".</div>';
+                    return;
+                }
                 listEl.innerHTML = '<div class="chat-list-empty"><i class="ph-bold ph-check-circle" style="font-size:26px;opacity:.4;color:#10b981;"></i><br><br>Nenhuma conversa não lida. 🎉<br><span style="font-size:11px;">Clique em "Não lidas" de novo pra ver todas.</span></div>';
                 return;
             }
