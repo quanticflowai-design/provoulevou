@@ -9165,15 +9165,17 @@
         function _esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
         function dispDashboardHTML(d) {
-            const perLabel = { 30: 'nos últimos 30 dias', 90: 'nos últimos 90 dias', all: 'em todo o período' }[d.period];
-            const pill = (p, txt) => '<button class="dd-seg' + (String(d.period) === String(p) ? ' on' : '') + '" onclick="dispDashSetPeriod(\'' + p + '\')">' + txt + '</button>';
+            const perLabel = { 30: 'últimos 30 dias', 90: 'últimos 90 dias', all: 'todo o período' }[d.period];
+            const pill = (p, txt) => '<button class="dd-seg' + (String(d.period) === String(p) ? ' on' : '') + '" aria-pressed="' + (String(d.period) === String(p)) + '" onclick="dispDashSetPeriod(\'' + p + '\')">' + txt + '</button>';
+            const taxa = d.disparosTotal ? (d.total.pedidos / d.disparosTotal * 100) : 0;
 
+            // campanhas -> ranking por recuperado
+            const tagIcon = { 'Automação': 'ph-flow-arrow', 'Agendado': 'ph-clock', 'Manual': 'ph-hand-pointing' };
             const camps = [];
             d.flows.forEach(f => camps.push({ cid: 'flow:' + f.id, nome: f.nome || 'Automação sem nome', tipo: 'Automação', ativa: !!f.ativo }));
             d.agend.forEach(a => camps.push({ cid: 'ag:' + a.id, nome: a.template || 'Disparo agendado', tipo: 'Agendado', ativa: !!a.active }));
             const avDisp = d.disparosPorCamp['avulsos'] || 0, avRec = d.recPorCamp['avulsos'];
             if (avDisp > 0 || (avRec && avRec.pedidos)) camps.push({ cid: 'avulsos', nome: 'Disparos avulsos', tipo: 'Manual', ativa: null });
-
             camps.forEach(c => {
                 c.disp = d.disparosPorCamp[c.cid] || 0;
                 c.alc = d.alcancadosPorCamp[c.cid] ? d.alcancadosPorCamp[c.cid].size : 0;
@@ -9181,49 +9183,53 @@
             });
             camps.sort((a, b) => (b.rec.valor - a.rec.valor) || (b.disp - a.disp));
             const maxRec = Math.max(1, ...camps.map(c => c.rec.valor));
-            const camposComDisp = camps.filter(c => c.disp > 0 || c.rec.valor > 0);
-            const shown = camposComDisp.length ? camposComDisp : camps;
+            const shown = camps.filter(c => c.disp > 0 || c.rec.valor > 0);
+            const list = shown.length ? shown : camps;
 
-            let list = shown.map((c, i) => {
-                const pct = Math.round((c.rec.valor / maxRec) * 100);
+            let rows = list.map((c, i) => {
+                const scale = Math.max(0, Math.min(1, c.rec.valor / maxRec)).toFixed(3);
                 const tipoCls = c.tipo === 'Automação' ? 'auto' : (c.tipo === 'Agendado' ? 'sched' : 'manual');
                 const badge = c.ativa === null ? '' : (c.ativa ? '<span class="dd-badge on">Ativa</span>' : '<span class="dd-badge off">Pausada</span>');
-                const rank = c.rec.valor > 0 ? (i + 1) : '·';
+                const rank = c.rec.valor > 0 ? (i + 1) : '—';
                 return ''
                     + '<div class="dd-camp">'
-                    + '  <div class="dd-rank">' + rank + '</div>'
+                    + '  <div class="dd-rank" aria-hidden="true">' + rank + '</div>'
                     + '  <div class="dd-camp-main">'
-                    + '    <div class="dd-camp-head"><span class="dd-tag ' + tipoCls + '">' + c.tipo + '</span><span class="dd-camp-name">' + _esc(c.nome) + '</span>' + badge + '</div>'
-                    + '    <div class="dd-track"><div class="dd-track-fill" style="width:' + pct + '%"></div></div>'
-                    + '    <div class="dd-camp-sub">' + _int(c.disp) + ' disparos · ' + _int(c.alc) + ' pessoas</div>'
+                    + '    <div class="dd-camp-head"><span class="dd-tag ' + tipoCls + '"><i class="ph-bold ' + (tagIcon[c.tipo] || 'ph-tag') + '" aria-hidden="true"></i>' + c.tipo + '</span><span class="dd-camp-name">' + _esc(c.nome) + '</span>' + badge + '</div>'
+                    + '    <div class="dd-track"><div class="dd-track-fill" style="transform:scaleX(' + scale + ')"></div></div>'
+                    + '    <div class="dd-camp-sub"><i class="ph-bold ph-paper-plane-tilt" aria-hidden="true"></i> ' + _int(c.disp) + ' disparos <span class="dd-dot-sep">·</span> <i class="ph-bold ph-users-three" aria-hidden="true"></i> ' + _int(c.alc) + ' pessoas</div>'
                     + '  </div>'
                     + '  <div class="dd-camp-rec"><div class="dd-rec-v">' + _brl(c.rec.valor) + '</div><div class="dd-rec-l">' + _int(c.rec.pedidos) + (c.rec.pedidos === 1 ? ' pedido' : ' pedidos') + '</div></div>'
                     + '</div>';
             }).join('');
-            if (!shown.length) {
-                list = '<div class="dd-empty">Você ainda não tem campanhas nem disparos neste período. <button class="dd-cta" onclick="dispSwitchSub(\'automacoes\')">Criar automação</button></div>';
+            if (!list.length) {
+                rows = '<div class="dd-empty"><i class="ph-bold ph-flow-arrow" aria-hidden="true"></i><p>Nenhuma campanha ou disparo neste período.</p><button class="dd-cta" onclick="dispSwitchSub(\'automacoes\')">Criar automação</button></div>';
             }
+
+            // funil: disparos -> alcançados -> recuperados
+            const fn = (icon, val, label, on) => '<div class="dd-fn' + (on ? ' on' : '') + '"><i class="ph-bold ' + icon + '" aria-hidden="true"></i><b>' + val + '</b><span>' + label + '</span></div>';
+            const sep = '<i class="ph-bold ph-caret-right dd-fn-sep" aria-hidden="true"></i>';
 
             return ''
                 + '<div class="dd">'
                 + '  <div class="dd-top">'
                 + '    <div class="dd-eyebrow">Efetividade dos disparos</div>'
-                + '    <div class="dd-segs">' + pill(30, '30 dias') + pill(90, '90 dias') + pill('all', 'Tudo') + '</div>'
+                + '    <div class="dd-segs" role="group" aria-label="Período">' + pill(30, '30 dias') + pill(90, '90 dias') + pill('all', 'Tudo') + '</div>'
                 + '  </div>'
                 + '  <div class="dd-hero">'
-                + '    <div class="dd-hero-main">'
-                + '      <div class="dd-hero-label"><span class="dd-dot"></span> Recuperado ' + perLabel + '</div>'
+                + '    <div class="dd-hero-lead">'
+                + '      <div class="dd-hero-eyebrow"><i class="ph-bold ph-arrow-u-down-left" aria-hidden="true"></i> Recuperado · ' + perLabel + '</div>'
                 + '      <div class="dd-hero-val">' + _brl(d.total.valor) + '</div>'
-                + '      <div class="dd-hero-sub">' + _int(d.total.pedidos) + (d.total.pedidos === 1 ? ' pedido recuperado' : ' pedidos recuperados') + ' · de ' + _int(d.disparosTotal) + ' disparos</div>'
+                + '      <div class="dd-hero-sub">' + _int(d.total.pedidos) + (d.total.pedidos === 1 ? ' pedido recuperado' : ' pedidos recuperados') + ' <span class="dd-dot-sep">·</span> ' + taxa.toFixed(1).replace('.', ',') + '% dos disparos converteram</div>'
                 + '    </div>'
-                + '    <div class="dd-hero-stats">'
-                + '      <div class="dd-stat"><div class="dd-stat-v">' + _int(d.disparosTotal) + '</div><div class="dd-stat-l">Disparos</div></div>'
-                + '      <div class="dd-stat"><div class="dd-stat-v">' + _int(d.alcancadosTotal) + '</div><div class="dd-stat-l">Pessoas</div></div>'
-                + '      <div class="dd-stat"><div class="dd-stat-v">' + d.campativas + '</div><div class="dd-stat-l">Campanhas ativas</div></div>'
+                + '    <div class="dd-funnel" aria-label="Funil: disparos, pessoas alcançadas, pedidos recuperados">'
+                + '      ' + fn('ph-paper-plane-tilt', _int(d.disparosTotal), 'disparos') + sep
+                + '      ' + fn('ph-users-three', _int(d.alcancadosTotal), 'alcançados') + sep
+                + '      ' + fn('ph-shopping-bag-open', _int(d.total.pedidos), 'recuperados', true)
                 + '    </div>'
                 + '  </div>'
-                + '  <div class="dd-list-head">Campanhas <span>· mais efetivas primeiro</span></div>'
-                + '  <div class="dd-list">' + list + '</div>'
+                + '  <div class="dd-list-head"><i class="ph-bold ph-ranking" aria-hidden="true"></i> Campanhas <span>· mais efetivas primeiro</span></div>'
+                + '  <div class="dd-list">' + rows + '</div>'
                 + '</div>';
         }
 
@@ -9234,50 +9240,69 @@
             const s = document.createElement('style');
             s.id = 'dispDashStyle';
             s.textContent = ''
-                + '.dd{--dd-money:#10b981;--dd-money-soft:rgba(16,185,129,.12);padding:2px 2px 28px;max-width:900px;}'
-                + '.dd-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}'
+                + '.dd{--dd-money:#059669;--dd-money-2:#10b981;--dd-money-soft:rgba(16,185,129,.12);padding:2px 2px 28px;max-width:900px;font-variant-numeric:tabular-nums;}'
+                + '.dd b,.dd .dd-hero-val,.dd .dd-rec-v,.dd .dd-fn b{font-variant-numeric:tabular-nums;}'
+                + '.dd i[class^="ph"]{vertical-align:-0.1em;}'
+                + '.dd-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;}'
                 + '.dd-eyebrow{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);}'
                 + '.dd-segs{display:inline-flex;background:var(--bg-elevated,rgba(127,127,127,.08));border:1px solid var(--border);border-radius:999px;padding:3px;gap:2px;}'
-                + '.dd-seg{border:0;background:transparent;color:var(--text-muted);font-size:12px;font-weight:700;padding:6px 14px;border-radius:999px;cursor:pointer;transition:.15s;}'
+                + '.dd-seg{border:0;background:transparent;color:var(--text-muted);font-size:12px;font-weight:700;padding:6px 14px;border-radius:999px;cursor:pointer;transition:background .18s,color .18s;}'
+                + '.dd-seg:hover{color:var(--text-main);}'
                 + '.dd-seg.on{background:var(--primary);color:#fff;box-shadow:0 2px 8px var(--primary-glow,rgba(124,58,237,.3));}'
-                + '.dd-hero{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:26px 28px;position:relative;overflow:hidden;margin-bottom:22px;}'
-                + '.dd-hero::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(180deg,var(--dd-money),#059669);}'
-                + '.dd-hero-label{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:10px;}'
-                + '.dd-dot{width:8px;height:8px;border-radius:50%;background:var(--dd-money);box-shadow:0 0 0 4px var(--dd-money-soft);}'
+                + '.dd-seg:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}'
+                + '.dd-hero{display:flex;justify-content:space-between;align-items:center;gap:28px;flex-wrap:wrap;background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:24px 28px;position:relative;overflow:hidden;margin-bottom:22px;}'
+                + '.dd-hero::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(180deg,var(--dd-money-2),var(--dd-money));}'
+                + '.dd-hero-eyebrow{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;}'
+                + '.dd-hero-eyebrow i{color:var(--dd-money-2);font-size:15px;}'
                 + '.dd-hero-val{font-size:44px;line-height:1;font-weight:800;letter-spacing:-.03em;color:var(--dd-money);}'
+                + 'body.dark-mode .dd-hero-val{color:var(--dd-money-2);}'
                 + '.dd-hero-sub{margin-top:10px;font-size:13px;color:var(--text-muted);}'
-                + '.dd-hero-stats{display:flex;gap:10px;align-items:center;}'
-                + '.dd-stat{text-align:center;padding:6px 16px;}'
-                + '.dd-stat+.dd-stat{border-left:1px solid var(--border);}'
-                + '.dd-stat-v{font-size:22px;font-weight:800;color:var(--text-main);letter-spacing:-.02em;}'
-                + '.dd-stat-l{font-size:11px;color:var(--text-muted);margin-top:3px;}'
-                + '.dd-list-head{font-size:13px;font-weight:800;color:var(--text-main);margin:0 2px 12px;}'
+                + '.dd-funnel{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}'
+                + '.dd-fn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 14px;border-radius:14px;background:var(--bg-elevated,rgba(127,127,127,.06));min-width:88px;}'
+                + '.dd-fn i{font-size:18px;color:var(--text-muted);margin-bottom:2px;}'
+                + '.dd-fn b{font-size:20px;font-weight:800;color:var(--text-main);letter-spacing:-.02em;}'
+                + '.dd-fn span{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);}'
+                + '.dd-fn.on{background:var(--dd-money-soft);}'
+                + '.dd-fn.on i,.dd-fn.on b{color:var(--dd-money);}'
+                + 'body.dark-mode .dd-fn.on i,body.dark-mode .dd-fn.on b{color:var(--dd-money-2);}'
+                + '.dd-fn-sep{color:var(--text-faint,#9aa);font-size:14px;}'
+                + '.dd-list-head{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--text-main);margin:0 2px 12px;}'
+                + '.dd-list-head i{color:var(--primary);}'
                 + '.dd-list-head span{color:var(--text-muted);font-weight:600;}'
                 + '.dd-list{display:flex;flex-direction:column;gap:8px;}'
-                + '.dd-camp{display:flex;align-items:center;gap:14px;background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:13px 16px;transition:.15s;}'
-                + '.dd-camp:hover{border-color:var(--border-strong,rgba(127,127,127,.2));}'
-                + '.dd-rank{flex:0 0 26px;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:13px;font-weight:800;color:var(--text-muted);background:var(--bg-elevated,rgba(127,127,127,.08));}'
+                + '.dd-camp{display:flex;align-items:center;gap:14px;background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:13px 16px;transition:border-color .18s,transform .18s;}'
+                + '.dd-camp:hover{border-color:var(--border-strong,rgba(127,127,127,.22));transform:translateY(-1px);}'
+                + '.dd-rank{flex:0 0 28px;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font-size:13px;font-weight:800;color:var(--text-muted);background:var(--bg-elevated,rgba(127,127,127,.08));}'
                 + '.dd-camp:first-child .dd-rank{color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-hi));}'
                 + '.dd-camp-main{flex:1;min-width:0;}'
                 + '.dd-camp-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}'
                 + '.dd-camp-name{font-size:14px;font-weight:700;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}'
-                + '.dd-tag{flex:0 0 auto;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:3px 7px;border-radius:6px;}'
+                + '.dd-tag{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:6px;}'
+                + '.dd-tag i{font-size:11px;}'
                 + '.dd-tag.auto{color:var(--primary);background:color-mix(in srgb,var(--primary) 14%,transparent);}'
-                + '.dd-tag.sched{color:#0891b2;background:rgba(6,182,212,.14);}'
-                + '.dd-tag.manual{color:var(--text-muted);background:rgba(127,127,127,.14);}'
+                + '.dd-tag.sched{color:#0e7490;background:rgba(6,182,212,.16);}'
+                + '.dd-tag.manual{color:var(--text-muted);background:rgba(127,127,127,.16);}'
                 + '.dd-badge{margin-left:auto;flex:0 0 auto;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:999px;}'
                 + '.dd-badge.on{color:var(--dd-money);background:var(--dd-money-soft);}'
-                + '.dd-badge.off{color:var(--text-muted);background:rgba(127,127,127,.14);}'
-                + '.dd-track{height:6px;border-radius:999px;background:rgba(127,127,127,.14);overflow:hidden;}'
-                + '.dd-track-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--dd-money),#34d399);transition:width .4s;}'
-                + '.dd-camp-sub{font-size:11px;color:var(--text-muted);margin-top:7px;}'
+                + 'body.dark-mode .dd-badge.on{color:var(--dd-money-2);}'
+                + '.dd-badge.off{color:var(--text-muted);background:rgba(127,127,127,.16);}'
+                + '.dd-track{height:6px;border-radius:999px;background:rgba(127,127,127,.16);overflow:hidden;}'
+                + '.dd-track-fill{height:100%;width:100%;transform-origin:left center;border-radius:999px;background:linear-gradient(90deg,var(--dd-money),var(--dd-money-2));transition:transform .5s cubic-bezier(.2,.7,.2,1);}'
+                + '.dd-camp-sub{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted);margin-top:8px;}'
+                + '.dd-camp-sub i{font-size:12px;}'
+                + '.dd-dot-sep{opacity:.5;margin:0 3px;}'
                 + '.dd-camp-rec{flex:0 0 auto;text-align:right;min-width:96px;}'
                 + '.dd-rec-v{font-size:16px;font-weight:800;color:var(--text-main);letter-spacing:-.01em;}'
                 + '.dd-rec-l{font-size:11px;color:var(--text-muted);margin-top:2px;}'
-                + '.dd-empty{padding:32px;text-align:center;color:var(--text-muted);font-size:14px;background:var(--card-bg);border:1px dashed var(--border);border-radius:14px;}'
-                + '.dd-cta,.dd-empty .dd-cta{display:inline-block;margin-top:12px;background:var(--primary);color:#fff;border:0;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;}'
+                + '.dd-empty{padding:36px 24px;text-align:center;color:var(--text-muted);background:var(--card-bg);border:1px dashed var(--border);border-radius:16px;}'
+                + '.dd-empty i{font-size:26px;display:block;margin-bottom:8px;opacity:.6;}'
+                + '.dd-empty p{margin:0 0 14px;font-size:14px;}'
+                + '.dd-cta{background:var(--primary);color:#fff;border:0;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;transition:filter .18s;}'
+                + '.dd-cta:hover{filter:brightness(1.08);}'
+                + '.dd-cta:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}'
                 + '.dd-loading{padding:40px;text-align:center;color:var(--text-muted);}'
-                + '@media(max-width:560px){.dd-hero-val{font-size:36px;}.dd-hero-stats{width:100%;justify-content:space-between;}.dd-camp-rec{min-width:78px;}}';
+                + '@media(max-width:600px){.dd-hero{flex-direction:column;align-items:flex-start;gap:18px;}.dd-hero-val{font-size:36px;}.dd-funnel{width:100%;justify-content:space-between;}.dd-fn{flex:1;min-width:0;}.dd-camp-rec{min-width:78px;}}'
+                + '@media(prefers-reduced-motion:reduce){.dd *,.dd *::before,.dd *::after{transition:none !important;animation:none !important;}}';
             document.head.appendChild(s);
         }
 
