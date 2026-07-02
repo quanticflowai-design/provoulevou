@@ -1640,7 +1640,7 @@ const fd = new FormData();
                 const resp = await fetch(WEBHOOK_CHECK_LIMIT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone })
+                    body: JSON.stringify({ phone, notify: true })
                 });
                 const data = await resp.json();
                 if (data.limited) {
