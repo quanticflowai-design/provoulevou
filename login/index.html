@@ -7842,6 +7842,7 @@
               + '  <button class="disp-btn ghost" onclick="automTourStart()" title="Como funciona"><i class="ph-bold ph-question"></i></button>'
               + '  <button class="disp-btn" data-autom-save onclick="automSave()"><i class="ph-bold ph-floppy-disk"></i> Salvar</button>'
               + '</div>'
+              + '<div class="autom-ed-surface">'
               + '<div class="autom-ed-trigger">'
               + '  <div class="autom-trigger-label"><i class="ph-bold ph-flag-pennant"></i> Quando este fluxo deve disparar?</div>'
               + '  <div class="autom-trigger-row">'
@@ -7879,6 +7880,7 @@
               + '    <div class="autom-config-title">Configuração</div>'
               + '    <div id="automConfigBody"><p style="color:var(--text-muted);font-size:13px;">Selecione um bloco no canvas para configurá-lo.</p></div>'
               + '  </div>'
+              + '</div>'
               + '</div>';
         }
 
@@ -8310,6 +8312,13 @@
               #automEditor .autom-input.autom-err{border-color:#dc2626 !important;box-shadow:0 0 0 3px rgba(220,38,38,.15);}
               #automEditor .autom-pal-item .autom-pal-grip{margin-left:auto;color:var(--text-faint,#9aa);font-size:15px;}
               #automEditor .autom-pal-item:hover .autom-pal-grip{color:var(--text-muted);}
+              #automEditor .autom-ed-surface{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+              #automEditor .autom-ed-trigger{border:none;border-radius:0;border-bottom:1px solid var(--border);background:transparent;margin:0;padding:14px 16px;}
+              #automEditor .autom-ed-exits{margin:0;padding:11px 16px;border-bottom:1px solid var(--border);}
+              #automEditor .autom-ed-grid{gap:0;}
+              #automEditor .autom-palette{border:none;border-right:1px solid var(--border);border-radius:0;background:transparent;}
+              #automEditor .autom-canvas-wrap{border:none;border-radius:0;}
+              #automEditor .autom-config{border:none;border-left:1px solid var(--border);border-radius:0;background:transparent;}
             `;
             document.head.appendChild(st);
         }
