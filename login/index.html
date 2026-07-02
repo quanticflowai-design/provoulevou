@@ -3452,15 +3452,6 @@
                         <div class="vring-desc">% que voltou em outro dia.</div>
                     </div>
                     <div class="vring-card vg-ring-cell">
-                        <div class="vring" id="ringIntencao" style="--ring-color:#10b981;">
-                            <div class="vring-inner">
-                                <div class="vring-value" id="ringIntencaoValue">0<small></small></div>
-                            </div>
-                        </div>
-                        <div class="vring-label">Provas por cliente</div>
-                        <div class="vring-desc">Média de provas por cliente.</div>
-                    </div>
-                    <div class="vring-card vg-ring-cell">
                         <div class="vring" id="ringTempo" style="--ring-color:#a855f7;">
                             <div class="vring-inner">
                                 <div class="vring-value" id="ringTempoValue">—</div>
@@ -12458,12 +12449,14 @@
             ringDia.style.setProperty('--ring-pct', Math.min(100, pctVoltaramDia));
             document.getElementById('ringDiaValue').innerHTML = pctVoltaramDia.toFixed(0) + '<small>%</small>';
 
-            // Intenção (provas por cliente): mapeia 0 → 0% e 5+ → 100% no anel
+            // Intenção (provas por cliente) — anel removido da Visão Geral; guard mantido por segurança
             const ringIntencao = document.getElementById('ringIntencao');
-            const pctIntencao = Math.min(100, (provasPerClient / 5) * 100);
-            ringIntencao.style.setProperty('--ring-pct', pctIntencao);
-            document.getElementById('ringIntencaoValue').innerHTML =
-                provasPerClient.toFixed(1).replace('.', ',') + '<small>×</small>';
+            if (ringIntencao) {
+                const pctIntencao = Math.min(100, (provasPerClient / 5) * 100);
+                ringIntencao.style.setProperty('--ring-pct', pctIntencao);
+                const riv = document.getElementById('ringIntencaoValue');
+                if (riv) riv.innerHTML = provasPerClient.toFixed(1).replace('.', ',') + '<small>×</small>';
+            }
 
             // Tempo: pega de provasTempoMedio (string tipo "2m 14s") + calcula segundos pra preencher anel
             const tempoEl = document.getElementById('provasTempoMedio');
