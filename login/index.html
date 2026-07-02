@@ -7833,7 +7833,10 @@
             return ''
               + '<div class="autom-ed-head">'
               + '  <button class="disp-btn ghost" onclick="automBackToList()"><i class="ph-bold ph-arrow-left"></i></button>'
-              + '  <input id="automNome" class="autom-input" placeholder="Nome do fluxo" style="flex:1;min-width:140px;">'
+              + '  <div class="autom-name-field">'
+              + '    <label class="autom-name-label" for="automNome">Nome da automação <span class="autom-req">*</span></label>'
+              + '    <input id="automNome" class="autom-input autom-name-input" placeholder="Ex.: Recuperação de carrinho abandonado">'
+              + '  </div>'
               + '  <label class="autom-switch"><input type="checkbox" id="automAtivo"><span>Ativo</span></label>'
               + '  <button class="disp-btn ghost" onclick="automOpenJanela()"><i class="ph-bold ph-clock"></i> Janela de envio</button>'
               + '  <button class="disp-btn ghost" onclick="automTourStart()" title="Como funciona"><i class="ph-bold ph-question"></i></button>'
@@ -7862,10 +7865,10 @@
               + '  <div class="autom-palette">'
               + '    <div class="autom-pal-head"><div class="autom-pal-h1">Nós</div><div class="autom-pal-h2">Arraste para o canvas</div></div>'
               + '    <div class="autom-pal-group">Ações</div>'
-              + '    <div class="autom-pal-item act" draggable="true" data-node="enviar"><span class="autom-pal-ic act"><i class="ph-bold ph-paper-plane-tilt"></i></span><span>Enviar template</span></div>'
+              + '    <div class="autom-pal-item act" draggable="true" data-node="enviar"><span class="autom-pal-ic act"><i class="ph-bold ph-paper-plane-tilt"></i></span><span>Enviar template</span><i class="ph-bold ph-dots-six-vertical autom-pal-grip" aria-hidden="true"></i></div>'
               + '    <div class="autom-pal-group">Lógica</div>'
-              + '    <div class="autom-pal-item log" draggable="true" data-node="espera"><span class="autom-pal-ic log"><i class="ph-bold ph-hourglass-medium"></i></span><span>Espera</span></div>'
-              + '    <div class="autom-pal-item log" draggable="true" data-node="mover_crm"><span class="autom-pal-ic log"><i class="ph-bold ph-kanban"></i></span><span>Mover no CRM</span></div>'
+              + '    <div class="autom-pal-item log" draggable="true" data-node="espera"><span class="autom-pal-ic log"><i class="ph-bold ph-hourglass-medium"></i></span><span>Espera</span><i class="ph-bold ph-dots-six-vertical autom-pal-grip" aria-hidden="true"></i></div>'
+              + '    <div class="autom-pal-item log" draggable="true" data-node="mover_crm"><span class="autom-pal-ic log"><i class="ph-bold ph-kanban"></i></span><span>Mover no CRM</span><i class="ph-bold ph-dots-six-vertical autom-pal-grip" aria-hidden="true"></i></div>'
               + '    <p class="autom-pal-hint">O <b>Gatilho</b> (topo do canvas) inicia o fluxo. Arraste blocos e ligue em sequência.</p>'
               + '  </div>'
               + '  <div class="autom-canvas-wrap"><div id="automCanvas" class="autom-canvas"></div>'
@@ -8299,6 +8302,14 @@
               #automEditor .autom-zoom button{width:32px;height:32px;border-radius:9px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-main);font-size:16px;font-weight:700;cursor:pointer;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.08);transition:border-color .15s;}
               #automEditor .autom-zoom button:hover{border-color:var(--primary);}
               #automEditor .autom-drop-hint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);background:var(--card-bg);border:1px dashed var(--border-strong,rgba(127,127,127,.32));border-radius:999px;padding:6px 14px;z-index:4;pointer-events:none;opacity:.9;}
+              #automEditor .autom-ed-head{align-items:flex-end;}
+              #automEditor .autom-name-field{flex:1;min-width:200px;display:flex;flex-direction:column;gap:5px;}
+              #automEditor .autom-name-label{font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;}
+              #automEditor .autom-req{color:#dc2626;}
+              #automEditor .autom-name-input{font-size:14px;font-weight:600;padding:9px 12px;}
+              #automEditor .autom-input.autom-err{border-color:#dc2626 !important;box-shadow:0 0 0 3px rgba(220,38,38,.15);}
+              #automEditor .autom-pal-item .autom-pal-grip{margin-left:auto;color:var(--text-faint,#9aa);font-size:15px;}
+              #automEditor .autom-pal-item:hover .autom-pal-grip{color:var(--text-muted);}
             `;
             document.head.appendChild(st);
         }
@@ -8776,7 +8787,12 @@
             };
             AUTOM.exits = exits;
             const gatilhoEtapa = (document.getElementById('automGatilhoEtapa') || {}).value || null;
-            if (!nome) { automSetEdMsg('Dê um nome ao fluxo.', true); return; }
+            if (!nome) {
+                automSetEdMsg('Dê um nome à automação.', true);
+                const el = document.getElementById('automNome');
+                if (el) { el.classList.add('autom-err'); el.focus(); el.addEventListener('input', () => el.classList.remove('autom-err'), { once: true }); }
+                return;
+            }
             if (!gatilho) { automSetEdMsg('Escolha um gatilho.', true); return; }
             if (gatilho === 'crm_etapa' && !gatilhoEtapa) { automSetEdMsg('Escolha qual etapa do CRM dispara o fluxo.', true); return; }
 
