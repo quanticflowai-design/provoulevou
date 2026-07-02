@@ -9233,6 +9233,9 @@
         // disparo (whatsapp_send_log) identifica a campanha. Sends com template fora de qualquer
         // campanha -> "Disparos avulsos". Recuperado reusa allOrdersCache (dedup) + normalize() +
         // orderPhoneKeys(); janela de compra fixa 30d; atribuição last-touch.
+        // Custo estimado por mensagem de marketing ENTREGUE (rate médio Meta Brasil ~R$0,31–0,38).
+        // Não temos o valor real por disparo; usamos essa média pros cálculos de custo/ROI.
+        const DISPARO_RATE_BRL = 0.35;
         async function computeDispEfetividade(period) {
             const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
             const cutoff = _dispPeriodCutoffMs(period);
@@ -9271,13 +9274,18 @@
             const chartCutoff = (cutoff === 0) ? (NOW - 90 * 86400000) : cutoff;
             const dayKey = ms => new Date(ms).toISOString().slice(0, 10);
             const disparosPorDia = {}, recuperadoPorDia = {};
-            let kpiEnviados = 0, kpiFalhas = 0, kpi24h = 0;
+            let kpiEnviados = 0, kpiFalhas = 0, kpi24h = 0, kpiEntregues = 0, kpiLidas = 0;
             sendRows.forEach(r => {
                 if (!r.sent_at) return;
                 const ms = new Date(r.sent_at).getTime(); if (!ms) return;
                 const inPeriod = (cutoff === 0 || ms >= cutoff);
                 if (r.status === 'failed') { if (inPeriod) kpiFalhas++; return; }
-                if (inPeriod) { kpiEnviados++; if (NOW - ms <= 86400000) kpi24h++; }
+                if (inPeriod) {
+                    kpiEnviados++;
+                    if (r.status === 'delivered' || r.status === 'read') kpiEntregues++;
+                    if (r.status === 'read') kpiLidas++;
+                    if (NOW - ms <= 86400000) kpi24h++;
+                }
                 const ph = normalize(r.lead_phone); if (!ph) return;
                 const cid = tplToCid[r.template_name] || 'avulsos';
                 (dispByPhone[ph] = dispByPhone[ph] || []).push(ms);
@@ -9323,8 +9331,34 @@
                 serieDiaria.push({ dia: k, disparos: disparosPorDia[k] || 0, recuperado: recuperadoPorDia[k] || 0 });
               } }
             const kpis = { total: kpiEnviados + kpiFalhas, enviados: kpiEnviados, falhas: kpiFalhas, ultimas24h: kpi24h };
+
+            // Respondidas: leads disparados que mandaram mensagem DE VOLTA (inbound) após o disparo.
+            let kpiRespondidas = 0;
+            try {
+                const { data: inb } = await supabaseClient.from('whatsapp_mensagens')
+                    .select('lead_phone, wa_timestamp, created_at').eq('email', activeUser.email).eq('direction', 'in').limit(20000);
+                const inByPhone = {};
+                (inb || []).forEach(m => {
+                    const ph = normalize(m.lead_phone); if (!ph) return;
+                    const t = new Date(m.wa_timestamp || m.created_at || 0).getTime(); if (!t) return;
+                    (inByPhone[ph] = inByPhone[ph] || []).push(t);
+                });
+                const respSet = new Set();
+                Object.keys(dispByPhone).forEach(ph => {
+                    const ins = inByPhone[ph]; if (!ins) return;
+                    const ok = dispByPhone[ph].some(dms => (cutoff === 0 || dms >= cutoff) && ins.some(ims => ims >= dms && (ims - dms) <= WINDOW_MS));
+                    if (ok) respSet.add(ph);
+                });
+                kpiRespondidas = respSet.size;
+            } catch (e) { console.warn('[dashboard] respondidas:', e); }
+
+            // Custo estimado (Meta cobra por mensagem ENTREGUE de marketing; rate médio BR ~R$0,35) + ROI.
+            const custoEstimado = kpiEntregues * DISPARO_RATE_BRL;
+            const roi = custoEstimado > 0 ? (total.valor / custoEstimado) : 0;
+            const msgStats = { disparadas: kpiEnviados, entregues: kpiEntregues, lidas: kpiLidas, respondidas: kpiRespondidas, falhas: kpiFalhas };
+
             const campativas = flows.filter(f => f.ativo).length + agend.filter(a => a.active).length;
-            return { period, total, recPorCamp, disparosPorCamp, alcancadosPorCamp, disparosTotal, alcancadosTotal: alcTotal.size, flows, agend, campativas, kpis, serieDiaria };
+            return { period, total, recPorCamp, disparosPorCamp, alcancadosPorCamp, disparosTotal, alcancadosTotal: alcTotal.size, flows, agend, campativas, kpis, serieDiaria, msgStats, custoEstimado, roi };
         }
 
         function _brl(v) { return 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -9395,11 +9429,18 @@
                 + '      ' + fn('ph-shopping-bag-open', _int(d.total.pedidos), 'recuperados', true)
                 + '    </div>'
                 + '  </div>'
+                + '  <div class="dd-kpis dd-money-row">'
+                + '    <div class="dd-kpi"><span class="dd-kpi-l">Custo estimado</span><span class="dd-kpi-v">' + _brl(d.custoEstimado) + '</span><span class="dd-kpi-s">\u2248 R$\u00a00,35/entregue (estimado)</span></div>'
+                + '    <div class="dd-kpi ok"><span class="dd-kpi-l">ROI</span><span class="dd-kpi-v">' + (d.roi > 0 ? d.roi.toFixed(1).replace('.', ',') + '\u00d7' : '\u2014') + '</span><span class="dd-kpi-s">recuperado \u00f7 custo</span></div>'
+                + '    <div class="dd-kpi ok"><span class="dd-kpi-l">Retorno l\u00edquido</span><span class="dd-kpi-v">' + _brl(d.total.valor - d.custoEstimado) + '</span><span class="dd-kpi-s">recuperado \u2212 custo</span></div>'
+                + '  </div>'
+                + '  <div class="dd-list-head" style="margin-top:20px;"><i class="ph-bold ph-chat-dots" aria-hidden="true"></i> Mensagens <span>\u00b7 ' + perLabel + '</span></div>'
                 + '  <div class="dd-kpis">'
-                + '    <div class="dd-kpi"><span class="dd-kpi-l">Disparos</span><span class="dd-kpi-v">' + _int(d.kpis.total) + '</span></div>'
-                + '    <div class="dd-kpi ok"><span class="dd-kpi-l">Enviados</span><span class="dd-kpi-v">' + _int(d.kpis.enviados) + '</span><span class="dd-kpi-s">' + (d.kpis.total ? Math.round(d.kpis.enviados / d.kpis.total * 100) : 0) + '%</span></div>'
-                + '    <div class="dd-kpi bad"><span class="dd-kpi-l">Falhas</span><span class="dd-kpi-v">' + _int(d.kpis.falhas) + '</span><span class="dd-kpi-s">' + (d.kpis.total ? Math.round(d.kpis.falhas / d.kpis.total * 100) : 0) + '%</span></div>'
-                + '    <div class="dd-kpi"><span class="dd-kpi-l">\u00daltimas 24h</span><span class="dd-kpi-v">' + _int(d.kpis.ultimas24h) + '</span></div>'
+                + '    <div class="dd-kpi"><span class="dd-kpi-l">Disparadas</span><span class="dd-kpi-v">' + _int(d.msgStats.disparadas) + '</span></div>'
+                + '    <div class="dd-kpi"><span class="dd-kpi-l">Entregues</span><span class="dd-kpi-v">' + _int(d.msgStats.entregues) + '</span><span class="dd-kpi-s">' + (d.msgStats.disparadas ? Math.round(d.msgStats.entregues / d.msgStats.disparadas * 100) : 0) + '% das disparadas</span></div>'
+                + '    <div class="dd-kpi"><span class="dd-kpi-l">Lidas</span><span class="dd-kpi-v">' + _int(d.msgStats.lidas) + '</span><span class="dd-kpi-s">' + (d.msgStats.entregues ? Math.round(d.msgStats.lidas / d.msgStats.entregues * 100) : 0) + '% das entregues</span></div>'
+                + '    <div class="dd-kpi ok"><span class="dd-kpi-l">Respondidas</span><span class="dd-kpi-v">' + _int(d.msgStats.respondidas) + '</span><span class="dd-kpi-s">' + (d.msgStats.disparadas ? Math.round(d.msgStats.respondidas / d.msgStats.disparadas * 100) : 0) + '% das disparadas</span></div>'
+                + '    <div class="dd-kpi bad"><span class="dd-kpi-l">Falhas</span><span class="dd-kpi-v">' + _int(d.msgStats.falhas) + '</span><span class="dd-kpi-s">' + ((d.msgStats.disparadas + d.msgStats.falhas) ? Math.round(d.msgStats.falhas / (d.msgStats.disparadas + d.msgStats.falhas) * 100) : 0) + '% do total</span></div>'
                 + '  </div>'
                 + '  <div class="dd-chart-card"><div class="dd-chart-head"><i class="ph-bold ph-chart-bar" aria-hidden="true"></i> Disparos \u00d7 recupera\u00e7\u00e3o por dia</div><div class="dd-chart-wrap"><canvas id="dispDashDailyChart"></canvas></div></div>'
                 + '  <div class="dd-list-head"><i class="ph-bold ph-ranking" aria-hidden="true"></i> Campanhas <span>· mais efetivas primeiro</span></div>'
@@ -9484,6 +9525,7 @@
                 + '.dd-kpi.ok .dd-kpi-v{color:var(--dd-money);}'
                 + 'body.dark-mode .dd-kpi.ok .dd-kpi-v{color:var(--dd-money-2);}'
                 + '.dd-kpi.bad .dd-kpi-v{color:#dc2626;}'
+                + '.dd-money-row .dd-kpi:first-child{border-color:color-mix(in srgb,var(--dd-money) 30%,var(--border));background:var(--dd-money-soft);}'
                 + '.dd-chart-card{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:22px;}'
                 + '.dd-chart-head{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--text-main);margin-bottom:12px;}'
                 + '.dd-chart-head i{color:var(--primary);}'
@@ -14612,6 +14654,9 @@
             { key: 'cold',           title: 'Provou e não comprou',              icon: 'ph-user',         auto: true,  rule: 'cold' },
             { key: 'clicou-comprar', title: 'Clicaram em comprar e não compraram', icon: 'ph-cursor-click', auto: true,  rule: 'clicou' },
             { key: 'carrinho-abandonado', title: 'Carrinho abandonado',          icon: 'ph-shopping-cart', auto: true, rule: 'carrinho' },
+            { key: 'msg-1', title: 'Mensagem 1', icon: 'ph-number-circle-one',   auto: false },
+            { key: 'msg-2', title: 'Mensagem 2', icon: 'ph-number-circle-two',   auto: false },
+            { key: 'msg-3', title: 'Mensagem 3', icon: 'ph-number-circle-three', auto: false },
             { key: 'em-contato', title: 'Em contato',           icon: 'ph-chats-circle',   auto: false },
             { key: 'negociando', title: 'Negociando',           icon: 'ph-handshake',      auto: false },
             { key: 'convertido', title: 'Convertido',           icon: 'ph-check-circle',   auto: true,  rule: 'convertido' },
@@ -14649,6 +14694,16 @@
                 cols.splice(convIdx < 0 ? cols.length : convIdx, 0, ...salesDefaults);
                 changed = true;
             }
+            // Etapas de follow-up (Mensagem 1/2/3) — padrão em TODOS os pipelines.
+            // Inseridas logo após "Carrinho abandonado", antes de "Em contato".
+            [['msg-1', 'Mensagem 1', 'ph-number-circle-one'], ['msg-2', 'Mensagem 2', 'ph-number-circle-two'], ['msg-3', 'Mensagem 3', 'ph-number-circle-three']].forEach((m, i) => {
+                if (cols.some(c => c.key === m[0])) return;
+                const prevKey = i === 0 ? 'carrinho-abandonado' : ('msg-' + i);
+                let idx = cols.findIndex(c => c.key === prevKey);
+                if (idx < 0) idx = cols.findIndex(c => c.key === 'em-contato') - 1;
+                cols.splice(idx < 0 ? cols.length : idx + 1, 0, { key: m[0], title: m[1], icon: m[2], auto: false });
+                changed = true;
+            });
             return { columns: cols, _migrated: changed };
         }
 
