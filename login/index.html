@@ -7742,7 +7742,12 @@
             }
             if (name === 'disparar') {
                 try { maybeShowDispWizard(); } catch (e) {}
-                try { campLoadList(); } catch (e) {}
+                // Clicar em Campanhas sempre volta pra tela inicial (lista) — fecha o wizard se estiver aberto.
+                try {
+                    const host = document.getElementById('campWizardHost');
+                    if (host && host.style.display !== 'none') campWizardClose();
+                    else campLoadList();
+                } catch (e) { try { campLoadList(); } catch (e2) {} }
                 // Mensagens modelo vive dentro de Campanhas — carrega os templates aqui.
                 if (typeof waLoadTemplates === 'function') { try { waLoadTemplates(); } catch (e) {} }
             }
