@@ -4101,8 +4101,12 @@
                     .disp-btn.sm { padding:6px 10px; font-size:12px; }
                     .disp-btn.ghost.danger { color:#ef4444; }
 
-                    /* Cards da lista */
-                    .autom-card { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; background:var(--card-bg); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:10px; }
+                    /* Lista de fluxos — superfície única (linhas, não cards soltos) */
+                    .autom-shell { background:var(--card-bg); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+                    .autom-shell-head { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding:18px 22px; border-bottom:1px solid var(--border); }
+                    .autom-card { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; background:transparent; border:0; border-bottom:1px solid var(--border); border-radius:0; padding:15px 22px; margin:0; }
+                    .autom-card:last-child { border-bottom:0; }
+                    .autom-card:hover { background:rgba(127,127,127,.05); }
                     .autom-card-name { font-weight:700; font-size:15px; }
                     .autom-card-sub { color:var(--text-muted); font-size:12.5px; margin-top:3px; display:flex; align-items:center; gap:5px; }
                     .autom-card-stats { display:flex; gap:16px; margin-top:8px; font-size:12px; color:var(--text-muted); }
@@ -4128,7 +4132,7 @@
                     .autom-tour-text { font-size:13px; color:var(--text-muted); line-height:1.55; }
                     .autom-tour-actions { display:flex; align-items:center; gap:8px; margin-top:14px; }
                     .autom-tour-skip { background:none; border:none; color:var(--text-muted); font-size:12.5px; cursor:pointer; font-family:inherit; padding:6px 0; }
-                    .autom-empty { background:var(--card-bg); border:1px solid var(--border); border-radius:14px; padding:22px; }
+                    .autom-empty { background:transparent; border:0; border-radius:0; padding:26px 22px; }
                     .autom-empty h4 { margin:0 0 4px; font-size:16px; }
                     .autom-empty p { margin:0 0 16px; color:var(--text-muted); font-size:13px; }
                     .autom-empty ol { margin:0 0 18px; padding-left:18px; color:var(--text-muted); font-size:13px; line-height:1.7; }
@@ -4193,9 +4197,9 @@
                 <div class="disp-layout">
                 <div class="disp-subnav" id="dispSubnav">
                     <button data-sub="dashboard" class="active" onclick="dispSwitchSub('dashboard')"><i class="ph-bold ph-chart-line-up"></i> <span class="disp-nav-txt">Dashboard</span></button>
-                    <button data-sub="crm" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> <span class="disp-nav-txt">CRM</span></button>
-                    <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> <span class="disp-nav-txt">Conversas</span> <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
                     <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-megaphone"></i> <span class="disp-nav-txt">Campanhas</span></button>
+                    <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> <span class="disp-nav-txt">Conversas</span> <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
+                    <button data-sub="crm" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> <span class="disp-nav-txt">CRM</span></button>
                     <button data-sub="templates" onclick="dispSwitchSub('templates')"><i class="ph-bold ph-chat-circle-text"></i> <span class="disp-nav-txt">Mensagens modelo</span></button>
                     <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> <span class="disp-nav-txt">Conexão</span></button>
                     <button data-sub="automacoes" onclick="dispSwitchSub('automacoes')"><i class="ph-bold ph-flow-arrow"></i> <span class="disp-nav-txt">Automações</span></button>
@@ -7797,17 +7801,25 @@
                         css.setAttribute('data-autom-df', '1');
                         document.head.appendChild(css);
                     }
-                    let s = document.querySelector('script[data-autom-df]');
-                    if (!s) {
-                        s = document.createElement('script');
+                    // Polling + timeout: NUNCA deixa a Promise pendurada (bug do "Editar não abre") —
+                    // se o script antigo falhou (CDN off/adblock), o load nunca dispara de novo.
+                    const started = Date.now();
+                    const poll = setInterval(() => {
+                        if (window.Drawflow) { clearInterval(poll); resolve(); }
+                        else if (Date.now() - started > 12000) {
+                            clearInterval(poll);
+                            reject(new Error('Não foi possível carregar o editor de fluxos. Verifique sua internet e clique em Editar de novo.'));
+                        }
+                    }, 150);
+                    const old = document.querySelector('script[data-autom-df]');
+                    // Recria a tag do script se nunca existiu OU se a carga anterior falhou.
+                    if (!old || old.getAttribute('data-autom-df-failed') === '1') {
+                        if (old) old.remove();
+                        const s = document.createElement('script');
                         s.src = 'https://cdn.jsdelivr.net/npm/drawflow@0.0.59/dist/drawflow.min.js';
                         s.setAttribute('data-autom-df', '1');
-                        s.onload = () => resolve();
-                        s.onerror = () => reject(new Error('Não foi possível carregar o Drawflow (CDN).'));
+                        s.onerror = () => { try { s.setAttribute('data-autom-df-failed', '1'); } catch (e) {} };
                         document.head.appendChild(s);
-                    } else {
-                        s.addEventListener('load', () => resolve());
-                        s.addEventListener('error', () => reject(new Error('Não foi possível carregar o Drawflow (CDN).')));
                     }
                 } catch (e) { reject(e); }
             });
@@ -7818,6 +7830,7 @@
             const pane = document.getElementById('dispSubAutomacoes');
             if (!pane) return;
             _automInjectCSS();
+            try { _campInjectCSS(); } catch (e) {}   // .camp-btn (botão primário bonito) é compartilhado
             if (AUTOM.built) { automShowList(); automLoadFlows(); return; }
             pane.innerHTML = automShellHTML();
             AUTOM.built = true;
@@ -7827,16 +7840,16 @@
 
         function automShellHTML() {
             return ''
-              + '<div id="automList">'
-              + '  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">'
+              + '<div id="automList"><div class="autom-shell">'
+              + '  <div class="autom-shell-head">'
               + '    <div><h3 style="margin:0;font-size:18px;">Automações</h3><p style="margin:4px 0 0;color:var(--text-muted);font-size:13px;">Monte fluxos de WhatsApp que disparam sozinhos a partir de um gatilho.</p></div>'
               + '    <div style="display:flex;gap:8px;">'
               + '      <button class="disp-btn ghost" onclick="automTourStart()"><i class="ph-bold ph-question"></i> Como funciona</button>'
-              + '      <button class="disp-btn" onclick="automNewFlow()"><i class="ph-bold ph-plus"></i> Novo fluxo</button>'
+              + '      <button class="camp-btn primary" onclick="automNewFlow()"><i class="ph-bold ph-plus"></i> Novo fluxo</button>'
               + '    </div>'
               + '  </div>'
-              + '  <div id="automCards"><div style="color:var(--text-muted);font-size:13px;padding:14px 0;"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando fluxos…</div></div>'
-              + '</div>'
+              + '  <div id="automCards"><div style="color:var(--text-muted);font-size:13px;padding:18px 22px;"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando fluxos…</div></div>'
+              + '</div></div>'
               + '<div id="automEditor" style="display:none;">' + automEditorHTML() + '</div>';
         }
 
@@ -8026,7 +8039,7 @@
                         + '  <li><b>Salve e ative</b></li>'
                         + '</ol>'
                         + '<div style="display:flex;gap:8px;flex-wrap:wrap;">'
-                        + '  <button class="disp-btn" onclick="automNewFlow()"><i class="ph-bold ph-plus"></i> Criar meu primeiro fluxo</button>'
+                        + '  <button class="camp-btn primary lg" onclick="automNewFlow()"><i class="ph-bold ph-plus"></i> Criar meu primeiro fluxo</button>'
                         + '  <button class="disp-btn ghost" onclick="automTourStart()"><i class="ph-bold ph-play-circle"></i> Ver tutorial guiado</button>'
                         + '</div>'
                         + '</div>';
@@ -10171,7 +10184,8 @@
             if (document.getElementById('campCSS')) return;
             const s = document.createElement('style'); s.id = 'campCSS';
             s.textContent = `
-              #campWizardHost .camp-surface{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;max-width:820px;}
+              #campWizardHost .camp-surface{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+              #campWizardHost .camp-body>*{max-width:720px;}
               #campWizardHost .camp-steps{display:flex;gap:0;border-bottom:1px solid var(--border);}
               #campWizardHost .camp-step{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 8px;font-size:12.5px;font-weight:700;color:var(--text-muted);position:relative;}
               #campWizardHost .camp-step .n{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:rgba(127,127,127,.14);font-size:12px;}
@@ -10194,16 +10208,27 @@
               #campWizardHost .camp-vars{font-size:12.5px;color:var(--text-muted);background:rgba(127,127,127,.08);border-radius:10px;padding:11px 13px;margin-top:10px;line-height:1.7;}
               #campWizardHost .camp-vars code{background:rgba(124,58,237,.14);color:var(--primary);padding:1px 6px;border-radius:5px;font-size:12px;}
               #campWizardHost .camp-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 24px;border-top:1px solid var(--border);}
-              #campWizardHost .camp-btn{border:1px solid var(--border);background:var(--card-bg);color:var(--text-main);border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
-              #campWizardHost .camp-btn.primary{background:var(--primary);border-color:var(--primary);color:#fff;}
-              #campWizardHost .camp-btn:disabled{opacity:.5;cursor:not-allowed;}
+              .camp-btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-main);border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:border-color .15s,transform .12s,box-shadow .15s;}
+              .camp-btn:hover{border-color:var(--border-strong,rgba(127,127,127,.3));}
+              .camp-btn.primary{background:linear-gradient(135deg,#7c3aed,#9333ea 55%,#a855f7);border:none;color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.35);}
+              .camp-btn.primary:hover{transform:translateY(-1px);box-shadow:0 7px 20px rgba(124,58,237,.45);}
+              .camp-btn.primary:active{transform:translateY(0);box-shadow:0 3px 10px rgba(124,58,237,.35);}
+              .camp-btn.primary.lg{padding:12px 24px;font-size:14px;border-radius:12px;}
+              .camp-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
               #campWizardHost .camp-lbl{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px;display:block;}
               #campWizardHost .camp-msg{font-size:12.5px;margin-top:10px;}
-              #campListCard .camp-item{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+              #campListCard .camp-shell{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+              #campListCard .camp-shell-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:18px 22px;border-bottom:1px solid var(--border);}
+              #campListCard .camp-item{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:transparent;border:0;border-bottom:1px solid var(--border);border-radius:0;padding:15px 22px;margin:0;}
+              #campListCard .camp-item:last-child{border-bottom:0;}
+              #campListCard .camp-item:hover{background:rgba(127,127,127,.05);}
               #campListCard .camp-item-name{font-weight:700;font-size:14.5px;color:var(--text-main);}
               #campListCard .camp-item-sub{font-size:12px;color:var(--text-muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
               #campListCard .camp-badge{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:999px;}
-              #campListCard .camp-empty{background:var(--card-bg);border:1px dashed var(--border);border-radius:14px;padding:30px;text-align:center;color:var(--text-muted);}
+              #campListCard .camp-empty{background:transparent;border:0;padding:46px 22px;text-align:center;color:var(--text-muted);}
+              #campListCard .camp-empty-ic{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;margin:0 auto 14px;background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(168,85,247,.10));color:#7c3aed;font-size:26px;}
+              #campListCard .camp-empty h4{margin:0 0 4px;font-size:16px;color:var(--text-main);}
+              #campListCard .camp-empty p{margin:0 0 18px;font-size:13px;}
             `;
             document.head.appendChild(s);
         }
@@ -10212,13 +10237,15 @@
         async function campLoadList() {
             _campInjectCSS();
             const el = document.getElementById('campListCard'); if (!el || !activeUser) return;
-            el.innerHTML = '<div class="camp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando campanhas…</div>';
+            const shellHead = '<div class="camp-shell-head"><div><h3 style="margin:0;font-size:18px;">Campanhas</h3><p class="desc" style="margin:2px 0 0;">Crie e acompanhe suas campanhas de WhatsApp.</p></div><button class="camp-btn primary" onclick="campWizardOpen()"><i class="ph-bold ph-plus"></i> Nova campanha</button></div>';
+            const shell = inner => '<div class="camp-shell">' + shellHead + inner + '</div>';
+            el.innerHTML = shell('<div class="camp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando campanhas…</div>');
             let rows = [];
             try {
                 const { data } = await supabaseClient.from('disparos_agendados')
                     .select('*').eq('lojista_email', activeUser.email).order('created_at', { ascending: false }).limit(200);
                 rows = data || [];
-            } catch (e) { el.innerHTML = '<div class="camp-empty">Não foi possível carregar as campanhas.</div>'; return; }
+            } catch (e) { el.innerHTML = shell('<div class="camp-empty">Não foi possível carregar as campanhas.</div>'); return; }
 
             // auto-ativação: aguardando aprovação cujo template já foi aprovado pela Meta
             const approved = new Set((_waTemplatesCache || []).filter(t => (t.status || '').toUpperCase() === 'APPROVED').map(t => t.name));
@@ -10239,13 +10266,16 @@
             const stageTitle = k => { const c = (cfg.columns || []).find(x => x.key === k); return c ? c.title : (k || '—'); };
             const items = Object.values(groups);
             if (!items.length) {
-                el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;"><div><h3 style="margin:0;font-size:18px;">Campanhas</h3><p class="desc" style="margin:2px 0 0;">Crie campanhas de WhatsApp pros seus clientes.</p></div><button class="camp-btn primary" onclick="campWizardOpen()"><i class="ph-bold ph-plus"></i> Nova campanha</button></div>'
-                    + '<div class="camp-empty"><i class="ph-bold ph-megaphone" style="font-size:26px;opacity:.4;"></i><br><br>Nenhuma campanha ainda.<br><button class="camp-btn primary" style="margin-top:12px;" onclick="campWizardOpen()"><i class="ph-bold ph-plus"></i> Criar primeira campanha</button></div>';
+                el.innerHTML = shell('<div class="camp-empty">'
+                    + '<div class="camp-empty-ic"><i class="ph-bold ph-megaphone"></i></div>'
+                    + '<h4>Nenhuma campanha ainda</h4>'
+                    + '<p>Crie sua primeira campanha e fale com seus clientes no WhatsApp em 4 passos.</p>'
+                    + '<button class="camp-btn primary lg" onclick="campWizardOpen()"><i class="ph-bold ph-plus"></i> Criar primeira campanha</button>'
+                    + '</div>');
                 return;
             }
             const STB = { agendado: ['Agendada', '#f59e0b', 'rgba(245,158,11,.15)'], aguardando_aprovacao: ['Aguardando aprovação da Meta', '#b45309', 'rgba(217,119,6,.16)'], concluido: ['Concluída', '#10b981', 'rgba(16,185,129,.15)'], cancelado: ['Cancelada', '#9ca3af', 'rgba(127,127,127,.15)'] };
-            let html = '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;"><div><h3 style="margin:0;font-size:18px;">Campanhas</h3><p class="desc" style="margin:2px 0 0;">Crie e acompanhe suas campanhas de WhatsApp.</p></div><button class="camp-btn primary" onclick="campWizardOpen()"><i class="ph-bold ph-plus"></i> Nova campanha</button></div>';
-            html += items.map(g => {
+            let html = items.map(g => {
                 const first = g[0];
                 const nome = (first.nome && first.nome.trim()) || first.template || 'Campanha';
                 const isDiario = first.recurrence === 'diario';
@@ -10269,7 +10299,7 @@
                     + '<div class="camp-item-sub"><span><i class="ph-bold ph-users-three"></i> ' + escapeHtml(stageTitle(first.stage_key)) + '</span><span><i class="ph-bold ' + (isDiario ? 'ph-repeat' : 'ph-calendar') + '"></i> ' + escapeHtml(tipo) + '</span><span><i class="ph-bold ph-chat-text"></i> ' + escapeHtml(first.template || '—') + '</span></div>'
                     + '</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0;"><span class="camp-badge" style="color:' + stFg + ';background:' + stBg + ';">' + escapeHtml(stLabel) + '</span>' + actions + '</div></div>';
             }).join('');
-            el.innerHTML = html;
+            el.innerHTML = shell(html);
         }
 
         async function campToggle(ids, ativar) {
