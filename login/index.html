@@ -4204,10 +4204,9 @@
                 <div class="disp-layout">
                 <div class="disp-subnav" id="dispSubnav">
                     <button data-sub="dashboard" class="active" onclick="dispSwitchSub('dashboard')"><i class="ph-bold ph-chart-line-up"></i> <span class="disp-nav-txt">Dashboard</span></button>
+                    <button data-sub="crm" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> <span class="disp-nav-txt">CRM</span></button>
                     <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-megaphone"></i> <span class="disp-nav-txt">Campanhas</span></button>
                     <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> <span class="disp-nav-txt">Conversas</span> <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
-                    <button data-sub="crm" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> <span class="disp-nav-txt">CRM</span></button>
-                    <button data-sub="templates" onclick="dispSwitchSub('templates')"><i class="ph-bold ph-chat-circle-text"></i> <span class="disp-nav-txt">Mensagens modelo</span></button>
                     <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> <span class="disp-nav-txt">Conexão</span></button>
                     <button data-sub="automacoes" onclick="dispSwitchSub('automacoes')"><i class="ph-bold ph-flow-arrow"></i> <span class="disp-nav-txt">Automações</span></button>
                     <button type="button" class="disp-nav-burger" onclick="dispToggleNav()" title="Recolher/expandir menu" aria-label="Recolher menu"><i class="ph-bold ph-caret-double-left"></i> <span class="disp-nav-txt">Recolher</span></button>
@@ -7682,7 +7681,8 @@
                 dispPane.insertAdjacentHTML('afterbegin', ''
                     + '<div id="campListCard"></div>'
                     + '<div id="campWizardHost" style="display:none;"></div>'
-                    + '<details id="campAdvanced" style="margin-bottom:20px;">'
+                    + '<div id="campTplHost" style="margin-top:22px;"></div>'
+                    + '<details id="campAdvanced" style="margin-top:20px;">'
                     + '  <summary style="cursor:pointer;font-size:13px;font-weight:700;color:var(--text-muted);padding:10px 2px;"><i class="ph-bold ph-wrench"></i> Envio avançado (enviar agora / histórico técnico)</summary>'
                     + '  <div id="campAdvancedBody"></div>'
                     + '</details>');
@@ -7694,11 +7694,12 @@
             move('dispDailyCard',  'dispSubHistorico');
             move('dispChartsRow',  'dispSubHistorico');
             move('disparosWaHost', 'dispSubConexao');
-            // Templates: move o conteúdo (estava escondido no waCard) e exibe.
+            // Mensagens modelo: integrado DENTRO de Campanhas (não é mais item do menu).
             // Remove a classe wa-tabpane e o data-watab pra waSwitchTab() não escondê-lo.
             const tpl = document.getElementById('dispTemplatesContent');
-            if (tpl) {
-                document.getElementById('dispSubTemplates').appendChild(tpl);
+            const tplHost = document.getElementById('campTplHost');
+            if (tpl && tplHost) {
+                tplHost.appendChild(tpl);
                 tpl.classList.remove('wa-tabpane');
                 tpl.removeAttribute('data-watab');
                 tpl.style.display = 'block';
@@ -7725,6 +7726,7 @@
 
         function dispSwitchSub(name) {
             if (name === 'historico') name = 'dashboard'; // Histórico foi fundido no Dashboard
+            if (name === 'templates') name = 'disparar';  // Mensagens modelo foi integrado em Campanhas
             document.querySelectorAll('#dispSubnav button[data-sub]').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
             const map = { dashboard: 'dispSubDashboard', crm: 'dispSubCrm', conversas: 'dispSubConversas', disparar: 'dispSubDisparar', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao', automacoes: 'dispSubAutomacoes' };
             Object.entries(map).forEach(([k, id]) => {
@@ -7738,19 +7740,12 @@
                     [_dispCrmChart, _dispDonut, _dispDailyChart, _dispSalesChart].forEach(c => { try { c && c.resize(); } catch (e) {} });
                 }, 60);
             }
-            // Templates: garante que o conteúdo está na sub-aba e visível, depois carrega
-            if (name === 'templates') {
-                const pane = document.getElementById('dispSubTemplates');
-                const tpl = document.getElementById('dispTemplatesContent');
-                if (pane && tpl && tpl.parentElement !== pane) {
-                    pane.appendChild(tpl);
-                    tpl.classList.remove('wa-tabpane');
-                    tpl.removeAttribute('data-watab');
-                }
-                if (tpl) tpl.style.display = 'block';
-                if (typeof waLoadTemplates === 'function') waLoadTemplates();
+            if (name === 'disparar') {
+                try { maybeShowDispWizard(); } catch (e) {}
+                try { campLoadList(); } catch (e) {}
+                // Mensagens modelo vive dentro de Campanhas — carrega os templates aqui.
+                if (typeof waLoadTemplates === 'function') { try { waLoadTemplates(); } catch (e) {} }
             }
-            if (name === 'disparar') { try { maybeShowDispWizard(); } catch (e) {} try { campLoadList(); } catch (e) {} }
             if (name === 'automacoes') { try { initAutomacoes(); } catch (e) { console.error(e); } }
             if (name === 'dashboard') { try { initDispDashboard(); } catch (e) { console.error(e); } }
             _crmSubActive = (name === 'crm');
@@ -10225,6 +10220,16 @@
               #campWizardHost .camp-opt span{font-size:12px;color:var(--text-muted);}
               #campWizardHost .camp-note{display:flex;gap:8px;align-items:flex-start;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.28);border-radius:10px;padding:11px 13px;font-size:12.5px;color:var(--text-main);margin:12px 0;}
               #campWizardHost .camp-note i{color:#b45309;font-size:16px;margin-top:1px;}
+              #campWizardHost .camp-pv{margin-top:10px;}
+              #campWizardHost .camp-pv-bubble{background:#dcf8c6;color:#111b21;border-radius:10px;border-top-left-radius:2px;padding:9px 11px;font-size:13px;line-height:1.5;max-width:340px;box-shadow:0 1px 1px rgba(0,0,0,.12);position:relative;}
+              body.dark-mode #campWizardHost .camp-pv-bubble{background:#075e54;color:#e9edef;}
+              #campWizardHost .camp-pv-h{font-weight:700;margin-bottom:4px;}
+              #campWizardHost .camp-pv-media{font-size:12px;opacity:.75;margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+              #campWizardHost .camp-pv-foot{font-size:11px;opacity:.65;margin-top:5px;}
+              #campWizardHost .camp-pv-var{background:rgba(124,58,237,.16);color:#6d28d9;border-radius:4px;padding:0 4px;font-weight:600;font-size:12px;}
+              body.dark-mode #campWizardHost .camp-pv-var{background:rgba(167,139,250,.25);color:#ddd6fe;}
+              #campWizardHost .camp-pv-btns{display:flex;flex-direction:column;gap:2px;max-width:340px;margin-top:3px;}
+              #campWizardHost .camp-pv-btn{background:var(--card-bg);border:1px solid var(--border);color:#0ea5e9;border-radius:8px;padding:7px;text-align:center;font-size:12.5px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px;}
               #campWizardHost .camp-vars{font-size:12.5px;color:var(--text-muted);background:rgba(127,127,127,.08);border-radius:10px;padding:11px 13px;margin-top:10px;line-height:1.7;}
               #campWizardHost .camp-vars code{background:rgba(124,58,237,.14);color:var(--primary);padding:1px 6px;border-radius:5px;font-size:12px;}
               #campWizardHost .camp-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 24px;border-top:1px solid var(--border);}
@@ -10234,7 +10239,18 @@
               .camp-btn.primary:hover{transform:translateY(-1px);box-shadow:0 7px 20px rgba(124,58,237,.45);}
               .camp-btn.primary:active{transform:translateY(0);box-shadow:0 3px 10px rgba(124,58,237,.35);}
               .camp-btn.primary.lg{padding:12px 24px;font-size:14px;border-radius:12px;}
+              .camp-btn.danger{background:#dc2626;border:none;color:#fff;box-shadow:0 4px 14px rgba(220,38,38,.3);}
+              .camp-btn.danger:hover{background:#b91c1c;}
               .camp-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
+              .camp-confirm-ov{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;animation:campFade .12s ease;}
+              @keyframes campFade{from{opacity:0}to{opacity:1}}
+              .camp-confirm{background:var(--card-bg);border:1px solid var(--border);border-radius:18px;padding:26px 24px 20px;max-width:380px;width:100%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.3);}
+              .camp-confirm-ic{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;margin:0 auto 14px;background:rgba(124,58,237,.14);color:#7c3aed;font-size:24px;}
+              .camp-confirm-ic.danger{background:rgba(220,38,38,.13);color:#dc2626;}
+              .camp-confirm h4{margin:0 0 6px;font-size:17px;color:var(--text-main);}
+              .camp-confirm p{margin:0 0 20px;font-size:13.5px;color:var(--text-muted);line-height:1.5;}
+              .camp-confirm-foot{display:flex;gap:10px;justify-content:center;}
+              .camp-confirm-foot .camp-btn{min-width:120px;justify-content:center;}
               #campWizardHost .camp-lbl{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px;display:block;}
               #campWizardHost .camp-msg{font-size:12.5px;margin-top:10px;}
               #campListCard .camp-shell{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
@@ -10330,8 +10346,32 @@
             try { for (const id of ids) await supabaseClient.from('disparos_agendados').update({ status: 'cancelado' }).eq('id', id).eq('status', 'agendado'); campLoadList(); }
             catch (e) { crmToast && crmToast('Não foi possível cancelar.', true); }
         }
+        // Confirmação in-app (sem popup nativo do navegador). Retorna Promise<boolean>.
+        function campConfirm(opts) {
+            opts = opts || {};
+            return new Promise(resolve => {
+                _campInjectCSS();
+                const ov = document.createElement('div');
+                ov.className = 'camp-confirm-ov';
+                const done = v => { ov.remove(); document.removeEventListener('keydown', onKey); resolve(v); };
+                const onKey = e => { if (e.key === 'Escape') done(false); };
+                ov.innerHTML = '<div class="camp-confirm" role="dialog" aria-modal="true">'
+                    + '<div class="camp-confirm-ic ' + (opts.danger ? 'danger' : '') + '"><i class="ph-bold ' + (opts.icon || (opts.danger ? 'ph-trash' : 'ph-question')) + '"></i></div>'
+                    + '<h4>' + escapeHtml(opts.title || 'Confirmar') + '</h4>'
+                    + (opts.message ? '<p>' + escapeHtml(opts.message) + '</p>' : '')
+                    + '<div class="camp-confirm-foot"><button class="camp-btn" data-c-cancel>' + escapeHtml(opts.cancel || 'Cancelar') + '</button>'
+                    + '<button class="camp-btn ' + (opts.danger ? 'danger' : 'primary') + '" data-c-ok>' + escapeHtml(opts.ok || 'Confirmar') + '</button></div>'
+                    + '</div>';
+                ov.addEventListener('click', e => { if (e.target === ov) done(false); });
+                ov.querySelector('[data-c-cancel]').addEventListener('click', () => done(false));
+                ov.querySelector('[data-c-ok]').addEventListener('click', () => done(true));
+                document.addEventListener('keydown', onKey);
+                document.body.appendChild(ov);
+                setTimeout(() => { const b = ov.querySelector('[data-c-ok]'); if (b) b.focus(); }, 30);
+            });
+        }
         async function campDelete(ids) {
-            if (!confirm('Excluir esta campanha? Não dá pra desfazer.')) return;
+            if (!(await campConfirm({ title: 'Excluir campanha?', message: 'Essa ação não pode ser desfeita.', ok: 'Excluir', danger: true }))) return;
             try { for (const id of ids) await supabaseClient.from('disparos_agendados').delete().eq('id', id).eq('lojista_email', activeUser.email); crmToast && crmToast('Campanha excluída.'); campLoadList(); }
             catch (e) { crmToast && crmToast('Não foi possível excluir.', true); }
         }
@@ -10342,6 +10382,7 @@
             CAMP.step = 0; CAMP.nome = ''; CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.tplMode = 'novo'; CAMP.tplName = ''; CAMP.tplLang = 'pt_BR'; CAMP.tplPending = false; CAMP.sched = 'diario'; CAMP.dia = ''; CAMP.hora1 = ''; CAMP.hora2 = ''; CAMP.targetCount = null;
             document.getElementById('campListCard').style.display = 'none';
             const adv = document.getElementById('campAdvanced'); if (adv) adv.style.display = 'none';
+            const tplh = document.getElementById('campTplHost'); if (tplh) tplh.style.display = 'none';
             const host = document.getElementById('campWizardHost'); host.style.display = 'block';
             campWizardRender();
         }
@@ -10349,6 +10390,7 @@
             const host = document.getElementById('campWizardHost'); host.style.display = 'none'; host.innerHTML = '';
             document.getElementById('campListCard').style.display = 'block';
             const adv = document.getElementById('campAdvanced'); if (adv) adv.style.display = 'block';
+            const tplh = document.getElementById('campTplHost'); if (tplh) tplh.style.display = 'block';
             campLoadList();
         }
 
@@ -10375,7 +10417,7 @@
                     + (CAMP.tplMode === 'novo' ? ('<div style="margin-top:9px;">' + (CAMP.tplName ? ('<span style="color:#10b981;font-size:13px;"><i class="ph-bold ph-check-circle"></i> ' + escapeHtml(CAMP.tplName) + ' criado (aguardando Meta)</span> ') : '') + '<button class="camp-btn" type="button" onclick="campCreateTpl()"><i class="ph-bold ph-plus"></i> ' + (CAMP.tplName ? 'Criar outro' : 'Criar template') + '</button></div>') : '')
                     + '</div></label>'
                     + '<label class="camp-opt ' + (CAMP.tplMode === 'aprovado' ? 'sel' : '') + '"><input type="radio" name="campTpl" ' + (CAMP.tplMode === 'aprovado' ? 'checked' : '') + ' onchange="campSetTplMode(\'aprovado\')"><div><b>Usar template aprovado</b><br><span>Dispara sem esperar. ' + approved.length + ' aprovado(s).</span>'
-                    + (CAMP.tplMode === 'aprovado' ? ('<div style="margin-top:9px;">' + (approved.length ? ('<select id="campTplSel" class="camp-sel" onchange="CAMP.tplName=this.value;CAMP.tplPending=false"><option value="">Selecione o template…</option>' + tplOpts + '</select>') : '<span style="color:#dc2626;">Nenhum template aprovado ainda — crie um novo acima.</span>') + '</div>') : '')
+                    + (CAMP.tplMode === 'aprovado' ? ('<div style="margin-top:9px;">' + (approved.length ? ('<select id="campTplSel" class="camp-sel" onchange="campSelectApprovedTpl(this.value)"><option value="">Selecione o template…</option>' + tplOpts + '</select>' + campTplPreviewHTML(CAMP.tplName)) : '<span style="color:#dc2626;">Nenhum template aprovado ainda — crie um novo acima.</span>') + '</div>') : '')
                     + '</div></label>'
                     + '<div class="camp-note"><i class="ph-bold ph-clock"></i><div>A Meta pode levar <b>até 24h</b> para aprovar um template novo. A campanha fica <b>Aguardando aprovação</b> e é enviada automaticamente assim que aprovar.</div></div>'
                     + '<div class="camp-vars"><b>Variáveis</b> (use as chaves no texto do template): <code>{{1}}</code> = primeiro nome do cliente · <code>{{2}}</code> = produto provado · <code>{{3}}</code> ou botão = link. Ex.: <i>"Oi {{1}}, o {{2}} te espera 👉 {{3}}"</i>.</div>';
@@ -10402,6 +10444,27 @@
             try { const t = await waGetBulkTargets(key, ''); CAMP.targetCount = t.length; }
             catch (e) { CAMP.targetCount = null; }
             const b2 = document.getElementById('campStageCount'); if (b2) b2.innerHTML = CAMP.targetCount != null ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa') : '';
+        }
+        function campSelectApprovedTpl(v) { CAMP.tplName = v; CAMP.tplPending = false; campWizardRender(); }
+        // Prévia (bolha estilo WhatsApp) do corpo do template selecionado, com header/botões se houver.
+        function campTplPreviewHTML(name) {
+            if (!name) return '';
+            const t = (_waTemplatesCache || []).find(x => x.name === name);
+            if (!t) return '';
+            const comp = ty => (t.components || []).find(c => (c.type || '').toUpperCase() === ty);
+            const header = comp('HEADER'), body = comp('BODY'), footer = comp('FOOTER'), buttons = comp('BUTTONS');
+            const fmt = s => escapeHtml(s || '').replace(/\n/g, '<br>').replace(/\{\{\s*(\d+)\s*\}\}/g, '<span class="camp-pv-var">{{$1}}</span>');
+            let html = '<div class="camp-pv"><div class="camp-pv-bubble">';
+            if (header && (header.format || 'TEXT') === 'TEXT' && header.text) html += '<div class="camp-pv-h">' + fmt(header.text) + '</div>';
+            else if (header && header.format && header.format !== 'TEXT') html += '<div class="camp-pv-media"><i class="ph-bold ph-image"></i> ' + escapeHtml(header.format) + '</div>';
+            html += '<div class="camp-pv-body">' + (fmt((body && body.text) || '') || '<i style="opacity:.6;">(sem corpo)</i>') + '</div>';
+            if (footer && footer.text) html += '<div class="camp-pv-foot">' + fmt(footer.text) + '</div>';
+            html += '</div>';
+            if (buttons && (buttons.buttons || []).length) {
+                html += '<div class="camp-pv-btns">' + buttons.buttons.map(b => '<span class="camp-pv-btn"><i class="ph-bold ' + ((b.type === 'URL') ? 'ph-arrow-square-out' : 'ph-chat-circle') + '"></i> ' + escapeHtml(b.text || '') + '</span>').join('') + '</div>';
+            }
+            html += '</div>';
+            return html;
         }
         function campSetTplMode(m) { CAMP.tplMode = m; campWizardRender(); }
         function campSetSched(m) { CAMP.sched = m; campWizardRender(); }
