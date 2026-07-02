@@ -4192,6 +4192,7 @@
                     <button data-sub="crm" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> <span class="disp-nav-txt">CRM</span></button>
                     <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> <span class="disp-nav-txt">Conversas</span> <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
                     <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-megaphone"></i> <span class="disp-nav-txt">Campanhas</span></button>
+                    <button data-sub="segmentacoes" onclick="dispSwitchSub('segmentacoes')"><i class="ph-bold ph-users-four"></i> <span class="disp-nav-txt">Segmentações</span></button>
                     <button data-sub="automacoes" onclick="dispSwitchSub('automacoes')"><i class="ph-bold ph-flow-arrow"></i> <span class="disp-nav-txt">Automações</span></button>
                     <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> <span class="disp-nav-txt">Conexão</span></button>
                   </div>
@@ -4201,6 +4202,7 @@
                 <div class="disp-subpane" id="dispSubCrm"></div>
                 <div class="disp-subpane" id="dispSubConversas"></div>
                 <div class="disp-subpane" id="dispSubDisparar"></div>
+                <div class="disp-subpane" id="dispSubSegmentacoes"></div>
                 <div class="disp-subpane" id="dispSubTemplates"></div>
                 <div class="disp-subpane" id="dispSubHistorico"></div>
                 <div class="disp-subpane" id="dispSubConexao"></div>
@@ -7714,7 +7716,7 @@
             if (name === 'historico') name = 'dashboard'; // Histórico foi fundido no Dashboard
             if (name === 'templates') name = 'disparar';  // Mensagens modelo foi integrado em Campanhas
             document.querySelectorAll('#dispSubnav button[data-sub]').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
-            const map = { dashboard: 'dispSubDashboard', crm: 'dispSubCrm', conversas: 'dispSubConversas', disparar: 'dispSubDisparar', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao', automacoes: 'dispSubAutomacoes' };
+            const map = { dashboard: 'dispSubDashboard', crm: 'dispSubCrm', conversas: 'dispSubConversas', disparar: 'dispSubDisparar', segmentacoes: 'dispSubSegmentacoes', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao', automacoes: 'dispSubAutomacoes' };
             Object.entries(map).forEach(([k, id]) => {
                 const p = document.getElementById(id);
                 if (p) p.classList.toggle('active', k === name);
@@ -7737,6 +7739,7 @@
                 // Mensagens modelo vive dentro de Campanhas — carrega os templates aqui.
                 if (typeof waLoadTemplates === 'function') { try { waLoadTemplates(); } catch (e) {} }
             }
+            if (name === 'segmentacoes') { try { initSegmentacoes(); } catch (e) { console.error(e); } }
             if (name === 'automacoes') { try { initAutomacoes(); } catch (e) { console.error(e); } }
             if (name === 'dashboard') { try { initDispDashboard(); } catch (e) { console.error(e); } }
             _crmSubActive = (name === 'crm');
@@ -10184,7 +10187,7 @@
         }
 
         /* ===== Campanhas — assistente guiado (nome → público → mensagem → agendar) ===== */
-        const CAMP = { step: 0, nome: '', stage: '', stageTitle: '', tplMode: 'novo', tplName: '', tplLang: 'pt_BR', tplPending: false, sched: 'diario', dia: '', hora1: '', hora2: '', targetCount: null };
+        const CAMP = { step: 0, nome: '', stage: '', stageTitle: '', tplMode: 'novo', tplName: '', tplLang: 'pt_BR', tplPending: false, sched: 'diario', dia: '', hora1: '', hora2: '', targetCount: null, audience: null };
         const CAMP_STEPS = ['Nome', 'Público', 'Mensagem', 'Agendar'];
 
         function _campInjectCSS() {
@@ -10368,9 +10371,12 @@
         }
 
         // ---- Wizard ----
-        function campWizardOpen() {
+        function campWizardOpen(audience) {
             _campInjectCSS();
             CAMP.step = 0; CAMP.nome = ''; CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.tplMode = 'novo'; CAMP.tplName = ''; CAMP.tplLang = 'pt_BR'; CAMP.tplPending = false; CAMP.sched = 'diario'; CAMP.dia = ''; CAMP.hora1 = ''; CAMP.hora2 = ''; CAMP.targetCount = null;
+            // Público vindo de uma Segmentação: lista de destinatários congelada (campanha pontual).
+            CAMP.audience = (audience && audience.targets && audience.targets.length) ? audience : null;
+            if (CAMP.audience) { CAMP.sched = 'dia'; CAMP.stage = '__segmento__'; CAMP.stageTitle = CAMP.audience.name; CAMP.targetCount = CAMP.audience.targets.length; CAMP.nome = 'Campanha — ' + CAMP.audience.name; }
             document.getElementById('campListCard').style.display = 'none';
             const adv = document.getElementById('campAdvanced'); if (adv) adv.style.display = 'none';
             const tplh = document.getElementById('campTplHost'); if (tplh) tplh.style.display = 'none';
@@ -10394,12 +10400,17 @@
                     + '<label class="camp-lbl" for="campNome">Nome <span style="color:#dc2626;">*</span></label>'
                     + '<input id="campNome" class="camp-inp" placeholder="Ex.: Promoção de inverno" value="' + escapeHtml(CAMP.nome) + '" oninput="CAMP.nome=this.value;this.classList.remove(\'err\')">';
             } else if (CAMP.step === 1) {
-                const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
-                const opts = (cfg.columns || []).filter(c => c.key !== 'convertido').map(c => '<option value="' + escapeHtml(c.key) + '"' + (c.key === CAMP.stage ? ' selected' : '') + '>' + escapeHtml(c.title) + '</option>').join('');
-                body = '<h3 class="camp-h">Para quem?</h3><p class="camp-p">Escolha a etapa do CRM que vai receber esta campanha.</p>'
-                    + '<label class="camp-lbl" for="campStage">Público (etapa do CRM) <span style="color:#dc2626;">*</span></label>'
-                    + '<select id="campStage" class="camp-sel" onchange="campOnStage(this.value)"><option value="">Selecione…</option>' + opts + '</select>'
-                    + '<div id="campStageCount" class="camp-msg" style="color:var(--text-muted);">' + (CAMP.targetCount != null ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa') : '') + '</div>';
+                if (CAMP.audience) {
+                    body = '<h3 class="camp-h">Para quem?</h3><p class="camp-p">Público definido pela sua segmentação.</p>'
+                        + '<div class="camp-opt sel" style="cursor:default;align-items:center;"><i class="ph-bold ph-users-four" style="font-size:22px;color:var(--primary);"></i><div><b>' + escapeHtml(CAMP.audience.name) + '</b><br><span>' + CAMP.audience.targets.length + ' cliente(s) neste público</span></div></div>';
+                } else {
+                    const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+                    const opts = (cfg.columns || []).filter(c => c.key !== 'convertido').map(c => '<option value="' + escapeHtml(c.key) + '"' + (c.key === CAMP.stage ? ' selected' : '') + '>' + escapeHtml(c.title) + '</option>').join('');
+                    body = '<h3 class="camp-h">Para quem?</h3><p class="camp-p">Escolha a etapa do CRM que vai receber esta campanha.</p>'
+                        + '<label class="camp-lbl" for="campStage">Público (etapa do CRM) <span style="color:#dc2626;">*</span></label>'
+                        + '<select id="campStage" class="camp-sel" onchange="campOnStage(this.value)"><option value="">Selecione…</option>' + opts + '</select>'
+                        + '<div id="campStageCount" class="camp-msg" style="color:var(--text-muted);">' + (CAMP.targetCount != null ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa') : '') + '</div>';
+                }
             } else if (CAMP.step === 2) {
                 const approved = (_waTemplatesCache || []).filter(t => (t.status || '').toUpperCase() === 'APPROVED');
                 const tplOpts = approved.map(t => '<option value="' + escapeHtml(t.name) + '"' + (t.name === CAMP.tplName ? ' selected' : '') + '>' + escapeHtml(t.name) + '</option>').join('');
@@ -10413,10 +10424,11 @@
                     + '<div class="camp-vars"><b>Variáveis</b> (use as chaves no texto do template): <code>{{1}}</code> = primeiro nome do cliente · <code>{{2}}</code> = produto provado · <code>{{3}}</code> ou botão = link. Ex.: <i>"Oi {{1}}, o {{2}} te espera 👉 {{3}}"</i>.</div>'
                     + '<div class="camp-note"><i class="ph-bold ph-clock"></i><div>A Meta pode levar <b>até 24h</b> para aprovar um template novo. A campanha fica <b>Aguardando aprovação</b> e é enviada automaticamente assim que aprovar.</div></div>';
             } else if (CAMP.step === 3) {
-                body = '<h3 class="camp-h">Quando enviar?</h3><p class="camp-p">Um dia específico ou todos os dias em horário(s) fixo(s).</p>'
-                    + '<label class="camp-opt ' + (CAMP.sched === 'diario' ? 'sel' : '') + '"><input type="radio" name="campSched" ' + (CAMP.sched === 'diario' ? 'checked' : '') + ' onchange="campSetSched(\'diario\')"><div><b>Todo dia (contínuo)</b><br><span>Dispara diariamente pros novos clientes da etapa.</span>'
+                const diarioOpt = CAMP.audience ? '' : ('<label class="camp-opt ' + (CAMP.sched === 'diario' ? 'sel' : '') + '"><input type="radio" name="campSched" ' + (CAMP.sched === 'diario' ? 'checked' : '') + ' onchange="campSetSched(\'diario\')"><div><b>Todo dia (contínuo)</b><br><span>Dispara diariamente pros novos clientes da etapa.</span>'
                     + (CAMP.sched === 'diario' ? ('<div style="margin-top:9px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;"><span style="font-size:12.5px;color:var(--text-muted);">Horário 1</span><input type="time" class="camp-inp" style="width:auto;" value="' + escapeHtml(CAMP.hora1) + '" oninput="CAMP.hora1=this.value"><span style="font-size:12.5px;color:var(--text-muted);">Horário 2 (opcional)</span><input type="time" class="camp-inp" style="width:auto;" value="' + escapeHtml(CAMP.hora2) + '" oninput="CAMP.hora2=this.value"></div>') : '')
-                    + '</div></label>'
+                    + '</div></label>');
+                body = '<h3 class="camp-h">Quando enviar?</h3><p class="camp-p">' + (CAMP.audience ? 'Este público é uma fotografia de agora, então o envio é único.' : 'Um dia específico ou todos os dias em horário(s) fixo(s).') + '</p>'
+                    + diarioOpt
                     + '<label class="camp-opt ' + (CAMP.sched === 'dia' ? 'sel' : '') + '"><input type="radio" name="campSched" ' + (CAMP.sched === 'dia' ? 'checked' : '') + ' onchange="campSetSched(\'dia\')"><div><b>Dia específico</b><br><span>Envia uma vez, na data e hora escolhidas.</span>'
                     + (CAMP.sched === 'dia' ? ('<div style="margin-top:9px;"><input type="datetime-local" class="camp-inp" style="width:auto;" value="' + escapeHtml(CAMP.dia) + '" oninput="CAMP.dia=this.value"></div>') : '')
                     + '</div></label>'
@@ -10469,7 +10481,7 @@
         function campWizardNav(dir) {
             if (dir > 0) {
                 if (CAMP.step === 0) { if (!CAMP.nome.trim()) { const el = document.getElementById('campNome'); if (el) { el.classList.add('err'); el.focus(); } return; } }
-                if (CAMP.step === 1) { if (!CAMP.stage) { const el = document.getElementById('campStage'); if (el) el.classList.add('err'); return; } }
+                if (CAMP.step === 1) { if (!CAMP.audience && !CAMP.stage) { const el = document.getElementById('campStage'); if (el) el.classList.add('err'); return; } }
                 if (CAMP.step === 2) {
                     if (CAMP.tplMode === 'aprovado') { const sel = document.getElementById('campTplSel'); CAMP.tplName = sel ? sel.value : CAMP.tplName; if (!CAMP.tplName) { crmToast && crmToast('Escolha um template aprovado ou crie um novo.', true); return; } CAMP.tplPending = false; }
                     else { if (!CAMP.tplName) { crmToast && crmToast('Crie o template novo antes de continuar.', true); return; } CAMP.tplPending = true; }
@@ -10512,7 +10524,7 @@
             }
             try {
                 if (CAMP.sched === 'dia') {
-                    const targets = await waGetBulkTargets(CAMP.stage, '');
+                    const targets = CAMP.audience ? CAMP.audience.targets : await waGetBulkTargets(CAMP.stage, '');
                     const payloads = targets.map(lead => {
                         const firstName = (lead.name || '').split(' ')[0] || '👋';
                         const produto = lead.product || 'o modelo que você provou';
@@ -10545,6 +10557,186 @@
                 setMsg('Erro ao criar: ' + (e && e.message ? e.message : e), true);
                 if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-megaphone"></i> Criar campanha'; }
             }
+        }
+
+        /* ===== Segmentações — públicos-alvo (prontos + personalizados) ===== */
+        const SEG_PREDEF = [
+            { id: 'p_350', nome: 'Compraram acima de R$ 350', desc: 'Clientes que já gastaram R$ 350 ou mais no total.', icon: 'ph-currency-circle-dollar', regras: { tipo: 'gasto_total', op: '>=', valor: 350 } },
+            { id: 'p_rec', nome: 'Clientes recorrentes', desc: 'Compraram 2 vezes ou mais.', icon: 'ph-repeat', regras: { tipo: 'num_compras', op: '>=', valor: 2 } },
+            { id: 'p_1x', nome: 'Compraram só uma vez', desc: 'Fizeram exatamente 1 compra — bons pra fidelizar.', icon: 'ph-user', regras: { tipo: 'num_compras', op: '==', valor: 1 } },
+            { id: 'p_pnc', nome: 'Provaram e não compraram', desc: 'Usaram o provador mas ainda não compraram.', icon: 'ph-eye', regras: { tipo: 'provou_nao_comprou' } },
+            { id: 'p_inativo', nome: 'Sem comprar há 60+ dias', desc: 'Já compraram, mas não voltam há mais de 60 dias.', icon: 'ph-clock-countdown', regras: { tipo: 'dias_sem_comprar', op: '>=', valor: 60 } }
+        ];
+
+        function _segCmp(a, op, v) { v = Number(v); if (op === '>=') return a >= v; if (op === '<=') return a <= v; if (op === '==') return Math.round(a) === v; if (op === '>') return a > v; if (op === '<') return a < v; return false; }
+
+        // Agrega compradores (a partir de allOrdersCache, que já vem SÓ com pedidos pagos).
+        function segBuildAgg() {
+            const fTotal = (activeUser && activeUser.campo_total_pedido) || 'total';
+            const fData = (activeUser && activeUser.campo_data_pedido) || 'created_at';
+            const fNome = activeUser && activeUser.campo_nome_pedido;
+            const buyers = new Map();
+            (allOrdersCache || []).forEach(o => {
+                const keys = orderPhoneKeys(o); if (!keys.length) return;
+                const key = keys[0];
+                const send = normalizeFull((orderPhones(o) || [])[0]);
+                const ts = String(o[fData] || o.created_at || '');
+                let b = buyers.get(key);
+                if (!b) { b = { name: '', phone: send, spent: 0, count: 0, lastTs: '' }; buyers.set(key, b); }
+                b.count++; b.spent += parseFloat(o[fTotal]) || 0;
+                if (ts > b.lastTs) b.lastTs = ts;
+                if (fNome && o[fNome] && !b.name) b.name = String(o[fNome]);
+                if (!b.phone && send) b.phone = send;
+            });
+            return buyers;
+        }
+
+        // Avalia uma regra → lista de destinatários [{name, phone, product}] (phone com DDD, sem 55).
+        function segEval(regras) {
+            regras = regras || {};
+            const out = [];
+            if (regras.tipo === 'provou_nao_comprou') {
+                const buyers = segBuildAgg(); const seen = new Set();
+                (allGensShared || []).forEach(g => {
+                    const key = normalize(g.telefone_cliente); if (!key || seen.has(key) || buyers.has(key)) return;
+                    seen.add(key);
+                    const send = normalizeFull(g.telefone_cliente);
+                    if (send && send.length >= 10) out.push({ name: '', phone: send, product: g.produtos || '' });
+                });
+                return out;
+            }
+            const buyers = segBuildAgg(); const now = Date.now();
+            buyers.forEach(b => {
+                let ok = false;
+                if (regras.tipo === 'gasto_total') ok = _segCmp(b.spent, regras.op, regras.valor);
+                else if (regras.tipo === 'num_compras') ok = _segCmp(b.count, regras.op, regras.valor);
+                else if (regras.tipo === 'dias_sem_comprar') { if (b.count >= 1 && b.lastTs) { const days = (now - new Date(b.lastTs).getTime()) / 86400000; ok = _segCmp(days, regras.op, regras.valor); } }
+                if (ok && b.phone && b.phone.length >= 10) out.push({ name: b.name, phone: b.phone, product: '' });
+            });
+            return out;
+        }
+
+        function _segInjectCSS() {
+            try { _campInjectCSS(); } catch (e) {}
+            if (document.getElementById('segCSS')) return;
+            const s = document.createElement('style'); s.id = 'segCSS';
+            s.textContent = `
+              #dispSubSegmentacoes .camp-shell{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+              #dispSubSegmentacoes .camp-shell-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:18px 22px;border-bottom:1px solid var(--border);}
+              #dispSubSegmentacoes .camp-item{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding:14px 22px;}
+              #dispSubSegmentacoes .camp-item:hover{background:rgba(127,127,127,.05);}
+              #dispSubSegmentacoes .camp-item-name{font-weight:700;font-size:14.5px;color:var(--text-main);}
+              #dispSubSegmentacoes .camp-item-sub{font-size:12px;color:var(--text-muted);margin-top:3px;}
+              #dispSubSegmentacoes .camp-empty{padding:26px 22px;text-align:center;color:var(--text-muted);}
+              #dispSubSegmentacoes .seg-ic{width:40px;height:40px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;background:linear-gradient(135deg,rgba(124,58,237,.16),rgba(168,85,247,.09));color:#7c3aed;font-size:19px;}
+              #dispSubSegmentacoes .seg-count{font-size:12.5px;color:var(--text-muted);white-space:nowrap;}
+              #dispSubSegmentacoes .seg-count b{color:var(--text-main);}
+              #dispSubSegmentacoes .seg-group{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);padding:16px 22px 4px;}
+              .camp-confirm .camp-inp,.camp-confirm .camp-sel{width:100%;box-sizing:border-box;background:var(--card-bg);border:1px solid var(--border);color:var(--text-main);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:14px;outline:none;}
+              .camp-confirm .camp-inp:focus,.camp-confirm .camp-sel:focus{border-color:var(--primary);}
+              .camp-confirm .camp-lbl{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px;display:block;}
+            `;
+            document.head.appendChild(s);
+        }
+
+        async function initSegmentacoes() {
+            const pane = document.getElementById('dispSubSegmentacoes'); if (!pane || !activeUser) return;
+            _segInjectCSS();
+            pane.innerHTML = '<div class="camp-shell"><div class="camp-shell-head"><div><h3 style="margin:0;font-size:18px;">Segmentações</h3><p class="desc" style="margin:2px 0 0;">Crie públicos-alvo e dispare campanhas certeiras pra cada um.</p></div><button class="camp-btn primary" onclick="segOpenBuilder()"><i class="ph-bold ph-plus"></i> Novo público</button></div><div id="segBody"><div class="camp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Calculando seus públicos…</div></div></div>';
+            try { if (!allOrdersCache || !allOrdersCache.length) await loadSharedData(); } catch (e) {}
+            let custom = [];
+            try {
+                const { data } = await supabaseClient.from('segmentacoes').select('*').eq('lojista_email', activeUser.email).order('created_at', { ascending: true });
+                custom = data || [];
+            } catch (e) {}
+            window._segCustom = custom;
+            segRender(custom);
+        }
+
+        function segRender(custom) {
+            const body = document.getElementById('segBody'); if (!body) return;
+            const card = (s, isCustom) => {
+                let n = 0; try { n = segEval(s.regras).length; } catch (e) {}
+                const payload = JSON.stringify({ nome: s.nome, regras: s.regras }).replace(/"/g, '&quot;');
+                return '<div class="camp-item"><div style="min-width:0;display:flex;gap:12px;align-items:center;">'
+                    + '<span class="seg-ic"><i class="ph-bold ' + (s.icon || 'ph-users-four') + '"></i></span>'
+                    + '<div style="min-width:0;"><div class="camp-item-name">' + escapeHtml(s.nome) + '</div>'
+                    + '<div class="camp-item-sub">' + escapeHtml(s.desc || s.descricao || '') + '</div></div></div>'
+                    + '<div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">'
+                    + '<span class="seg-count"><b>' + n + '</b> cliente(s)</span>'
+                    + '<button class="camp-btn primary" style="padding:7px 12px;font-size:12.5px;" onclick="segCriarCampanha(' + payload + ')"><i class="ph-bold ph-megaphone"></i> Criar campanha</button>'
+                    + (isCustom ? '<button class="camp-btn" title="Excluir público" style="padding:7px 10px;font-size:12px;color:#dc2626;" onclick="segDeleteCustom(\'' + s.id + '\')"><i class="ph-bold ph-trash"></i></button>' : '')
+                    + '</div></div>';
+            };
+            let html = '<div class="seg-group">Públicos prontos</div>' + SEG_PREDEF.map(s => card(s, false)).join('');
+            html += '<div class="seg-group">Seus públicos</div>';
+            html += (custom && custom.length) ? custom.map(s => card(s, true)).join('') : '<div class="camp-empty">Você ainda não criou um público personalizado. Clique em <b>Novo público</b>.</div>';
+            body.innerHTML = html;
+        }
+
+        function segCriarCampanha(s) {
+            let targets = [];
+            try { targets = segEval(s.regras); } catch (e) {}
+            if (!targets.length) { crmToast && crmToast('Esse público está vazio no momento.', true); return; }
+            dispSwitchSub('disparar');
+            setTimeout(() => { try { campWizardOpen({ name: s.nome, targets: targets }); } catch (e) {} }, 90);
+        }
+
+        function segBuilderTipo(t) { const p = document.getElementById('segRuleParams'); if (p) p.style.display = (t === 'provou_nao_comprou') ? 'none' : 'flex'; }
+
+        function segOpenBuilder(existing) {
+            _segInjectCSS();
+            const R = (existing && existing.regras) || { tipo: 'gasto_total', op: '>=', valor: 350 };
+            const ov = document.createElement('div'); ov.className = 'camp-confirm-ov';
+            ov.innerHTML = '<div class="camp-confirm" style="max-width:460px;text-align:left;">'
+                + '<h4 style="text-align:center;">' + (existing ? 'Editar público' : 'Novo público personalizado') + '</h4>'
+                + '<label class="camp-lbl">Nome do público</label><input id="segNome" class="camp-inp" placeholder="Ex.: VIPs (gastaram +R$ 500)" value="' + escapeHtml(existing ? existing.nome : '') + '">'
+                + '<label class="camp-lbl" style="margin-top:10px;">Descrição (opcional)</label><input id="segDesc" class="camp-inp" value="' + escapeHtml(existing ? (existing.descricao || '') : '') + '">'
+                + '<label class="camp-lbl" style="margin-top:10px;">Regra</label>'
+                + '<select id="segTipo" class="camp-sel" onchange="segBuilderTipo(this.value)">'
+                + '<option value="gasto_total">Gasto total (R$)</option>'
+                + '<option value="num_compras">Número de compras</option>'
+                + '<option value="dias_sem_comprar">Dias sem comprar</option>'
+                + '<option value="provou_nao_comprou">Provou e não comprou</option>'
+                + '</select>'
+                + '<div id="segRuleParams" style="display:flex;gap:8px;margin-top:8px;">'
+                + '<select id="segOp" class="camp-sel" style="flex:0 0 150px;"><option value=">=">maior ou igual</option><option value="<=">menor ou igual</option><option value="==">igual a</option></select>'
+                + '<input id="segVal" class="camp-inp" type="number" style="flex:1;" value="' + (R.valor != null ? R.valor : '') + '">'
+                + '</div>'
+                + '<div class="camp-confirm-foot" style="margin-top:18px;"><button class="camp-btn" data-cancel>Cancelar</button><button class="camp-btn primary" data-ok>Salvar público</button></div>'
+                + '</div>';
+            document.body.appendChild(ov);
+            document.getElementById('segTipo').value = R.tipo; segBuilderTipo(R.tipo);
+            if (R.op) document.getElementById('segOp').value = R.op;
+            ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+            ov.querySelector('[data-cancel]').onclick = () => ov.remove();
+            ov.querySelector('[data-ok]').onclick = () => segSaveCustom(existing, ov);
+        }
+
+        async function segSaveCustom(existing, ov) {
+            const nome = (document.getElementById('segNome').value || '').trim();
+            if (!nome) { crmToast && crmToast('Dê um nome ao público.', true); return; }
+            const tipo = document.getElementById('segTipo').value;
+            const regras = { tipo };
+            if (tipo !== 'provou_nao_comprou') { regras.op = document.getElementById('segOp').value; regras.valor = Number(document.getElementById('segVal').value || 0); }
+            const row = { lojista_email: activeUser.email, nome: nome, descricao: (document.getElementById('segDesc').value || '').trim(), regras: regras };
+            try {
+                let r;
+                if (existing && existing.id) r = await supabaseClient.from('segmentacoes').update(row).eq('id', existing.id);
+                else r = await supabaseClient.from('segmentacoes').insert(row);
+                if (r.error) throw r.error;
+                ov.remove(); crmToast && crmToast('Público salvo!'); initSegmentacoes();
+            } catch (e) {
+                const m = (e && e.message) || '';
+                if (/segmentacoes|does not exist|schema cache|relation|42P01/i.test(m)) crmToast && crmToast('Falta criar a tabela de segmentações no banco (rode o SQL que te passei).', true);
+                else crmToast && crmToast('Não consegui salvar: ' + m, true);
+            }
+        }
+
+        async function segDeleteCustom(id) {
+            if (!(await campConfirm({ title: 'Excluir público?', message: 'Essa ação não pode ser desfeita.', ok: 'Excluir', danger: true }))) return;
+            try { await supabaseClient.from('segmentacoes').delete().eq('id', id).eq('lojista_email', activeUser.email); crmToast && crmToast('Público excluído.'); initSegmentacoes(); }
+            catch (e) { crmToast && crmToast('Não consegui excluir.', true); }
         }
 
         // ===== Agendar disparo (congela os destinatários e grava pra o cron do n8n enviar na hora marcada) =====
