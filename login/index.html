@@ -59,6 +59,12 @@
       #tab-visao-geral .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; vertical-align:middle; }
       #tab-visao-geral .vg-primary-gradient { background: linear-gradient(135deg, #630ed4 0%, #7c3aed 100%); }
       #tab-visao-geral .vg-primary-glow { box-shadow: 0 0 15px -5px rgba(99,14,212,.3); }
+      /* Diretrizes web design / a11y — contraste AA no texto mutado (modo claro), foco visível, reduced-motion */
+      body:not(.dark-mode) #tab-visao-geral { --text-muted: #676773; }
+      body:not(.dark-mode) #tab-visao-geral .vg-text-outline { color:#676773; }
+      body:not(.dark-mode) #tab-visao-geral .stat-info .stat-sub { color:#676773 !important; }
+      #tab-visao-geral :is(button,a,input,select,[tabindex]):focus-visible { outline:2px solid var(--primary,#7c3aed); outline-offset:2px; border-radius:6px; }
+      @media (prefers-reduced-motion: reduce) { #tab-visao-geral *, #tab-visao-geral *::before, #tab-visao-geral *::after { animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; } }
     </style>
     <style>
       @font-face {
@@ -3640,7 +3646,7 @@
                                 <input type="date" id="dateFromCompras" oninput="dateFromCompras=this.value;loadCompras(1)">
                                 <span>até</span>
                                 <input type="date" id="dateToCompras" oninput="dateToCompras=this.value;loadCompras(1)">
-                                <button class="btn-clear-dates" onclick="setDatePresetCompras(0)"><i class="ph-bold ph-x"></i></button>
+                                <button class="btn-clear-dates" onclick="setDatePresetCompras(0)" aria-label="Limpar datas"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
                             </div>
                             <button id="btnFilterRecorrente" onclick="toggleRecorrenteFilter()" style="display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;transition:all .25s;white-space:nowrap;">
                                 <i class="ph-bold ph-arrows-clockwise"></i> Apenas recorrentes
