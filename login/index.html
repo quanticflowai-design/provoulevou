@@ -13690,9 +13690,16 @@
             if (!sec || !body) return;
             const fProduto = activeUser && activeUser.campo_produto_pedido;
             const fTotal = (activeUser && activeUser.campo_total_pedido) || 'total';
+            const fPhone = (activeUser && activeUser.campo_telefone_pedido) || 'customer_phone';
+            const fDataPedido = (activeUser && activeUser.campo_data_pedido) || null;
             if (!fProduto || !allOrdersCache || !allOrdersCache.length) { sec.style.display = 'none'; return; }
             const map = {};
             allOrdersCache.forEach(o => {
+                // SOMENTE vendas via provador (pós-prova): telefone provou E comprou depois da prova
+                const ph = normalize(o[fPhone]);
+                if (!ph || !generationPhones || !generationPhones.has(ph)) return;
+                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                if (!isOrderAfterProva(orderTs, ph)) return;
                 const nome = String(o[fProduto] || '').trim();
                 if (!nome) return;
                 const m = map[nome] || (map[nome] = { count: 0, rev: 0 });
@@ -13710,7 +13717,7 @@
                 + '<td style="text-align:right;font-weight:600;">' + r.count.toLocaleString('pt-BR') + '</td>'
                 + '<td style="text-align:right;">' + r.rev.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) + '</td>'
                 + '</tr>').join('');
-            if (sub) sub.textContent = rows.length + ' produtos · ' + totalVendas.toLocaleString('pt-BR') + ' vendas' + (rows.length > TOP ? ' (top ' + TOP + ')' : '');
+            if (sub) sub.textContent = rows.length + ' produtos · ' + totalVendas.toLocaleString('pt-BR') + ' vendas via provador' + (rows.length > TOP ? ' (top ' + TOP + ')' : '');
             sec.style.display = '';
         }
 
