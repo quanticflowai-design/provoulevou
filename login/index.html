@@ -10207,6 +10207,10 @@
               #campWizardHost .camp-inp,#campWizardHost .camp-sel{width:100%;box-sizing:border-box;background:var(--card-bg);border:1px solid var(--border);color:var(--text-main);border-radius:10px;padding:11px 12px;font-family:inherit;font-size:14px;outline:none;}
               #campWizardHost .camp-inp:focus,#campWizardHost .camp-sel:focus{border-color:var(--primary);}
               #campWizardHost .camp-inp.err{border-color:#dc2626;box-shadow:0 0 0 3px rgba(220,38,38,.15);}
+              #campWizardHost .camp-ptype{display:flex;gap:8px;margin-bottom:14px;}
+              #campWizardHost .camp-ptype-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-muted);border-radius:11px;padding:11px 12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s,background .15s;}
+              #campWizardHost .camp-ptype-btn:hover{color:var(--text-main);}
+              #campWizardHost .camp-ptype-btn.on{border-color:var(--primary);color:var(--primary);background:color-mix(in srgb,var(--primary) 8%,transparent);}
               #campWizardHost .camp-opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:10px;cursor:pointer;}
               #campWizardHost .camp-opt.sel{border-color:var(--primary);background:color-mix(in srgb,var(--primary) 7%,transparent);}
               #campWizardHost .camp-opt input{margin-top:3px;accent-color:var(--primary);}
@@ -10374,9 +10378,16 @@
         function campWizardOpen(audience) {
             _campInjectCSS();
             CAMP.step = 0; CAMP.nome = ''; CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.tplMode = 'novo'; CAMP.tplName = ''; CAMP.tplLang = 'pt_BR'; CAMP.tplPending = false; CAMP.sched = 'diario'; CAMP.dia = ''; CAMP.hora1 = ''; CAMP.hora2 = ''; CAMP.targetCount = null;
-            // Público vindo de uma Segmentação: lista de destinatários congelada (campanha pontual).
-            CAMP.audience = (audience && audience.targets && audience.targets.length) ? audience : null;
-            if (CAMP.audience) { CAMP.sched = 'dia'; CAMP.stage = '__segmento__'; CAMP.stageTitle = CAMP.audience.name; CAMP.targetCount = CAMP.audience.targets.length; CAMP.nome = 'Campanha — ' + CAMP.audience.name; }
+            CAMP.publicoTipo = 'crm'; CAMP.segId = ''; CAMP.audience = null;
+            // Aberto a partir de uma Segmentação (segCriarCampanha passa {id, nome, regras}).
+            if (audience && audience.regras) {
+                CAMP.publicoTipo = 'segmento'; CAMP.segId = audience.id || '';
+                let targets = []; try { targets = segEval(audience.regras); } catch (e) {}
+                CAMP.audience = { name: audience.nome, regras: audience.regras, targets: targets };
+                CAMP.sched = 'dia'; CAMP.stage = '__segmento__'; CAMP.stageTitle = audience.nome; CAMP.targetCount = targets.length; CAMP.nome = 'Campanha — ' + audience.nome;
+            } else if (audience && audience.targets) { // compat: audience já pronto
+                CAMP.publicoTipo = 'segmento'; CAMP.audience = audience; CAMP.sched = 'dia'; CAMP.stage = '__segmento__'; CAMP.stageTitle = audience.name; CAMP.targetCount = audience.targets.length; CAMP.nome = 'Campanha — ' + audience.name;
+            }
             document.getElementById('campListCard').style.display = 'none';
             const adv = document.getElementById('campAdvanced'); if (adv) adv.style.display = 'none';
             const tplh = document.getElementById('campTplHost'); if (tplh) tplh.style.display = 'none';
@@ -10400,17 +10411,26 @@
                     + '<label class="camp-lbl" for="campNome">Nome <span style="color:#dc2626;">*</span></label>'
                     + '<input id="campNome" class="camp-inp" placeholder="Ex.: Promoção de inverno" value="' + escapeHtml(CAMP.nome) + '" oninput="CAMP.nome=this.value;this.classList.remove(\'err\')">';
             } else if (CAMP.step === 1) {
-                if (CAMP.audience) {
-                    body = '<h3 class="camp-h">Para quem?</h3><p class="camp-p">Público definido pela sua segmentação.</p>'
-                        + '<div class="camp-opt sel" style="cursor:default;align-items:center;"><i class="ph-bold ph-users-four" style="font-size:22px;color:var(--primary);"></i><div><b>' + escapeHtml(CAMP.audience.name) + '</b><br><span>' + CAMP.audience.targets.length + ' cliente(s) neste público</span></div></div>';
+                const isSeg = CAMP.publicoTipo === 'segmento';
+                const toggle = '<div class="camp-ptype">'
+                    + '<button type="button" class="camp-ptype-btn ' + (!isSeg ? 'on' : '') + '" onclick="campSetPublicoTipo(\'crm\')"><i class="ph-bold ph-kanban"></i> Etapa do CRM</button>'
+                    + '<button type="button" class="camp-ptype-btn ' + (isSeg ? 'on' : '') + '" onclick="campSetPublicoTipo(\'segmento\')"><i class="ph-bold ph-users-four"></i> Segmentação</button>'
+                    + '</div>';
+                let inner;
+                if (isSeg) {
+                    const segs = segAllList();
+                    const opts = segs.map(s => '<option value="' + escapeHtml(s.id) + '"' + (s.id === CAMP.segId ? ' selected' : '') + '>' + escapeHtml(s.nome) + (s.custom ? ' (seu)' : '') + '</option>').join('');
+                    inner = '<label class="camp-lbl" for="campSeg">Público-alvo (segmentação) <span style="color:#dc2626;">*</span></label>'
+                        + '<select id="campSeg" class="camp-sel" onchange="campOnSegmento(this.value)"><option value="">Selecione um público…</option>' + opts + '</select>'
+                        + '<div id="campSegCount" class="camp-msg" style="color:var(--text-muted);">' + (CAMP.audience ? ('<i class="ph-bold ph-users-three"></i> ' + CAMP.audience.targets.length + ' cliente(s) neste público') : '') + '</div>';
                 } else {
                     const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
                     const opts = (cfg.columns || []).filter(c => c.key !== 'convertido').map(c => '<option value="' + escapeHtml(c.key) + '"' + (c.key === CAMP.stage ? ' selected' : '') + '>' + escapeHtml(c.title) + '</option>').join('');
-                    body = '<h3 class="camp-h">Para quem?</h3><p class="camp-p">Escolha a etapa do CRM que vai receber esta campanha.</p>'
-                        + '<label class="camp-lbl" for="campStage">Público (etapa do CRM) <span style="color:#dc2626;">*</span></label>'
+                    inner = '<label class="camp-lbl" for="campStage">Público (etapa do CRM) <span style="color:#dc2626;">*</span></label>'
                         + '<select id="campStage" class="camp-sel" onchange="campOnStage(this.value)"><option value="">Selecione…</option>' + opts + '</select>'
-                        + '<div id="campStageCount" class="camp-msg" style="color:var(--text-muted);">' + (CAMP.targetCount != null ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa') : '') + '</div>';
+                        + '<div id="campStageCount" class="camp-msg" style="color:var(--text-muted);">' + (CAMP.targetCount != null && !CAMP.audience ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa') : '') + '</div>';
                 }
+                body = '<h3 class="camp-h">Para quem?</h3><p class="camp-p">Envie pra uma etapa do CRM ou pra um público que você criou em Segmentações.</p>' + toggle + inner;
             } else if (CAMP.step === 2) {
                 const approved = (_waTemplatesCache || []).filter(t => (t.status || '').toUpperCase() === 'APPROVED');
                 const tplOpts = approved.map(t => '<option value="' + escapeHtml(t.name) + '"' + (t.name === CAMP.tplName ? ' selected' : '') + '>' + escapeHtml(t.name) + '</option>').join('');
@@ -10448,6 +10468,26 @@
             catch (e) { CAMP.targetCount = null; }
             const b2 = document.getElementById('campStageCount'); if (b2) b2.innerHTML = CAMP.targetCount != null ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa') : '';
         }
+        // Alterna o tipo de público (etapa do CRM vs segmentação) no passo 2 do assistente.
+        async function campSetPublicoTipo(t) {
+            CAMP.publicoTipo = t;
+            if (t === 'crm') { CAMP.audience = null; CAMP.stage = (CAMP.stage === '__segmento__') ? '' : CAMP.stage; }
+            else { CAMP.stage = '__segmento__'; await segEnsureCustom(); }
+            campWizardRender();
+        }
+        // Escolheu uma segmentação: calcula a audiência (garante dados carregados) e mostra a contagem.
+        async function campOnSegmento(id) {
+            CAMP.segId = id;
+            const box = document.getElementById('campSegCount');
+            if (!id) { CAMP.audience = null; if (box) box.innerHTML = ''; return; }
+            if (box) box.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> calculando…';
+            try { if (!allOrdersCache || !allOrdersCache.length) await loadSharedData(); } catch (e) {}
+            const seg = segAllList().find(s => String(s.id) === String(id));
+            let targets = []; try { targets = seg ? segEval(seg.regras) : []; } catch (e) {}
+            CAMP.audience = seg ? { name: seg.nome, regras: seg.regras, targets: targets } : null;
+            CAMP.stageTitle = seg ? seg.nome : '';
+            if (box) box.innerHTML = CAMP.audience ? ('<i class="ph-bold ph-users-three"></i> ' + targets.length + ' cliente(s) neste público') : '';
+        }
         function campSelectApprovedTpl(v) { CAMP.tplName = v; CAMP.tplPending = false; campWizardRender(); }
         // Prévia (bolha estilo WhatsApp) do corpo do template selecionado, com header/botões se houver.
         function campTplPreviewHTML(name) {
@@ -10481,7 +10521,11 @@
         function campWizardNav(dir) {
             if (dir > 0) {
                 if (CAMP.step === 0) { if (!CAMP.nome.trim()) { const el = document.getElementById('campNome'); if (el) { el.classList.add('err'); el.focus(); } return; } }
-                if (CAMP.step === 1) { if (!CAMP.audience && !CAMP.stage) { const el = document.getElementById('campStage'); if (el) el.classList.add('err'); return; } }
+                if (CAMP.step === 1) {
+                    if (CAMP.publicoTipo === 'segmento') {
+                        if (!CAMP.audience || !CAMP.audience.targets || !CAMP.audience.targets.length) { crmToast && crmToast('Escolha uma segmentação com pelo menos 1 cliente.', true); return; }
+                    } else if (!CAMP.stage || CAMP.stage === '__segmento__') { const el = document.getElementById('campStage'); if (el) el.classList.add('err'); return; }
+                }
                 if (CAMP.step === 2) {
                     if (CAMP.tplMode === 'aprovado') { const sel = document.getElementById('campTplSel'); CAMP.tplName = sel ? sel.value : CAMP.tplName; if (!CAMP.tplName) { crmToast && crmToast('Escolha um template aprovado ou crie um novo.', true); return; } CAMP.tplPending = false; }
                     else { if (!CAMP.tplName) { crmToast && crmToast('Crie o template novo antes de continuar.', true); return; } CAMP.tplPending = true; }
@@ -10679,7 +10723,20 @@
             try { targets = segEval(s.regras); } catch (e) {}
             if (!targets.length) { crmToast && crmToast('Esse público está vazio no momento.', true); return; }
             dispSwitchSub('disparar');
-            setTimeout(() => { try { campWizardOpen({ name: s.nome, targets: targets }); } catch (e) {} }, 90);
+            setTimeout(() => { try { campWizardOpen({ id: s.id, nome: s.nome, regras: s.regras }); } catch (e) {} }, 90);
+        }
+
+        // Lista unificada de segmentos (prontos + personalizados) para o seletor do assistente.
+        function segAllList() {
+            const custom = (window._segCustom || []).map(c => ({ id: c.id, nome: c.nome, regras: c.regras, custom: true }));
+            return SEG_PREDEF.map(p => ({ id: p.id, nome: p.nome, regras: p.regras })).concat(custom);
+        }
+        async function segEnsureCustom() {
+            if (window._segCustom) return;
+            try {
+                const { data } = await supabaseClient.from('segmentacoes').select('*').eq('lojista_email', activeUser.email).order('created_at', { ascending: true });
+                window._segCustom = data || [];
+            } catch (e) { window._segCustom = []; }
         }
 
         function segBuilderTipo(t) { const p = document.getElementById('segRuleParams'); if (p) p.style.display = (t === 'provou_nao_comprou') ? 'none' : 'flex'; }
