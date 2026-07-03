@@ -2790,11 +2790,6 @@
                             <div class="credits-stat-value" id="creditsCycleDays">—</div>
                             <div class="credits-stat-sub" id="creditsCycleDate">—</div>
                         </div>
-                        <div class="credits-stat">
-                            <div class="credits-stat-label">Custo por foto</div>
-                            <div class="credits-stat-value" id="creditsCostPerPhoto">—</div>
-                            <div class="credits-stat-sub" id="creditsCostPerPhotoSub">média no ciclo atual</div>
-                        </div>
                     </div>
 
                     <div class="credits-alert" id="creditsAlert">
@@ -11218,9 +11213,6 @@
                 document.getElementById('creditsCycleDate').textContent = '—';
             }
 
-            // Custo por foto (placeholder até integração com valor do plano)
-            document.getElementById('creditsCostPerPhoto').textContent = '—';
-            document.getElementById('creditsCostPerPhotoSub').textContent = 'em cálculo';
 
             // Alerta integrado
             const alertEl = document.getElementById('creditsAlert');
@@ -12454,6 +12446,12 @@
         async function renderPacksExtras() {
             const card = document.getElementById('packsExtrasCard');
             if (!card || !activeUser) return;
+            // Card de provas extras DESATIVADO: o preço aqui (dinâmico, 30% de markup) divergia do
+            // modal de recarga (tabela fixa). Deixamos o MODAL de recarga como único lugar de preço
+            // pra não confundir o lojista. Reativar = remover este bloco.
+            card.style.display = 'none';
+            return;
+            /* eslint-disable no-unreachable */
             const elegivel = PACKS_GATE_EMAILS.includes((activeUser.email || '').toLowerCase());
             if (!elegivel) { card.style.display = 'none'; return; }
 
