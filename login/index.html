@@ -9866,8 +9866,13 @@
                 // "vi que você provou, tenho condição" pra comprador antigo.
                 .filter(([, lead]) => !lead.bought && !lead.jaCliente)
                 .filter(([phone, lead]) => {
+                    const st = waLeadStageKey(phone, lead, config, overrides);
+                    // Nunca dispara pra quem está em Convertido/Perdido — mesmo em "todas as etapas".
+                    // Assim, mover um lead pra Convertido (ex.: comprou com outro telefone) o tira
+                    // do disparo de forma confiável, independente do modo escolhido.
+                    if (st === 'convertido' || st === 'perdido') return false;
                     if (!stageKey || stageKey === 'all') return true;
-                    return waLeadStageKey(phone, lead, config, overrides) === stageKey;
+                    return st === stageKey;
                 })
                 .map(([phone, lead]) => ({
                     phone: String(lead.rawPhone || phone).replace(/\D/g, ''),
