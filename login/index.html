@@ -6399,7 +6399,8 @@
                     <div class="chat-conv-av">${escapeHtml(chatInitials(conv.name, phone))}</div>
                     <div><div style="font-weight:600;font-size:14px;">${escapeHtml(conv.name || ('+' + phone))}</div>
                     <div style="font-size:11px;color:var(--text-muted);">+${escapeHtml(phone)} ${(() => { const t = chatLeadCategory(phone); return t ? '<span style="display:inline-block;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:' + t.bg + ';color:' + t.fg + ';">' + escapeHtml(t.label) + '</span>' : ''; })()}</div></div>
-                    <button onclick="chatDeleteConversa('${escapeHtml(phone)}')" title="Excluir conversa" style="margin-left:auto;background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:#ef4444;cursor:pointer;font-size:15px;line-height:1;"><i class="ph-bold ph-trash"></i></button>
+                    ${chatStageSelectHtml(phone)}
+                    <button onclick="chatDeleteConversa('${escapeHtml(phone)}')" title="Excluir conversa" style="background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:#ef4444;cursor:pointer;font-size:15px;line-height:1;"><i class="ph-bold ph-trash"></i></button>
                 </div>
                 <div class="chat-thread-body" id="chatThreadBody"><div style="margin:auto;color:var(--text-muted);"><i class="ph-bold ph-circle-notch ph-spin"></i></div></div>
                 <div class="chat-thread-foot" id="chatThreadFoot"></div>`;
@@ -6416,6 +6417,44 @@
             } catch (e) {
                 document.getElementById('chatThreadBody').innerHTML = '<div style="margin:auto;color:#ef4444;">Erro ao carregar.</div>';
             }
+        }
+
+        // ===== Mover lead de etapa DENTRO da conversa =====
+        // Etapa atual do lead: override manual se houver, senão a classificação automática.
+        function chatCurrentStageKey(phone) {
+            try {
+                const ph = normalize(phone);
+                const ov = (typeof getCrmOverrides === 'function') ? getCrmOverrides() : {};
+                if (ov[ph]) return ov[ph];
+                const d = (typeof crmLeadMapCache !== 'undefined' && crmLeadMapCache) ? crmLeadMapCache[ph] : null;
+                const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+                if (d && typeof waLeadStageKey === 'function') return waLeadStageKey(ph, d, cfg, ov);
+            } catch (e) {}
+            return '';
+        }
+        // <select> pra mover o lead pra qualquer etapa do funil, direto no cabeçalho da conversa.
+        function chatStageSelectHtml(phone) {
+            const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+            const cur = chatCurrentStageKey(phone);
+            const opts = (cfg.columns || []).map(c =>
+                '<option value="' + escapeHtml(c.key) + '"' + (c.key === cur ? ' selected' : '') + '>' + escapeHtml(c.title) + '</option>'
+            ).join('');
+            return '<select onchange="chatMoveLeadStage(this.value)" title="Mover lead de etapa" ' +
+                'style="margin-left:auto;font-size:11px;padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:var(--card,#fff);color:var(--text);cursor:pointer;max-width:190px;">' +
+                '<option value="" disabled>Mover de etapa…</option>' + opts + '</select>';
+        }
+        // Aplica o override (grava em crm_lead_overrides via setCrmLeadOverride) e atualiza o cabeçalho.
+        function chatMoveLeadStage(colKey) {
+            if (!_chatActivePhone || !colKey) return;
+            const ph = normalize(_chatActivePhone);
+            try { setCrmLeadOverride(ph, colKey); } catch (e) { console.warn('[chat] mover etapa:', e); }
+            const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+            const col = (cfg.columns || []).find(c => c.key === colKey);
+            try { if (typeof crmToast === 'function') crmToast('Lead movido para "' + (col ? col.title : colKey) + '".', 'ok'); } catch (e) {}
+            // Atualiza o board (se carregado) e o badge/seletor do cabeçalho da conversa.
+            try { if (typeof renderCrmBoard === 'function' && crmLeadMapCache) renderCrmBoard(); } catch (e) {}
+            try { chatRenderList(); } catch (e) {}
+            try { openConversa(_chatActivePhone); } catch (e) {} // re-render do cabeçalho (badge + seletor)
         }
 
         // Conteúdo da bolha: renderiza mídia (imagem/vídeo/áudio/documento/figurinha) quando há
