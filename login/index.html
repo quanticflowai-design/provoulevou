@@ -12775,7 +12775,7 @@
                 allOrdersCache.forEach(o => {
                     const ph = normalize(o[fPhone]);
                     if (!ph || !generationPhones.has(ph)) return;
-                    const orderTs = o.created_at || o[activeUser.campo_data_pedido || 'created_at'] || '';
+                    const orderTs = (activeUser.campo_data_pedido && o[activeUser.campo_data_pedido]) || o.created_at || '';
                     if (!isOrderAfterProva(orderTs, ph)) return;
                     totalOrders += 1;
                 });
@@ -12842,7 +12842,7 @@
                 if (v <= 0) return;
                 fatTotal += v; pedidosTotal += 1;
                 const ph = normalize(o[fPhone]);
-                const orderTs = o.created_at || o[activeUser.campo_data_pedido || 'created_at'] || '';
+                const orderTs = (activeUser.campo_data_pedido && o[activeUser.campo_data_pedido]) || o.created_at || '';
                 if (ph && isOrderAfterProva(orderTs, ph)) {
                     fatPosProva += v; pedidosPos += 1;
                 }
