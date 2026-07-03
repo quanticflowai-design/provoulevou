@@ -13118,7 +13118,17 @@
                     let totalFat = 0, totalPedidos = 0;
                     const phones = new Set();
                     let minDate = null;
+                    // Dedup igual ao allOrdersCache (o "depois" deduplica; sem isso o "antes"
+                    // fica inflado por syncs duplicados → crescimento subestimado).
+                    const _seenPed = new Set(), _seenComp = new Set();
                     for (const r of preRows) {
+                        const kPed = r.id_pedido != null ? String(r.id_pedido) : null;
+                        if (kPed && _seenPed.has(kPed)) continue;
+                        if (kPed) _seenPed.add(kPed);
+                        const _phRaw = String(r[fPhone] || '').replace(/\D/g, '');
+                        const _ts = String(r[fDataPedido || 'created_at'] || '').slice(0, 19);
+                        const _tot = (parseFloat(r[fTotal]) || 0).toFixed(2);
+                        if (_phRaw && _ts) { const kComp = _phRaw + '|' + _ts + '|' + _tot; if (_seenComp.has(kComp)) continue; _seenComp.add(kComp); }
                         totalFat += parseFloat(r[fTotal]) || 0;
                         totalPedidos++;
                         const ph = normalize(r[fPhone]);
@@ -13152,7 +13162,7 @@
                 const yoyRows = await paginateAll(() => {
                     let q = supabaseClient
                         .from(activeUser.tabela_pedidos)
-                        .select(`${fDataPedido || 'created_at'}, ${fTotal}, id_pedido`)
+                        .select(`${fDataPedido || 'created_at'}, ${fTotal}, ${fPhone}, id_pedido`)
                         .in(fStatus, fStatusValues)
                         .gte(fDataPedido || 'created_at', yoyStartIso)
                         .lt(fDataPedido || 'created_at', yoyEndIso)
@@ -13162,12 +13172,23 @@
                     return q;
                 });
                 if (yoyRows.length > 0) {
-                    let yoyFat = 0;
-                    for (const r of yoyRows) yoyFat += parseFloat(r[fTotal]) || 0;
+                    // Mesmo dedup do baseline/allOrdersCache (comparação justa antes×depois).
+                    let yoyFat = 0, yoyPed = 0;
+                    const _sp = new Set(), _sc = new Set();
+                    for (const r of yoyRows) {
+                        const kPed = r.id_pedido != null ? String(r.id_pedido) : null;
+                        if (kPed && _sp.has(kPed)) continue;
+                        if (kPed) _sp.add(kPed);
+                        const _ph = String(r[fPhone] || '').replace(/\D/g, '');
+                        const _ts = String(r[fDataPedido || 'created_at'] || '').slice(0, 19);
+                        const _tot = (parseFloat(r[fTotal]) || 0).toFixed(2);
+                        if (_ph && _ts) { const k = _ph + '|' + _ts + '|' + _tot; if (_sc.has(k)) continue; _sc.add(k); }
+                        yoyFat += parseFloat(r[fTotal]) || 0; yoyPed++;
+                    }
                     const yoyDays = Math.max(1, Math.round((yoyEndMs - yoyStartMs) / (24 * 60 * 60 * 1000)));
                     yoyBaseline = {
                         fatPerDay: yoyFat / yoyDays,
-                        pedidosPerDay: yoyRows.length / yoyDays,
+                        pedidosPerDay: yoyPed / yoyDays,
                         days: yoyDays,
                         windowStart: new Date(yoyStartMs).toISOString().slice(0,10),
                         windowEnd: new Date(yoyEndMs).toISOString().slice(0,10),
@@ -14623,9 +14644,13 @@
                 if (!ph) return;
                 if (o[fNome]) nameMapLeads[ph] = o[fNome];
                 if (!phoneMap[ph]) return;
+                // Regra de ouro: QUALQUER pedido pago (pré ou pós prova) exclui da lista de
+                // recuperação — nunca disparar pra quem já comprou. Antes só excluía quem
+                // comprou na data da prova ou depois; comprador antigo escapava e recebia.
+                buyerPhones[ph] = true;
+                // Receita/ticket: só pós-prova (mantém a estimativa alinhada ao hero).
                 const orderDate = (o[fDataPedido] || o.created_at || '').slice(0, 10);
                 if (orderDate >= phoneMap[ph].firstDate) {
-                    buyerPhones[ph] = true;
                     totalRevenue += parseFloat(o[fTotal]) || 0;
                     totalPaidOrders++;
                 }
