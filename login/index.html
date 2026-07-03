@@ -12057,7 +12057,7 @@
 
             const buckets = {};
             allOrders.forEach(o => {
-                const raw = o[fDataPedido] || '';
+                const raw = o[fDataPedido] || o.created_at || ''; // fallback created_at: pedido com data_pedido nula sumia do gráfico
                 const key = granularity === 'week' ? isoWeekKey(raw) : raw.slice(0, 7);
                 if (!key) return;
                 if (!buckets[key]) buckets[key] = { total: 0, provador: 0 };
@@ -12916,7 +12916,15 @@
             const fTotal = activeUser.campo_total_pedido || 'total';
 
             const leads = [...generationPhones].filter(ph => !boughtPhonesSet.has(ph)).length;
-            const ordersPos = allOrdersCache.filter(o => boughtPhonesSet.has(normalize(o[fPhone])));
+            // Ticket médio SÓ de pedidos pós-prova (igual ao hero). Antes filtrava só por
+            // boughtPhonesSet.has(phone) → entravam pedidos PRÉ-prova do mesmo cliente no
+            // numerador, divergindo do ticket do card principal.
+            const ordersPos = allOrdersCache.filter(o => {
+                const ph = normalize(o[fPhone]);
+                if (!ph || !boughtPhonesSet.has(ph)) return false;
+                const orderTs = (activeUser.campo_data_pedido && o[activeUser.campo_data_pedido]) || o.created_at || '';
+                return isOrderAfterProva(orderTs, ph);
+            });
             const ticket = ordersPos.length > 0
                 ? ordersPos.reduce((s, o) => s + (parseFloat(o[fTotal]) || 0), 0) / ordersPos.length
                 : 0;
