@@ -12665,7 +12665,10 @@
                 if (v <= 0) return;
                 fatTotalLoja += v;
                 const ph = normalize(o[fPhone]);
-                const orderTs = o.created_at || o[activeUser.campo_data_pedido || 'created_at'] || '';
+                // data_pedido PRIMEIRO (igual computeKpis/boughtPhonesSet). Usar created_at
+                // primeiro inflava lojas de import manual (created_at = data do import),
+                // contando como pós-prova pedidos pagos ANTES da prova no mesmo dia.
+                const orderTs = (activeUser.campo_data_pedido && o[activeUser.campo_data_pedido]) || o.created_at || '';
                 if (ph && isOrderAfterProva(orderTs, ph)) fatPosProva += v;
             });
 
