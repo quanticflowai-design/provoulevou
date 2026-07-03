@@ -12983,7 +12983,11 @@
                 .ilike('origin', `%${activeUser.origem}%`)
                 .order('created_at', { ascending: true })
                 .order('id', { ascending: true }));
-            generationPhones = new Set(allGens.map(r => normalize(r.telefone_cliente)));
+            // .filter(Boolean): tira o telefone VAZIO (provas anônimas / Mercado Livre sem
+            // celular) do conjunto de provadores únicos. Antes o bucket '' entrava como +1
+            // "cliente único" no denominador → diluía conversão, re-engajamento e provas/cliente,
+            // e não batia com provaMinDateMap/provaMinTsMap (que já ignoram vazio).
+            generationPhones = new Set(allGens.map(r => normalize(r.telefone_cliente)).filter(Boolean));
             provaMinDateMap = {};
             provaMinTsMap = {};
             (allGens || []).forEach(r => {
@@ -14300,7 +14304,10 @@
             const ranking = Object.values(byPhone)
                 .map(r => ({ ...r, avg: r.count > 0 ? r.total / r.count : 0 }))
                 // Ordena por nº de pedidos (clientes fiéis primeiro). Empate desempata pelo total gasto.
-                .sort((a, b) => b.count - a.count || b.total - a.total);
+                // Ranking "Maior LTV" ordena por VALOR gasto (total), não por nº de pedidos.
+                // Antes b.count vinha primeiro → quem gastou R$5.000 em 1 pedido ficava abaixo
+                // de quem gastou R$180 em 3 pedidos, numa tabela intitulada "Maior LTV".
+                .sort((a, b) => b.total - a.total || b.count - a.count);
 
             _allLtvForSearch = ranking;
 
