@@ -9923,7 +9923,9 @@
             window._waBulkTargets = targets;
             document.getElementById('waBulkCount').textContent = targets.length.toLocaleString('pt-BR');
             const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            document.getElementById('waBulkCost').textContent = brl(targets.length * 0.40) + ' – ' + brl(targets.length * 0.80);
+            // Estimativa (teto): a Meta cobra ~R$0,35 por mensagem ENTREGUE — mesma taxa do ROI.
+            // É teto porque nem todo alvo é entregue (só delivered é cobrado).
+            document.getElementById('waBulkCost').textContent = 'até ' + brl(targets.length * 0.35);
 
             const confirmBtn = document.getElementById('waBulkConfirmBtn');
             const tplOk = !!(document.getElementById('waBulkTemplate') || {}).value;
@@ -11201,8 +11203,9 @@
             // Ciclo
             if (c.ciclo_iniciado_em) {
                 const inicio = new Date(c.ciclo_iniciado_em);
-                const proximo = new Date(inicio.getTime() + 30 * 24 * 60 * 60 * 1000);
                 const agora = new Date();
+                let proximo = new Date(inicio.getTime() + 30 * 24 * 60 * 60 * 1000);
+                while (proximo < agora) proximo = new Date(proximo.getTime() + 30 * 24 * 60 * 60 * 1000); // avança pro próximo ciclo se já venceu
                 const diff = Math.max(0, Math.ceil((proximo - agora) / (24 * 60 * 60 * 1000)));
                 document.getElementById('creditsCycleDays').innerHTML =
                     diff + '<span class="unit">dia' + (diff === 1 ? '' : 's') + '</span>';
@@ -11277,8 +11280,9 @@
                         restantes.toLocaleString('pt-BR') + ' fotos restantes';
                     if (c.ciclo_iniciado_em) {
                         const inicio2 = new Date(c.ciclo_iniciado_em);
-                        const proximo = new Date(inicio2.getTime() + 30 * 24 * 60 * 60 * 1000);
                         const agora = new Date();
+                        let proximo = new Date(inicio2.getTime() + 30 * 24 * 60 * 60 * 1000);
+                        while (proximo < agora) proximo = new Date(proximo.getTime() + 30 * 24 * 60 * 60 * 1000);
                         const diff = Math.max(0, Math.ceil((proximo - agora) / (24 * 60 * 60 * 1000)));
                         document.getElementById('mpRenova').textContent =
                             'Renova em ' + diff + ' dia' + (diff === 1 ? '' : 's');
@@ -12022,7 +12026,7 @@
             const fTotal      = activeUser.campo_total_pedido || 'total';
             const fDataPedido = activeUser.campo_data_pedido || 'created_at';
             const fStatus     = activeUser.campo_status_pedido || 'payment_status';
-            const fStatusVals = activeUser.valores_status_pago || ['paid'];
+            const fStatusVals = activeUser.valores_status_pago || ['paid', 'Confirmado'];
             const fPhone      = activeUser.campo_telefone_pedido || 'customer_phone';
 
             // Primeira prova = data de instalação do provador
@@ -12307,9 +12311,15 @@
             if (!tempoEl) return;
             if (sessoesValidas.length === 0) {
                 tempoEl.textContent = '—';
+                tempoEl.dataset.segundos = '0';
             } else {
-                const avgMs = sessoesValidas.reduce((a, b) => a + b, 0) / sessoesValidas.length;
-                const sec = avgMs / 1000;
+                // MEDIANA em vez de média: uma sessão-outlier de horas (provas espaçadas <30min ao
+                // longo do dia) inflava a média. A mediana reflete a sessão típica.
+                const _sorted = sessoesValidas.slice().sort((a, b) => a - b);
+                const _mid = Math.floor(_sorted.length / 2);
+                const medMs = _sorted.length % 2 ? _sorted[_mid] : (_sorted[_mid - 1] + _sorted[_mid]) / 2;
+                const sec = medMs / 1000;
+                tempoEl.dataset.segundos = String(Math.round(sec)); // valor cru pro anel (sem reparse de texto)
                 const min = sec / 60;
                 const hr = min / 60;
                 if (sec < 60) tempoEl.textContent = Math.round(sec) + 's';
@@ -12616,7 +12626,9 @@
             // (ex: hoje é dia 8 → compara Mai 1-8 com Abr 1-8, não Mai 1-8 com Abr inteiro)
             const today = new Date();
             const dayOfMonth = today.getDate();
-            const prevEndDate = new Date(today.getFullYear(), today.getMonth() - 1, dayOfMonth, 23, 59, 59);
+            // Clampa pro último dia do mês anterior (evita estouro: 31/mai vs abril que só tem 30 → viraria 01/mai)
+            const prevMonthLastDay = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+            const prevEndDate = new Date(today.getFullYear(), today.getMonth() - 1, Math.min(dayOfMonth, prevMonthLastDay), 23, 59, 59);
             const pad = n => String(n).padStart(2, '0');
             const fmt = d => d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + '-03:00';
             const prevEndIso = fmt(prevEndDate);
@@ -12663,7 +12675,7 @@
             const banner = document.getElementById('leadsRecuperarBanner');
             if (totalLeads > 0 && banner) {
                 // Ticket médio dos compradores pós-prova
-                const fStatusValues = activeUser.valores_status_pago || ['paid'];
+                const fStatusValues = activeUser.valores_status_pago || ['paid', 'Confirmado'];
                 const ordersPostProva = allOrdersCache.filter(o => {
                     const ph = normalize(o[activeUser.campo_telefone_pedido || 'customer_phone']);
                     return boughtPhonesSet.has(ph);
@@ -12815,18 +12827,14 @@
                 if (riv) riv.innerHTML = provasPerClient.toFixed(1).replace('.', ',') + '<small>×</small>';
             }
 
-            // Tempo: pega de provasTempoMedio (string tipo "2m 14s") + calcula segundos pra preencher anel
+            // Tempo: usa o valor CRU em segundos (dataset.segundos), não reparseia o texto.
+            // O reparse de "2m 14s" perdia o formato "1,5 min" (sem 's') e zerava em "2,3 h".
             const tempoEl = document.getElementById('provasTempoMedio');
             const tempoTxt = tempoEl && tempoEl.textContent.trim() && tempoEl.textContent.trim() !== '—'
                 ? tempoEl.textContent.trim() : '—';
             document.getElementById('ringTempoValue').textContent = tempoTxt;
-            // parse "2m 14s" pra segundos
-            let segs = 0;
-            const mMatch = tempoTxt.match(/(\d+)\s*m/);
-            const sMatch = tempoTxt.match(/(\d+)\s*s/);
-            if (mMatch) segs += parseInt(mMatch[1]) * 60;
-            if (sMatch) segs += parseInt(sMatch[1]);
-            // benchmark 45s = 100%; 90s+ enche tudo
+            const segs = tempoEl ? (parseInt(tempoEl.dataset.segundos, 10) || 0) : 0;
+            // benchmark 90s = 100%
             const pctTempo = Math.min(100, (segs / 90) * 100);
             document.getElementById('ringTempo').style.setProperty('--ring-pct', pctTempo);
 
@@ -13845,7 +13853,7 @@
 
                 const origem = activeUser.origem;
                 if (!origem) { card.style.display = 'none'; return; }
-                const cutoff = startDate + 'T00:00:00';
+                const cutoff = startDate + 'T00:00:00-03:00'; // fuso -03:00: sem isso contava ~3h de provas do dia anterior
                 const { count, error: cErr } = await supabaseClient
                     .from('geracoes_provou_levou')
                     .select('id', { count: 'exact', head: true })
@@ -14011,9 +14019,10 @@
 
                         // Próximo reset ~30 dias após o startDate (último pagamento ou data implementação)
                         if (startDate) {
-                            const inicio = new Date(startDate + 'T00:00:00');
-                            const proximo = new Date(inicio.getTime() + 30 * 24 * 60 * 60 * 1000);
+                            const inicio = new Date(startDate + 'T00:00:00-03:00');
                             const agora = new Date();
+                            let proximo = new Date(inicio.getTime() + 30 * 24 * 60 * 60 * 1000);
+                            while (proximo < agora) proximo = new Date(proximo.getTime() + 30 * 24 * 60 * 60 * 1000); // avança ciclos vencidos
                             const diff = Math.max(0, Math.ceil((proximo - agora) / (24 * 60 * 60 * 1000)));
                             document.getElementById('mpRenova').textContent =
                                 diff === 0 ? 'Renova hoje' : 'Renova em ' + diff + ' dia' + (diff === 1 ? '' : 's');
@@ -14536,7 +14545,7 @@
             const fStatus = user.campo_status_pedido || 'payment_status';
             const fDataPedido = user.campo_data_pedido || 'created_at';
             const fNome = user.campo_nome_pedido || 'customer_name';
-            const fStatusValues = user.valores_status_pago || ['paid'];
+            const fStatusValues = user.valores_status_pago || ['paid', 'Confirmado'];
 
             // Paginate sessions (Regra 1 — no silent 1000-row cutoff)
             const allSessions = [];
@@ -15360,7 +15369,7 @@
                 const fStatus = user.campo_status_pedido || 'payment_status';
                 const fDataPedido = user.campo_data_pedido || 'created_at';
                 const fNome = user.campo_nome_pedido || 'customer_name';
-                const fStatusValues = user.valores_status_pago || ['paid'];
+                const fStatusValues = user.valores_status_pago || ['paid', 'Confirmado'];
 
                 // Provas (todas as sessões da origem do lojista)
                 const allSessions = [];
