@@ -13693,6 +13693,11 @@
             const fPhone = (activeUser && activeUser.campo_telefone_pedido) || 'customer_phone';
             const fDataPedido = (activeUser && activeUser.campo_data_pedido) || null;
             if (!fProduto || !allOrdersCache || !allOrdersCache.length) { sec.style.display = 'none'; return; }
+            // Só exibir para lojas cujos pedidos realmente carregam o nome do produto.
+            // Import manual (ex: Mariana Cardoso via CSV Tray) deixa o campo de produto quase todo
+            // NULL — a seção mostraria só um punhado de itens e não reflete o faturamento, então some.
+            const comProduto = allOrdersCache.filter(o => String(o[fProduto] || '').trim()).length;
+            if (comProduto / allOrdersCache.length < 0.5) { sec.style.display = 'none'; return; }
             const map = {};
             allOrdersCache.forEach(o => {
                 // SOMENTE vendas via provador (pós-prova): telefone provou E comprou depois da prova
