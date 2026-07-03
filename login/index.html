@@ -6435,13 +6435,15 @@
         // <select> pra mover o lead pra qualquer etapa do funil, direto no cabeçalho da conversa.
         function chatStageSelectHtml(phone) {
             const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
-            const cur = chatCurrentStageKey(phone);
             const opts = (cfg.columns || []).map(c =>
-                '<option value="' + escapeHtml(c.key) + '"' + (c.key === cur ? ' selected' : '') + '>' + escapeHtml(c.title) + '</option>'
+                '<option value="' + escapeHtml(c.key) + '">' + escapeHtml(c.title) + '</option>'
             ).join('');
-            return '<select onchange="chatMoveLeadStage(this.value)" title="Mover lead de etapa" ' +
-                'style="margin-left:auto;font-size:11px;padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:var(--card,#fff);color:var(--text);cursor:pointer;max-width:190px;">' +
-                '<option value="" disabled>Mover de etapa…</option>' + opts + '</select>';
+            // Placeholder "↪ Mover para etapa…" fica SEMPRE visível → deixa claro que é uma AÇÃO,
+            // não um status. A etapa atual do lead já aparece no selo colorido ao lado.
+            return '<select onchange="chatMoveLeadStage(this.value)" title="Mover este lead para outra etapa do funil" ' +
+                'style="margin-left:auto;font-size:11.5px;font-weight:600;padding:6px 12px;border:1px solid var(--primary,#7c3aed);' +
+                'border-radius:8px;background:rgba(124,58,237,0.10);color:var(--primary,#7c3aed);cursor:pointer;max-width:230px;">' +
+                '<option value="" selected>↪ Mover para etapa…</option>' + opts + '</select>';
         }
         // Aplica o override (grava em crm_lead_overrides via setCrmLeadOverride) e atualiza o cabeçalho.
         function chatMoveLeadStage(colKey) {
