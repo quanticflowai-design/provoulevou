@@ -9816,7 +9816,11 @@
             const overrides = (typeof getCrmOverrides === 'function') ? getCrmOverrides() : {};
 
             const naoCompraram = Object.entries(crmLeadMapCache)
-                .filter(([, lead]) => !lead.bought)
+                // Regra de ouro: NUNCA disparar recuperação pra quem já comprou. Exclui tanto
+                // quem comprou pós-prova (bought) quanto quem já era cliente da loja de antes
+                // (jaCliente = qualquer pedido pago). Antes só excluía bought → mandava
+                // "vi que você provou, tenho condição" pra comprador antigo.
+                .filter(([, lead]) => !lead.bought && !lead.jaCliente)
                 .filter(([phone, lead]) => {
                     if (!stageKey || stageKey === 'all') return true;
                     return waLeadStageKey(phone, lead, config, overrides) === stageKey;
@@ -9929,7 +9933,7 @@
             let totalNao = 0;
             if (crmLeadMapCache) {
                 Object.entries(crmLeadMapCache).forEach(([phone, lead]) => {
-                    if (lead.bought) return;
+                    if (lead.bought || lead.jaCliente) return; // não conta comprador (pré ou pós prova) nos alvos
                     totalNao++;
                     const k = waLeadStageKey(phone, lead, config, overrides);
                     if (counts[k] === undefined) counts[k] = 0;
@@ -11179,7 +11183,11 @@
             // === Nova UI Meu Plano (cards redesenhados) ===
             try {
                 const mpName = document.getElementById('mpPlanName');
-                if (mpName) {
+                // Só popula o painel do plano se HÁ dado real de crédito (cap>0). Sem isso,
+                // em produção creditos_lojista está vazia (cap=0) e o renderCredits ficava
+                // sobrescrevendo com ZERO os valores que o loadConsumoPlano (fonte alinhada
+                // ao check-limit) calcula ao vivo — race que mostrava "plano zerado".
+                if (mpName && cap > 0) {
                     // Tenta puxar o nome do plano do consumoPlanoCard original
                     const planNameEl = document.getElementById('consumoPlanName');
                     const planNameTxt = (planNameEl && planNameEl.textContent.trim() && planNameEl.textContent.trim() !== '—')
@@ -11250,7 +11258,7 @@
             // === Chip discreto + modal de detalhes ===
             try {
                 const group = document.getElementById('planChipGroup');
-                if (group) {
+                if (group && cap > 0) { // idem: só o loadConsumoPlano popula o chip em produção (cap=0)
                     group.style.display = 'inline-flex';
                     document.getElementById('planChipPlanUsage').textContent = usados.toLocaleString('pt-BR');
                     document.getElementById('planChipPlanCap').textContent = cap.toLocaleString('pt-BR');
@@ -11737,7 +11745,13 @@
             const hasRealTime = orderTs && orderTs.includes('T') && !orderTs.includes('T00:00:00');
             if (hasRealTime) {
                 const provaTs = provaMinTsMap[phone] || '';
-                return orderTs >= provaTs;
+                // Comparar por INSTANTE, não por string: pedido vem com offset -03:00 e a
+                // prova (created_at) em UTC (+00:00); comparação lexical de strings com
+                // offsets diferentes erra na faixa de ~3h/dia perto da virada UTC↔BRT.
+                const oMs = new Date(orderTs).getTime();
+                const pMs = new Date(provaTs).getTime();
+                if (!isNaN(oMs) && !isNaN(pMs)) return oMs >= pMs;
+                return orderTs >= provaTs; // fallback defensivo se alguma data não parsear
             }
             // Date-only field (e.g. Tray orders): compare by date
             return orderDate >= provaDate;
@@ -13108,6 +13122,7 @@
                 const totalField = activeUser.campo_total_pedido || 'total';
                 const dateField = activeUser.campo_data_pedido || 'created_at';
                 const compositeMap = new Map(); // key -> row escolhida
+                const noKeyOrders = [];         // pedidos sem chave composta (preservados, não descartados)
                 const pickWinner = (a, b) => {
                     // prefere quem tem order_number setado
                     const aHasON = a.order_number != null && a.order_number !== '';
@@ -13129,9 +13144,15 @@
                     if (kComposite) {
                         const prev = compositeMap.get(kComposite);
                         compositeMap.set(kComposite, prev ? pickWinner(prev, o) : o);
+                    } else {
+                        // Pedido sem telefone ou sem data NÃO tem chave composta — antes era
+                        // DESCARTADO do cache inteiro (sumia do faturamento total → inflava o
+                        // "% via provador"). Já passou pelo dedup de id_pedido acima, então
+                        // preservamos (ex.: pedido anônimo/Mercado Livre sem celular).
+                        noKeyOrders.push(o);
                     }
                 }
-                allOrdersCache = Array.from(compositeMap.values());
+                allOrdersCache = Array.from(compositeMap.values()).concat(noKeyOrders);
             }
 
             // Compraram = phones que provaram E têm pelo menos um pedido pago APÓS a prova.
