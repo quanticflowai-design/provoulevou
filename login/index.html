@@ -15819,13 +15819,22 @@
                     else if (who !== _crmRespFilter) return;
                 }
                 matchCount++;
-                let targetKey = overrides[ph];
-                if (targetKey && !buckets[targetKey]) targetKey = null; // override aponta pra coluna deletada → ignora
-                if (!targetKey) {
-                    const rule = crmClassify(d);
-                    // Acha a 1ª coluna auto com essa rule (lojista pode ter renomeado mas key continua)
-                    const col = config.columns.find(c => c.auto && c.rule === rule);
-                    targetKey = col ? col.key : rule;
+                let targetKey;
+                // Regra: quem COMPROU vai SEMPRE pra Convertido — mesmo que tenha sido movido à
+                // mão pra outra coluna antes de comprar (ex.: o disparo move pra "Em contato" e
+                // depois o cliente compra). "comprou" vence o movimento manual. Alinha o board
+                // com a Visão Geral (que já conta todo comprador). Igual ao waLeadStageKey.
+                if (d.bought && buckets['convertido']) {
+                    targetKey = 'convertido';
+                } else {
+                    targetKey = overrides[ph];
+                    if (targetKey && !buckets[targetKey]) targetKey = null; // override aponta pra coluna deletada → ignora
+                    if (!targetKey) {
+                        const rule = crmClassify(d);
+                        // Acha a 1ª coluna auto com essa rule (lojista pode ter renomeado mas key continua)
+                        const col = config.columns.find(c => c.auto && c.rule === rule);
+                        targetKey = col ? col.key : rule;
+                    }
                 }
                 if (!buckets[targetKey]) buckets[targetKey] = [];
                 buckets[targetKey].push({ phone: ph, ...d });
