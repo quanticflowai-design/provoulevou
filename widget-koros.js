@@ -22,7 +22,7 @@
             try {
                 if (document.querySelector('.pl-seo-badge')) return;
                 var path = window.location.pathname;
-                var isProduct = path.includes('/produto/') || path.includes('/produtos/') || path.includes('/products/') || path.includes('/p/') || document.querySelector('meta[property="og:type"][content="product"]');
+                var isProduct = document.querySelector('meta[property="og:type"][content="product"]') || /\/(produtos?|products|p)\/[^\/?#]+/.test(path);
                 if (!isProduct) return;
                 var b = document.createElement('div');
                 b.className = 'pl-seo-badge';
