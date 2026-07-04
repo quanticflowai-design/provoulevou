@@ -172,7 +172,7 @@
         /* ── Trigger (selo sobre foto) ── */
         @keyframes q-shake { 0%,50%,100%{transform:rotate(0deg)} 10%,30%{transform:rotate(-10deg)} 20%,40%{transform:rotate(10deg)} }
         .q-btn-trigger-ia {
-            position: absolute; top: 46px; right: 14px; z-index: 100;
+            position: absolute; top: 58px; right: 14px; z-index: 100;
             background: none; border: none; padding: 0; cursor: pointer;
             width: 70px; height: 70px;
             display: flex; align-items: center; justify-content: center;
@@ -187,14 +187,14 @@
         /* ── Inline button ── */
         .q-btn-inline-provador {
             display: flex; align-items: center; justify-content: center; gap: 7px;
-            width: 100%; padding: 13px 16px;
-            background: transparent; color: var(--c-ink);
-            border: 1.5px solid var(--c-ink); border-radius: 0;
-            font-family: 'Work Sans', var(--font-body), sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+            width: 100%; height: 41px; padding: 0 16px;
+            background: #fff; color: #F39C12;
+            border: 1.5px solid #F39C12; border-radius: 4px;
+            font-family: 'Poppins', var(--font-body), sans-serif; font-size: 14px; font-weight: 400; letter-spacing: normal; text-transform: uppercase;
             cursor: pointer; transition: background 0.25s, color 0.25s;
             margin-bottom: 10px; box-sizing: border-box;
         }
-        .q-btn-inline-provador:hover { background: var(--c-ink); color: #fff; }
+        .q-btn-inline-provador:hover { background: #F39C12; color: #fff; }
         .q-btn-inline-provador svg { width: 14px; height: 14px; flex-shrink: 0; }
 
         /* ── Modal overlay ── */
@@ -1104,38 +1104,24 @@
             openModal();
         });
 
-        // Koros: posiciona o botão inline DIRETAMENTE acima do bloco "envie sua receita".
-        // O form da Nuvemshop (comprar/receita) pode renderizar async → tenta em loop
-        // até achar a âncora da receita; só cai no fallback (acima do comprar) depois de ~3s.
-        function _qFindReceitaRow() {
-            var cands = document.querySelectorAll('#product_form *, form.js-product-form *, .product-form *');
-            var el = null;
-            for (var i = 0; i < cands.length; i++) {
-                if (/envie sua receita/i.test(cands[i].textContent || '')) { el = cands[i]; break; }
-            }
-            return el ? (el.closest('.form-row') || el) : null;
-        }
-        function _qPlaceInline(allowBuyFallback) {
+        // Koros: posiciona o botão inline acima do botão de compra.
+        // O form da Nuvemshop pode renderizar async → tenta em loop até o comprar existir.
+        function _qPlaceInline() {
             if (inlineBtn.isConnected) return true;
-            var receitaRow = _qFindReceitaRow();
-            if (receitaRow && receitaRow.parentNode) { receitaRow.parentNode.insertBefore(inlineBtn, receitaRow); return true; }
-            if (allowBuyFallback) {
-                var buyBtn = document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"]');
-                var buyRow = buyBtn ? (buyBtn.closest('.form-row') || buyBtn) : null;
-                if (buyRow && buyRow.parentNode) { buyRow.parentNode.insertBefore(inlineBtn, buyRow); return true; }
-                var variantsContainer = document.querySelector('.js-product-variants');
-                if (variantsContainer && variantsContainer.parentNode) {
-                    variantsContainer.parentNode.insertBefore(inlineBtn, variantsContainer.nextSibling); return true;
-                }
+            var buyBtn = document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"]');
+            var buyRow = buyBtn ? (buyBtn.closest('.form-row') || buyBtn) : null;
+            if (buyRow && buyRow.parentNode) { buyRow.parentNode.insertBefore(inlineBtn, buyRow); return true; }
+            var variantsContainer = document.querySelector('.js-product-variants');
+            if (variantsContainer && variantsContainer.parentNode) {
+                variantsContainer.parentNode.insertBefore(inlineBtn, variantsContainer.nextSibling); return true;
             }
             return false;
         }
-        if (!_qPlaceInline(false)) {
+        if (!_qPlaceInline()) {
             var _qTries = 0;
             var _qIv = setInterval(function () {
                 _qTries++;
-                // após ~3s (12 tentativas) sem achar a receita, aceita o fallback do comprar
-                if (_qPlaceInline(_qTries > 12) || _qTries > 40) clearInterval(_qIv);
+                if (_qPlaceInline() || _qTries > 40) clearInterval(_qIv);
             }, 250);
         }
         const genBtn      = document.getElementById('q-btn-generate');
