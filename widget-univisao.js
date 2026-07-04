@@ -753,9 +753,8 @@
                     <!-- Limite do dia atingido -> volte amanha -->
                     <div id="q-step-pix" style="text-align:center;padding:10px 6px;">
                         <div style="font-size:46px;line-height:1;margin-bottom:8px;">&#127769;</div>
-                        <h2>Volte amanh&#227;!</h2>
-                        <p class="q-pix-subtitle">Voc&#234; j&#225; usou suas <b>3 provas de hoje</b>.<br>Amanh&#227; voc&#234; pode experimentar mais &#243;culos. &#128153;</p>
-                        <p style="font-size: 12px; color: var(--c-muted); margin: 10px 0 0; line-height: 1.5;">Te mandamos uma mensagem no WhatsApp pra lembrar &#128521;</p>
+                        <h2>Limite de hoje atingido</h2>
+                        <p class="q-pix-subtitle">Voc&#234; j&#225; usou suas <b>3 provas gr&#225;tis de hoje</b>.<br>Volte amanh&#227; para experimentar mais &#243;culos! &#128153;</p>
                         <button id="q-limit-close" style="margin-top:16px;background:var(--c-brand);color:#fff;border:none;border-radius:10px;padding:11px 24px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;">Entendi</button>
                     </div>
 
