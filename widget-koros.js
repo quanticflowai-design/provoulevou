@@ -1095,14 +1095,15 @@
         const inlineBtnText = document.createTextNode('Provador Virtual');
         inlineBtn.appendChild(inlineBtnText);
 
-        inlineBtn.addEventListener('click', (e) => {
+        function _qInlineClick(e) {
             e.preventDefault();
             e.stopPropagation();
             const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
             applyProduct(detectProduct(prodName));
             populateImageSelector();
             openModal();
-        });
+        }
+        inlineBtn.addEventListener('click', _qInlineClick);
 
         // Koros: posiciona o botão inline acima do botão de compra.
         // O form da Nuvemshop pode renderizar async → tenta em loop até o comprar existir.
@@ -1117,6 +1118,32 @@
             }
             return false;
         }
+
+        // A Nuvemshop tem um 2º "Comprar" (.js-scroll-to-form, barra fixa que aparece
+        // ao rolar a página) que também casa com ".btn-add-to-cart" e vem ANTES do
+        // botão real no DOM — por isso o botão acima só aparecia nele. Aqui garantimos
+        // um 2º botão inline, clonado, ancorado especificamente no botão REAL do
+        // #product_form (data-component="product.add-to-cart"), do mesmo tamanho dele.
+        function _qPlaceInlineReal() {
+            var realBtn = document.querySelector('#product_form [data-component="product.add-to-cart"], #product_form .js-addtocart:not(.js-scroll-to-form)');
+            if (!realBtn) return false;
+            var realRow = realBtn.closest('.form-row') || realBtn;
+            if (!realRow.parentNode) return false;
+            if (document.querySelector('.q-btn-inline-provador-real')) return true;
+            var inlineBtn2 = inlineBtn.cloneNode(true);
+            inlineBtn2.classList.add('q-btn-inline-provador-real');
+            inlineBtn2.addEventListener('click', _qInlineClick);
+            realRow.parentNode.insertBefore(inlineBtn2, realRow);
+            return true;
+        }
+        if (!_qPlaceInlineReal()) {
+            var _qTries2 = 0;
+            var _qIv2 = setInterval(function () {
+                _qTries2++;
+                if (_qPlaceInlineReal() || _qTries2 > 40) clearInterval(_qIv2);
+            }, 250);
+        }
+
         if (!_qPlaceInline()) {
             var _qTries = 0;
             var _qIv = setInterval(function () {
