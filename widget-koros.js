@@ -1104,20 +1104,39 @@
             openModal();
         });
 
-        // Koros: posiciona acima do bloco "envie sua receita"; senão acima do botão de compra
-        var receitaRow = null;
-        var _rows = document.querySelectorAll('#product_form .form-row, form.js-product-form .form-row, .product-form .form-row');
-        for (var _r = 0; _r < _rows.length; _r++) { if (/receita/i.test(_rows[_r].textContent || '')) { receitaRow = _rows[_r]; break; } }
-        const buyBtn = document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"]');
-        if (receitaRow) {
-            receitaRow.parentNode.insertBefore(inlineBtn, receitaRow);
-        } else if (buyBtn) {
-            buyBtn.parentNode.insertBefore(inlineBtn, buyBtn);
-        } else {
-            const variantsContainer = document.querySelector('.js-product-variants');
-            if (variantsContainer) {
-                variantsContainer.parentNode.insertBefore(inlineBtn, variantsContainer.nextSibling);
+        // Koros: posiciona o botão inline DIRETAMENTE acima do bloco "envie sua receita".
+        // O form da Nuvemshop (comprar/receita) pode renderizar async → tenta em loop
+        // até achar a âncora da receita; só cai no fallback (acima do comprar) depois de ~3s.
+        function _qFindReceitaRow() {
+            var cands = document.querySelectorAll('#product_form *, form.js-product-form *, .product-form *');
+            var el = null;
+            for (var i = 0; i < cands.length; i++) {
+                if (/envie sua receita/i.test(cands[i].textContent || '')) { el = cands[i]; break; }
             }
+            return el ? (el.closest('.form-row') || el) : null;
+        }
+        function _qPlaceInline(allowBuyFallback) {
+            if (inlineBtn.isConnected) return true;
+            var receitaRow = _qFindReceitaRow();
+            if (receitaRow && receitaRow.parentNode) { receitaRow.parentNode.insertBefore(inlineBtn, receitaRow); return true; }
+            if (allowBuyFallback) {
+                var buyBtn = document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"]');
+                var buyRow = buyBtn ? (buyBtn.closest('.form-row') || buyBtn) : null;
+                if (buyRow && buyRow.parentNode) { buyRow.parentNode.insertBefore(inlineBtn, buyRow); return true; }
+                var variantsContainer = document.querySelector('.js-product-variants');
+                if (variantsContainer && variantsContainer.parentNode) {
+                    variantsContainer.parentNode.insertBefore(inlineBtn, variantsContainer.nextSibling); return true;
+                }
+            }
+            return false;
+        }
+        if (!_qPlaceInline(false)) {
+            var _qTries = 0;
+            var _qIv = setInterval(function () {
+                _qTries++;
+                // após ~3s (12 tentativas) sem achar a receita, aceita o fallback do comprar
+                if (_qPlaceInline(_qTries > 12) || _qTries > 40) clearInterval(_qIv);
+            }, 250);
         }
         const genBtn      = document.getElementById('q-btn-generate');
         const nextBtn     = null; // single-step flow — no next button
