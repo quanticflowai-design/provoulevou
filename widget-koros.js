@@ -172,7 +172,7 @@
         /* ── Trigger (selo sobre foto) ── */
         @keyframes q-shake { 0%,50%,100%{transform:rotate(0deg)} 10%,30%{transform:rotate(-10deg)} 20%,40%{transform:rotate(10deg)} }
         .q-btn-trigger-ia {
-            position: absolute; top: 14px; right: 14px; z-index: 100;
+            position: absolute; top: 46px; right: 14px; z-index: 100;
             background: none; border: none; padding: 0; cursor: pointer;
             width: 70px; height: 70px;
             display: flex; align-items: center; justify-content: center;
@@ -1104,9 +1104,14 @@
             openModal();
         });
 
-        // Posiciona acima do botão de compra
+        // Koros: posiciona acima do bloco "envie sua receita"; senão acima do botão de compra
+        var receitaRow = null;
+        var _rows = document.querySelectorAll('#product_form .form-row, form.js-product-form .form-row, .product-form .form-row');
+        for (var _r = 0; _r < _rows.length; _r++) { if (/receita/i.test(_rows[_r].textContent || '')) { receitaRow = _rows[_r]; break; } }
         const buyBtn = document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"]');
-        if (buyBtn) {
+        if (receitaRow) {
+            receitaRow.parentNode.insertBefore(inlineBtn, receitaRow);
+        } else if (buyBtn) {
             buyBtn.parentNode.insertBefore(inlineBtn, buyBtn);
         } else {
             const variantsContainer = document.querySelector('.js-product-variants');
