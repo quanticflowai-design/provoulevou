@@ -1203,6 +1203,23 @@
             return url;
         }
 
+        // Resolve a URL real de uma <img> lazy-loaded: alguns temas (ex: Koros/Nuvemshop)
+        // deixam TANTO src QUANTO data-src apontando pro placeholder GIF 1x1 — a URL real
+        // so existe no data-srcset. Compartilhado entre o loop principal e a priorizacao
+        // do slide ativo (antes cada um resolvia isso de um jeito diferente e incompleto).
+        function resolveImgSrc(img) {
+            let src = img.dataset?.src || img.getAttribute('data-src') || img.src;
+            if (src && src.includes('data:image')) {
+                const parentA = img.closest('a');
+                if (parentA && parentA.href && !parentA.href.includes('javascript:')) {
+                    src = parentA.href;
+                } else if (img.getAttribute('data-srcset')) {
+                    src = img.getAttribute('data-srcset').split(',')[0].trim().split(' ')[0];
+                }
+            }
+            return src;
+        }
+
         function extractImages() {
             const containersSelectors = '.js-product-slide, .product-image-column, .js-swiper-product, [data-store^="product-image-"], .product__media-wrapper, .product-gallery__media, .product__media, .product-image-main, .product-media-container, [data-media-id], .product__media-item, .product-gallery, .product-single__media, .media-gallery, [data-component="product.gallery"], .swiper-slide:not(.swiper-slide-duplicate), .slider-wrapper';
             const possibleContainers = Array.from(document.querySelectorAll(containersSelectors));
@@ -1215,16 +1232,7 @@
             });
             let uniqueImgs = [];
             imgEls.forEach(img => {
-                let src = img.dataset?.src || img.getAttribute('data-src') || img.src;
-
-                if (src && src.includes('data:image')) {
-                    const parentA = img.closest('a');
-                    if (parentA && parentA.href && !parentA.href.includes('javascript:')) {
-                        src = parentA.href;
-                    } else if (img.getAttribute('data-srcset')) {
-                        src = img.getAttribute('data-srcset').split(',')[0].trim().split(' ')[0];
-                    }
-                }
+                let src = resolveImgSrc(img);
 
                 if (!src || src.includes('data:image')) return;
 
@@ -1254,9 +1262,13 @@
             // como referencia principal. Sem isso, imgs[0] era sempre a 1a imagem do DOM
             // (a variante default carregada na pagina), ignorando a cor/variante que o
             // cliente de fato escolheu antes de abrir o provador.
-            const activeImg = document.querySelector('.js-product-slide.swiper-slide-active img, .swiper-slide-active img');
+            // IMPORTANTE: escopar ao .js-swiper-product (galeria principal) -- a pagina tem
+            // VARIOS swipers com a mesma classe .swiper-slide-active (miniaturas, banner,
+            // depoimentos, relacionados); um seletor generico ".swiper-slide-active img" sem
+            // escopo pegava a miniatura (a primeira a aparecer no DOM), nao a foto principal.
+            const activeImg = document.querySelector('.js-swiper-product .swiper-slide-active img, .js-product-slide.swiper-slide-active img');
             if (activeImg) {
-                let activeSrc = activeImg.dataset?.src || activeImg.getAttribute('data-src') || activeImg.src;
+                let activeSrc = resolveImgSrc(activeImg);
                 if (activeSrc && !activeSrc.includes('data:image')) {
                     activeSrc = upgradeImgUrl(activeSrc);
                     const activeClean = activeSrc.split('?')[0].replace(/-\d+-\d+\.webp|_\d+x\d+/, '');
