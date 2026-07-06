@@ -1024,7 +1024,12 @@
         openBtn.innerHTML = stampImageHTML;
 
 
-        const imgContainers = ['.js-product-slide', '.product-image-column', '.js-swiper-product', '[data-store^="product-image-"]', '.product__media-wrapper', '.product-gallery__media', '.product__media', '.product-image-main', '.product-media-container', '[data-media-id]', '.product__media-item', '.product-gallery', '.product-single__media', '.media-gallery'];
+        // .js-swiper-product (container estavel do carrossel) vem ANTES de .js-product-slide
+        // (slide individual). Slides sao deslocados/trocados pelo Swiper ao mudar de variante
+        // de cor — um botao preso a um slide especifico fica "fora de vista" quando o cliente
+        // troca a variante. Preso ao container do swiper, o botao fica fixo visualmente
+        // independente de qual slide/variante esta ativo.
+        const imgContainers = ['.js-swiper-product', '.js-product-slide', '.product-image-column', '[data-store^="product-image-"]', '.product__media-wrapper', '.product-gallery__media', '.product__media', '.product-image-main', '.product-media-container', '[data-media-id]', '.product__media-item', '.product-gallery', '.product-single__media', '.media-gallery'];
 
         function tryPlaceTriggerBtn() {
             // 1ª prioridade: container que tenha <img> dentro (evita cair em slide de vídeo)
@@ -1244,6 +1249,23 @@
                 const og = document.querySelector('meta[property="og:image"]')?.content;
                 if (og) uniqueImgs.push(upgradeImgUrl(og));
             }
+
+            // Prioriza a foto da variante ATUALMENTE selecionada (slide ativo do swiper)
+            // como referencia principal. Sem isso, imgs[0] era sempre a 1a imagem do DOM
+            // (a variante default carregada na pagina), ignorando a cor/variante que o
+            // cliente de fato escolheu antes de abrir o provador.
+            const activeImg = document.querySelector('.js-product-slide.swiper-slide-active img, .swiper-slide-active img');
+            if (activeImg) {
+                let activeSrc = activeImg.dataset?.src || activeImg.getAttribute('data-src') || activeImg.src;
+                if (activeSrc && !activeSrc.includes('data:image')) {
+                    activeSrc = upgradeImgUrl(activeSrc);
+                    const activeClean = activeSrc.split('?')[0].replace(/-\d+-\d+\.webp|_\d+x\d+/, '');
+                    const idx = uniqueImgs.findIndex(u => u.split('?')[0].replace(/-\d+-\d+\.webp|_\d+x\d+/, '') === activeClean);
+                    if (idx > 0) { uniqueImgs.splice(idx, 1); uniqueImgs.unshift(activeSrc); }
+                    else if (idx === -1) { uniqueImgs.unshift(activeSrc); }
+                }
+            }
+
             return uniqueImgs.slice(0, 4);
         }
 
