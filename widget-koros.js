@@ -1326,6 +1326,10 @@
                 pixPaymentId = null;
                 if (preImg) preImg.style.display = 'none';
                 if (facePlaceholder) facePlaceholder.style.display = 'flex';
+                // Limpa o value dos inputs de arquivo: o evento change so dispara se o
+                // arquivo for diferente do anterior. Sem isso, reabrir e escolher a MESMA
+                // foto nao dispara handlePhotoSelected -> "nao deixa enviar outra foto".
+                try { cameraInput.value = ''; galleryInput.value = ''; } catch (e) {}
                 if (typeof checkFields === 'function') checkFields();
             } catch (e) {}
         }
@@ -1365,6 +1369,8 @@
             pixPaymentId = null;
             preImg.style.display = 'none';
             if (facePlaceholder) facePlaceholder.style.display = 'flex';
+            // limpa o value pra permitir reescolher a MESMA foto (change so dispara se mudar)
+            try { cameraInput.value = ''; galleryInput.value = ''; } catch (e) {}
             checkFields();
         };
 
