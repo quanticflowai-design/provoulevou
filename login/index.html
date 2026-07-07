@@ -13196,8 +13196,15 @@
                 }
             };
 
-            // Dispara os 3 passes concorrentemente; só o dataset principal precisa do retorno.
-            const [allOrdersArr] = await Promise.all([loadOrders(), loadBaseline(), loadYoy()]);
+            // LAZY-LOAD: o dashboard renderiza assim que o dataset PRINCIPAL (pedidos) chega.
+            // O baseline pré-provador + YoY alimentam SÓ o card "crescimento"/strip antes×depois,
+            // então rodam em BACKGROUND, fora do caminho crítico (antes seguravam ~16k linhas
+            // extras bloqueando o load inicial). Quando terminam, re-renderizam só esse card.
+            const allOrdersArr = await loadOrders();
+            Promise.all([loadBaseline(), loadYoy()]).then(() => {
+                try { if (typeof renderCrescimentoLoja === 'function') renderCrescimentoLoja(); } catch (e) {}
+                try { if (typeof renderBeforeAfterStrip === 'function') renderBeforeAfterStrip(); } catch (e) {}
+            }).catch(() => {});
 
             // Defensive dedup em 2 níveis:
             // 1) Por id_pedido — pega duplicação de paginação (mesma row em 2 páginas).
