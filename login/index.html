@@ -7060,7 +7060,12 @@
             } catch (e) { console.warn('[pl-templates] load:', e); return null; }
             return _plTplNamesCache;
         }
+        // Lojas que gerenciam os próprios templates direto na Meta (ex.: Tray/manual, como
+        // a Millu) ficam FORA da regra "só templates da PL" — mostram todos os templates da
+        // Meta, senão o filtro zeraria os templates próprios (que não estão em pl_wa_templates).
+        const SELF_MANAGED_TPL_EMAILS = new Set(['millushop@hotmail.com']);
         async function keepPLTemplates(list) {
+            if (SELF_MANAGED_TPL_EMAILS.has((activeUser.email || '').toLowerCase())) return list;
             const allowed = await plTemplateNames();
             if (!allowed) return list; // erro na consulta -> não filtra
             return (list || []).filter(t => allowed.has(t.name));
