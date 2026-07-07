@@ -1168,6 +1168,20 @@
         function closeModal() {
             modal.style.display = 'none';
             unlockBodyScroll();
+        
+            // --- volta pra tela inicial ao fechar (pos-prova) + limpa input p/ 2a foto enviar ---
+            try {
+                var _qsr = document.getElementById('q-step-result'); if (_qsr) _qsr.style.display = 'none';
+                var _qsp = (typeof photoStep !== 'undefined' && photoStep) ? photoStep : document.getElementById('q-step-photo');
+                if (_qsp) _qsp.style.display = 'flex';
+                var _qcard = document.querySelector('.q-card-ia'); if (_qcard) _qcard.classList.remove('is-result');
+                if (typeof userPhoto !== 'undefined') userPhoto = null;
+                if (typeof pixPaymentId !== 'undefined') pixPaymentId = null;
+                if (typeof preImg !== 'undefined' && preImg) preImg.style.display = 'none';
+                if (typeof facePlaceholder !== 'undefined' && facePlaceholder) facePlaceholder.style.display = 'flex';
+                try { if (typeof cameraInput !== 'undefined' && cameraInput) cameraInput.value = ''; if (typeof galleryInput !== 'undefined' && galleryInput) galleryInput.value = ''; } catch (e) {}
+                if (typeof checkFields === 'function') checkFields();
+            } catch (e) {}
         }
 
 
@@ -1198,6 +1212,7 @@
 
 
         retryBtn.onclick = () => {
+            try { if (typeof cameraInput !== 'undefined' && cameraInput) cameraInput.value = ''; if (typeof galleryInput !== 'undefined' && galleryInput) galleryInput.value = ''; } catch (e) {}
             document.getElementById('q-step-result').style.display = 'none';
             photoStep.style.display = 'flex';
             document.querySelector('.q-card-ia').classList.remove('is-result');
