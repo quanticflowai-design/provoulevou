@@ -5965,6 +5965,7 @@
         const WA_VALIDATE_URL = 'https://n8n.segredosdodrop.com/webhook/pl-wa-validate';
         const WA_SEND_URL = 'https://n8n.segredosdodrop.com/webhook/pl-wa-send';
         const WA_SENDTEXT_URL = 'https://n8n.segredosdodrop.com/webhook/pl-wa-sendtext';
+        const WA_MEDIA_URL = 'https://n8n.segredosdodrop.com/webhook/pl-wa-media';
         let _waConfigCache = null;
 
         // ============== EMBEDDED SIGNUP (conectar WhatsApp em 1 clique) ==============
@@ -6519,7 +6520,13 @@
             catch (e) { return ''; }
         }
         function chatBubbleBody(m) {
-            const url = chatSafeMediaUrl(m.media_url);
+            // Mídia via proxy pl-wa-media: a Meta expira a URL em 5min e exige token, então a dash
+            // aponta pro webhook que busca o arquivo na hora usando o media_id salvo no inbound.
+            let _mu = m.media_url;
+            if (!_mu && m.media_id && typeof WA_MEDIA_URL !== 'undefined' && activeUser && activeUser.email) {
+                _mu = WA_MEDIA_URL + '?id=' + encodeURIComponent(m.media_id) + '&email=' + encodeURIComponent(activeUser.email);
+            }
+            const url = chatSafeMediaUrl(_mu);
             const hasCaption = m.body && m.body.charAt(0) !== '[';
             const cap = hasCaption ? '<div class="chat-msg-cap" style="margin-top:5px;">' + escapeHtml(m.body) + '</div>' : '';
             if (CHAT_MEDIA_TYPES[m.msg_type]) {
