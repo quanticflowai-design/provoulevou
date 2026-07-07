@@ -4337,7 +4337,7 @@
                             <div class="disp-bulk-stat green">
                                 <div class="lbl">Custo Meta estimado</div>
                                 <div class="small" id="waBulkCost">—</div>
-                                <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">~R$ 0,40-0,80 por mensagem</div>
+                                <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">~R$ 0,35 por mensagem entregue</div>
                             </div>
                         </div>
                         <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:8px;padding:12px;font-size:12px;line-height:1.5;color:var(--text);margin-bottom:16px;">
@@ -9927,7 +9927,7 @@
             const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             // Estimativa (teto): a Meta cobra ~R$0,35 por mensagem ENTREGUE — mesma taxa do ROI.
             // É teto porque nem todo alvo é entregue (só delivered é cobrado).
-            document.getElementById('waBulkCost').textContent = 'até ' + brl(targets.length * 0.35);
+            document.getElementById('waBulkCost').textContent = 'até ' + brl(targets.length * DISPARO_RATE_BRL);
 
             const confirmBtn = document.getElementById('waBulkConfirmBtn');
             const tplOk = !!(document.getElementById('waBulkTemplate') || {}).value;
