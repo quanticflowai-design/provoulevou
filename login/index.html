@@ -4475,6 +4475,10 @@
                                 <option value="clicou">🔥 Clicou em comprar</option>
                                 <option value="convertido">✅ Comprou</option>
                             </select>
+                            <select id="chatFilterRespSel" onchange="chatSetRespFilter(this.value)" class="disp-btn ghost" style="cursor:pointer;padding:6px 10px;font-family:inherit;" title="Filtrar por responsável">
+                                <option value="">Todos os responsáveis</option>
+                                <option value="__none__">Sem responsável</option>
+                            </select>
                             <button class="disp-btn ghost" id="chatFilterUnreadBtn" onclick="chatToggleUnreadFilter()"><i class="ph-bold ph-envelope-simple"></i> Não lidas</button>
                             <button class="disp-btn ghost" onclick="loadConversas()"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
                         </div>
@@ -6225,6 +6229,7 @@
         function chatRenderList() {
             const listEl = document.getElementById('chatList');
             if (!listEl) return;
+            try { chatPopulateRespFilter(); } catch (e) {}
             // Badge de não-lidas na sub-aba Conversas
             const totalUnread = _chatConvs.reduce((s, c) => s + (c.unread || 0), 0);
             const badge = document.getElementById('dispUnreadBadge');
@@ -6235,6 +6240,10 @@
             }
             let convs = _chatFilterUnread ? _chatConvs.filter(c => (c.unread || 0) > 0 || c.phone === _chatActivePhone) : _chatConvs;
             if (_chatFilterCat) convs = convs.filter(c => chatLeadCatKey(c.phone) === _chatFilterCat);
+            if (_chatFilterResp) {
+                if (_chatFilterResp === '__none__') convs = convs.filter(c => !chatLeadResp(c.phone));
+                else convs = convs.filter(c => chatLeadResp(c.phone) === _chatFilterResp);
+            }
             if (_chatSearch) {
                 const q = _chatSearch, qd = q.replace(/\D/g, '');
                 convs = convs.filter(c => (c.name || '').toLowerCase().includes(q) || (qd && String(c.phone).replace(/\D/g, '').includes(qd)));
@@ -6254,6 +6263,7 @@
                         <div class="chat-conv-name">${escapeHtml(c.name || ('+' + c.phone))}</div>
                         <div class="chat-conv-last">${escapeHtml(c.lastBody || '')}</div>
                         ${(() => { const t = chatLeadCategory(c.phone); return t ? '<span style="display:inline-block;margin-top:3px;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:' + t.bg + ';color:' + t.fg + ';">' + escapeHtml(t.label) + '</span>' : ''; })()}
+                        ${(() => { const r = chatLeadResp(c.phone); if (!r) return ''; const col = (typeof crmRespColor === 'function') ? crmRespColor(r) : '#7c3aed'; return '<span style="display:inline-block;margin-top:3px;margin-left:4px;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:' + col + '22;color:' + col + ';">👤 ' + escapeHtml(r) + '</span>'; })()}
                     </div>
                     <div class="chat-conv-meta">
                         <span class="chat-conv-time">${chatFmtTime(c.lastAt)}</span>
@@ -6274,6 +6284,26 @@
             const btn = document.getElementById('chatFilterUnreadBtn');
             if (btn) btn.classList.toggle('active', _chatFilterUnread);
             chatRenderList();
+        }
+
+        // ── Filtro por responsável (reusa o time comercial do CRM) ──
+        let _chatFilterResp = '';
+        function chatSetRespFilter(v) { _chatFilterResp = v || ''; chatRenderList(); }
+        // Responsável atribuído a um lead (mapa telefone→responsável do CRM), casando o telefone normalizado.
+        function chatLeadResp(phone) {
+            try { return (typeof getCrmResp === 'function' ? (getCrmResp() || {}) : {})[normalize(phone)] || ''; }
+            catch (e) { return ''; }
+        }
+        // Repovoa as opções do <select> de filtro com o time comercial cadastrado, preservando a seleção.
+        function chatPopulateRespFilter() {
+            const sel = document.getElementById('chatFilterRespSel');
+            if (!sel) return;
+            const team = (typeof getCrmTeam === 'function') ? (getCrmTeam() || []) : [];
+            const cur = _chatFilterResp;
+            let html = '<option value="">Todos os responsáveis</option><option value="__none__">Sem responsável</option>';
+            team.forEach(m => { html += '<option value="' + escapeHtml(m) + '">' + escapeHtml(m) + '</option>'; });
+            sel.innerHTML = html;
+            sel.value = cur;
         }
 
         // ── Menu de contexto (botão direito) numa conversa ──
@@ -6395,6 +6425,7 @@
                     <div><div style="font-weight:600;font-size:14px;">${escapeHtml(conv.name || ('+' + phone))}</div>
                     <div style="font-size:11px;color:var(--text-muted);">+${escapeHtml(phone)} ${(() => { const t = chatLeadCategory(phone); return t ? '<span style="display:inline-block;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:' + t.bg + ';color:' + t.fg + ';">' + escapeHtml(t.label) + '</span>' : ''; })()}</div></div>
                     ${chatStageSelectHtml(phone)}
+                    ${chatRespSelectHtml(phone)}
                     <button onclick="chatDeleteConversa('${escapeHtml(phone)}')" title="Excluir conversa" style="background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:#ef4444;cursor:pointer;font-size:15px;line-height:1;"><i class="ph-bold ph-trash"></i></button>
                 </div>
                 <div class="chat-thread-body" id="chatThreadBody"><div style="margin:auto;color:var(--text-muted);"><i class="ph-bold ph-circle-notch ph-spin"></i></div></div>
@@ -6452,6 +6483,31 @@
             try { if (typeof renderCrmBoard === 'function' && crmLeadMapCache) renderCrmBoard(); } catch (e) {}
             try { chatRenderList(); } catch (e) {}
             try { openConversa(_chatActivePhone); } catch (e) {} // re-render do cabeçalho (badge + seletor)
+        }
+
+        // ===== Atribuir RESPONSÁVEL ao lead DENTRO da conversa =====
+        // <select> pra atribuir/trocar o responsável (time comercial) direto no cabeçalho da conversa.
+        function chatRespSelectHtml(phone) {
+            const team = (typeof getCrmTeam === 'function') ? (getCrmTeam() || []) : [];
+            const cur = chatLeadResp(phone);
+            const opts = team.map(m => '<option value="' + escapeHtml(m) + '"' + (m === cur ? ' selected' : '') + '>' + escapeHtml(m) + '</option>').join('');
+            return '<select onchange="chatAssignResp(this.value)" title="Atribuir um responsável a este lead" ' +
+                'style="margin-left:8px;font-size:11.5px;font-weight:600;padding:6px 12px;border:1px solid var(--border);' +
+                'border-radius:8px;background:var(--card-bg);color:var(--text-main);cursor:pointer;max-width:200px;">' +
+                '<option value="__none__"' + (cur ? '' : ' selected') + '>👤 Sem responsável</option>' + opts +
+                '<option value="__manage__">＋ Cadastrar responsáveis…</option></select>';
+        }
+        // Grava o responsável (crm_lead_responsavel via setCrmLeadResp) e re-renderiza board + conversa.
+        function chatAssignResp(resp) {
+            if (resp === '__manage__') { try { openCrmTeamModal(); } catch (e) {} try { openConversa(_chatActivePhone); } catch (e) {} return; }
+            if (!_chatActivePhone) return;
+            const ph = normalize(_chatActivePhone);
+            const val = (resp && resp !== '__none__') ? resp : '';
+            try { setCrmLeadResp(ph, val); } catch (e) { console.warn('[chat] responsável:', e); }
+            try { if (typeof crmToast === 'function') crmToast(val ? ('Responsável: ' + val) : 'Responsável removido.'); } catch (e) {}
+            try { if (typeof renderCrmBoard === 'function' && crmLeadMapCache) renderCrmBoard(); } catch (e) {}
+            try { chatRenderList(); } catch (e) {}
+            try { openConversa(_chatActivePhone); } catch (e) {}
         }
 
         // Conteúdo da bolha: renderiza mídia (imagem/vídeo/áudio/documento/figurinha) quando há
