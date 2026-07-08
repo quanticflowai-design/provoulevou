@@ -3476,6 +3476,15 @@
                                 <div class="desc">vs mês anterior</div>
                             </div>
                         </div>
+                        <div class="vg-stat">
+                            <div class="vg-stat-left">
+                                <div class="label">Provas por cliente</div>
+                                <div class="val" id="vgStatProvasPorCliente">—</div>
+                            </div>
+                            <div class="vg-stat-right">
+                                <div class="desc">média de provas por cliente</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -12345,11 +12354,12 @@
             });
             const SESSION_GAP_MS = 30 * 60 * 1000;
             const sessionDurationsMs = [];
-            let reengaj = 0, voltaramDia = 0;
+            let reengaj = 0, voltaramDia = 0, totalProvas = 0;
             const totalUnicos = Object.keys(provasPorPhone).length;
             Object.values(provasPorPhone).forEach(o => {
                 if (o.ts.length > 1) reengaj++;
                 if (o.dias.size > 1) voltaramDia++;
+                totalProvas += o.ts.length;
                 const sorted = [...o.ts].sort((a, b) => a - b);
                 let start = sorted[0], last = sorted[0];
                 for (let i = 1; i < sorted.length; i++) {
@@ -12369,6 +12379,7 @@
             setText('provasReengajaramPct', reengajPct.toFixed(0) + '%');
             setText('provasVoltaramDia', voltaramDia.toLocaleString('pt-BR'));
             setText('provasVoltaramDiaPct', voltaramPct.toFixed(0) + '%');
+            setText('vgStatProvasPorCliente', totalUnicos > 0 ? (totalProvas / totalUnicos).toFixed(1).replace('.', ',') : '—');
             const tempoEl = document.getElementById('provasTempoMedio');
             if (!tempoEl) return;
             if (sessoesValidas.length === 0) {
