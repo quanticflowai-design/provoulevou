@@ -12379,7 +12379,7 @@
             setText('provasReengajaramPct', reengajPct.toFixed(0) + '%');
             setText('provasVoltaramDia', voltaramDia.toLocaleString('pt-BR'));
             setText('provasVoltaramDiaPct', voltaramPct.toFixed(0) + '%');
-            setText('vgStatProvasPorCliente', totalUnicos > 0 ? (totalProvas / totalUnicos).toFixed(1).replace('.', ',') : '—');
+            setText('vgStatProvasPorCliente', totalUnicos > 0 ? Math.round(totalProvas / totalUnicos).toLocaleString('pt-BR') : '—');
             const tempoEl = document.getElementById('provasTempoMedio');
             if (!tempoEl) return;
             if (sessoesValidas.length === 0) {
