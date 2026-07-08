@@ -15176,6 +15176,9 @@
             _crmImport = null;
             const m = document.getElementById('crmImportModal');
             if (!m) return;
+            // O modal fica dentro de uma aba (tab-pane) que pode estar display:none.
+            // Um position:fixed dentro de ancestral display:none NÃO renderiza → move pro body.
+            if (m.parentElement !== document.body) document.body.appendChild(m);
             document.getElementById('crmImpStep1').style.display = 'block';
             document.getElementById('crmImpStep2').style.display = 'none';
             document.getElementById('crmImpStep3').style.display = 'none';
