@@ -81,6 +81,9 @@
          resiliente: se o CSS/JS não chegar daqui, o initAutomacoes() reinjeta sob demanda. -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/drawflow@0.0.59/dist/drawflow.min.css">
     <script src="https://cdn.jsdelivr.net/npm/drawflow@0.0.59/dist/drawflow.min.js"></script>
+    <!-- SheetJS: leitura de CSV/XLSX na importação de leads do CRM. Auto-detecta
+         delimitador (; ou ,) e encoding (Latin-1/UTF-8) — mata as armadilhas de
+         planilha exportada do Excel/Sheets BR. Carregado sob demanda por ensureXlsxLib(). -->
     <script src="../env.js"></script>
 
     <style>
@@ -3867,6 +3870,9 @@
                         <button class="btn-download" id="waBulkBtn" onclick="openWaBulkModal()" title="Disparar template Meta pra todos os leads pendentes" style="display:none;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border-color:transparent;">
                             <i class="ph-bold ph-paper-plane-tilt"></i> Disparar pra todos
                         </button>
+                        <button class="btn-download" onclick="openCrmImportModal()" title="Importar leads de uma planilha (CSV ou Excel)">
+                            <i class="ph-bold ph-upload-simple"></i> Importar Leads
+                        </button>
                         <button class="btn-download" onclick="exportCrmCSV()" title="Baixar CSV com todos os leads do CRM">
                             <i class="ph-bold ph-download-simple"></i> CSV (todos os leads)
                         </button>
@@ -5365,6 +5371,68 @@
                         <div style="display:flex;gap:10px;">
                             <button onclick="closeCrmPipelineModal()" style="background:transparent;border:1px solid #d1d5db;color:#555;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">Cancelar</button>
                             <button onclick="saveCrmPipeline()" style="background:#7c3aed;border:0;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Salvar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Importar Leads -->
+            <div id="crmImportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+                <div style="background:#ffffff;color:#111;border:1px solid #e5e7eb;border-radius:14px;max-width:600px;width:100%;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.4);max-height:88vh;display:flex;flex-direction:column;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                        <h3 style="margin:0;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;">
+                            <i class="ph-bold ph-upload-simple" style="color:#7c3aed;"></i> Importar Leads
+                        </h3>
+                        <button onclick="closeCrmImportModal()" style="background:transparent;border:0;color:#666;cursor:pointer;font-size:20px;line-height:1;padding:4px;">×</button>
+                    </div>
+
+                    <!-- Passo 1: arquivo -->
+                    <div id="crmImpStep1">
+                        <p style="font-size:13px;color:#555;margin:0 0 14px;">
+                            Suba uma planilha <strong>CSV ou Excel (.xlsx)</strong> com seus leads. A gente detecta as colunas, telefone e nome automaticamente — pode subir do jeito que você exportou do Excel ou do Google Sheets.
+                        </p>
+                        <label id="crmImpDrop" for="crmImpFile" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed #d1d5db;border-radius:12px;padding:32px 20px;cursor:pointer;text-align:center;transition:border-color .15s,background .15s;">
+                            <i class="ph-bold ph-file-arrow-up" style="font-size:34px;color:#7c3aed;"></i>
+                            <span style="font-size:14px;font-weight:600;color:#333;">Clique pra escolher o arquivo</span>
+                            <span style="font-size:12px;color:#888;">CSV ou XLSX · até ~50 mil linhas</span>
+                        </label>
+                        <input type="file" id="crmImpFile" accept=".csv,.xlsx,.xls,text/csv" style="display:none;" onchange="crmImportOnFile(this.files[0])">
+                        <div id="crmImpFileErr" style="font-size:12.5px;color:#dc2626;margin-top:10px;min-height:16px;"></div>
+                    </div>
+
+                    <!-- Passo 2: mapeamento + destino -->
+                    <div id="crmImpStep2" style="display:none;flex-direction:column;gap:14px;overflow-y:auto;">
+                        <div style="font-size:12.5px;color:#555;background:#f7f6f4;border-radius:8px;padding:10px 12px;">
+                            <i class="ph-bold ph-check-circle" style="color:#059669;"></i>
+                            <span id="crmImpFileInfo"></span>
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12.5px;font-weight:600;color:#333;margin-bottom:5px;">Coluna do telefone <span style="color:#dc2626;">*</span></label>
+                            <select id="crmImpColPhone" onchange="crmImportPreviewSample()" style="width:100%;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:13px;color:#111;background:#fff;outline:none;"></select>
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12.5px;font-weight:600;color:#333;margin-bottom:5px;">Coluna do nome <span style="color:#888;font-weight:500;">(opcional)</span></label>
+                            <select id="crmImpColName" onchange="crmImportPreviewSample()" style="width:100%;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:13px;color:#111;background:#fff;outline:none;"></select>
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12.5px;font-weight:600;color:#333;margin-bottom:5px;">Coluna do CRM onde os leads vão entrar <span style="color:#dc2626;">*</span></label>
+                            <select id="crmImpColStage" style="width:100%;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:13px;color:#111;background:#fff;outline:none;"></select>
+                        </div>
+                        <div id="crmImpSample" style="font-size:12px;color:#666;background:#fafafa;border:1px solid #eee;border-radius:8px;padding:9px 11px;min-height:20px;"></div>
+                    </div>
+
+                    <!-- Passo 3: resumo dedup -->
+                    <div id="crmImpStep3" style="display:none;flex-direction:column;gap:12px;">
+                        <div id="crmImpSummary"></div>
+                    </div>
+
+                    <div id="crmImpMsg" style="font-size:12.5px;color:#dc2626;margin-top:10px;min-height:16px;"></div>
+                    <div style="display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:14px;">
+                        <button id="crmImpBackBtn" onclick="crmImportBack()" style="display:none;background:transparent;border:1px solid #d1d5db;color:#555;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">← Voltar</button>
+                        <div style="display:flex;gap:10px;margin-left:auto;">
+                            <button onclick="closeCrmImportModal()" style="background:transparent;border:1px solid #d1d5db;color:#555;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">Cancelar</button>
+                            <button id="crmImpNextBtn" onclick="crmImportAnalyze()" style="display:none;background:#7c3aed;border:0;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Analisar</button>
+                            <button id="crmImpConfirmBtn" onclick="crmImportConfirm()" style="display:none;background:#7c3aed;border:0;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Importar</button>
                         </div>
                     </div>
                 </div>
@@ -15087,6 +15155,270 @@
             }
         }
 
+        // ============================================================
+        // ===== Importar Leads (planilha CSV/XLSX → CRM) =============
+        // ============================================================
+        let _crmImport = null; // { fileName, headers:[], rows:[[...]], newLeads:[] }
+
+        // Carrega SheetJS sob demanda (só na 1ª importação). Resolve quando window.XLSX existir.
+        function ensureXlsxLib() {
+            return new Promise((resolve, reject) => {
+                if (window.XLSX) return resolve(window.XLSX);
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+                s.onload = () => window.XLSX ? resolve(window.XLSX) : reject(new Error('XLSX não carregou'));
+                s.onerror = () => reject(new Error('Falha ao carregar a biblioteca de planilha'));
+                document.head.appendChild(s);
+            });
+        }
+
+        function openCrmImportModal() {
+            _crmImport = null;
+            const m = document.getElementById('crmImportModal');
+            if (!m) return;
+            document.getElementById('crmImpStep1').style.display = 'block';
+            document.getElementById('crmImpStep2').style.display = 'none';
+            document.getElementById('crmImpStep3').style.display = 'none';
+            document.getElementById('crmImpBackBtn').style.display = 'none';
+            document.getElementById('crmImpNextBtn').style.display = 'none';
+            document.getElementById('crmImpConfirmBtn').style.display = 'none';
+            document.getElementById('crmImpFileErr').textContent = '';
+            document.getElementById('crmImpMsg').textContent = '';
+            const fi = document.getElementById('crmImpFile'); if (fi) fi.value = '';
+            m.style.display = 'flex';
+        }
+        function closeCrmImportModal() {
+            const m = document.getElementById('crmImportModal');
+            if (m) m.style.display = 'none';
+            _crmImport = null;
+        }
+
+        async function crmImportOnFile(file) {
+            const errEl = document.getElementById('crmImpFileErr');
+            errEl.textContent = '';
+            if (!file) return;
+            if (file.size > 25 * 1024 * 1024) { errEl.textContent = 'Arquivo muito grande (máx 25MB).'; return; }
+            errEl.innerHTML = '<i class="ph-bold ph-circle-notch"></i> Lendo a planilha…';
+            try {
+                const XLSX = await ensureXlsxLib();
+                const buf = await file.arrayBuffer();
+                const nm = (file.name || '').toLowerCase();
+                const isCsv = nm.endsWith('.csv') || nm.endsWith('.txt') || file.type === 'text/csv';
+                let wb;
+                if (isCsv) {
+                    // CSV: detecta encoding (UTF-8 vs Latin-1/Windows-1252). Excel BR salva em Latin-1;
+                    // Google Sheets salva UTF-8. Decodifica como UTF-8; se aparecer caractere de
+                    // substituição (bytes inválidos), refaz como Windows-1252. SheetJS auto-detecta o ';'.
+                    let text = new TextDecoder('utf-8', { fatal: false }).decode(buf);
+                    if (text.includes('�')) text = new TextDecoder('windows-1252').decode(buf);
+                    wb = XLSX.read(text, { type: 'string', raw: false });
+                } else {
+                    wb = XLSX.read(buf, { type: 'array', raw: false });
+                }
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false, blankrows: false });
+                if (!aoa.length) { errEl.textContent = 'A planilha está vazia.'; return; }
+                // 1ª linha não-vazia = cabeçalho
+                let hIdx = aoa.findIndex(r => r.some(c => String(c).trim() !== ''));
+                if (hIdx < 0) hIdx = 0;
+                const headers = aoa[hIdx].map((h, i) => String(h).trim() || ('Coluna ' + (i + 1)));
+                const rows = aoa.slice(hIdx + 1).filter(r => r.some(c => String(c).trim() !== ''));
+                if (!rows.length) { errEl.textContent = 'A planilha não tem linhas de dados abaixo do cabeçalho.'; return; }
+                _crmImport = { fileName: file.name, headers, rows };
+                crmImportBuildStep2();
+            } catch (e) {
+                console.error('[import] falha lendo arquivo:', e);
+                errEl.textContent = 'Não consegui ler o arquivo: ' + (e && e.message ? e.message : 'formato inválido') + '. Tente exportar como CSV ou XLSX.';
+            }
+        }
+
+        function crmImportBuildStep2() {
+            const { headers, rows, fileName } = _crmImport;
+            const guess = (cands) => {
+                for (let i = 0; i < headers.length; i++) {
+                    const h = headers[i].toLowerCase();
+                    if (cands.some(c => h.includes(c))) return i;
+                }
+                return -1;
+            };
+            const phoneGuess = guess(['telefone', 'whats', 'celular', 'phone', 'fone', 'tel', 'contato']);
+            const nameGuess  = guess(['nome', 'name', 'cliente']);
+
+            const opts = (sel) => headers.map((h, i) =>
+                '<option value="' + i + '"' + (i === sel ? ' selected' : '') + '>' + escapeHtml(h) + '</option>').join('');
+            const phoneSel = document.getElementById('crmImpColPhone');
+            const nameSel  = document.getElementById('crmImpColName');
+            phoneSel.innerHTML = opts(phoneGuess >= 0 ? phoneGuess : 0);
+            nameSel.innerHTML  = '<option value="-1">— nenhuma —</option>' + headers.map((h, i) =>
+                '<option value="' + i + '"' + (i === nameGuess ? ' selected' : '') + '>' + escapeHtml(h) + '</option>').join('');
+
+            // Coluna de destino no CRM (todas menos Convertido — não faz sentido importar como convertido)
+            const cfg = getCrmConfig();
+            const cols = (cfg.columns || []).filter(c => c.key !== 'convertido' && c.key !== 'perdido');
+            const stageSel = document.getElementById('crmImpColStage');
+            const defStage = cols.find(c => c.key === 'em-contato') ? 'em-contato' : (cols[0] ? cols[0].key : '');
+            stageSel.innerHTML = cols.map(c =>
+                '<option value="' + escapeHtml(c.key) + '"' + (c.key === defStage ? ' selected' : '') + '>' + escapeHtml(c.title) + '</option>').join('');
+
+            document.getElementById('crmImpFileInfo').textContent =
+                fileName + ' · ' + rows.length.toLocaleString('pt-BR') + ' linha' + (rows.length > 1 ? 's' : '') + ' · ' + headers.length + ' colunas';
+            document.getElementById('crmImpStep1').style.display = 'none';
+            document.getElementById('crmImpStep2').style.display = 'flex';
+            document.getElementById('crmImpStep3').style.display = 'none';
+            document.getElementById('crmImpBackBtn').style.display = 'inline-flex';
+            document.getElementById('crmImpNextBtn').style.display = 'inline-flex';
+            document.getElementById('crmImpConfirmBtn').style.display = 'none';
+            document.getElementById('crmImpMsg').textContent = '';
+            crmImportPreviewSample();
+        }
+
+        function crmImportPreviewSample() {
+            if (!_crmImport) return;
+            const pi = parseInt(document.getElementById('crmImpColPhone').value, 10);
+            const ni = parseInt(document.getElementById('crmImpColName').value, 10);
+            const sample = _crmImport.rows.slice(0, 3).map(r => {
+                const rawPh = (r[pi] != null ? String(r[pi]) : '').trim();
+                const valido = normalizeFull(rawPh).length >= 10;
+                const nm = (ni >= 0 && r[ni] != null) ? String(r[ni]).trim() : '';
+                return '<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
+                    '<i class="ph-bold ph-phone" style="color:#7c3aed;"></i> ' + (valido ? escapeHtml(rawPh) : '<span style="color:#dc2626;">telefone inválido</span>') +
+                    (nm ? ' · <i class="ph-bold ph-user"></i> ' + escapeHtml(nm) : '') + '</div>';
+            }).join('');
+            document.getElementById('crmImpSample').innerHTML =
+                '<div style="font-weight:600;margin-bottom:4px;color:#333;">Prévia das primeiras linhas:</div>' + sample;
+        }
+
+        function crmImportBack() {
+            if (!_crmImport) { closeCrmImportModal(); return; }
+            // Se estamos no passo 3, volta pro 2; se no 2, volta pro 1.
+            if (document.getElementById('crmImpStep3').style.display !== 'none') {
+                crmImportBuildStep2();
+            } else {
+                openCrmImportModal();
+            }
+        }
+
+        // Normaliza p/ os últimos dígitos comparáveis (mesmo critério do resto do CRM)
+        function crmImportAnalyze() {
+            if (!_crmImport) return;
+            const msg = document.getElementById('crmImpMsg');
+            msg.textContent = '';
+            const pi = parseInt(document.getElementById('crmImpColPhone').value, 10);
+            const ni = parseInt(document.getElementById('crmImpColName').value, 10);
+            const stageKey = document.getElementById('crmImpColStage').value;
+            if (!stageKey) { msg.textContent = 'Escolha a coluna do CRM onde os leads vão entrar.'; return; }
+
+            const base = crmLeadMapCache || {};   // provas + carrinhos + pedidos + já importados
+            const seen = new Set();
+            const news = [];
+            let invalidos = 0, jaBase = 0, dupArquivo = 0;
+
+            _crmImport.rows.forEach(r => {
+                const rawPh = (r[pi] != null ? String(r[pi]) : '').trim();
+                const full = normalizeFull(rawPh);       // dígitos completos (valida telefone real)
+                if (full.length < 10) { invalidos++; return; }
+                const ph = normalize(rawPh);             // chave de match do CRM (últimos 9 dígitos)
+                if (seen.has(ph)) { dupArquivo++; return; }
+                seen.add(ph);
+                if (base[ph]) { jaBase++; return; }       // já está no CRM (provou / carrinho / cliente / importado antes)
+                const nm = (ni >= 0 && r[ni] != null) ? String(r[ni]).trim().split(/\s+/)[0] : '';
+                news.push({ phone: ph, rawPhone: rawPh, name: nm });
+            });
+
+            _crmImport.newLeads = news;
+            _crmImport.stageKey = stageKey;
+
+            const cfg = getCrmConfig();
+            const stageTitle = ((cfg.columns || []).find(c => c.key === stageKey) || {}).title || stageKey;
+            const total = _crmImport.rows.length;
+
+            const row = (ic, cor, txt, n) => '<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#333;">' +
+                '<i class="ph-bold ' + ic + '" style="color:' + cor + ';"></i><span style="flex:1;">' + txt + '</span>' +
+                '<strong>' + n.toLocaleString('pt-BR') + '</strong></div>';
+
+            document.getElementById('crmImpSummary').innerHTML =
+                '<div style="font-size:14px;font-weight:700;color:#111;margin-bottom:4px;">Resumo da importação</div>' +
+                '<div style="display:flex;flex-direction:column;gap:7px;background:#f7f6f4;border-radius:10px;padding:14px;">' +
+                    row('ph-list-checks', '#666', 'Linhas na planilha', total) +
+                    row('ph-user-plus', '#059669', '<strong>Leads novos a importar</strong>', news.length) +
+                    row('ph-users-three', '#d97706', 'Ignorados — já estão na base', jaBase) +
+                    row('ph-copy', '#d97706', 'Ignorados — repetidos no arquivo', dupArquivo) +
+                    row('ph-warning', '#dc2626', 'Ignorados — telefone inválido', invalidos) +
+                '</div>' +
+                '<div style="font-size:12.5px;color:#555;margin-top:10px;">Os ' + news.length.toLocaleString('pt-BR') +
+                    ' leads novos vão entrar na coluna <strong>' + escapeHtml(stageTitle) + '</strong>. ' +
+                    'Quem já está na base (provou, tem carrinho, já é cliente ou já foi importado) foi removido pra não duplicar nem disparar de novo.</div>';
+
+            document.getElementById('crmImpStep2').style.display = 'none';
+            document.getElementById('crmImpStep3').style.display = 'flex';
+            document.getElementById('crmImpNextBtn').style.display = 'none';
+            const confirmBtn = document.getElementById('crmImpConfirmBtn');
+            confirmBtn.style.display = 'inline-flex';
+            confirmBtn.disabled = news.length === 0;
+            confirmBtn.style.opacity = news.length === 0 ? '.5' : '1';
+            confirmBtn.innerHTML = news.length === 0
+                ? 'Nada pra importar'
+                : '<i class="ph-bold ph-upload-simple"></i> Importar ' + news.length.toLocaleString('pt-BR') + ' lead' + (news.length > 1 ? 's' : '');
+        }
+
+        async function crmImportConfirm() {
+            if (!_crmImport || !_crmImport.newLeads || !_crmImport.newLeads.length) return;
+            const msg = document.getElementById('crmImpMsg');
+            const btn = document.getElementById('crmImpConfirmBtn');
+            const email = (activeUser && activeUser.email) || 'default';
+            const stageKey = _crmImport.stageKey;
+            const news = _crmImport.newLeads;
+            btn.disabled = true; btn.style.opacity = '.6';
+            msg.style.color = '#555';
+            msg.innerHTML = '<i class="ph-bold ph-circle-notch"></i> Importando ' + news.length.toLocaleString('pt-BR') + ' leads…';
+            try {
+                const nowISO = new Date().toISOString();
+                // 1) grava os leads importados
+                const rowsLeads = news.map(l => ({
+                    lojista_email: email, telefone: l.phone, nome: l.name || null,
+                    raw_phone: l.rawPhone || null, origem_arquivo: _crmImport.fileName || null, created_at: nowISO
+                }));
+                // 2) grava o override de coluna (mesma tabela do arrastar-e-soltar)
+                const rowsOv = news.map(l => ({
+                    lojista_email: email, telefone: l.phone, column_key: stageKey, updated_at: nowISO
+                }));
+                // envia em lotes de 500
+                const chunk = (arr, n) => { const o = []; for (let i = 0; i < arr.length; i += n) o.push(arr.slice(i, i + n)); return o; };
+                for (const c of chunk(rowsLeads, 500)) {
+                    const { error } = await supabaseClient.from('crm_leads_importados')
+                        .upsert(c, { onConflict: 'lojista_email,telefone' });
+                    if (error) throw error;
+                }
+                for (const c of chunk(rowsOv, 500)) {
+                    const { error } = await supabaseClient.from('crm_lead_overrides')
+                        .upsert(c, { onConflict: 'lojista_email,telefone' });
+                    if (error) throw error;
+                }
+                // 3) atualiza o estado local na hora (sem refetch pesado): injeta no cache + override + re-render
+                const ov = getCrmOverrides();
+                const today = nowISO.slice(0, 10);
+                news.forEach(l => {
+                    ov[l.phone] = stageKey;
+                    if (crmLeadMapCache && !crmLeadMapCache[l.phone]) {
+                        crmLeadMapCache[l.phone] = { provaCount: 0, uniqueDates: new Set(), lastDate: today, firstDate: today,
+                            lastProduct: '', lastProductUrl: '', checkoutUrl: '', rawPhone: l.rawPhone || l.phone,
+                            bought: false, jaCliente: false, clicked: false, name: l.name || '', imported: true };
+                    }
+                });
+                _crmOverridesMem = ov;
+                try { localStorage.setItem(crmOverridesKey(), JSON.stringify(ov)); } catch (e) {}
+
+                closeCrmImportModal();
+                if (typeof renderCrmBoard === 'function') renderCrmBoard();
+                if (typeof crmToast === 'function') crmToast(news.length.toLocaleString('pt-BR') + ' leads importados com sucesso.', 'ok');
+            } catch (e) {
+                console.error('[import] falha ao salvar:', e);
+                btn.disabled = false; btn.style.opacity = '1';
+                msg.style.color = '#dc2626';
+                msg.textContent = 'Erro ao importar: ' + (e && e.message ? e.message : 'falha desconhecida') + '. Tente de novo.';
+            }
+        }
+
         // ===== Responsável por lead (atribuição ao time comercial) =====
         function getCrmResp() {
             if (_crmRespMem) return _crmRespMem;
@@ -15571,6 +15903,41 @@
                         });
                     } catch (e) { console.warn('[crm] carrinho abandonado falhou:', e); }
                 }
+
+                // === Leads importados manualmente (planilha) ===
+                // Injeta como lead novo (0 provas). A coluna de destino já está gravada em
+                // crm_lead_overrides, então o board os coloca na etapa escolhida. Se depois
+                // casarem com um pedido pago, o loop de pedidos abaixo marca jaCliente/bought
+                // e a regra de ouro os tira do disparo automaticamente.
+                try {
+                    const impRows = [];
+                    let iFrom = 0; const iPage = 1000;
+                    while (true) {
+                        const { data: ib, error: iErr } = await supabaseClient
+                            .from('crm_leads_importados')
+                            .select('telefone,nome,raw_phone,created_at')
+                            .eq('lojista_email', (activeUser && activeUser.email) || 'default')
+                            .range(iFrom, iFrom + iPage - 1);
+                        if (iErr) { console.warn('[crm] importados falhou:', iErr.message); break; }
+                        if (!ib || ib.length === 0) break;
+                        impRows.push(...ib);
+                        if (ib.length < iPage) break;
+                        iFrom += iPage;
+                    }
+                    impRows.forEach(r => {
+                        const ph = normalize(r.telefone);
+                        if (!ph) return;
+                        if (!leadMap[ph]) {
+                            const d = (r.created_at || '').slice(0, 10);
+                            leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: d, firstDate: d,
+                                lastProduct: '', lastProductUrl: '', checkoutUrl: '', rawPhone: r.raw_phone || r.telefone,
+                                bought: false, jaCliente: false, clicked: false, name: (r.nome || '').split(' ')[0] || '', imported: true };
+                        } else {
+                            leadMap[ph].imported = true;
+                            if (!leadMap[ph].name && r.nome) leadMap[ph].name = (r.nome || '').split(' ')[0];
+                        }
+                    });
+                } catch (e) { console.warn('[crm] importados falhou:', e); }
 
                 const phoneList = Object.keys(leadMap);
                 if (phoneList.length === 0) {
