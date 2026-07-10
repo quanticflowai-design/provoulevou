@@ -10236,7 +10236,11 @@
                 if ((b.type || '').toUpperCase() === 'URL' && /\{\{\s*\d+\s*\}\}/.test(b.url || '')) urlBtnIndex = i;
             });
             window._waBulkUrlBtnIndex = urlBtnIndex;
-            window._waBulkLinkInBody = urlBtnIndex < 0 && placeholders >= 3;
+            // Link vai no corpo sempre que o template tem 3+ variáveis ({{3}} = URL), MESMO
+            // que também exista botão de URL (templates que repetem o link no corpo e no botão,
+            // ex. automacao_clicou_nao_comprou_msg1). Antes exigia urlBtnIndex<0 e o {{3}}
+            // acabava preenchido com o nome → link errado no corpo.
+            window._waBulkLinkInBody = placeholders >= 3;
             const needLink = urlBtnIndex >= 0 || window._waBulkLinkInBody;
             window._waBulkNeedLink = needLink;
             // O link de cada lead é sempre o do produto que ELE provou (produto_url),
@@ -11234,33 +11238,68 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Enviando…';
 
-            // Parâmetros padrão do template (primeiro nome + produto)
-            // Lojista cria template com placeholders {{1}} = nome, {{2}} = produto
+            // Monta params/components conforme a FORMA real do template (mesma lógica do envio
+            // em massa), pra não cair no #131008 "Required parameter is missing" em templates com
+            // link no corpo ({{3}}) e/ou botão de URL dinâmico. Antes mandava fixo [nome, produto]
+            // e nenhum components → faltava o {{3}} e o parâmetro do botão.
+            const tplObj = (_waTemplatesCache || []).find(t => t.name === _waConfigCache.default_template);
+            const bodyComp = tplObj && (tplObj.components || []).find(c => c.type === 'BODY');
+            const bodyText = (bodyComp && bodyComp.text) || '';
+            const placeholders = (bodyText.match(/\{\{\s*\d+\s*\}\}/g) || []).length;
+            const btnComp = tplObj && (tplObj.components || []).find(c => c.type === 'BUTTONS');
+            const buttons = (btnComp && btnComp.buttons) || [];
+            let urlBtnIndex = -1;
+            buttons.forEach((b, i) => { if ((b.type || '').toUpperCase() === 'URL' && /\{\{\s*\d+\s*\}\}/.test(b.url || '')) urlBtnIndex = i; });
+
+            const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
+            const leadLink = hasUrl(btn.dataset.checkouturl) ? btn.dataset.checkouturl
+                : (hasUrl(btn.dataset.producturl) ? btn.dataset.producturl : '');
+            const needLink = urlBtnIndex >= 0 || placeholders >= 3;
+            if (needLink && !leadLink) {
+                btn.classList.add('failed');
+                btn.innerHTML = '<i class="ph-bold ph-warning"></i> Sem link do produto';
+                btn.title = 'Esse template usa link (corpo/botão), mas este lead não tem link salvo (prova antiga, antes de salvarmos o link).';
+                setTimeout(() => { btn.disabled = false; btn.innerHTML = originalHtml; btn.classList.remove('failed'); }, 5000);
+                return;
+            }
+
             const firstName = (name || '').split(' ')[0] || '👋';
-            const params = [firstName];
-            if (product) params.push(product);
+            const produto = product || 'o modelo que você provou';
+            const fill = [firstName, produto];
+            if (placeholders >= 3) fill[2] = leadLink;   // {{3}} = link no corpo
+            const params = [];
+            for (let i = 0; i < placeholders; i++) params.push(fill[i] != null ? fill[i] : firstName);
+            // Se há botão de URL dinâmico, manda components com o param do botão (só o caminho,
+            // pra Meta concatenar com a base do botão sem duplicar domínio).
+            let components = null;
+            if (urlBtnIndex >= 0 && leadLink) {
+                const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || leadLink;
+                components = [];
+                if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
+                components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
+            }
 
             try {
+                const _sendBody = {
+                    email: activeUser.email,
+                    to: phone,
+                    template: _waConfigCache.default_template,
+                    language: _waConfigCache.default_language || 'pt_BR',
+                    params: params
+                };
+                if (components) _sendBody.components = components;
                 const res = await fetch(WA_SEND_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: activeUser.email,
-                        to: phone,
-                        template: _waConfigCache.default_template,
-                        language: _waConfigCache.default_language || 'pt_BR',
-                        params: params
-                    })
+                    body: JSON.stringify(_sendBody)
                 });
                 const result = await res.json().catch(() => ({}));
                 if (res.ok && result.ok) {
                     btn.classList.add('sent');
                     btn.innerHTML = '<i class="ph-bold ph-check-circle"></i> Enviado';
-                    const tplObj = (_waTemplatesCache || []).find(t => t.name === _waConfigCache.default_template);
-                    const bodyComp = tplObj && (tplObj.components || []).find(c => c.type === 'BODY');
                     chatLogOutbound(phone, {
                         template_name: _waConfigCache.default_template,
-                        body: chatRenderTplBody((bodyComp && bodyComp.text) || '', params),
+                        body: chatRenderTplBody(bodyText, params),
                         name: name,
                         meta_message_id: result.meta_message_id
                     });
@@ -16471,6 +16510,8 @@
                             sendBtn.dataset.phone = lead.rawPhone || lead.phone;
                             sendBtn.dataset.name = lead.name || '';
                             sendBtn.dataset.product = lead.lastProduct || '';
+                            sendBtn.dataset.producturl = lead.lastProductUrl || '';
+                            sendBtn.dataset.checkouturl = lead.checkoutUrl || '';
                             sendBtn.onclick = (ev) => {
                                 ev.stopPropagation();
                                 waSendToLead(sendBtn);
