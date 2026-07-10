@@ -4510,6 +4510,26 @@
                     </div>
                 </div>
 
+                <div class="disp-card" id="dispRecoveredCard" style="margin-bottom:20px;">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                        <div>
+                            <h3><i class="ph-bold ph-user-check" style="color:#10b981;"></i> Clientes recuperados pelos disparos</h3>
+                            <p class="desc" style="margin-bottom:0;">Quem <strong>comprou em até 30 dias depois</strong> de receber um disparo — quem foi, quando recebeu e quanto gastou. Últimos 30 dias.</p>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:14px;flex-shrink:0;">
+                            <div style="text-align:right;">
+                                <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Recuperado (30d)</div>
+                                <div style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#10b981;line-height:1.1;" id="dispRecoveredTotal">—</div>
+                                <div style="font-size:11.5px;color:var(--text-muted);" id="dispRecoveredSub">—</div>
+                            </div>
+                            <button class="disp-btn ghost" onclick="dispExportRecoveredCSV()"><i class="ph-bold ph-download-simple"></i> CSV</button>
+                        </div>
+                    </div>
+                    <div class="disp-log-list" id="dispRecoveredList" style="margin-top:14px;">
+                        <div class="disp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando…</div>
+                    </div>
+                </div>
+
                 <div class="disp-card" id="dispHistCard" style="margin-bottom:20px;">
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
                         <div>
@@ -4535,26 +4555,6 @@
                     <h3><i class="ph-bold ph-chart-line-up"></i> Disparos por dia (últimos 30 dias)</h3>
                     <p class="desc">Volume diário separado por entregues e falhas.</p>
                     <div class="disp-chart-wrap" style="height:260px;"><canvas id="dispDailyChart"></canvas></div>
-                </div>
-
-                <div class="disp-card" id="dispRecoveredCard" style="margin-bottom:20px;">
-                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-                        <div>
-                            <h3><i class="ph-bold ph-user-check" style="color:#10b981;"></i> Clientes recuperados pelos disparos</h3>
-                            <p class="desc" style="margin-bottom:0;">Quem <strong>comprou em até 30 dias depois</strong> de receber um disparo — quem foi, quando recebeu e quanto gastou. Últimos 30 dias.</p>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:14px;flex-shrink:0;">
-                            <div style="text-align:right;">
-                                <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Recuperado (30d)</div>
-                                <div style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#10b981;line-height:1.1;" id="dispRecoveredTotal">—</div>
-                                <div style="font-size:11.5px;color:var(--text-muted);" id="dispRecoveredSub">—</div>
-                            </div>
-                            <button class="disp-btn ghost" onclick="dispExportRecoveredCSV()"><i class="ph-bold ph-download-simple"></i> CSV</button>
-                        </div>
-                    </div>
-                    <div class="disp-log-list" id="dispRecoveredList" style="margin-top:14px;">
-                        <div class="disp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando…</div>
-                    </div>
                 </div>
 
                 <!-- Vendas recuperadas: REMOVIDO da UI temporariamente (guardar lógica: dispRenderSalesChart + skill recuperados_provador). Reencaixar depois em outro lugar. -->
