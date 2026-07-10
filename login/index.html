@@ -4537,6 +4537,26 @@
                     <div class="disp-chart-wrap" style="height:260px;"><canvas id="dispDailyChart"></canvas></div>
                 </div>
 
+                <div class="disp-card" id="dispRecoveredCard" style="margin-bottom:20px;">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                        <div>
+                            <h3><i class="ph-bold ph-user-check" style="color:#10b981;"></i> Clientes recuperados pelos disparos</h3>
+                            <p class="desc" style="margin-bottom:0;">Quem <strong>comprou em até 30 dias depois</strong> de receber um disparo — quem foi, quando recebeu e quanto gastou. Últimos 30 dias.</p>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:14px;flex-shrink:0;">
+                            <div style="text-align:right;">
+                                <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">Recuperado (30d)</div>
+                                <div style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#10b981;line-height:1.1;" id="dispRecoveredTotal">—</div>
+                                <div style="font-size:11.5px;color:var(--text-muted);" id="dispRecoveredSub">—</div>
+                            </div>
+                            <button class="disp-btn ghost" onclick="dispExportRecoveredCSV()"><i class="ph-bold ph-download-simple"></i> CSV</button>
+                        </div>
+                    </div>
+                    <div class="disp-log-list" id="dispRecoveredList" style="margin-top:14px;">
+                        <div class="disp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando…</div>
+                    </div>
+                </div>
+
                 <!-- Vendas recuperadas: REMOVIDO da UI temporariamente (guardar lógica: dispRenderSalesChart + skill recuperados_provador). Reencaixar depois em outro lugar. -->
                 <div class="disp-card" id="dispSalesCard" style="margin-bottom:20px;display:none;">
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -9244,6 +9264,7 @@
                 dispRenderDonut(sent, failed);
                 dispRenderDailyChart(all);
                 dispRenderSalesChart().catch(e => console.warn('[disparos] sales chart:', e));
+                dispRenderRecoveredList().catch(e => console.warn('[disparos] recovered list:', e));
                 dispRenderLog();
             } catch (e) {
                 if (listEl) listEl.innerHTML = '<div class="disp-empty" style="color:#ef4444;">Erro ao carregar: ' + escapeHtml(e.message || String(e)) + '</div>';
@@ -9771,6 +9792,159 @@
         // Gráfico de vendas recuperadas: pedidos pagos de clientes que compraram
         // em até 30 dias DEPOIS de receber um disparo (não-falho). Mesma janela de 30 dias
         // e mesmo bucketing por dia do gráfico "Disparos por dia", pra alinhar os dois.
+        // Lista "Clientes recuperados pelos disparos" — MESMA lógica/janela do gráfico
+        // (dispRenderSalesChart) e do card da Visão Geral (loadVgRecuperadoDisparo): pedido
+        // pago em até 30 dias DEPOIS de um disparo não-falho, na janela dos últimos 30 dias.
+        // Aqui, além do total, listamos QUEM comprou. "Melhor disparo" = o mais recente ANTES
+        // da compra (menor gap plausível), pra o tempo até a compra não inflar (skill recuperados_provador).
+        let _dispRecoveredRows = [];
+        async function dispRenderRecoveredList() {
+            const listEl = document.getElementById('dispRecoveredList');
+            const totalEl = document.getElementById('dispRecoveredTotal');
+            const subEl = document.getElementById('dispRecoveredSub');
+            if (!listEl) return;
+            if (!activeUser.tabela_pedidos) {
+                listEl.innerHTML = '<div class="disp-empty">Esta loja ainda não tem pedidos integrados.</div>';
+                if (totalEl) totalEl.textContent = '—'; if (subEl) subEl.textContent = '—';
+                return;
+            }
+            if (!allOrdersCache || !allOrdersCache.length) {
+                try { await loadSharedData(); } catch (e) { console.warn('[disparos] recovered sharedData:', e); }
+            }
+            let dispRows = [];
+            try {
+                const { data } = await supabaseClient
+                    .from('whatsapp_send_log')
+                    .select('lead_phone, sent_at, status, template_name')
+                    .eq('email', activeUser.email)
+                    .limit(10000);
+                dispRows = data || [];
+            } catch (e) { console.warn('[disparos] recovered log:', e); }
+            const dispByPhone = {};
+            dispRows.forEach(r => {
+                if (r.status === 'failed') return;
+                const ph = normalize(r.lead_phone);
+                if (!ph || !r.sent_at) return;
+                const ms = new Date(r.sent_at).getTime();
+                if (!ms) return;
+                (dispByPhone[ph] = dispByPhone[ph] || []).push({ ms, tpl: r.template_name || '' });
+            });
+
+            const fTotal = activeUser.campo_total_pedido || 'total';
+            const fDataPedido = activeUser.campo_data_pedido || null;
+            const fNome = activeUser.campo_nome_pedido || null;
+            const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
+            const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const todayStr = today.toISOString().slice(0, 10);
+            const minDay = new Date(today); minDay.setDate(minDay.getDate() - 29);
+            const minDayStr = minDay.toISOString().slice(0, 10);
+
+            const rows = [];
+            let totalRev = 0;
+            (allOrdersCache || []).forEach(o => {
+                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                if (!orderTs) return;
+                const day = orderTs.slice(0, 10);
+                if (day < minDayStr || day > todayStr) return; // janela de 30 dias por dia do pedido
+                const orderMs = new Date(orderTs).getTime();
+                if (!orderMs) return;
+                // melhor disparo = o mais recente ANTES da compra, dentro de 30 dias
+                let best = null;
+                orderPhoneKeys(o).forEach(ph => {
+                    (dispByPhone[ph] || []).forEach(d => {
+                        if (d.ms <= orderMs && (orderMs - d.ms) <= WINDOW_MS) {
+                            if (!best || d.ms > best.ms) best = d;
+                        }
+                    });
+                });
+                if (!best) return;
+                const val = parseFloat(o[fTotal]) || 0;
+                const nome = (fNome && o[fNome]) ? String(o[fNome]) : '';
+                const rawPhone = (fPhone && o[fPhone]) ? String(o[fPhone]) : '';
+                rows.push({ nome, phone: rawPhone, dispMs: best.ms, tpl: best.tpl, orderMs, gap: orderMs - best.ms, val });
+                totalRev += val;
+            });
+            rows.sort((a, b) => b.orderMs - a.orderMs);
+            _dispRecoveredRows = rows;
+
+            if (totalEl) totalEl.textContent = 'R$ ' + totalRev.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (subEl) subEl.textContent = rows.length.toLocaleString('pt-BR') + (rows.length === 1 ? ' cliente recuperado' : ' clientes recuperados');
+
+            if (!rows.length) {
+                listEl.innerHTML = '<div class="disp-empty">Ninguém comprou nos 30 dias após um disparo ainda.</div>';
+                return;
+            }
+
+            const fmtDT = ms => new Date(ms).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+            const fmtGap = ms => {
+                const h = ms / 3600000;
+                if (h < 1) return Math.max(1, Math.round(ms / 60000)) + ' min';
+                if (h < 24) return (h < 10 ? h.toFixed(1) : Math.round(h)) + ' h';
+                return Math.round(h / 24) + ' d';
+            };
+
+            // Render DOM-safe (nomes vêm do banco) — Regra 5 do dashboard.
+            listEl.innerHTML = '';
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'overflow-x:auto;';
+            const table = document.createElement('table');
+            table.style.cssText = 'width:100%;border-collapse:collapse;font-size:13px;';
+            const thead = document.createElement('thead');
+            const htr = document.createElement('tr');
+            ['Cliente', 'WhatsApp', 'Recebeu disparo', 'Comprou', 'Tempo até compra', 'Valor'].forEach((h, i) => {
+                const th = document.createElement('th');
+                th.textContent = h;
+                th.style.cssText = 'text-align:' + (i >= 4 ? 'right' : 'left') + ';padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text-muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;';
+                htr.appendChild(th);
+            });
+            thead.appendChild(htr); table.appendChild(thead);
+            const tbody = document.createElement('tbody');
+            rows.forEach(r => {
+                const tr = document.createElement('tr');
+                const fast = r.gap <= 24 * 3600000;
+                const cells = [
+                    { t: r.nome || '—', al: 'left', strong: true },
+                    { t: r.phone || '—', al: 'left' },
+                    { t: fmtDT(r.dispMs), al: 'left' },
+                    { t: fmtDT(r.orderMs), al: 'left' },
+                    { t: fmtGap(r.gap), al: 'right', hot: fast },
+                    { t: 'R$ ' + r.val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), al: 'right', strong: true }
+                ];
+                cells.forEach(c => {
+                    const td = document.createElement('td');
+                    td.textContent = c.t;
+                    td.style.cssText = 'padding:9px 10px;border-bottom:1px solid var(--border);text-align:' + c.al + ';white-space:nowrap;' + (c.strong ? 'font-weight:600;' : '') + (c.hot ? 'color:#10b981;font-weight:700;' : '');
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            wrap.appendChild(table);
+            listEl.appendChild(wrap);
+
+            const fast = rows.filter(r => r.gap <= 24 * 3600000).length;
+            const note = document.createElement('div');
+            note.style.cssText = 'margin-top:10px;font-size:12px;color:var(--text-muted);';
+            note.textContent = fast + ' de ' + rows.length + ' compraram em até 24h do disparo — sinal forte de que a mensagem puxou a venda.';
+            listEl.appendChild(note);
+        }
+
+        function dispExportRecoveredCSV() {
+            const rows = _dispRecoveredRows || [];
+            if (!rows.length) { crmToast ? crmToast('Nada pra exportar ainda.', true) : alert('Nada pra exportar ainda.'); return; }
+            const esc = s => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"';
+            const fmtDT = ms => new Date(ms).toLocaleString('pt-BR');
+            const lines = [['Cliente', 'WhatsApp', 'Template', 'Recebeu disparo', 'Comprou', 'Horas ate compra', 'Valor'].map(esc).join(',')];
+            rows.forEach(r => lines.push([r.nome, r.phone, r.tpl, fmtDT(r.dispMs), fmtDT(r.orderMs), (r.gap / 3600000).toFixed(1), r.val.toFixed(2)].map(esc).join(',')));
+            const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'clientes-recuperados-disparo.csv';
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        }
+
         async function dispRenderSalesChart() {
             const canvas = document.getElementById('dispSalesChart');
             if (!canvas) return;
