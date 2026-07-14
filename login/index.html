@@ -159,6 +159,26 @@
         #mainHeader { display: none; }
         body.login-mode #mainHeader { display: none !important; }
 
+        /* Splash de boot: quando há sessão salva, mostra um spinner ao invés de piscar a tela
+           de login enquanto a sessão é validada e a config é carregada (F5 do lojista logado). */
+        #bootSplash { display: none; }
+        body.booting { background: #ffffff; color: #1a1a2e; }
+        body.booting #loginSection { display: none !important; }
+        body.booting #mainHeader { display: none !important; }
+        body.booting #neural-canvas { display: none !important; }
+        body.booting #bootSplash {
+            display: flex; position: fixed; inset: 0; z-index: 9999;
+            flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+            background: #ffffff;
+        }
+        #bootSplash img { height: 40px; width: auto; opacity: .95; }
+        #bootSplash .boot-spin {
+            width: 34px; height: 34px; border-radius: 50%;
+            border: 3px solid rgba(124,58,237,.18); border-top-color: #7c3aed;
+            animation: bootspin .8s linear infinite;
+        }
+        @keyframes bootspin { to { transform: rotate(360deg); } }
+
         /* ─── LIGHT MODE (toggle) ─── */
         body.light-mode {
             background-color: #f5f4f0;
@@ -2336,8 +2356,28 @@
     </style>
 </head>
 
-<body class="login-mode">
+<body class="booting">
+    <script>
+        // Decide SÍNCRONO (antes de pintar) se mostra o splash ou o login:
+        // se existe token de sessão do Supabase no localStorage, mantém 'booting' (spinner)
+        // até a sessão ser validada; senão, já vai pro login (sem piscar spinner à toa).
+        (function () {
+            try {
+                var hasSess = false;
+                for (var i = 0; i < localStorage.length; i++) {
+                    var k = localStorage.key(i);
+                    if (k && k.indexOf('sb-') === 0 && k.slice(-11) === '-auth-token' && localStorage.getItem(k)) { hasSess = true; break; }
+                }
+                if (!hasSess) { document.body.classList.remove('booting'); document.body.classList.add('login-mode'); }
+            } catch (e) { document.body.classList.remove('booting'); document.body.classList.add('login-mode'); }
+        })();
+    </script>
     <canvas id="neural-canvas"></canvas>
+
+    <div id="bootSplash">
+        <img src="https://i.ibb.co/MDGF2YDD/Logo-provou-branco-1.png" alt="Provou Levou" style="filter:brightness(0);">
+        <div class="boot-spin"></div>
+    </div>
 
     <div class="container">
         <header id="mainHeader" style="display: none;">
@@ -5616,8 +5656,10 @@
         let _csvExportData = []; // dados completos para exportação CSV
 
         async function initApp() {
-            document.body.classList.add('login-mode');
-            document.getElementById('quanticLogoImg').style.filter = 'brightness(0) invert(1)';
+            // NÃO força login-mode aqui: o script inline do <body> já decidiu 'booting' (tem sessão salva
+            // → mostra splash) ou 'login-mode' (não tem → mostra login). Assim o F5 do lojista logado
+            // não pisca a tela de login enquanto a sessão é validada.
+            const _qLogo = document.getElementById('quanticLogoImg'); if (_qLogo) _qLogo.style.filter = 'brightness(0) invert(1)';
 
             const SUPABASE_URL = (window.ENV && window.ENV.SUPABASE_URL) || 'https://quantic-supabase.k5jwra.easypanel.host';
             const SUPABASE_KEY = (window.ENV && window.ENV.SUPABASE_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNjQxNzY5MjAwLCJleHAiOjIxNDc0ODM2NDd9.u4oeODEUKfS8mgxK7GK-OjUj5tFKcnqFWK7Oo3efPls';
@@ -5625,16 +5667,23 @@
             // Init core client once
             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-            // Verifica se já existe uma sessão de login válida ativa
-            const { data: { session } } = await supabaseClient.auth.getSession();
-
-            if (session && session.user) {
-                const cfg = await fetchLojista();
-                if (cfg) {
-                    activeUser = cfg;
-                    showDashboard(activeUser);
+            // Verifica se já existe uma sessão de login válida ativa. Em qualquer falha (rede/token),
+            // cai pro login em vez de ficar preso no splash.
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session && session.user) {
+                    // Passa o usuário do getSession pro fetchLojista → evita um getUser() extra (round-trip de rede).
+                    const cfg = await fetchLojista(session.user);
+                    if (cfg) {
+                        activeUser = cfg;
+                        showDashboard(activeUser);
+                        return;
+                    }
                 }
-            }
+            } catch (e) { console.error('[initApp] sessão:', e); }
+            // Sem sessão válida (ou config não encontrada) → sai do splash e mostra o login.
+            document.body.classList.remove('booting');
+            document.body.classList.add('login-mode');
         }
 
         // Master users: podem acessar qualquer lojista via dropdown.
@@ -5645,8 +5694,9 @@
             return email && MASTER_EMAILS.indexOf(email.toLowerCase()) !== -1;
         }
 
-        async function fetchLojista() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
+        async function fetchLojista(preUser) {
+            let user = preUser || null;
+            if (!user) { const { data } = await supabaseClient.auth.getUser(); user = data && data.user; }
             if (!user) return null;
 
             // Master: monta switcher e carrega o último lojista escolhido (ou o primeiro)
@@ -5952,6 +6002,7 @@
 
         function showDashboard(userObj) {
             document.body.classList.remove('login-mode');
+            document.body.classList.remove('booting');
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('mainHeader').style.display = 'flex';
             restoreTheme();
@@ -16934,8 +16985,14 @@
             URL.revokeObjectURL(url);
         }
 
-        // Run when DOM loads
-                window.onload = initApp;
+        // Inicia a validação de sessão assim que o DOM está pronto — NÃO espera window.onload
+        // (que só dispara depois de TODAS as imagens/ícones/fontes externos carregarem, o que
+        // atrasava muito a saída do splash/login no F5). O supabase-js é <script> síncrono no head.
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
 
         // Neural Network Background Effect (from script.js)
         document.addEventListener('DOMContentLoaded', () => {
