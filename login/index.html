@@ -6963,40 +6963,66 @@
                 title: 'Token permanente (produção)',
                 render: () => `
                     <div class="wa-wiz-step">
-                        <h3>4. Token PERMANENTE (recomendado pra produção)</h3>
-                        <p class="lead">O token do passo anterior expira em 24h. Pra disparos contínuos, gere um System User com token que nunca expira. <strong>Pode pular esse passo se for só testar agora</strong>.</p>
+                        <h3>4. Token PERMANENTE via System User (produção)</h3>
+                        <p class="lead">O token do passo anterior expira em 24h — e se você conectou pelo botão de 1 clique, o token gerado costuma ser da <strong>sua conta pessoal</strong>, que <strong>expira</strong> e faz o disparo falhar com <strong>erro #200</strong> ("permissões pra enviar em nome da WABA"). A solução definitiva é um <strong>System User</strong>: um "usuário robô" do Business, com token que <strong>nunca expira</strong>. <strong>Faça este passo antes de disparar pra clientes.</strong></p>
+
                         <div class="what-to-do">
-                            <div class="what-to-do-label">Setup único (~10 min)</div>
+                            <div class="what-to-do-label">4a · Criar o System User</div>
                             <ol>
-                                <li>Vai em <strong>Business Manager → Configurações → Usuários → Usuários do Sistema → Adicionar</strong>:
+                                <li>Abra <strong>Meta Business Suite → Configurações do negócio</strong> (Business Settings).</li>
+                                <li>No menu da esquerda: <strong>Usuários → Usuários do sistema</strong>.</li>
+                                <li>Clique <strong>Adicionar</strong> e preencha:
                                     <ul style="margin:6px 0 0 18px;">
                                         <li>Nome: <code>Provou Levou Disparo</code></li>
-                                        <li>Função: <strong>Admin</strong></li>
+                                        <li>Função do usuário do sistema: <strong>Admin</strong> (precisa ser Admin, não "Funcionário")</li>
                                     </ul>
                                 </li>
-                                <li>Clica no usuário criado → <strong>Adicionar ativos</strong>:
-                                    <ul style="margin:6px 0 0 18px;">
-                                        <li>Aplicativos → marca seu App → <strong>Gerenciar app</strong></li>
-                                        <li>Contas do WhatsApp → marca a WABA → <strong>Gerenciar conta do WhatsApp</strong></li>
-                                    </ul>
-                                </li>
-                                <li>Volta na tela do System User → <strong>Gerar novo token</strong>:
-                                    <ul style="margin:6px 0 0 18px;">
-                                        <li>App: o seu</li>
-                                        <li>Validade: <strong>Nunca</strong></li>
-                                        <li>Permissões: <code>whatsapp_business_messaging</code> + <code>whatsapp_business_management</code></li>
-                                    </ul>
-                                </li>
-                                <li><strong>Substitui</strong> o token temporário do passo 3 colando o permanente:</li>
+                                <li>Confirme em <strong>Criar usuário do sistema</strong>.</li>
                             </ol>
-                            <a class="open-meta" href="https://business.facebook.com/settings/system-users" target="_blank"><i class="ph-bold ph-arrow-square-out"></i> Abrir System Users</a>
+                            <a class="open-meta" href="https://business.facebook.com/settings/system-users" target="_blank"><i class="ph-bold ph-arrow-square-out"></i> Abrir Usuários do Sistema</a>
                         </div>
+
+                        <div class="what-to-do" style="margin-top:12px;">
+                            <div class="what-to-do-label">4b · Atribuir os ativos (o passo que mais gente esquece)</div>
+                            <p style="margin:0 0 8px;color:#475569;">O System User nasce "sem nada nas mãos". Você precisa dar a ele acesso ao <strong>App</strong> e à <strong>conta do WhatsApp (WABA)</strong> — senão o token gera, mas não consegue enviar.</p>
+                            <ol>
+                                <li>Clique no usuário <code>Provou Levou Disparo</code> que você acabou de criar → botão <strong>Adicionar ativos</strong>.</li>
+                                <li>Aba <strong>Aplicativos</strong> → marque o seu App → ligue <strong>Controle total: Gerenciar app</strong>.</li>
+                                <li>Aba <strong>Contas do WhatsApp</strong> → marque a sua <strong>WABA</strong> → ligue <strong>Controle total: Gerenciar conta do WhatsApp</strong>.</li>
+                                <li><strong>Salvar alterações.</strong> As duas permissões precisam ficar em <strong>verde/ligadas</strong> — se ficar só "Ver", o disparo falha.</li>
+                            </ol>
+                            <div class="tip" style="margin-top:8px;background:#fff7ed;border-color:#fdba74;"><i class="ph-bold ph-warning"></i> <strong>Não apareceu o botão "Adicionar ativos"?</strong> Acontece — atribua <strong>pelo lado do ativo</strong> (funciona sempre):
+                                <ul style="margin:6px 0 0 18px;">
+                                    <li><strong>App:</strong> Configurações do negócio → <strong>Contas → Aplicativos</strong> → clique no seu App → <strong>Adicionar pessoas</strong> → escolha <code>Provou Levou Disparo</code> → ligue <strong>Controle total</strong> → Atribuir.</li>
+                                    <li><strong>WhatsApp (WABA):</strong> Configurações do negócio → <strong>Contas → Contas do WhatsApp</strong> → clique na sua WABA → <strong>Adicionar pessoas</strong> → escolha <code>Provou Levou Disparo</code> → ligue <strong>Controle total (Gerenciar)</strong> → Atribuir.</li>
+                                </ul>
+                            </div>
+                            <div class="tip" style="margin-top:8px;"><i class="ph-bold ph-info"></i> Dois motivos comuns do botão sumir: (1) você está na <strong>Meta Business Suite</strong> e não em <strong>Configurações do negócio</strong> (business.facebook.com/settings); (2) sua conta <strong>não é Admin</strong> do Business. Se não achar a WABA na lista, ela ainda não está no seu Business — adicione em <strong>Contas → Contas do WhatsApp → Adicionar</strong>.</div>
+                        </div>
+
+                        <div class="what-to-do" style="margin-top:12px;">
+                            <div class="what-to-do-label">4c · Gerar o token permanente</div>
+                            <ol>
+                                <li>Ainda na tela do System User, clique <strong>Gerar novo token</strong>.</li>
+                                <li><strong>App:</strong> selecione o seu App.</li>
+                                <li><strong>Validade do token:</strong> escolha <strong>Nunca</strong>.</li>
+                                <li><strong>Permissões:</strong> marque as duas:
+                                    <ul style="margin:6px 0 0 18px;">
+                                        <li><code>whatsapp_business_messaging</code></li>
+                                        <li><code>whatsapp_business_management</code></li>
+                                    </ul>
+                                </li>
+                                <li>Clique <strong>Gerar token</strong> e <strong>copie na hora</strong> (começa com <code>EAA…</code>).</li>
+                                <li>Cole o token no campo abaixo — ele <strong>substitui</strong> o temporário do passo 3.</li>
+                            </ol>
+                        </div>
+
                         <div class="input-block">
-                            <label>Token permanente (opcional agora) — substitui o do passo 3 se colar aqui</label>
+                            <label>Token permanente (System User) — substitui o do passo 3 se colar aqui</label>
                             <input type="password" id="wizTokenPerm" placeholder="EAAxxxxxx... (deixe vazio pra usar o temporário)" oninput="waWizSavePermToken()">
                             <div class="help">Se preencher, esse token sobrescreve o temporário no passo final.</div>
                         </div>
-                        <div class="tip"><i class="ph-bold ph-warning"></i> Token só aparece <strong>uma única vez</strong>. Copia na hora — se perder, gera de novo.</div>
+                        <div class="tip"><i class="ph-bold ph-warning"></i> O token aparece <strong>uma única vez</strong>. Copie imediatamente — se fechar sem copiar, é só gerar de novo. E confira: token bom é do <strong>System User</strong> (não da sua conta pessoal) — assim não expira nem dá #200.</div>
                     </div>
                 `
             },
@@ -9888,7 +9914,7 @@
             // Render DOM-safe (nomes vêm do banco) — Regra 5 do dashboard.
             listEl.innerHTML = '';
             const wrap = document.createElement('div');
-            wrap.style.cssText = 'overflow-x:auto;';
+            wrap.style.cssText = 'overflow:auto;max-height:360px;';
             const table = document.createElement('table');
             table.style.cssText = 'width:100%;border-collapse:collapse;font-size:13px;';
             const thead = document.createElement('thead');
@@ -9896,7 +9922,7 @@
             ['Cliente', 'WhatsApp', 'Recebeu disparo', 'Comprou', 'Tempo até compra', 'Valor'].forEach((h, i) => {
                 const th = document.createElement('th');
                 th.textContent = h;
-                th.style.cssText = 'text-align:' + (i >= 4 ? 'right' : 'left') + ';padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text-muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;';
+                th.style.cssText = 'position:sticky;top:0;background:var(--card-bg,#fff);z-index:1;text-align:' + (i >= 4 ? 'right' : 'left') + ';padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text-muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;';
                 htr.appendChild(th);
             });
             thead.appendChild(htr); table.appendChild(thead);
