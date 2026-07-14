@@ -7661,7 +7661,8 @@
                         to: phone,
                         template: tpl.name,
                         language: tpl.lang,
-                        params: bodyParams           // corpo (backend monta o body com isso)
+                        params: bodyParams,          // corpo (backend monta o body com isso)
+                        source: 'individual'
                     }, components ? { components: components } : {}))   // só com header/botão
                 });
                 const result = await res.json().catch(() => ({}));
@@ -8315,9 +8316,12 @@
                 const enrP = supabaseClient.from('flow_enrollments')
                     .select('*', { count: 'exact', head: true })
                     .eq('flow_id', flowId).eq('status', 'ativo');
-                const sentP = supabaseClient.from('flow_runs_log')
+                // Enviados = fonte única (whatsapp_send_log) por origem, não mais flow_runs_log.
+                // Conta envios reais dessa automação (source_id = flow_id) com status de saída.
+                const sentP = supabaseClient.from('whatsapp_send_log')
                     .select('*', { count: 'exact', head: true })
-                    .eq('flow_id', flowId).eq('resultado', 'enviado');
+                    .eq('source', 'automacao').eq('source_id', flowId)
+                    .in('status', ['sent', 'delivered', 'read']);
                 const [enrR, sentR] = await Promise.all([enrP, sentP]);
                 if (enrEl) enrEl.textContent = (enrR && !enrR.error && enrR.count != null) ? enrR.count : 0;
                 if (sentEl) sentEl.textContent = (sentR && !sentR.error && sentR.count != null) ? sentR.count : 0;
@@ -10565,7 +10569,8 @@
                         to: lead.phone,
                         template: _waBulkTemplate || _waConfigCache.default_template,
                         language: _waBulkTemplateLang || _waConfigCache.default_language || 'pt_BR',
-                        params: params
+                        params: params,
+                        source: 'massa'
                     };
                     if (components) payload.components = components;
                     const res = await fetch(WA_SEND_URL, {
@@ -11486,7 +11491,8 @@
                     to: phone,
                     template: _waConfigCache.default_template,
                     language: _waConfigCache.default_language || 'pt_BR',
-                    params: params
+                    params: params,
+                    source: 'individual'
                 };
                 if (components) _sendBody.components = components;
                 const res = await fetch(WA_SEND_URL, {
