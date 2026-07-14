@@ -10627,7 +10627,7 @@
         }
 
         /* ===== Campanhas — assistente guiado (nome → público → mensagem → agendar) ===== */
-        const CAMP = { step: 0, nome: '', stage: '', stageTitle: '', tplMode: 'novo', tplName: '', tplLang: 'pt_BR', tplPending: false, sched: 'diario', dia: '', hora1: '', hora2: '', targetCount: null, audience: null };
+        const CAMP = { step: 0, nome: '', stage: '', stageTitle: '', tplMode: 'novo', tplName: '', tplLang: 'pt_BR', tplPending: false, sched: 'diario', dia: '', hora1: '', hora2: '', targetCount: null, audience: null, limit: null };
         const CAMP_STEPS = ['Nome', 'Público', 'Mensagem', 'Agendar'];
 
         function _campInjectCSS() {
@@ -10748,7 +10748,7 @@
                     + '</div>');
                 return;
             }
-            const STB = { agendado: ['Agendada', '#f59e0b', 'rgba(245,158,11,.15)'], aguardando_aprovacao: ['Aguardando aprovação da Meta', '#b45309', 'rgba(217,119,6,.16)'], concluido: ['Concluída', '#10b981', 'rgba(16,185,129,.15)'], cancelado: ['Cancelada', '#9ca3af', 'rgba(127,127,127,.15)'] };
+            const STB = { agendado: ['Agendada', '#f59e0b', 'rgba(245,158,11,.15)'], aguardando_aprovacao: ['Aguardando aprovação da Meta', '#b45309', 'rgba(217,119,6,.16)'], enviando: ['Enviando…', '#3b82f6', 'rgba(59,130,246,.15)'], concluido: ['Concluída', '#10b981', 'rgba(16,185,129,.15)'], falhou: ['Falhou', '#dc2626', 'rgba(220,38,38,.15)'], cancelado: ['Cancelada', '#9ca3af', 'rgba(127,127,127,.15)'] };
             let html = items.map(g => {
                 const first = g[0];
                 const nome = (first.nome && first.nome.trim()) || first.template || 'Campanha';
@@ -10817,7 +10817,7 @@
         // ---- Wizard ----
         function campWizardOpen(audience) {
             _campInjectCSS();
-            CAMP.step = 0; CAMP.nome = ''; CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.tplMode = 'novo'; CAMP.tplName = ''; CAMP.tplLang = 'pt_BR'; CAMP.tplPending = false; CAMP.sched = 'diario'; CAMP.dia = ''; CAMP.hora1 = ''; CAMP.hora2 = ''; CAMP.targetCount = null;
+            CAMP.step = 0; CAMP.nome = ''; CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.tplMode = 'novo'; CAMP.tplName = ''; CAMP.tplLang = 'pt_BR'; CAMP.tplPending = false; CAMP.sched = 'diario'; CAMP.dia = ''; CAMP.hora1 = ''; CAMP.hora2 = ''; CAMP.targetCount = null; CAMP.limit = null;
             CAMP.publicoTipo = 'crm'; CAMP.segId = ''; CAMP.audience = null;
             // Aberto a partir de uma Segmentação (segCriarCampanha passa {id, nome, regras}).
             if (audience && audience.regras) {
@@ -10862,13 +10862,15 @@
                     const opts = segs.map(s => '<option value="' + escapeHtml(s.id) + '"' + (s.id === CAMP.segId ? ' selected' : '') + '>' + escapeHtml(s.nome) + (s.custom ? ' (seu)' : '') + '</option>').join('');
                     inner = '<label class="camp-lbl" for="campSeg">Público-alvo (segmentação) <span style="color:#dc2626;">*</span></label>'
                         + '<select id="campSeg" class="camp-sel" onchange="campOnSegmento(this.value)"><option value="">Selecione um público…</option>' + opts + '</select>'
-                        + '<div id="campSegCount" class="camp-msg" style="color:var(--text-muted);">' + (CAMP.audience ? ('<i class="ph-bold ph-users-three"></i> ' + CAMP.audience.targets.length + ' cliente(s) neste público') : '') + '</div>';
+                        + '<div id="campSegCount" class="camp-msg" style="color:var(--text-muted);">' + (CAMP.audience ? ('<i class="ph-bold ph-users-three"></i> ' + CAMP.audience.targets.length + ' cliente(s) neste público') : '') + '</div>'
+                        + campLimitFieldHTML();
                 } else {
                     const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
                     const opts = (cfg.columns || []).filter(c => c.key !== 'convertido').map(c => '<option value="' + escapeHtml(c.key) + '"' + (c.key === CAMP.stage ? ' selected' : '') + '>' + escapeHtml(c.title) + '</option>').join('');
                     inner = '<label class="camp-lbl" for="campStage">Público (etapa do CRM) <span style="color:#dc2626;">*</span></label>'
                         + '<select id="campStage" class="camp-sel" onchange="campOnStage(this.value)"><option value="">Selecione…</option>' + opts + '</select>'
-                        + '<div id="campStageCount" class="camp-msg" style="color:var(--text-muted);">' + (CAMP.targetCount != null && !CAMP.audience ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa') : '') + '</div>';
+                        + '<div id="campStageCount" class="camp-msg" style="color:var(--text-muted);">' + (CAMP.targetCount != null && !CAMP.audience ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa') : '') + '</div>'
+                        + campLimitFieldHTML();
                 }
                 body = '<h3 class="camp-h">Para quem?</h3><p class="camp-p">Envie pra uma etapa do CRM ou pra um público que você criou em Segmentações.</p>' + toggle + inner;
             } else if (CAMP.step === 2) {
@@ -10899,14 +10901,35 @@
             host.innerHTML = '<div class="camp-surface"><div class="camp-steps">' + steps + '</div><div class="camp-body">' + body + '</div><div class="camp-foot">' + backBtn + nextBtn + '</div></div>';
         }
 
+        // Campo "Quantos leads disparar?" — só aparece quando já sabemos a contagem da etapa/público.
+        function campLimitFieldHTML() {
+            const cnt = CAMP.audience ? ((CAMP.audience.targets || []).length) : CAMP.targetCount;
+            const show = cnt != null;
+            return '<div id="campLimitWrap" style="margin-top:16px;' + (show ? '' : 'display:none;') + '">'
+                + '<label class="camp-lbl" for="campLimit">Quantos leads disparar?</label>'
+                + '<input id="campLimit" type="number" min="1" ' + (cnt ? ('max="' + cnt + '" ') : '') + 'class="camp-inp" style="max-width:220px;" placeholder="Todos' + (cnt ? (' (~' + cnt + ')') : '') + '" value="' + (CAMP.limit || '') + '" oninput="campSetLimit(this.value)">'
+                + '<div class="camp-msg" style="color:var(--text-muted);margin-top:6px;"><i class="ph-bold ph-info"></i> Prioriza os leads mais recentes. Deixe vazio para disparar pra todos.</div>'
+                + '</div>';
+        }
+        function campSetLimit(v) { const n = parseInt(v, 10); CAMP.limit = (!isNaN(n) && n > 0) ? n : null; }
+        function campRevealLimit() {
+            const cnt = CAMP.audience ? ((CAMP.audience.targets || []).length) : CAMP.targetCount;
+            const wrap = document.getElementById('campLimitWrap');
+            const inp = document.getElementById('campLimit');
+            if (wrap) wrap.style.display = (cnt != null) ? '' : 'none';
+            if (inp && cnt != null) { inp.placeholder = 'Todos (~' + cnt + ')'; if (cnt) inp.max = cnt; }
+        }
         async function campOnStage(key) {
             CAMP.stage = key;
+            CAMP.limit = null; // nova etapa → recomeça a quantidade
+            const inp0 = document.getElementById('campLimit'); if (inp0) inp0.value = '';
             const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
             const c = (cfg.columns || []).find(x => x.key === key); CAMP.stageTitle = c ? c.title : key;
             const box = document.getElementById('campStageCount'); if (box) box.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> contando…';
             try { const t = await waGetBulkTargets(key, ''); CAMP.targetCount = t.length; }
             catch (e) { CAMP.targetCount = null; }
             const b2 = document.getElementById('campStageCount'); if (b2) b2.innerHTML = CAMP.targetCount != null ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa') : '';
+            campRevealLimit();
         }
         // Alterna o tipo de público (etapa do CRM vs segmentação) no passo 2 do assistente.
         async function campSetPublicoTipo(t) {
@@ -10918,8 +10941,10 @@
         // Escolheu uma segmentação: calcula a audiência (garante dados carregados) e mostra a contagem.
         async function campOnSegmento(id) {
             CAMP.segId = id;
+            CAMP.limit = null;
+            const inp0 = document.getElementById('campLimit'); if (inp0) inp0.value = '';
             const box = document.getElementById('campSegCount');
-            if (!id) { CAMP.audience = null; if (box) box.innerHTML = ''; return; }
+            if (!id) { CAMP.audience = null; if (box) box.innerHTML = ''; campRevealLimit(); return; }
             if (box) box.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> calculando…';
             try { if (!allOrdersCache || !allOrdersCache.length) await loadSharedData(); } catch (e) {}
             const seg = segAllList().find(s => String(s.id) === String(id));
@@ -10927,6 +10952,7 @@
             CAMP.audience = seg ? { name: seg.nome, regras: seg.regras, targets: targets } : null;
             CAMP.stageTitle = seg ? seg.nome : '';
             if (box) box.innerHTML = CAMP.audience ? ('<i class="ph-bold ph-users-three"></i> ' + targets.length + ' cliente(s) neste público') : '';
+            campRevealLimit();
         }
         function campSelectApprovedTpl(v) { CAMP.tplName = v; CAMP.tplPending = false; campWizardRender(); }
         // Prévia (bolha estilo WhatsApp) do corpo do template selecionado, com header/botões se houver.
@@ -11035,6 +11061,10 @@
                         if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-megaphone"></i> Criar campanha'; }
                         return setMsg('Nenhum lead selecionado tem link salvo (produto ou checkout) pra esse modelo. São provas antigas, antes de salvarmos o link — escolha um modelo sem link ({{3}}) ou outra etapa.', true);
                     }
+                    // Limite de quantidade escolhido no passo "Para quem?": prioriza os mais recentes.
+                    if (CAMP.limit && CAMP.limit > 0 && targets.length > CAMP.limit) {
+                        targets = targets.slice().sort((a, b) => (b.lastDate || '').localeCompare(a.lastDate || '')).slice(0, CAMP.limit);
+                    }
                     const payloads = targets.map(lead => {
                         const firstName = (lead.name || '').split(' ')[0] || '👋';
                         const produto = lead.product || 'o modelo que você provou';
@@ -11063,7 +11093,7 @@
                     for (const tm of recurTimes) {
                         const { error } = await campSafeInsert({
                             lojista_email: activeUser.email, nome: CAMP.nome.trim(), scheduled_at: new Date().toISOString(),
-                            recurrence: 'diario', recur_time: tm, stage_key: CAMP.stage, max_per_run: 100,
+                            recurrence: 'diario', recur_time: tm, stage_key: CAMP.stage, max_per_run: (CAMP.limit && CAMP.limit > 0) ? CAMP.limit : 100,
                             template: CAMP.tplName, language: tplLang, placeholders: placeholders,
                             active: aprovado, status: status, total: 0
                         });
