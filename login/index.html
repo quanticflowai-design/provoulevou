@@ -11008,15 +11008,51 @@
             }
             try {
                 if (CAMP.sched === 'dia') {
-                    const targets = CAMP.audience ? CAMP.audience.targets : await waGetBulkTargets(CAMP.stage, '');
+                    let targets = CAMP.audience ? CAMP.audience.targets : await waGetBulkTargets(CAMP.stage, '');
+                    // Link de cada lead — MESMA lógica do disparo imediato (leadLinkOf vive no escopo do
+                    // executeBulkSend e não existe aqui; antes o {{3}} saía sempre vazio → Meta #131008).
+                    const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
+                    const isCarrinhoSeg = CAMP.stage === 'carrinho-abandonado';
+                    const leadLinkOf = (l) => isCarrinhoSeg
+                        ? (hasUrl(l.checkoutUrl) ? l.checkoutUrl : (hasUrl(l.productUrl) ? l.productUrl : ''))
+                        : (hasUrl(l.productUrl) ? l.productUrl : '');
+                    // Detecta se o link vai no corpo ({{3}}) ou num botão de URL dinâmico ({{1}} do botão).
+                    const linkInBody = placeholders >= 3;
+                    const btnComp = tplObj && (tplObj.components || []).find(c => (c.type || '').toUpperCase() === 'BUTTONS');
+                    let urlBtnIndex = -1;
+                    ((btnComp && btnComp.buttons) || []).forEach((b, i) => {
+                        if ((b.type || '').toUpperCase() === 'URL' && /\{\{\s*\d+\s*\}\}/.test(b.url || '')) urlBtnIndex = i;
+                    });
+                    // Template que usa link (corpo {{3}} ou botão de URL): pula leads sem link — não dá pra mandar vazio.
+                    const needLink = linkInBody || urlBtnIndex >= 0;
+                    let skippedNoLink = 0;
+                    if (needLink) {
+                        const before = targets.length;
+                        targets = targets.filter(t => !!leadLinkOf(t));
+                        skippedNoLink = before - targets.length;
+                    }
+                    if (targets.length === 0) {
+                        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-megaphone"></i> Criar campanha'; }
+                        return setMsg('Nenhum lead selecionado tem link salvo (produto ou checkout) pra esse modelo. São provas antigas, antes de salvarmos o link — escolha um modelo sem link ({{3}}) ou outra etapa.', true);
+                    }
                     const payloads = targets.map(lead => {
                         const firstName = (lead.name || '').split(' ')[0] || '👋';
                         const produto = lead.product || 'o modelo que você provou';
-                        const link = (typeof leadLinkOf === 'function' ? leadLinkOf(lead) : '') || '';
-                        const fill = [firstName, produto, link];
+                        const leadLink = leadLinkOf(lead) || '';
+                        const fill = [firstName, produto];
+                        if (linkInBody) fill[2] = leadLink;   // {{3}} = link no corpo
                         const params = []; for (let i = 0; i < placeholders; i++) params.push(fill[i] != null ? fill[i] : firstName);
-                        return { to: lead.phone, params: params };
+                        const p = { to: lead.phone, params: params };
+                        if (urlBtnIndex >= 0 && leadLink) {
+                            const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || leadLink;
+                            const components = [];
+                            if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
+                            components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
+                            p.components = components;
+                        }
+                        return p;
                     });
+                    if (skippedNoLink > 0) setMsg(skippedNoLink + ' lead(s) sem link foram pulados. Criando campanha com ' + payloads.length + '…');
                     const { error } = await campSafeInsert({
                         lojista_email: activeUser.email, nome: CAMP.nome.trim(), scheduled_at: scheduled_at,
                         template: CAMP.tplName, language: tplLang, payloads: payloads, total: payloads.length,
