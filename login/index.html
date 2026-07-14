@@ -6653,7 +6653,13 @@
                 body.innerHTML = msgs.map(m => {
                     const at = m.wa_timestamp || m.created_at;
                     const tpl = (m.direction === 'out' && m.template_name) ? '<div class="chat-msg-tpl">template: ' + escapeHtml(m.template_name) + '</div>' : '';
-                    return `<div class="chat-msg ${m.direction === 'in' ? 'in' : 'out'}">${tpl}${chatBubbleBody(m)}<div class="chat-msg-time">${chatFmtTime(at)}${m.direction==='out' && m.status ? ' · ' + escapeHtml(dispStatusLabel(m.status)) : ''}</div></div>`;
+                    // Botão do template (CTA) — renderiza como botão de verdade, igual chega no WhatsApp
+                    const btn = (m.btn_label)
+                        ? (m.btn_url
+                            ? '<a class="chat-msg-cta" href="' + escapeHtml(m.btn_url) + '" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;margin-top:7px;padding-top:8px;border-top:1px solid rgba(0,0,0,.10);color:#027eb5;text-decoration:none;font-weight:600;font-size:13.5px;"><i class="ph-bold ph-arrow-square-out"></i> ' + escapeHtml(m.btn_label) + '</a>'
+                            : '<div class="chat-msg-cta" style="text-align:center;margin-top:7px;padding-top:8px;border-top:1px solid rgba(0,0,0,.10);color:#027eb5;font-weight:600;font-size:13.5px;">' + escapeHtml(m.btn_label) + '</div>')
+                        : '';
+                    return `<div class="chat-msg ${m.direction === 'in' ? 'in' : 'out'}">${tpl}${chatBubbleBody(m)}${btn}<div class="chat-msg-time">${chatFmtTime(at)}${m.direction==='out' && m.status ? ' · ' + escapeHtml(dispStatusLabel(m.status)) : ''}</div></div>`;
                 }).join('');
             }
             body.scrollTop = body.scrollHeight;
