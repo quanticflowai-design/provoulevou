@@ -4538,7 +4538,7 @@
                         </div>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;">
                             <button class="disp-btn ghost" onclick="waExportLogCSV()"><i class="ph-bold ph-download-simple"></i> Exportar CSV</button>
-                            <button class="disp-btn ghost" onclick="loadDisparos()"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
+                            <button class="disp-btn ghost" onclick="loadDisparos(true)"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
                         </div>
                     </div>
                     <div class="disp-log-filters" style="margin-top:14px;">
@@ -7223,6 +7223,7 @@
         // ===== TEMPLATES =====
         const WA_TPL_URL = 'https://n8n.segredosdodrop.com/webhook/pl-wa-templates';
         let _waTemplatesCache = [];
+        let _waTemplatesLoadedAt = 0; // p/ cache de frescor (evita rebuscar a Meta a cada clique em Campanhas)
 
         // Mostrar só templates criados na Provou Levou (tabela pl_wa_templates).
         // Fail-open: se a consulta falhar, NÃO esconde nada (mantém o comportamento antigo).
@@ -7248,8 +7249,13 @@
             return (list || []).filter(t => allowed.has(t.name));
         }
 
-        async function waLoadTemplates() {
+        async function waLoadTemplates(force) {
             const list = document.getElementById('waTemplatesList');
+            // Cache de frescor: se já temos os templates carregados há <5min e a lista já está
+            // renderizada, não rebusca a Meta (evita o round-trip lento a cada clique em Campanhas).
+            if (!force && _waTemplatesCache && _waTemplatesCache.length && (Date.now() - _waTemplatesLoadedAt < 5 * 60 * 1000) && list && list.children.length) {
+                return;
+            }
             if (!_waConfigCache || _waConfigCache.status !== 'connected') {
                 list.innerHTML = '<div class="wa-tpl-empty" style="padding:28px 18px;">'
                     + '<i class="ph-bold ph-plug" style="font-size:30px;color:#25D366;opacity:.7;"></i><br><br>'
@@ -7288,6 +7294,7 @@
                 let data = (result.body && result.body.data) || [];
                 data = await keepPLTemplates(data);
                 _waTemplatesCache = data;
+                _waTemplatesLoadedAt = Date.now();
                 if (data.length === 0) {
                     list.innerHTML = '<div class="wa-tpl-empty">Nenhuma mensagem modelo criada ainda. Clique em <strong>Criar mensagem modelo</strong>.</div>';
                     return;
@@ -9216,11 +9223,9 @@
                 + '</div>';
         }
 
-        async function loadDisparos() {
+        async function loadDisparos(force) {
             if (!supabaseClient || !activeUser) return;
             dispBuildSubtabs();
-            const listEl = document.getElementById('dispLogList');
-            if (listEl) listEl.innerHTML = '<div class="disp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando…</div>';
 
             // Aba padrão: Conversas se conectado; senão Conexão (pra guiar o setup)
             if (!window._dispSubInit) {
@@ -9228,6 +9233,16 @@
                 const saved = (function(){ try { return localStorage.getItem('pl-disp-subtab'); } catch(e){ return null; } })();
                 dispSwitchSub(saved || 'dashboard');
             }
+
+            // Cache de frescor: reentrar na aba Disparos em <90s NÃO recarrega os dados pesados
+            // (send_log ~10k + conversas ~1k + gráficos) — a UI já está renderizada no DOM.
+            // loadCRM/waLoadTemplates têm cache próprio; o realtime mantém as conversas vivas.
+            if (!force && window._dispDataAt && (Date.now() - window._dispDataAt < 90000) && crmLeadMapCache) {
+                return;
+            }
+
+            const listEl = document.getElementById('dispLogList');
+            if (listEl) listEl.innerHTML = '<div class="disp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando…</div>';
 
             // 1) CRM bucket counts (sem mostrar leads)
             try {
@@ -9287,6 +9302,7 @@
                 dispRenderSalesChart().catch(e => console.warn('[disparos] sales chart:', e));
                 dispRenderRecoveredList().catch(e => console.warn('[disparos] recovered list:', e));
                 dispRenderLog();
+                window._dispDataAt = Date.now(); // marca frescor (guard de reentrada em <90s)
             } catch (e) {
                 if (listEl) listEl.innerHTML = '<div class="disp-empty" style="color:#ef4444;">Erro ao carregar: ' + escapeHtml(e.message || String(e)) + '</div>';
             }
@@ -9790,16 +9806,22 @@
             });
         }
 
-        async function initDispDashboard() {
+        let _dispDashAt = 0, _dispDashCachePeriod = null;
+        async function initDispDashboard(force) {
             const pane = document.getElementById('dispSubDashboard');
             if (!pane || !activeUser) return;
             _dispDashInjectCSS();
             let view = document.getElementById('dispDashView');
+            // Cache de frescor: reabrir o painel em <90s (mesmo período) não recomputa a efetividade.
+            if (!force && view && view.innerHTML && _dispDashCachePeriod === _dispDashPeriod && (Date.now() - _dispDashAt < 90000)) {
+                return;
+            }
             if (!view) { view = document.createElement('div'); view.id = 'dispDashView'; pane.insertBefore(view, pane.firstChild); }
             view.innerHTML = '<div class="dd-loading"><i class="ph-bold ph-spinner" aria-hidden="true"></i> Carregando painel…</div>';
             try {
                 const d = await computeDispEfetividade(_dispDashPeriod);
                 view.innerHTML = dispDashboardHTML(d);
+                _dispDashAt = Date.now(); _dispDashCachePeriod = _dispDashPeriod;
                 _dispRenderDashChart(d.serieDiaria);
                 const hist = document.getElementById('dispHistCard');
                 if (hist) { if (hist.parentElement !== pane) pane.appendChild(hist); hist.style.display = ''; }
@@ -10621,7 +10643,7 @@
             // Atualiza CRM + recarrega a aba Disparos (KPIs, histórico, gráficos)
             setTimeout(() => {
                 try { renderCrmBoard(); } catch (e) {}
-                if (typeof loadDisparos === 'function') loadDisparos().catch(() => {});
+                if (typeof loadDisparos === 'function') loadDisparos(true).catch(() => {});
             }, 2500);
         }
 
