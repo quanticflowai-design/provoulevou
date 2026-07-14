@@ -7882,20 +7882,19 @@
             }
             try { _campInjectCSS(); } catch (e) {}   // .camp-btn (botão primário) usado em vários sub-panes
             move('dispChatCard',   'dispSubConversas');
-            // Campanhas: lista + wizard no topo; envio imediato/histórico técnico ficam em "Envio avançado"
+            // Campanhas: lista + wizard no topo. O "Envio avançado" (envio imediato/histórico
+            // técnico) foi removido — tudo passa a ser feito pelo assistente de campanhas.
             const dispPane = document.getElementById('dispSubDisparar');
             if (dispPane && !document.getElementById('campListCard')) {
                 dispPane.insertAdjacentHTML('afterbegin', ''
                     + '<div id="campListCard"></div>'
                     + '<div id="campWizardHost" style="display:none;"></div>'
-                    + '<div id="campTplHost" style="margin-top:22px;"></div>'
-                    + '<details id="campAdvanced" style="margin-top:20px;">'
-                    + '  <summary style="cursor:pointer;font-size:13px;font-weight:700;color:var(--text-muted);padding:10px 2px;"><i class="ph-bold ph-wrench"></i> Envio avançado (enviar agora / histórico técnico)</summary>'
-                    + '  <div id="campAdvancedBody"></div>'
-                    + '</details>');
+                    + '<div id="campTplHost" style="margin-top:22px;"></div>');
             }
-            move('dispBulkCard',   'campAdvancedBody');
-            move('dispAgendadosCard', 'campAdvancedBody');
+            // Esconde os cards antigos de envio imediato/agendados (não aparecem mais na página).
+            const _hideDisp = (id) => { const e = document.getElementById(id); if (e) e.style.display = 'none'; };
+            _hideDisp('dispBulkCard');
+            _hideDisp('dispAgendadosCard');
             move('dispKpisRow',    'dispSubHistorico');
             move('dispRecoveredCard', 'dispSubDashboard'); // recuperados ANTES do histórico, na sub-aba Dashboard
             move('dispHistCard',   'dispSubDashboard');
