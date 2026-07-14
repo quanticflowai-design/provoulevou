@@ -6711,25 +6711,10 @@
         // Grava uma mensagem de saída (disparo de template) na caixa de entrada, pra conversa
         // aparecer na hora — sem depender da resposta do cliente.
         async function chatLogOutbound(phone, opts) {
-            if (!supabaseClient || !activeUser) return;
-            opts = opts || {};
-            const lp = chatWaPhone(phone);
-            if (!lp) return;
-            try {
-                await supabaseClient.from('whatsapp_mensagens').insert({
-                    email: activeUser.email,
-                    lead_phone: lp,
-                    direction: 'out',
-                    msg_type: 'template',
-                    template_name: opts.template_name || null,
-                    body: opts.body || '',
-                    meta_message_id: opts.meta_message_id || null,
-                    status: 'sent',
-                    contact_name: opts.name || null,
-                    read_by_lojista: true,
-                    wa_timestamp: new Date().toISOString()
-                });
-            } catch (e) { console.warn('[chat] log outbound falhou:', e && e.message); }
+            // Conversa agora é gravada de forma centralizada pelo pl-wa-send (nó Loga Conversa),
+            // que renderiza corpo + botão do template. Este log client-side ficou redundante e
+            // causava corrida (às vezes gravava a versão SEM botão antes do server). Desativado.
+            return;
         }
 
         async function sendChatReply() {
