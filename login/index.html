@@ -10889,7 +10889,9 @@
                 const diarioOpt = CAMP.audience ? '' : ('<label class="camp-opt ' + (CAMP.sched === 'diario' ? 'sel' : '') + '"><input type="radio" name="campSched" ' + (CAMP.sched === 'diario' ? 'checked' : '') + ' onchange="campSetSched(\'diario\')"><div><b>Todo dia (contínuo)</b><br><span>Dispara diariamente pros novos clientes da etapa.</span>'
                     + (CAMP.sched === 'diario' ? ('<div style="margin-top:9px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;"><span style="font-size:12.5px;color:var(--text-muted);">Horário 1</span><input type="time" class="camp-inp" style="width:auto;" value="' + escapeHtml(CAMP.hora1) + '" oninput="CAMP.hora1=this.value"><span style="font-size:12.5px;color:var(--text-muted);">Horário 2 (opcional)</span><input type="time" class="camp-inp" style="width:auto;" value="' + escapeHtml(CAMP.hora2) + '" oninput="CAMP.hora2=this.value"></div>') : '')
                     + '</div></label>');
-                body = '<h3 class="camp-h">Quando enviar?</h3><p class="camp-p">' + (CAMP.audience ? 'Este público é uma fotografia de agora, então o envio é único.' : 'Um dia específico ou todos os dias em horário(s) fixo(s).') + '</p>'
+                const agoraOpt = '<label class="camp-opt ' + (CAMP.sched === 'agora' ? 'sel' : '') + '"><input type="radio" name="campSched" ' + (CAMP.sched === 'agora' ? 'checked' : '') + ' onchange="campSetSched(\'agora\')"><div><b>Disparar agora</b><br><span>Envia em seguida (em até ~5 min).</span></div></label>';
+                body = '<h3 class="camp-h">Quando enviar?</h3><p class="camp-p">' + (CAMP.audience ? 'Este público é uma fotografia de agora — o envio é único.' : 'Agora, num dia específico, ou todos os dias em horário(s) fixo(s).') + '</p>'
+                    + agoraOpt
                     + diarioOpt
                     + '<label class="camp-opt ' + (CAMP.sched === 'dia' ? 'sel' : '') + '"><input type="radio" name="campSched" ' + (CAMP.sched === 'dia' ? 'checked' : '') + ' onchange="campSetSched(\'dia\')"><div><b>Dia específico</b><br><span>Envia uma vez, na data e hora escolhidas.</span>'
                     + (CAMP.sched === 'dia' ? ('<div style="margin-top:9px;"><input type="datetime-local" class="camp-inp" style="width:auto;" value="' + escapeHtml(CAMP.dia) + '" oninput="CAMP.dia=this.value"></div>') : '')
@@ -11006,7 +11008,10 @@
             const setMsg = (t, err) => { if (msg) { msg.style.color = err ? '#dc2626' : '#10b981'; msg.textContent = t; } };
             // valida agendamento
             let scheduled_at, recurTimes = [];
-            if (CAMP.sched === 'dia') {
+            if (CAMP.sched === 'agora') {
+                // Dispara já: agenda pra "agora" e o executor (cron 5min) pega no próximo tick.
+                scheduled_at = new Date(Date.now() - 60 * 1000).toISOString();
+            } else if (CAMP.sched === 'dia') {
                 if (!CAMP.dia) return setMsg('Escolha a data e hora.', true);
                 const d = new Date(CAMP.dia); if (isNaN(d.getTime())) return setMsg('Data inválida.', true);
                 scheduled_at = d.toISOString();
@@ -11033,7 +11038,7 @@
                 return r;
             }
             try {
-                if (CAMP.sched === 'dia') {
+                if (CAMP.sched === 'dia' || CAMP.sched === 'agora') {
                     let targets = CAMP.audience ? CAMP.audience.targets : await waGetBulkTargets(CAMP.stage, '');
                     // Link de cada lead — MESMA lógica do disparo imediato (leadLinkOf vive no escopo do
                     // executeBulkSend e não existe aqui; antes o {{3}} saía sempre vazio → Meta #131008).
