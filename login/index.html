@@ -5388,13 +5388,17 @@
                             </div>
                             <div>
                                 <label class="wa-label">Corpo da mensagem</label>
+                                <div class="wa-var-intro" style="font-size:12.5px;color:var(--text-main);background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:10px;padding:10px 12px;margin-bottom:10px;line-height:1.55;">
+                                    💡 <strong>Arraste</strong> (ou clique) nos botões abaixo pra montar sua mensagem. A gente preenche os dados sozinho em cada envio:
+                                    <span style="display:block;margin-top:5px;"><i class="ph-bold ph-user" style="color:#7c3aed;"></i> <strong>Nome do cliente</strong> · <i class="ph-bold ph-eyeglasses" style="color:#7c3aed;"></i> <strong>Nome do produto</strong> provado · <i class="ph-bold ph-link" style="color:#7c3aed;"></i> <strong>Link do produto</strong></span>
+                                    <span style="display:block;margin-top:6px;color:var(--text-muted);">⚠️ A mensagem <strong>não pode começar nem terminar</strong> com um desses — sempre escreva um texto antes e depois.</span>
+                                </div>
                                 <div class="wa-var-chips">
                                     <span class="wa-var-chip" draggable="true" data-token="{{nome do cliente}}" onclick="tplInsertVar(this)" ondragstart="tplVarDragStart(event,this)" title="Arraste ou clique pra inserir na mensagem"><i class="ph-bold ph-user"></i> Nome do cliente</span>
                                     <span class="wa-var-chip" draggable="true" data-token="{{nome do produto}}" onclick="tplInsertVar(this)" ondragstart="tplVarDragStart(event,this)" title="Arraste ou clique pra inserir na mensagem"><i class="ph-bold ph-eyeglasses"></i> Nome do produto</span>
                                     <span class="wa-var-chip" draggable="true" data-token="{{link do produto}}" onclick="tplInsertVar(this)" ondragstart="tplVarDragStart(event,this)" title="Arraste ou clique pra inserir na mensagem"><i class="ph-bold ph-link"></i> Link do produto</span>
                                 </div>
                                 <textarea class="wa-input" id="newTplBody" rows="6" placeholder="Oi {{nome do cliente}}, você provou o {{nome do produto}} mas ainda não comprou. Finalize aqui: {{link do produto}} — te espero! 🧡" ondrop="tplVarDrop(event)"></textarea>
-                                <div class="wa-help"><strong>Arraste</strong> (ou clique) os botões acima pra inserir os dados que a gente preenche sozinho em cada disparo: o <strong>nome do cliente</strong>, o <strong>nome do produto</strong> provado e o <strong>link do produto</strong>. A mensagem não pode começar nem terminar com um desses.</div>
                             </div>
                             <div style="margin-top:14px;">
                                 <label class="wa-label">Botão de ação (CTA) <span style="color:var(--text-muted);font-weight:500;">(opcional — recomendado pela Meta)</span></label>
