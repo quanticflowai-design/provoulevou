@@ -5379,16 +5379,6 @@
                                 <textarea class="wa-input" id="newTplBody" rows="5" placeholder="Oi {{1}}, você provou o {{2}} mas ainda não comprou. Finalize aqui: {{3}}"></textarea>
                                 <div class="wa-help">Use <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;">{{1}}</code> pra nome, <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;">{{2}}</code> pra produto provado e <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;">{{3}}</code> pro link do produto (o disparo preenche o link de cada lead automaticamente)</div>
                             </div>
-                            <div class="wa-form-row">
-                                <div>
-                                    <label class="wa-label">Cabeçalho <span style="color:var(--text-muted);font-weight:500;">(opcional)</span></label>
-                                    <input type="text" class="wa-input" id="newTplHeader" placeholder="👓 Que tal levar pra casa?">
-                                </div>
-                                <div>
-                                    <label class="wa-label">Rodapé <span style="color:var(--text-muted);font-weight:500;">(opcional)</span></label>
-                                    <input type="text" class="wa-input" id="newTplFooter" placeholder="Provou Levou">
-                                </div>
-                            </div>
                             <div style="margin-top:14px;">
                                 <label class="wa-label">Botão de ação (CTA) <span style="color:var(--text-muted);font-weight:500;">(opcional — recomendado pela Meta)</span></label>
                                 <input type="text" class="wa-input" id="newTplBtnText" maxlength="25" placeholder="Ex: Comprar agora">
@@ -7752,8 +7742,8 @@
             const category = document.getElementById('newTplCategory').value;
             const lang = document.getElementById('newTplLang').value.trim() || 'pt_BR';
             const body = document.getElementById('newTplBody').value.trim();
-            const header = document.getElementById('newTplHeader').value.trim();
-            const footer = document.getElementById('newTplFooter').value.trim();
+            const header = ((document.getElementById('newTplHeader') || {}).value || '').trim();
+            const footer = ((document.getElementById('newTplFooter') || {}).value || '').trim();
             const fb = document.getElementById('waTplFeedback');
 
             if (!name || !body) {
