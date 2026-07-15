@@ -4928,6 +4928,31 @@
                     .wa-var-chip:hover { background: rgba(124,58,237,.2); }
                     .wa-var-chip:active { cursor: grabbing; transform: scale(.96); }
                     body.light-mode .wa-var-chip { background: rgba(124,58,237,.1); }
+                    /* Corpo com variáveis destacadas: camada de realce atrás do textarea (métricas idênticas) */
+                    .wa-body-wrap { position: relative; }
+                    .wa-body-backdrop, #newTplBody.wa-body-ta {
+                        font-family: inherit; font-size: 13px; line-height: 1.55;
+                        padding: 10px 12px; border: 1px solid transparent; border-radius: 8px;
+                        box-sizing: border-box; width: 100%; margin: 0;
+                        white-space: pre-wrap; overflow-wrap: break-word; word-break: break-word; letter-spacing: normal;
+                    }
+                    .wa-body-backdrop {
+                        position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+                        color: var(--text); background: rgba(255,255,255,.04);
+                    }
+                    body.light-mode .wa-body-backdrop { background: rgba(0,0,0,.025); }
+                    #newTplBody.wa-body-ta {
+                        position: relative; background: transparent !important;
+                        color: transparent; -webkit-text-fill-color: transparent; caret-color: var(--text);
+                        border-color: var(--border); resize: none; min-height: 130px;
+                    }
+                    #newTplBody.wa-body-ta:focus { border-color: #25D366; }
+                    #newTplBody.wa-body-ta::placeholder { color: var(--text-muted); -webkit-text-fill-color: var(--text-muted); opacity: .6; }
+                    .wa-var-hl {
+                        background: rgba(124,58,237,.22); color: #7c3aed; border-radius: 4px;
+                        box-shadow: 0 0 0 1px rgba(124,58,237,.25);
+                    }
+                    body.dark-mode .wa-var-hl { color: #c4b5fd; }
                     .wa-actions {
                         display: flex; gap: 10px; margin-top: 18px;
                         align-items: center; flex-wrap: wrap;
@@ -5398,7 +5423,10 @@
                                     <span class="wa-var-chip" draggable="true" data-token="{{nome do produto}}" onclick="tplInsertVar(this)" ondragstart="tplVarDragStart(event,this)" title="Arraste ou clique pra inserir na mensagem"><i class="ph-bold ph-eyeglasses"></i> Nome do produto</span>
                                     <span class="wa-var-chip" draggable="true" data-token="{{link do produto}}" onclick="tplInsertVar(this)" ondragstart="tplVarDragStart(event,this)" title="Arraste ou clique pra inserir na mensagem"><i class="ph-bold ph-link"></i> Link do produto</span>
                                 </div>
-                                <textarea class="wa-input" id="newTplBody" rows="6" placeholder="Oi {{nome do cliente}}, você provou o {{nome do produto}} mas ainda não comprou. Finalize aqui: {{link do produto}} — te espero! 🧡" ondrop="tplVarDrop(event)"></textarea>
+                                <div class="wa-body-wrap">
+                                    <div class="wa-body-backdrop" id="newTplBackdrop" aria-hidden="true"></div>
+                                    <textarea class="wa-input wa-body-ta" id="newTplBody" rows="6" placeholder="Oi {{nome do cliente}}, você provou o {{nome do produto}} mas ainda não comprou. Finalize aqui: {{link do produto}} — te espero! 🧡" oninput="tplSyncHighlight()" onscroll="tplSyncScroll()" ondrop="tplVarDrop(event)"></textarea>
+                                </div>
                             </div>
                             <div style="margin-top:14px;">
                                 <label class="wa-label">Botão de ação (CTA) <span style="color:var(--text-muted);font-weight:500;">(opcional — recomendado pela Meta)</span></label>
@@ -7445,6 +7473,7 @@
             document.getElementById('waTplModal').style.display = 'flex';
             document.getElementById('waTplFeedback').className = 'wa-feedback';
             document.getElementById('waTplFeedback').innerHTML = '';
+            try { tplSyncHighlight(); } catch (e) {} // sincroniza o realce do corpo com o conteúdo atual
         }
         function closeCreateTemplateModal() { document.getElementById('waTplModal').style.display = 'none'; }
 
@@ -7758,7 +7787,25 @@
             }
         }
 
-        // ── Variáveis arrastáveis na criação de template ──
+        // ── Variáveis arrastáveis + realce no corpo da criação de template ──
+        function tplHighlightHTML(text) {
+            const esc = String(text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return esc.replace(/\{\{\s*(?:nome do cliente|nome do produto|link do produto|\d+)\s*\}\}/gi,
+                m => '<span class="wa-var-hl">' + m + '</span>') + '\n';
+        }
+        function tplSyncScroll() {
+            const ta = document.getElementById('newTplBody');
+            const bd = document.getElementById('newTplBackdrop');
+            if (!ta || !bd) return;
+            bd.scrollTop = ta.scrollTop; bd.scrollLeft = ta.scrollLeft;
+        }
+        function tplSyncHighlight() {
+            const ta = document.getElementById('newTplBody');
+            const bd = document.getElementById('newTplBackdrop');
+            if (!ta || !bd) return;
+            bd.innerHTML = tplHighlightHTML(ta.value);
+            tplSyncScroll();
+        }
         function _tplInsertAtCaret(ta, text, pos) {
             const start = (pos != null) ? pos : (ta.selectionStart != null ? ta.selectionStart : ta.value.length);
             const end = (pos != null) ? pos : (ta.selectionEnd != null ? ta.selectionEnd : ta.value.length);
@@ -7771,6 +7818,7 @@
             const caret = (before + (needSpaceBefore ? ' ' : '') + text).length;
             ta.focus();
             try { ta.setSelectionRange(caret, caret); } catch (e) {}
+            tplSyncHighlight();
         }
         function tplInsertVar(el) {
             const ta = document.getElementById('newTplBody'); if (!ta) return;
