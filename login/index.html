@@ -4380,9 +4380,9 @@
                         <div style="margin-bottom:16px;">
                             <label class="wa-bulk-field-label">Mover leads para <span style="color:var(--text-muted);font-weight:500;">(após o disparo)</span></label>
                             <select id="waBulkMoveTo" class="wa-bulk-field">
-                                <option value="">Em contato (padrão ao disparar)</option>
+                                <option value="">Mensagem 1 (padrão ao disparar)</option>
                             </select>
-                            <div style="font-size:11px;color:var(--text-muted);margin-top:5px;">Quem recebe disparo vai automaticamente pra <strong>Em contato</strong>. Você pode escolher outra etapa aqui se quiser.</div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:5px;">Quem recebe disparo vai automaticamente pra <strong>Mensagem 1</strong> — isso trava o reenvio da mesma mensagem. Você pode escolher outra etapa aqui se quiser.</div>
                         </div>
                         <div class="disp-bulk-statsrow">
                             <div class="disp-bulk-stat">
@@ -10450,7 +10450,12 @@
                     // Assim, mover um lead pra Convertido (ex.: comprou com outro telefone) o tira
                     // do disparo de forma confiável, independente do modo escolhido.
                     if (st === 'convertido' || st === 'perdido') return false;
-                    if (!stageKey || stageKey === 'all') return true;
+                    if (!stageKey || stageKey === 'all') {
+                        // "Todas as etapas": não inclui quem JÁ FOI CONTATADO (recebeu msg / respondeu /
+                        // em negociação). A etapa do CRM é a fonte da verdade da trava anti-repetição.
+                        // Pra re-mirar esses leads, escolha a etapa específica (ex.: "Mensagem 1") de propósito.
+                        return st !== 'msg-1' && st !== 'msg-2' && st !== 'msg-3' && st !== 'em-contato' && st !== 'negociando';
+                    }
                     return st === stageKey;
                 })
                 .map(([phone, lead]) => ({
@@ -10841,7 +10846,7 @@
 
             // Mover leads que receberam pra etapa escolhida no CRM.
             // Padrão: quem recebe disparo vira "Em contato" (a menos que outra etapa seja escolhida).
-            const moveTo = ((document.getElementById('waBulkMoveTo') || {}).value) || 'em-contato';
+            const moveTo = ((document.getElementById('waBulkMoveTo') || {}).value) || 'msg-1';
             let movedMsg = '';
             if (moveTo && sentPhones.length && typeof setCrmLeadOverride === 'function') {
                 const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
@@ -11332,7 +11337,7 @@
                     const { error } = await campSafeInsert({
                         lojista_email: activeUser.email, nome: CAMP.nome.trim(), scheduled_at: scheduled_at,
                         template: CAMP.tplName, language: tplLang, payloads: payloads, total: payloads.length,
-                        move_to_stage: 'em-contato', status: status
+                        move_to_stage: 'msg-1', status: status
                     });
                     if (error) throw error;
                 } else {
@@ -11597,7 +11602,7 @@
                 return p;
             });
 
-            const moveTo = ((document.getElementById('waBulkMoveTo') || {}).value) || 'em-contato';
+            const moveTo = ((document.getElementById('waBulkMoveTo') || {}).value) || 'msg-1';
             const btn = document.getElementById('waBulkScheduleBtn');
             btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Agendando…';
             try {
