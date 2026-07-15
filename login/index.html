@@ -7752,6 +7752,21 @@
                 return;
             }
 
+            // A Meta rejeita template que começa OU termina com variável (subcode 2388299 —
+            // "As variáveis não podem estar no início ou no fim do modelo"). O erro dela vem
+            // truncado como "Invalid parameter", então validamos aqui com uma mensagem clara.
+            const bodyTrim = body.trim();
+            if (/^\{\{\s*\d+\s*\}\}/.test(bodyTrim)) {
+                fb.className = 'wa-feedback error';
+                fb.innerHTML = 'A mensagem <strong>não pode começar com uma variável</strong> ({{1}}, {{2}}…). Escreva um texto antes dela (ex.: comece com "Oi {{1}}!" em vez de só "{{1}}").';
+                return;
+            }
+            if (/\{\{\s*\d+\s*\}\}$/.test(bodyTrim)) {
+                fb.className = 'wa-feedback error';
+                fb.innerHTML = 'A mensagem <strong>não pode terminar com uma variável</strong> ({{1}}, {{2}}, {{3}}…). Adicione um texto de fechamento depois dela — ex.: depois de "👉 {{3}}" escreva algo como "Qualquer dúvida, é só chamar! 🧡".';
+                return;
+            }
+
             // Conta placeholders e gera exemplos (obrigatório pra Meta aceitar)
             const placeholderCount = (body.match(/\{\{(\d+)\}\}/g) || []).length;
             const sampleValues = ['Maria', 'Aviator Solis Dourado', 'https://sualoja.com.br/produto', 'CUPOM10', 'amanhã'];
