@@ -4550,6 +4550,16 @@
                     </div>
                 </div>
 
+                <div class="disp-card" id="dispSpeedCard" style="margin-bottom:20px;">
+                    <div>
+                        <h3><i class="ph-bold ph-timer" style="color:#7c3aed;"></i> Velocidade de compra após o disparo</h3>
+                        <p class="desc" style="margin-bottom:0;">Dos clientes <strong>recuperados pelos disparos</strong>, quantos compraram em até… (% e nº de clientes). Últimos 30 dias.</p>
+                    </div>
+                    <div id="dispSpeedCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:14px;">
+                        <div class="disp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando…</div>
+                    </div>
+                </div>
+
                 <div class="disp-card" id="dispRecoveredCard" style="margin-bottom:20px;">
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
                         <div>
@@ -8083,6 +8093,7 @@
             _hideDisp('dispBulkCard');
             _hideDisp('dispAgendadosCard');
             move('dispKpisRow',    'dispSubHistorico');
+            move('dispSpeedCard', 'dispSubDashboard');     // velocidade de compra ACIMA dos recuperados
             move('dispRecoveredCard', 'dispSubDashboard'); // recuperados ANTES do histórico, na sub-aba Dashboard
             move('dispHistCard',   'dispSubDashboard');
             move('dispDailyCard',  'dispSubHistorico');
@@ -10029,6 +10040,8 @@
             if (!activeUser.tabela_pedidos) {
                 listEl.innerHTML = '<div class="disp-empty">Esta loja ainda não tem pedidos integrados.</div>';
                 if (totalEl) totalEl.textContent = '—'; if (subEl) subEl.textContent = '—';
+                const _sp = document.getElementById('dispSpeedCards');
+                if (_sp) _sp.innerHTML = '<div class="disp-empty">Esta loja ainda não tem pedidos integrados.</div>';
                 return;
             }
             if (!allOrdersCache || !allOrdersCache.length) {
@@ -10090,6 +10103,33 @@
             });
             rows.sort((a, b) => b.orderMs - a.orderMs);
             _dispRecoveredRows = rows;
+
+            // Cards de velocidade: dos recuperados, quantos (% + nº) compraram em até cada janela (cumulativo).
+            const speedEl = document.getElementById('dispSpeedCards');
+            if (speedEl) {
+                const WIN = [
+                    { label: 'até 30 min', ms: 30 * 60 * 1000 },
+                    { label: 'até 1 hora', ms: 60 * 60 * 1000 },
+                    { label: 'até 24 horas', ms: 24 * 60 * 60 * 1000 },
+                    { label: 'até 7 dias', ms: 7 * 24 * 60 * 60 * 1000 },
+                    { label: 'até 30 dias', ms: 30 * 24 * 60 * 60 * 1000 }
+                ];
+                const tot = rows.length;
+                if (!tot) {
+                    speedEl.innerHTML = '<div class="disp-empty">Ninguém comprou após um disparo ainda.</div>';
+                } else {
+                    speedEl.innerHTML = WIN.map(w => {
+                        const n = rows.filter(r => r.gap <= w.ms).length;
+                        const pct = n / tot * 100;
+                        const pctStr = pct >= 99.95 ? '100' : pct.toFixed(pct < 10 ? 1 : 0);
+                        return '<div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.18);border-radius:12px;padding:14px 10px;text-align:center;">'
+                            + '<div style="font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px;">' + w.label + '</div>'
+                            + '<div style="font-size:24px;font-weight:800;letter-spacing:-.02em;color:#7c3aed;line-height:1;">' + pctStr + '%</div>'
+                            + '<div style="font-size:12px;color:var(--text-muted);margin-top:5px;">' + n.toLocaleString('pt-BR') + (n === 1 ? ' cliente' : ' clientes') + '</div>'
+                            + '</div>';
+                    }).join('');
+                }
+            }
 
             if (totalEl) totalEl.textContent = 'R$ ' + totalRev.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             if (subEl) subEl.textContent = rows.length.toLocaleString('pt-BR') + (rows.length === 1 ? ' cliente recuperado' : ' clientes recuperados');
