@@ -81,7 +81,10 @@
     function scarcityCount(name) {
         var h = 5381, s = String(name || '');
         for (var i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) >>> 0;
-        return 2 + (h % 6);
+        var FLOOR = 8, _st = 10 + (h % 4);   // estoque inicial por produto (10..13)
+            var _dn = new Date(), _df = (_dn.getHours() * 60 + _dn.getMinutes()) / 1440;
+            var _q = _st - Math.floor(_df * 5);   // cai ao longo do dia
+            return _q < FLOOR ? FLOOR : _q;        // piso 8
     }
     // Nome + preço + parcelamento + escassez + selos + botão (layout igual ao Cacifé).
     function populateBuyCta() {
