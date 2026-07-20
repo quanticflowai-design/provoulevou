@@ -13787,7 +13787,12 @@
                     .select(selectFields)
                     .in(fStatus, fStatusValues)
                     .order('created_at', { ascending: true })
-                    .order('id', { ascending: true });
+                    // Desempate estável p/ paginação (Regra 6). Tabelas de PEDIDOS usam
+                    // id_pedido como PK (não `id` — ex.: oclinhos_orders não tem `id`, e o
+                    // .order('id') quebrava a query inteira → fetchPagesParallel devolvia []
+                    // → faturamento pós-prova zerava). id_pedido é a chave de pedido usada
+                    // em todo o app (dedup composto).
+                    .order('id_pedido', { ascending: true });
                 if (earliestProvaDate) q = q.gte(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00');
                 if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
                 return q;
@@ -16519,7 +16524,9 @@
                             .select(selectFields)
                             .in(fStatus, fStatusValues)
                             .order(fDataPedido, { ascending: true })
-                            .order('id', { ascending: true })
+                            // id_pedido (não `id`) — PK das tabelas de pedidos. Ver nota em
+                            // loadSharedData: `id` não existe em oclinhos_orders e derrubava a query.
+                            .order('id_pedido', { ascending: true })
                             .range(pFrom, pFrom + pageSize - 1);
                         if (earliestDate !== '9999') q = q.gte(fDataPedido, earliestDate + 'T00:00:00-03:00');
                         if (user.canal_provador) q = q.eq('channel', user.canal_provador);
