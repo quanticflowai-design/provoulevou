@@ -9650,7 +9650,7 @@
         }
 
         /* ===== Dashboard de Efetividade dos Disparos (1ª sub-aba) ===== */
-        let _dispDashPeriod = 30; // 30 | 90 | 'all'
+        let _dispDashPeriod = 30; // 1 (hoje) | 7 | 30 | 90 | 'all'
 
         function _dispPeriodCutoffMs(period) {
             if (period === 'all') return 0;
@@ -9801,7 +9801,7 @@
         function _esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
         function dispDashboardHTML(d) {
-            const perLabel = { 30: 'últimos 30 dias', 90: 'últimos 90 dias', all: 'todo o período' }[d.period];
+            const perLabel = { 1: 'hoje', 7: 'últimos 7 dias', 30: 'últimos 30 dias', 90: 'últimos 90 dias', all: 'todo o período' }[d.period];
             const pill = (p, txt) => '<button class="dd-seg' + (String(d.period) === String(p) ? ' on' : '') + '" aria-pressed="' + (String(d.period) === String(p)) + '" onclick="dispDashSetPeriod(\'' + p + '\')">' + txt + '</button>';
             const taxa = d.disparosTotal ? (d.total.pedidos / d.disparosTotal * 100) : 0;
 
@@ -9850,7 +9850,7 @@
                 + '<div class="dd">'
                 + '  <div class="dd-top">'
                 + '    <div class="dd-eyebrow">Efetividade dos disparos</div>'
-                + '    <div class="dd-segs" role="group" aria-label="Período">' + pill(30, '30 dias') + pill(90, '90 dias') + pill('all', 'Tudo') + '</div>'
+                + '    <div class="dd-segs" role="group" aria-label="Período">' + pill(1, 'Hoje') + pill(7, '7 dias') + pill(30, '30 dias') + pill(90, '90 dias') + pill('all', 'Tudo') + '</div>'
                 + '  </div>'
                 + '  <div class="dd-hero">'
                 + '    <div class="dd-hero-lead">'
@@ -13732,6 +13732,21 @@
             return out;
         }
 
+        // A PK das tabelas de PEDIDOS varia: umas usam `id`, outras `id_pedido`
+        // (nunca as duas ausentes). Detecta qual existe p/ usar como desempate estável
+        // de paginação (Regra 6) sem quebrar a query — hardcodar uma zerava o faturamento
+        // na loja que usa a outra (ex.: mitani=id, oclinhos=id_pedido).
+        let _orderPkCache = {};
+        async function getOrderPk(table) {
+            if (!table) return 'id';
+            if (_orderPkCache[table]) return _orderPkCache[table];
+            try {
+                const { error } = await supabaseClient.from(table).select('id_pedido').limit(1);
+                _orderPkCache[table] = error ? 'id' : 'id_pedido';
+            } catch (e) { _orderPkCache[table] = 'id'; }
+            return _orderPkCache[table];
+        }
+
         async function loadSharedData() {
             const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
             const fTotal = activeUser.campo_total_pedido || 'total';
@@ -13773,6 +13788,7 @@
                 return;
             }
 
+            const orderPk = await getOrderPk(activeUser.tabela_pedidos);
             // Filtra pedidos a partir da data da primeira prova (evita trazer pedidos antigos demais)
             const earliestProva = Object.values(provaMinDateMap).sort()[0] || '';
             const earliestProvaDate = earliestProva.slice(0, 10);
@@ -13787,12 +13803,9 @@
                     .select(selectFields)
                     .in(fStatus, fStatusValues)
                     .order('created_at', { ascending: true })
-                    // Desempate estável p/ paginação (Regra 6). Tabelas de PEDIDOS usam
-                    // id_pedido como PK (não `id` — ex.: oclinhos_orders não tem `id`, e o
-                    // .order('id') quebrava a query inteira → fetchPagesParallel devolvia []
-                    // → faturamento pós-prova zerava). id_pedido é a chave de pedido usada
-                    // em todo o app (dedup composto).
-                    .order('id_pedido', { ascending: true });
+                    // Desempate estável p/ paginação (Regra 6). PK varia por tabela
+                    // (id vs id_pedido) — orderPk detecta a existente.
+                    .order(orderPk, { ascending: true });
                 if (earliestProvaDate) q = q.gte(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00');
                 if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
                 return q;
@@ -13811,12 +13824,12 @@
                 const preRows = await paginateAll(() => {
                     let q = supabaseClient
                         .from(activeUser.tabela_pedidos)
-                        .select(`${fDataPedido || 'created_at'}, ${fTotal}, ${fPhone}, id_pedido`)
+                        .select(`${fDataPedido || 'created_at'}, ${fTotal}, ${fPhone}, ${orderPk}`)
                         .in(fStatus, fStatusValues)
                         .gte(fDataPedido || 'created_at', baselineSinceIso)
                         .lt(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00')
                         .order(fDataPedido || 'created_at', { ascending: true })
-                        .order('id_pedido', { ascending: true });
+                        .order(orderPk, { ascending: true });
                     if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
                     return q;
                 });
@@ -13828,7 +13841,7 @@
                     // fica inflado por syncs duplicados → crescimento subestimado).
                     const _seenPed = new Set(), _seenComp = new Set();
                     for (const r of preRows) {
-                        const kPed = r.id_pedido != null ? String(r.id_pedido) : null;
+                        const kPed = r[orderPk] != null ? String(r[orderPk]) : null;
                         if (kPed && _seenPed.has(kPed)) continue;
                         if (kPed) _seenPed.add(kPed);
                         const _phRaw = String(r[fPhone] || '').replace(/\D/g, '');
@@ -13868,12 +13881,12 @@
                 const yoyRows = await paginateAll(() => {
                     let q = supabaseClient
                         .from(activeUser.tabela_pedidos)
-                        .select(`${fDataPedido || 'created_at'}, ${fTotal}, ${fPhone}, id_pedido`)
+                        .select(`${fDataPedido || 'created_at'}, ${fTotal}, ${fPhone}, ${orderPk}`)
                         .in(fStatus, fStatusValues)
                         .gte(fDataPedido || 'created_at', yoyStartIso)
                         .lt(fDataPedido || 'created_at', yoyEndIso)
                         .order(fDataPedido || 'created_at', { ascending: true })
-                        .order('id_pedido', { ascending: true });
+                        .order(orderPk, { ascending: true });
                     if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
                     return q;
                 });
@@ -13882,7 +13895,7 @@
                     let yoyFat = 0, yoyPed = 0;
                     const _sp = new Set(), _sc = new Set();
                     for (const r of yoyRows) {
-                        const kPed = r.id_pedido != null ? String(r.id_pedido) : null;
+                        const kPed = r[orderPk] != null ? String(r[orderPk]) : null;
                         if (kPed && _sp.has(kPed)) continue;
                         if (kPed) _sp.add(kPed);
                         const _ph = String(r[fPhone] || '').replace(/\D/g, '');
@@ -16375,6 +16388,7 @@
                 const fDataPedido = user.campo_data_pedido || 'created_at';
                 const fNome = user.campo_nome_pedido || 'customer_name';
                 const fStatusValues = user.valores_status_pago || ['paid', 'Confirmado'];
+                const orderPkCrm = await getOrderPk(user.tabela_pedidos);
 
                 // Provas (todas as sessões da origem do lojista)
                 const allSessions = [];
@@ -16524,9 +16538,8 @@
                             .select(selectFields)
                             .in(fStatus, fStatusValues)
                             .order(fDataPedido, { ascending: true })
-                            // id_pedido (não `id`) — PK das tabelas de pedidos. Ver nota em
-                            // loadSharedData: `id` não existe em oclinhos_orders e derrubava a query.
-                            .order('id_pedido', { ascending: true })
+                            // PK varia (id vs id_pedido) — orderPkCrm detecta. Ver loadSharedData.
+                            .order(orderPkCrm, { ascending: true })
                             .range(pFrom, pFrom + pageSize - 1);
                         if (earliestDate !== '9999') q = q.gte(fDataPedido, earliestDate + 'T00:00:00-03:00');
                         if (user.canal_provador) q = q.eq('channel', user.canal_provador);
