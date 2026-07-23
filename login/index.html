@@ -7662,7 +7662,9 @@
                 alert('WABA ID não configurado. Adicione na aba Conexão pra criar templates.');
                 return;
             }
-            document.getElementById('waTplModal').style.display = 'flex';
+            const _tplM = document.getElementById('waTplModal');
+            document.body.appendChild(_tplM); // reancorar no body (senão fica escondido se aberto da aba Disparos)
+            _tplM.style.display = 'flex';
             document.getElementById('waTplFeedback').className = 'wa-feedback';
             document.getElementById('waTplFeedback').innerHTML = '';
             // limpa a imagem de cabeçalho de uma abertura anterior
@@ -7817,7 +7819,9 @@
             document.getElementById('manualSendFeedback').innerHTML = '';
             document.getElementById('manualSendBtn').disabled = false;
             document.getElementById('manualSendBtn').innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Disparar';
-            document.getElementById('waManualSendModal').style.display = 'flex';
+            const _msM = document.getElementById('waManualSendModal');
+            document.body.appendChild(_msM); // reancorar no body (senão fica escondido se aberto da aba Disparos)
+            _msM.style.display = 'flex';
             // Garante que as mensagens modelo estão carregadas pra popular o seletor
             if (!(_waTemplatesCache && _waTemplatesCache.length) && typeof waLoadTemplates === 'function') {
                 const sel = document.getElementById('manualSendSelect');
@@ -8110,7 +8114,10 @@
             if (pvBody) pvBody.innerHTML = bodyHtml || '<span class="wa-msg-empty">(sem corpo de texto)</span>';
             if (pvBtn) { if (btnText) { pvBtn.innerHTML = '<i class="ph-bold ph-arrow-square-out"></i> ' + escapeHtml(btnText); pvBtn.style.display = 'flex'; } else { pvBtn.style.display = 'none'; pvBtn.innerHTML = ''; } }
             const modal = document.getElementById('waMsgPreviewModal');
-            if (modal) modal.style.display = 'flex';
+            // O modal fica dentro de #tab-meu-plano, mas os botões "Ver prévia" também aparecem
+            // na aba Disparos — e lá aquele tab-pane está display:none, então o modal não
+            // renderizava ("nada acontece"). Reancorar no body garante que abre de qualquer aba.
+            if (modal) { document.body.appendChild(modal); modal.style.display = 'flex'; }
         }
         function waClosePreview() { const m = document.getElementById('waMsgPreviewModal'); if (m) m.style.display = 'none'; }
 
