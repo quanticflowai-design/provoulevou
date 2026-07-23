@@ -5820,7 +5820,11 @@
         function restoreTab() {
             let saved = (function(){ try { return localStorage.getItem('pl-active-tab'); } catch(e) { return null; } })();
             if (saved === 'crm') saved = 'disparos';   // CRM agora vive dentro de Disparos
-            showTab(saved || 'visao-geral');
+            // Performance: no carregamento inicial, abre SEMPRE na Visão Geral (leve) em vez de
+            // restaurar Disparos/Campanhas — essas puxam CRM + o webhook de templates (~15s) e,
+            // junto com o loadSharedData, criavam uma rajada de queries que travava o 1º paint.
+            const HEAVY = { disparos: 1, campanhas: 1, templates: 1, crm: 1 };
+            showTab((saved && !HEAVY[saved]) ? saved : 'visao-geral');
         }
 
         let _csvExportData = []; // dados completos para exportação CSV
