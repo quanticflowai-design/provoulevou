@@ -5780,6 +5780,7 @@
         let activeUser = null;
 
         function showTab(name) {
+            if (isDisparosOnly() && name !== 'disparos') name = 'disparos';
             const pane = document.getElementById('tab-' + name);
             const btn = document.querySelector('.tab-btn[data-tab="' + name + '"]');
             if (!pane && !btn && name !== 'visao-geral') { return showTab('visao-geral'); }
@@ -5819,6 +5820,7 @@
         }
 
         function restoreTab() {
+            if (isDisparosOnly()) { showTab('disparos'); return; }
             let saved = (function(){ try { return localStorage.getItem('pl-active-tab'); } catch(e) { return null; } })();
             if (saved === 'crm') saved = 'disparos';   // CRM agora vive dentro de Disparos
             // Performance: no carregamento inicial, abre SEMPRE na Visão Geral (leve) em vez de
@@ -5867,6 +5869,13 @@
 
         function isMasterUser(email) {
             return email && MASTER_EMAILS.indexOf(email.toLowerCase()) !== -1;
+        }
+
+        // Logins restritos: só enxergam a aba Disparos.
+        const DISPAROS_ONLY_EMAILS = ['olm@oculoslindamenina.com'];
+        function isDisparosOnly() {
+            try { return activeUser && DISPAROS_ONLY_EMAILS.indexOf((activeUser.email || '').toLowerCase()) !== -1; }
+            catch (e) { return false; }
         }
 
         async function fetchLojista(preUser) {
@@ -6190,6 +6199,12 @@
             relocateMeuPlanoCards();
             unifyTopbar();
             _toggleEmailColumn();
+            if (isDisparosOnly()) {
+                ['visao-geral','clientes','provas','meu-plano'].forEach(function(t){
+                    var b = document.querySelector('.tab-btn[data-tab="'+t+'"]');
+                    if (b) b.style.display = 'none';
+                });
+            }
             loadData();
             loadCredits(userObj);
             waLoadConfig();
