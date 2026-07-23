@@ -7322,6 +7322,55 @@
 
         // ===== TEMPLATES =====
         const WA_TPL_URL = 'https://n8n.segredosdodrop.com/webhook/pl-wa-templates';
+        const WA_HEADER_UPLOAD_URL = 'https://n8n.segredosdodrop.com/webhook/pl-wa-header-upload';
+        // Imagem do cabeçalho por template (pl_wa_templates.header_image_url). O envio
+        // (pl-wa-send) injeta essa imagem no header dos templates de IMAGEM.
+        let _plTplImagesCache = null;
+        async function plTemplateImages(force) {
+            if (_plTplImagesCache && !force) return _plTplImagesCache;
+            const map = {};
+            try {
+                const { data } = await supabaseClient
+                    .from('pl_wa_templates').select('name,header_image_url').eq('email', activeUser.email);
+                (data || []).forEach(r => { if (r.header_image_url) map[r.name] = r.header_image_url; });
+            } catch (e) { console.warn('[pl-templates] images:', e); }
+            _plTplImagesCache = map;
+            return map;
+        }
+        // Escolhe um arquivo, sobe pro Storage e grava em pl_wa_templates (via webhook
+        // service_role — o anon não escreve no Storage). Funciona pra qualquer loja/template
+        // com header de imagem (não é mais chumbado por loja no n8n).
+        async function waUploadHeaderImage(templateName) {
+            const inp = document.createElement('input');
+            inp.type = 'file'; inp.accept = 'image/jpeg,image/png';
+            inp.onchange = async () => {
+                const file = inp.files && inp.files[0];
+                if (!file) return;
+                if (file.size > 5 * 1024 * 1024) { alert('Imagem muito grande (máx. 5MB).'); return; }
+                const btn = document.getElementById('waHdrBtn-' + templateName);
+                const oldHtml = btn ? btn.innerHTML : '';
+                if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Enviando…'; }
+                try {
+                    const b64 = await new Promise((resolve, reject) => {
+                        const fr = new FileReader();
+                        fr.onload = () => resolve(String(fr.result));
+                        fr.onerror = reject; fr.readAsDataURL(file);
+                    });
+                    const res = await fetch(WA_HEADER_UPLOAD_URL, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: activeUser.email, template: templateName, content_type: file.type, data_base64: b64 })
+                    });
+                    const out = await res.json();
+                    if (!out.ok) throw new Error(out.error || 'falha no upload');
+                    _plTplImagesCache = null;
+                    await waLoadTemplates(true);
+                } catch (e) {
+                    alert('Erro ao subir a imagem: ' + e.message);
+                    if (btn) { btn.disabled = false; btn.innerHTML = oldHtml; }
+                }
+            };
+            inp.click();
+        }
         let _waTemplatesCache = [];
         let _waTemplatesLoadedAt = 0; // p/ cache de frescor (evita rebuscar a Meta a cada clique em Campanhas)
 
@@ -7395,6 +7444,7 @@
                 data = await keepPLTemplates(data);
                 _waTemplatesCache = data;
                 _waTemplatesLoadedAt = Date.now();
+                const _hdrImgs = await plTemplateImages(true);
                 if (data.length === 0) {
                     list.innerHTML = '<div class="wa-tpl-empty">Nenhuma mensagem modelo criada ainda. Clique em <strong>Criar mensagem modelo</strong>.</div>';
                     return;
@@ -7407,6 +7457,9 @@
                     const isDefault = t.name === defaultName;
                     const bodyComp = (t.components || []).find(c => c.type === 'BODY');
                     const bodyText = (bodyComp && bodyComp.text) || '';
+                    const _hdrComp = (t.components || []).find(c => c.type === 'HEADER');
+                    const _isImgHeader = _hdrComp && _hdrComp.format === 'IMAGE';
+                    const _curImg = _hdrImgs[t.name] || '';
                     return `
                         <div class="wa-tpl-item ${isDefault ? 'is-default' : ''}">
                             <div>
@@ -7419,6 +7472,7 @@
                                 </div>
                                 <div class="wa-tpl-body-preview">${escapeHtml(bodyText)}</div>
                                 ${(t.rejected_reason && t.rejected_reason !== 'NONE') ? '<div style="color:#ef4444;font-size:11px;margin-top:6px;"><i class="ph-bold ph-warning"></i> ' + t.rejected_reason + '</div>' : ''}
+                                ${_isImgHeader ? `<div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${_curImg ? `<img src="${escapeHtml(_curImg)}" alt="cabecalho" style="width:42px;height:42px;object-fit:cover;border-radius:6px;border:1px solid var(--border,#e5e7eb);">` : '<span style="font-size:11px;color:var(--text-faint,#9ca3af);"><i class="ph-bold ph-image"></i> template com imagem — sem imagem definida</span>'}<button class="wa-tpl-act" id="waHdrBtn-${escapeHtml(t.name)}" onclick="waUploadHeaderImage('${escapeHtml(t.name)}')"><i class="ph-bold ph-upload-simple"></i> ${_curImg ? 'Trocar imagem' : 'Definir imagem'}</button></div>` : ''}
                             </div>
                             <div class="wa-tpl-actions">
                                 ${status === 'APPROVED' ? `<button class="wa-tpl-act primary" onclick="openManualSendModal('${escapeHtml(t.name)}','${t.language || 'pt_BR'}')"><i class="ph-bold ph-paper-plane-tilt"></i> Disparar teste</button>` : ''}
