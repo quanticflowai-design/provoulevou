@@ -4963,6 +4963,79 @@
                         box-shadow: 0 0 0 1px rgba(124,58,237,.25);
                     }
                     body.dark-mode .wa-var-hl { color: #c4b5fd; }
+                    /* ===== Upload de imagem do cabeçalho (dropzone) ===== */
+                    .wa-imgdrop {
+                        border: 1.5px dashed var(--border, #d1d5db); border-radius: 14px;
+                        padding: 16px; cursor: pointer; transition: border-color .18s, background .18s, box-shadow .18s;
+                        background: linear-gradient(180deg, rgba(37,211,102,.05), rgba(37,211,102,.02));
+                    }
+                    .wa-imgdrop:hover { border-color: #25D366; background: rgba(37,211,102,.08);
+                        box-shadow: 0 0 0 4px rgba(37,211,102,.08); }
+                    .wa-imgdrop-empty { display: flex; flex-direction: column; align-items: center; gap: 3px;
+                        text-align: center; color: var(--text-muted); padding: 10px 0; pointer-events: none; }
+                    .wa-imgdrop-empty .wa-imgdrop-ic {
+                        width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
+                        background: rgba(37,211,102,.14); color: #128C4B; font-size: 22px; margin-bottom: 6px; }
+                    body.dark-mode .wa-imgdrop-empty .wa-imgdrop-ic { color: #4ade80; }
+                    .wa-imgdrop-t { font-size: 13px; font-weight: 700; color: var(--text-main); }
+                    .wa-imgdrop-t b { color: #128C4B; }
+                    body.dark-mode .wa-imgdrop-t b { color: #4ade80; }
+                    .wa-imgdrop-s { font-size: 11px; color: var(--text-muted); }
+                    .wa-imgdrop-preview { display: flex; align-items: center; gap: 14px; }
+                    .wa-imgdrop-preview img { width: 66px; height: 66px; object-fit: cover; border-radius: 12px;
+                        border: 1px solid var(--border); flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+                    .wa-imgdrop-info { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
+                    .wa-imgdrop-fname { font-size: 12.5px; font-weight: 600; color: var(--text-main);
+                        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                    .wa-imgdrop-btns { display: flex; gap: 8px; }
+                    .wa-chip-btn { font-size: 11.5px; font-weight: 600; border: 1px solid var(--border);
+                        background: var(--surface, #fff); color: var(--text-main); border-radius: 999px;
+                        padding: 5px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+                        transition: border-color .15s, color .15s, background .15s; }
+                    body.dark-mode .wa-chip-btn { background: rgba(255,255,255,.05); }
+                    .wa-chip-btn.green:hover { border-color: #25D366; color: #128C4B; background: rgba(37,211,102,.06); }
+                    .wa-chip-btn.red:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,.06); }
+                    /* ===== Botão "definir imagem" na lista de templates ===== */
+                    .wa-hdrimg-row { display: flex; align-items: center; gap: 10px; margin-top: 10px;
+                        padding: 8px 10px; border-radius: 12px; background: var(--bg-soft, rgba(37,211,102,.05));
+                        border: 1px solid var(--border, #e5e7eb); }
+                    .wa-hdrimg-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 9px;
+                        border: 1px solid var(--border); flex-shrink: 0; }
+                    .wa-hdrimg-none { font-size: 11.5px; color: var(--text-muted); display: inline-flex;
+                        align-items: center; gap: 5px; flex: 1; }
+                    .wa-hdrimg-btn { margin-left: auto; font-size: 12px; font-weight: 700; border: none;
+                        background: #25D366; color: #fff; border-radius: 999px; padding: 7px 14px; cursor: pointer;
+                        display: inline-flex; align-items: center; gap: 6px; transition: filter .15s, transform .05s;
+                        box-shadow: 0 2px 8px rgba(37,211,102,.28); }
+                    .wa-hdrimg-btn:hover { filter: brightness(1.05); }
+                    .wa-hdrimg-btn:active { transform: translateY(1px); }
+                    .wa-hdrimg-btn:disabled { opacity: .6; cursor: not-allowed; box-shadow: none; }
+                    /* ===== Prévia da mensagem (estilo WhatsApp) ===== */
+                    .wa-msg-preview {
+                        background: #E5DDD5; background-image: linear-gradient(rgba(229,221,213,.9), rgba(229,221,213,.9));
+                        border-radius: 14px; padding: 18px 14px; display: flex; justify-content: flex-start;
+                        border: 1px solid var(--border, #e5e7eb);
+                    }
+                    body.dark-mode .wa-msg-preview { background: #0b141a; }
+                    .wa-msg-bubble {
+                        background: #fff; border-radius: 4px 12px 12px 12px; max-width: 320px; width: 100%;
+                        padding: 6px 8px 8px; box-shadow: 0 1px 1px rgba(0,0,0,.13); position: relative;
+                    }
+                    body.dark-mode .wa-msg-bubble { background: #202c33; }
+                    .wa-msg-img { width: 100%; border-radius: 8px; display: block; margin-bottom: 6px;
+                        max-height: 190px; object-fit: cover; }
+                    .wa-msg-body { font-size: 13.5px; line-height: 1.42; color: #111b21; white-space: pre-wrap;
+                        word-break: break-word; padding: 0 4px; }
+                    body.dark-mode .wa-msg-body { color: #e9edef; }
+                    .wa-msg-body .wa-msg-var { color: #128C4B; font-weight: 600; }
+                    body.dark-mode .wa-msg-body .wa-msg-var { color: #53bdeb; }
+                    .wa-msg-body .wa-msg-empty { color: #9aa5ab; font-style: italic; }
+                    .wa-msg-btn { margin: 8px -8px 0; padding: 9px; border-top: 1px solid rgba(0,0,0,.08);
+                        text-align: center; color: #00a5f4; font-size: 14px; font-weight: 500;
+                        display: flex; align-items: center; justify-content: center; gap: 6px; }
+                    body.dark-mode .wa-msg-btn { border-top-color: rgba(255,255,255,.1); color: #53bdeb; }
+                    .wa-msg-time { font-size: 10.5px; color: #667781; text-align: right; margin-top: 2px; padding: 0 4px; }
+                    body.dark-mode .wa-msg-time { color: #8696a0; }
                     .wa-actions {
                         display: flex; gap: 10px; margin-top: 18px;
                         align-items: center; flex-wrap: wrap;
@@ -5423,11 +5496,24 @@
                             </div>
                             <div>
                                 <label class="wa-label">Imagem no topo <span style="color:var(--text-muted);font-weight:500;">(opcional)</span></label>
-                                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                                    <input type="file" id="newTplHeaderImg" accept="image/jpeg,image/png" style="font-size:12.5px;" onchange="tplPreviewHeaderImg()">
-                                    <img id="newTplHeaderImgPreview" alt="" style="display:none;width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid var(--border,#e5e7eb);">
+                                <input type="file" id="newTplHeaderImg" accept="image/jpeg,image/png" style="display:none;" onchange="tplPreviewHeaderImg()">
+                                <div class="wa-imgdrop" id="newTplHeaderDrop" onclick="document.getElementById('newTplHeaderImg').click()">
+                                    <div class="wa-imgdrop-empty" id="newTplHeaderDropEmpty">
+                                        <span class="wa-imgdrop-ic"><i class="ph-bold ph-image-square"></i></span>
+                                        <div class="wa-imgdrop-t">Clique para <b>escolher uma imagem</b></div>
+                                        <div class="wa-imgdrop-s">JPG ou PNG · até 5MB · vai no topo da mensagem</div>
+                                    </div>
+                                    <div class="wa-imgdrop-preview" id="newTplHeaderDropFilled" style="display:none;">
+                                        <img id="newTplHeaderImgPreview" alt="prévia">
+                                        <div class="wa-imgdrop-info">
+                                            <div class="wa-imgdrop-fname" id="newTplHeaderFname"></div>
+                                            <div class="wa-imgdrop-btns">
+                                                <button type="button" class="wa-chip-btn green" onclick="event.stopPropagation();document.getElementById('newTplHeaderImg').click();"><i class="ph-bold ph-arrows-clockwise"></i> Trocar</button>
+                                                <button type="button" class="wa-chip-btn red" onclick="event.stopPropagation();tplClearHeaderImg();"><i class="ph-bold ph-trash"></i> Remover</button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="wa-help">JPG ou PNG (até 5MB). Cria um template com foto no cabeçalho — a mesma imagem vai em todo envio desse modelo.</div>
                             </div>
                             <div>
                                 <label class="wa-label">Corpo da mensagem</label>
@@ -5443,13 +5529,24 @@
                                 </div>
                                 <div class="wa-body-wrap">
                                     <div class="wa-body-backdrop" id="newTplBackdrop" aria-hidden="true"></div>
-                                    <textarea class="wa-input wa-body-ta" id="newTplBody" rows="6" placeholder="Oi {{nome do cliente}}, você provou o {{nome do produto}} mas ainda não comprou. Finalize aqui: {{link do produto}} — te espero! 🧡" oninput="tplSyncHighlight()" onscroll="tplSyncScroll()" ondrop="tplVarDrop(event)"></textarea>
+                                    <textarea class="wa-input wa-body-ta" id="newTplBody" rows="6" placeholder="Oi {{nome do cliente}}, você provou o {{nome do produto}} mas ainda não comprou. Finalize aqui: {{link do produto}} — te espero! 🧡" oninput="tplSyncHighlight();tplUpdatePreview()" onscroll="tplSyncScroll()" ondrop="tplVarDrop(event)"></textarea>
                                 </div>
                             </div>
                             <div style="margin-top:14px;">
                                 <label class="wa-label">Botão de ação (CTA) <span style="color:var(--text-muted);font-weight:500;">(opcional — recomendado pela Meta)</span></label>
-                                <input type="text" class="wa-input" id="newTplBtnText" maxlength="25" placeholder="Ex: Comprar agora">
+                                <input type="text" class="wa-input" id="newTplBtnText" maxlength="25" placeholder="Ex: Comprar agora" oninput="tplUpdatePreview()">
                                 <div class="wa-help">Aqui vai só o <strong>texto do botão</strong> (ex: "Comprar agora"). O <strong>link é preenchido automaticamente</strong> pra cada lead — você <strong>não precisa colar nada</strong>. Cria um botão que leva o cliente direto pro produto que ele provou (converte mais que link no texto). Deixe vazio pra não ter botão.</div>
+                            </div>
+                            <div>
+                                <label class="wa-label">Prévia da mensagem</label>
+                                <div class="wa-msg-preview">
+                                    <div class="wa-msg-bubble">
+                                        <img id="waPvImg" class="wa-msg-img" alt="" style="display:none;">
+                                        <div id="waPvBody" class="wa-msg-body"></div>
+                                        <div id="waPvBtn" class="wa-msg-btn" style="display:none;"></div>
+                                        <div class="wa-msg-time">agora ✓✓</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="wa-feedback" id="waTplFeedback"></div>
@@ -7480,7 +7577,7 @@
                                 </div>
                                 <div class="wa-tpl-body-preview">${escapeHtml(bodyText)}</div>
                                 ${(t.rejected_reason && t.rejected_reason !== 'NONE') ? '<div style="color:#ef4444;font-size:11px;margin-top:6px;"><i class="ph-bold ph-warning"></i> ' + t.rejected_reason + '</div>' : ''}
-                                ${_isImgHeader ? `<div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${_curImg ? `<img src="${escapeHtml(_curImg)}" alt="cabecalho" style="width:42px;height:42px;object-fit:cover;border-radius:6px;border:1px solid var(--border,#e5e7eb);">` : '<span style="font-size:11px;color:var(--text-faint,#9ca3af);"><i class="ph-bold ph-image"></i> template com imagem — sem imagem definida</span>'}<button class="wa-tpl-act" id="waHdrBtn-${escapeHtml(t.name)}" onclick="waUploadHeaderImage('${escapeHtml(t.name)}')"><i class="ph-bold ph-upload-simple"></i> ${_curImg ? 'Trocar imagem' : 'Definir imagem'}</button></div>` : ''}
+                                ${_isImgHeader ? `<div class="wa-hdrimg-row">${_curImg ? `<img class="wa-hdrimg-thumb" src="${escapeHtml(_curImg)}" alt="cabeçalho">` : '<span class="wa-hdrimg-none"><i class="ph-bold ph-image"></i> sem imagem definida</span>'}<button class="wa-hdrimg-btn" id="waHdrBtn-${escapeHtml(t.name)}" onclick="waUploadHeaderImage('${escapeHtml(t.name)}')"><i class="ph-bold ph-${_curImg ? 'arrows-clockwise' : 'upload-simple'}"></i> ${_curImg ? 'Trocar imagem' : 'Definir imagem'}</button></div>` : ''}
                             </div>
                             <div class="wa-tpl-actions">
                                 ${status === 'APPROVED' ? `<button class="wa-tpl-act primary" onclick="openManualSendModal('${escapeHtml(t.name)}','${t.language || 'pt_BR'}')"><i class="ph-bold ph-paper-plane-tilt"></i> Disparar teste</button>` : ''}
@@ -7548,6 +7645,7 @@
             // limpa a imagem de cabeçalho de uma abertura anterior
             const _hi = document.getElementById('newTplHeaderImg'); if (_hi) _hi.value = '';
             try { tplPreviewHeaderImg(); } catch (e) {}
+            try { tplUpdatePreview(); } catch (e) {}
             try { tplSyncHighlight(); } catch (e) {} // sincroniza o realce do corpo com o conteúdo atual
         }
         function closeCreateTemplateModal() { document.getElementById('waTplModal').style.display = 'none'; }
@@ -7918,9 +8016,53 @@
         function tplPreviewHeaderImg() {
             const inp = document.getElementById('newTplHeaderImg');
             const img = document.getElementById('newTplHeaderImgPreview');
+            const empty = document.getElementById('newTplHeaderDropEmpty');
+            const filled = document.getElementById('newTplHeaderDropFilled');
+            const fname = document.getElementById('newTplHeaderFname');
             const f = inp && inp.files && inp.files[0];
-            if (f && img) { try { img.src = URL.createObjectURL(f); } catch (e) {} img.style.display = 'block'; }
-            else if (img) { img.style.display = 'none'; img.removeAttribute('src'); }
+            if (f) {
+                if (img) { try { img.src = URL.createObjectURL(f); } catch (e) {} }
+                if (fname) fname.textContent = f.name;
+                if (empty) empty.style.display = 'none';
+                if (filled) filled.style.display = 'flex';
+            } else {
+                if (img) { img.removeAttribute('src'); }
+                if (empty) empty.style.display = 'flex';
+                if (filled) filled.style.display = 'none';
+            }
+            try { tplUpdatePreview(); } catch (e) {}
+        }
+        function tplClearHeaderImg() {
+            const inp = document.getElementById('newTplHeaderImg');
+            if (inp) inp.value = '';
+            tplPreviewHeaderImg();
+        }
+        // Prévia estilo WhatsApp: imagem no topo + corpo (com variáveis de exemplo) + botão.
+        function tplUpdatePreview() {
+            const pvBody = document.getElementById('waPvBody');
+            if (!pvBody) return;
+            const pvImg = document.getElementById('waPvImg');
+            const pvBtn = document.getElementById('waPvBtn');
+            const inp = document.getElementById('newTplHeaderImg');
+            const f = inp && inp.files && inp.files[0];
+            if (pvImg) {
+                if (f) { try { pvImg.src = URL.createObjectURL(f); } catch (e) {} pvImg.style.display = 'block'; }
+                else { pvImg.style.display = 'none'; pvImg.removeAttribute('src'); }
+            }
+            const txt = (document.getElementById('newTplBody') || {}).value || '';
+            if (!txt.trim()) {
+                pvBody.innerHTML = '<span class="wa-msg-empty">Sua mensagem vai aparecer aqui…</span>';
+            } else {
+                pvBody.innerHTML = escapeHtml(txt)
+                    .replace(/\{\{\s*nome do cliente\s*\}\}/gi, '<span class="wa-msg-var">Maria</span>')
+                    .replace(/\{\{\s*nome do produto\s*\}\}/gi, '<span class="wa-msg-var">Aviator Solis Dourado</span>')
+                    .replace(/\{\{\s*link do produto\s*\}\}/gi, '<span class="wa-msg-var">sualoja.com.br/produto</span>');
+            }
+            const btnText = ((document.getElementById('newTplBtnText') || {}).value || '').trim();
+            if (pvBtn) {
+                if (btnText) { pvBtn.innerHTML = '<i class="ph-bold ph-arrow-square-out"></i> ' + escapeHtml(btnText); pvBtn.style.display = 'flex'; }
+                else { pvBtn.style.display = 'none'; pvBtn.innerHTML = ''; }
+            }
         }
 
         async function submitCreateTemplate() {
