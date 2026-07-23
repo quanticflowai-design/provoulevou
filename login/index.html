@@ -15128,6 +15128,78 @@
             }
         }
 
+        // ===== Fast-path do header da Visão Geral via RPC (server-side) =====
+        // Pinta faturamento/pedidos/compradores/provaram/voltaram/% na HORA, direto do
+        // servidor (pl_kpis_overview), sem esperar as ~95k linhas de loadSharedData().
+        // SEGURO: só roda em lojas VALIDADAS ao centavo contra a dash; se o RPC falhar ou
+        // a loja não estiver na allowlist, retorna false e o cálculo client-side normal
+        // (loadVisaoGeral) assume — sem regressão de número pra ninguém.
+        const RPC_OVERVIEW_STORES = ['cacifebrand.com.br'];
+        async function plOverviewFastPath() {
+            try {
+                if (!supabaseClient || !activeUser || !activeUser.tabela_pedidos) return false;
+                const origem = (activeUser.origem || '').toLowerCase();
+                if (!RPC_OVERVIEW_STORES.some(s => origem.includes(s))) return false;
+                const { data, error } = await supabaseClient.rpc('pl_kpis_overview', {
+                    p_origin: activeUser.origem,
+                    p_orders_table: activeUser.tabela_pedidos,
+                    p_phone_field: activeUser.campo_telefone_pedido || 'customer_phone',
+                    p_total_field: activeUser.campo_total_pedido || 'total',
+                    p_status_field: activeUser.campo_status_pedido || 'payment_status',
+                    p_status_values: activeUser.valores_status_pago || ['paid'],
+                    p_date_field: activeUser.campo_data_pedido || 'created_at',
+                    p_channel: activeUser.canal_provador || null
+                });
+                if (error || !data || !data.length) return false;
+                const r = data[0];
+                const provaram = +r.provaram || 0, voltaram = +r.voltaram || 0, compraram = +r.compraram || 0;
+                const fat = +r.faturamento || 0, fatTotal = +r.fat_total_loja || 0;
+                if (provaram <= 0) return false;
+                const pctReengaj = provaram > 0 ? voltaram / provaram * 100 : 0;
+                const pctImpacto = fatTotal > 0 ? fat / fatTotal * 100 : 0;
+                const fmtNum = n => n.toLocaleString('pt-BR');
+                const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                const hero = document.getElementById('vhero'); if (hero) hero.style.display = '';
+                const vfunnel = document.getElementById('vfunnel');
+                if (vfunnel) vfunnel.innerHTML = `
+                    <div class="vg-journey-step">
+                        <div class="vg-js-head">
+                            <span class="vg-js-label"><span class="num">${fmtNum(provaram)}</span> clientes provaram</span>
+                            <span class="vg-js-pct">100%</span>
+                        </div>
+                        <div class="vg-js-bar"><div class="vg-js-fill" style="width:100%"></div></div>
+                    </div>
+                    <span class="vg-journey-chev"><i class="ph-bold ph-caret-right"></i></span>
+                    <div class="vg-journey-step">
+                        <div class="vg-js-head">
+                            <span class="vg-js-label"><span class="num">${fmtNum(voltaram)}</span> voltaram</span>
+                            <span class="vg-js-pct">${pctReengaj.toFixed(0)}%</span>
+                        </div>
+                        <div class="vg-js-bar"><div class="vg-js-fill middle" style="width:${Math.min(100, pctReengaj)}%"></div></div>
+                    </div>
+                    <span class="vg-journey-chev"><i class="ph-bold ph-caret-right"></i></span>
+                    <div class="vg-journey-step">
+                        <div class="vg-js-head">
+                            <span class="vg-js-label"><span class="num">${fmtNum(compraram)}</span> compraram</span>
+                            <span class="vg-js-pct">${pctImpacto.toFixed(1).replace('.', ',')}%</span>
+                        </div>
+                        <div class="vg-js-bar"><div class="vg-js-fill end" style="width:${Math.min(100, Math.max(2, pctImpacto))}%"></div></div>
+                    </div>
+                `;
+                const amt = document.getElementById('vheroAttrAmount');
+                if (amt && fat > 0) {
+                    amt.innerHTML = '<span class="currency">R$</span> ' + fat.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const ticket = compraram > 0 ? fat / compraram : 0;
+                    const pctStr = pctImpacto.toFixed(1).replace('.', ',') + '%';
+                    const extra = document.getElementById('vheroAttrExtra');
+                    if (extra) extra.innerHTML =
+                        '<span class="num">' + fmtNum(compraram) + '</span> compradores · ticket médio <strong>' + brl(ticket) + '</strong>' +
+                        '<br><span class="vg-impact-pct"><span class="vg-impact-pct-num">' + pctStr + '</span> do faturamento total da loja</span>';
+                }
+                return true;
+            } catch (e) { console.warn('[overview fast-path]', e); return false; }
+        }
+
         async function loadData() {
             if (!supabaseClient || !activeUser) return;
             document.getElementById('mainLoader').style.display = 'flex';
@@ -15140,8 +15212,25 @@
             _crmConfigMem = null;
             _crmOverridesMem = null;
             crmLeadMapCache = null;
+            let _fastRevealed = false;
             try {
-                await loadSharedData();
+                // Carrega os dados pesados (95k linhas) em paralelo com o fast-path do header.
+                const sharedPromise = loadSharedData().catch(e => { console.warn('[dashboard] sharedData:', e); });
+
+                // Fast-path: se a loja é validada, pinta o header via RPC e revela na hora,
+                // sem esperar o sharedPromise. As demais seções entram progressivamente abaixo.
+                try {
+                    if (await plOverviewFastPath()) {
+                        const dash = document.getElementById('dashboardSection');
+                        dash.style.visibility = 'visible';
+                        dash.style.display = 'block';
+                        restoreTab();
+                        document.getElementById('mainLoader').style.display = 'none';
+                        _fastRevealed = true;
+                    }
+                } catch (e) { console.warn('[fast-path reveal]', e); }
+
+                await sharedPromise;
                 loadVisaoGeral();
                 loadRecompra();
                 loadConsumoPlano();
@@ -15150,11 +15239,13 @@
 
                 // Mostra dashboard com visibility:hidden (ocupa espaço, canvas pega dimensões corretas)
                 // mas continua coberto pelo loader. Depois que o gráfico principal renderizar,
-                // remove o loader e revela o dashboard.
+                // remove o loader e revela o dashboard. (Pulado se o fast-path já revelou.)
                 const dash = document.getElementById('dashboardSection');
-                dash.style.visibility = 'hidden';
-                dash.style.display = 'block';
-                restoreTab();
+                if (!_fastRevealed) {
+                    dash.style.visibility = 'hidden';
+                    dash.style.display = 'block';
+                    restoreTab();
+                }
 
                 // Aguarda 1 frame pra canvas ter dimensões reais, então renderiza o gráfico
                 // principal e ESPERA terminar antes de revelar o dashboard pro usuário.
@@ -15163,7 +15254,7 @@
                     await renderFatMensalChart(_fatChartGranularity);
                 }
 
-                // Tudo pronto — revela o dashboard, esconde o loader
+                // Tudo pronto — revela o dashboard, esconde o loader (idempotente se já revelado)
                 dash.style.visibility = 'visible';
                 document.getElementById('mainLoader').style.display = 'none';
 
