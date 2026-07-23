@@ -189,6 +189,7 @@
             --text-main: #1a1a2e;
             --text-muted: #7c7c8a;
             --border: rgba(0, 0, 0, 0.06);
+            --border-strong: rgba(0, 0, 0, 0.16); /* tema claro: senão herdava o branco do dark e a borda sumia no hover */
         }
 
         .container {
@@ -7604,7 +7605,6 @@
                             <div class="wa-tpl-actions">
                                 <button class="wa-tpl-act" onclick="waPreviewTemplate('${escapeHtml(t.name)}')"><i class="ph-bold ph-eye"></i> Ver prévia</button>
                                 ${status === 'APPROVED' ? `<button class="wa-tpl-act primary" onclick="openManualSendModal('${escapeHtml(t.name)}','${t.language || 'pt_BR'}')"><i class="ph-bold ph-paper-plane-tilt"></i> Disparar teste</button>` : ''}
-                                ${(status === 'APPROVED' && !isDefault) ? `<button class="wa-tpl-act" onclick="waSetDefaultTemplate('${t.name}','${t.language || 'pt_BR'}')"><i class="ph-bold ph-check"></i> Definir padrão</button>` : ''}
                                 <button class="wa-tpl-act danger" onclick="waDeleteTemplate('${escapeHtml(t.name)}','${t.id || ''}')"><i class="ph-bold ph-trash"></i></button>
                             </div>
                         </div>
