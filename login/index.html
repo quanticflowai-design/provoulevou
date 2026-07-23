@@ -15212,25 +15212,8 @@
             _crmConfigMem = null;
             _crmOverridesMem = null;
             crmLeadMapCache = null;
-            let _fastRevealed = false;
             try {
-                // Carrega os dados pesados (95k linhas) em paralelo com o fast-path do header.
-                const sharedPromise = loadSharedData().catch(e => { console.warn('[dashboard] sharedData:', e); });
-
-                // Fast-path: se a loja é validada, pinta o header via RPC e revela na hora,
-                // sem esperar o sharedPromise. As demais seções entram progressivamente abaixo.
-                try {
-                    if (await plOverviewFastPath()) {
-                        const dash = document.getElementById('dashboardSection');
-                        dash.style.visibility = 'visible';
-                        dash.style.display = 'block';
-                        restoreTab();
-                        document.getElementById('mainLoader').style.display = 'none';
-                        _fastRevealed = true;
-                    }
-                } catch (e) { console.warn('[fast-path reveal]', e); }
-
-                await sharedPromise;
+                await loadSharedData();
                 loadVisaoGeral();
                 loadRecompra();
                 loadConsumoPlano();
@@ -15239,13 +15222,11 @@
 
                 // Mostra dashboard com visibility:hidden (ocupa espaço, canvas pega dimensões corretas)
                 // mas continua coberto pelo loader. Depois que o gráfico principal renderizar,
-                // remove o loader e revela o dashboard. (Pulado se o fast-path já revelou.)
+                // remove o loader e revela o dashboard.
                 const dash = document.getElementById('dashboardSection');
-                if (!_fastRevealed) {
-                    dash.style.visibility = 'hidden';
-                    dash.style.display = 'block';
-                    restoreTab();
-                }
+                dash.style.visibility = 'hidden';
+                dash.style.display = 'block';
+                restoreTab();
 
                 // Aguarda 1 frame pra canvas ter dimensões reais, então renderiza o gráfico
                 // principal e ESPERA terminar antes de revelar o dashboard pro usuário.
@@ -15254,7 +15235,7 @@
                     await renderFatMensalChart(_fatChartGranularity);
                 }
 
-                // Tudo pronto — revela o dashboard, esconde o loader (idempotente se já revelado)
+                // Tudo pronto — revela o dashboard, esconde o loader
                 dash.style.visibility = 'visible';
                 document.getElementById('mainLoader').style.display = 'none';
 
