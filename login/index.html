@@ -6176,7 +6176,10 @@
 
         function showDashboard(userObj) {
             document.body.classList.remove('login-mode');
-            document.body.classList.remove('booting');
+            // NÃO remove 'booting' aqui: mantém o bootSplash (z-index 9999) cobrindo até o
+            // dashboard ficar pronto. Senão aparecem DUAS telas de carregamento no F5 do lojista
+            // logado (bootSplash -> mainLoader). O loadData remove 'booting' junto com o reveal
+            // (fica 1 loader só). No login manual 'booting' nem está setado, então é no-op.
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('mainHeader').style.display = 'flex';
             restoreTheme();
@@ -15235,8 +15238,10 @@
                     await renderFatMensalChart(_fatChartGranularity);
                 }
 
-                // Tudo pronto — revela o dashboard, esconde o loader
+                // Tudo pronto — revela o dashboard e esconde AMBOS os loaders (mainLoader + o
+                // bootSplash do F5 logado, que seguramos até aqui pra não piscar 2 telas).
                 dash.style.visibility = 'visible';
+                document.body.classList.remove('booting');
                 document.getElementById('mainLoader').style.display = 'none';
 
                 await Promise.all([loadProvas(1), loadCompras(1), loadLtv(1)]);
@@ -15244,6 +15249,7 @@
                 console.error(err);
                 const dash = document.getElementById('dashboardSection');
                 if (dash) { dash.style.visibility = 'visible'; dash.style.display = 'block'; }
+                document.body.classList.remove('booting');
                 document.getElementById('mainLoader').style.display = 'none';
             }
         }
