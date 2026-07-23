@@ -5464,6 +5464,22 @@
                     </div>
                 </div>
 
+                <div id="waMsgPreviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:10000;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)waClosePreview()">
+                    <div style="background:var(--card-bg,#fff);border:1px solid var(--border-strong,#e5e7eb);border-radius:16px;max-width:380px;width:100%;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                            <div style="font-weight:700;font-size:14px;display:flex;align-items:center;gap:7px;"><i class="ph-fill ph-eye" style="color:#25D366;"></i> <span id="waPvTitle">Prévia</span></div>
+                            <button onclick="waClosePreview()" style="background:transparent;border:none;font-size:23px;cursor:pointer;color:var(--text-muted);line-height:1;">×</button>
+                        </div>
+                        <div class="wa-msg-preview">
+                            <div class="wa-msg-bubble">
+                                <img id="waPv2Img" class="wa-msg-img" alt="" style="display:none;">
+                                <div id="waPv2Body" class="wa-msg-body"></div>
+                                <div id="waPv2Btn" class="wa-msg-btn" style="display:none;"></div>
+                                <div class="wa-msg-time">agora ✓✓</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="waTplModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;padding:20px;">
                     <div style="background:var(--card-bg);border:1px solid var(--border-strong);border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:26px;">
                         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
@@ -7577,9 +7593,9 @@
                                 </div>
                                 <div class="wa-tpl-body-preview">${escapeHtml(bodyText)}</div>
                                 ${(t.rejected_reason && t.rejected_reason !== 'NONE') ? '<div style="color:#ef4444;font-size:11px;margin-top:6px;"><i class="ph-bold ph-warning"></i> ' + t.rejected_reason + '</div>' : ''}
-                                ${_isImgHeader ? `<div class="wa-hdrimg-row">${_curImg ? `<img class="wa-hdrimg-thumb" src="${escapeHtml(_curImg)}" alt="cabeçalho">` : '<span class="wa-hdrimg-none"><i class="ph-bold ph-image"></i> sem imagem definida</span>'}<button class="wa-hdrimg-btn" id="waHdrBtn-${escapeHtml(t.name)}" onclick="waUploadHeaderImage('${escapeHtml(t.name)}')"><i class="ph-bold ph-${_curImg ? 'arrows-clockwise' : 'upload-simple'}"></i> ${_curImg ? 'Trocar imagem' : 'Definir imagem'}</button></div>` : ''}
                             </div>
                             <div class="wa-tpl-actions">
+                                <button class="wa-tpl-act" onclick="waPreviewTemplate('${escapeHtml(t.name)}')"><i class="ph-bold ph-eye"></i> Ver prévia</button>
                                 ${status === 'APPROVED' ? `<button class="wa-tpl-act primary" onclick="openManualSendModal('${escapeHtml(t.name)}','${t.language || 'pt_BR'}')"><i class="ph-bold ph-paper-plane-tilt"></i> Disparar teste</button>` : ''}
                                 ${(status === 'APPROVED' && !isDefault) ? `<button class="wa-tpl-act" onclick="waSetDefaultTemplate('${t.name}','${t.language || 'pt_BR'}')"><i class="ph-bold ph-check"></i> Definir padrão</button>` : ''}
                                 <button class="wa-tpl-act danger" onclick="waDeleteTemplate('${escapeHtml(t.name)}','${t.id || ''}')"><i class="ph-bold ph-trash"></i></button>
@@ -8064,6 +8080,32 @@
                 else { pvBtn.style.display = 'none'; pvBtn.innerHTML = ''; }
             }
         }
+        // Prévia de um template JÁ CRIADO: abre a mensagem como vai no WhatsApp — com a
+        // imagem (se o template tiver header de imagem e ela estiver definida) ou só o texto.
+        async function waPreviewTemplate(name) {
+            const t = (_waTemplatesCache || []).find(x => x.name === name);
+            if (!t) return;
+            let img = '';
+            try { const imgs = await plTemplateImages(); img = imgs[name] || ''; } catch (e) {}
+            const bodyComp = (t.components || []).find(c => c.type === 'BODY');
+            let bodyHtml = escapeHtml((bodyComp && bodyComp.text) || '')
+                .replace(/\{\{\s*1\s*\}\}/g, '<span class="wa-msg-var">Maria</span>')
+                .replace(/\{\{\s*2\s*\}\}/g, '<span class="wa-msg-var">Aviator Solis Dourado</span>')
+                .replace(/\{\{\s*3\s*\}\}/g, '<span class="wa-msg-var">sualoja.com.br/produto</span>');
+            const btnComp = (t.components || []).find(c => c.type === 'BUTTONS');
+            const btnText = btnComp && btnComp.buttons && btnComp.buttons[0] && btnComp.buttons[0].text;
+            const pvImg = document.getElementById('waPv2Img');
+            const pvBody = document.getElementById('waPv2Body');
+            const pvBtn = document.getElementById('waPv2Btn');
+            const title = document.getElementById('waPvTitle');
+            if (title) title.textContent = name;
+            if (pvImg) { if (img) { pvImg.src = img; pvImg.style.display = 'block'; } else { pvImg.style.display = 'none'; pvImg.removeAttribute('src'); } }
+            if (pvBody) pvBody.innerHTML = bodyHtml || '<span class="wa-msg-empty">(sem corpo de texto)</span>';
+            if (pvBtn) { if (btnText) { pvBtn.innerHTML = '<i class="ph-bold ph-arrow-square-out"></i> ' + escapeHtml(btnText); pvBtn.style.display = 'flex'; } else { pvBtn.style.display = 'none'; pvBtn.innerHTML = ''; } }
+            const modal = document.getElementById('waMsgPreviewModal');
+            if (modal) modal.style.display = 'flex';
+        }
+        function waClosePreview() { const m = document.getElementById('waMsgPreviewModal'); if (m) m.style.display = 'none'; }
 
         async function submitCreateTemplate() {
             const name = document.getElementById('newTplName').value.trim();
