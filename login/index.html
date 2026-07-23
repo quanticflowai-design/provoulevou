@@ -5422,6 +5422,14 @@
                                 <input type="text" class="wa-input" id="newTplLang" value="pt_BR">
                             </div>
                             <div>
+                                <label class="wa-label">Imagem no topo <span style="color:var(--text-muted);font-weight:500;">(opcional)</span></label>
+                                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                                    <input type="file" id="newTplHeaderImg" accept="image/jpeg,image/png" style="font-size:12.5px;" onchange="tplPreviewHeaderImg()">
+                                    <img id="newTplHeaderImgPreview" alt="" style="display:none;width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid var(--border,#e5e7eb);">
+                                </div>
+                                <div class="wa-help">JPG ou PNG (até 5MB). Cria um template com foto no cabeçalho — a mesma imagem vai em todo envio desse modelo.</div>
+                            </div>
+                            <div>
                                 <label class="wa-label">Corpo da mensagem</label>
                                 <div class="wa-var-intro" style="font-size:12.5px;color:var(--text-main);background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:10px;padding:10px 12px;margin-bottom:10px;line-height:1.55;">
                                     💡 <strong>Arraste</strong> (ou clique) nos botões abaixo pra montar sua mensagem. A gente preenche os dados sozinho em cada envio:
@@ -7537,6 +7545,9 @@
             document.getElementById('waTplModal').style.display = 'flex';
             document.getElementById('waTplFeedback').className = 'wa-feedback';
             document.getElementById('waTplFeedback').innerHTML = '';
+            // limpa a imagem de cabeçalho de uma abertura anterior
+            const _hi = document.getElementById('newTplHeaderImg'); if (_hi) _hi.value = '';
+            try { tplPreviewHeaderImg(); } catch (e) {}
             try { tplSyncHighlight(); } catch (e) {} // sincroniza o realce do corpo com o conteúdo atual
         }
         function closeCreateTemplateModal() { document.getElementById('waTplModal').style.display = 'none'; }
@@ -7904,6 +7915,14 @@
             _tplInsertAtCaret(ta, token, pos);
         }
 
+        function tplPreviewHeaderImg() {
+            const inp = document.getElementById('newTplHeaderImg');
+            const img = document.getElementById('newTplHeaderImgPreview');
+            const f = inp && inp.files && inp.files[0];
+            if (f && img) { try { img.src = URL.createObjectURL(f); } catch (e) {} img.style.display = 'block'; }
+            else if (img) { img.style.display = 'none'; img.removeAttribute('src'); }
+        }
+
         async function submitCreateTemplate() {
             const name = document.getElementById('newTplName').value.trim();
             const category = document.getElementById('newTplCategory').value;
@@ -7912,6 +7931,22 @@
             const header = ((document.getElementById('newTplHeader') || {}).value || '').trim();
             const footer = ((document.getElementById('newTplFooter') || {}).value || '').trim();
             const fb = document.getElementById('waTplFeedback');
+
+            // Imagem de cabeçalho (opcional). Se escolhida, o template vira header IMAGE:
+            // o backend sobe a imagem na Meta (handle) e, após criar, gravamos a mesma imagem
+            // em pl_wa_templates pro envio (pl-wa-send injeta no header).
+            const _hdrImgFile = (document.getElementById('newTplHeaderImg') || {}).files?.[0] || null;
+            let _hdrImgB64 = null;
+            if (_hdrImgFile) {
+                if (_hdrImgFile.size > 5 * 1024 * 1024) {
+                    fb.className = 'wa-feedback error'; fb.innerHTML = 'A imagem do topo é maior que 5MB.'; return;
+                }
+                try {
+                    _hdrImgB64 = await new Promise((resolve, reject) => {
+                        const fr = new FileReader(); fr.onload = () => resolve(String(fr.result)); fr.onerror = reject; fr.readAsDataURL(_hdrImgFile);
+                    });
+                } catch (e) { fb.className = 'wa-feedback error'; fb.innerHTML = 'Não consegui ler a imagem.'; return; }
+            }
 
             if (!name || !body) {
                 fb.className = 'wa-feedback error';
@@ -7963,7 +7998,10 @@
                 : null;
 
             const components = [];
-            if (header) {
+            if (_hdrImgB64) {
+                // Header de IMAGEM: o example.header_handle é preenchido no backend (upload na Meta).
+                components.push({ type: 'HEADER', format: 'IMAGE' });
+            } else if (header) {
                 const headerPh = (header.match(/\{\{(\d+)\}\}/g) || []).length;
                 const headerComp = { type: 'HEADER', format: 'TEXT', text: header };
                 if (headerPh > 0) headerComp.example = { header_text: sampleValues.slice(0, headerPh) };
@@ -8005,7 +8043,8 @@
                 const res = await fetch(WA_TPL_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: activeUser.email, action: 'create', template_payload: payload })
+                    body: JSON.stringify({ email: activeUser.email, action: 'create', template_payload: payload,
+                        header_image_base64: _hdrImgB64 || undefined, header_image_type: (_hdrImgFile && _hdrImgFile.type) || undefined })
                 });
                 const result = await res.json();
                 if (result.ok && result.body && result.body.id) {
@@ -8014,6 +8053,17 @@
                         await supabaseClient.from('pl_wa_templates').insert({ email: activeUser.email, name });
                         _plTplNamesCache = null; _waTemplatesCache = [];
                     } catch (e) { console.warn('[pl-templates] insert:', e); }
+                    // Template de imagem: grava a MESMA imagem em pl_wa_templates pro envio
+                    // (o handle da Meta é só pra aprovação; o envio injeta esta URL).
+                    if (_hdrImgB64) {
+                        try {
+                            await fetch(WA_HEADER_UPLOAD_URL, {
+                                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ email: activeUser.email, template: name, content_type: (_hdrImgFile && _hdrImgFile.type) || 'image/jpeg', data_base64: _hdrImgB64 })
+                            });
+                            _plTplImagesCache = null;
+                        } catch (e) { console.warn('[pl-templates] header img save:', e); }
+                    }
                     fb.className = 'wa-feedback success';
                     fb.innerHTML = '<strong>Enviado pra Meta!</strong> Status inicial: ' + (result.body.status || 'PENDING') + '. Aguarde aprovação.';
                     setTimeout(() => { closeCreateTemplateModal(); waLoadTemplates(); }, 1800);
