@@ -11307,6 +11307,22 @@
                 return;
             }
             const STB = { agendado: ['Agendada', '#f59e0b', 'rgba(245,158,11,.15)'], aguardando_aprovacao: ['Aguardando aprovação da Meta', '#b45309', 'rgba(217,119,6,.16)'], enviando: ['Enviando…', '#3b82f6', 'rgba(59,130,246,.15)'], concluido: ['Concluída', '#10b981', 'rgba(16,185,129,.15)'], falhou: ['Falhou', '#dc2626', 'rgba(220,38,38,.15)'], cancelado: ['Cancelada', '#9ca3af', 'rgba(127,127,127,.15)'] };
+            // Resultado REAL por campanha: conta os envios no whatsapp_send_log por source_id.
+            // (Os contadores sent_count/failed_count da tabela às vezes ficam zerados — não confiar neles.)
+            const _ranIds = [];
+            items.forEach(g => { if (g.some(r => r.executed_at || ['falhou', 'concluido', 'enviando'].includes(r.status))) g.forEach(r => _ranIds.push(r.id)); });
+            const _sendAgg = {};
+            if (_ranIds.length) {
+                try {
+                    let _from = 0;
+                    while (true) {
+                        const { data: _sl } = await supabaseClient.from('whatsapp_send_log').select('source_id,status').in('source_id', _ranIds).range(_from, _from + 999);
+                        (_sl || []).forEach(r => { const a = _sendAgg[r.source_id] = _sendAgg[r.source_id] || { ok: 0, fail: 0 }; if (r.status === 'failed') a.fail++; else a.ok++; });
+                        if (!_sl || _sl.length < 1000) break;
+                        _from += 1000;
+                    }
+                } catch (e) { console.warn('[camp] agregação de envios:', e); }
+            }
             let html = items.map(g => {
                 const first = g[0];
                 const nome = (first.nome && first.nome.trim()) || first.template || 'Campanha';
@@ -11319,6 +11335,18 @@
                 if (isDiario && stKey === 'agendado') { stLabel = ativoDiario ? 'Ativa' : 'Pausada'; stFg = ativoDiario ? '#10b981' : '#9ca3af'; stBg = ativoDiario ? 'rgba(16,185,129,.15)' : 'rgba(127,127,127,.15)'; }
                 else { const s = STB[stKey] || [stKey, '#6b7280', 'rgba(127,127,127,.15)']; stLabel = s[0]; stFg = s[1]; stBg = s[2]; }
                 const ids = g.map(r => r.id);
+                // Resultado real de envio (do send_log): mostra "X enviados · Y falharam"
+                // e não marca a campanha inteira como Falhou quando a maioria enviou.
+                const _ran = g.some(r => r.executed_at || ['falhou', 'concluido', 'enviando'].includes(r.status));
+                const _ok = ids.reduce((s, id) => s + ((_sendAgg[id] || {}).ok || 0), 0);
+                const _fail = ids.reduce((s, id) => s + ((_sendAgg[id] || {}).fail || 0), 0);
+                if (_ran && (_ok + _fail) > 0) {
+                    if (_ok > 0) { stLabel = 'Concluída'; stFg = '#10b981'; stBg = 'rgba(16,185,129,.15)'; }
+                    else { stLabel = 'Falhou'; stFg = '#dc2626'; stBg = 'rgba(220,38,38,.15)'; }
+                }
+                const _resultSub = (_ran && (_ok + _fail) > 0)
+                    ? ('<span><i class="ph-bold ph-paper-plane-tilt" style="color:#10b981;"></i> ' + _ok + ' enviados' + (_fail ? ' · <span style="color:#dc2626;">' + _fail + ' falharam</span>' : '') + '</span>')
+                    : '';
                 let actions = '';
                 if (isDiario && stKey === 'agendado') {
                     actions = '<button class="camp-btn" style="padding:6px 12px;font-size:12px;" onclick="campToggle(' + JSON.stringify(ids).replace(/"/g, '&quot;') + ',' + (ativoDiario ? 'false' : 'true') + ')">' + (ativoDiario ? 'Pausar' : 'Ativar') + '</button>';
@@ -11328,7 +11356,7 @@
                 actions += '<button class="camp-btn" title="Excluir" style="padding:6px 10px;font-size:12px;color:#dc2626;" onclick="campDelete(' + JSON.stringify(ids).replace(/"/g, '&quot;') + ')"><i class="ph-bold ph-trash"></i></button>';
                 return '<div class="camp-item"><div style="min-width:0;">'
                     + '<div class="camp-item-name">' + escapeHtml(nome) + '</div>'
-                    + '<div class="camp-item-sub"><span><i class="ph-bold ph-users-three"></i> ' + escapeHtml(stageTitle(first.stage_key)) + '</span><span><i class="ph-bold ' + (isDiario ? 'ph-repeat' : 'ph-calendar') + '"></i> ' + escapeHtml(tipo) + '</span><span><i class="ph-bold ph-chat-text"></i> ' + escapeHtml(first.template || '—') + '</span></div>'
+                    + '<div class="camp-item-sub"><span><i class="ph-bold ph-users-three"></i> ' + escapeHtml(stageTitle(first.stage_key)) + '</span><span><i class="ph-bold ' + (isDiario ? 'ph-repeat' : 'ph-calendar') + '"></i> ' + escapeHtml(tipo) + '</span><span><i class="ph-bold ph-chat-text"></i> ' + escapeHtml(first.template || '—') + '</span>' + _resultSub + '</div>'
                     + '</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0;"><span class="camp-badge" style="color:' + stFg + ';background:' + stBg + ';">' + escapeHtml(stLabel) + '</span>' + actions + '</div></div>';
             }).join('');
             el.innerHTML = shell(html);
