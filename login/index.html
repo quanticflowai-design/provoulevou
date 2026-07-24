@@ -10200,7 +10200,7 @@
                 + '</div>';
         }
 
-        function dispDashSetPeriod(p) { _dispDashPeriod = (p === 'all') ? 'all' : Number(p); initDispDashboard(); }
+        function dispDashSetPeriod(p) { _dispDashPeriod = (p === 'all') ? 'all' : Number(p); initDispDashboard(); if (typeof dispRenderRecoveredList === 'function') dispRenderRecoveredList().catch(() => {}); }
 
         function _dispDashInjectCSS() {
             if (document.getElementById('dispDashStyle')) return;
@@ -10387,21 +10387,17 @@
             const fDataPedido = activeUser.campo_data_pedido || null;
             const fNome = activeUser.campo_nome_pedido || null;
             const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
-            const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
-            const today = new Date(); today.setHours(0, 0, 0, 0);
-            const todayStr = today.toISOString().slice(0, 10);
-            const minDay = new Date(today); minDay.setDate(minDay.getDate() - 29);
-            const minDayStr = minDay.toISOString().slice(0, 10);
+            const WINDOW_MS = 30 * 24 * 60 * 60 * 1000; // janela de ATRIBUIÇÃO (gap disparo→compra), fixa 30d
+            const cutoffMs = _dispPeriodCutoffMs(_dispDashPeriod); // recorte de EXIBIÇÃO segue o filtro de período (Hoje/7/30/90/Tudo)
 
             const rows = [];
             let totalRev = 0;
             (allOrdersCache || []).forEach(o => {
                 const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
                 if (!orderTs) return;
-                const day = orderTs.slice(0, 10);
-                if (day < minDayStr || day > todayStr) return; // janela de 30 dias por dia do pedido
                 const orderMs = new Date(orderTs).getTime();
                 if (!orderMs) return;
+                if (cutoffMs !== 0 && orderMs < cutoffMs) return; // respeita o filtro de período (era fixo em 30 dias)
                 // melhor disparo = o mais recente ANTES da compra, dentro de 30 dias
                 let best = null;
                 orderPhoneKeys(o).forEach(ph => {
@@ -10452,7 +10448,7 @@
             if (subEl) subEl.textContent = rows.length.toLocaleString('pt-BR') + (rows.length === 1 ? ' cliente recuperado' : ' clientes recuperados');
 
             if (!rows.length) {
-                listEl.innerHTML = '<div class="disp-empty">Ninguém comprou nos 30 dias após um disparo ainda.</div>';
+                listEl.innerHTML = '<div class="disp-empty">Ninguém comprou após um disparo no período selecionado.</div>';
                 return;
             }
 
