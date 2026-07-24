@@ -5823,11 +5823,10 @@
             if (isDisparosOnly()) { showTab('disparos'); return; }
             let saved = (function(){ try { return localStorage.getItem('pl-active-tab'); } catch(e) { return null; } })();
             if (saved === 'crm') saved = 'disparos';   // CRM agora vive dentro de Disparos
-            // Performance: no carregamento inicial, abre SEMPRE na Visão Geral (leve) em vez de
-            // restaurar Disparos/Campanhas — essas puxam CRM + o webhook de templates (~15s) e,
-            // junto com o loadSharedData, criavam uma rajada de queries que travava o 1º paint.
-            const HEAVY = { disparos: 1, campanhas: 1, templates: 1, crm: 1 };
-            showTab((saved && !HEAVY[saved]) ? saved : 'visao-geral');
+            // F5 mantém o lojista na MESMA aba em que estava (a sub-aba de Disparos é restaurada
+            // via pl-disp-subtab). O carregamento pesado (CRM/templates) é assíncrono e cada painel
+            // tem seu próprio "carregando", então não trava o 1º paint. (Antes caía p/ Visão Geral.)
+            showTab(saved || 'visao-geral');
         }
 
         let _csvExportData = []; // dados completos para exportação CSV
