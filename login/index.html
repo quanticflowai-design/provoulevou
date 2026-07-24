@@ -13503,12 +13503,12 @@
             try {
                 if (activeUser.email) {
                     const r1 = await supabaseClient.from('provou_levou_stores')
-                        .select('plan, plano_personalizado, valor_personalizado, domain, last_payment')
+                        .select('plan, plano_personalizado, valor_personalizado, limite_personalizado, domain, last_payment')
                         .eq('email', activeUser.email).maybeSingle();
                     store = r1.error ? null : r1.data;
                     if (!store && activeUser.origem) {
                         const r2 = await supabaseClient.from('provou_levou_stores')
-                            .select('plan, plano_personalizado, valor_personalizado, domain, last_payment');
+                            .select('plan, plano_personalizado, valor_personalizado, limite_personalizado, domain, last_payment');
                         if (!r2.error && r2.data) {
                             const target = normalizeStoreDomain(activeUser.origem);
                             store = r2.data.find(s => normalizeStoreDomain(s.domain) === target) || null;
@@ -13516,8 +13516,10 @@
                     }
                     if (store) {
                         if (store.plano_personalizado && store.valor_personalizado) {
-                            // Custom: usa valor_personalizado dividido pela referência de 3000 provas
-                            precoFoto = parseFloat(store.valor_personalizado) / PACKS_PLAN_LIMITS_REF['Ultra Power'];
+                            // Custom: valor_personalizado dividido pelo LIMITE do plano (ex.: 8100/18000 = R$0,45).
+                            // Fallback pra referência de 3000 só se o limite não estiver informado.
+                            const _refLim = parseFloat(store.limite_personalizado) || PACKS_PLAN_LIMITS_REF['Ultra Power'];
+                            precoFoto = parseFloat(store.valor_personalizado) / _refLim;
                             planLabel = store.plano_personalizado;
                         } else if (store.plan && PACKS_PLAN_VALUES[store.plan] && PACKS_PLAN_LIMITS_REF[store.plan]) {
                             precoFoto = PACKS_PLAN_VALUES[store.plan] / PACKS_PLAN_LIMITS_REF[store.plan];
@@ -14915,7 +14917,7 @@
                 if (activeUser.email) {
                     const r1 = await supabaseClient
                         .from('provou_levou_stores')
-                        .select('plan, status, last_payment, implementation_date, plano_personalizado, valor_personalizado, domain')
+                        .select('plan, status, last_payment, implementation_date, plano_personalizado, valor_personalizado, limite_personalizado, domain')
                         .eq('email', activeUser.email)
                         .maybeSingle();
                     if (!r1.error && r1.data) store = r1.data;
@@ -14924,7 +14926,7 @@
                     const targetDom = normalizeStoreDomain(activeUser.origem);
                     const r2 = await supabaseClient
                         .from('provou_levou_stores')
-                        .select('plan, status, last_payment, implementation_date, plano_personalizado, valor_personalizado, domain');
+                        .select('plan, status, last_payment, implementation_date, plano_personalizado, valor_personalizado, limite_personalizado, domain');
                     if (!r2.error && r2.data) {
                         store = r2.data.find(s => normalizeStoreDomain(s.domain) === targetDom) || null;
                     }
@@ -14951,9 +14953,12 @@
 
                 const planLabel = store.plano_personalizado || store.plan || '—';
                 const isPersonalizado = !!store.plano_personalizado;
+                const custLimit = isPersonalizado ? parseFloat(store.limite_personalizado || 0) : 0;
                 const baseLimit = PLAN_LIMITS_LOJISTA[store.plan];
-                const isUnlimited = baseLimit === Infinity || isPersonalizado;
-                const limite = isUnlimited ? UNLIMITED_REF_LIMIT : (baseLimit || 0);
+                // Personalizado COM limite definido (ex.: 18.000) usa esse limite REAL — não é "ilimitado".
+                // Só cai no UNLIMITED_REF_LIMIT (3.000) quando é personalizado sem limite informado.
+                const isUnlimited = baseLimit === Infinity || (isPersonalizado && !(custLimit > 0));
+                const limite = (isPersonalizado && custLimit > 0) ? custLimit : (isUnlimited ? UNLIMITED_REF_LIMIT : (baseLimit || 0));
                 const pct = limite > 0 ? (usadas / limite) * 100 : 0;
                 const restantes = Math.max(0, limite - usadas);
                 const excedente = Math.max(0, usadas - limite);
