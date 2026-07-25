@@ -470,19 +470,16 @@
 
   <main>
 
-    <!-- STEP 1 — WhatsApp -->
+    <!-- STEP 1 — Início -->
     <section class="step active" id="step-1" data-step="1">
       <div class="step-meta">
         <span></span>
         <span class="step-counter">1 de 4</span>
       </div>
-      <h1>Qual seu WhatsApp?</h1>
-      <p class="lead">Pra você experimentar. As <b>2 primeiras provas são grátis</b>; a partir da 3ª, R$1 via PIX por prova.</p>
+      <h1>Prove qualquer produto em você</h1>
+      <p class="lead">Envie a foto do produto e a sua, e veja como fica. As <b>2 primeiras provas são grátis</b>; a partir da 3ª, R$1 via PIX por prova.</p>
       <div class="upload-wrap">
-        <input type="tel" id="site-input" class="q-input" placeholder="(11) 99999-9999" autocomplete="tel" inputmode="numeric"
-               style="width:100%;padding:14px 16px;font-size:16px;border:1px solid var(--line,#e5e5e5);border-radius:10px;background:#fff;color:var(--ink,#111);box-sizing:border-box;">
-        <p id="site-error" class="upload-status" style="display:none;color:var(--red,#cc3333);margin:10px 0 0;"></p>
-        <button type="button" class="btn-main" id="btn-site-next" style="margin-top:28px;" disabled>Continuar</button>
+        <button type="button" class="btn-main" id="btn-site-next" style="margin-top:8px;">Começar</button>
       </div>
     </section>
 
@@ -809,49 +806,12 @@
         }
       });
 
-      // ========= Step 1 (Site da loja) → Step 2 =========
-      var siteInput = document.getElementById('site-input');
+      // ========= Step 1 (Início) → Step 2 =========
       var btnSiteNext = document.getElementById('btn-site-next');
-      var siteError = document.getElementById('site-error');
-      var siteUrl = '';
-      var userPhone = '';
-
-      // Validação de telefone BR (WhatsApp)
-      function phoneDigits(v) { return String(v || '').replace(/\D/g, ''); }
-      function isValidPhone(v) {
-        var n = phoneDigits(v);
-        return (n.length === 10 || n.length === 11) && /^[1-9][1-9]/.test(n) && (n.length === 10 || n[2] === '9');
-      }
-      function maskPhone(v) {
-        var d = phoneDigits(v).slice(0, 11);
-        if (d.length >= 7) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
-        if (d.length >= 3) return '(' + d.slice(0, 2) + ') ' + d.slice(2);
-        if (d.length >= 1) return '(' + d;
-        return '';
-      }
-
-      siteInput.addEventListener('input', function() {
-        siteInput.value = maskPhone(siteInput.value);
-        btnSiteNext.disabled = !isValidPhone(siteInput.value);
-        if (siteError.style.display !== 'none') siteError.style.display = 'none';
-      });
-
-      siteInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !btnSiteNext.disabled) {
-          e.preventDefault();
-          btnSiteNext.click();
-        }
-      });
+      var siteUrl = 'provoulevou.com.br/provador-cliente';
 
       btnSiteNext.addEventListener('click', function() {
-        if (!isValidPhone(siteInput.value)) {
-          siteError.textContent = 'Coloca um WhatsApp válido (ex: (11) 99999-9999)';
-          siteError.style.display = 'block';
-          return;
-        }
-        userPhone = phoneDigits(siteInput.value);
-        siteUrl = 'provoulevou.com.br/provador-cliente';
-        // Captura o lead anonimamente em landing_leads (best-effort)
+        // captura de tráfego (best-effort, sem dado pessoal)
         try {
           fetch('https://quantic-supabase.k5jwra.easypanel.host/rest/v1/landing_leads', {
             method: 'POST',
@@ -864,11 +824,10 @@
             body: JSON.stringify({
               utm_source: 'provador-cliente',
               utm_medium: 'b2c',
-              utm_campaign: 'whatsapp',
+              utm_campaign: 'inicio',
               page_path: window.location.pathname + window.location.search,
               referrer: document.referrer || null,
-              user_agent: navigator.userAgent,
-              utm_content: userPhone
+              user_agent: navigator.userAgent
             }),
             keepalive: true
           }).catch(function(){});
@@ -900,7 +859,7 @@
           var response = await fetch(MODES[currentMode].endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ produto: productBase64, modelo: modelBase64, phone: userPhone })
+            body: JSON.stringify({ produto: productBase64, modelo: modelBase64 })
           });
           var contentType = response.headers.get('content-type');
           var imageUrl = '';
@@ -962,7 +921,7 @@
         try {
           var resp = await fetch(WEBHOOK_PIX, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: 'cliente@provoulevou.com.br', phone: '55' + userPhone, loja: 'provoulevou', origin: location.origin })
+            body: JSON.stringify({ email: 'cliente@provoulevou.com.br', phone: '0', loja: 'provoulevou', origin: location.origin })
           });
           var pix = await resp.json();
           if (!pix.payment_id || !pix.qr_code || !pix.qr_code_base64) throw new Error('PIX inválido');
@@ -978,7 +937,7 @@
               if (st.status === 'approved') {
                 clearInterval(pixPollingTimer); pixPollingTimer = null;
                 statusMsg.textContent = 'PAGAMENTO CONFIRMADO!'; statusMsg.style.color = '#16a34a';
-                setTimeout(function () { hidePixModal(); checkAndGenerate(); }, 1200);
+                setTimeout(function () { hidePixModal(); doGenerate(); }, 1200);
               }
             } catch (e) {}
           }, 3000);
@@ -1008,7 +967,7 @@
         try {
           var r = await fetch(WEBHOOK_CHECK_LIMIT, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: userPhone, reserve: 'true' })
+            body: JSON.stringify({ phone: '', reserve: 'true' })
           });
           data = await r.json();
         } catch (e) { data = null; }
