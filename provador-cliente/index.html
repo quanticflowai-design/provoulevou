@@ -518,40 +518,15 @@
 
   <main>
 
-    <!-- STEP 1 — Início -->
+    <!-- STEP 1 — Escolha do tipo -->
     <section class="step active" id="step-1" data-step="1">
       <div class="step-meta">
         <span></span>
-        <span class="step-counter">1 de 4</span>
+        <span class="step-counter">1 de 3</span>
       </div>
-      <div class="hero">
-        <span class="hero-badge">&#10024; 2 provas grátis</span>
-        <h1>Experimente qualquer look <em>em você</em></h1>
-        <p class="lead">Envie a foto de um produto e uma foto sua — a gente mostra na hora como fica em você.</p>
-        <div class="how">
-          <div class="how-step"><span class="how-num">1</span><span>Escolha <b>roupa</b> ou <b>óculos</b></span></div>
-          <div class="how-step"><span class="how-num">2</span><span>Envie a foto do <b>produto</b> e a <b>sua</b></span></div>
-          <div class="how-step"><span class="how-num">3</span><span>Veja o resultado e <b>baixe</b></span></div>
-        </div>
-        <div class="upload-wrap">
-          <button type="button" class="btn-main" id="btn-site-next">Começar agora</button>
-          <p class="hero-fine">Grátis nas 2 primeiras. Depois, R$1 por prova via PIX.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- STEP 2 — Tipo -->
-    <section class="step" id="step-2" data-step="2">
-      <div class="step-meta">
-        <button type="button" class="step-back" data-back>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-          voltar
-        </button>
-        <span class="step-counter">2 de 4</span>
-      </div>
-      <h1>Que prova quer gerar?</h1>
-      <p class="lead">Escolha o tipo pra começarmos.</p>
-      <div class="type-pick-label">Selecione uma opção</div>
+      <span class="hero-badge" style="display:table;margin:0 auto 18px;">&#10024; 2 provas grátis</span>
+      <h1>O que você quer provar <em>em você</em>?</h1>
+      <p class="lead">Escolha o tipo — depois é só enviar a foto do produto e a sua.</p>
       <div class="type-grid">
         <button type="button" class="type-card" data-type="roupa">
           <span class="type-icon">
@@ -568,6 +543,7 @@
           <span>provador de armações</span>
         </button>
       </div>
+      <p class="hero-fine" style="text-align:center;margin-top:26px;">Grátis nas 2 primeiras. Depois, R$1 por prova via PIX.</p>
     </section>
 
     <!-- STEP 3 — Foto produto -->
@@ -577,7 +553,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
           voltar
         </button>
-        <span class="step-counter">3 de 4</span>
+        <span class="step-counter">2 de 3</span>
       </div>
       <h1 id="step2-title">Foto do produto</h1>
       <p class="lead" id="step2-sub">a peça de roupa que vai provar</p>
@@ -604,7 +580,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
           voltar
         </button>
-        <span class="step-counter">4 de 4</span>
+        <span class="step-counter">3 de 3</span>
       </div>
       <h1 id="step3-title">Foto da modelo</h1>
       <p class="lead" id="step3-sub">quem vai vestir</p>
@@ -720,7 +696,9 @@
           progressWrap.classList.add('hidden');
         } else {
           progressWrap.classList.remove('hidden');
-          var pct = ((step - 1) / 3) * 100;
+          var stages = { 1: 1, 3: 2, 4: 3 };
+          var st = stages[step] || 1;
+          var pct = ((st - 1) / 2) * 100;
           progressFill.style.width = pct + '%';
         }
       }
@@ -779,9 +757,10 @@
       });
 
       // ========= Back buttons =========
+      var BACK_TO = { 3: 1, 4: 3 };
       document.querySelectorAll('[data-back]').forEach(function(b) {
         b.addEventListener('click', function() {
-          if (currentStep > 1) goToStep(currentStep - 1, 'back');
+          if (BACK_TO[currentStep]) goToStep(BACK_TO[currentStep], 'back');
         });
       });
 
@@ -868,11 +847,9 @@
         }
       });
 
-      // ========= Step 1 (Início) → Step 2 =========
-      var btnSiteNext = document.getElementById('btn-site-next');
+      // ========= Captura de tráfego (na entrada) =========
       var siteUrl = 'provoulevou.com.br/provador-cliente';
-
-      btnSiteNext.addEventListener('click', function() {
+      (function() {
         // captura de tráfego (best-effort, sem dado pessoal)
         try {
           fetch('https://quantic-supabase.k5jwra.easypanel.host/rest/v1/landing_leads', {
@@ -894,8 +871,7 @@
             keepalive: true
           }).catch(function(){});
         } catch(e) {}
-        goToStep(2);
-      });
+      })();
 
       // ========= Step 3 (Foto produto) → Step 4 =========
       btnStep2Next.addEventListener('click', function() {
