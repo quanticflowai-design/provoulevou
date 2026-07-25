@@ -332,34 +332,41 @@
     .btn-main {
       display: block;
       width: 100%;
-      padding: 16px 24px;
-      background: var(--purple);
+      padding: 17px 24px;
+      background: linear-gradient(135deg, var(--purple), #ec4899);
       color: #fff;
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       font-family: var(--font);
-      font-size: 15px;
-      font-weight: 500;
+      font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
-      transition: background .15s ease, transform .15s ease, opacity .15s ease;
+      box-shadow: 0 6px 20px rgba(124,58,237,0.24);
+      transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease, filter .15s ease;
     }
     .btn-main:hover:not(:disabled) {
-      background: #6d28d9;
       transform: translateY(-1px);
+      box-shadow: 0 9px 26px rgba(124,58,237,0.32);
+      filter: brightness(1.04);
     }
+    .btn-main:active:not(:disabled) { transform: translateY(0); }
     .btn-main:disabled {
-      opacity: 0.45;
+      opacity: 0.4;
       cursor: not-allowed;
+      box-shadow: none;
     }
     .btn-secondary {
       background: transparent;
       color: var(--text);
       border: 1px solid var(--border);
-      margin-top: 16px;
+      box-shadow: none;
+      margin-top: 12px;
     }
     .btn-secondary:hover:not(:disabled) {
       background: rgba(0,0,0,0.04);
       border-color: rgba(0,0,0,0.16);
+      box-shadow: none;
+      filter: none;
     }
 
     .upload-status {
@@ -440,7 +447,47 @@
     }
     .footer a:hover { color: var(--text); }
 
-    /* Mobile */
+    /* ===== Hero (início) ===== */
+    .hero { text-align: center; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--purple-soft); color: var(--purple);
+      font-size: 12px; font-weight: 600; letter-spacing: .01em;
+      padding: 7px 14px; border-radius: var(--pill); margin-bottom: 20px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(100deg, var(--purple), #ec4899);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .how {
+      display: flex; flex-direction: column; gap: 12px;
+      max-width: 360px; margin: 32px auto 30px; text-align: left;
+    }
+    .how-step {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 16px; font-size: 14.5px; color: var(--text);
+    }
+    .how-num {
+      flex: none; width: 30px; height: 30px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), #ec4899); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600;
+    }
+    .how-step b { font-weight: 600; }
+    .hero-fine { font-size: 12.5px; color: var(--text-sub); margin-top: 16px; }
+
+    /* Dica embaixo do upload */
+    .upload-tip {
+      font-size: 13px; color: var(--text-sub); text-align: center;
+      margin: -8px 0 22px; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .upload-tip svg { width: 15px; height: 15px; stroke: var(--purple); fill: none; stroke-width: 1.6; }
+
+    .result-actions { display: flex; flex-direction: column; gap: 0; }
+
+    /* ===== Mobile ===== */
     @media (max-width: 600px) {
       .topbar { padding: 16px 20px; }
       .topbar-brand img { height: 28px; }
@@ -450,6 +497,7 @@
       .type-card { padding: 28px 16px 22px; }
       .type-icon { width: 48px; height: 48px; }
       .upload-box { aspect-ratio: 1 / 1; }
+      .btn-main { padding: 16px 24px; }
     }
   </style>
 </head>
@@ -476,10 +524,19 @@
         <span></span>
         <span class="step-counter">1 de 4</span>
       </div>
-      <h1>Prove qualquer produto em você</h1>
-      <p class="lead">Envie a foto do produto e a sua, e veja como fica. As <b>2 primeiras provas são grátis</b>; a partir da 3ª, R$1 via PIX por prova.</p>
-      <div class="upload-wrap">
-        <button type="button" class="btn-main" id="btn-site-next" style="margin-top:8px;">Começar</button>
+      <div class="hero">
+        <span class="hero-badge">&#10024; 2 provas grátis</span>
+        <h1>Experimente qualquer look <em>em você</em></h1>
+        <p class="lead">Envie a foto de um produto e uma foto sua — a gente mostra na hora como fica em você.</p>
+        <div class="how">
+          <div class="how-step"><span class="how-num">1</span><span>Escolha <b>roupa</b> ou <b>óculos</b></span></div>
+          <div class="how-step"><span class="how-num">2</span><span>Envie a foto do <b>produto</b> e a <b>sua</b></span></div>
+          <div class="how-step"><span class="how-num">3</span><span>Veja o resultado e <b>baixe</b></span></div>
+        </div>
+        <div class="upload-wrap">
+          <button type="button" class="btn-main" id="btn-site-next">Começar agora</button>
+          <p class="hero-fine">Grátis nas 2 primeiras. Depois, R$1 por prova via PIX.</p>
+        </div>
       </div>
     </section>
 
@@ -535,6 +592,7 @@
             <img id="product-preview" class="upload-preview" alt="" style="display:none;">
           </label>
         </div>
+        <p class="upload-tip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Foto nítida e com fundo limpo funciona melhor.</p>
         <button type="button" class="btn-main" id="btn-step2-next" disabled>Continuar</button>
       </div>
     </section>
@@ -561,6 +619,7 @@
             <img id="model-preview" class="upload-preview" alt="" style="display:none;">
           </label>
         </div>
+        <p class="upload-tip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Foto de frente, com boa luz e o rosto/corpo visível.</p>
         <button type="button" class="btn-main" id="btn-materialize" disabled>Provar agora</button>
         <p id="upload-status" class="upload-status"></p>
       </div>
@@ -572,13 +631,16 @@
         <span></span>
         <span class="step-counter"></span>
       </div>
-      <h1>Pronto.</h1>
-      <p class="lead" id="step4-sub">veja o resultado abaixo.</p>
+      <h1>Ficou assim &#10024;</h1>
+      <p class="lead" id="step4-sub">Veja como ficou em você.</p>
       <div class="upload-wrap">
         <div class="result-img-wrap">
           <img id="result-image" src="" alt="Resultado">
         </div>
-        <button type="button" class="btn-main btn-secondary" id="btn-restart">Provar de novo</button>
+        <div class="result-actions">
+          <button type="button" class="btn-main" id="btn-download">Baixar imagem</button>
+          <button type="button" class="btn-main btn-secondary" id="btn-restart">Provar outro</button>
+        </div>
       </div>
     </section>
 
@@ -980,7 +1042,27 @@
         checkAndGenerate();
       });
 
-      // ========= Step 4 → Restart =========
+      // ========= Baixar resultado =========
+      var btnDownload = document.getElementById('btn-download');
+      btnDownload.addEventListener('click', async function() {
+        var src = document.getElementById('result-image').src;
+        if (!src) return;
+        var original = btnDownload.textContent;
+        btnDownload.textContent = 'Baixando...';
+        try {
+          var blob = await (await fetch(src)).blob();
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url; a.download = 'provou-levou.jpg';
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function() { URL.revokeObjectURL(url); }, 4000);
+        } catch (e) {
+          window.open(src, '_blank');
+        }
+        btnDownload.textContent = original;
+      });
+
+      // ========= Step 5 → Provar outro =========
       btnRestart.addEventListener('click', function() {
         resetAll();
         currentMode = null;
