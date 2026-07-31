@@ -423,6 +423,25 @@
       font-weight: 400;
       max-width: 320px;
     }
+    /* Barra de progresso da geração (roxa) */
+    .modal-progress {
+      width: 100%;
+      max-width: 320px;
+      height: 4px;
+      margin-top: 22px;
+      background: rgba(0,0,0,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .modal-progress-fill {
+      height: 100%;
+      width: 100%;
+      background: var(--purple);
+      border-radius: 99px;
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform .6s cubic-bezier(.4,0,.2,1);
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* Footer */
@@ -595,6 +614,7 @@
     <div class="modal-spinner"></div>
     <h3>Provando...</h3>
     <p>Estou ajustando o caimento e a luz.</p>
+    <div class="modal-progress"><div class="modal-progress-fill" id="gen-progress-fill"></div></div>
   </div>
 
   <script>
@@ -611,6 +631,33 @@
       var uploadStatus = document.getElementById('upload-status');
       var progressFill = document.getElementById('progress-fill');
       var progressWrap = document.getElementById('progress-wrap');
+
+      // ---- Barra de progresso da GERAÇÃO (roxa) ----
+      // A geração leva ~20-50s e não tem progresso real do servidor, então
+      // avançamos suave até 92% e completamos pra 100% quando a foto chega.
+      var _genTimer = null;
+      function genProgressSet(pct) {
+        var el = document.getElementById('gen-progress-fill');
+        if (el) el.style.transform = 'scaleX(' + (Math.max(0, Math.min(100, pct)) / 100) + ')';
+      }
+      function genProgressStart() {
+        if (_genTimer) clearInterval(_genTimer);
+        var pct = 0;
+        genProgressSet(0);
+        // pequeno atraso pro browser aplicar o scaleX(0) antes de animar
+        setTimeout(function () { pct = 8; genProgressSet(pct); }, 60);
+        _genTimer = setInterval(function () {
+          // desacelera conforme se aproxima de 92% (nunca "trava" em 100 antes da hora)
+          var passo = pct < 40 ? 4 : (pct < 70 ? 2 : (pct < 85 ? 1 : 0.4));
+          pct = Math.min(92, pct + passo);
+          genProgressSet(pct);
+        }, 700);
+      }
+      function genProgressStop() {
+        if (_genTimer) { clearInterval(_genTimer); _genTimer = null; }
+        genProgressSet(100);
+        setTimeout(function () { genProgressSet(0); }, 600);
+      }
 
       var productBase64 = null;
       var modelBase64 = null;
@@ -883,6 +930,7 @@
 
         var loadingModal = document.getElementById('loading-modal');
         loadingModal.classList.add('active');
+        genProgressStart();
 
         try {
           var response = await fetch(MODES[currentMode].endpoint, {
@@ -898,7 +946,7 @@
           if (contentType && contentType.indexOf('application/json') !== -1) {
             var responseData = await response.json();
             if (responseData && responseData.error === 'limite_atingido') {
-              loadingModal.classList.remove('active');
+              genProgressStop(); loadingModal.classList.remove('active');
               uploadStatus.textContent = responseData.mensagem || 'Você atingiu o limite de testes grátis. Entre em contato pra liberar mais.';
               uploadStatus.style.color = 'var(--red,#cc3333)';
               btnMaterialize.textContent = 'Provar agora';
@@ -922,18 +970,18 @@
 
           if (imageUrl && (imageUrl.startsWith('http') || imageUrl.startsWith('data:image') || imageUrl.startsWith('blob:'))) {
             document.getElementById('result-image').src = imageUrl;
-            loadingModal.classList.remove('active');
+            genProgressStop(); loadingModal.classList.remove('active');
             goToStep(5);
           } else {
             uploadStatus.textContent = 'Resposta inesperada. Tente novamente.';
             uploadStatus.style.color = 'var(--red)';
-            loadingModal.classList.remove('active');
+            genProgressStop(); loadingModal.classList.remove('active');
           }
         } catch (error) {
           console.error('Error:', error);
           uploadStatus.textContent = 'Erro ao processar. Tente novamente.';
           uploadStatus.style.color = 'var(--red)';
-          loadingModal.classList.remove('active');
+          genProgressStop(); loadingModal.classList.remove('active');
         } finally {
           btnMaterialize.textContent = 'Provar agora';
           btnMaterialize.disabled = !modelBase64;

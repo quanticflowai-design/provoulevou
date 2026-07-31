@@ -19300,6 +19300,148 @@
       }
     </style>
 
+    <!-- ═══════════════════════════════════════════════════════════════════
+         TEMA shadcn/ui — camada aditiva (geometria, tipografia, foco, sombras)
+         Porta a LINGUAGEM VISUAL do shadcn para a dashboard, mantendo a paleta
+         roxa da marca. Aditiva de propósito: vem por último no cascade, então
+         basta remover este bloco para voltar ao visual anterior.
+         Ref: escala de raio do shadcn (--radius .625rem) + botões h-9/text-sm,
+         cards rounded-xl+border+shadow-sm, inputs h-9 com ring de 3px, badges
+         rounded-md/text-xs, tabela text-sm com header muted.
+         ═══════════════════════════════════════════════════════════════ -->
+    <style id="shadcn-theme">
+      :root {
+        /* Escala de raio do shadcn */
+        --sc-radius: 0.625rem;                        /* 10px */
+        --sc-radius-sm: calc(var(--sc-radius) - 4px); /* 6px  */
+        --sc-radius-md: calc(var(--sc-radius) - 2px); /* 8px  */
+        --sc-radius-lg: var(--sc-radius);             /* 10px */
+        --sc-radius-xl: calc(var(--sc-radius) + 4px); /* 14px */
+        /* Anel de foco (assinatura do shadcn: 3px em 50% de opacidade) */
+        --sc-ring: color-mix(in srgb, var(--primary) 50%, transparent);
+        /* Sombras discretas do shadcn */
+        --sc-shadow-xs: 0 1px 2px 0 rgba(0,0,0,.05);
+        --sc-shadow-sm: 0 1px 3px 0 rgba(0,0,0,.1), 0 1px 2px -1px rgba(0,0,0,.1);
+      }
+
+      /* ── Botões: h-9, px-4, text-sm/500, gap-2, radius-md ─────────────── */
+      .camp-btn, .disp-btn, .wa-btn, .notif-btn, .credits-buy-btn,
+      .chat-send-btn, .disp-wiz-btn, .fat-toggle-btn, .tour-btn,
+      .tour-replay-btn, .wa-chip-btn, .wa-hdrimg-btn, .wa-msg-btn {
+        border-radius: var(--sc-radius-md);
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        white-space: nowrap;
+        transition: background-color .15s ease, border-color .15s ease,
+                    box-shadow .15s ease, color .15s ease;
+      }
+      .camp-btn:focus-visible, .disp-btn:focus-visible, .wa-btn:focus-visible,
+      .notif-btn:focus-visible, .credits-buy-btn:focus-visible,
+      .chat-send-btn:focus-visible, .disp-wiz-btn:focus-visible,
+      .fat-toggle-btn:focus-visible, .tab-btn:focus-visible,
+      .wa-chip-btn:focus-visible {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--sc-ring);
+      }
+      .camp-btn:disabled, .disp-btn:disabled, .wa-btn:disabled,
+      .credits-buy-btn:disabled, .disp-wiz-btn:disabled {
+        opacity: .5;
+        pointer-events: none;
+      }
+      /* Ícones dentro de botão: tamanho consistente (size-4 do shadcn) */
+      .camp-btn > i, .disp-btn > i, .wa-btn > i, .disp-wiz-btn > i,
+      .camp-btn > svg, .disp-btn > svg, .wa-btn > svg {
+        flex-shrink: 0;
+        font-size: 16px;
+      }
+
+      /* ── Cards: rounded-xl + border + shadow-sm ───────────────────────── */
+      .autom-card, .config-card, .consumo-card, .credits-card, .crm-card,
+      .crm-team-card, .disp-bulk-card, .disp-card, .disp-wiz-card,
+      .media-equiv-card, .mp-aside-card, .mp-card, .pack-card, .product-card,
+      .recompra-card, .stat-card, .vg-card, .vring-card, .wa-card, .login-card {
+        border-radius: var(--sc-radius-xl);
+        border: 1px solid var(--border);
+        box-shadow: var(--sc-shadow-sm);
+      }
+
+      /* ── Inputs / selects / textareas: h-9, radius-md, ring de 3px ────── */
+      .wa-input, .autom-input, .chat-input, .wa-bulk-field,
+      .disp-card input[type="text"], .disp-card input[type="number"],
+      .disp-card input[type="date"], .disp-card select, .disp-card textarea,
+      .wa-card input[type="text"], .wa-card select, .wa-card textarea {
+        border-radius: var(--sc-radius-md);
+        font-size: 14px;
+        line-height: 1.25rem;
+        transition: border-color .15s ease, box-shadow .15s ease;
+      }
+      .wa-input:focus, .autom-input:focus, .chat-input:focus,
+      .wa-bulk-field:focus, .disp-card input:focus, .disp-card select:focus,
+      .disp-card textarea:focus, .wa-card input:focus, .wa-card select:focus,
+      .wa-card textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--sc-ring);
+      }
+
+      /* ── Badges: rounded-md, text-xs/500, px-2 py-0.5, borda ──────────── */
+      .badge, .chat-conv-badge, .consumo-status-badge, .disp-log-badge,
+      .disp-log-pill, .wa-tpl-badge, .vfunnel-meta-badge, .pl-tag,
+      .source-tag, .dwv-tag, .autom-map-tag {
+        border-radius: var(--sc-radius-sm);
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        white-space: nowrap;
+        border: 1px solid transparent;
+      }
+
+      /* ── Tabelas: text-sm, header muted, linhas com divisória ─────────── */
+      .disp-card table, .wa-card table, .vg-card table, .pl-scenarios-table {
+        font-size: 14px;
+        border-collapse: collapse;
+        width: 100%;
+      }
+      .disp-card table th, .wa-card table th, .vg-card table th,
+      .pl-scenarios-table th {
+        height: 40px;
+        padding: 0 8px;
+        text-align: left;
+        vertical-align: middle;
+        font-weight: 500;
+        color: var(--text-muted);
+        white-space: nowrap;
+      }
+      .disp-card table td, .wa-card table td, .vg-card table td,
+      .pl-scenarios-table td {
+        padding: 8px;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border);
+      }
+      .disp-card table tbody tr:hover, .wa-card table tbody tr:hover {
+        background: color-mix(in srgb, var(--text-muted) 8%, transparent);
+      }
+
+      /* NOTA: as abas (.tab-btn) NÃO entram nesta camada de propósito — elas já
+         foram redesenhadas como nav de texto com sublinhado (border-radius:0),
+         que é uma decisão de design existente. Só herdam o anel de foco acima. */
+
+      @media (prefers-reduced-motion: reduce) {
+        .camp-btn, .disp-btn, .wa-btn, .tab-btn,
+        .wa-input, .autom-input, .chat-input { transition: none; }
+      }
+    </style>
+
     <div class="tour-overlay" id="tourOverlay">
         <div class="tour-spotlight" id="tourSpotlight"></div>
         <div class="tour-tooltip" id="tourTooltip">
