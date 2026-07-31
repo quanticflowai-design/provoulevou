@@ -580,7 +580,10 @@
         '  font-family:inherit;font-size:13px;font-weight:700;letter-spacing:1.6px;',
         '  border:1.5px solid var(--c-ink);background:transparent;color:var(--c-ink);',
         '}',
-        '.q-btn-inline-provador svg{width:16px;height:16px;}'
+        '.q-btn-inline-provador svg{width:16px;height:16px;}',
+        // Barra de progresso na cor da marca (o widget das lojas usa preto).
+        '.q-loading-bar > div{background:#7c3aed;}',
+        '.q-loading-bar{height:4px;}'
     ].join('\n');
     document.head.appendChild(ajuste);
 
@@ -902,14 +905,50 @@
         var btn = $('q-btn-buy-now');
         if (btn) {
             btn.style.display = 'flex';
-            btn.textContent = 'Comprar Agora  ' + precoTxt;
+            btn.textContent = 'Comprar Agora';
         }
+    }
+
+    /* ─── Barra de progresso ──────────────────────────────────────────
+       A barra existe no HTML mas quem a move e o JS; a demo nunca chamava
+       nada, entao ela ficava parada em zero. Avanca desacelerando ate 92%
+       (nao da pra saber o tempo real do gerador) e so fecha em 100% quando
+       a imagem chega. O ritmo muda por motor: roupa ~15s, oculos ~30-130s. */
+    var _progTimer = null;
+    function barra() {
+        return stepLoad ? stepLoad.querySelector('.q-loading-bar > div') : null;
+    }
+    function progressoInicia() {
+        progressoPara();
+        var b = barra();
+        if (!b) return;
+        b.style.transition = 'none';
+        b.style.transform = 'scaleX(0)';
+        void b.offsetWidth;
+        b.style.transition = 'transform 0.3s ease-out';
+        var pct = 0;
+        var passo = TIPO === 'roupa' ? 0.055 : 0.012;
+        _progTimer = setInterval(function () {
+            if (!stepLoad || stepLoad.style.display === 'none') { progressoPara(); return; }
+            pct += Math.max((92 - pct) * passo, 0.12);
+            if (pct > 92) pct = 92;
+            b.style.transform = 'scaleX(' + (pct / 100) + ')';
+        }, 200);
+    }
+    function progressoPara() {
+        if (_progTimer) { clearInterval(_progTimer); _progTimer = null; }
+    }
+    function progressoCompleta() {
+        progressoPara();
+        var b = barra();
+        if (b) b.style.transform = 'scaleX(1)';
     }
 
     btnGen.addEventListener('click', function () {
         if (btnGen.disabled || btnGen.dataset.busy) return;
         btnGen.dataset.busy = '1';
         mostra(stepLoad);
+        progressoInicia();
 
         carregaProduto().then(function (prod) {
             return comTimeout(fetch(MOTOR.endpoint, {
@@ -939,10 +978,12 @@
             return resp.text();
         }).then(function (url) {
             if (!url || !/^(https?:|data:image|blob:)/.test(url)) throw new Error('resposta inesperada');
+            progressoCompleta();
             $('q-final-view-img').src = url;
             preencheResultado();
             mostra(stepRes);
         }).catch(function (e) {
+            progressoPara();
             try { console.error('[provador demo] falhou:', e); } catch (_) {}
             mostra(stepErr);
             var h2 = stepErr.querySelector('h2'), p = stepErr.querySelector('p');
