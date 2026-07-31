@@ -1,0 +1,183 @@
+/* Loja demo Provou Levou — visual de e-commerce comum, de proposito.
+   A ideia e que a pagina pareca a loja de um cliente: o provador tem que
+   ser demonstrado no contexto real (selo sobre a foto + botao acima do
+   Comprar), nao numa tela isolada. */
+
+@font-face {
+  font-family: 'HelveticaNow';
+  src: url('../helveticanowdisplay-medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --ink: #111111;
+  --muted: #8a8a8a;
+  --line: #e8e8e8;
+  --surface: #f7f6f4;
+  --ok: #128a4a;
+  --font: 'HelveticaNow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: #fff;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+
+/* ── Faixa e topo ─────────────────────────────────────────────────────── */
+.faixa {
+  background: var(--ink); color: #fff;
+  font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase;
+  text-align: center; padding: 9px 14px;
+}
+
+.topo {
+  border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; background: #fff; z-index: 20;
+}
+.topo-in {
+  max-width: 1140px; margin: 0 auto; padding: 16px 22px;
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+}
+.topo-logo img { height: 30px; width: auto; }
+.topo-nav { display: flex; gap: 24px; }
+.topo-nav a {
+  font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase;
+  text-decoration: none; color: var(--ink); opacity: .75;
+}
+.topo-nav a:hover { opacity: 1; }
+.topo-icones { display: flex; gap: 16px; align-items: center; }
+.topo-icones svg { width: 19px; height: 19px; stroke: var(--ink); fill: none; stroke-width: 1.5; }
+@media (max-width: 860px) { .topo-nav { display: none; } }
+
+/* ── Estrutura do produto ─────────────────────────────────────────────── */
+.wrap { max-width: 1140px; margin: 0 auto; padding: 0 22px; }
+
+.trilha {
+  font-size: 11px; color: var(--muted); padding: 18px 0 10px;
+  letter-spacing: .4px;
+}
+.trilha a { text-decoration: none; }
+
+.produto {
+  display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px;
+  padding-bottom: 56px; align-items: start;
+}
+@media (max-width: 900px) { .produto { grid-template-columns: 1fr; gap: 26px; } }
+
+/* galeria — o selo do provador e ancorado aqui (position:relative) */
+.galeria { position: relative; }
+.galeria-principal {
+  position: relative; background: var(--surface);
+  border-radius: 4px; overflow: hidden; aspect-ratio: 1 / 1;
+}
+.galeria-principal img { width: 100%; height: 100%; object-fit: contain; }
+/* Miniaturas = os outros modelos da loja demo. Trocar aqui troca o produto
+   que o provador vai usar (window.PL_DEMO.imagem). */
+.galeria-thumbs { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.galeria-thumbs button {
+  width: 68px; height: 68px; padding: 0; cursor: pointer;
+  background: var(--surface); border: 1.5px solid transparent; border-radius: 4px;
+  overflow: hidden;
+}
+.galeria-thumbs button.is-on { border-color: var(--ink); }
+.galeria-thumbs button:hover { border-color: var(--muted); }
+.galeria-thumbs img { width: 100%; height: 100%; object-fit: contain; }
+.galeria-legenda {
+  font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase;
+  color: var(--muted); margin: 16px 0 8px;
+}
+
+/* info */
+.marca {
+  font-size: 11px; letter-spacing: 2.4px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 8px;
+}
+.titulo {
+  font-size: 27px; font-weight: 500; line-height: 1.2;
+  letter-spacing: -.01em; margin-bottom: 10px;
+}
+.avaliacao {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: var(--muted); margin-bottom: 20px;
+}
+.estrelas { color: #f5a623; letter-spacing: 1px; }
+
+.preco-antigo { font-size: 13px; color: var(--muted); text-decoration: line-through; }
+.preco {
+  font-size: 30px; font-weight: 700; letter-spacing: -.02em;
+  display: flex; align-items: baseline; gap: 10px;
+}
+.desconto {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  background: var(--ok); color: #fff; padding: 3px 8px; border-radius: 4px;
+}
+.parcela { font-size: 13px; color: var(--muted); margin: 4px 0 22px; }
+.pix-linha { font-size: 13px; color: var(--ok); font-weight: 700; margin-bottom: 22px; }
+
+.opcao { margin-bottom: 20px; }
+.opcao-label {
+  font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 9px;
+}
+.opcao-itens { display: flex; gap: 8px; flex-wrap: wrap; }
+.opcao-itens button {
+  min-width: 46px; padding: 10px 14px; cursor: pointer;
+  border: 1.5px solid var(--line); background: #fff; color: var(--ink);
+  font-family: var(--font); font-size: 13px; border-radius: 4px;
+}
+.opcao-itens button.is-on { border-color: var(--ink); }
+.cor-bola { width: 30px; height: 30px; border-radius: 50%; min-width: 0; padding: 0; }
+
+/* O botao do provador e injetado pelo JS logo ACIMA deste botao. */
+.btn-comprar {
+  width: 100%; height: 52px; cursor: pointer;
+  background: var(--ink); color: #fff; border: none; border-radius: 0;
+  font-family: var(--font); font-size: 13px; font-weight: 700;
+  letter-spacing: 1.6px; text-transform: uppercase;
+}
+.btn-comprar:hover { opacity: .88; }
+
+.vantagens {
+  margin-top: 26px; border-top: 1px solid var(--line); padding-top: 20px;
+  display: grid; gap: 13px;
+}
+.vantagem { display: flex; gap: 11px; align-items: flex-start; font-size: 12.5px; color: var(--muted); }
+.vantagem svg { width: 17px; height: 17px; stroke: var(--ink); fill: none; stroke-width: 1.5; flex-shrink: 0; margin-top: 1px; }
+.vantagem b { color: var(--ink); font-weight: 700; }
+
+/* descricao */
+.descricao { border-top: 1px solid var(--line); padding: 34px 0 56px; }
+.descricao h2 {
+  font-size: 12px; letter-spacing: 2.4px; text-transform: uppercase;
+  font-weight: 700; margin-bottom: 14px;
+}
+.descricao p { font-size: 14px; color: #555; max-width: 680px; margin-bottom: 12px; }
+.ficha { margin-top: 18px; border-collapse: collapse; font-size: 13px; }
+.ficha td { padding: 8px 22px 8px 0; border-bottom: 1px solid var(--line); color: #555; }
+.ficha td:first-child { color: var(--muted); text-transform: uppercase; font-size: 11px; letter-spacing: 1.2px; }
+
+/* rodape */
+.rodape {
+  border-top: 1px solid var(--line); padding: 30px 22px;
+  text-align: center; font-size: 11.5px; color: var(--muted);
+}
+.rodape img { height: 24px; width: auto; margin: 0 auto 12px; opacity: .8; }
+
+/* aviso de demo — deixa explicito que a loja e ficticia */
+.demo-nota {
+  max-width: 1140px; margin: 0 auto 22px; padding: 12px 16px;
+  background: var(--surface); border-radius: 6px;
+  font-size: 12px; color: var(--muted); text-align: center;
+}
+.demo-nota b { color: var(--ink); }
+.demo-nota a { color: var(--ink); }
