@@ -5110,6 +5110,13 @@
 
                     /* Templates list */
                     .wa-tpl-list { display: flex; flex-direction: column; gap: 10px; }
+                    /* Rola dentro do card (o cabeçalho fica fixo) — com muitas mensagens
+                       modelo a página crescia sem fim. Seletor sem escopo de sub-aba
+                       porque "Mensagens modelo" agora vive dentro de Campanhas. */
+                    #waTemplatesList { max-height: min(56vh, 520px); overflow-y: auto; overscroll-behavior: contain; }
+                    #waTemplatesList::-webkit-scrollbar { width: 8px; }
+                    #waTemplatesList::-webkit-scrollbar-thumb { background: rgba(127,127,127,.28); border-radius: 99px; }
+                    #waTemplatesList::-webkit-scrollbar-track { background: transparent; }
                     .wa-tpl-empty {
                         padding: 24px; text-align: center;
                         color: var(--text-muted); font-size: 13px;
@@ -11258,6 +11265,12 @@
               #campListCard .camp-shell-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:18px 22px;border-bottom:1px solid var(--border);}
               #campListCard .camp-item{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:transparent;border:0;border-bottom:1px solid var(--border);border-radius:0;padding:15px 22px;margin:0;}
               #campListCard .camp-item:last-child{border-bottom:0;}
+              /* Lista rolável: o card para de crescer sem fim conforme entram campanhas.
+                 O cabeçalho (título + "Nova campanha") fica fixo acima do scroll. */
+              #campListCard .camp-list-scroll{max-height:min(56vh,520px);overflow-y:auto;overscroll-behavior:contain;}
+              #campListCard .camp-list-scroll::-webkit-scrollbar{width:8px;}
+              #campListCard .camp-list-scroll::-webkit-scrollbar-thumb{background:rgba(127,127,127,.28);border-radius:99px;}
+              #campListCard .camp-list-scroll::-webkit-scrollbar-track{background:transparent;}
               #campListCard .camp-item:hover{background:rgba(127,127,127,.05);}
               #campListCard .camp-item-name{font-weight:700;font-size:14.5px;color:var(--text-main);}
               #campListCard .camp-item-sub{font-size:12px;color:var(--text-muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
@@ -11612,7 +11625,9 @@
             _campInjectCSS();
             const el = document.getElementById('campListCard'); if (!el || !activeUser) return;
             const shellHead = '<div class="camp-shell-head"><div><h3 style="margin:0;font-size:18px;">Campanhas</h3><p class="desc" style="margin:2px 0 0;">Crie e acompanhe suas campanhas de WhatsApp.</p></div><button class="camp-btn primary" onclick="campWizardOpen()"><i class="ph-bold ph-plus"></i> Nova campanha</button></div>';
-            const shell = inner => '<div class="camp-shell">' + shellHead + inner + '</div>';
+            // A lista rola dentro do card (o cabeçalho fica fixo): com muitas campanhas
+            // a página inteira ficava quilométrica.
+            const shell = inner => '<div class="camp-shell">' + shellHead + '<div class="camp-list-scroll">' + inner + '</div></div>';
             el.innerHTML = shell('<div class="camp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando campanhas…</div>');
             let rows = [];
             try {
