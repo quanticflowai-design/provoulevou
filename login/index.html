@@ -4242,6 +4242,7 @@
                     <button data-sub="dashboard" class="active" onclick="dispSwitchSub('dashboard')"><i class="ph-bold ph-chart-line-up"></i> <span class="disp-nav-txt">Dashboard</span></button>
                     <button data-sub="crm" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> <span class="disp-nav-txt">CRM</span></button>
                     <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> <span class="disp-nav-txt">Conversas</span> <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
+                    <button data-sub="comercial" onclick="dispSwitchSub('comercial')"><i class="ph-bold ph-target"></i> <span class="disp-nav-txt">Comercial</span></button>
                     <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-megaphone"></i> <span class="disp-nav-txt">Campanhas</span></button>
                     <button data-sub="segmentacoes" onclick="dispSwitchSub('segmentacoes')"><i class="ph-bold ph-users-four"></i> <span class="disp-nav-txt">Segmentações</span></button>
                     <button data-sub="automacoes" onclick="dispSwitchSub('automacoes')"><i class="ph-bold ph-flow-arrow"></i> <span class="disp-nav-txt">Automações</span></button>
@@ -4252,6 +4253,7 @@
                 <div class="disp-subpane active" id="dispSubDashboard"></div>
                 <div class="disp-subpane" id="dispSubCrm"></div>
                 <div class="disp-subpane" id="dispSubConversas"></div>
+                <div class="disp-subpane" id="dispSubComercial"></div>
                 <div class="disp-subpane" id="dispSubDisparar"></div>
                 <div class="disp-subpane" id="dispSubSegmentacoes"></div>
                 <div class="disp-subpane" id="dispSubTemplates"></div>
@@ -8449,7 +8451,7 @@
             if (name === 'historico') name = 'dashboard'; // Histórico foi fundido no Dashboard
             if (name === 'templates') name = 'disparar';  // Mensagens modelo foi integrado em Campanhas
             document.querySelectorAll('#dispSubnav button[data-sub]').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
-            const map = { dashboard: 'dispSubDashboard', crm: 'dispSubCrm', conversas: 'dispSubConversas', disparar: 'dispSubDisparar', segmentacoes: 'dispSubSegmentacoes', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao', automacoes: 'dispSubAutomacoes' };
+            const map = { dashboard: 'dispSubDashboard', crm: 'dispSubCrm', conversas: 'dispSubConversas', comercial: 'dispSubComercial', disparar: 'dispSubDisparar', segmentacoes: 'dispSubSegmentacoes', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao', automacoes: 'dispSubAutomacoes' };
             Object.entries(map).forEach(([k, id]) => {
                 const p = document.getElementById(id);
                 if (p) p.classList.toggle('active', k === name);
@@ -8460,6 +8462,9 @@
                 setTimeout(() => {
                     [_dispCrmChart, _dispDonut, _dispDailyChart, _dispSalesChart].forEach(c => { try { c && c.resize(); } catch (e) {} });
                 }, 60);
+            }
+            if (name === 'comercial') {
+                try { comercialRender(); } catch (e) { console.error('[comercial]', e); }
             }
             if (name === 'disparar') {
                 try { maybeShowDispWizard(); } catch (e) {}
@@ -11262,6 +11267,343 @@
               #campListCard .camp-empty h4{margin:0 0 4px;font-size:16px;color:var(--text-main);}
               #campListCard .camp-empty p{margin:0 0 18px;font-size:13px;}
             `;
+            document.head.appendChild(s);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           DESEMPENHO COMERCIAL
+           Mede o time de vendas em cima do CRM: cada lead pode ter um
+           responsável (crm_lead_responsavel) e uma etapa (crm_lead_overrides).
+           Cruzamos com os pedidos pagos pra ter RECEITA por vendedor — que é a
+           métrica que o lojista realmente cobra — e com o updated_at da etapa
+           pra flagrar lead parado (o vazamento mais comum de time comercial).
+           Render DOM-safe: nomes vêm do banco (Regra 5 do dashboard).
+           ═══════════════════════════════════════════════════════════════ */
+        const COMERCIAL_PARADO_DIAS = 7;
+        let _comercialChart = null;
+
+        function _comEl(tag, cls, txt) {
+            const e = document.createElement(tag);
+            if (cls) e.className = cls;
+            if (txt !== undefined && txt !== null) e.textContent = String(txt);
+            return e;
+        }
+        const _comBRL = v => 'R$ ' + (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        async function comercialRender() {
+            const pane = document.getElementById('dispSubComercial');
+            if (!pane || !activeUser) return;
+            _comercialInjectCSS();
+            pane.innerHTML = '<div class="com-shell"><div class="com-loading"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando desempenho do time…</div></div>';
+
+            // Time/responsáveis/etapas vivem no estado remoto do CRM. Quem abre esta aba
+            // ANTES do CRM veria tudo vazio (o cache só é populado no loadCRM), então
+            // garantimos o load aqui — senão o painel mentia "nenhum responsável".
+            if (typeof loadCrmRemoteState === 'function') {
+                try { await loadCrmRemoteState(); } catch (e) { console.warn('[comercial] crmRemoteState:', e); }
+            }
+            // CRM precisa estar carregado (leads + telefones)
+            if (!crmLeadMapCache && typeof loadCRM === 'function') {
+                try { await loadCRM(true); } catch (e) { console.warn('[comercial] loadCRM:', e); }
+            }
+            if ((!allOrdersCache || !allOrdersCache.length) && typeof loadSharedData === 'function') {
+                try { await loadSharedData(); } catch (e) { console.warn('[comercial] sharedData:', e); }
+            }
+
+            const email = activeUser.email;
+            const team = (typeof getCrmTeam === 'function' ? getCrmTeam() : []) || [];
+            const respMap = (typeof getCrmResp === 'function' ? getCrmResp() : {}) || {};
+            const stageMap = (typeof getCrmOverrides === 'function' ? getCrmOverrides() : {}) || {};
+            const cfg = (typeof getCrmConfig === 'function' ? getCrmConfig() : { columns: [] }) || { columns: [] };
+            const cols = cfg.columns || [];
+
+            // updated_at da etapa → lead parado (só isso vem do banco; o mapa local não tem data)
+            let movedAt = {};
+            try {
+                const { data } = await supabaseClient.from('crm_lead_overrides')
+                    .select('telefone, updated_at').eq('lojista_email', email).limit(10000);
+                (data || []).forEach(r => { movedAt[normalize(r.telefone)] = r.updated_at; });
+            } catch (e) { console.warn('[comercial] overrides:', e); }
+
+            // receita por telefone (pedidos pagos, já filtrados/deduplicados no cache)
+            const fTotal = activeUser.campo_total_pedido || 'total';
+            const revByPhone = {};
+            (allOrdersCache || []).forEach(o => {
+                const val = parseFloat(o[fTotal]) || 0;
+                if (!val) return;
+                (typeof orderPhoneKeys === 'function' ? orderPhoneKeys(o) : []).forEach(ph => {
+                    if (ph) revByPhone[ph] = (revByPhone[ph] || 0) + val;
+                });
+            });
+
+            // ── agrega por responsável ──
+            const SEM = '__sem__';
+            const agg = {};
+            const ensure = n => (agg[n] = agg[n] || { nome: n, carteira: 0, stages: {}, convertidos: 0, receita: 0, parados: 0, comprou: 0 });
+            team.forEach(n => ensure(n));
+
+            const leads = crmLeadMapCache || {};
+            const agora = Date.now();
+            const LIMITE = COMERCIAL_PARADO_DIAS * 86400000;
+            let totalLeads = 0, semResp = 0;
+
+            Object.keys(leads).forEach(ph => {
+                totalLeads++;
+                const dono = respMap[ph];
+                if (!dono) { semResp++; }
+                const a = ensure(dono || SEM);
+                a.carteira++;
+                const st = stageMap[ph] || 'novo';
+                a.stages[st] = (a.stages[st] || 0) + 1;
+                if (st === 'convertido') a.convertidos++;
+                const rev = revByPhone[ph] || 0;
+                if (rev > 0) { a.receita += rev; a.comprou++; }
+                // parado: etapa não muda há X dias e ainda não converteu/perdeu
+                if (st !== 'convertido' && st !== 'perdido') {
+                    const t = movedAt[ph] ? new Date(movedAt[ph]).getTime() : 0;
+                    if (!t || (agora - t) > LIMITE) a.parados++;
+                }
+            });
+
+            const nomes = Object.keys(agg).filter(n => n !== SEM).sort((x, y) => agg[y].receita - agg[x].receita || agg[y].carteira - agg[x].carteira);
+            const semDono = agg[SEM] || { carteira: 0, receita: 0, parados: 0 };
+
+            // sem time cadastrado e sem ninguém atribuído → estado vazio explicativo
+            if (!team.length && !nomes.length) {
+                pane.innerHTML = '';
+                const shell = _comEl('div', 'com-shell');
+                shell.appendChild(_comercialHead());
+                const empty = _comEl('div', 'com-empty');
+                empty.appendChild(_comEl('div', 'com-empty-ic')).appendChild(_comEl('i', 'ph-bold ph-target'));
+                empty.appendChild(_comEl('h4', null, 'Nenhum responsável atribuído ainda'));
+                empty.appendChild(_comEl('p', null, 'Cadastre seu time no CRM (em “Gerenciar time”) e defina um responsável para cada lead. Aqui você passa a ver carteira, conversão, receita e leads parados de cada vendedor.'));
+                const cta = _comEl('button', 'camp-btn primary', 'Ir para o CRM');
+                cta.onclick = () => dispSwitchSub('crm');
+                empty.appendChild(cta);
+                shell.appendChild(empty);
+                pane.appendChild(shell);
+                return;
+            }
+
+            const totTime = nomes.reduce((s, n) => ({
+                carteira: s.carteira + agg[n].carteira,
+                conv: s.conv + agg[n].convertidos,
+                rec: s.rec + agg[n].receita,
+                par: s.par + agg[n].parados
+            }), { carteira: 0, conv: 0, rec: 0, par: 0 });
+
+            // ── render ──
+            pane.innerHTML = '';
+            const shell = _comEl('div', 'com-shell');
+            shell.appendChild(_comercialHead());
+
+            // KPIs do time
+            const kpis = _comEl('div', 'com-kpis');
+            const cobertura = totalLeads ? Math.round((totalLeads - semResp) / totalLeads * 100) : 0;
+            [
+                { l: 'Leads com responsável', v: (totalLeads - semResp).toLocaleString('pt-BR'), s: cobertura + '% da base atribuída' },
+                { l: 'Convertidos pelo time', v: totTime.conv.toLocaleString('pt-BR'), s: totTime.carteira ? (Math.round(totTime.conv / totTime.carteira * 100) + '% da carteira') : '—', ok: true },
+                { l: 'Receita do time', v: _comBRL(totTime.rec), s: 'pedidos pagos dos leads atribuídos', ok: true },
+                { l: 'Leads parados', v: totTime.par.toLocaleString('pt-BR'), s: 'sem mudar de etapa há ' + COMERCIAL_PARADO_DIAS + '+ dias', bad: totTime.par > 0 }
+            ].forEach(k => {
+                const c = _comEl('div', 'com-kpi' + (k.ok ? ' ok' : '') + (k.bad ? ' bad' : ''));
+                c.appendChild(_comEl('div', 'com-kpi-l', k.l));
+                c.appendChild(_comEl('div', 'com-kpi-v', k.v));
+                c.appendChild(_comEl('div', 'com-kpi-s', k.s));
+                kpis.appendChild(c);
+            });
+            shell.appendChild(kpis);
+
+            // aviso de leads sem responsável
+            if (semDono.carteira > 0) {
+                const w = _comEl('div', 'com-warn');
+                w.appendChild(_comEl('i', 'ph-bold ph-warning'));
+                const t = _comEl('span');
+                t.appendChild(_comEl('strong', null, semDono.carteira.toLocaleString('pt-BR') + ' leads sem responsável'));
+                t.appendChild(document.createTextNode(' — ninguém está cuidando deles. Atribua no CRM para entrarem na medição.'));
+                w.appendChild(t);
+                shell.appendChild(w);
+            }
+
+            // gráfico de receita por pessoa
+            const chartCard = _comEl('div', 'com-card');
+            const ch = _comEl('div', 'com-card-title');
+            ch.appendChild(_comEl('i', 'ph-bold ph-chart-bar'));
+            ch.appendChild(_comEl('span', null, 'Receita e conversões por responsável'));
+            chartCard.appendChild(ch);
+            const wrap = _comEl('div', 'com-chart-wrap');
+            const canvas = document.createElement('canvas');
+            canvas.id = 'comercialChart';
+            wrap.appendChild(canvas);
+            chartCard.appendChild(wrap);
+            shell.appendChild(chartCard);
+
+            // tabela por pessoa
+            const tblCard = _comEl('div', 'com-card');
+            const th2 = _comEl('div', 'com-card-title');
+            th2.appendChild(_comEl('i', 'ph-bold ph-users-three'));
+            th2.appendChild(_comEl('span', null, 'Desempenho por responsável'));
+            tblCard.appendChild(th2);
+
+            const scroll = _comEl('div', 'com-tbl-wrap');
+            const table = document.createElement('table');
+            table.className = 'com-tbl';
+            const thead = document.createElement('thead');
+            const htr = document.createElement('tr');
+            ['#', 'Responsável', 'Carteira', 'Convertidos', 'Taxa', 'Compraram', 'Receita', 'Parados'].forEach((h, i) => {
+                const th = document.createElement('th');
+                th.textContent = h;
+                if (i >= 2) th.style.textAlign = 'right';
+                htr.appendChild(th);
+            });
+            thead.appendChild(htr);
+            table.appendChild(thead);
+            const tbody = document.createElement('tbody');
+            nomes.forEach((n, i) => {
+                const a = agg[n];
+                const taxa = a.carteira ? (a.convertidos / a.carteira * 100) : 0;
+                const tr = document.createElement('tr');
+                const rank = document.createElement('td');
+                rank.appendChild(_comEl('span', 'com-rank' + (i === 0 && a.receita > 0 ? ' top' : ''), String(i + 1)));
+                tr.appendChild(rank);
+                const nome = document.createElement('td');
+                nome.appendChild(_comEl('span', 'com-nome', a.nome));   // textContent: seguro
+                tr.appendChild(nome);
+                [
+                    { t: a.carteira.toLocaleString('pt-BR') },
+                    { t: a.convertidos.toLocaleString('pt-BR') },
+                    { t: taxa.toFixed(taxa < 10 ? 1 : 0) + '%', hot: taxa >= 20 },
+                    { t: a.comprou.toLocaleString('pt-BR') },
+                    { t: _comBRL(a.receita), strong: true, money: a.receita > 0 },
+                    { t: a.parados.toLocaleString('pt-BR'), bad: a.parados > 0 }
+                ].forEach(c => {
+                    const td = document.createElement('td');
+                    td.textContent = c.t;
+                    td.style.textAlign = 'right';
+                    if (c.strong) td.style.fontWeight = '700';
+                    if (c.money) td.style.color = '#10b981';
+                    if (c.hot) td.style.color = '#10b981';
+                    if (c.bad) td.style.color = '#dc2626';
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            scroll.appendChild(table);
+            tblCard.appendChild(scroll);
+            shell.appendChild(tblCard);
+
+            // etapas por responsável (onde cada um está travando)
+            if (cols.length) {
+                const stCard = _comEl('div', 'com-card');
+                const th3 = _comEl('div', 'com-card-title');
+                th3.appendChild(_comEl('i', 'ph-bold ph-funnel'));
+                th3.appendChild(_comEl('span', null, 'Em que etapa está a carteira de cada um'));
+                stCard.appendChild(th3);
+                nomes.forEach(n => {
+                    const a = agg[n];
+                    if (!a.carteira) return;
+                    const row = _comEl('div', 'com-stage-row');
+                    row.appendChild(_comEl('div', 'com-stage-name', a.nome));  // seguro
+                    const bar = _comEl('div', 'com-stage-bar');
+                    cols.forEach(c => {
+                        const q = a.stages[c.key] || 0;
+                        if (!q) return;
+                        const seg = _comEl('div', 'com-stage-seg');
+                        seg.style.width = (q / a.carteira * 100) + '%';
+                        seg.style.background = (typeof crmStageColor === 'function') ? crmStageColor(c.key, cols) : 'var(--primary)';
+                        seg.title = c.title + ': ' + q;
+                        bar.appendChild(seg);
+                    });
+                    row.appendChild(bar);
+                    row.appendChild(_comEl('div', 'com-stage-tot', a.carteira));
+                    stCard.appendChild(row);
+                });
+                shell.appendChild(stCard);
+            }
+
+            pane.appendChild(shell);
+            _comercialDrawChart(nomes.map(n => agg[n]));
+        }
+
+        function _comercialHead() {
+            const head = _comEl('div', 'com-head');
+            const left = _comEl('div');
+            left.appendChild(_comEl('h3', null, 'Desempenho comercial'));
+            left.appendChild(_comEl('p', 'desc', 'Como cada responsável está performando com os leads do CRM.'));
+            head.appendChild(left);
+            const btn = _comEl('button', 'camp-btn', 'Atualizar');
+            btn.onclick = () => comercialRender();
+            head.appendChild(btn);
+            return head;
+        }
+
+        function _comercialDrawChart(rows) {
+            const cv = document.getElementById('comercialChart');
+            if (!cv || typeof Chart === 'undefined' || !rows || !rows.length) return;
+            if (_comercialChart) { try { _comercialChart.destroy(); } catch (e) {} }
+            const muted = (getComputedStyle(document.body).getPropertyValue('--text-muted') || '#94a3b8').trim();
+            _comercialChart = new Chart(cv.getContext('2d'), {
+                data: {
+                    labels: rows.map(r => r.nome),
+                    datasets: [
+                        { type: 'bar', label: 'Receita (R$)', data: rows.map(r => +r.receita.toFixed(2)), backgroundColor: 'rgba(16,185,129,.35)', borderColor: '#10b981', borderWidth: 1, borderRadius: 4, yAxisID: 'y' },
+                        { type: 'bar', label: 'Convertidos', data: rows.map(r => r.convertidos), backgroundColor: 'rgba(124,58,237,.35)', borderColor: 'rgba(124,58,237,.8)', borderWidth: 1, borderRadius: 4, yAxisID: 'y1' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: muted, boxWidth: 12, font: { size: 11 } } } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: muted, font: { size: 11 } } },
+                        y: { position: 'left', beginAtZero: true, grid: { color: 'rgba(127,127,127,.1)' }, ticks: { color: '#10b981', font: { size: 10 }, callback: v => 'R$' + v } },
+                        y1: { position: 'right', beginAtZero: true, grid: { display: false }, ticks: { color: muted, precision: 0, font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function _comercialInjectCSS() {
+            if (document.getElementById('comercialStyle')) return;
+            const s = document.createElement('style');
+            s.id = 'comercialStyle';
+            s.textContent = ''
+                + '.com-shell{padding:2px 2px 24px;font-variant-numeric:tabular-nums;}'
+                + '.com-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;}'
+                + '.com-head h3{margin:0;font-size:18px;}'
+                + '.com-head .desc{margin:2px 0 0;font-size:13px;color:var(--text-muted);}'
+                + '.com-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;}'
+                + '.com-kpi{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:13px 15px;display:flex;flex-direction:column;gap:3px;}'
+                + '.com-kpi-l{font-size:11.5px;color:var(--text-muted);font-weight:600;}'
+                + '.com-kpi-v{font-size:23px;font-weight:800;letter-spacing:-.02em;color:var(--text-main);}'
+                + '.com-kpi-s{font-size:11px;color:var(--text-muted);}'
+                + '.com-kpi.ok .com-kpi-v{color:#10b981;}'
+                + '.com-kpi.bad .com-kpi-v{color:#dc2626;}'
+                + '.com-warn{display:flex;align-items:flex-start;gap:9px;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.28);color:var(--text-main);border-radius:12px;padding:11px 14px;font-size:13px;margin-bottom:16px;}'
+                + '.com-warn i{color:#f59e0b;font-size:17px;flex-shrink:0;}'
+                + '.com-card{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:16px;}'
+                + '.com-card-title{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:800;color:var(--text-main);margin-bottom:14px;}'
+                + '.com-card-title i{color:var(--primary);}'
+                + '.com-chart-wrap{height:250px;position:relative;}'
+                + '.com-tbl-wrap{overflow-x:auto;}'
+                + '.com-tbl{width:100%;border-collapse:collapse;font-size:13px;}'
+                + '.com-tbl th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text-muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;}'
+                + '.com-tbl td{padding:10px;border-bottom:1px solid var(--border);white-space:nowrap;}'
+                + '.com-tbl tbody tr:hover{background:rgba(127,127,127,.05);}'
+                + '.com-rank{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:8px;background:rgba(127,127,127,.12);font-size:12px;font-weight:800;color:var(--text-muted);}'
+                + '.com-rank.top{background:linear-gradient(135deg,var(--primary),var(--primary-hi));color:#fff;}'
+                + '.com-nome{font-weight:600;color:var(--text-main);}'
+                + '.com-stage-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}'
+                + '.com-stage-name{flex:0 0 130px;font-size:12.5px;font-weight:600;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}'
+                + '.com-stage-bar{flex:1;display:flex;height:14px;border-radius:999px;overflow:hidden;background:rgba(127,127,127,.12);}'
+                + '.com-stage-seg{height:100%;transition:width .4s ease;}'
+                + '.com-stage-tot{flex:0 0 34px;text-align:right;font-size:12px;color:var(--text-muted);font-weight:700;}'
+                + '.com-loading{padding:40px;text-align:center;color:var(--text-muted);}'
+                + '.com-empty{padding:40px 24px;text-align:center;background:var(--card-bg);border:1px dashed var(--border);border-radius:16px;}'
+                + '.com-empty-ic{font-size:30px;color:var(--primary);margin-bottom:10px;}'
+                + '.com-empty h4{margin:0 0 8px;font-size:16px;}'
+                + '.com-empty p{margin:0 auto 16px;font-size:13.5px;color:var(--text-muted);max-width:460px;line-height:1.5;}'
+                + '@media(max-width:600px){.com-stage-name{flex-basis:88px;}}';
             document.head.appendChild(s);
         }
 
