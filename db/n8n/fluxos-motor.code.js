@@ -107,9 +107,12 @@ for(const e of due){
         continue;
       }
     } else if(no.tipo==='mover_crm'){
+      // O board indexa lead pelos ÚLTIMOS 9 DÍGITOS (normalize() do painel). Gravar com DDD cria
+      // uma linha órfã que o CRM nunca lê — o lead fica visualmente parado onde estava.
+      const chaveCrm=e.lead_phone.length>=9?e.lead_phone.slice(-9):e.lead_phone;
       try{
-        await post('/crm_lead_overrides',{lojista_email:e.lojista_email,telefone:e.lead_phone,column_key:no.estagio},'resolution=merge-duplicates');
-        await log(e,'mover_crm','movido',{estagio:no.estagio});
+        await post('/crm_lead_overrides',{lojista_email:e.lojista_email,telefone:chaveCrm,column_key:no.estagio},'resolution=merge-duplicates');
+        await log(e,'mover_crm','movido',{estagio:no.estagio,telefone:chaveCrm});
       }catch(ce){
         await log(e,'mover_crm','falhou',{estagio:no.estagio,err:String((ce&&ce.message)||ce).slice(0,200)});
       }
