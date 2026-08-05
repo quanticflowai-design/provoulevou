@@ -7,6 +7,11 @@ const patch=(u,b)=>this.helpers.httpRequest({method:'PATCH',url:BASE+u,headers:O
 const post=(u,b,extra)=>this.helpers.httpRequest({method:'POST',url:BASE+u,headers:Object.assign({Prefer:(extra||'return=minimal')},H),body:b,json:true});
 const send=b=>this.helpers.httpRequest({method:'POST',url:'https://n8n.segredosdodrop.com/webhook/pl-wa-send',body:b,json:true});
 const norm=p=>{let d=String(p||'').replace(/\D/g,'');if(d.startsWith('55')&&d.length>11)d=d.slice(2);if(d.startsWith('0'))d=d.slice(1);return d;};
+// A API da Meta aceita o template (devolve wamid) e SÓ DEPOIS reprova a entrega via webhook de status
+// (ex.: conta sem cartão => status 'failed'). Por isso o passo seguinte espera a confirmação antes de rodar.
+const CHECK_MS=120000;   // margem p/ o webhook de status chegar
+const CHECK_MAX=3;       // rodadas de espera antes de seguir sem confirmação
+const semMarca=c=>{const o=Object.assign({},c);delete o._last_wamid;delete o._wamid_checks;return o;};
 const nowIso=new Date().toISOString();
 const due=await get(`/flow_enrollments?status=eq.ativo&proxima_acao_em=lte.${nowIso}&select=*&limit=200`);
 const log=(e,tipo,res,det)=>post('/flow_runs_log',{enrollment_id:e.id,flow_id:e.flow_id,lojista_email:e.lojista_email,lead_phone:e.lead_phone,passo_idx:e.passo_idx,tipo_no:tipo,resultado:res,detalhe:det||{}});
@@ -31,6 +36,27 @@ for(const e of due){
     }
     const passos=flow.passos||[]; const no=passos[e.passo_idx];
     if(!no){await patch(`/flow_enrollments?id=eq.${e.id}`,{status:'concluido'});continue;}
+    let c=e.contexto||{};   // contexto do lead: visível a todos os nós (não redeclarar dentro dos ramos)
+    // GUARDA DE ENTREGA: só continua o fluxo se a Meta não reprovou a mensagem do passo anterior.
+    if(c._last_wamid){
+      const ent=await get(`/whatsapp_mensagens?meta_message_id=eq.${encodeURIComponent(c._last_wamid)}&select=status&limit=1`);
+      const st=(ent[0]||{}).status||null;
+      if(st==='failed'){
+        // mensagem não chegou (ex.: sem cartão no Meta) => para aqui. Nada de mover_crm com envio reprovado.
+        await patch(`/flow_enrollments?id=eq.${e.id}`,{status:'erro',contexto:semMarca(c),updated_at:new Date().toISOString()});
+        await log(e,'enviar','falhou',{motivo:'meta_reprovou_entrega',wamid:c._last_wamid,status:st});
+        continue;
+      }
+      const checks=(c._wamid_checks||0)+1;
+      if(!st && checks<=CHECK_MAX){
+        await patch(`/flow_enrollments?id=eq.${e.id}`,{proxima_acao_em:new Date(Date.now()+CHECK_MS).toISOString(),contexto:Object.assign({},c,{_wamid_checks:checks}),updated_at:new Date().toISOString()});
+        await log(e,'enviar','esperou',{motivo:'aguarda_status_meta',wamid:c._last_wamid,tentativa:checks});
+        continue;
+      }
+      // entregue/lida (ou sem status após CHECK_MAX rodadas): segue o fluxo sem o marcador
+      c=semMarca(c);
+      await patch(`/flow_enrollments?id=eq.${e.id}`,{contexto:c,updated_at:new Date().toISOString()});
+    }
     // JANELA (so envio)
     if(no.tipo==='enviar'){
       const j=flow.janela_envio||{}; const d=new Date();
@@ -45,7 +71,6 @@ for(const e of due){
       nextAt=new Date(Date.now()+ms).toISOString();
       await log(e,'espera','esperou',{qtd:no.qtd,unidade:no.unidade});
     } else if(no.tipo==='enviar'){
-      const c=e.contexto||{};
       const dict={image:'',nome:c.nome||'👋',produto:c.produto||'o modelo que você provou',link:c.url||''};
       const mapk=k=>(Object.prototype.hasOwnProperty.call(dict,k)?dict[k]:k);
       const bodyParams=(no.params||[]).map(mapk);
@@ -60,7 +85,13 @@ for(const e of due){
       let r; try{r=await send(body);}catch(se){r={ok:false,error:String(se.message||se).slice(0,160)};}
       if(r&&r.ok){
         enviados++;
-        await log(e,'enviar','enviado',{template:no.template,wamid:(r&&r.meta_message_id)||null});
+        const wamid=(r&&r.meta_message_id)||null;
+        await log(e,'enviar','enviado',{template:no.template,wamid});
+        if(wamid){
+          // avança o passo mas segura a execução: o próximo nó só roda depois de conferir o status na Meta
+          await patch(`/flow_enrollments?id=eq.${e.id}`,{passo_idx:nextIdx,proxima_acao_em:new Date(Date.now()+CHECK_MS).toISOString(),contexto:Object.assign({},c,{_last_wamid:wamid,_wamid_checks:0,_envio_tries:0}),updated_at:new Date().toISOString()});
+          continue;
+        }
       } else {
         // falha transitória do envio: retenta o MESMO passo (backoff 3min) até 3x antes de desistir
         const tries=((c&&c._envio_tries)||0)+1;
@@ -70,11 +101,18 @@ for(const e of due){
           await log(e,'enviar','falhou',{template:no.template,tentativa:tries,retry:true,resp:respStr});
           continue;
         }
+        // desistiu: o lead NÃO avança (senão um mover_crm seguinte marcaria como contatado sem mensagem)
         await log(e,'enviar','falhou',{template:no.template,tentativa:tries,desistiu:true,resp:respStr});
+        await patch(`/flow_enrollments?id=eq.${e.id}`,{status:'erro',contexto:semMarca(c),updated_at:new Date().toISOString()});
+        continue;
       }
     } else if(no.tipo==='mover_crm'){
-      try{await post('/crm_lead_overrides',{lojista_email:e.lojista_email,telefone:e.lead_phone,column_key:no.estagio},'resolution=merge-duplicates');}catch(ce){}
-      await log(e,'mover_crm','movido',{estagio:no.estagio});
+      try{
+        await post('/crm_lead_overrides',{lojista_email:e.lojista_email,telefone:e.lead_phone,column_key:no.estagio},'resolution=merge-duplicates');
+        await log(e,'mover_crm','movido',{estagio:no.estagio});
+      }catch(ce){
+        await log(e,'mover_crm','falhou',{estagio:no.estagio,err:String((ce&&ce.message)||ce).slice(0,200)});
+      }
     }
     await patch(`/flow_enrollments?id=eq.${e.id}`,{passo_idx:nextIdx,proxima_acao_em:nextAt,updated_at:new Date().toISOString()});
   }catch(err){
