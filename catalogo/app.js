@@ -270,8 +270,15 @@
     if (!telefoneValido(tel)) { $('#phone-input').focus(); return; }
     if (!userPhoto) return;
 
-    const chave = storeRow && storeRow.store_api_key;
-    if (!chave) { toast('Loja sem chave de provador configurada.'); return; }
+    // O catálogo renderiza do cache do localStorage, então a tela funciona mesmo
+    // quando a leitura da loja falha — e aí storeRow fica nulo e a prova morria com
+    // "loja sem chave". Antes de desistir, tenta buscar a loja de novo.
+    let chave = storeRow && storeRow.store_api_key;
+    if (!chave) {
+      try { await loadStore(); } catch (e) {}
+      chave = storeRow && storeRow.store_api_key;
+    }
+    if (!chave) { toast('Não consegui falar com o servidor. Tente de novo.'); return; }
 
     _gerando = true;
     show('loading');
