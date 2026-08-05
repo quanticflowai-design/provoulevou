@@ -291,7 +291,10 @@
     }, 1800);
 
     try {
-      const cat = current.categoria || 'roupa';
+      // Recalcula na hora em vez de confiar no campo: o catálogo pode ter vindo do
+      // cache do localStorage gravado por uma versão anterior, sem `categoria` —
+      // e aí "Oculos 2" caía no gerador de roupa por causa do fallback.
+      const cat = categoriaDe(current);
       const url = cat === 'oculos' ? WH_GER_OCULOS : WH_GER_ROUPA;
 
       const fd = new FormData();

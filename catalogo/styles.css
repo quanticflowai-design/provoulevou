@@ -1,8 +1,15 @@
 /* ══════════════ Provou Catálogo — protótipo ══════════════ */
 :root {
-  --brand: #6d3bef;          /* violeta Provou */
+  --brand: #6d3bef;          /* violeta Provou — SOBRESCRITO pela cor da loja */
   --brand-dark: #4d24bd;
   --brand-soft: #f1ecfe;
+
+  /* Paleta da Provou Levou, fixa. O `--brand` acima vira a cor do lojista assim
+     que a loja carrega; estas nunca mudam, porque a tela de geração é o momento
+     em que quem aparece é a Provou, não a loja. */
+  --pl-brand: #6d3bef;
+  --pl-brand-dark: #4d24bd;
+  --pl-brand-soft: #f1ecfe;
   --ink: #14121a;
   --ink-2: #5b5566;
   --muted: #8d8798;
@@ -158,9 +165,26 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 /* ─── Loading / spinner ─── */
 .loading-box, .success-box { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 78dvh; gap: 8px; }
 .loading-box h2 { font-size: 20px; margin-top: 8px; }
+/* ── Tela de geração: quem assina é a Provou ──────────────────────────────
+   Cores fixas (--pl-*), não a do lojista: é o único momento em que a marca
+   que está trabalhando aparece pro cliente final. */
+.loading-logo {
+  width: 132px; height: auto; margin-bottom: 22px;
+  opacity: 0; animation: pl-fade .5s ease-out .1s forwards;
+}
+@keyframes pl-fade { to { opacity: 1; } }
+.loading-box h2 { color: var(--pl-brand-dark); }
+.loading-box .muted { color: var(--ink-2); }
+.loading-box .progress { background: var(--pl-brand-soft); }
+.loading-box .progress-bar { background: var(--pl-brand); }
+.loading-selo {
+  margin-top: 18px; font-size: 11.5px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted);
+}
+
 .spinner-ai {
   width: 68px; height: 68px; border-radius: 50%;
-  background: conic-gradient(var(--brand), #b18cff, var(--brand-soft), var(--brand));
+  background: conic-gradient(var(--pl-brand), #b18cff, var(--pl-brand-soft), var(--pl-brand));
   -webkit-mask: radial-gradient(farthest-side, transparent 60%, #000 61%);
   mask: radial-gradient(farthest-side, transparent 60%, #000 61%);
   animation: spin 1s linear infinite;
