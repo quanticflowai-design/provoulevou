@@ -670,6 +670,7 @@
     .hero {
       min-height: 80vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       position: relative;
@@ -1444,6 +1445,7 @@
       opacity: 0.6;
       pointer-events: none;
     }
+
 
     .dash-scroll-section .container {
       max-width: var(--container);
@@ -4200,34 +4202,19 @@
 
   <!-- ─── HERO (Editorial) ─── -->
   <section class="hero">
+    <div class="hero-grid">
     <div class="hero-content">
-      <h1 class="h-display blur-entry be1">Provador virtual com IA<br>para <em class="gradient-text" style="font-style:italic; font-weight:400;">moda &amp; óculos.</em></h1>
+      <h1 class="h-display blur-entry be1">Provador virtual<br>para <em class="gradient-text" style="font-style:italic; font-weight:400;">moda &amp; óculos.</em></h1>
 
       <p class="hero-sub blur-entry be2" style="font-style:italic; font-weight:300; font-size:clamp(1.05rem, 1.4vw, 1.3rem); color:rgba(0,0,0,0.7); margin-top:24px; line-height:1.5;">
         O provador virtual que materializa o desejo de compra.
       </p>
-      <ul class="blur-entry be2" style="list-style:none; padding:0; margin:32px 0 0; display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
-        <li style="display:inline-flex; align-items:center; gap:8px; padding:7px 14px 7px 12px; background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.22); border-radius:50px; font-size:clamp(0.85rem, 1vw, 0.95rem); color:#1a1a1a; font-weight:500;">
-          <span style="width:6px; height:6px; background:#7c3aed; border-radius:50%; box-shadow:0 0 0 3px rgba(124,58,237,0.18); flex-shrink:0;"></span>
-          até +22% de conversão
-        </li>
-        <li style="display:inline-flex; align-items:center; gap:8px; padding:7px 14px 7px 12px; background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.22); border-radius:50px; font-size:clamp(0.85rem, 1vw, 0.95rem); color:#1a1a1a; font-weight:500;">
-          <span style="width:6px; height:6px; background:#7c3aed; border-radius:50%; box-shadow:0 0 0 3px rgba(124,58,237,0.18); flex-shrink:0;"></span>
-          +43% de LTV
-        </li>
-        <li style="display:inline-flex; align-items:center; gap:8px; padding:7px 14px 7px 12px; background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.22); border-radius:50px; font-size:clamp(0.85rem, 1vw, 0.95rem); color:#1a1a1a; font-weight:500;">
-          <span style="width:6px; height:6px; background:#7c3aed; border-radius:50%; box-shadow:0 0 0 3px rgba(124,58,237,0.18); flex-shrink:0;"></span>
-          −52% em devoluções
-        </li>
-      </ul>
-
       <div class="hero-ctas blur-entry be3" style="margin-top:36px;">
         <a href="https://wa.me/5511938034714?text=Olá, tenho interesse no Provador Virtual." class="btn-main hero-cta-glow"
           target="_blank" data-fb-event="Lead" data-fb-label="Hero - Testar Grátis" style="padding:18px 24px; font-size:17px; font-weight:600; letter-spacing:-0.01em; box-shadow:0 12px 36px rgba(124,58,237,0.45), 0 0 0 1px rgba(124,58,237,0.3) inset; position:relative;">Testar Grátis por 7 Dias <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
             stroke-width="1.5" stroke-linecap="round">
             <path d="M3 8h10M9 4l4 4-4 4" />
           </svg></a>
-        <a href="#experimente" class="btn-ghost" data-fb-event="ViewContent" data-fb-label="Hero - Experimentar Provador">Experimentar Provador</a>
       </div>
       <style>
         .hero-cta-glow { animation: hero-cta-pulse 2.6s ease-in-out infinite; }
@@ -4239,7 +4226,287 @@
       </style>
 
     </div>
+
+    <!-- ===== Carrossel de videos do provador ===== -->
+    <aside class="hero-videos" aria-label="V&iacute;deos do provador em lojas reais">
+      <div class="hv-faixa" id="hvFaixa">
+        <div class="hv-trilho" id="hvTrilho"></div>
+      </div>
+    </aside>
+
+    </div>
+
+    <div class="hero-marcas">
+      <div class="marcas-head rv d1">
+      <h2>Usado por mais de <em>1.000 marcas</em> no Brasil.</h2>
+    </div>
+
+      <div class="marcas-slider" id="marcasSlider">
+      <div class="marcas-track">
+            <img src="assets/marcas/arcsunglasses.webp" alt="ARC Sunglasses" loading="lazy" decoding="async">
+            <a class="marca-link" href="https://acessoriostyle.com.br/" target="_blank" rel="dofollow noopener"><img src="assets/marcas/acessoriostyle.webp" alt="Acessórios Style" loading="lazy" decoding="async"></a>
+            <a class="marca-link" href="https://arantz.com.br/" target="_blank" rel="dofollow noopener"><img src="assets/marcas/arantz.webp" alt="Arantz" loading="lazy" decoding="async"></a>
+            <img src="assets/marcas/barch.webp" alt="Barch Ótica" loading="lazy" decoding="async">
+            <img src="assets/marcas/brecho.webp" alt="Brechó do Óculos" loading="lazy" decoding="async">
+            <a class="marca-link" href="https://www.cacifebrand.com.br/" target="_blank" rel="dofollow noopener"><img class="inv" src="assets/marcas/cacife.webp" alt="Cacife Brand" loading="lazy" decoding="async"></a>
+            <img src="assets/marcas/cicia.webp" alt="Cicia Eyewear" loading="lazy" decoding="async">
+            <img src="assets/marcas/dayone.webp" alt="Day One Store" loading="lazy" decoding="async">
+            <img src="assets/marcas/duoari.webp" alt="Duoari" loading="lazy" decoding="async">
+            <img src="assets/marcas/fortuna.webp" alt="Fortuna Sunglasses" loading="lazy" decoding="async">
+            <img src="assets/marcas/hazon.webp" alt="Hazon" loading="lazy" decoding="async">
+            <img src="assets/marcas/koros.webp" alt="Koros" loading="lazy" decoding="async">
+            <a class="marca-link" href="https://www.liuzzieyewear.com.br/" target="_blank" rel="dofollow noopener"><img src="assets/marcas/liuzzi.webp" alt="Liuzzi" loading="lazy" decoding="async"></a>
+            <img src="assets/marcas/maho.webp" alt="Maho Sunglasses" loading="lazy" decoding="async">
+            <a class="marca-link" href="https://www.oticamaxilook.com.br/" target="_blank" rel="dofollow noopener"><img src="assets/marcas/maxilook.webp" alt="Maxilook" loading="lazy" decoding="async"></a>
+            <img src="assets/marcas/oculosmeninaflor.webp" alt="Menina Flor" loading="lazy" decoding="async">
+            <img src="assets/marcas/mipiace.webp" alt="Mi Piace Ottica" loading="lazy" decoding="async">
+            <img src="assets/marcas/mitani.webp" alt="Mitani" loading="lazy" decoding="async">
+            <img src="assets/marcas/mozaik.webp" alt="Mozaik" loading="lazy" decoding="async">
+            <img src="assets/marcas/nc.webp" alt="NC Conceito" loading="lazy" decoding="async">
+            <img src="assets/marcas/oss.webp" alt="OSS Glasses" loading="lazy" decoding="async">
+            <a class="marca-link" href="https://www.parislondon.com.br/" target="_blank" rel="dofollow noopener"><img src="assets/marcas/parislondon.webp" alt="Paris London" loading="lazy" decoding="async"></a>
+            <img src="assets/marcas/programmoda.webp" alt="Program Moda" loading="lazy" decoding="async">
+            <img src="assets/marcas/santi.webp" alt="Santi Eyewear" loading="lazy" decoding="async">
+            <a class="marca-link" href="https://soucetglasses.com.br/" target="_blank" rel="dofollow noopener"><img src="assets/marcas/soucet.webp" alt="Soucet" loading="lazy" decoding="async"></a>
+            <img class="inv" src="assets/marcas/suarmacao.webp" alt="Sua Armação" loading="lazy" decoding="async">
+            <img src="assets/marcas/umut.webp" alt="Umut" loading="lazy" decoding="async">
+            <img src="assets/marcas/cand.webp" alt="Use Cand" loading="lazy" decoding="async">
+            <img src="assets/marcas/ves.webp" alt="VES" loading="lazy" decoding="async">
+            <img src="assets/marcas/vksolaris.webp" alt="VK Solaris" loading="lazy" decoding="async">
+            <a class="marca-link" href="https://www.oculosemfoco.com.br/" target="_blank" rel="dofollow noopener"><img src="assets/marcas/oculosemfoco.webp" alt="Óculos em Foco" loading="lazy" decoding="async"></a>
+            <img src="assets/marcas/arcsunglasses.webp" alt="ARC Sunglasses" loading="lazy" decoding="async">
+            <a class="marca-link" href="https://acessoriostyle.com.br/" target="_blank" rel="dofollow noopener"><img src="assets/marcas/acessoriostyle.webp" alt="Acessórios Style" loading="lazy" decoding="async"></a>
+            <a class="marca-link" href="https://arantz.com.br/" target="_blank" rel="dofollow noopener"><img src="assets/marcas/arantz.webp" alt="Arantz" loading="lazy" decoding="async"></a>
+            <img src="assets/marcas/barch.webp" alt="Barch Ótica" loading="lazy" decoding="async">
+            <img src="assets/marcas/brecho.webp" alt="Brechó do Óculos" loading="lazy" decoding="async">
+            <a class="marca-link" href="https://www.cacifebrand.com.br/" target="_blank" rel="dofollow noopener"><img class="inv" src="assets/marcas/cacife.webp" alt="Cacife Brand" loading="lazy" decoding="async"></a>
+            <img src="assets/marcas/cicia.webp" alt="Cicia Eyewear" loading="lazy" decoding="async">
+            <img src="assets/marcas/dayone.webp" alt="Day One Store" loading="lazy" decoding="async">
+            <img src="assets/marcas/duoari.webp" alt="Duoari" loading="lazy" decoding="async">
+            <img src="assets/marcas/fortuna.webp" alt="Fortuna Sunglasses" loading="lazy" decoding="async">
+            <img src="assets/marcas/hazon.webp" alt="Hazon" loading="lazy" decoding="async">
+            <img src="assets/marcas/koros.webp" alt="Koros" loading="lazy" decoding="async">
+            <a class="marca-link" href="https://www.liuzzieyewear.com.br/" target="_blank" rel="dofollow noopener"><img src="assets/marcas/liuzzi.webp" alt="Liuzzi" loading="lazy" decoding="async"></a>
+            <img src="assets/marcas/maho.webp" alt="Maho Sunglasses" loading="lazy" decoding="async">
+            <a class="marca-link" href="https://www.oticamaxilook.com.br/" target="_blank" rel="dofollow noopener"><img src="assets/marcas/maxilook.webp" alt="Maxilook" loading="lazy" decoding="async"></a>
+            <img src="assets/marcas/oculosmeninaflor.webp" alt="Menina Flor" loading="lazy" decoding="async">
+            <img src="assets/marcas/mipiace.webp" alt="Mi Piace Ottica" loading="lazy" decoding="async">
+            <img src="assets/marcas/mitani.webp" alt="Mitani" loading="lazy" decoding="async">
+            <img src="assets/marcas/mozaik.webp" alt="Mozaik" loading="lazy" decoding="async">
+            <img src="assets/marcas/nc.webp" alt="NC Conceito" loading="lazy" decoding="async">
+            <img src="assets/marcas/oss.webp" alt="OSS Glasses" loading="lazy" decoding="async">
+            <a class="marca-link" href="https://www.parislondon.com.br/" target="_blank" rel="dofollow noopener"><img src="assets/marcas/parislondon.webp" alt="Paris London" loading="lazy" decoding="async"></a>
+            <img src="assets/marcas/programmoda.webp" alt="Program Moda" loading="lazy" decoding="async">
+            <img src="assets/marcas/santi.webp" alt="Santi Eyewear" loading="lazy" decoding="async">
+            <a class="marca-link" href="https://soucetglasses.com.br/" target="_blank" rel="dofollow noopener"><img src="assets/marcas/soucet.webp" alt="Soucet" loading="lazy" decoding="async"></a>
+            <img class="inv" src="assets/marcas/suarmacao.webp" alt="Sua Armação" loading="lazy" decoding="async">
+            <img src="assets/marcas/umut.webp" alt="Umut" loading="lazy" decoding="async">
+            <img src="assets/marcas/cand.webp" alt="Use Cand" loading="lazy" decoding="async">
+            <img src="assets/marcas/ves.webp" alt="VES" loading="lazy" decoding="async">
+            <img src="assets/marcas/vksolaris.webp" alt="VK Solaris" loading="lazy" decoding="async">
+            <a class="marca-link" href="https://www.oculosemfoco.com.br/" target="_blank" rel="dofollow noopener"><img src="assets/marcas/oculosemfoco.webp" alt="Óculos em Foco" loading="lazy" decoding="async"></a>
+      </div>
+    </div>
+    </div>
   </section>
+
+  <style>
+      /* faixa de marcas: agora mora dentro do hero, embaixo do grid */
+      .hero-marcas { position:relative; z-index:2; width:100%; padding-bottom:44px; }
+      .marcas-head { text-align:center; max-width:1000px; margin:0 auto 22px; padding:0 24px; }
+      /* dentro do hero vira prova social, nao titulo de secao: nao pode brigar com o h1 */
+      .marcas-head h2 { font-size:11px; font-weight:500; letter-spacing:0.16em; text-transform:uppercase; line-height:1.4; color:rgba(0,0,0,0.38); margin:0; text-wrap:balance; }
+      .marcas-head h2 em { font-style:normal; font-weight:600; color:rgba(0,0,0,0.52); }
+      .marcas-head p { margin:16px auto 0; max-width:520px; font-size:14.5px; line-height:1.6; color:rgba(0,0,0,0.55); }
+
+      .marcas-slider { position:relative; overflow:hidden; max-width:1120px; margin:0 auto; padding:6px 24px; -webkit-mask-image:linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image:linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+      .marcas-track { display:flex; align-items:center; gap:46px; width:max-content; animation:marcas-desliza 226s linear infinite; }
+      .marcas-slider:hover .marcas-track { animation-play-state:paused; }
+      @keyframes marcas-desliza { from { transform:translate3d(0,0,0); } to { transform:translate3d(calc(-50% - 23px),0,0); } }
+      .marcas-track .marca-link { display:flex; align-items:center; flex-shrink:0; line-height:0; }
+      .marcas-track img { height:24px; width:auto; flex-shrink:0; opacity:0; filter:grayscale(100%); user-select:none; transform:translateY(14px) scale(0.94); transition:opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1), filter .3s ease; }
+      .marcas-track img.inv { filter:grayscale(100%) invert(1); }
+      .marcas-slider.entrou .marcas-track img { opacity:0.32; transform:none; }
+      .marcas-track img:hover { opacity:0.7; filter:grayscale(100%); }
+      .marcas-track img.inv:hover { filter:invert(1); }
+
+      @media (max-width:860px) {
+        .marcas-track { gap:34px; }
+        .marcas-track img { height:20px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .marcas-track { animation:none; }
+        .marcas-track img { transition:none; }
+      }
+    </style>
+
+  <style>
+    /* ── Fundo do hero: malha tecnica + luz de palco nos videos ── */
+    .hero::before, .hero::after { content:''; position:absolute; inset:0; pointer-events:none; z-index:0; }
+
+    /* malha fina, some nas bordas — da textura sem virar decoracao */
+    .hero::before {
+      background-image:
+        linear-gradient(rgba(17,17,17,0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(17,17,17,0.045) 1px, transparent 1px);
+      background-size:46px 46px;
+      -webkit-mask-image:radial-gradient(ellipse 76% 68% at 62% 46%, #000 0%, rgba(0,0,0,0.55) 52%, transparent 84%);
+      mask-image:radial-gradient(ellipse 76% 68% at 62% 46%, #000 0%, rgba(0,0,0,0.55) 52%, transparent 84%);
+    }
+
+    /* luz atras da coluna de videos + realce frio no rodape esquerdo */
+    .hero::after {
+      background:
+        radial-gradient(ellipse 34% 52% at 74% 44%, rgba(139,92,246,0.22) 0%, rgba(139,92,246,0.09) 46%, transparent 76%),
+        radial-gradient(ellipse 60% 46% at 78% 40%, rgba(167,139,250,0.13) 0%, transparent 72%),
+        radial-gradient(ellipse 44% 34% at 12% 92%, rgba(124,58,237,0.07) 0%, transparent 74%);
+      animation:hero-luz 18s ease-in-out infinite alternate;
+    }
+    @keyframes hero-luz {
+      from { opacity:0.86; }
+      to   { opacity:1; }
+    }
+    @media (prefers-reduced-motion: reduce) { .hero::after { animation:none; opacity:1; } }
+
+    .hero-grid { position:relative; z-index:2; display:grid; grid-template-columns:1.02fr 0.98fr; gap:56px; align-items:center; width:100%; max-width:1280px; margin:0 auto; padding:120px 40px 64px; }
+    .hero .hero-content { text-align:left; max-width:none; margin:0; padding:0; }
+    .hero .hero-ctas { justify-content:flex-start; }
+
+    .hero-videos { min-width:0; }
+    .hv-faixa { position:relative; overflow:hidden; padding:6px 0; -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%); mask-image:linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%); }
+    .hv-trilho { display:flex; gap:16px; width:max-content; will-change:transform; }
+    .hv-faixa:hover .hv-trilho { animation-play-state:paused; }
+    @keyframes hv-desliza { from { transform:translate3d(0,0,0); } to { transform:translate3d(calc(-50% - 8px),0,0); } }
+
+    .hv-card { position:relative; flex:0 0 auto; width:186px; aspect-ratio:9/16; border-radius:18px; overflow:hidden; background:#0d0b16; box-shadow:0 18px 44px rgba(24,12,54,0.22), 0 0 0 1px rgba(124,58,237,0.14);
+      opacity:0; transform:translateY(26px) scale(0.94); filter:blur(6px);
+      transition:opacity .9s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1), filter .9s cubic-bezier(.22,1,.36,1); }
+    .hv-faixa.entrou .hv-card { opacity:1; transform:none; filter:none; }
+    .hv-card video { width:100%; height:100%; object-fit:cover; display:block; }
+    .hv-card::after { content:''; position:absolute; inset:auto 0 0 0; height:38%; background:linear-gradient(to top, rgba(10,6,24,0.45), transparent); pointer-events:none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hv-trilho { animation:none !important; }
+      .hv-faixa { overflow-x:auto; }
+      .hv-card { opacity:1; transform:none; filter:none; transition:none; }
+    }
+
+    @media (max-width:980px) {
+      .hero-grid { grid-template-columns:1fr; gap:44px; padding:110px 20px 70px; }
+      .hero .hero-content { text-align:center; }
+      .hero .hero-content ul { justify-content:center !important; }
+      .hero .hero-ctas { justify-content:center !important; }
+      .hv-card { width:156px; }
+    }
+  </style>
+
+  <script>
+    // Videos do provador (GIFs originais convertidos p/ mp4 mudo — ~10x mais leves).
+    window.PL_HERO_VIDEOS = [
+      { src: 'assets/videos/provador-1.mp4', poster: 'assets/videos/provador-1.webp' },
+      { src: 'assets/videos/provador-2.mp4', poster: 'assets/videos/provador-2.webp' },
+      { src: 'assets/videos/provador-3.mp4', poster: 'assets/videos/provador-3.webp' },
+      { src: 'assets/videos/provador-4.mp4', poster: 'assets/videos/provador-4.webp' },
+      { src: 'assets/videos/provador-5.mp4', poster: 'assets/videos/provador-5.webp' },
+      { src: 'assets/videos/provador-6.mp4', poster: 'assets/videos/provador-6.webp' },
+      { src: 'assets/videos/provador-7.mp4', poster: 'assets/videos/provador-7.webp' },
+      { src: 'assets/videos/provador-8.mp4', poster: 'assets/videos/provador-8.webp' }
+    ];
+    (function () {
+      var lista = window.PL_HERO_VIDEOS || [];
+      var faixa = document.getElementById('hvFaixa');
+      var trilho = document.getElementById('hvTrilho');
+      if (!faixa || !trilho || !lista.length) return;
+
+      var videos = [];
+
+      function card(v) {
+        var d = document.createElement('div');
+        d.className = 'hv-card';
+        var el = document.createElement('video');
+        el.muted = true; el.loop = true; el.playsInline = true; el.setAttribute('playsinline', '');
+        el.preload = 'none';                 // nada de rede ate o hero aparecer
+        if (v.poster) el.poster = v.poster;  // frame estatico segura o layout
+        el.dataset.src = v.src;
+        d.appendChild(el);
+        videos.push(el);
+        return d;
+      }
+
+      // duas passadas da mesma lista: o loop da animacao fica sem emenda
+      lista.forEach(function (v) { trilho.appendChild(card(v)); });
+      lista.forEach(function (v) { trilho.appendChild(card(v)); });
+
+      // velocidade constante (~34px/s) independente de quantos videos existem
+      var largura = lista.length * (186 + 16);
+      trilho.style.animation = 'hv-desliza ' + Math.round(largura / 34) + 's linear infinite';
+
+      var ligado = false;
+      var emCena = [];   // so os cards dentro da faixa visivel
+
+      function toca(el) {
+        if (!el.src) { el.src = el.dataset.src; el.load(); }   // baixa so quando entra em cena
+        var p = el.play(); if (p && p.catch) p.catch(function () {});
+      }
+
+      // entrada escalonada: os cards sobem e desfocam pra dentro na 1a aparicao
+      [].forEach.call(trilho.children, function (c, i) {
+        c.style.transitionDelay = Math.min(i, 5) * 90 + 'ms';
+      });
+
+      function acorda() { ligado = true; faixa.classList.add('entrou'); emCena.forEach(toca); }
+      function dorme() { ligado = false; videos.forEach(function (el) { el.pause(); }); }
+
+      if ('IntersectionObserver' in window) {
+        // 1) o hero inteiro entrou na tela?
+        new IntersectionObserver(function (ent) {
+          ent.forEach(function (e) { e.isIntersecting ? acorda() : dorme(); });
+        }, { threshold: 0.15 }).observe(faixa);
+
+        // 2) dentro da faixa, so o que esta a vista (ou quase) carrega e roda
+        var porCard = new IntersectionObserver(function (ent) {
+          ent.forEach(function (e) {
+            var el = e.target;
+            var i = emCena.indexOf(el);
+            if (e.isIntersecting) {
+              if (i < 0) emCena.push(el);
+              if (ligado) toca(el);
+            } else {
+              if (i >= 0) emCena.splice(i, 1);
+              el.pause();
+            }
+          });
+        }, { root: faixa, rootMargin: '0px 140px' });   // ~1 card de antecedencia: o resto entra deslizando
+        videos.forEach(function (el) { porCard.observe(el); });
+      } else {
+        emCena = videos.slice(0);
+        acorda();
+      }
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) { dorme(); } else { acorda(); }
+      });
+    })();
+  </script>
+
+  <!-- ─── O PROBLEMA (ponte hero → provador) ─── -->
+
+  <script>
+      (function () {
+        var s = document.getElementById('marcasSlider');
+        if (!s) return;
+        if (!('IntersectionObserver' in window)) { s.classList.add('entrou'); return; }
+        // escalona a entrada de cada logo conforme a posicao na faixa
+        [].forEach.call(s.querySelectorAll('img'), function (im, i) {
+          im.style.transitionDelay = Math.min(i, 14) * 55 + 'ms';
+        });
+        new IntersectionObserver(function (e, obs) {
+          if (e[0].isIntersecting) { s.classList.add('entrou'); obs.disconnect(); }
+        }, { threshold: 0.2 }).observe(s);
+        // rede de seguranca: a faixa esta acima da dobra, nao pode ficar invisivel se o observer falhar
+        setTimeout(function () { s.classList.add('entrou'); }, 1600);
+      })();
+    </script>
 
   <!-- ─── EXPERIMENTE AGORA (Atelier Trial) ─── -->
   <section class="section experimente-section" id="experimente">
@@ -4270,24 +4537,21 @@
       }
       .experimente-section > * { position:relative; z-index:2; }
 
-      /* Top measure tape: small ticks like a tailor's tape */
-      .exp-tape {
-        display:flex; justify-content:center; align-items:flex-end;
-        gap:8px; height:14px; margin-bottom:36px;
-        opacity:0.45;
-      }
-      .exp-tape span {
-        width:1px; background:rgba(255,255,255,0.7);
-      }
-      .exp-tape span:nth-child(5n+1) { height:14px; }
-      .exp-tape span:nth-child(2n) { height:6px; }
-      .exp-tape span:not(:nth-child(2n)):not(:nth-child(5n+1)) { height:9px; }
-
       /* Header */
+      /* texto na esquerda, provador na direita */
+      .exp-grid {
+        display:grid; grid-template-columns:minmax(0,0.82fr) minmax(0,1.18fr);
+        gap:56px; align-items:center;
+      }
       .exp-header {
-        max-width:680px; margin:0 auto;
-        text-align:center;
-        margin-bottom:48px;
+        max-width:none; margin:0;
+        text-align:left;
+      }
+      /* como item de grid, o 'margin:0 auto' do palco o encolhia pra largura padrao do iframe (300px) */
+      .exp-grid .exp-stage { margin:0; width:100%; max-width:none; }
+      @media (max-width:1000px) {
+        .exp-grid { grid-template-columns:1fr; gap:36px; }
+        .exp-header { text-align:center; max-width:680px; margin:0 auto; }
       }
       .exp-kicker {
         display:inline-flex; align-items:center; gap:10px;
@@ -4440,7 +4704,6 @@
       }
       @media (max-width: 720px) {
         .experimente-section { padding:64px 0 36px; }
-        .exp-tape { display:none; }
         .exp-corner { width:20px; height:20px; }
         .exp-corner.tl { top:-10px; left:-10px; }
         .exp-corner.tr { top:-10px; right:-10px; }
@@ -4462,23 +4725,9 @@
       });
     </script>
 
-    <!-- Top tape measure -->
-    <div class="exp-tape" aria-hidden="true">
-      <!-- 25 ticks -->
-      <span></span><span></span><span></span><span></span><span></span>
-      <span></span><span></span><span></span><span></span><span></span>
-      <span></span><span></span><span></span><span></span><span></span>
-      <span></span><span></span><span></span><span></span><span></span>
-      <span></span><span></span><span></span><span></span><span></span>
-    </div>
-
-    <div class="container">
+    <div class="container exp-grid">
       <header class="exp-header rv">
-        <div class="exp-kicker">
-          Demo ao vivo · sem cadastro
-        </div>
         <h2 class="h-section exp-h2">Teste o <em>provador</em> agora.</h2>
-        <p class="exp-subtitle">Escolha entre roupa ou óculos, envie duas fotos e veja a IA materializar em segundos — exatamente como seu cliente vai ver.</p>
       </header>
 
       <div class="exp-stage rv d1">
@@ -4664,28 +4913,6 @@
       <div style="text-align:center; max-width:780px; margin:0 auto;">
         <h2 class="h-section rv d1 como-fica-h2">Como fica na sua Loja</h2>
 
-        <!-- Spec strip editorial -->
-        <ul class="como-fica-bullets rv d2">
-          <li class="como-fica-bullet">
-            <span class="como-fica-bullet-num">01</span>
-            <div class="como-fica-bullet-content">
-              <div class="como-fica-bullet-label">Setup em 1h</div>
-            </div>
-          </li>
-          <li class="como-fica-bullet">
-            <span class="como-fica-bullet-num">02</span>
-            <div class="como-fica-bullet-content">
-              <div class="como-fica-bullet-label">Botão personalizável</div>
-            </div>
-          </li>
-          <li class="como-fica-bullet">
-            <span class="como-fica-bullet-num">03</span>
-            <div class="como-fica-bullet-content">
-              <div class="como-fica-bullet-label">Design clean</div>
-            </div>
-          </li>
-        </ul>
-
         <div class="demo-toggle rv d3" style="margin-top:36px;">
           <button type="button" class="active" data-demo="roupa">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4l-4 4-4-4M5 8l-2 4 4 2 1-2M19 8l2 4-4 2-1-2M8 12v8h8v-8"/></svg>
@@ -4780,600 +5007,239 @@
       })();
     </script>
 
-  </section>
 
-  <!-- ─── CANAL DE VENDAS · ENGAJAMENTO ─── -->
-  <section class="section sales-channel-section grain-overlay" style="background:radial-gradient(ellipse at top left, #16102e 0%, #050505 70%); padding:120px 0; position:relative; overflow:hidden;">
-    <div class="container" style="position:relative; z-index:2;">
-
-      <div style="text-align:center; margin-bottom:64px; max-width:840px; margin-left:auto; margin-right:auto;">
-        <h2 class="rv d1" style="font-weight:300; font-size:clamp(2.2rem, 5vw, 3.8rem); line-height:1.05; letter-spacing:-0.04em; color:#fff;">
-          Não é só uma feature.<br>
-          <em style="font-style:italic; font-weight:400; color:#c4b5fd;">É um novo canal de vendas.</em>
-        </h2>
-        <p class="rv d2" style="margin-top:22px; max-width:580px; margin-left:auto; margin-right:auto; line-height:1.6; font-size:15.5px; color:rgba(255,255,255,0.7); font-weight:300;">
-          O provador prende o cliente por <strong style="color:#fff;">2,3× mais tempo</strong> do que a página de produto média &mdash; e funciona como vitrine, atendente e fechamento, tudo em um lugar.
-        </p>
-      </div>
-
-      <!-- Comparativo de tempo · escala compartilhada horizontal -->
-      <div class="rv d3 time-race" style="max-width:1100px; margin:0 auto 56px;">
-        <style>
-          .time-race {
-            background:linear-gradient(160deg, rgba(124,58,237,0.06) 0%, rgba(0,0,0,0.4) 100%);
-            border:1px solid rgba(124,58,237,0.18);
-            border-radius:24px;
-            padding:40px 44px 36px;
-            position:relative;
-            overflow:hidden;
-          }
-          .time-race::before {
-            content:""; position:absolute; top:-60px; right:-60px; width:280px; height:280px;
-            background:radial-gradient(circle, rgba(124,58,237,0.14), transparent 70%);
-            pointer-events:none;
-          }
-          .tr-head {
-            display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:10px;
-            margin-bottom:30px; position:relative;
-          }
-          .tr-head h3 {
-            font-size:11px; font-weight:500; color:rgba(255,255,255,0.55);
-            letter-spacing:2.6px; text-transform:uppercase; margin:0;
-            display:flex; align-items:center; gap:10px;
-          }
-          .tr-head h3::before { content:""; width:24px; height:1px; background:rgba(255,255,255,0.3); }
-          .tr-head .src {
-            font-family:'Times New Roman', Georgia, serif; font-style:italic;
-            font-size:13px; color:rgba(255,255,255,0.4);
-          }
-          .tr-rows { position:relative; }
-          .tr-row {
-            display:grid;
-            grid-template-columns:260px 1fr auto;
-            align-items:center;
-            gap:28px;
-            padding:24px 0;
-            border-top:1px dashed rgba(255,255,255,0.08);
-            position:relative;
-          }
-          .tr-row:last-child { border-bottom:1px dashed rgba(255,255,255,0.08); }
-          .tr-meta { display:flex; flex-direction:column; gap:7px; }
-          .tr-tag {
-            font-size:11.5px; letter-spacing:2.2px; text-transform:uppercase; font-weight:600;
-          }
-          .tr-row.is-base .tr-tag { color:rgba(255,255,255,0.55); }
-          .tr-row.is-prov .tr-tag { color:#a78bfa; }
-          .tr-row.is-top .tr-tag { color:#67e8f9; }
-          .tr-label { font-size:15.5px; color:rgba(255,255,255,0.85); line-height:1.4; font-weight:400; }
-          .tr-track { position:relative; height:14px; background:rgba(255,255,255,0.05); border-radius:50px; overflow:hidden; }
-          .tr-fill {
-            position:absolute; top:0; bottom:0; left:0;
-            border-radius:50px;
-            animation:tr-grow 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
-          }
-          .tr-row.is-base .tr-fill { background:linear-gradient(90deg, rgba(255,255,255,0.18), rgba(255,255,255,0.35)); width:7.5%; animation-delay:0.1s; }
-          .tr-row.is-prov .tr-fill { background:linear-gradient(90deg, #7c3aed, #a78bfa); width:17%; box-shadow:0 0 18px rgba(167,139,250,0.45); animation-delay:0.35s; }
-          .tr-row.is-top .tr-fill { background:linear-gradient(90deg, #22d3ee, #a5f3fc); width:100%; box-shadow:0 0 18px rgba(34,211,238,0.45); animation-delay:0.6s; }
-          @keyframes tr-grow { from { transform:scaleX(0); transform-origin:left center; } to { transform:scaleX(1); } }
-          .tr-value {
-            display:flex; align-items:baseline; gap:14px; min-width:170px; justify-content:flex-end;
-          }
-          .tr-value .num {
-            font-size:38px; font-weight:300; letter-spacing:-0.04em; line-height:1; font-style:italic;
-            display:inline-block; padding-right:4px;
-          }
-          .tr-value .num .unit { font-size:18px; margin-left:4px; font-style:normal; display:inline-block; padding-right:2px; -webkit-text-fill-color:initial; background:none; }
-          .tr-row.is-base .tr-value .num .unit { color:rgba(255,255,255,0.5); }
-          .tr-row.is-prov .tr-value .num .unit { color:rgba(167,139,250,0.85); }
-          .tr-row.is-top .tr-value .num .unit { color:rgba(103,232,249,0.85); }
-          .tr-row.is-base .tr-value .num { color:rgba(255,255,255,0.7); font-style:normal; }
-          .tr-row.is-prov .tr-value .num {
-            background:linear-gradient(120deg, #7c3aed, #a78bfa); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-          }
-          .tr-row.is-top .tr-value .num {
-            background:linear-gradient(120deg, #22d3ee, #a5f3fc); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-          }
-          .tr-mult {
-            font-family:'Times New Roman', Georgia, serif; font-style:italic; font-weight:400;
-            font-size:18px; min-width:40px; text-align:right;
-          }
-          .tr-row.is-base .tr-mult { color:rgba(255,255,255,0.3); }
-          .tr-row.is-prov .tr-mult { color:#a78bfa; }
-          .tr-row.is-top .tr-mult { color:#22d3ee; }
-          .tr-foot {
-            display:flex; justify-content:space-between; font-size:10px; letter-spacing:1.8px;
-            color:rgba(255,255,255,0.3); text-transform:uppercase; margin-top:20px; padding-top:14px;
-            border-top:1px dashed rgba(255,255,255,0.06);
-          }
-          @media (max-width: 760px) {
-            .time-race { padding:28px 22px 26px; }
-            .tr-row { grid-template-columns:1fr; gap:10px; padding:18px 0; }
-            .tr-value { justify-content:flex-start; min-width:0; }
-          }
-        </style>
-
-        <div class="tr-head">
-          <h3>Tempo médio na página de produto</h3>
-          <span class="src">Cappasity benchmark · 2024</span>
-        </div>
-
-        <div class="tr-rows">
-          <div class="tr-row is-base">
-            <div class="tr-meta">
-              <span class="tr-tag">Benchmark</span>
-              <span class="tr-label">Página de produto · moda online</span>
-            </div>
-            <div class="tr-track"><span class="tr-fill"></span></div>
-            <div class="tr-value">
-              <span class="tr-mult">1×</span>
-              <span class="num">45<span class="unit">s</span></span>
-            </div>
+      <!-- Plataformas: rodape discreto de "Como fica na sua loja" -->
+      <style>
+        .cf-plataformas { max-width:1120px; margin:64px auto 0; padding:0 24px; }
+        .cf-plat-cap { text-align:center; font-size:clamp(1.25rem, 2.4vw, 1.85rem); font-weight:400; letter-spacing:-0.03em; line-height:1.15; color:#111; margin:0; text-wrap:balance; }
+        .cf-plat-cap em { font-style:italic; font-weight:500; color:#7c3aed; }
+        .cf-plat-sub { text-align:center; font-size:14.5px; line-height:1.6; color:rgba(0,0,0,0.58); font-weight:400; max-width:680px; margin:12px auto 26px; text-wrap:balance; }
+        .cf-plat-sub strong { font-weight:600; color:rgba(0,0,0,0.78); }
+        .cf-plat-slider { position:relative; overflow:hidden; padding:6px 0; -webkit-mask-image:linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image:linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+        .cf-plat-track { display:flex; align-items:center; gap:46px; width:max-content; animation:cf-plat-desliza 42s linear infinite; }
+        .cf-plat-slider:hover .cf-plat-track { animation-play-state:paused; }
+        @keyframes cf-plat-desliza { from { transform:translate3d(0,0,0); } to { transform:translate3d(calc(-50% - 23px),0,0); } }
+        .cf-plat-track img { height:24px; width:auto; flex-shrink:0; opacity:0.32; filter:grayscale(100%); user-select:none; pointer-events:none; }
+        @media (prefers-reduced-motion: reduce) { .cf-plat-track { animation:none; } }
+        @media (max-width:820px) { .cf-plat-track { gap:34px; } .cf-plat-track img { height:20px; } }
+      </style>
+      <div class="cf-plataformas rv d3" id="integracoes">
+        <p class="cf-plat-cap">Plug em qualquer plataforma. <em>No ar em 1 hora.</em></p>
+        <p class="cf-plat-sub"><strong>A instalação é feita pela nossa equipe:</strong> você não mexe em código nem precisa chamar dev.</p>
+        <div class="cf-plat-slider">
+          <div class="cf-plat-track">
+            <img src="Shopify_logo.svg" alt="Shopify" loading="lazy">
+            <img src="Nuvemshop-logo.png" alt="Nuvemshop" loading="lazy">
+            <img src="logo_tray.webp" alt="Tray" loading="lazy">
+            <img src="assets/bagy-logo.svg" alt="Bagy" loading="lazy">
+            <img src="assets/vtex-logo.svg" alt="VTEX" loading="lazy" onerror="this.style.display='none'">
+            <img src="woocommercelogo.png" alt="WooCommerce" loading="lazy">
+            <img src="Loja-Integrada-RGB-Flat-Fundo-Branco-LOGO.png" alt="Loja Integrada" loading="lazy">
+            <img src="Shopify_logo.svg" alt="Shopify" loading="lazy">
+            <img src="Nuvemshop-logo.png" alt="Nuvemshop" loading="lazy">
+            <img src="logo_tray.webp" alt="Tray" loading="lazy">
+            <img src="assets/bagy-logo.svg" alt="Bagy" loading="lazy">
+            <img src="assets/vtex-logo.svg" alt="VTEX" loading="lazy" onerror="this.style.display='none'">
+            <img src="woocommercelogo.png" alt="WooCommerce" loading="lazy">
+            <img src="Loja-Integrada-RGB-Flat-Fundo-Branco-LOGO.png" alt="Loja Integrada" loading="lazy">
           </div>
-
-          <div class="tr-row is-prov">
-            <div class="tr-meta">
-              <span class="tr-tag">Provou Levou · média</span>
-              <span class="tr-label">Cliente abre o provador e prova</span>
-            </div>
-            <div class="tr-track"><span class="tr-fill"></span></div>
-            <div class="tr-value">
-              <span class="tr-mult">2,3×</span>
-              <span class="num">102<span class="unit">s</span></span>
-            </div>
-          </div>
-
-          <div class="tr-row is-top">
-            <div class="tr-meta">
-              <span class="tr-tag">Top 10% · engajados</span>
-              <span class="tr-label">Cliente fica provando até</span>
-            </div>
-            <div class="tr-track"><span class="tr-fill"></span></div>
-            <div class="tr-value">
-              <span class="tr-mult">13×</span>
-              <span class="num">10<span class="unit">min</span></span>
-            </div>
-          </div>
-        </div>
-
-        <div class="tr-foot">
-          <span>0&thinsp;s</span><span style="opacity:0.7;">300&thinsp;s</span><span>600&thinsp;s</span>
         </div>
       </div>
 
-    </div>
   </section>
 
-  <!-- ─── OUTCOMES (resultados que o tempo a mais vira) ─── -->
-  <section class="section outcomes-section grain-overlay" style="background:radial-gradient(ellipse at top, #f3eefe 0%, var(--bg-light) 70%); padding:96px 0 88px; position:relative; overflow:hidden;">
-    <style>
-      .outcomes-section .container { position:relative; z-index:2; }
-      .outcomes-header { text-align:center; max-width:680px; margin:0 auto 56px; }
-      .outcomes-header .o-kicker-head {
-        display:inline-flex; align-items:center; gap:12px;
-        font-size:10.5px; letter-spacing:2.6px; text-transform:uppercase;
-        color:rgba(124,58,237,0.85); margin-bottom:20px; font-weight:600;
-      }
-      .outcomes-header .o-kicker-head::before,
-      .outcomes-header .o-kicker-head::after {
-        content:''; width:22px; height:1px; background:rgba(124,58,237,0.5);
-      }
-      .outcomes-header h2 {
-        font-size:clamp(1.9rem, 4.2vw, 3rem);
-        font-weight:300; letter-spacing:-0.035em; line-height:1.04;
-        color:#0a0a0a; margin:0;
-      }
-      .outcomes-header h2 em {
-        font-style:italic; font-weight:400;
-        background:linear-gradient(120deg, #7c3aed 0%, #a78bfa 100%);
-        -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-      }
-      .outcomes-stats { display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; max-width:1100px; margin:0 auto; }
-      .outcome-card {
-        position:relative;
-        background:#fff;
-        border:1px solid rgba(124,58,237,0.18);
-        border-radius:20px;
-        padding:32px 28px;
-        overflow:hidden;
-        box-shadow:0 1px 2px rgba(0,0,0,0.03), 0 18px 40px -22px rgba(124,58,237,0.28);
-        transition:transform 0.35s cubic-bezier(.22,1,.36,1), border-color 0.35s ease, box-shadow 0.35s ease;
-      }
-      .outcome-card:hover {
-        transform:translateY(-4px);
-        border-color:rgba(124,58,237,0.42);
-        box-shadow:0 1px 2px rgba(0,0,0,0.03), 0 28px 60px -22px rgba(124,58,237,0.42);
-      }
-      .outcome-card::before {
-        content:''; position:absolute; top:-40px; right:-40px;
-        width:160px; height:160px;
-        background:radial-gradient(circle, rgba(124,58,237,0.10), transparent 70%);
-        pointer-events:none;
-      }
-      .outcome-card .o-kicker {
-        font-size:10.5px; letter-spacing:2.2px; text-transform:uppercase;
-        color:#7c3aed; font-weight:600; margin-bottom:14px;
-        display:flex; align-items:center; gap:8px;
-      }
-      .outcome-card .o-kicker::before {
-        content:''; width:16px; height:1px; background:rgba(124,58,237,0.5);
-      }
-      .outcome-card .o-num {
-        font-size:clamp(2.6rem, 4.4vw, 3.8rem);
-        font-weight:300; letter-spacing:-0.045em; line-height:1;
-        font-style:italic;
-        background:linear-gradient(120deg, #7c3aed 0%, #a78bfa 100%);
-        -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-        display:inline-block; padding-right:4px;
-      }
-      .outcome-card .o-num .sign { font-style:normal; color:#7c3aed; -webkit-text-fill-color:#7c3aed; background:none; display:inline-block; padding-right:2px; }
-      .outcome-card .o-label {
-        font-size:13.5px; color:rgba(0,0,0,0.6); margin-top:10px;
-        font-weight:400; line-height:1.5;
-      }
-      .outcomes-foot {
-        max-width:780px; margin:56px auto 0; text-align:center;
-        font-size:clamp(1.05rem, 1.5vw, 1.25rem); color:rgba(0,0,0,0.7); line-height:1.55;
-        font-weight:400;
-      }
-      .outcomes-foot strong { color:#0a0a0a; font-weight:600; }
-      @media (max-width: 860px) {
-        .outcomes-stats { grid-template-columns:1fr; gap:14px; }
-        .outcomes-section { padding:64px 0 56px; }
-      }
-    </style>
-
+  <!-- ─── WHATSAPP · CRM · AUTOMAÇÕES ─── -->
+  <section class="section plw-engine" id="whatsapp" style="background:radial-gradient(ellipse at top, #16102e 0%, #050505 62%); padding:120px 0; position:relative; overflow:hidden; border-top:1px solid rgba(255,255,255,0.05);">
     <div class="container">
-      <div class="outcomes-header rv">
-        <div class="o-kicker-head">Resultados</div>
-        <h2 class="rv d1">Mais tempo provando<br><em>vira receita real.</em></h2>
-      </div>
 
-      <div class="outcomes-stats rv d2">
-        <article class="outcome-card">
-          <div class="o-kicker">Topo de funil</div>
-          <span class="o-num"><span class="sign">+</span>22<span style="font-size:0.5em;">%</span></span>
-          <div class="o-label">de conversão na página de produto</div>
-        </article>
-        <article class="outcome-card">
-          <div class="o-kicker">Retenção</div>
-          <span class="o-num"><span class="sign">+</span>43<span style="font-size:0.5em;">%</span></span>
-          <div class="o-label">de LTV por cliente que provou</div>
-        </article>
-        <article class="outcome-card">
-          <div class="o-kicker">Custo</div>
-          <span class="o-num"><span class="sign">−</span>52<span style="font-size:0.5em;">%</span></span>
-          <div class="o-label">em devoluções por desencaixe</div>
-        </article>
-      </div>
-
-      <p class="outcomes-foot rv d3">
-        Mais tempo provando vira <strong>mais venda, mais cliente recorrente e menos devolução.</strong>
-        <br>É por isso que o provador deixa de ser feature e vira canal.
-      </p>
-
-      <div class="rv d4" style="display:flex; flex-direction:column; align-items:center; gap:12px; margin-top:48px;">
-        <a href="https://wa.me/5511938034714?text=Olá, quero abrir um novo canal de vendas com o provador virtual."
-           class="btn-main"
-           target="_blank"
-           data-fb-event="Lead"
-           data-fb-label="Outcomes - Quero abrir canal"
-           style="display:inline-flex; align-items:center; gap:10px; padding:14px 28px; font-size:14.5px; font-weight:600; box-shadow:0 10px 30px rgba(124,58,237,0.32), 0 0 0 1px rgba(124,58,237,0.28) inset;">
-          Implementar Agora
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-            <path d="M3 8h10M9 4l4 4-4 4"/>
+      <div style="text-align:center; max-width:840px; margin:0 auto 60px; padding:0 24px;">
+        <div class="plw-meta-badge rv d1">
+          <svg width="24" height="17" viewBox="0 0 26 18" fill="none" aria-hidden="true">
+            <defs><linearGradient id="plwMeta" x1="0" y1="0" x2="26" y2="18" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#0064E1"/><stop offset="0.5" stop-color="#0082FB"/><stop offset="1" stop-color="#19AFFF"/>
+            </linearGradient></defs>
+            <path d="M13 9C13 4 9 3 6.3 6.2 3.4 9.7 3.4 14.4 6.9 14.4 10.2 14.4 11.4 9.2 13 9c1.6.2 2.8 5.4 6.1 5.4 3.5 0 3.5-4.7.6-8.2C17 3 13 4 13 9Z" stroke="url(#plwMeta)" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-        </a>
-        <span style="font-family:'Times New Roman', Georgia, serif; font-style:italic; font-size:13px; color:rgba(0,0,0,0.5);">
-          7 dias grátis &middot; setup feito pela nossa equipe
-        </span>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ─── RESULTADOS REAIS — CASES COM NÚMEROS (Editorial) ─── -->
-  <section class="section results-real-section grain-overlay" style="background:radial-gradient(ellipse at top, #1a0f2e 0%, #0a0a0a 60%); padding:120px 0; position:relative; overflow:hidden;">
-    <style>
-      @media (max-width: 900px) {
-        .results-real-section { padding:72px 0 !important; }
-        .results-real-section .results-grid { grid-template-columns:1fr 1fr !important; gap:12px !important; }
-        .results-real-section .result-card-v2 { padding:20px !important; border-radius:16px !important; }
-        .results-real-section .result-card-v2 header { margin-bottom:16px !important; gap:8px; }
-        .results-real-section .result-card-v2 header > div:first-child { min-width:0; }
-        .results-real-section .result-card-v2 header h3 { font-size:16px !important; margin-top:4px !important; line-height:1.15; }
-        .results-real-section .result-card-v2 header > div:first-child > div:first-child { font-size:8.5px !important; letter-spacing:1.4px !important; }
-        .results-real-section .result-card-v2 header svg { width:54px !important; height:24px !important; flex-shrink:0; }
-        .results-real-section .result-card-v2 .stat-mono { font-size:30px !important; }
-        .results-real-section .result-card-v2 > div[style*="margin-bottom:24px"] { margin-bottom:14px !important; }
-        .results-real-section .result-card-v2 > div[style*="margin-bottom:24px"] .stat-mono + div { font-size:11px !important; margin-top:4px !important; }
-        .results-real-section .result-card-v2 > div[style*="grid-template-columns"] { gap:10px !important; padding-top:14px !important; }
-        .results-real-section .result-card-v2 > div[style*="grid-template-columns"] .stat-mono { font-size:16px !important; }
-        .results-real-section .result-card-v2 > div[style*="grid-template-columns"] .editorial-note { font-size:9.5px !important; }
-        .results-real-section .result-card-v2 footer { font-size:9px !important; margin-top:14px !important; padding-top:10px !important; word-break:break-all; }
-      }
-      @media (max-width: 480px) {
-        .results-real-section .results-grid { grid-template-columns:1fr !important; }
-      }
-    </style>
-    <div class="container" style="position:relative; z-index:2;">
-
-      <!-- Header editorial -->
-      <div style="text-align:center; margin-bottom:72px; max-width:780px; margin-left:auto; margin-right:auto;">
-        <h2 class="rv d1" style="font-weight:300; font-size:clamp(2.4rem, 5vw, 4rem); line-height:1.02; letter-spacing:-0.04em; color:#fff;">
-          Cases de sucesso<br>
-          <em style="font-style:italic; font-weight:400; color:#c4b5fd;">reais.</em>
+          <span>Construído sobre a plataforma oficial da <strong>Meta&nbsp;Business</strong></span>
+        </div>
+        <h2 class="rv d1" style="font-size:clamp(2rem, 4.2vw, 3.2rem); font-weight:300; letter-spacing:-0.035em; line-height:1.04; color:#fff; margin:18px 0 0;">
+          Cada prova vira um<br><em style="font-style:italic; font-weight:400; color:#a78bfa;">lead quente para recuperação.</em>
         </h2>
-        <p class="rv d2 editorial-note" style="margin-top:20px; max-width:560px; margin-left:auto; margin-right:auto; line-height:1.6; font-size:15px;">
-          Métricas auditáveis, puxadas do dashboard de atribuição. Cada número marcado com <span style="color:#a78bfa;">*</span> tem rastro até o pedido individual.
-        </p>
       </div>
 
-      <!-- Cases grid (asymmetric editorial) -->
-      <div class="results-grid rv d3" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:18px; max-width:1400px; margin:0 auto;">
+      <!-- Fluxo: da prova ate a venda recuperada -->
+      <style>
+        .plw-fluxo { display:flex; align-items:stretch; justify-content:center; gap:0; flex-wrap:nowrap; max-width:1120px; margin:0 auto 72px; padding:0 24px; }
+        .plw-passo { flex:1 1 0; min-width:0; text-align:center; padding:0 14px; }
+        .plw-passo .pn { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; background:rgba(124,58,237,0.14); border:1px solid rgba(167,139,250,0.34); color:#a78bfa; font-size:12.5px; font-weight:500; margin-bottom:14px; }
+        .plw-passo h4 { font-size:15px; font-weight:500; color:#fff; margin:0 0 6px; letter-spacing:-0.01em; }
+        .plw-passo p { font-size:12.5px; line-height:1.5; color:rgba(255,255,255,0.5); font-weight:300; margin:0; }
+        .plw-seta { flex:0 0 auto; display:flex; align-items:center; justify-content:center; padding-top:6px; color:rgba(167,139,250,0.45); }
+        .plw-seta svg { display:block; }
+        @media (max-width:820px) {
+          .plw-fluxo { flex-direction:column; align-items:center; gap:6px; margin-bottom:52px; }
+          .plw-passo { padding:0; max-width:340px; }
+          .plw-seta { transform:rotate(90deg); padding:0; }
+        }
+      </style>
 
-        <!-- Cacife -->
-        <article class="result-card-v2" style="background:linear-gradient(160deg, rgba(124,58,237,0.12) 0%, rgba(20,10,40,0.4) 60%, rgba(0,0,0,0.6) 100%); border:1px solid rgba(124,58,237,0.3); border-radius:20px; padding:32px; position:relative; overflow:hidden;">
-          <div style="position:absolute; top:-30px; right:-30px; width:140px; height:140px; background:radial-gradient(circle, rgba(124,58,237,0.25), transparent 70%); border-radius:50%; pointer-events:none;"></div>
-          <header style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; position:relative;">
-            <div>
-              <div style="font-size:10px; letter-spacing:2px; color:#a78bfa; text-transform:uppercase;">№ 01 · Vestuário</div>
-              <h3 style="font-size:26px; font-weight:500; color:#fff; margin-top:6px; letter-spacing:-0.02em;">Cacife Brand</h3>
-            </div>
-            <!-- Sparkline -->
-            <svg width="80" height="36" viewBox="0 0 80 36" fill="none" style="opacity:0.85;">
-              <defs><linearGradient id="grad-cf" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#a78bfa" stop-opacity="0.35"/><stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/></linearGradient></defs>
-              <path d="M2 32 L20 28 L40 16 L60 8 L78 4 L78 34 L2 34 Z" fill="url(#grad-cf)"/>
-              <path d="M2 32 L20 28 L40 16 L60 8 L78 4" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-              <circle cx="78" cy="4" r="2.5" fill="#fff" stroke="#a78bfa" stroke-width="1.5"/>
-            </svg>
-          </header>
-
-          <div style="margin-bottom:24px;">
-            <div class="stat-mono" style="font-size:46px; font-weight:500; color:#fff; line-height:0.95; letter-spacing:-0.02em;">R$&thinsp;96k<span style="color:#a78bfa; font-size:18px; vertical-align:top;">*</span></div>
-            <div class="editorial-note" style="margin-top:8px;">em vendas atribuídas <span style="opacity:0.55;">/ 60 dias</span></div>
-          </div>
-
-          <div style="display:grid; grid-template-columns:1fr; gap:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.08);">
-            <div>
-              <div class="stat-mono" style="font-size:22px; color:#c4b5fd; font-weight:500;">+10%</div>
-              <div class="editorial-note" style="font-size:11px; margin-top:4px;">novos pagantes</div>
-            </div>
-          </div>
-
-          <footer class="editorial-note" style="font-size:10.5px; margin-top:24px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.08); letter-spacing:0.3px;">
-            <span style="color:#a78bfa;">*</span> cacifebrand.com.br
-          </footer>
-        </article>
-
-        <!-- Mariana Cardoso -->
-        <article class="result-card-v2" style="background:linear-gradient(160deg, rgba(236,72,153,0.12) 0%, rgba(35,10,30,0.4) 60%, rgba(0,0,0,0.6) 100%); border:1px solid rgba(236,72,153,0.3); border-radius:20px; padding:32px; position:relative; overflow:hidden;">
-          <div style="position:absolute; top:-30px; right:-30px; width:140px; height:140px; background:radial-gradient(circle, rgba(236,72,153,0.22), transparent 70%); border-radius:50%; pointer-events:none;"></div>
-          <header style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; position:relative;">
-            <div>
-              <div style="font-size:10px; letter-spacing:2px; color:#f472b6; text-transform:uppercase;">№ 02 · Vestuário</div>
-              <h3 style="font-size:26px; font-weight:500; color:#fff; margin-top:6px; letter-spacing:-0.02em;">Mariana Cardoso</h3>
-            </div>
-            <svg width="80" height="36" viewBox="0 0 80 36" fill="none" style="opacity:0.85;">
-              <defs><linearGradient id="grad-mc" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#f472b6" stop-opacity="0.35"/><stop offset="100%" stop-color="#f472b6" stop-opacity="0"/></linearGradient></defs>
-              <path d="M2 30 L20 26 L40 20 L60 14 L78 7 L78 34 L2 34 Z" fill="url(#grad-mc)"/>
-              <path d="M2 30 L20 26 L40 20 L60 14 L78 7" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-              <circle cx="78" cy="7" r="2.5" fill="#fff" stroke="#a78bfa" stroke-width="1.5"/>
-            </svg>
-          </header>
-
-          <div style="margin-bottom:24px;">
-            <div class="stat-mono" style="font-size:46px; font-weight:500; color:#fff; line-height:0.95; letter-spacing:-0.02em;">+43%<span style="color:#f472b6; font-size:18px; vertical-align:top;">*</span></div>
-            <div class="editorial-note" style="margin-top:8px;">LTV por cliente <span style="opacity:0.55;">/ vs. baseline</span></div>
-          </div>
-
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.08);">
-            <div>
-              <div class="stat-mono" style="font-size:22px; color:#fbcfe8; font-weight:500;">+35%</div>
-              <div class="editorial-note" style="font-size:11px; margin-top:4px;">faturamento<br>mensal</div>
-            </div>
-            <div>
-              <div class="stat-mono" style="font-size:22px; color:#fbcfe8; font-weight:500;">+21%</div>
-              <div class="editorial-note" style="font-size:11px; margin-top:4px;">ticket<br>médio</div>
-            </div>
-          </div>
-
-          <footer class="editorial-note" style="font-size:10.5px; margin-top:24px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.08); letter-spacing:0.3px;">
-            <span style="color:#f472b6;">*</span> usemarianacardoso.com.br
-          </footer>
-        </article>
-
-        <!-- Maxilook -->
-        <article class="result-card-v2" style="background:linear-gradient(160deg, rgba(34,211,238,0.10) 0%, rgba(8,30,40,0.4) 60%, rgba(0,0,0,0.6) 100%); border:1px solid rgba(34,211,238,0.3); border-radius:20px; padding:32px; position:relative; overflow:hidden;">
-          <div style="position:absolute; top:-30px; right:-30px; width:140px; height:140px; background:radial-gradient(circle, rgba(34,211,238,0.22), transparent 70%); border-radius:50%; pointer-events:none;"></div>
-          <header style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; position:relative;">
-            <div>
-              <div style="font-size:10px; letter-spacing:2px; color:#22d3ee; text-transform:uppercase;">№ 03 · Óticas</div>
-              <h3 style="font-size:26px; font-weight:500; color:#fff; margin-top:6px; letter-spacing:-0.02em;">Ótica Maxilook</h3>
-            </div>
-            <svg width="80" height="36" viewBox="0 0 80 36" fill="none" style="opacity:0.85;">
-              <defs><linearGradient id="grad-mx" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#22d3ee" stop-opacity="0.35"/><stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/></linearGradient></defs>
-              <path d="M2 28 L24 22 L46 14 L78 3 L78 34 L2 34 Z" fill="url(#grad-mx)"/>
-              <path d="M2 28 L24 22 L46 14 L78 3" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-              <circle cx="78" cy="3" r="2.5" fill="#fff" stroke="#a78bfa" stroke-width="1.5"/>
-            </svg>
-          </header>
-
-          <div style="margin-bottom:24px;">
-            <div class="stat-mono" style="font-size:46px; font-weight:500; color:#fff; line-height:0.95; letter-spacing:-0.02em;">30%<span style="color:#22d3ee; font-size:18px; vertical-align:top;">*</span></div>
-            <div class="editorial-note" style="margin-top:8px;">das vendas via provador <span style="opacity:0.55;">/ 30 dias</span></div>
-          </div>
-
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.08);">
-            <div>
-              <div class="stat-mono" style="font-size:22px; color:#a5f3fc; font-weight:500;">+47%</div>
-              <div class="editorial-note" style="font-size:11px; margin-top:4px;">ticket<br>médio</div>
-            </div>
-            <div>
-              <div class="stat-mono" style="font-size:22px; color:#a5f3fc; font-weight:500;">3×</div>
-              <div class="editorial-note" style="font-size:11px; margin-top:4px;">faturamento<br>vs. baseline</div>
-            </div>
-          </div>
-
-          <footer class="editorial-note" style="font-size:10.5px; margin-top:24px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.08); letter-spacing:0.3px;">
-            <span style="color:#22d3ee;">*</span> oticamaxilook.com.br
-          </footer>
-        </article>
-
-        <!-- Califa -->
-        <article class="result-card-v2" style="background:linear-gradient(160deg, rgba(251,191,36,0.10) 0%, rgba(40,28,8,0.4) 60%, rgba(0,0,0,0.6) 100%); border:1px solid rgba(251,191,36,0.3); border-radius:20px; padding:32px; position:relative; overflow:hidden;">
-          <div style="position:absolute; top:-30px; right:-30px; width:140px; height:140px; background:radial-gradient(circle, rgba(251,191,36,0.20), transparent 70%); border-radius:50%; pointer-events:none;"></div>
-          <header style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; position:relative;">
-            <div>
-              <div style="font-size:10px; letter-spacing:2px; color:#fbbf24; text-transform:uppercase;">№ 04 · Óticas</div>
-              <h3 style="font-size:26px; font-weight:500; color:#fff; margin-top:6px; letter-spacing:-0.02em;">Califa Brand</h3>
-            </div>
-            <svg width="80" height="36" viewBox="0 0 80 36" fill="none" style="opacity:0.85;">
-              <defs><linearGradient id="grad-cl" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#fbbf24" stop-opacity="0.35"/><stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/></linearGradient></defs>
-              <path d="M2 20 L40 14 L78 6 L78 34 L2 34 Z" fill="url(#grad-cl)"/>
-              <path d="M2 20 L40 14 L78 6" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-              <circle cx="78" cy="6" r="2.5" fill="#fff" stroke="#a78bfa" stroke-width="1.5"/>
-            </svg>
-          </header>
-
-          <div style="margin-bottom:24px;">
-            <div class="stat-mono" style="font-size:46px; font-weight:500; color:#fff; line-height:0.95; letter-spacing:-0.02em;">R$&thinsp;28k<span style="color:#fbbf24; font-size:18px; vertical-align:top;">*</span></div>
-            <div class="editorial-note" style="margin-top:8px;">atribuídos <span style="opacity:0.55;">/ 30 dias</span></div>
-          </div>
-
-          <div style="display:grid; grid-template-columns:1fr; gap:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.08);">
-            <div>
-              <div class="stat-mono" style="font-size:22px; color:#fde68a; font-weight:500;">21%</div>
-              <div class="editorial-note" style="font-size:11px; margin-top:4px;">conversão temporal</div>
-            </div>
-          </div>
-
-          <footer class="editorial-note" style="font-size:10.5px; margin-top:24px; padding-top:16px; border-top:1px dashed rgba(255,255,255,0.08); letter-spacing:0.3px;">
-            <span style="color:#fbbf24;">*</span> califabrand.com.br
-          </footer>
-        </article>
-
-      </div>
-
-      <div class="rv d4" style="display:flex; flex-direction:column; align-items:center; gap:14px; margin-top:64px;">
-        <a href="https://wa.me/5511938034714?text=Olá, vi os cases reais e quero conversar sobre o provador para minha loja."
-           class="btn-main"
-           target="_blank"
-           data-fb-event="Lead"
-           data-fb-label="Cases Reais - CTA"
-           style="display:inline-flex; align-items:center; gap:10px; padding:16px 30px; font-size:15px; font-weight:600; letter-spacing:-0.005em; box-shadow:0 12px 36px rgba(124,58,237,0.45), 0 0 0 1px rgba(124,58,237,0.3) inset;">
-          Implementar Agora
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-            <path d="M3 8h10M9 4l4 4-4 4"/>
-          </svg>
-        </a>
-        <span style="font-family:'Times New Roman', Georgia, serif; font-style:italic; font-size:13.5px; color:rgba(255,255,255,0.5);">
-          Conversa com especialista &middot; sem cadastro, sem cartão
-        </span>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ─── CASES DE SUCESSO ─── -->
-  <section class="section section-dark cases-section">
-    <div class="container">
-      <div style="display:grid; grid-template-columns:1fr auto; align-items:end; gap:40px; max-width:1200px; margin:0 auto 64px; padding:0 24px;">
-        <div class="rv d1" style="text-align:center; padding:0 24px; border-right:1px dashed rgba(255,255,255,0.12);">
-          <h2 style="font-size:clamp(2rem, 4.4vw, 3.4rem); font-weight:300; letter-spacing:-0.035em; line-height:1.04; color:#fff; margin:0 0 14px;">
-            Lojas que já usam<br><em style="font-style:italic; font-weight:400; background:linear-gradient(120deg, var(--purple) 0%, #a78bfa 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">Provou Levou.</em>
-          </h2>
+      <div class="plw-fluxo rv d2">
+        <div class="plw-passo">
+          <span class="pn">01</span>
+          <h4>Cliente prova</h4>
+          <p>Na página do produto, sem app e sem cadastro.</p>
         </div>
-        <div class="rv d2" style="text-align:right; padding-bottom:8px;">
-          <div style="font-family:'Times New Roman', Georgia, serif; font-size:72px; font-weight:300; color:var(--purple); line-height:0.85; letter-spacing:-0.04em;">200<span style="font-size:32px; opacity:0.6;">+</span></div>
-          <div style="font-size:10px; letter-spacing:2.4px; text-transform:uppercase; color:rgba(255,255,255,0.5); margin-top:6px;">lojas<br>ativas</div>
+        <div class="plw-seta" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </div>
+        <div class="plw-passo">
+          <span class="pn">02</span>
+          <h4>Vira lead no CRM</h4>
+          <p>Telefone e peça provada caem no painel na hora.</p>
+        </div>
+        <div class="plw-seta" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </div>
+        <div class="plw-passo">
+          <span class="pn">03</span>
+          <h4>Recebe o disparo</h4>
+          <p>Mensagem oficial pela Meta, com o produto que ele provou.</p>
+        </div>
+        <div class="plw-seta" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </div>
+        <div class="plw-passo">
+          <span class="pn">04</span>
+          <h4>Volta e compra</h4>
+          <p>O fluxo insiste sozinho até a venda fechar.</p>
         </div>
       </div>
-      <div class="cases-carousel rv">
-        <div class="cases-track">
-          <a href="https://www.cacifebrand.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/cacife.webp" alt="Cacife Brand" style="height:52px;width:auto;object-fit:contain;"></div>
-            <h3>Cacife Brand</h3>
-            <span class="case-url">www.cacifebrand.com.br</span>
-          </a>
-          <a href="https://www.usemarianacardoso.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/mariana.png" alt="Mariana Cardoso" style="height:28px;width:auto;object-fit:contain;"></div>
-            <h3>Mariana Cardoso</h3>
-            <span class="case-url">www.usemarianacardoso.com.br</span>
-          </a>
-          <a href="https://www.calmostore.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/calmo.webp" alt="Calmo Store" style="height:48px;width:auto;object-fit:contain;"></div>
-            <h3>Calmo Store</h3>
-            <span class="case-url">www.calmostore.com.br</span>
-          </a>
-          <a href="https://marandolamoda.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/marandola.webp" alt="Marandola Moda" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Marandola Moda</h3>
-            <span class="case-url">www.marandolamoda.com.br</span>
-          </a>
-          <!-- Óticas -->
-          <a href="https://www.oticamaxilook.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/maxilook.webp" alt="Ótica Maxilook" style="height:32px;width:auto;object-fit:contain;"></div>
-            <h3>Ótica Maxilook</h3>
-            <span class="case-url">www.oticamaxilook.com.br</span>
-          </a>
-          <a href="https://www.parislondon.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/parislondon.webp" alt="Paris London" style="height:48px;width:auto;object-fit:contain;"></div>
-            <h3>Paris London</h3>
-            <span class="case-url">www.parislondon.com.br</span>
-          </a>
-          <a href="https://acessoriostyle.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/acessoriostyle.webp" alt="Ótica Style" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Ótica Style</h3>
-            <span class="case-url">acessoriostyle.com.br</span>
-          </a>
-          <a href="https://www.liuzzieyewear.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/liuzzi.webp" alt="Liuzzi Eyewear" style="height:22px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Liuzzi Eyewear</h3>
-            <span class="case-url">www.liuzzieyewear.com.br</span>
-          </a>
-          <a href="https://www.oculosemfoco.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/oculosemfoco.webp" alt="Óculos em Foco" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Óculos em Foco</h3>
-            <span class="case-url">www.oculosemfoco.com.br</span>
-          </a>
-          <a href="https://oticasmarina.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/marina.png" alt="Óticas Marina" style="height:40px;width:auto;object-fit:contain;"></div>
-            <h3>Óticas Marina</h3>
-            <span class="case-url">oticasmarina.com.br</span>
-          </a>
-          <a href="https://arantz.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/arantz.png" alt="Arantz" style="height:28px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Arantz</h3>
-            <span class="case-url">arantz.com.br</span>
-          </a>
-          <a href="https://soucetglasses.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/soucet.png" alt="Soucet Glasses" style="height:48px;width:auto;object-fit:contain;filter:brightness(0) invert(1);"></div>
-            <h3>Soucet Glasses</h3>
-            <span class="case-url">soucetglasses.com.br</span>
-          </a>
-          <!-- Duplicados para loop infinito -->
-          <a href="https://www.cacifebrand.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/cacife.webp" alt="Cacife Brand" style="height:52px;width:auto;object-fit:contain;"></div>
-            <h3>Cacife Brand</h3>
-            <span class="case-url">www.cacifebrand.com.br</span>
-          </a>
-          <a href="https://www.usemarianacardoso.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/mariana.png" alt="Mariana Cardoso" style="height:28px;width:auto;object-fit:contain;"></div>
-            <h3>Mariana Cardoso</h3>
-            <span class="case-url">www.usemarianacardoso.com.br</span>
-          </a>
-          <a href="https://www.oticamaxilook.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/maxilook.webp" alt="Ótica Maxilook" style="height:32px;width:auto;object-fit:contain;"></div>
-            <h3>Ótica Maxilook</h3>
-            <span class="case-url">www.oticamaxilook.com.br</span>
-          </a>
-          <a href="https://www.parislondon.com.br/" target="_blank" rel="dofollow noopener" class="case-card" style="text-decoration:none;color:inherit;">
-            <div class="case-card-logo"><img src="assets/lojistas/parislondon.webp" alt="Paris London" style="height:48px;width:auto;object-fit:contain;"></div>
-            <h3>Paris London</h3>
-            <span class="case-url">www.parislondon.com.br</span>
-          </a>
+
+      <style>
+        .plw-meta-badge { display:inline-flex; align-items:center; gap:9px; padding:7px 15px; border-radius:100px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); font-size:12.5px; color:rgba(255,255,255,0.72); font-weight:300; letter-spacing:0.01em; }
+        .plw-meta-badge strong { font-weight:500; color:#fff; }
+        .plw-row { display:grid; grid-template-columns:1.05fr 1fr; gap:56px; align-items:center; max-width:1120px; margin:0 auto 40px; padding:0 24px; }
+        .plw-row.plw-reverse .plw-copy { order:2; }
+        .plw-row.plw-reverse .plw-visual { order:1; }
+        .plw-eyebrow { font-family:'Times New Roman', Georgia, serif; font-style:italic; font-size:13px; color:#a78bfa; letter-spacing:0.4px; display:block; margin-bottom:16px; }
+        .plw-copy h3 { font-size:clamp(1.5rem, 2.6vw, 2rem); font-weight:300; letter-spacing:-0.03em; line-height:1.12; color:#fff; margin:0 0 16px; }
+        .plw-copy h3 em { font-style:italic; font-weight:400; color:#a78bfa; }
+        .plw-copy p { font-size:14px; line-height:1.7; color:rgba(255,255,255,0.6); font-weight:300; margin:0 0 20px; }
+        .plw-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:11px; }
+        .plw-list li { display:flex; gap:11px; align-items:flex-start; font-size:13.5px; color:rgba(255,255,255,0.72); font-weight:300; line-height:1.5; }
+        .plw-list li svg { flex-shrink:0; margin-top:2px; }
+        .plw-visual { position:relative; }
+        /* Phone / WhatsApp mock */
+        .plw-phone { width:290px; max-width:100%; margin:0 auto; border-radius:32px; background:#120d22; border:1px solid rgba(255,255,255,0.1); box-shadow:0 30px 80px -30px rgba(124,58,237,0.28), 0 0 0 6px rgba(255,255,255,0.02); overflow:hidden; }
+        .plw-wa-top { display:flex; align-items:center; gap:10px; padding:14px 16px; background:#241a3d; }
+        .plw-wa-av { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#a78bfa,#7c3aed); display:flex; align-items:center; justify-content:center; font-size:14px; }
+        .plw-wa-name { color:#fff; font-size:13.5px; font-weight:500; line-height:1.1; }
+        .plw-wa-sub { color:#8aa; font-size:10.5px; }
+        .plw-wa-body { padding:16px 14px; display:flex; flex-direction:column; gap:9px; background:#120d22; min-height:230px; background-image:radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px); background-size:14px 14px; }
+        .plw-bubble { max-width:82%; padding:9px 12px; border-radius:12px; font-size:12.5px; line-height:1.45; color:#ece9f6; }
+        .plw-bubble.in { align-self:flex-start; background:#241a3d; border-top-left-radius:3px; }
+        .plw-bubble.out { align-self:flex-end; background:#2f1c5c; border-top-right-radius:3px; }
+        .plw-bubble .t { display:block; font-size:9.5px; color:rgba(255,255,255,0.4); text-align:right; margin-top:3px; }
+        /* CRM browser frame */
+        .plw-browser { border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.14); background:#fff; box-shadow:0 34px 90px -34px rgba(0,0,0,0.6); }
+        .plw-browser-bar { display:flex; align-items:center; gap:7px; padding:11px 14px; background:#f1f1f4; border-bottom:1px solid #e4e4ea; }
+        .plw-browser-bar i { width:10px; height:10px; border-radius:50%; display:inline-block; }
+        .plw-browser-url { margin-left:10px; flex:1; font-size:11px; color:#9a9aa5; background:#fff; border-radius:6px; padding:4px 10px; }
+        .plw-crm-shot { display:block; width:100%; height:auto; }
+        .plw-crm-mock { display:grid; grid-template-columns:0.9fr 1.4fr; min-height:280px; background:#fff; }
+        .plw-crm-conv { border-right:1px solid #ececf0; padding:12px; display:flex; flex-direction:column; gap:8px; }
+        .plw-crm-ci { display:flex; gap:9px; align-items:center; padding:8px; border-radius:9px; background:#f6f6f8; }
+        .plw-crm-ci.act { background:rgba(124,58,237,0.12); border:1px solid rgba(124,58,237,0.35); }
+        .plw-crm-dot { width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg,#7c3aed,#a78bfa); flex-shrink:0; }
+        .plw-crm-ci.act .plw-crm-dot { background:linear-gradient(135deg,#a78bfa,#7c3aed); }
+        .plw-crm-l1 { height:7px; width:60%; border-radius:4px; background:#cfcfd8; margin-bottom:5px; }
+        .plw-crm-l2 { height:6px; width:85%; border-radius:4px; background:#e6e6ec; }
+        .plw-crm-pipe { padding:14px; display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+        .plw-crm-col { display:flex; flex-direction:column; gap:8px; }
+        .plw-crm-coltag { font-size:9.5px; text-transform:uppercase; letter-spacing:0.06em; color:#9a9aa5; font-weight:600; }
+        .plw-crm-card { background:#f6f6f8; border:1px solid #ececf0; border-radius:8px; padding:9px; }
+        .plw-crm-card .b1 { height:6px; width:70%; border-radius:4px; background:#cfcfd8; margin-bottom:6px; }
+        .plw-crm-card .b2 { height:5px; width:90%; border-radius:4px; background:#e6e6ec; }
+        .plw-crm-badge { display:inline-block; margin-top:7px; font-size:8.5px; padding:2px 7px; border-radius:100px; background:rgba(124,58,237,0.16); color:#6d28d9; }
+        /* Automações cards */
+        .plw-flows { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; max-width:1120px; margin:44px auto 0; padding:0 24px; }
+        .plw-flow { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); padding:30px 26px; border-radius:16px; transition:background .4s ease; }
+        .plw-flow:hover { background:rgba(124,58,237,0.04); }
+        .plw-flow .fi { width:40px; height:40px; border-radius:10px; background:rgba(124,58,237,0.1); border:1px solid rgba(124,58,237,0.25); display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
+        .plw-flow h4 { font-size:16px; font-weight:500; color:#fff; margin:0 0 9px; letter-spacing:-0.02em; }
+        .plw-flow p { font-size:13px; line-height:1.6; color:rgba(255,255,255,0.55); font-weight:300; margin:0; }
+        .plw-flows-head { text-align:center; max-width:820px; margin:76px auto 0; padding:0 24px; }
+        .plw-flows-head h3 { text-wrap:balance; }
+        @media (max-width: 900px) {
+          .plw-row { grid-template-columns:1fr; gap:36px; }
+          .plw-row.plw-reverse .plw-copy, .plw-row.plw-reverse .plw-visual { order:unset; }
+          .plw-flows { grid-template-columns:1fr; }
+        }
+      </style>
+
+      <!-- Row 1 · CRM unificado (captura do lead) -->
+      <div class="plw-row rv d3">
+        <div class="plw-copy">
+          <span class="plw-eyebrow">CRM próprio · já incluído</span>
+          <h3>A Provou Levou tem um <em>CRM próprio.</em></h3>
+          <p>Sim, um CRM completo já incluído no plano. Cada prova vira um lead na hora, com telefone, produto e a jornada completa, e você move pelo funil num <strong style="color:#fff;font-weight:500;">painel só</strong>.</p>
+          <ul class="plw-list">
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Captura automática: telefone + produto provado</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Funil visual: provou → em contato → convertido</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Caixa de entrada do WhatsApp no painel</li>
+          </ul>
+        </div>
+        <div class="plw-visual">
+          <!-- Trocar o .plw-crm-mock por: <img class="plw-crm-shot" src="assets/crm-unificado.png" alt="CRM unificado da Provou Levou"> quando o print estiver pronto -->
+          <div class="plw-browser">
+            <div class="plw-browser-bar">
+              <i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i>
+              <span class="plw-browser-url">gestao.provoulevou.com.br</span>
+            </div>
+            <div class="plw-crm-mock">
+              <div class="plw-crm-conv">
+                <div class="plw-crm-ci act"><div class="plw-crm-dot"></div><div style="flex:1"><div class="plw-crm-l1"></div><div class="plw-crm-l2"></div></div></div>
+                <div class="plw-crm-ci"><div class="plw-crm-dot"></div><div style="flex:1"><div class="plw-crm-l1"></div><div class="plw-crm-l2"></div></div></div>
+                <div class="plw-crm-ci"><div class="plw-crm-dot"></div><div style="flex:1"><div class="plw-crm-l1"></div><div class="plw-crm-l2"></div></div></div>
+                <div class="plw-crm-ci"><div class="plw-crm-dot"></div><div style="flex:1"><div class="plw-crm-l1"></div><div class="plw-crm-l2"></div></div></div>
+              </div>
+              <div class="plw-crm-pipe">
+                <div class="plw-crm-col"><span class="plw-crm-coltag">Provou</span><div class="plw-crm-card"><div class="b1"></div><div class="b2"></div></div><div class="plw-crm-card"><div class="b1"></div><div class="b2"></div></div></div>
+                <div class="plw-crm-col"><span class="plw-crm-coltag">Em contato</span><div class="plw-crm-card"><div class="b1"></div><div class="b2"></div><span class="plw-crm-badge">respondeu</span></div></div>
+                <div class="plw-crm-col"><span class="plw-crm-coltag">Convertido</span><div class="plw-crm-card"><div class="b1"></div><div class="b2"></div><span class="plw-crm-badge">R$ 289</span></div></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- Row 2 · Disparos WhatsApp -->
+      <div class="plw-row plw-reverse rv d3">
+        <div class="plw-copy">
+          <span class="plw-eyebrow">Disparos de WhatsApp</span>
+          <h3>Plataforma de <em>disparo completa.</em></h3>
+          <p>Com o lead no CRM, dispara pela <strong style="color:#fff;font-weight:500;">WhatsApp Business Platform da Meta</strong>: número verificado, templates aprovados, entrega em escala.</p>
+          <ul class="plw-list">
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Número oficial verificado pela Meta</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Personalizado com nome e produto provado</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Segmenta quem provou, clicou ou abandonou</li>
+          </ul>
+        </div>
+        <div class="plw-visual">
+          <div class="plw-phone">
+            <div class="plw-wa-top">
+              <div class="plw-wa-av">🕶️</div>
+              <div><div class="plw-wa-name">Ótica Provou Levou</div><div class="plw-wa-sub">conta comercial · online</div></div>
+            </div>
+            <div class="plw-wa-body">
+              <div class="plw-bubble out">Oi, Marina! 👋 Vi que você provou o <b>Óculos Aspen</b> aqui na loja 😍<span class="t">14:02 ✓✓</span></div>
+              <div class="plw-bubble out">Separei ele pra você com <b>10% OFF</b> hoje. Quer que eu garanta?<span class="t">14:02 ✓✓</span></div>
+              <div class="plw-bubble in">Quero simm! Como faço? 💚<span class="t">14:09</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -5440,389 +5306,6 @@
     </div>
   </section>
 
-  <!-- ─── O QUE VEM JUNTO (SERVIÇOS) ─── -->
-  <section class="section services-section" style="background:#0a0a0a; padding:96px 0; border-top:1px solid rgba(255,255,255,0.05);">
-    <div class="container">
-      <div style="text-align:center; max-width:780px; margin:0 auto 72px; padding:0 24px;">
-        <h2 class="rv d1" style="font-size:clamp(2rem, 4.2vw, 3.2rem); font-weight:300; letter-spacing:-0.035em; line-height:1.04; color:#fff; margin:0;">
-          Mais do que um provador.<br><em style="font-style:italic; font-weight:400; background:linear-gradient(120deg, #7c3aed 0%, #a78bfa 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">Uma plataforma de conversão.</em>
-        </h2>
-        <p class="rv d2" style="margin-top:18px; max-width:560px; margin-left:auto; margin-right:auto; font-size:14.5px; line-height:1.65; color:rgba(255,255,255,0.6); font-weight:300;">
-          Tudo o que vem incluso para o lojista vender mais — sem precisar contratar outras ferramentas.
-        </p>
-      </div>
-
-      <style>
-        .services-grid-v2 { display:grid; grid-template-columns:repeat(3, 1fr); gap:1px; max-width:1280px; margin:0 auto; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.06); border-radius:24px; overflow:hidden; }
-        .svc-v2 { position:relative; padding:40px 32px 36px; background:#0a0a0a; transition:background 0.4s ease; overflow:hidden; isolation:isolate; }
-        .svc-v2::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 0% 0%, var(--svc-glow, rgba(124,58,237,0.18)) 0%, transparent 55%); opacity:0; transition:opacity 0.5s ease; z-index:-1; }
-        .svc-v2:hover { background:#0d0c14; }
-        .svc-v2:hover::before { opacity:1; }
-        .svc-v2 .svc-num { font-family:'Times New Roman', Georgia, serif; font-size:13px; font-style:italic; color:rgba(255,255,255,0.3); letter-spacing:0.5px; display:block; margin-bottom:24px; }
-        .svc-v2 .svc-icon { width:42px; height:42px; display:flex; align-items:center; justify-content:center; margin-bottom:22px; border-radius:10px; background:var(--svc-icon-bg); border:1px solid var(--svc-icon-border); transition:transform 0.4s ease; }
-        .svc-v2:hover .svc-icon { transform:translateY(-3px) rotate(-4deg); }
-        .svc-v2 h3 { font-size:19px; font-weight:500; color:#fff; margin:0 0 12px; letter-spacing:-0.02em; line-height:1.25; }
-        .svc-v2 h3 em { font-style:italic; font-weight:400; color:var(--svc-accent); }
-        .svc-v2 p { font-size:13.5px; color:rgba(255,255,255,0.55); line-height:1.65; font-weight:300; margin:0; }
-        .svc-v2 .svc-corner { position:absolute; top:18px; right:18px; width:8px; height:8px; }
-        .svc-v2 .svc-corner::before, .svc-v2 .svc-corner::after { content:""; position:absolute; background:var(--svc-accent); opacity:0.4; }
-        .svc-v2 .svc-corner::before { top:0; right:0; width:8px; height:1px; }
-        .svc-v2 .svc-corner::after { top:0; right:0; width:1px; height:8px; }
-        @media (max-width: 980px) { .services-grid-v2 { grid-template-columns:repeat(2, 1fr); } }
-        @media (max-width: 620px) { .services-grid-v2 { grid-template-columns:1fr; } }
-      </style>
-
-      <div class="services-grid rv d3 services-grid-v2">
-
-        <article class="svc-v2" style="--svc-accent:#a78bfa; --svc-glow:rgba(124,58,237,0.22); --svc-icon-bg:rgba(124,58,237,0.12); --svc-icon-border:rgba(124,58,237,0.28);">
-          <span class="svc-corner"></span>
-          <span class="svc-num">№ 01</span>
-          <div class="svc-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
-            </svg>
-          </div>
-          <h3>Provador virtual com <em>IA proprietária.</em></h3>
-          <p>Treinada pra roupas e armações de óculos. Cliente prova em segundos, sem app, no próprio celular.</p>
-        </article>
-
-        <article class="svc-v2" style="--svc-accent:#a78bfa; --svc-glow:rgba(124,58,237,0.22); --svc-icon-bg:rgba(124,58,237,0.12); --svc-icon-border:rgba(124,58,237,0.28);">
-          <span class="svc-corner"></span>
-          <span class="svc-num">№ 02</span>
-          <div class="svc-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z M3 9h6 M15 9h6 M9 3v6 M9 15v6"/>
-            </svg>
-          </div>
-          <h3>Dashboard de <em>ROI real.</em></h3>
-          <p>Faturamento atribuído, taxa de conversão, LTV, ticket médio com vs sem provador, tempo até a compra.</p>
-        </article>
-
-        <article class="svc-v2" style="--svc-accent:#a78bfa; --svc-glow:rgba(124,58,237,0.22); --svc-icon-bg:rgba(124,58,237,0.12); --svc-icon-border:rgba(124,58,237,0.28);">
-          <span class="svc-corner"></span>
-          <span class="svc-num">№ 03</span>
-          <div class="svc-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 11l8-8 10 10-8 8z"/><circle cx="14" cy="10" r="1.5"/>
-            </svg>
-          </div>
-          <h3>Captura de <em>leads na prova.</em></h3>
-          <p>Telefone + e-mail na hora da prova. Você vê quem provou mas não comprou — e abre uma janela de remarketing.</p>
-        </article>
-
-        <article class="svc-v2" style="--svc-accent:#a78bfa; --svc-glow:rgba(124,58,237,0.22); --svc-icon-bg:rgba(124,58,237,0.12); --svc-icon-border:rgba(124,58,237,0.28);">
-          <span class="svc-corner"></span>
-          <span class="svc-num">№ 04</span>
-          <div class="svc-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 11.5a9 9 0 1 1-18 0 9 9 0 0 1 4-7.5L21 11.5z"/><path d="M7 11h.01M11 11h.01M15 11h.01"/>
-            </svg>
-          </div>
-          <h3>Leads pro <em>comercial.</em></h3>
-          <p>Peça provada cai direto no painel do lojista. A equipe puxa o lead quente e fecha no WhatsApp antes de esfriar.</p>
-        </article>
-
-        <article class="svc-v2" style="--svc-accent:#a78bfa; --svc-glow:rgba(124,58,237,0.22); --svc-icon-bg:rgba(124,58,237,0.12); --svc-icon-border:rgba(124,58,237,0.28);">
-          <span class="svc-corner"></span>
-          <span class="svc-num">№ 05</span>
-          <div class="svc-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05 M12 22.08V12"/>
-            </svg>
-          </div>
-          <h3>Setup em <em>1 hora.</em></h3>
-          <p>Instalação feita pela nossa equipe via GTM, FTP ou app oficial da plataforma. Você não mexe em código.</p>
-        </article>
-
-        <article class="svc-v2" style="--svc-accent:#a78bfa; --svc-glow:rgba(124,58,237,0.22); --svc-icon-bg:rgba(124,58,237,0.12); --svc-icon-border:rgba(124,58,237,0.28);">
-          <span class="svc-corner"></span>
-          <span class="svc-num">№ 06</span>
-          <div class="svc-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-            </svg>
-          </div>
-          <h3>Análise de <em>impacto.</em></h3>
-          <p>Relatório mensal: faturamento atribuído, crescimento vs baseline pré-provador, YoY e contrafactual. Tudo auditável.</p>
-        </article>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── WHATSAPP · CRM · AUTOMAÇÕES ─── -->
-  <section class="section plw-engine" id="whatsapp" style="background:radial-gradient(ellipse at top, #0e2119 0%, #060a08 62%); padding:120px 0; position:relative; overflow:hidden; border-top:1px solid rgba(255,255,255,0.05);">
-    <div class="container">
-
-      <div style="text-align:center; max-width:840px; margin:0 auto 60px; padding:0 24px;">
-        <div class="plw-meta-badge rv d1">
-          <svg width="24" height="17" viewBox="0 0 26 18" fill="none" aria-hidden="true">
-            <defs><linearGradient id="plwMeta" x1="0" y1="0" x2="26" y2="18" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#0064E1"/><stop offset="0.5" stop-color="#0082FB"/><stop offset="1" stop-color="#19AFFF"/>
-            </linearGradient></defs>
-            <path d="M13 9C13 4 9 3 6.3 6.2 3.4 9.7 3.4 14.4 6.9 14.4 10.2 14.4 11.4 9.2 13 9c1.6.2 2.8 5.4 6.1 5.4 3.5 0 3.5-4.7.6-8.2C17 3 13 4 13 9Z" stroke="url(#plwMeta)" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span>Construído sobre a plataforma oficial da <strong>Meta&nbsp;Business</strong></span>
-        </div>
-        <h2 class="rv d1" style="font-size:clamp(2rem, 4.2vw, 3.2rem); font-weight:300; letter-spacing:-0.035em; line-height:1.04; color:#fff; margin:18px 0 0;">
-          A prova desperta o desejo.<br><em style="font-style:italic; font-weight:400; background:linear-gradient(120deg, #25D366 0%, #10b981 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">O WhatsApp fecha a venda.</em>
-        </h2>
-        <p class="rv d2" style="margin-top:18px; max-width:600px; margin-left:auto; margin-right:auto; font-size:14.5px; line-height:1.65; color:rgba(255,255,255,0.6); font-weight:300;">
-          A Provou Levou tem CRM próprio, disparos oficiais no WhatsApp e automações de recuperação. Cada prova vira um lead — e a venda volta.
-        </p>
-      </div>
-
-      <style>
-        .plw-meta-badge { display:inline-flex; align-items:center; gap:9px; padding:7px 15px; border-radius:100px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); font-size:12.5px; color:rgba(255,255,255,0.72); font-weight:300; letter-spacing:0.01em; }
-        .plw-meta-badge strong { font-weight:500; color:#fff; }
-        .plw-row { display:grid; grid-template-columns:1.05fr 1fr; gap:56px; align-items:center; max-width:1120px; margin:0 auto 40px; padding:0 24px; }
-        .plw-row.plw-reverse .plw-copy { order:2; }
-        .plw-row.plw-reverse .plw-visual { order:1; }
-        .plw-eyebrow { font-family:'Times New Roman', Georgia, serif; font-style:italic; font-size:13px; color:#25D366; letter-spacing:0.4px; display:block; margin-bottom:16px; }
-        .plw-copy h3 { font-size:clamp(1.5rem, 2.6vw, 2rem); font-weight:300; letter-spacing:-0.03em; line-height:1.12; color:#fff; margin:0 0 16px; }
-        .plw-copy h3 em { font-style:italic; font-weight:400; color:#25D366; }
-        .plw-copy p { font-size:14px; line-height:1.7; color:rgba(255,255,255,0.6); font-weight:300; margin:0 0 20px; }
-        .plw-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:11px; }
-        .plw-list li { display:flex; gap:11px; align-items:flex-start; font-size:13.5px; color:rgba(255,255,255,0.72); font-weight:300; line-height:1.5; }
-        .plw-list li svg { flex-shrink:0; margin-top:2px; }
-        .plw-visual { position:relative; }
-        /* Phone / WhatsApp mock */
-        .plw-phone { width:290px; max-width:100%; margin:0 auto; border-radius:32px; background:#0b141a; border:1px solid rgba(255,255,255,0.1); box-shadow:0 30px 80px -30px rgba(37,211,102,0.28), 0 0 0 6px rgba(255,255,255,0.02); overflow:hidden; }
-        .plw-wa-top { display:flex; align-items:center; gap:10px; padding:14px 16px; background:#1f2c34; }
-        .plw-wa-av { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#25D366,#10b981); display:flex; align-items:center; justify-content:center; font-size:14px; }
-        .plw-wa-name { color:#fff; font-size:13.5px; font-weight:500; line-height:1.1; }
-        .plw-wa-sub { color:#8aa; font-size:10.5px; }
-        .plw-wa-body { padding:16px 14px; display:flex; flex-direction:column; gap:9px; background:#0b141a; min-height:230px; background-image:radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px); background-size:14px 14px; }
-        .plw-bubble { max-width:82%; padding:9px 12px; border-radius:12px; font-size:12.5px; line-height:1.45; color:#e6f2ea; }
-        .plw-bubble.in { align-self:flex-start; background:#1f2c34; border-top-left-radius:3px; }
-        .plw-bubble.out { align-self:flex-end; background:#134d34; border-top-right-radius:3px; }
-        .plw-bubble .t { display:block; font-size:9.5px; color:rgba(255,255,255,0.4); text-align:right; margin-top:3px; }
-        /* CRM browser frame */
-        .plw-browser { border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.14); background:#fff; box-shadow:0 34px 90px -34px rgba(0,0,0,0.6); }
-        .plw-browser-bar { display:flex; align-items:center; gap:7px; padding:11px 14px; background:#f1f1f4; border-bottom:1px solid #e4e4ea; }
-        .plw-browser-bar i { width:10px; height:10px; border-radius:50%; display:inline-block; }
-        .plw-browser-url { margin-left:10px; flex:1; font-size:11px; color:#9a9aa5; background:#fff; border-radius:6px; padding:4px 10px; }
-        .plw-crm-shot { display:block; width:100%; height:auto; }
-        .plw-crm-mock { display:grid; grid-template-columns:0.9fr 1.4fr; min-height:280px; background:#fff; }
-        .plw-crm-conv { border-right:1px solid #ececf0; padding:12px; display:flex; flex-direction:column; gap:8px; }
-        .plw-crm-ci { display:flex; gap:9px; align-items:center; padding:8px; border-radius:9px; background:#f6f6f8; }
-        .plw-crm-ci.act { background:rgba(37,211,102,0.12); border:1px solid rgba(37,211,102,0.35); }
-        .plw-crm-dot { width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg,#7c3aed,#a78bfa); flex-shrink:0; }
-        .plw-crm-ci.act .plw-crm-dot { background:linear-gradient(135deg,#25D366,#10b981); }
-        .plw-crm-l1 { height:7px; width:60%; border-radius:4px; background:#cfcfd8; margin-bottom:5px; }
-        .plw-crm-l2 { height:6px; width:85%; border-radius:4px; background:#e6e6ec; }
-        .plw-crm-pipe { padding:14px; display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
-        .plw-crm-col { display:flex; flex-direction:column; gap:8px; }
-        .plw-crm-coltag { font-size:9.5px; text-transform:uppercase; letter-spacing:0.06em; color:#9a9aa5; font-weight:600; }
-        .plw-crm-card { background:#f6f6f8; border:1px solid #ececf0; border-radius:8px; padding:9px; }
-        .plw-crm-card .b1 { height:6px; width:70%; border-radius:4px; background:#cfcfd8; margin-bottom:6px; }
-        .plw-crm-card .b2 { height:5px; width:90%; border-radius:4px; background:#e6e6ec; }
-        .plw-crm-badge { display:inline-block; margin-top:7px; font-size:8.5px; padding:2px 7px; border-radius:100px; background:rgba(37,211,102,0.16); color:#0e9f6e; }
-        /* Automações cards */
-        .plw-flows { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; max-width:1120px; margin:44px auto 0; padding:0 24px; }
-        .plw-flow { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); padding:30px 26px; border-radius:16px; transition:background .4s ease; }
-        .plw-flow:hover { background:rgba(37,211,102,0.04); }
-        .plw-flow .fi { width:40px; height:40px; border-radius:10px; background:rgba(37,211,102,0.1); border:1px solid rgba(37,211,102,0.25); display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
-        .plw-flow h4 { font-size:16px; font-weight:500; color:#fff; margin:0 0 9px; letter-spacing:-0.02em; }
-        .plw-flow p { font-size:13px; line-height:1.6; color:rgba(255,255,255,0.55); font-weight:300; margin:0; }
-        .plw-flows-head { text-align:center; max-width:640px; margin:76px auto 0; padding:0 24px; }
-        @media (max-width: 900px) {
-          .plw-row { grid-template-columns:1fr; gap:36px; }
-          .plw-row.plw-reverse .plw-copy, .plw-row.plw-reverse .plw-visual { order:unset; }
-          .plw-flows { grid-template-columns:1fr; }
-        }
-      </style>
-
-      <!-- Row 1 · CRM unificado (captura do lead) -->
-      <div class="plw-row rv d3">
-        <div class="plw-copy">
-          <span class="plw-eyebrow">CRM próprio · já incluído</span>
-          <h3>A Provou Levou tem um <em>CRM próprio.</em></h3>
-          <p>Sim, um CRM completo já incluído no plano. Cada prova vira um lead na hora, com telefone, produto e a jornada completa, e você move pelo funil num <strong style="color:#fff;font-weight:500;">painel só</strong>.</p>
-          <ul class="plw-list">
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Captura automática: telefone + produto provado</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Funil visual: provou → em contato → convertido</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Caixa de entrada do WhatsApp no painel</li>
-          </ul>
-        </div>
-        <div class="plw-visual">
-          <!-- Trocar o .plw-crm-mock por: <img class="plw-crm-shot" src="assets/crm-unificado.png" alt="CRM unificado da Provou Levou"> quando o print estiver pronto -->
-          <div class="plw-browser">
-            <div class="plw-browser-bar">
-              <i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i>
-              <span class="plw-browser-url">gestao.provoulevou.com.br</span>
-            </div>
-            <div class="plw-crm-mock">
-              <div class="plw-crm-conv">
-                <div class="plw-crm-ci act"><div class="plw-crm-dot"></div><div style="flex:1"><div class="plw-crm-l1"></div><div class="plw-crm-l2"></div></div></div>
-                <div class="plw-crm-ci"><div class="plw-crm-dot"></div><div style="flex:1"><div class="plw-crm-l1"></div><div class="plw-crm-l2"></div></div></div>
-                <div class="plw-crm-ci"><div class="plw-crm-dot"></div><div style="flex:1"><div class="plw-crm-l1"></div><div class="plw-crm-l2"></div></div></div>
-                <div class="plw-crm-ci"><div class="plw-crm-dot"></div><div style="flex:1"><div class="plw-crm-l1"></div><div class="plw-crm-l2"></div></div></div>
-              </div>
-              <div class="plw-crm-pipe">
-                <div class="plw-crm-col"><span class="plw-crm-coltag">Provou</span><div class="plw-crm-card"><div class="b1"></div><div class="b2"></div></div><div class="plw-crm-card"><div class="b1"></div><div class="b2"></div></div></div>
-                <div class="plw-crm-col"><span class="plw-crm-coltag">Em contato</span><div class="plw-crm-card"><div class="b1"></div><div class="b2"></div><span class="plw-crm-badge">respondeu</span></div></div>
-                <div class="plw-crm-col"><span class="plw-crm-coltag">Convertido</span><div class="plw-crm-card"><div class="b1"></div><div class="b2"></div><span class="plw-crm-badge">R$ 289</span></div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Row 2 · Disparos WhatsApp -->
-      <div class="plw-row plw-reverse rv d3">
-        <div class="plw-copy">
-          <span class="plw-eyebrow">Disparos de WhatsApp</span>
-          <h3>E aí você fala com ele — <em>oficial pela Meta.</em></h3>
-          <p>Com o lead no CRM, dispara pela <strong style="color:#fff;font-weight:500;">WhatsApp Business Platform da Meta</strong>: número verificado, templates aprovados, entrega em escala.</p>
-          <ul class="plw-list">
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Número oficial, sem risco de ban</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Personalizado com nome e produto provado</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Segmenta quem provou, clicou ou abandonou</li>
-          </ul>
-        </div>
-        <div class="plw-visual">
-          <div class="plw-phone">
-            <div class="plw-wa-top">
-              <div class="plw-wa-av">🕶️</div>
-              <div><div class="plw-wa-name">Ótica Provou Levou</div><div class="plw-wa-sub">conta comercial · online</div></div>
-            </div>
-            <div class="plw-wa-body">
-              <div class="plw-bubble out">Oi, Marina! 👋 Vi que você provou o <b>Óculos Aspen</b> aqui na loja 😍<span class="t">14:02 ✓✓</span></div>
-              <div class="plw-bubble out">Separei ele pra você com <b>10% OFF</b> hoje. Quer que eu garanta?<span class="t">14:02 ✓✓</span></div>
-              <div class="plw-bubble in">Quero simm! Como faço? 💚<span class="t">14:09</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Row 3 · Automações -->
-      <div class="plw-flows-head">
-        <span class="plw-eyebrow" style="display:block;">Automações de recuperação</span>
-        <h3 style="font-size:clamp(1.5rem, 2.6vw, 2rem); font-weight:300; letter-spacing:-0.03em; color:#fff; margin:0;">Fluxos que recuperam a venda <em style="font-style:italic;font-weight:400;color:#25D366;">no automático.</em></h3>
-        <p style="margin-top:14px; font-size:14px; line-height:1.7; color:rgba(255,255,255,0.6); font-weight:300;">Configura uma vez. Cada lead recebe a mensagem certa na hora certa, sozinho.</p>
-      </div>
-
-      <!-- Construtor de automações — recriado nativo (fluxo de recuperação) -->
-      <style>
-        .plw-canvas { max-width:1000px; margin:38px auto 0; border:1px solid rgba(255,255,255,0.14); border-radius:20px; background:#fbfbfd; background-image:radial-gradient(rgba(0,0,0,0.06) 1px, transparent 1px); background-size:20px 20px; padding:26px 22px; box-shadow:0 34px 90px -40px rgba(0,0,0,0.55); }
-        .plw-canvas-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:26px; padding:0 4px; }
-        .plw-canvas-name { font-size:13.5px; font-weight:600; color:#1a1a2e; letter-spacing:-0.01em; }
-        .plw-canvas-live { display:inline-flex; align-items:center; gap:6px; font-size:11px; color:#25D366; background:rgba(37,211,102,0.1); border:1px solid rgba(37,211,102,0.28); padding:4px 11px; border-radius:100px; }
-        .plw-canvas-live i { width:6px; height:6px; border-radius:50%; background:#25D366; box-shadow:0 0 0 3px rgba(37,211,102,0.22); }
-        .plw-track { display:flex; align-items:stretch; justify-content:center; flex-wrap:wrap; gap:0; }
-        .plw-node2 { display:flex; align-items:center; gap:12px; background:#fff; border:1px solid #e4e4ea; border-radius:13px; padding:13px 16px; min-width:186px; position:relative; box-shadow:0 6px 16px -8px rgba(0,0,0,0.18); }
-        .plw-node2 .ic { width:36px; height:36px; flex-shrink:0; border-radius:9px; display:flex; align-items:center; justify-content:center; }
-        .plw-node2 .nt { font-size:13px; font-weight:600; color:#1a1a2e; line-height:1.2; }
-        .plw-node2 .ns { font-size:11.5px; color:#8a8a95; line-height:1.3; margin-top:2px; }
-        .plw-node2 .ns.code { font-family:ui-monospace, 'SF Mono', Menlo, monospace; color:#0e9f6e; font-size:10.5px; }
-        .plw-node2 .ntag { position:absolute; top:-9px; left:14px; font-size:8.5px; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:#7c3aed; background:#f1ecfd; border:1px solid rgba(124,58,237,0.28); padding:2px 8px; border-radius:100px; }
-        .plw-conn2 { flex:0 0 42px; align-self:center; height:2px; position:relative; background:linear-gradient(90deg,#7c3aed,#a78bfa); border-radius:2px; }
-        .plw-conn2::before, .plw-conn2::after { content:""; position:absolute; top:50%; width:9px; height:9px; border-radius:50%; background:#a78bfa; transform:translateY(-50%); box-shadow:0 0 0 3px rgba(167,139,250,0.18); }
-        .plw-conn2::before { left:-4px; } .plw-conn2::after { right:-4px; }
-        @media (max-width: 760px) {
-          .plw-track { flex-direction:column; align-items:center; }
-          .plw-node2 { width:100%; max-width:280px; }
-          .plw-conn2 { flex:0 0 26px; width:2px; height:26px; background:linear-gradient(180deg,#7c3aed,#a78bfa); }
-          .plw-conn2::before { left:50%; top:-4px; transform:translateX(-50%); } .plw-conn2::after { left:50%; top:auto; bottom:-4px; right:auto; transform:translateX(-50%); }
-        }
-      </style>
-      <div class="plw-builder-wrap rv d3" style="padding:0 24px;">
-        <div class="plw-canvas">
-          <div class="plw-canvas-top">
-            <span class="plw-canvas-name">Recuperação — Provador Abandonado</span>
-            <span class="plw-canvas-live"><i></i> Ativo</span>
-          </div>
-          <div class="plw-track">
-            <div class="plw-node2">
-              <div class="ic" style="background:rgba(245,181,68,0.14); border:1px solid rgba(245,181,68,0.3);">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f5b544" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-              </div>
-              <div><div class="nt">Gatilho</div><div class="ns">Provou e não comprou</div></div>
-            </div>
-            <div class="plw-conn2"></div>
-            <div class="plw-node2">
-              <div class="ic" style="background:rgba(245,181,68,0.14); border:1px solid rgba(245,181,68,0.3);">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f5b544" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12M6 22h12M7 2v3.5c0 1 .5 1.8 1.3 2.4L12 11l3.7-3.1c.8-.6 1.3-1.4 1.3-2.4V2M7 22v-3.5c0-1 .5-1.8 1.3-2.4L12 13l3.7 3.1c.8.6 1.3 1.4 1.3 2.4V22"/></svg>
-              </div>
-              <div><div class="nt">Espera</div><div class="ns">15 minutos</div></div>
-            </div>
-            <div class="plw-conn2"></div>
-            <div class="plw-node2">
-              <div class="ic" style="background:rgba(37,211,102,0.14); border:1px solid rgba(37,211,102,0.32);">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-              </div>
-              <div><div class="nt">Enviar template</div><div class="ns code">cupom_frete_provoul1</div></div>
-            </div>
-            <div class="plw-conn2"></div>
-            <div class="plw-node2">
-              <span class="ntag">Lógica</span>
-              <div class="ic" style="background:rgba(167,139,250,0.14); border:1px solid rgba(167,139,250,0.32);">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18"/></svg>
-              </div>
-              <div><div class="nt">Mover no CRM</div><div class="ns">→ Convertido</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="plw-flows rv d3">
-        <article class="plw-flow">
-          <div class="fi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></div>
-          <h4>Provou e não comprou</h4>
-          <p>Experimentou e saiu sem fechar? Sequência automática com o produto provado e um incentivo pra voltar.</p>
-        </article>
-        <article class="plw-flow">
-          <div class="fi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
-          <h4>Carrinho abandonado</h4>
-          <p>Adicionou e não pagou? Lembrete no WhatsApp que traz o cliente de volta ao checkout.</p>
-        </article>
-        <article class="plw-flow">
-          <div class="fi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg></div>
-          <h4>Pós-venda & reengajamento</h4>
-          <p>Agradecimento, novidades e ofertas pra quem já comprou. Recompra sem depender de anúncio.</p>
-        </article>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ─── LOGO CLOUD ─── -->
-  <section class="logo-cloud" id="integracoes">
-    <div class="container">
-      <div class="logo-cloud-inner">
-        <div class="logo-cloud-heading" style="max-width:1280px; margin:0 auto 8px; padding:0 24px; text-align:center;">
-          <h2 style="font-size:clamp(2rem, 4vw, 3.4rem); font-weight:300; letter-spacing:-0.035em; line-height:1.02; color:#111; margin:0;">
-            Plug em qualquer plataforma.<br>
-            <em style="font-style:italic; font-weight:400; background:linear-gradient(120deg, #7c3aed 0%, #a78bfa 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">No ar em 1 hora.</em>
-          </h2>
-          <p style="margin:18px auto 0; max-width:560px; font-size:14.5px; line-height:1.6; color:rgba(0,0,0,0.55); font-weight:400;">
-            Instalação feita pela nossa própria equipe &mdash; você não precisa mexer em código nem chamar dev.
-          </p>
-        </div>
-        <div class="logo-cloud-line"></div>
-        <div class="logo-cloud-slider">
-          <div class="logo-cloud-track">
-            <img src="Shopify_logo.svg" alt="Shopify" loading="lazy">
-            <img src="Nuvemshop-logo.png" alt="Nuvemshop" loading="lazy">
-            <img src="logo_tray.webp" alt="Tray" loading="lazy">
-            <img src="assets/bagy-logo.svg" alt="Bagy" loading="lazy">
-            <img src="assets/vtex-logo.svg" alt="VTEX" loading="lazy" onerror="this.style.display='none'">
-            <img src="woocommercelogo.png" alt="WooCommerce" loading="lazy">
-            <img src="Loja-Integrada-RGB-Flat-Fundo-Branco-LOGO.png" alt="Loja Integrada" loading="lazy">
-            <img src="Shopify_logo.svg" alt="Shopify" loading="lazy">
-            <img src="Nuvemshop-logo.png" alt="Nuvemshop" loading="lazy">
-            <img src="logo_tray.webp" alt="Tray" loading="lazy">
-            <img src="assets/bagy-logo.svg" alt="Bagy" loading="lazy">
-            <img src="assets/vtex-logo.svg" alt="VTEX" loading="lazy" onerror="this.style.display='none'">
-            <img src="woocommercelogo.png" alt="WooCommerce" loading="lazy">
-            <img src="Loja-Integrada-RGB-Flat-Fundo-Branco-LOGO.png" alt="Loja Integrada" loading="lazy">
-          </div>
-        </div>
-        <div class="logo-cloud-line"></div>
-      </div>
-    </div>
-  </section>
 
   <!-- ─── SOLUTIONS CARDS ─── -->
   <div class="solutions-outer">
@@ -6063,6 +5546,7 @@
       </div>
     </div>
   </section>
+
 
   <!-- ─── CTA FINAL ─── -->
   <section class="cta-final">
