@@ -14535,7 +14535,8 @@
             const fDataPedido = activeUser.campo_data_pedido || null;
             const fNome = activeUser.campo_nome_pedido || null;
             const fProduto = activeUser.campo_produto_pedido || null;
-            const selectFields = [fPhone, fTotal, fStatus, 'created_at', fDataPedido, fNome, fProduto].filter(Boolean).join(', ');
+            const _temStatusPedidos = await tabelaTemStatus(activeUser.tabela_pedidos);
+            const selectFields = comStatus([fPhone, fTotal, fStatus, 'created_at', fDataPedido, fNome, fProduto].filter(Boolean).join(', '), _temStatusPedidos);
 
             // Carrega TODAS as provas em lotes paralelos (antes era página-a-página em série).
             const allGens = await fetchPagesParallel(() => supabaseClient
@@ -14577,6 +14578,8 @@
             const paginateAll = (makeQuery) => fetchPagesParallel(makeQuery);
 
             // --- Pass 1: pedidos pagos desde a primeira prova (dataset principal) ---
+            // Este e o conjunto que vira allOrdersCache e alimenta o "faturamento
+            // total da loja" — sem o filtro aqui, o cancelado voltava pela porta dos fundos.
             const loadOrders = () => paginateAll(() => {
                 let q = supabaseClient
                     .from(activeUser.tabela_pedidos)
@@ -14701,7 +14704,8 @@
             // O baseline pré-provador + YoY alimentam SÓ o card "crescimento"/strip antes×depois,
             // então rodam em BACKGROUND, fora do caminho crítico (antes seguravam ~16k linhas
             // extras bloqueando o load inicial). Quando terminam, re-renderizam só esse card.
-            const allOrdersArr = await loadOrders();
+            // Pedido pago e depois CANCELADO nao entra no faturamento (ver pedidoValido).
+            const allOrdersArr = (await loadOrders()).filter(pedidoValido);
             Promise.all([loadBaseline(), loadYoy()]).then(() => {
                 try { if (typeof renderCrescimentoLoja === 'function') renderCrescimentoLoja(); } catch (e) {}
                 try { if (typeof renderBeforeAfterStrip === 'function') renderBeforeAfterStrip(); } catch (e) {}
