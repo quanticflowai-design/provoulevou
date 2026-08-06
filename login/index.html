@@ -11275,6 +11275,12 @@
               #campListCard .camp-item-name{font-weight:700;font-size:14.5px;color:var(--text-main);}
               #campListCard .camp-item-sub{font-size:12px;color:var(--text-muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
               #campListCard .camp-badge{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:999px;}
+              #campListCard .camp-prog{display:flex;align-items:center;gap:8px;margin-top:8px;max-width:420px;}
+              #campListCard .camp-prog-track{flex:1;height:6px;border-radius:999px;background:rgba(127,127,127,.18);overflow:hidden;}
+              #campListCard .camp-prog-track span{display:block;height:100%;border-radius:999px;background:#10b981;transition:width .4s ease;}
+              #campListCard .camp-prog.andando .camp-prog-track span{background:linear-gradient(90deg,#2563eb,#7c3aed);}
+              #campListCard .camp-prog-num{font-size:11px;font-weight:700;color:var(--text-muted);font-variant-numeric:tabular-nums;min-width:34px;text-align:right;}
+              #campListCard .camp-prog-nota{font-size:11px;color:var(--text-muted);opacity:.8;white-space:nowrap;}
               #campListCard .camp-empty{background:transparent;border:0;padding:46px 22px;text-align:center;color:var(--text-muted);}
               #campListCard .camp-empty-ic{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;margin:0 auto 14px;background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(168,85,247,.10));color:#7c3aed;font-size:26px;}
               #campListCard .camp-empty h4{margin:0 0 4px;font-size:16px;color:var(--text-main);}
@@ -11680,6 +11686,7 @@
                     }
                 } catch (e) { console.warn('[camp] agregação de envios:', e); }
             }
+            let _algumaAndando = false;
             let html = items.map(g => {
                 const first = g[0];
                 const nome = (first.nome && first.nome.trim()) || first.template || 'Campanha';
@@ -11697,12 +11704,39 @@
                 const _ran = g.some(r => r.executed_at || ['falhou', 'concluido', 'enviando'].includes(r.status));
                 const _ok = ids.reduce((s, id) => s + ((_sendAgg[id] || {}).ok || 0), 0);
                 const _fail = ids.reduce((s, id) => s + ((_sendAgg[id] || {}).fail || 0), 0);
-                if (_ran && (_ok + _fail) > 0) {
-                    if (_ok > 0) { stLabel = 'Concluída'; stFg = '#10b981'; stBg = 'rgba(16,185,129,.15)'; }
-                    else { stLabel = 'Falhou'; stFg = '#dc2626'; stBg = 'rgba(220,38,38,.15)'; }
+                const _proc = _ok + _fail;
+                // quantos leads a campanha tem no total (a fila fica em payloads)
+                const _total = g.reduce((s, r) => s + (r.total || (r.payloads || []).length || 0), 0);
+                const _terminou = g.every(r => ['concluido', 'cancelado'].includes(r.status))
+                                  || (_total > 0 && _proc >= _total);
+                const _andando = !_terminou && (g.some(r => r.status === 'enviando') || (_ran && _total > 0 && _proc < _total));
+
+                if (_ran && _proc > 0) {
+                    if (_andando) {
+                        // NUNCA marcar como concluída no meio: o executor manda 60 a cada 5 min
+                        // (e há teto diário por loja), então a campanha continua no dia seguinte.
+                        stLabel = 'Enviando…'; stFg = '#2563eb'; stBg = 'rgba(37,99,235,.14)';
+                    } else if (_ok > 0) {
+                        stLabel = 'Concluída'; stFg = '#10b981'; stBg = 'rgba(16,185,129,.15)';
+                    } else {
+                        stLabel = 'Falhou'; stFg = '#dc2626'; stBg = 'rgba(220,38,38,.15)';
+                    }
                 }
-                const _resultSub = (_ran && (_ok + _fail) > 0)
-                    ? ('<span><i class="ph-bold ph-paper-plane-tilt" style="color:#10b981;"></i> ' + _ok + ' enviados' + (_fail ? ' · <span style="color:#dc2626;">' + _fail + ' falharam</span>' : '') + '</span>')
+
+                if (_andando) _algumaAndando = true;
+                var _pct = (_total > 0) ? Math.min(100, Math.round((_proc / _total) * 100)) : 0;
+                const _resultSub = (_ran && _proc > 0)
+                    ? ('<span><i class="ph-bold ph-paper-plane-tilt" style="color:#10b981;"></i> ' + _ok + ' enviados'
+                        + (_fail ? ' · <span style="color:#dc2626;">' + _fail + ' falharam</span>' : '')
+                        + (_total > 0 ? ' <span style="opacity:.65;">de ' + _total.toLocaleString('pt-BR') + '</span>' : '')
+                        + '</span>')
+                    : '';
+                const _barra = (_ran && _total > 0)
+                    ? ('<div class="camp-prog' + (_andando ? ' andando' : '') + '" title="' + _proc + ' de ' + _total + '">'
+                        + '<div class="camp-prog-track"><span style="width:' + _pct + '%;"></span></div>'
+                        + '<span class="camp-prog-num">' + _pct + '%</span>'
+                        + (_andando ? '<span class="camp-prog-nota">restam ' + Math.max(0, _total - _proc).toLocaleString('pt-BR') + '</span>' : '')
+                        + '</div>')
                     : '';
                 let actions = '';
                 if (isDiario && stKey === 'agendado') {
@@ -11713,10 +11747,22 @@
                 actions += '<button class="camp-btn" title="Excluir" style="padding:6px 10px;font-size:12px;color:#dc2626;" onclick="campDelete(' + JSON.stringify(ids).replace(/"/g, '&quot;') + ')"><i class="ph-bold ph-trash"></i></button>';
                 return '<div class="camp-item"><div style="min-width:0;">'
                     + '<div class="camp-item-name">' + escapeHtml(nome) + '</div>'
-                    + '<div class="camp-item-sub"><span><i class="ph-bold ph-users-three"></i> ' + escapeHtml(stageTitle(first.stage_key)) + '</span><span><i class="ph-bold ' + (isDiario ? 'ph-repeat' : 'ph-calendar') + '"></i> ' + escapeHtml(tipo) + '</span><span><i class="ph-bold ph-chat-text"></i> ' + escapeHtml(first.template || '—') + '</span>' + _resultSub + '</div>'
+                    + '<div class="camp-item-sub"><span><i class="ph-bold ph-users-three"></i> ' + escapeHtml(stageTitle(first.stage_key)) + '</span><span><i class="ph-bold ' + (isDiario ? 'ph-repeat' : 'ph-calendar') + '"></i> ' + escapeHtml(tipo) + '</span><span><i class="ph-bold ph-chat-text"></i> ' + escapeHtml(first.template || '—') + '</span>' + _resultSub + '</div>' + _barra
                     + '</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0;"><span class="camp-badge" style="color:' + stFg + ';background:' + stBg + ';">' + escapeHtml(stLabel) + '</span>' + actions + '</div></div>';
             }).join('');
             el.innerHTML = shell(html);
+
+            // Campanha andando: a lista se atualiza sozinha a cada 45s, senao o lojista
+            // fica olhando um numero congelado achando que travou.
+            if (_algumaAndando) {
+                clearTimeout(window._campPoll);
+                window._campPoll = setTimeout(function () {
+                    var card = document.getElementById('campListCard');
+                    if (card && card.offsetParent !== null) campLoadList();
+                }, 45000);
+            } else {
+                clearTimeout(window._campPoll);
+            }
         }
 
         async function campToggle(ids, ativar) {
