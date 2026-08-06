@@ -4,6 +4,7 @@
 
     // --- Estilos Baseados na DIVINÉ ---
     const styles = `
+/* PL: borda arredondada do modal */@media(min-width:768px){.q-card-ia,.q-card,#q-card-ia,#q-card,.q-modal-card{border-radius:16px !important;overflow:hidden;}}
         :root { 
             --q-primary: #000000; 
             --q-bg: #ffffff; 
