@@ -11334,7 +11334,7 @@
             let movedAt = {};
             try {
                 const { data } = await supabaseClient.from('crm_lead_overrides')
-                    .select('telefone, updated_at').eq('lojista_email', email).limit(10000);
+                    .select('telefone, updated_at').in('lojista_email', crmScopeEmails()).limit(10000);
                 (data || []).forEach(r => { movedAt[normalize(r.telefone)] = r.updated_at; });
             } catch (e) { console.warn('[comercial] overrides:', e); }
 
@@ -16344,10 +16344,52 @@
             return { columns: cols, _migrated: changed };
         }
 
-        function crmConfigKey()    { return 'pl-crm-config-'    + ((activeUser && activeUser.email) || 'default'); }
-        function crmOverridesKey() { return 'pl-crm-overrides-' + ((activeUser && activeUser.email) || 'default'); }
-        function crmRespKey()      { return 'pl-crm-resp-'      + ((activeUser && activeUser.email) || 'default'); }
-        function crmTeamKey()      { return 'pl-crm-team-'      + ((activeUser && activeUser.email) || 'default'); }
+        // ===== Escopo do CRM = A LOJA, não o login =====================================
+        // Uma loja pode ter mais de um login na tabela `lojistas` com a MESMA origem
+        // (Linda Menina tem gustavomota@ e olm@; Programmoda tem 3). Como as tabelas
+        // crm_* eram filtradas por `lojista_email`, cada login enxergava um CRM
+        // diferente: o disparo movia o lead pra "Mensagem 1" gravando no e-mail da
+        // campanha e o outro login continuava vendo o lead na etapa automática.
+        // Agora: LÊ a união de todos os logins da loja e ESCREVE sempre no canônico
+        // (o primeiro em ordem alfabética). Assim os dois enxergam a mesma coisa.
+        // Lojas com mais de um login. Precisa ser explícito: o RLS da tabela `lojistas`
+        // só deixa cada login enxergar a PRÓPRIA linha, então não dá pra descobrir os
+        // irmãos consultando por `origem`. Ao criar um 2º login pra uma loja, some ele
+        // ao grupo aqui — senão os dois voltam a ter CRMs separados.
+        const CRM_LOGIN_GROUPS = [
+            ['gustavomota@oculoslindamenina.com', 'olm@oculoslindamenina.com'],
+            ['cacifebrand@outlook.com',           'meta-review@provoulevou.com.br'],
+            ['contato@santieyewear.com.br',       'santieyewear@gmail.com'],
+            ['alex.rodrigues@programmoda.com.br', 'projeto@agencia2bdigital.com.br', 'zafirakc@gmail.com']
+        ];
+        let _crmScopeEmails = null;
+        async function resolveCrmScope() {
+            const mine = ((activeUser && activeUser.email) || 'default').toLowerCase();
+            const grupo = CRM_LOGIN_GROUPS.find(g => g.indexOf(mine) !== -1);
+            const list = grupo ? grupo.slice() : [mine];
+            // Em modo master a tabela inteira é legível — aproveita pra pegar irmãos
+            // que ainda não foram cadastrados no grupo acima.
+            if (isMasterMode && activeUser && activeUser.origem) {
+                try {
+                    const { data } = await supabaseClient
+                        .from('lojistas').select('email').eq('origem', activeUser.origem);
+                    (data || []).forEach(r => {
+                        const e = (r.email || '').toLowerCase();
+                        if (e && list.indexOf(e) === -1) list.push(e);
+                    });
+                } catch (e) { /* sem problema — o grupo explícito já cobre */ }
+            }
+            if (list.indexOf(mine) === -1) list.push(mine);
+            list.sort();
+            _crmScopeEmails = list;
+        }
+        function crmScopeEmails() { return _crmScopeEmails || [((activeUser && activeUser.email) || 'default').toLowerCase()]; }
+        function crmScopeEmail()  { return crmScopeEmails()[0]; }
+
+        function crmConfigKey()    { return 'pl-crm-config-'    + crmScopeEmail(); }
+        function crmOverridesKey() { return 'pl-crm-overrides-' + crmScopeEmail(); }
+        function crmRespKey()      { return 'pl-crm-resp-'      + crmScopeEmail(); }
+        function crmTeamKey()      { return 'pl-crm-team-'      + crmScopeEmail(); }
 
         // Cache em memória — populado por loadCrmRemoteState() no início do loadCRM
         // Reads (getCrmConfig/getCrmOverrides) são SEMPRE síncronos lendo desse cache.
@@ -16360,7 +16402,10 @@
         let _crmRespFilter   = '';     // filtro ativo por responsável ('' = todos)
 
         async function loadCrmRemoteState() {
-            const email = (activeUser && activeUser.email) || 'default';
+            // Descobre TODOS os logins desta loja antes de qualquer leitura — as chaves
+            // do localStorage e os filtros do Supabase dependem disso.
+            await resolveCrmScope();
+            const emails = crmScopeEmails();
             // 1) Sempre carrega backup do localStorage primeiro (offline-first)
             let localCfg = null, localOv = {};
             try {
@@ -16381,24 +16426,42 @@
             // 2) Tenta sincronizar com Supabase (autoritativo se disponível)
             let remoteCfg = null, remoteOv = null;
             try {
-                const { data: cfgRow, error: cfgErr } = await supabaseClient
+                const { data: cfgRows, error: cfgErr } = await supabaseClient
                     .from('crm_pipeline_config')
-                    .select('columns')
-                    .eq('lojista_email', email)
-                    .maybeSingle();
-                if (!cfgErr && cfgRow && cfgRow.columns && Array.isArray(cfgRow.columns) && cfgRow.columns.length) {
-                    remoteCfg = { columns: cfgRow.columns };
+                    .select('lojista_email,columns')
+                    .in('lojista_email', emails);
+                if (!cfgErr && Array.isArray(cfgRows) && cfgRows.length) {
+                    // Pipeline da loja: prioriza o dono canônico; se ele ainda não tem,
+                    // aproveita a config de qualquer outro login (senão o board cairia
+                    // no padrão e as etapas manuais sumiriam).
+                    const pick = cfgRows.find(r => r.lojista_email === crmScopeEmail() && Array.isArray(r.columns) && r.columns.length)
+                              || cfgRows.find(r => Array.isArray(r.columns) && r.columns.length);
+                    if (pick) remoteCfg = { columns: pick.columns };
                 }
             } catch(e) { /* tabela pode não existir ainda — usa local */ }
 
             try {
                 const { data: ovRows, error: ovErr } = await supabaseClient
                     .from('crm_lead_overrides')
-                    .select('telefone,column_key')
-                    .eq('lojista_email', email);
+                    .select('telefone,column_key,updated_at')
+                    .in('lojista_email', emails);
                 if (!ovErr && Array.isArray(ovRows)) {
                     remoteOv = {};
-                    ovRows.forEach(r => { remoteOv[r.telefone] = r.column_key; });
+                    const seenAt = {};
+                    ovRows.forEach(r => {
+                        // ⚠️ NORMALIZAR é obrigatório. O board indexa o lead por
+                        // normalize(telefone) = últimos 9 dígitos, mas o n8n (executor de
+                        // disparos e motor de fluxos) grava o override com 11 dígitos.
+                        // Sem isso a chave nunca casa e o lead fica preso na etapa
+                        // automática mesmo depois de receber o disparo.
+                        const key = normalize(r.telefone);
+                        if (!key) return;
+                        // Mesmo lead movido em logins diferentes: vale o mais recente.
+                        const at = r.updated_at || '';
+                        if (seenAt[key] != null && at < seenAt[key]) return;
+                        seenAt[key] = at;
+                        remoteOv[key] = r.column_key;
+                    });
                 }
             } catch(e) { /* idem */ }
 
@@ -16409,13 +16472,17 @@
             let remoteResp = null, remoteTeam = null;
             try {
                 const { data: rRows, error: rErr } = await supabaseClient
-                    .from('crm_lead_responsavel').select('telefone,responsavel').eq('lojista_email', email);
-                if (!rErr && Array.isArray(rRows)) { remoteResp = {}; rRows.forEach(r => { if (r.responsavel) remoteResp[r.telefone] = r.responsavel; }); }
+                    .from('crm_lead_responsavel').select('telefone,responsavel').in('lojista_email', emails);
+                if (!rErr && Array.isArray(rRows)) { remoteResp = {}; rRows.forEach(r => { if (r.responsavel) remoteResp[normalize(r.telefone) || r.telefone] = r.responsavel; }); }
             } catch(e) { /* tabela pode não existir ainda — usa local */ }
             try {
-                const { data: tRow, error: tErr } = await supabaseClient
-                    .from('crm_team').select('membros').eq('lojista_email', email).maybeSingle();
-                if (!tErr && tRow && Array.isArray(tRow.membros)) remoteTeam = tRow.membros;
+                const { data: tRows, error: tErr } = await supabaseClient
+                    .from('crm_team').select('lojista_email,membros').in('lojista_email', emails);
+                if (!tErr && Array.isArray(tRows) && tRows.length) {
+                    const pick = tRows.find(r => r.lojista_email === crmScopeEmail() && Array.isArray(r.membros) && r.membros.length)
+                              || tRows.find(r => Array.isArray(r.membros) && r.membros.length);
+                    if (pick) remoteTeam = pick.membros;
+                }
             } catch(e) { /* idem */ }
 
             _crmConfigMem    = remoteCfg || localCfg || { columns: CRM_DEFAULT_COLUMNS.slice() };
@@ -16452,7 +16519,7 @@
         function setCrmConfig(cfg) {
             _crmConfigMem = cfg;
             try { localStorage.setItem(crmConfigKey(), JSON.stringify(cfg)); } catch(e) {}
-            const email = (activeUser && activeUser.email) || 'default';
+            const email = crmScopeEmail();
             supabaseClient.from('crm_pipeline_config').upsert({
                 lojista_email: email,
                 columns: cfg.columns,
@@ -16483,7 +16550,7 @@
             if (colKey) ov[phone] = colKey; else delete ov[phone];
             _crmOverridesMem = ov;
             try { localStorage.setItem(crmOverridesKey(), JSON.stringify(ov)); } catch(e) {}
-            const email = (activeUser && activeUser.email) || 'default';
+            const email = crmScopeEmail();
             if (colKey) {
                 supabaseClient.from('crm_lead_overrides').upsert({
                     lojista_email: email,
@@ -16494,10 +16561,12 @@
                     if (error) console.warn('[CRM] override não pôde ser sincronizado:', error.message);
                 });
             } else {
+                // O n8n grava o telefone com DDD (11 dígitos) e o painel sem (9), então
+                // apagar por igualdade deixaria a linha gêmea viva e a etapa voltaria.
                 supabaseClient.from('crm_lead_overrides')
                     .delete()
-                    .eq('lojista_email', email)
-                    .eq('telefone', phone)
+                    .in('lojista_email', crmScopeEmails())
+                    .like('telefone', '%' + phone)
                     .then(({ error }) => {
                         if (error) console.warn('[CRM] override delete falhou:', error.message);
                     });
@@ -16717,7 +16786,7 @@
             if (!_crmImport || !_crmImport.newLeads || !_crmImport.newLeads.length) return;
             const msg = document.getElementById('crmImpMsg');
             const btn = document.getElementById('crmImpConfirmBtn');
-            const email = (activeUser && activeUser.email) || 'default';
+            const email = crmScopeEmail();
             const stageKey = _crmImport.stageKey;
             const news = _crmImport.newLeads;
             btn.disabled = true; btn.style.opacity = '.6';
@@ -16782,7 +16851,7 @@
             if (resp) map[phone] = resp; else delete map[phone];
             _crmRespMem = map;
             try { localStorage.setItem(crmRespKey(), JSON.stringify(map)); } catch(e) {}
-            const email = (activeUser && activeUser.email) || 'default';
+            const email = crmScopeEmail();
             if (resp) {
                 supabaseClient.from('crm_lead_responsavel').upsert({
                     lojista_email: email, telefone: phone, responsavel: resp, updated_at: new Date().toISOString()
@@ -16791,7 +16860,7 @@
                 });
             } else {
                 supabaseClient.from('crm_lead_responsavel').delete()
-                    .eq('lojista_email', email).eq('telefone', phone)
+                    .in('lojista_email', crmScopeEmails()).like('telefone', '%' + phone)
                     .then(({ error }) => { if (error) console.warn('[CRM] del responsável falhou:', error.message); });
             }
         }
@@ -16803,7 +16872,7 @@
         function setCrmTeam(list) {
             _crmTeamMem = Array.isArray(list) ? list : [];
             try { localStorage.setItem(crmTeamKey(), JSON.stringify(_crmTeamMem)); } catch(e) {}
-            const email = (activeUser && activeUser.email) || 'default';
+            const email = crmScopeEmail();
             supabaseClient.from('crm_team').upsert({
                 lojista_email: email, membros: _crmTeamMem, updated_at: new Date().toISOString()
             }, { onConflict: 'lojista_email' }).then(({ error }) => {
@@ -17022,10 +17091,9 @@
                 _crmOverridesMem = ov;
                 try { localStorage.setItem(crmOverridesKey(), JSON.stringify(ov)); } catch(e) {}
                 // Sincroniza delete no Supabase em massa
-                const email = (activeUser && activeUser.email) || 'default';
                 supabaseClient.from('crm_lead_overrides')
                     .delete()
-                    .eq('lojista_email', email)
+                    .in('lojista_email', crmScopeEmails())
                     .in('telefone', orphanPhones)
                     .then(({ error }) => {
                         if (error) console.warn('[CRM] limpeza de overrides órfãos falhou:', error.message);
@@ -17269,7 +17337,7 @@
                         const { data: ib, error: iErr } = await supabaseClient
                             .from('crm_leads_importados')
                             .select('telefone,nome,raw_phone,created_at')
-                            .eq('lojista_email', (activeUser && activeUser.email) || 'default')
+                            .in('lojista_email', crmScopeEmails())
                             .range(iFrom, iFrom + iPage - 1);
                         if (iErr) { console.warn('[crm] importados falhou:', iErr.message); break; }
                         if (!ib || ib.length === 0) break;
