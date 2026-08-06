@@ -11707,15 +11707,21 @@
                 const _proc = _ok + _fail;
                 // quantos leads a campanha tem no total (a fila fica em payloads)
                 const _total = g.reduce((s, r) => s + (r.total || (r.payloads || []).length || 0), 0);
-                const _terminou = g.every(r => ['concluido', 'cancelado'].includes(r.status))
-                                  || (_total > 0 && _proc >= _total);
-                const _andando = !_terminou && (g.some(r => r.status === 'enviando') || (_ran && _total > 0 && _proc < _total));
+                // "Andando" NAO se deduz de enviados < total: o executor so retoma campanha
+                // com status agendado/enviando. Uma campanha 'falhou' parou pra sempre no
+                // meio — dizer que ela esta enviando e mentira (e foi o que acontecia).
+                const _andando = g.some(r => r.status === 'enviando');
+                const _parouNoMeio = !_andando
+                    && g.some(r => r.status === 'falhou')
+                    && _total > 0 && _proc < _total && _ok > 0;
 
                 if (_ran && _proc > 0) {
                     if (_andando) {
-                        // NUNCA marcar como concluída no meio: o executor manda 60 a cada 5 min
-                        // (e há teto diário por loja), então a campanha continua no dia seguinte.
+                        // Nunca marcar como concluida no meio: o executor manda 60 a cada 5 min
+                        // (e ha teto diario por loja), entao ela continua no dia seguinte.
                         stLabel = 'Enviando…'; stFg = '#2563eb'; stBg = 'rgba(37,99,235,.14)';
+                    } else if (_parouNoMeio) {
+                        stLabel = 'Interrompida'; stFg = '#b45309'; stBg = 'rgba(217,119,6,.16)';
                     } else if (_ok > 0) {
                         stLabel = 'Concluída'; stFg = '#10b981'; stBg = 'rgba(16,185,129,.15)';
                     } else {
@@ -11735,7 +11741,8 @@
                     ? ('<div class="camp-prog' + (_andando ? ' andando' : '') + '" title="' + _proc + ' de ' + _total + '">'
                         + '<div class="camp-prog-track"><span style="width:' + _pct + '%;"></span></div>'
                         + '<span class="camp-prog-num">' + _pct + '%</span>'
-                        + (_andando ? '<span class="camp-prog-nota">restam ' + Math.max(0, _total - _proc).toLocaleString('pt-BR') + '</span>' : '')
+                        + (_andando ? '<span class="camp-prog-nota">restam ' + Math.max(0, _total - _proc).toLocaleString('pt-BR') + '</span>'
+                           : (_parouNoMeio ? '<span class="camp-prog-nota">parou aqui</span>' : ''))
                         + '</div>')
                     : '';
                 let actions = '';
@@ -13226,6 +13233,32 @@
         // Verifica se pedido foi feito após a prova:
         // - Se pedido tem horário real: compara timestamp completo
         // - Se pedido sem horário (T00:00:00): compara só data (mesmo dia conta)
+        // ── Pedido cancelado nao e faturamento ──────────────────────────────
+        // `payment_status = paid` sozinho nao basta: a loja pode estornar/cancelar
+        // depois, e o pedido continua marcado como pago. O painel da Nuvemshop nao
+        // conta esses; o nosso contava (Cacife: R$ 19,7k a mais em julho/2026).
+        // Nem toda tabela de pedidos tem a coluna `status` — as de import manual
+        // (Tray/planilha) nao tem. Detecta uma vez por tabela e so filtra quem tem.
+        const CANCELADOS = ['cancelled', 'canceled', 'cancelado'];
+        let _temStatusCache = {};
+        async function tabelaTemStatus(tabela) {
+            if (!tabela) return false;
+            if (_temStatusCache[tabela] !== undefined) return _temStatusCache[tabela];
+            try {
+                const { error } = await supabaseClient.from(tabela).select('status').limit(1);
+                _temStatusCache[tabela] = !error;
+            } catch (e) { _temStatusCache[tabela] = false; }
+            return _temStatusCache[tabela];
+        }
+        // Sem a coluna no resultado, `o.status` e undefined e o pedido passa — de proposito.
+        function pedidoValido(o) {
+            return CANCELADOS.indexOf(String((o && o.status) || '').toLowerCase()) === -1;
+        }
+        // Acrescenta `status` ao select so quando a tabela tem a coluna.
+        function comStatus(campos, tem) {
+            return tem && (',' + campos + ',').indexOf(',status,') === -1 ? campos + ',status' : campos;
+        }
+
         function isOrderAfterProva(orderTs, phone) {
             const provaDate = provaMinDateMap[phone];
             if (!provaDate) return false;
@@ -13488,12 +13521,13 @@
                 // (allOrdersCache, mesmo filtro de status). Reaproveita e busca SÓ a fatia
                 // pré-instalação que falta — evita re-baixar a tabela inteira de novo.
                 // Só vale quando valores_status_pago está configurado (garante filtro idêntico).
+                const _temStatusPedidos = await tabelaTemStatus(activeUser.tabela_pedidos);
                 if (installDate && activeUser.valores_status_pago && Array.isArray(allOrdersCache) && allOrdersCache.length) {
                     const preCutoff = installDate.slice(0,10) + 'T00:00:00-03:00';
                     const preSlice = await fetchPagesParallel(() => {
                         let q = supabaseClient
                             .from(activeUser.tabela_pedidos)
-                            .select(`${fTotal},${fDataPedido},${fPhone}`)
+                            .select(comStatus(`${fTotal},${fDataPedido},${fPhone}`, _temStatusPedidos))
                             .in(fStatus, fStatusVals)
                             .gte(fDataPedido, since)
                             .lt(fDataPedido, preCutoff)
@@ -13501,18 +13535,19 @@
                         if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
                         return q;
                     });
-                    allOrders = preSlice.concat(allOrdersCache);
+                    allOrders = preSlice.concat(allOrdersCache).filter(pedidoValido);
                 } else {
                     allOrders = await fetchPagesParallel(() => {
                         let q = supabaseClient
                             .from(activeUser.tabela_pedidos)
-                            .select(`${fTotal},${fDataPedido},${fPhone}`)
+                            .select(comStatus(`${fTotal},${fDataPedido},${fPhone}`, _temStatusPedidos))
                             .in(fStatus, fStatusVals)
                             .gte(fDataPedido, since)
                             .order(fDataPedido, { ascending: true });
                         if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
                         return q;
                     });
+                    allOrders = allOrders.filter(pedidoValido);
                 }
                 _fatChartOrdersCache = allOrders;
             }
@@ -14563,13 +14598,14 @@
             const provaStartMs = earliestProvaDate ? new Date(earliestProvaDate + 'T00:00:00-03:00').getTime() : 0;
 
             const loadBaseline = async () => {
+                const _temStatusPedidos = await tabelaTemStatus(activeUser.tabela_pedidos);
                 if (!earliestProvaDate) return;
                 const baselineSinceMs = provaStartMs - 90 * 24 * 60 * 60 * 1000;
                 const baselineSinceIso = new Date(baselineSinceMs).toISOString();
                 const preRows = await paginateAll(() => {
                     let q = supabaseClient
                         .from(activeUser.tabela_pedidos)
-                        .select(`${fDataPedido || 'created_at'}, ${fTotal}, ${fPhone}, ${orderPk}`)
+                        .select(comStatus(`${fDataPedido || 'created_at'}, ${fTotal}, ${fPhone}, ${orderPk}`, _temStatusPedidos))
                         .in(fStatus, fStatusValues)
                         .gte(fDataPedido || 'created_at', baselineSinceIso)
                         .lt(fDataPedido || 'created_at', earliestProvaDate + 'T00:00:00-03:00')
@@ -14578,7 +14614,8 @@
                     if (activeUser.canal_provador) q = q.eq('channel', activeUser.canal_provador);
                     return q;
                 });
-                if (preRows.length > 0) {
+                const preRowsValidos = preRows.filter(pedidoValido);
+                if (preRowsValidos.length > 0) {
                     let totalFat = 0, totalPedidos = 0;
                     const phones = new Set();
                     let minDate = null;
@@ -14626,7 +14663,7 @@
                 const yoyRows = await paginateAll(() => {
                     let q = supabaseClient
                         .from(activeUser.tabela_pedidos)
-                        .select(`${fDataPedido || 'created_at'}, ${fTotal}, ${fPhone}, ${orderPk}`)
+                        .select(comStatus(`${fDataPedido || 'created_at'}, ${fTotal}, ${fPhone}, ${orderPk}`, _temStatusPedidos))
                         .in(fStatus, fStatusValues)
                         .gte(fDataPedido || 'created_at', yoyStartIso)
                         .lt(fDataPedido || 'created_at', yoyEndIso)
@@ -16163,7 +16200,8 @@
             let earliestDate = '9999';
             Object.keys(phoneMap).forEach(ph => { if (phoneMap[ph].firstDate < earliestDate) earliestDate = phoneMap[ph].firstDate; });
 
-            const selectFields = [fPhone, fTotal, fStatus, fDataPedido, fNome].filter((v, i, a) => a.indexOf(v) === i).join(',');
+            const _temStatusPedidos = await tabelaTemStatus(user.tabela_pedidos);
+            const selectFields = comStatus([fPhone, fTotal, fStatus, fDataPedido, fNome].filter((v, i, a) => a.indexOf(v) === i).join(','), _temStatusPedidos);
             const allOrders = [];
             {
                 const pageSize = 1000;
@@ -16178,7 +16216,7 @@
                     if (user.canal_provador) ordQuery = ordQuery.eq('channel', user.canal_provador);
                     const { data: batch } = await ordQuery;
                     if (!batch || batch.length === 0) break;
-                    allOrders.push(...batch);
+                    allOrders.push(...batch.filter(pedidoValido));
                     if (batch.length < pageSize) break;
                     pFrom += pageSize;
                 }
@@ -17436,7 +17474,7 @@
                         if (user.canal_provador) q = q.eq('channel', user.canal_provador);
                         const { data: batch } = await q;
                         if (!batch || batch.length === 0) break;
-                        allOrders.push(...batch);
+                        allOrders.push(...batch.filter(pedidoValido));
                         if (batch.length < pageSize) break;
                         pFrom += pageSize;
                     }
