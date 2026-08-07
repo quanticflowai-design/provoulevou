@@ -430,6 +430,10 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 
 /* Enquanto não há lojista logado, nada da área dele ocupa espaço na tela. */
 #btn-admin[hidden], #btn-new-product[hidden] { display: none !important; }
+/* No fundo preto a engrenagem quase encostava no invisivel (card #0e0d11 sobre
+   #000, borda #232228). Levanta o contraste pra ela existir de fato. */
+.tema-escuro #btn-admin { background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.28); color: #fff; }
+.tema-escuro #btn-admin:hover { background: rgba(255,255,255,.18); border-color: #fff; }
 
 /* Nome da loja em texto — usado quando não há logo cadastrado, no lugar de
    exibir a marca de outra loja como placeholder. */

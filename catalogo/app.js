@@ -593,13 +593,19 @@
     return !!dono && !!logado && dono === logado;
   }
 
-  // Sem sessão válida a área do lojista nem aparece — não adianta esconder só o
-  // botão se o elemento continua clicável por quem inspeciona a página.
+  function temSessao() { return !!(sessao && sessao.email); }
+
+  // Sem sessão a área do lojista nem aparece — não adianta esconder só o botão
+  // se o elemento continua clicável por quem inspeciona a página.
+  // Com sessão a engrenagem aparece MESMO na loja errada: quem abre o catálogo
+  // sem o ?loja= cai na loja default, deixa de ser dono e ficava sem nenhuma
+  // porta pro painel — "a engrenagem sumiu". Nesse caso ela leva pro painel,
+  // que resolve a loja certa pelo e-mail. Editar continua exigindo ser dono.
   function aplicaPermissoes() {
     const podeEditar = ehDono();
     const bAdmin = $('#btn-admin');
     const bNovo = $('#btn-new-product');
-    if (bAdmin) bAdmin.hidden = !podeEditar;
+    if (bAdmin) bAdmin.hidden = !(podeEditar || temSessao());
     if (bNovo) bNovo.hidden = !podeEditar;
     document.documentElement.classList.toggle('is-lojista', podeEditar);
   }
