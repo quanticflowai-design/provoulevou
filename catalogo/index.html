@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20">
+  <link rel="stylesheet" href="styles.css?v=21">
 </head>
 <body>
   <div id="app">
@@ -96,29 +96,9 @@
       </div>
     </section>
 
-    <!-- ══════════ TELA: LOGIN DO LOJISTA ══════════
-         Só quem entra aqui vê o painel. Antes o botão de gerenciar aparecia
-         para qualquer visitante do catálogo. -->
-    <section class="screen" id="screen-login" data-screen="login">
-      <button class="back" data-back="catalog">‹ Voltar</button>
-      <div class="login-box">
-        <img class="login-logo" id="login-logo" src="logo.png" alt="">
-        <h2>Painel do lojista</h2>
-        <!-- O nome da loja fica visivel ANTES de digitar: sem ele o lojista digita
-             a senha certa na loja errada (o ?loja= faltando cai na Loja Teste) e
-             so descobre pelo erro depois de submeter. -->
-        <p class="muted">Entrando em <b id="login-store">—</b></p>
-        <form id="login-form" autocomplete="on">
-          <label for="login-email">E-mail</label>
-          <input type="email" id="login-email" autocomplete="username" placeholder="voce@sualoja.com.br" required>
-          <label for="login-pass">Senha</label>
-          <input type="password" id="login-pass" autocomplete="current-password" placeholder="••••••••" required>
-          <p class="field-error" id="login-error" hidden></p>
-          <button class="btn-primary big" id="btn-login" type="submit">Entrar</button>
-        </form>
-        <p class="mini-note">Esqueceu a senha? Chame a Provou Levou no WhatsApp.</p>
-      </div>
-    </section>
+    <!-- A tela de login saiu daqui: agora o lojista entra por /catalogo/painel/,
+         uma porta unica pra toda a frota (a loja vem do owner_email da conta,
+         nao do ?loja= da URL). O catalogo publico so mostra catalogo. -->
 
     <!-- ══════════ TELA: GERANDO ══════════ -->
     <section class="screen" id="screen-loading" data-screen="loading">
@@ -313,6 +293,6 @@
   <!-- Toast -->
   <div id="toast"></div>
 
-  <script src="app.js?v=20"></script>
+  <script src="app.js?v=21"></script>
 </body>
 </html>

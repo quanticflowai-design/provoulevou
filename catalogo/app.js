@@ -84,10 +84,6 @@
         }
       }
       if (nomeTxt) nomeTxt.textContent = STORE.name;
-      const lgNome = $('#login-store');
-      if (lgNome) lgNome.textContent = STORE.name;
-      // O logo do login NAO vira o da loja: essa tela e da Provou. Trocar aqui
-      // punha o logo branco da Saint Pierre no fundo branco do painel.
     }
     return storeRow;
   }
@@ -608,59 +604,8 @@
     document.documentElement.classList.toggle('is-lojista', podeEditar);
   }
 
-  async function entrar(email, senha) {
-    const r = await fetch(SB_URL + '/auth/v1/token?grant_type=password', {
-      method: 'POST',
-      headers: { apikey: SB_ANON, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, password: senha })
-    });
-    const j = await r.json().catch(() => null);
-    if (!r.ok || !j || !j.access_token) {
-      const e = new Error((j && (j.error_description || j.msg)) || 'E-mail ou senha inválidos.');
-      e.credenciais = true;
-      throw e;
-    }
-    return { email: (j.user && j.user.email) || email, token: j.access_token, em: Date.now() };
-  }
-
-  const formLogin = $('#login-form');
-  if (formLogin) {
-    formLogin.addEventListener('submit', async ev => {
-      ev.preventDefault();
-      const err = $('#login-error');
-      const btn = $('#btn-login');
-      const set = m => { if (err) { err.textContent = m; err.hidden = !m; } };
-      set('');
-      btn.disabled = true; btn.textContent = 'Entrando…';
-      try {
-        const s = await entrar($('#login-email').value.trim(), $('#login-pass').value);
-        // Autenticar não basta: tem que ser o dono DESTA loja. Sem isso, o dono de
-        // uma loja entraria no painel de outra só trocando o ?loja= da URL.
-        // Corrida real: quem abre direto no #login e digita rapido submete ANTES
-        // de a loja chegar do Supabase. Sem esperar, storeRow vinha null e o erro
-        // saia como "esta conta nao gerencia esta loja" — parecia senha errada.
-        if (!storeRow && cargaInicial) { try { await cargaInicial; } catch (e) {} }
-        if (!storeRow) { set('Não consegui carregar os dados da loja. Recarregue a página.'); return; }
-        const dono = String(storeRow.owner_email || '').trim().toLowerCase();
-        if (!dono || s.email.toLowerCase() !== dono) {
-          // Diz QUAL loja: o erro generico fazia parecer senha errada quando o
-          // problema era so o ?loja= da URL apontando pra outra loja.
-          set('Esta conta não gerencia a ' + (storeRow.display_name || 'loja') + '.');
-          return;
-        }
-        sessao = s;
-        try { localStorage.setItem(SESSAO, JSON.stringify(s)); } catch (e) {}
-        aplicaPermissoes();
-        $('#login-pass').value = '';
-        renderAdmin(); show('admin');
-        toast('Bem-vindo de volta!');
-      } catch (e) {
-        set(e && e.credenciais ? e.message : 'Não consegui entrar agora. Tente de novo.');
-      } finally {
-        btn.disabled = false; btn.textContent = 'Entrar';
-      }
-    });
-  }
+  // O submit do login mora em painel/painel.js — o catalogo publico nao
+  // autentica ninguem, so le a sessao que o painel deixou no localStorage.
 
   function sair() {
     sessao = null;
@@ -673,7 +618,7 @@
   if (btnSair) btnSair.addEventListener('click', sair);
 
   $('#btn-admin').addEventListener('click', () => {
-    if (!ehDono()) { show('login'); return; }
+    if (!ehDono()) { location.href = 'painel/'; return; }
     renderAdmin(); show('admin');
   });
   // guard: se o HTML em cache for antigo, não derruba o resto do app
@@ -741,8 +686,16 @@
   renderCatalog();          // pinta na hora com o cache
   cargaInicial = refreshFromServer();   // e busca o catálogo real do Supabase
   if (location.hash === '#gen') demoLoadingLoop();
-  // Porta de entrada do lojista: sem sessao a engrenagem fica escondida, entao
-  // #login e o unico jeito de ele chegar na tela de entrar pela primeira vez.
-  else if (location.hash === '#login') { if (ehDono()) { renderAdmin(); show('admin'); } else show('login'); }
+  // Volta do painel unico: /catalogo/painel/ manda pra ca com #admin depois de
+  // autenticar. Se a sessao nao servir pra esta loja, devolve pro painel em vez
+  // de mostrar um catalogo publico sem explicacao.
+  else if (location.hash === '#admin' || location.hash === '#login') {
+    if (ehDono()) { renderAdmin(); show('admin'); }
+    else if (cargaInicial) cargaInicial.then(() => {
+      if (ehDono()) { renderAdmin(); show('admin'); }
+      else location.href = 'painel/';
+    });
+    else location.href = 'painel/';
+  }
   else show('catalog');
 })();

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Lojista · Provou Catálogo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css?v=21">
+</head>
+<body>
+  <!-- Login único de todos os lojistas de catálogo, igual ao dashboard das lojas:
+       uma porta só. A loja NÃO vem da URL — vem do owner_email da conta, então
+       ninguém entra no painel de outro trocando um parâmetro. Depois de entrar,
+       manda pro catálogo da própria loja já no modo painel. -->
+  <div id="app">
+    <section class="screen active" id="screen-login" data-screen="login">
+      <div class="login-box">
+        <img class="login-logo" src="../logo.png" alt="Provou Catálogo">
+        <h2>Painel do lojista</h2>
+        <p class="muted">Entre para gerenciar os produtos do seu catálogo.</p>
+        <form id="login-form" autocomplete="on">
+          <label for="login-email">E-mail</label>
+          <input type="email" id="login-email" autocomplete="username" placeholder="voce@sualoja.com.br" required>
+          <label for="login-pass">Senha</label>
+          <input type="password" id="login-pass" autocomplete="current-password" placeholder="••••••••" required>
+          <p class="field-error" id="login-error" hidden></p>
+          <button class="btn-primary big" id="btn-login" type="submit">Entrar</button>
+        </form>
+
+        <!-- Só aparece quando a conta é dona de mais de um catálogo. -->
+        <div id="escolha-loja" hidden>
+          <p class="muted escolha-titulo">Qual catálogo você quer gerenciar?</p>
+          <div id="lista-lojas"></div>
+        </div>
+
+        <p class="mini-note">Esqueceu a senha? Chame a Provou Levou no WhatsApp.</p>
+      </div>
+    </section>
+  </div>
+  <div id="toast"></div>
+  <script src="painel.js?v=21"></script>
+</body>
+</html>
