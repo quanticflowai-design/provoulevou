@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=10">
+  <link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body>
   <div id="app">
@@ -52,10 +52,13 @@
             <span class="p-install" id="p-install"></span>
           </div>
           <p class="p-desc" id="p-desc">Experimente esse modelo em você antes de comprar. É só enviar uma foto sua.</p>
-          <button class="btn-primary big" id="btn-buy-direct">Comprar</button>
-          <button class="btn-outline big" id="btn-try">
+          <!-- Sem "Comprar" aqui: a página do produto existe pra levar o cliente
+               à prova. Quem compra sem provar não vira lead e não usa o produto
+               que o lojista está pagando. A compra aparece DEPOIS, na tela do
+               resultado ("Gostei! Comprar"), que é quando a decisão amadureceu. -->
+          <button class="btn-primary big" id="btn-try">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            Provador Virtual
+            Provar virtualmente
           </button>
         </div>
       </div>
@@ -65,8 +68,20 @@
     <section class="screen" id="screen-tryon" data-screen="tryon">
       <button class="back" data-back="product">‹ Voltar</button>
       <div class="tryon-box">
-        <h2>Envie sua foto</h2>
-        <p class="muted">Tire ou escolha uma foto de rosto, com boa luz e olhando pra frente.</p>
+        <h2>Provador virtual</h2>
+        <p class="muted">Informe seu WhatsApp e envie uma foto de rosto, com boa luz e olhando pra frente.</p>
+
+        <!-- WhatsApp ANTES da foto, igual ao provador das lojas: o cliente entrega
+             o contato quando ainda está só curioso. Pedindo depois da foto, quem
+             desiste no número leva embora a foto E o lead. -->
+        <div class="tryon-phone">
+          <label for="phone-input"><span class="passo">1</span> Seu WhatsApp</label>
+          <input type="tel" id="phone-input" inputmode="numeric" autocomplete="tel"
+                 placeholder="(11) 90000-0000" maxlength="16">
+          <p class="field-error" id="phone-error" hidden></p>
+        </div>
+
+        <p class="tryon-passo"><span class="passo">2</span> Sua foto</p>
         <label class="uploader" id="uploader">
           <input type="file" id="photo-input" accept="image/*" capture="user" hidden>
           <div class="uploader-empty" id="uploader-empty">
@@ -75,16 +90,6 @@
           </div>
           <img id="uploader-preview" alt="" hidden>
         </label>
-
-        <!-- O WhatsApp e o que transforma a prova em lead: sem ele o lojista fica com
-             uma imagem bonita e nenhum contato pra chamar depois. O gerador tambem
-             exige o numero (e a chave do limite diario por telefone). -->
-        <div class="tryon-phone">
-          <label for="phone-input">Seu WhatsApp</label>
-          <input type="tel" id="phone-input" inputmode="numeric" autocomplete="tel"
-                 placeholder="(11) 90000-0000" maxlength="16">
-          <p class="field-error" id="phone-error" hidden></p>
-        </div>
 
         <button class="btn-primary big" id="btn-generate" disabled>Provar agora</button>
         <p class="mini-note">🔒 Sua foto é usada só para gerar a prova.</p>
@@ -294,6 +299,6 @@
   <!-- Toast -->
   <div id="toast"></div>
 
-  <script src="app.js?v=10"></script>
+  <script src="app.js?v=12"></script>
 </body>
 </html>
