@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=14">
+  <link rel="stylesheet" href="styles.css?v=15">
 </head>
 <body>
   <div id="app">
@@ -119,18 +119,17 @@
 
     <!-- ══════════ TELA: GERANDO ══════════ -->
     <section class="screen" id="screen-loading" data-screen="loading">
+      <!-- Três elementos e mais nada: título, assinatura da Provou Levou no meio
+           e a barra embaixo. Spinner e texto de etapa saíram — a barra já dá o
+           sinal de progresso, e quem assina a geração é a Provou, não o catálogo. -->
       <div class="loading-box">
-        <div class="spinner-ai"></div>
-        <h2>Gerando sua prova com IA…</h2>
-        <p class="muted" id="loading-step">Analisando sua foto</p>
-        <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
-        <!-- Mesma assinatura do provador das lojas: "powered by" discreto no pé,
-             no lugar do logo grande no topo. -->
-        <footer class="powered-by">
+        <h2>Gerando Prova Virtual</h2>
+        <div class="loading-selo">
           <span>POWERED BY</span>
-          <img class="logo-tema-claro" src="logo.png" alt="Provou Levou">
-          <img class="logo-tema-escuro" src="logo-claro.png" alt="Provou Levou">
-        </footer>
+          <img class="logo-tema-claro" src="logo-pl.png" alt="Provou Levou">
+          <img class="logo-tema-escuro" src="logo-pl-claro.png" alt="Provou Levou">
+        </div>
+        <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
       </div>
     </section>
 
@@ -309,6 +308,6 @@
   <!-- Toast -->
   <div id="toast"></div>
 
-  <script src="app.js?v=14"></script>
+  <script src="app.js?v=15"></script>
 </body>
 </html>

@@ -302,7 +302,6 @@
     return new Blob([arr], { type: mime });
   }
 
-  const LOAD_STEPS = ['Enviando sua foto', 'Analisando o rosto', 'Aplicando o produto', 'Finalizando sua prova'];
   let _gerando = false;
 
   async function runGeneration() {
@@ -323,12 +322,11 @@
 
     _gerando = true;
     show('loading');
-    const bar = $('#progress-bar'), step = $('#loading-step');
-    let i = 0; bar.style.width = '8%'; step.textContent = LOAD_STEPS[0];
+    const bar = $('#progress-bar');
+    let i = 0; bar.style.width = '8%';
     const iv = setInterval(() => {
       i++;
       bar.style.width = Math.min(92, 8 + i * 7) + '%';
-      if (LOAD_STEPS[i]) step.textContent = LOAD_STEPS[i];
     }, 1800);
 
     try {
@@ -712,12 +710,11 @@
   // ─────────── Modo demo: loop da animação de geração (?#gen) ───────────
   function demoLoadingLoop() {
     show('loading');
-    const bar = $('#progress-bar'); const step = $('#loading-step');
+    const bar = $('#progress-bar');
     let i = 0;
     if (window.__genDemo) clearInterval(window.__genDemo);
     window.__genDemo = setInterval(() => {
       bar.style.width = Math.min(100, (i % 5) * 26) + '%';
-      step.textContent = LOAD_STEPS[i % LOAD_STEPS.length];
       i++;
     }, 650);
   }
