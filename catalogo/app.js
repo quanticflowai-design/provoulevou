@@ -694,7 +694,17 @@
     const b = $('#btn-generate');
     if (b) b.disabled = !(temFoto && temTel);
   }
-  $('#btn-buy').addEventListener('click', openCheckout);
+  // Loja de catalogo nao tem carrinho: quem quer comprar fala com o lojista, ja
+  // com o modelo provado no texto. So cai no checkout se a loja nao tiver WhatsApp.
+  function comprarNoWhatsapp() {
+    const tel = String((storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
+    if (!tel) { openCheckout(); return; }
+    const num = tel.length <= 11 ? '55' + tel : tel;
+    const txt = 'Oi! Provei o ' + (current && current.name || 'produto') +
+      ' no provador virtual da ' + STORE.name + ' e quero comprar.';
+    window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
+  }
+  $('#btn-buy').addEventListener('click', comprarNoWhatsapp);
   $('#btn-tryother').addEventListener('click', () => show('catalog'));
   $('#btn-back-catalog').addEventListener('click', () => { clearTimeout(pixTimer); show('catalog'); });
   $$('[data-back]').forEach(b => b.addEventListener('click', () => { clearTimeout(pixTimer); show(b.dataset.back); }));
