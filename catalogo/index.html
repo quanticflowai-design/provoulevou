@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=15">
+  <link rel="stylesheet" href="styles.css?v=16">
 </head>
 <body>
   <div id="app">
@@ -119,15 +119,17 @@
 
     <!-- ══════════ TELA: GERANDO ══════════ -->
     <section class="screen" id="screen-loading" data-screen="loading">
-      <!-- Três elementos e mais nada: título, assinatura da Provou Levou no meio
-           e a barra embaixo. Spinner e texto de etapa saíram — a barra já dá o
-           sinal de progresso, e quem assina a geração é a Provou, não o catálogo. -->
+      <!-- Mesma tela dos provadores das lojas: os dois textos ocupam o MESMO
+           espaço e se revezam por animação de CSS (q-alt-show/hide no widget),
+           com a barra embaixo. Nada de spinner nem texto de etapa. -->
       <div class="loading-box">
-        <h2>Gerando Prova Virtual</h2>
-        <div class="loading-selo">
-          <span>POWERED BY</span>
-          <img class="logo-tema-claro" src="logo-pl.png" alt="Provou Levou">
-          <img class="logo-tema-escuro" src="logo-pl-claro.png" alt="Provou Levou">
+        <div class="loading-alt">
+          <div class="alt-t1">Gerando Prova Virtual</div>
+          <a class="alt-t2" href="https://provoulevou.com.br" target="_blank" rel="noopener">
+            <span>Powered by</span>
+            <img class="logo-tema-claro" src="logo-pl.png" alt="Provou Levou">
+            <img class="logo-tema-escuro" src="logo-pl-claro.png" alt="Provou Levou">
+          </a>
         </div>
         <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
       </div>
@@ -136,7 +138,6 @@
     <!-- ══════════ TELA: RESULTADO ══════════ -->
     <section class="screen" id="screen-result" data-screen="result">
       <div class="result-box">
-        <div class="result-badge">Prova gerada com IA</div>
         <div class="result-photo"><img id="result-img" alt="Sua prova"></div>
         <div class="result-prod">
           <img id="result-thumb" alt="">
@@ -308,6 +309,6 @@
   <!-- Toast -->
   <div id="toast"></div>
 
-  <script src="app.js?v=15"></script>
+  <script src="app.js?v=16"></script>
 </body>
 </html>

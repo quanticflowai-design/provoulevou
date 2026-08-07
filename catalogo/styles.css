@@ -180,20 +180,28 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 
 /* ─── Loading / spinner ─── */
 .loading-box, .success-box { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 78dvh; gap: 8px; }
-.loading-box h2 { font-size: 20px; margin-top: 8px; }
 /* ── Tela de geração: quem assina é a Provou ──────────────────────────────
    Cores fixas (--pl-*), não a do lojista: é o único momento em que a marca
    que está trabalhando aparece pro cliente final. */
-.loading-box h2 { color: var(--pl-brand-dark); }
 .loading-box .muted { color: var(--ink-2); }
 .loading-box .progress { background: var(--pl-brand-soft); }
 .loading-box .progress-bar { background: var(--pl-brand); }
-/* Assinatura da Provou no meio da tela, entre o titulo e a barra. */
+/* Revezamento titulo <-> assinatura, copiado do provador das lojas
+   (q-alt-show / q-alt-hide): os dois ficam sobrepostos no mesmo slot e a
+   animacao alterna quem esta visivel a cada ciclo de 3,6s. */
+@keyframes alt-show { 0%,5%{opacity:0;transform:translateY(6px)} 15%,45%{opacity:1;transform:translateY(0)} 55%,100%{opacity:0;transform:translateY(-6px)} }
+@keyframes alt-hide { 0%,55%{opacity:0;transform:translateY(6px)} 65%,95%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-6px)} }
 .loading-box { gap: 0; }
-.loading-box h2 { margin-bottom: 30px; }
-.loading-selo { display: flex; flex-direction: column; align-items: center; gap: 9px; margin-bottom: 34px; }
-.loading-selo span { font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
-.loading-selo img { height: 30px; width: auto; }
+.loading-alt { position: relative; height: 36px; width: 100%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+.alt-t1, .alt-t2 { position: absolute; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.alt-t1 {
+  font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 700;
+  letter-spacing: .26em; text-transform: uppercase; color: var(--pl-brand-dark);
+  animation: alt-show 3.6s ease-in-out infinite;
+}
+.alt-t2 { animation: alt-hide 3.6s ease-in-out infinite; text-decoration: none; opacity: 0; }
+.alt-t2 span { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.alt-t2 img { height: 24px; width: auto; opacity: .75; object-fit: contain; }
 .loading-box .progress { width: 100%; max-width: 300px; }
 
 .spinner-ai {
@@ -368,7 +376,7 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 .tema-escuro .result-badge { background: rgba(255,255,255,.10); color: var(--ink); }
 /* A tela de geração tem fundo próprio: é a Provou que assina, não a loja. */
 .tema-escuro #screen-loading { background: var(--bg); }
-.tema-escuro .loading-box h2 { color: #b9a5ff; }
+.tema-escuro .alt-t1 { color: #b9a5ff; }
 
 /* ── Login do lojista ────────────────────────────────────────────────────── */
 .login-box { max-width: 100%; padding-top: 10px; text-align: center; }
