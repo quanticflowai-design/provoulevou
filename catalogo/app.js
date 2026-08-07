@@ -728,5 +728,8 @@
   renderCatalog();          // pinta na hora com o cache
   refreshFromServer();      // e busca o catálogo real do Supabase
   if (location.hash === '#gen') demoLoadingLoop();
+  // Porta de entrada do lojista: sem sessao a engrenagem fica escondida, entao
+  // #login e o unico jeito de ele chegar na tela de entrar pela primeira vez.
+  else if (location.hash === '#login') { if (ehDono()) { renderAdmin(); show('admin'); } else show('login'); }
   else show('catalog');
 })();
