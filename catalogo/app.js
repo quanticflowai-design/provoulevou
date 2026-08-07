@@ -84,6 +84,10 @@
         }
       }
       if (nomeTxt) nomeTxt.textContent = STORE.name;
+      const lgNome = $('#login-store');
+      if (lgNome) lgNome.textContent = STORE.name;
+      // O logo do login NAO vira o da loja: essa tela e da Provou. Trocar aqui
+      // punha o logo branco da Saint Pierre no fundo branco do painel.
     }
     return storeRow;
   }
@@ -129,6 +133,8 @@
     save();
     return catalog;
   }
+
+  let cargaInicial = null;   // promessa da 1a carga: o login espera por ela
 
   async function refreshFromServer() {
     try {
@@ -630,9 +636,16 @@
         const s = await entrar($('#login-email').value.trim(), $('#login-pass').value);
         // Autenticar não basta: tem que ser o dono DESTA loja. Sem isso, o dono de
         // uma loja entraria no painel de outra só trocando o ?loja= da URL.
-        const dono = String((storeRow && storeRow.owner_email) || '').trim().toLowerCase();
+        // Corrida real: quem abre direto no #login e digita rapido submete ANTES
+        // de a loja chegar do Supabase. Sem esperar, storeRow vinha null e o erro
+        // saia como "esta conta nao gerencia esta loja" — parecia senha errada.
+        if (!storeRow && cargaInicial) { try { await cargaInicial; } catch (e) {} }
+        if (!storeRow) { set('Não consegui carregar os dados da loja. Recarregue a página.'); return; }
+        const dono = String(storeRow.owner_email || '').trim().toLowerCase();
         if (!dono || s.email.toLowerCase() !== dono) {
-          set('Esta conta não gerencia esta loja.');
+          // Diz QUAL loja: o erro generico fazia parecer senha errada quando o
+          // problema era so o ?loja= da URL apontando pra outra loja.
+          set('Esta conta não gerencia a ' + (storeRow.display_name || 'loja') + '.');
           return;
         }
         sessao = s;
@@ -726,7 +739,7 @@
   aplicaPermissoes();   // esconde a area do lojista antes de pintar a tela
   renderStore();
   renderCatalog();          // pinta na hora com o cache
-  refreshFromServer();      // e busca o catálogo real do Supabase
+  cargaInicial = refreshFromServer();   // e busca o catálogo real do Supabase
   if (location.hash === '#gen') demoLoadingLoop();
   // Porta de entrada do lojista: sem sessao a engrenagem fica escondida, entao
   // #login e o unico jeito de ele chegar na tela de entrar pela primeira vez.

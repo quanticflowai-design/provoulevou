@@ -382,6 +382,19 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 .tema-escuro .alt-t1 { color: #b9a5ff; }
 
 /* ── Login do lojista ────────────────────────────────────────────────────── */
+/* ── O login e da Provou, nao da loja ─────────────────────────────────────
+   A cor do lojista so assume DENTRO do catalogo. Aqui a paleta violeta e o
+   fundo claro sao redeclarados no escopo da tela, entao o tema escuro da loja
+   (que troca as variaveis no :root) nao atravessa. */
+#screen-login {
+  --brand: #6d3bef; --brand-dark: #4d24bd; --brand-soft: #f1ecfe;
+  --on-brand: #ffffff;
+  --ink: #14121a; --ink-2: #5b5566; --muted: #8d8798;
+  --line: #ece9f1; --bg: #f6f4fb; --card: #ffffff;
+  background: #ffffff; color: var(--ink);
+}
+#screen-login .btn-primary:disabled { background: #cfc7e4; color: #fff; }
+#screen-login .back { color: var(--ink-2); }
 .login-box { max-width: 100%; padding-top: 10px; text-align: center; }
 .login-logo { height: 34px; width: auto; margin: 0 auto 18px; display: block; opacity: .95; }
 .login-box h2 { font-size: 22px; margin-bottom: 6px; }
