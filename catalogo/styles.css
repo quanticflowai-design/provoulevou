@@ -342,7 +342,20 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 .tema-escuro #card-form input,
 .tema-escuro #card-form select,
 .tema-escuro .pix-copy input { background: var(--card); border-color: var(--line); color: var(--ink); }
-.tema-escuro .uploader { border-color: var(--line); background: var(--card); }
+/* Provador no tema escuro: a moldura era var(--line) (#232228) e sumia no preto.
+   Branca e arredondada, ela delimita a area da prova — tanto na hora de enviar a
+   foto quanto no resultado, que sao o mesmo elemento em dois estados. */
+.tema-escuro .uploader {
+  border: 2px solid rgba(255, 255, 255, .92);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.tema-escuro .uploader:hover { border-color: #fff; }
+.tema-escuro .result-photo {
+  border: 2px solid rgba(255, 255, 255, .92);
+  border-radius: var(--radius);
+  background: var(--card);
+}
 .tema-escuro .admin-cta { background: var(--card); border-color: var(--line); color: var(--ink); }
 .tema-escuro .result-badge { background: rgba(255,255,255,.10); color: var(--ink); }
 /* A tela de geração tem fundo próprio: é a Provou que assina, não a loja. */
