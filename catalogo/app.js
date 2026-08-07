@@ -11,7 +11,9 @@
     { id: 'p5', name: 'Brinco Argola Gold', price: 59.90, img: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=500&q=80' },
     { id: 'p6', name: 'Relógio Slim Rosé', price: 259.90, img: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=500&q=80' }
   ];
-  const STORE = { name: 'Ótica Maxilook' };
+  // Nome neutro: o padrão nunca pode ser o de uma loja real, senão a marca dela
+  // aparece no catálogo das outras enquanto a loja certa não carrega.
+  const STORE = { name: 'Catálogo' };
   const KEY = 'pc_catalog_v1';
 
   // ─────────── Backend (Supabase + n8n) ───────────
@@ -60,17 +62,55 @@
     // Fica exposta no browser, igual a api_key dos widgets das outras lojas — o
     // gerador so aceita se o Origin bater com o domain registrado.
     const rows = await sbGet('pl_catalog_stores?slug=eq.' + encodeURIComponent(STORE_SLUG) +
-      '&select=id,slug,display_name,logo_url,whatsapp,bio,primary_color,is_active,store_api_key&limit=1');
+      '&select=id,slug,display_name,logo_url,whatsapp,bio,primary_color,is_active,store_api_key,owner_email&limit=1');
     storeRow = (rows && rows[0]) || null;
     if (storeRow) {
       STORE.name = storeRow.display_name || STORE.name;
-      if (storeRow.primary_color) {
-        document.documentElement.style.setProperty('--brand', storeRow.primary_color);
-      }
+      aplicaTema(storeRow.primary_color);
+      // O logo nasce escondido e sem src (ver index.html): só entra em cena o da
+      // loja de verdade. Sem logo cadastrado, mostra o nome em texto — melhor que
+      // um placeholder genérico ou a marca de outra loja.
       const lg = $('#brand-logo');
-      if (lg && storeRow.logo_url) bindImg(lg, storeRow.logo_url, STORE.name);
+      const nomeTxt = $('#brand-name');
+      if (lg) {
+        if (storeRow.logo_url) {
+          lg.alt = STORE.name;
+          lg.onerror = function () { lg.onerror = null; lg.hidden = true; if (nomeTxt) nomeTxt.hidden = false; };
+          lg.onload = function () { lg.hidden = false; if (nomeTxt) nomeTxt.hidden = true; };
+          lg.src = storeRow.logo_url;
+        } else {
+          lg.hidden = true;
+          if (nomeTxt) nomeTxt.hidden = false;
+        }
+      }
+      if (nomeTxt) nomeTxt.textContent = STORE.name;
     }
     return storeRow;
+  }
+
+  // Luminância percebida (0 = preto, 255 = branco).
+  function luminancia(hex) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '').trim());
+    if (!m) return null;
+    const n = parseInt(m[1], 16);
+    return 0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255);
+  }
+
+  // A cor da loja também escolhe o TEMA. Loja que define uma cor bem escura
+  // (Saint Pierre = #0B0B0B) quer identidade preta: fundo preto, texto branco e
+  // botões brancos — usar aquele preto como cor de botão deixaria tudo invisível.
+  function aplicaTema(cor) {
+    const el = document.documentElement;
+    const lum = luminancia(cor);
+    const escuro = lum !== null && lum < 60;
+    el.classList.toggle('tema-escuro', escuro);
+    if (escuro) {
+      el.style.setProperty('--brand', '#ffffff');
+      el.style.setProperty('--brand-dark', '#e6e6e6');
+      el.style.setProperty('--brand-soft', 'rgba(255,255,255,.10)');
+    } else if (cor) {
+      el.style.setProperty('--brand', cor);
+    }
   }
 
   async function loadCatalog() {
@@ -95,6 +135,7 @@
       await loadStore();
       await loadCatalog();
       renderStore(); renderCatalog();
+      aplicaPermissoes();   // owner_email so chega com a loja carregada
     } catch (e) {
       console.warn('[Provou Catálogo] falha ao carregar do servidor:', e);
       toast('Não consegui carregar o catálogo');
@@ -536,7 +577,93 @@
   });
 
   // ─────────── Navegação (botões fixos) ───────────
-  $('#btn-admin').addEventListener('click', () => { renderAdmin(); show('admin'); });
+  // ─────────── Login do lojista ───────────
+  // Antes, o botão de gerenciar e o "Cadastrar novo produto" apareciam para
+  // QUALQUER visitante do catálogo — ou seja, o cliente da loja podia editar o
+  // catálogo dela. Agora a área do lojista fica atrás do login, e só abre para
+  // quem entrar com o e-mail dono da loja (pl_catalog_stores.owner_email).
+  const SESSAO = 'pc_sess_v1';
+  let sessao = null;
+  try { sessao = JSON.parse(localStorage.getItem(SESSAO) || 'null'); } catch (e) { sessao = null; }
+
+  function ehDono() {
+    const dono = String((storeRow && storeRow.owner_email) || '').trim().toLowerCase();
+    const logado = String((sessao && sessao.email) || '').trim().toLowerCase();
+    return !!dono && !!logado && dono === logado;
+  }
+
+  // Sem sessão válida a área do lojista nem aparece — não adianta esconder só o
+  // botão se o elemento continua clicável por quem inspeciona a página.
+  function aplicaPermissoes() {
+    const podeEditar = ehDono();
+    const bAdmin = $('#btn-admin');
+    const bNovo = $('#btn-new-product');
+    if (bAdmin) bAdmin.hidden = !podeEditar;
+    if (bNovo) bNovo.hidden = !podeEditar;
+    document.documentElement.classList.toggle('is-lojista', podeEditar);
+  }
+
+  async function entrar(email, senha) {
+    const r = await fetch(SB_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: { apikey: SB_ANON, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: senha })
+    });
+    const j = await r.json().catch(() => null);
+    if (!r.ok || !j || !j.access_token) {
+      const e = new Error((j && (j.error_description || j.msg)) || 'E-mail ou senha inválidos.');
+      e.credenciais = true;
+      throw e;
+    }
+    return { email: (j.user && j.user.email) || email, token: j.access_token, em: Date.now() };
+  }
+
+  const formLogin = $('#login-form');
+  if (formLogin) {
+    formLogin.addEventListener('submit', async ev => {
+      ev.preventDefault();
+      const err = $('#login-error');
+      const btn = $('#btn-login');
+      const set = m => { if (err) { err.textContent = m; err.hidden = !m; } };
+      set('');
+      btn.disabled = true; btn.textContent = 'Entrando…';
+      try {
+        const s = await entrar($('#login-email').value.trim(), $('#login-pass').value);
+        // Autenticar não basta: tem que ser o dono DESTA loja. Sem isso, o dono de
+        // uma loja entraria no painel de outra só trocando o ?loja= da URL.
+        const dono = String((storeRow && storeRow.owner_email) || '').trim().toLowerCase();
+        if (!dono || s.email.toLowerCase() !== dono) {
+          set('Esta conta não gerencia esta loja.');
+          return;
+        }
+        sessao = s;
+        try { localStorage.setItem(SESSAO, JSON.stringify(s)); } catch (e) {}
+        aplicaPermissoes();
+        $('#login-pass').value = '';
+        renderAdmin(); show('admin');
+        toast('Bem-vindo de volta!');
+      } catch (e) {
+        set(e && e.credenciais ? e.message : 'Não consegui entrar agora. Tente de novo.');
+      } finally {
+        btn.disabled = false; btn.textContent = 'Entrar';
+      }
+    });
+  }
+
+  function sair() {
+    sessao = null;
+    try { localStorage.removeItem(SESSAO); } catch (e) {}
+    aplicaPermissoes();
+    show('catalog');
+    toast('Você saiu do painel.');
+  }
+  const btnSair = $('#btn-logout');
+  if (btnSair) btnSair.addEventListener('click', sair);
+
+  $('#btn-admin').addEventListener('click', () => {
+    if (!ehDono()) { show('login'); return; }
+    renderAdmin(); show('admin');
+  });
   // guard: se o HTML em cache for antigo, não derruba o resto do app
   const btnNovo = $('#btn-new-product');
   if (btnNovo) btnNovo.addEventListener('click', () => {
@@ -586,6 +713,7 @@
   }
 
   // ─────────── Init ───────────
+  aplicaPermissoes();   // esconde a area do lojista antes de pintar a tela
   renderStore();
   renderCatalog();          // pinta na hora com o cache
   refreshFromServer();      // e busca o catálogo real do Supabase

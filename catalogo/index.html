@@ -7,14 +7,18 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=4">
+  <link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
   <div id="app">
     <!-- ══════════ TELA: CATÁLOGO ══════════ -->
     <section class="screen active" id="screen-catalog" data-screen="catalog">
       <header class="store-head">
-        <img class="brand-logo" id="brand-logo" src="maxilook.png" alt="Ótica Maxilook">
+        <!-- Sem src fixo: qualquer logo chumbado aqui vira a marca de OUTRA loja
+             piscando no catálogo de todo mundo (era a Maxilook). Só aparece
+             depois que o logo da loja carrega. -->
+        <img class="brand-logo" id="brand-logo" alt="" hidden>
+        <span class="brand-name" id="brand-name" hidden></span>
         <button class="icon-btn" id="btn-admin" title="Gerenciar catálogo" aria-label="Gerenciar catálogo">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </button>
@@ -81,6 +85,27 @@
 
         <button class="btn-primary big" id="btn-generate" disabled>Provar agora</button>
         <p class="mini-note">🔒 Sua foto é usada só para gerar a prova.</p>
+      </div>
+    </section>
+
+    <!-- ══════════ TELA: LOGIN DO LOJISTA ══════════
+         Só quem entra aqui vê o painel. Antes o botão de gerenciar aparecia
+         para qualquer visitante do catálogo. -->
+    <section class="screen" id="screen-login" data-screen="login">
+      <button class="back" data-back="catalog">‹ Voltar</button>
+      <div class="login-box">
+        <img class="login-logo" id="login-logo" src="logo.png" alt="">
+        <h2>Painel do lojista</h2>
+        <p class="muted">Entre para gerenciar os produtos da sua loja.</p>
+        <form id="login-form" autocomplete="on">
+          <label for="login-email">E-mail</label>
+          <input type="email" id="login-email" autocomplete="username" placeholder="voce@sualoja.com.br" required>
+          <label for="login-pass">Senha</label>
+          <input type="password" id="login-pass" autocomplete="current-password" placeholder="••••••••" required>
+          <p class="field-error" id="login-error" hidden></p>
+          <button class="btn-primary big" id="btn-login" type="submit">Entrar</button>
+        </form>
+        <p class="mini-note">Esqueceu a senha? Chame a Provou Levou no WhatsApp.</p>
       </div>
     </section>
 
@@ -235,7 +260,10 @@
     <section class="screen" id="screen-admin" data-screen="admin">
       <button class="back" data-back="catalog">‹ Voltar ao catálogo</button>
       <div class="admin-box">
-        <h2>Meu catálogo</h2>
+        <div class="admin-top">
+          <h2>Meu catálogo</h2>
+          <button class="btn-sair" id="btn-logout" type="button">Sair</button>
+        </div>
         <p class="muted">Adicione as fotos dos seus produtos. Elas aparecem no seu link para os clientes provarem.</p>
 
         <div class="admin-add">
@@ -263,6 +291,6 @@
   <!-- Toast -->
   <div id="toast"></div>
 
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>

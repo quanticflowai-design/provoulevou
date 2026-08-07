@@ -314,3 +314,62 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 }
 .tryon-phone input:focus { outline: none; border-color: var(--brand); }
 .field-error { margin-top: 6px; font-size: 12.5px; color: #c02b3a; }
+
+/* ── Tema escuro (loja com cor principal muito escura, ex.: Saint Pierre) ──
+   O app inteiro herda destas variáveis, então trocar o :root já vira a página.
+   As --pl-* NÃO entram aqui: a tela de geração continua sendo da Provou. */
+:root.tema-escuro {
+  --ink: #f4f4f5;
+  --ink-2: #b9b7bf;
+  --muted: #8a8792;
+  --line: #232228;
+  --bg: #000000;
+  --card: #0e0d11;
+  --shadow: 0 10px 30px rgba(0, 0, 0, .55);
+  --shadow-sm: 0 3px 12px rgba(0, 0, 0, .45);
+}
+/* Botão primário fica branco com texto preto — contraste correto no fundo preto. */
+.tema-escuro .btn-primary { color: #0b0b0b; }
+.tema-escuro .btn-primary:disabled { background: #2a2930; color: #6c6a74; }
+.tema-escuro .btn-outline { border-color: var(--line); color: var(--ink); }
+.tema-escuro .tryon-phone input,
+.tema-escuro #card-form input,
+.tema-escuro #card-form select,
+.tema-escuro .pix-copy input { background: var(--card); border-color: var(--line); color: var(--ink); }
+.tema-escuro .uploader { border-color: var(--line); background: var(--card); }
+.tema-escuro .admin-cta { background: var(--card); border-color: var(--line); color: var(--ink); }
+.tema-escuro .result-badge { background: rgba(255,255,255,.10); color: var(--ink); }
+/* A tela de geração tem fundo próprio: é a Provou que assina, não a loja. */
+.tema-escuro #screen-loading { background: var(--bg); }
+.tema-escuro .loading-box h2 { color: #b9a5ff; }
+
+/* ── Login do lojista ────────────────────────────────────────────────────── */
+.login-box { max-width: 100%; padding-top: 10px; text-align: center; }
+.login-logo { height: 34px; width: auto; margin: 0 auto 18px; display: block; opacity: .95; }
+.login-box h2 { font-size: 22px; margin-bottom: 6px; }
+.login-box .muted { font-size: 14.5px; }
+#login-form { margin-top: 22px; text-align: left; display: flex; flex-direction: column; gap: 4px; }
+#login-form label { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-top: 10px; }
+#login-form input {
+  width: 100%; border: 1.5px solid var(--line); border-radius: 11px;
+  padding: 13px; font-size: 15px; font-family: 'Hanken Grotesk', sans-serif;
+  background: var(--card); color: var(--ink);
+}
+#login-form input:focus { outline: none; border-color: var(--brand); }
+#login-form .btn-primary { margin-top: 18px; }
+
+/* Cabeçalho do painel: título + sair, na mesma linha */
+.admin-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.btn-sair {
+  background: none; border: 1px solid var(--line); color: var(--ink-2);
+  border-radius: 10px; padding: 7px 13px; cursor: pointer;
+  font: 600 13px 'Hanken Grotesk', sans-serif;
+}
+.btn-sair:hover { color: var(--ink); border-color: var(--ink-2); }
+
+/* Enquanto não há lojista logado, nada da área dele ocupa espaço na tela. */
+#btn-admin[hidden], #btn-new-product[hidden] { display: none !important; }
+
+/* Nome da loja em texto — usado quando não há logo cadastrado, no lugar de
+   exibir a marca de outra loja como placeholder. */
+.brand-name { font: 700 19px 'Bricolage Grotesque', sans-serif; letter-spacing: -.02em; color: var(--ink); }
