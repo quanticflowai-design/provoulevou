@@ -90,11 +90,18 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
   background: var(--card); color: var(--ink-2); display: grid; place-items: center; cursor: pointer;
 }
 .icon-btn:hover { color: var(--brand); border-color: var(--brand); }
+/* Voltar com fundo sutil: sem ele o botao era so um texto cinza solto no topo
+   e passava despercebido, ainda mais no tema escuro. */
 .back {
-  background: none; border: 0; color: var(--ink-2); font: 600 15px 'Hanken Grotesk', sans-serif;
-  cursor: pointer; padding: 4px 0 14px; display: inline-flex; align-items: center; gap: 3px;
+  background: var(--brand-soft); border: 0; color: var(--ink-2);
+  font: 600 14.5px 'Hanken Grotesk', sans-serif; cursor: pointer;
+  padding: 8px 14px; margin-bottom: 14px; border-radius: 99px;
+  display: inline-flex; align-items: center; gap: 4px;
+  transition: background .2s, color .2s;
 }
-.back:hover { color: var(--brand); }
+.back:hover { color: var(--brand); background: var(--brand-soft); filter: brightness(.96); }
+.tema-escuro .back { background: rgba(255,255,255,.09); color: var(--ink); }
+.tema-escuro .back:hover { background: rgba(255,255,255,.16); filter: none; }
 
 /* ─── Catálogo ─── */
 .store-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
@@ -316,7 +323,7 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 .admin-item img { width: 48px; height: 48px; border-radius: 9px; object-fit: cover; background: var(--brand-soft); }
 .admin-item .ai-name { flex: 1; font-size: 14px; font-weight: 600; }
 .admin-item .ai-price { font-size: 13.5px; color: var(--brand); font-weight: 700; }
-.admin-item .ai-del { border: 0; background: #fbeaea; color: #d64545; width: 32px; height: 32px; border-radius: 9px; cursor: pointer; font-size: 16px; display: grid; place-items: center; }
+.admin-item .ai-del { border: 0; background: #fbeaea; color: #d64545; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: grid; place-items: center; flex: none; }
 .admin-item .ai-del:hover { background: #f6d4d4; }
 
 /* ─── Toast ─── */

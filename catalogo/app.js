@@ -231,7 +231,6 @@
     resetUploader();
     show('tryon');
   }
-  function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
   // ─────────── Produto ───────────
   function openProduct(p) {
@@ -509,9 +508,18 @@
     catalog.forEach(p => {
       const item = document.createElement('div');
       item.className = 'admin-item';
-      item.innerHTML = `<img alt=""><span class="ai-name">${escapeHtml(p.name)}</span><span class="ai-price">${brl(p.price)}</span><button class="ai-del" title="Remover">✕</button>`;
-      bindImg(item.querySelector('img'), p.img, p.name);
-      item.querySelector('.ai-del').addEventListener('click', () => { removeProduct(p.id); });
+      const foto = document.createElement('img'); foto.alt = '';
+      const nome = document.createElement('span'); nome.className = 'ai-name'; nome.textContent = p.name;
+      const preco = document.createElement('span'); preco.className = 'ai-price'; preco.textContent = brl(p.price);
+      const del = document.createElement('button');
+      del.type = 'button'; del.className = 'ai-del';
+      del.title = 'Excluir produto'; del.setAttribute('aria-label', 'Excluir ' + p.name);
+      const tpl = $('#tpl-lixeira');
+      if (tpl) del.appendChild(tpl.content.cloneNode(true));
+      else del.textContent = '✕';   // guard: HTML em cache sem o template
+      item.append(foto, nome, preco, del);
+      bindImg(foto, p.img, p.name);
+      del.addEventListener('click', () => { removeProduct(p.id); });
       list.appendChild(item);
     });
   }
