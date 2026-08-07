@@ -109,6 +109,64 @@
     .step {
       display: none;
     }
+
+    /* ── Liquid glass no passo do site da loja (embed sobre fundo escuro) ── */
+    body.embed-mode #step-1.step {
+      position: relative;
+      isolation: isolate;
+      border-radius: 26px;
+      padding: 34px 30px 36px;
+      background: linear-gradient(150deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%);
+      -webkit-backdrop-filter: blur(26px) saturate(180%);
+      backdrop-filter: blur(26px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.16);
+      box-shadow:
+        0 24px 60px -22px rgba(0,0,0,0.7),
+        inset 0 1px 0 rgba(255,255,255,0.22);
+    }
+    /* luz colorida por tras: e ela que o blur dissolve e faz o vidro "acontecer" */
+    body.embed-mode #step-1.step::before {
+      content: '';
+      position: absolute; inset: 0;
+      z-index: -1;
+      background:
+        radial-gradient(closest-side at 22% 18%, rgba(124,58,237,0.55) 0%, transparent 72%),
+        radial-gradient(closest-side at 82% 26%, rgba(167,139,250,0.40) 0%, transparent 74%),
+        radial-gradient(closest-side at 62% 92%, rgba(109,40,217,0.34) 0%, transparent 72%);
+      filter: blur(30px);
+      animation: glass-drift 22s ease-in-out infinite alternate;
+    }
+    /* reflexo especular na aresta de cima */
+    body.embed-mode #step-1.step::after {
+      content: '';
+      position: absolute; left: 14%; right: 14%; top: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.85), transparent);
+      pointer-events: none;
+    }
+    body.embed-mode #step-1 h1 { color: #fff; }
+    body.embed-mode #step-1 .lead { color: rgba(255,255,255,0.66); }
+    body.embed-mode #step-1 .q-input {
+      background: rgba(255,255,255,0.08) !important;
+      border-color: rgba(255,255,255,0.18) !important;
+      color: #fff !important;
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+    }
+    body.embed-mode #step-1 .q-input::placeholder { color: rgba(255,255,255,0.42); }
+    body.embed-mode #step-1 .q-input:focus {
+      border-color: rgba(167,139,250,0.6) !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.22);
+      outline: none;
+    }
+    @keyframes glass-drift {
+      from { transform: translate3d(0,0,0) scale(1); }
+      to   { transform: translate3d(3%, -3%, 0) scale(1.07); }
+    }
+    @media (prefers-reduced-motion: reduce) { body.embed-mode #step-1.step::before { animation: none; } }
+    @supports not (backdrop-filter: blur(1px)) {
+      body.embed-mode #step-1.step { background: rgba(20,14,38,0.86); }
+    }
+
     .step.active {
       display: block;
       animation: stepIn .4s var(--ease);
@@ -1010,9 +1068,10 @@
         var styleEl = document.createElement('style');
         styleEl.textContent = `
           html, body { min-height: 0 !important; }
-          body.embed-mode { background: transparent; min-height: auto !important; }
+          body.embed-mode { background: transparent; min-height: auto !important; overflow: hidden; }
+          html { overflow: hidden; }
           body.embed-mode .topbar, body.embed-mode .footer, body.embed-mode #progress-wrap { display: none !important; }
-          body.embed-mode main { padding: 24px 20px 24px; }
+          body.embed-mode main { padding: 0; max-width: 640px; }
           body.embed-mode #step-1 .step-meta,
           body.embed-mode #step-2 .step-meta,
           body.embed-mode #step-2 > h1,
@@ -1020,7 +1079,7 @@
           body.embed-mode .step h1 { font-size: clamp(1.4rem, 3.5vw, 1.8rem); }
           body.embed-mode .step .lead { font-size: 14px; }
           @media (max-width: 600px) {
-            body.embed-mode main { padding: 20px 16px 20px; }
+            body.embed-mode main { padding: 0; }
           }
         `;
         document.head.appendChild(styleEl);
@@ -1030,14 +1089,14 @@
           var activeStep = document.querySelector('.step.active');
           if (!activeStep) return;
           var rect = activeStep.getBoundingClientRect();
-          var mainPad = 48; // top + bottom of main padding
-          var h = Math.ceil(rect.height + mainPad);
+          var h = Math.ceil(rect.height) + 2;   // main sem padding no embed: so a folga da borda
           try {
             window.parent.postMessage({ type: 'pl-embed-height', height: h }, '*');
           } catch (e) {}
         }
         // Post on load, after step changes, and on resize
-        window.addEventListener('load', postHeight);
+        window.addEventListener('load', function () { postHeight(); setTimeout(postHeight, 300); setTimeout(postHeight, 1200); });
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(postHeight);
         window.addEventListener('resize', postHeight);
         // Observe step changes
         var observer = new MutationObserver(function() { setTimeout(postHeight, 50); });
