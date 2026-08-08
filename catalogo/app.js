@@ -25,6 +25,9 @@
   const WH_DEL_PRODUCT = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-product-delete';
   // slug da loja: ?loja=<slug> na URL (cada lojista tem o seu link)
   const STORE_SLUG = (new URLSearchParams(location.search).get('loja') || 'lojateste').trim();
+  // Gancho de CSS por loja: o app é um só, então ajuste que vale pra UMA loja
+  // (e não pro tema claro/escuro inteiro) precisa de um seletor pra se prender.
+  document.documentElement.classList.add('loja-' + STORE_SLUG.replace(/[^a-z0-9-]/gi, ''));
   const MAX_UPLOAD_PX = 1280;   // reduz foto de celular antes de subir (custo/velocidade)
   const JPEG_QUALITY = 0.85;
 

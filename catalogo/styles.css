@@ -142,6 +142,17 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 }
 
 .catalog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+
+/* ── Catálogo da própria Provou Levou ─────────────────────────────────────
+   Vitrine da marca: os produtos ficam sobre um painel arredondado em vez de
+   soltos no fundo da página. Escopado no slug porque as lojas de cliente já
+   estão com o visual aprovado — não é pra mudar por tabela. */
+.loja-provoulevou #screen-catalog { padding-top: 22px; }
+.loja-provoulevou .catalogo-painel {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 22px; padding: 18px 16px 22px;
+  box-shadow: 0 10px 30px rgba(109, 59, 239, .07);
+}
 .prod-card {
   background: var(--card); border-radius: var(--radius); overflow: hidden; cursor: pointer;
   box-shadow: var(--shadow-sm); transition: transform .15s, box-shadow .2s; border: 1px solid var(--line);
