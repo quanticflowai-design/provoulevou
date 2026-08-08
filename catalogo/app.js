@@ -541,7 +541,7 @@
     const list = $('#admin-list'); list.innerHTML = '';
     catalog.forEach(p => {
       const item = document.createElement('div');
-      item.className = 'admin-item';
+      item.className = 'admin-item' + (p.enviando ? ' enviando' : '');
       const foto = document.createElement('img'); foto.alt = '';
       const nome = document.createElement('span'); nome.className = 'ai-name'; nome.textContent = p.name;
       const preco = document.createElement('span'); preco.className = 'ai-price'; preco.textContent = brl(p.price);
@@ -553,7 +553,8 @@
       else del.textContent = '✕';   // guard: HTML em cache sem o template
       item.append(foto, nome, preco, del);
       bindImg(foto, p.img, p.name);
-      del.addEventListener('click', () => { removeProduct(p.id); });
+      if (p.enviando) { del.disabled = true; del.title = 'Ainda enviando…'; }
+      else del.addEventListener('click', () => { removeProduct(p.id); });
       list.appendChild(item);
     });
   }
@@ -561,13 +562,13 @@
     const antes = catalog.slice();
     catalog = catalog.filter(p => p.id !== id); save();
     renderAdmin(); renderCatalog();
+    toast('Produto removido');   // o aviso é do clique, não da resposta do n8n
     try {
       const r = await fetch(WH_DEL_PRODUCT, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ store_slug: STORE_SLUG, product_id: id })
       });
       if (!r.ok) throw new Error('HTTP ' + r.status);
-      toast('Produto removido');
     } catch (e) {
       // desfaz: se o servidor não removeu, o produto volta no próximo reload de qualquer jeito
       console.warn('[Provou Catálogo] erro ao remover:', e);
@@ -595,28 +596,38 @@
     if (!adminPhotoB64) { toast('Envie a foto do produto'); return; }
     if (!storeRow) { toast('Loja não encontrada — recarregue a página'); return; }
 
-    const txt = btn.textContent;
-    btn.disabled = true; btn.textContent = 'Enviando foto...';
-    try {
-      const r = await fetch(WH_ADD_PRODUCT, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ store_slug: STORE_SLUG, name, price, mime: 'image/jpeg', image_b64: adminPhotoB64 })
-      });
-      const data = await r.json().catch(() => null);
-      if (!r.ok || !data || !data.ok) throw new Error('falha no upload');
+    // O envio passa pelo n8n, que sob carga leva 10-30s. Esperar por ele deixava
+    // o lojista travado a cada produto. O item entra na lista NA HORA (com a foto
+    // local, que ele acabou de escolher) e a subida segue em segundo plano —
+    // some da lista só se o servidor recusar.
+    const provisorio = { id: 'tmp-' + Date.now(), name, price, img: adminPhoto, categoria: 'roupa', enviando: true };
+    provisorio.categoria = categoriaDe(provisorio);
+    catalog = [provisorio].concat(catalog); save();
+    renderAdmin(); renderCatalog();
 
-      await loadCatalog();
-      renderAdmin(); renderCatalog();
-      $('#admin-name').value = ''; $('#admin-price').value = '';
-      adminPhoto = ''; adminPhotoB64 = '';
-      $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = ''; $('#admin-photo').value = '';
-      toast('Produto adicionado ✓');
-    } catch (err) {
-      console.warn('[Provou Catálogo] erro ao adicionar produto:', err);
-      toast('Não consegui enviar. Tente de novo.');
-    } finally {
-      btn.disabled = false; btn.textContent = txt;
-    }
+    const corpo = JSON.stringify({ store_slug: STORE_SLUG, name, price, mime: 'image/jpeg', image_b64: adminPhotoB64 });
+    $('#admin-name').value = ''; $('#admin-price').value = '';
+    adminPhoto = ''; adminPhotoB64 = '';
+    $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = ''; $('#admin-photo').value = '';
+    toast('Enviando ' + name + '…');
+
+    (async () => {
+      try {
+        const r = await fetch(WH_ADD_PRODUCT, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: corpo
+        });
+        const data = await r.json().catch(() => null);
+        if (!r.ok || !data || !data.ok) throw new Error('falha no upload');
+        await loadCatalog();          // troca o provisório pelo que o servidor gravou
+        renderAdmin(); renderCatalog();
+        toast(name + ' publicado ✓');
+      } catch (err) {
+        console.warn('[Provou Catálogo] erro ao adicionar produto:', err);
+        catalog = catalog.filter(p => p.id !== provisorio.id); save();
+        renderAdmin(); renderCatalog();
+        toast('Não consegui enviar ' + name + '. Tente de novo.');
+      }
+    })();
   });
 
   // ─────────── Navegação (botões fixos) ───────────
