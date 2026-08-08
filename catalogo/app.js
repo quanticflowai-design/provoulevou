@@ -297,11 +297,17 @@
   // Categoria do produto. Quando a coluna `categoria` existir em
   // pl_catalog_products ela manda; enquanto não existir, deduz pelo nome —
   // errar aqui só troca o gerador, e o de roupa aceita óculos (só fica pior).
+  // O NOME manda quando ele diz "óculos". A coluna `categoria` tem default
+  // 'roupa' no banco e o cadastro não pergunta nada, então confiar nela primeiro
+  // mandava "Óculos de sol Alcázar" pro gerador de ROUPA — que não põe armação
+  // no rosto. Só quando o texto não decide é que o valor gravado vale.
+  const RE_OCULOS = /[óo]culos|armaç|armac|lente|solar|clip[- ]?on|de grau/i;
   function categoriaDe(row) {
-    const c = String(row && row.categoria || '').toLowerCase().trim();
-    if (c === 'oculos' || c === 'óculos' || c === 'roupa') return c === 'óculos' ? 'oculos' : c;
     const t = ((row && row.name) || '') + ' ' + ((row && row.description) || '');
-    return /[óo]culos|armaç|armac|lente|solar|clip[- ]?on|grau/i.test(t) ? 'oculos' : 'roupa';
+    if (RE_OCULOS.test(t)) return 'oculos';
+    const c = String(row && row.categoria || '').toLowerCase().trim();
+    if (c === 'oculos' || c === 'óculos') return 'oculos';
+    return 'roupa';
   }
 
   function soDigitos(v) { return String(v || '').replace(/\D/g, ''); }
