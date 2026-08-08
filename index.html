@@ -6200,7 +6200,21 @@
         calcPrice.textContent = p.price; calcPrice.appendChild(sm);
       }
       calcDesc.textContent = p.desc;
-      calcCta.href = 'https://wa.me/5511938034714?text=Ol&aacute;! Tenho interesse no Provador Virtual."Contact"; "Lead" so entra pela Conversions API,
+      calcCta.href = 'https://wa.me/5511938034714?text=' + encodeURIComponent('Olá! Tenho interesse no Provador Virtual.');
+      calcCta.textContent = p.name === 'CUSTOM' ? 'Falar com especialista' : 'Implementar Agora';
+      const pct = (i / 4) * 100;
+      calcRange.style.background = 'linear-gradient(to right, #7c3aed 0%, #a78bfa ' + pct + '%, rgba(255,255,255,0.08) ' + pct + '%, rgba(255,255,255,0.08) 100%)';
+    }
+    calcRange.addEventListener('input', updateCalc);
+    updateCalc();
+
+  </script>
+
+  <!-- Meta Pixel · clique nos CTAs -->
+  <script>
+    (function () {
+      // O clique so abre o WhatsApp — quem envia a mensagem decide depois.
+      // Por isso o clique e "Contact"; "Lead" so entra pela Conversions API,
       // quando a mensagem chega de fato no numero comercial.
       var SUPA_URL = 'https://quantic-supabase.k5jwra.easypanel.host';
       var SUPA_ANON = ((window.ENV && window.ENV.SUPABASE_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.pCFnSnrlSUM2EwXi9gxAegpoC-9U0Mjx3iAtROR-E20');
