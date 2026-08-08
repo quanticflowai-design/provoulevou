@@ -677,6 +677,7 @@
     if (!tel) { openCheckout(); return; }
     const num = tel.length <= 11 ? '55' + tel : tel;
     const txt = 'Oi! Provei o ' + (current && current.name || 'produto') +
+      (current && current.price ? ' (' + brl(current.price) + ')' : '') +
       ' no provador virtual da ' + STORE.name + ' e quero comprar.';
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
   }
