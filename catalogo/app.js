@@ -249,8 +249,9 @@
     $('#uploader-empty').style.display = '';
     $('#btn-generate').disabled = true;
     $('#photo-input').value = '';
+    const g = $('#photo-gallery'); if (g) g.value = '';
   }
-  $('#photo-input').addEventListener('change', e => {
+  function recebeFoto(e) {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -259,10 +260,23 @@
       const prev = $('#uploader-preview');
       prev.src = userPhoto; prev.hidden = false;
       $('#uploader-empty').style.display = 'none';
-      atualizaBotaoProvar();   // só libera com foto E WhatsApp
+      atualizaBotaoProvar();   // só libera com foto, WhatsApp e aceite
     };
     reader.readAsDataURL(file);
-  });
+  }
+  $('#photo-input').addEventListener('change', recebeFoto);
+  {
+    // Câmera e galeria são inputs distintos; os botões só disparam o certo.
+    // O <label> em volta abriria a câmera em qualquer toque, então o clique na
+    // área da foto é interceptado e mandado pra galeria.
+    const cam = $('#photo-input'), gal = $('#photo-gallery');
+    if (gal) gal.addEventListener('change', recebeFoto);
+    const btnCam = $('#btn-tirar-foto'), btnGal = $('#btn-galeria');
+    if (btnCam) btnCam.addEventListener('click', ev => { ev.preventDefault(); cam.click(); });
+    if (btnGal) btnGal.addEventListener('click', ev => { ev.preventDefault(); (gal || cam).click(); });
+    const area = $('#uploader');
+    if (area && gal) area.addEventListener('click', ev => { ev.preventDefault(); gal.click(); });
+  }
 
   // ─────────── Geração (REAL) ───────────
   // Os dois geradores de produção da frota. Ambos autenticam pelo SHA256 da
