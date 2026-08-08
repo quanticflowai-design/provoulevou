@@ -266,16 +266,23 @@
   }
   $('#photo-input').addEventListener('change', recebeFoto);
   {
-    // Câmera e galeria são inputs distintos; os botões só disparam o certo.
-    // O <label> em volta abriria a câmera em qualquer toque, então o clique na
-    // área da foto é interceptado e mandado pra galeria.
+    // Câmera e galeria são inputs distintos; cada gatilho abre o seu. Sem
+    // preventDefault: os inputs estão fora da área clicável, então nada aqui
+    // cancela a abertura do seletor de arquivo.
     const cam = $('#photo-input'), gal = $('#photo-gallery');
     if (gal) gal.addEventListener('change', recebeFoto);
     const btnCam = $('#btn-tirar-foto'), btnGal = $('#btn-galeria');
-    if (btnCam) btnCam.addEventListener('click', ev => { ev.preventDefault(); cam.click(); });
-    if (btnGal) btnGal.addEventListener('click', ev => { ev.preventDefault(); (gal || cam).click(); });
+    if (btnCam && cam) btnCam.addEventListener('click', () => cam.click());
+    if (btnGal) btnGal.addEventListener('click', () => (gal || cam).click());
     const area = $('#uploader');
-    if (area && gal) area.addEventListener('click', ev => { ev.preventDefault(); gal.click(); });
+    if (area) {
+      const abre = () => (gal || cam).click();
+      area.addEventListener('click', abre);
+      // a área virou <div>, então o teclado precisa ser ligado na mão
+      area.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); abre(); }
+      });
+    }
   }
 
   // ─────────── Geração (REAL) ───────────

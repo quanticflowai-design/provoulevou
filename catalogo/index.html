@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=28">
+  <link rel="stylesheet" href="styles.css?v=29">
 </head>
 <body>
   <div id="app">
@@ -85,15 +85,19 @@
         <!-- DOIS inputs, como no provador das lojas. O `capture` obriga a abrir a
              câmera no celular: com um input só, ou o cliente tira foto na hora,
              ou manda da galeria — nunca as duas coisas. -->
-        <label class="uploader" id="uploader">
-          <input type="file" id="photo-input" accept="image/*" capture="user" hidden>
-          <input type="file" id="photo-gallery" accept="image/*" hidden>
+        <!-- Inputs FORA da area clicavel, e a area e um <div>, nao um <label>.
+             Dentro do label, o clique que o proprio input dispara borbulha de
+             volta e o preventDefault do handler cancelava o seletor de arquivo:
+             nenhum dos tres caminhos abria nada. -->
+        <input type="file" id="photo-input" accept="image/*" capture="user" hidden>
+        <input type="file" id="photo-gallery" accept="image/*" hidden>
+        <div class="uploader" id="uploader" role="button" tabindex="0" aria-label="Enviar sua foto">
           <div class="uploader-empty" id="uploader-empty">
             <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
             <span>Envie uma foto sua</span>
           </div>
           <img id="uploader-preview" alt="" hidden>
-        </label>
+        </div>
         <div class="foto-acoes">
           <button type="button" class="btn-outline foto-btn" id="btn-tirar-foto">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -319,6 +323,6 @@
   </template>
   <div id="toast"></div>
 
-  <script src="app.js?v=28"></script>
+  <script src="app.js?v=29"></script>
 </body>
 </html>
