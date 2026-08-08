@@ -147,11 +147,28 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
    Vitrine da marca: os produtos ficam sobre um painel arredondado em vez de
    soltos no fundo da página. Escopado no slug porque as lojas de cliente já
    estão com o visual aprovado — não é pra mudar por tabela. */
-.loja-provoulevou #screen-catalog { padding-top: 22px; }
-.loja-provoulevou .catalogo-painel {
+.loja-provoulevou .screen { padding-top: 22px; }
+/* O mesmo painel em TODAS as etapas: catálogo, produto, prova, geração,
+   resultado, checkout e admin. Cada tela tem seu proprio wrapper — nao existe
+   um container comum — entao a lista abaixo e a uniao deles. O botao Voltar
+   fica de fora de proposito: ele pertence a pagina, nao ao cartao. */
+.loja-provoulevou .catalogo-painel,
+.loja-provoulevou .product-view,
+.loja-provoulevou .tryon-box,
+.loja-provoulevou .loading-box,
+.loja-provoulevou .result-box,
+.loja-provoulevou .checkout-box,
+.loja-provoulevou .pix-box,
+.loja-provoulevou .card-box,
+.loja-provoulevou .success-box,
+.loja-provoulevou .admin-box {
   background: var(--card); border: 1px solid var(--line);
   border-radius: 22px; padding: 18px 16px 22px;
   box-shadow: 0 10px 30px rgba(109, 59, 239, .07);
+}
+/* as telas de espera centralizam no meio da altura; o cartao nao pode esticar */
+.loja-provoulevou .loading-box, .loja-provoulevou .success-box {
+  min-height: 62dvh; justify-content: center;
 }
 .prod-card {
   background: var(--card); border-radius: var(--radius); overflow: hidden; cursor: pointer;
