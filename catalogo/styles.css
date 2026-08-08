@@ -142,6 +142,10 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 }
 
 .catalog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+/* Esqueleto da primeira carga: ocupa o espaço sem afirmar nada sobre o conteúdo. */
+.prod-card.esqueleto { pointer-events: none; }
+.prod-card.esqueleto .thumb { aspect-ratio: 1; background: var(--line); border-radius: 12px; animation: pulsa 1.2s ease-in-out infinite; }
+@keyframes pulsa { 0%,100% { opacity: .55 } 50% { opacity: .95 } }
 
 /* ── Catálogo da própria Provou Levou ─────────────────────────────────────
    Vitrine da marca: os produtos ficam sobre um painel arredondado em vez de

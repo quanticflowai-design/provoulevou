@@ -3,14 +3,10 @@
   'use strict';
 
   // ─────────── Catálogo seed (lojista demo: Acessórios Style) ───────────
-  const SEED = [
-    { id: 'p1', name: 'Óculos de Sol Madrid Preto', price: 189.90, img: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=500&q=80' },
-    { id: 'p2', name: 'Óculos de Grau Jasmine Rosé', price: 149.90, img: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=500&q=80' },
-    { id: 'p3', name: 'Óculos de Sol Race Dourado', price: 219.90, img: 'https://images.unsplash.com/photo-1577803645773-f96470509666?w=500&q=80' },
-    { id: 'p4', name: 'Colar Prata Minimal', price: 89.90, img: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=500&q=80' },
-    { id: 'p5', name: 'Brinco Argola Gold', price: 59.90, img: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=500&q=80' },
-    { id: 'p6', name: 'Relógio Slim Rosé', price: 259.90, img: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=500&q=80' }
-  ];
+  // NÃO existe catálogo padrão. Havia um SEED de 6 produtos de banco de
+  // imagens aqui, e ele aparecia por instantes em TODA loja antes do fetch
+  // voltar — o cliente da Saint Pierre via o catálogo de outra pessoa.
+  // Enquanto o servidor não responde, a tela mostra esqueleto.
   // Nome neutro: o padrão nunca pode ser o de uma loja real, senão a marca dela
   // aparece no catálogo das outras enquanto a loja certa não carrega.
   const STORE = { name: 'Catálogo' };
@@ -33,6 +29,7 @@
 
   // ─────────── Estado ───────────
   let storeRow = null;      // linha de pl_catalog_stores
+  let carregou = false;     // o servidor já respondeu ao menos uma vez?
   let catalog = load();
   let current = null;       // produto selecionado
   let userPhoto = '';       // dataURL da foto do cliente
@@ -48,7 +45,7 @@
   // enquanto o fetch não volta). A fonte da verdade é o Supabase.
   function load() {
     try { const v = JSON.parse(localStorage.getItem(cacheKey())); if (Array.isArray(v) && v.length) return v; } catch (e) {}
-    return SEED.slice();
+    return [];
   }
   function cacheKey() { return KEY + ':' + STORE_SLUG; }
   function save() { try { localStorage.setItem(cacheKey(), JSON.stringify(catalog)); } catch (e) {} }
@@ -121,6 +118,7 @@
     const rows = await sbGet('pl_catalog_products?store_id=eq.' + storeRow.id +
       '&is_active=eq.true&select=*,pl_catalog_product_images(url,is_primary,position)' +
       '&order=position.asc,created_at.desc');
+    carregou = true;
     catalog = (rows || []).map(r => {
       const imgs = (r.pl_catalog_product_images || [])
         .slice().sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.position || 0) - (b.position || 0));
@@ -223,9 +221,19 @@
       card.addEventListener('click', () => openProduct(p));
       grid.appendChild(card);
     });
+    // "Seu catálogo está vazio" só depois que o servidor respondeu: antes disso
+    // não se sabe se está vazio ou ainda carregando.
     const vazio = $('#catalog-empty');
-    if (vazio) vazio.hidden = catalog.length > 0;
-    grid.hidden = catalog.length === 0;
+    if (!catalog.length && !carregou) {
+      for (let i = 0; i < 4; i++) {
+        const sk = document.createElement('div');
+        sk.className = 'prod-card esqueleto';
+        sk.appendChild(document.createElement('div')).className = 'thumb';
+        grid.appendChild(sk);
+      }
+    }
+    if (vazio) vazio.hidden = !(carregou && catalog.length === 0);
+    grid.hidden = carregou && catalog.length === 0;
   }
 
   // Abre a prova virtual já com o produto escolhido
