@@ -323,12 +323,11 @@
 
     _gerando = true;
     show('loading');
-    const bar = $('#progress-bar'), pct = $('#progress-pct');
-    let i = 0; bar.style.width = '8%'; pct.textContent = '8%';
+    const bar = $('#progress-bar');
+    let i = 0; bar.style.width = '8%';
     const iv = setInterval(() => {
       i++;
-      const v = Math.min(92, 8 + i * 7);
-      bar.style.width = v + '%'; pct.textContent = v + '%';
+      bar.style.width = Math.min(92, 8 + i * 7) + '%';
     }, 1800);
 
     try {
@@ -363,7 +362,7 @@
       }
 
       const blob = await res.blob();
-      clearInterval(iv); bar.style.width = '100%'; pct.textContent = '100%';
+      clearInterval(iv); bar.style.width = '100%';
       showResult(URL.createObjectURL(blob));
     } catch (e) {
       clearInterval(iv);
@@ -662,8 +661,14 @@
   function atualizaBotaoProvar() {
     const temFoto = !!userPhoto;
     const temTel = soDigitos($('#phone-input') && $('#phone-input').value).length >= 10;
+    const ok = $('#accept-terms');
+    const aceitou = !ok || ok.checked;   // guard: HTML em cache sem o checkbox
     const b = $('#btn-generate');
-    if (b) b.disabled = !(temFoto && temTel);
+    if (b) b.disabled = !(temFoto && temTel && aceitou);
+  }
+  {
+    const ok = $('#accept-terms');
+    if (ok) ok.addEventListener('change', atualizaBotaoProvar);
   }
   // Loja de catalogo nao tem carrinho: quem quer comprar fala com o lojista, ja
   // com o modelo provado no texto. So cai no checkout se a loja nao tiver WhatsApp.
@@ -687,9 +692,7 @@
     let i = 0;
     if (window.__genDemo) clearInterval(window.__genDemo);
     window.__genDemo = setInterval(() => {
-      const v = Math.min(100, (i % 5) * 26);
-      bar.style.width = v + '%';
-      const pct = $('#progress-pct'); if (pct) pct.textContent = v + '%';
+      bar.style.width = Math.min(100, (i % 5) * 26) + '%';
       i++;
     }, 650);
   }
