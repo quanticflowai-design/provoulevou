@@ -377,6 +377,11 @@
       fd.append('product_name', current.name);
       fd.append('product_type', cat);
       fd.append('api_key', chave);
+      // Sem isto toda prova de catálogo grava origin 'https://provoulevou.com.br',
+      // igual pra todas as lojas — impossível saber de quem cobrar depois.
+      fd.append('catalog_slug', STORE_SLUG);
+      if (storeRow && storeRow.id) fd.append('catalog_store_id', storeRow.id);
+      if (current && current.id) fd.append('catalog_product_id', current.id);
 
       const res = await fetch(url, { method: 'POST', body: fd });
       const ct = res.headers.get('content-type') || '';
