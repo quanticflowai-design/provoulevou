@@ -3,6 +3,35 @@
 
 <head>
   <script src="env.js"></script>
+  <!-- ChatGPT Ads Pixel — fica no topo do head pra nao perder conversao inicial -->
+  <script>!function(w,d,s,u){if(w.oaiq)return;var q=function(){q.q.push(arguments)};q.q=[];w.oaiq=q;var j=d.createElement(s);j.async=1;j.src=u;var f=d.getElementsByTagName(s)[0];f.parentNode.insertBefore(j,f)}(window,document,"script","https://bzrcdn.openai.com/sdk/oaiq.min.js");oaiq("init",{pixelId:"PRLbm6WsqoRUmezfmDY9YG"});</script>
+  <script>
+    (function () {
+      // O mesmo identificador vai no navegador e no servidor: e assim que a OpenAI
+      // casa a conversa do WhatsApp com o clique no anuncio (telefone ela recusa).
+      function sha256(txt) {
+        if (!window.crypto || !crypto.subtle) return Promise.resolve(null);
+        return crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt)).then(function (buf) {
+          return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+        }).catch(function () { return null; });
+      }
+      var sid;
+      try {
+        sid = sessionStorage.getItem('pl_session_id');
+        if (!sid) { sid = 'sid_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10); sessionStorage.setItem('pl_session_id', sid); }
+      } catch (e) { sid = null; }
+
+      // page_viewed nao dispara sozinho neste SDK — tem que chamar
+      if (sid) {
+        sha256(sid).then(function (h) {
+          window.__plExternalId = h;
+          oaiq('measure', 'page_viewed', h ? { type: 'contents', user_data: { external_id_sha256: h } } : { type: 'contents' });
+        });
+      } else {
+        oaiq('measure', 'page_viewed', { type: 'contents' });
+      }
+    })();
+  </script>
   <meta name="facebook-domain-verification" content="xaf2irx04avb1q879vc8loxj60g8mr" />
   <meta charset="UTF-8">
   <!-- Meta Pixel Code -->
@@ -6247,12 +6276,25 @@
             var jaContou = false;
             try { jaContou = sessionStorage.getItem(chave) === '1'; } catch (e) {}
 
+            // id compartilhado: permite deduplicar depois com a API de conversao
+            var eventoId = 'wa_' + (sessionId() || Date.now());
+
             if (!jaContou && typeof fbq === 'function') {
               var params = { content_name: label };
               if (valor) { params.value = parseFloat(valor); params.currency = 'BRL'; }
               fbq('track', evento, params);
-              try { sessionStorage.setItem(chave, '1'); } catch (e) {}
             }
+
+            // ChatGPT Ads: a atribuicao deles depende do navegador, e a API de conversao
+            // nao aceita telefone (so email/external_id) — que e o unico dado que temos
+            // de quem chega pelo WhatsApp. Por isso o lead_created sai daqui.
+            if (!jaContou && typeof oaiq === 'function') {
+              var dadosGpt = { type: 'customer_action', event_id: eventoId };
+              if (window.__plExternalId) dadosGpt.user_data = { external_id_sha256: window.__plExternalId };
+              oaiq('measure', 'lead_created', dadosGpt);
+            }
+
+            if (!jaContou) { try { sessionStorage.setItem(chave, '1'); } catch (e) {} }
 
             // o clique vai pro banco SEMPRE (inclusive os repetidos):
             // e assim que da pra medir clique -> conversa de verdade
@@ -6269,6 +6311,8 @@
                 },
                 body: JSON.stringify({
                   session_id: sessionId(),
+                  codigo: (function () { try { return sessionStorage.getItem('pl_cod'); } catch (e) { return null; } })(),
+                  gpt_ids: (function () { try { return sessionStorage.getItem('pl_gpt_ids'); } catch (e) { return null; } })(),
                   botao: label,
                   evento: evento,
                   destino: destino,
@@ -6438,19 +6482,74 @@
         } catch (e) { return null; }
       }
 
+    })();
+  </script>
+
+
+  <!-- ─── Carimbo do WhatsApp: [via: fonte #codigo] ─── -->
+  <script>
+    (function () {
+      function getStoredUtm() {
+        try {
+          var ts = parseInt(localStorage.getItem('pl_utm_ts') || '0', 10);
+          if (!ts || (Date.now() - ts) > 30 * 24 * 3600 * 1000) return null;
+          return JSON.parse(localStorage.getItem('pl_utm') || 'null');
+        } catch (e) { return null; }
+      }
+      // De onde veio: a UTM manda; sem ela, o referrer resolve os casos conhecidos
+      function origem() {
+        // ChatGPT Ads manda campaign_id/ad_group_id/ad_id (sem utm_source):
+        // guarda os ids e marca a origem como gpt
+        try {
+          var q = new URLSearchParams(window.location.search);
+          if (q.get('ad_id') || q.get('ad_group_id') || q.get('campaign_id')) {
+            sessionStorage.setItem('pl_gpt_ids', JSON.stringify({
+              campaign_id: q.get('campaign_id'), ad_group_id: q.get('ad_group_id'), ad_id: q.get('ad_id')
+            }));
+            sessionStorage.setItem('pl_origem', 'gpt');
+          }
+          var marcada = sessionStorage.getItem('pl_origem');
+          if (marcada) return marcada;
+        } catch (e) {}
+
+        var stored = getStoredUtm();
+        if (stored && stored.utm_source) return stored.utm_source;
+        var ref = (document.referrer || '').toLowerCase();
+        if (ref.indexOf('chatgpt.com') > -1 || ref.indexOf('openai.com') > -1) return 'gpt';
+        if (ref.indexOf('facebook.com') > -1 || ref.indexOf('instagram.com') > -1) return 'meta';
+        if (ref.indexOf('google.') > -1) return 'google';
+        return null;
+      }
+
+      // Codigo curto que liga o clique no site a conversa que chega no WhatsApp.
+      // E o que permite medir clique -> conversa de verdade, em vez de supor.
+      function codigoSessao() {
+        try {
+          var c = sessionStorage.getItem('pl_cod');
+          if (!c) {
+            var sid = sessionStorage.getItem('pl_session_id') || String(Date.now());
+            c = sid.replace(/[^a-z0-9]/gi, '').slice(-6).toLowerCase();
+            sessionStorage.setItem('pl_cod', c);
+          }
+          return c;
+        } catch (e) { return null; }
+      }
+
       document.addEventListener('click', function (e) {
         var a = e.target.closest && e.target.closest('a[href*="wa.me/"]');
         if (!a) return;
-        var stored = getStoredUtm();
-        if (!stored || !stored.utm_source) return;
         var href = a.getAttribute('href');
         if (href.indexOf('[via:') !== -1) return;
+        var src = origem();
+        var cod = codigoSessao();
+        if (!src && !cod) return;
         try {
           var u = new URL(href, window.location.origin);
           var text = u.searchParams.get('text') || '';
-          text = text + ' [via: ' + stored.utm_source + ']';
-          u.searchParams.set('text', text);
-          a.setAttribute('href', u.toString());
+          var carimbo = ' [via: ' + (src || 'direto') + (cod ? ' #' + cod : '') + ']';
+          // monta na mao: searchParams.set escreve espaco como '+', e o WhatsApp
+          // mostra o '+' literal no lugar do espaco
+          a.setAttribute('href', u.origin + u.pathname + '?text=' + encodeURIComponent(text + carimbo));
         } catch (err) {}
       }, true);
     })();
