@@ -26,6 +26,11 @@
   document.documentElement.classList.add('loja-' + STORE_SLUG.replace(/[^a-z0-9-]/gi, ''));
   const MAX_UPLOAD_PX = 1280;   // reduz foto de celular antes de subir (custo/velocidade)
   const JPEG_QUALITY = 0.85;
+  // Cada cliente (WhatsApp) tem 3 provas por dia neste catálogo. O catálogo não
+  // tinha limite nenhum: o mesmo número provava o catálogo inteiro e cada prova
+  // custa geração pro lojista.
+  const MAX_PROVAS_DIA = 3;
+  const PROVAS_KEY = 'pc_provas_v1';
 
   // ─────────── Estado ───────────
   let storeRow = null;      // linha de pl_catalog_stores
@@ -139,6 +144,7 @@
       await loadCatalog();
       renderStore(); renderCatalog();
       aplicaPermissoes();   // owner_email so chega com a loja carregada
+      atualizaLimite();     // o whatsapp da loja (CTA do limite) so chega agora
     } catch (e) {
       console.warn('[Provou Catálogo] falha ao carregar do servidor:', e);
       toast('Não consegui carregar o catálogo');
@@ -261,6 +267,9 @@
     $('#btn-generate').disabled = true;
     $('#photo-input').value = '';
     const g = $('#photo-gallery'); if (g) g.value = '';
+    // O telefone continua digitado entre uma prova e outra, então o saldo tem
+    // que ser repintado toda vez que a tela abre — inclusive na 4a tentativa.
+    atualizaLimite();
   }
   function recebeFoto(e) {
     const file = e.target.files && e.target.files[0];
@@ -331,6 +340,97 @@
     return true;
   }
 
+  // ─────────── Limite de provas por cliente ───────────
+  // Contagem por WhatsApp, por loja, por dia. Vive no localStorage: o catálogo
+  // é público e a chave ANON não lê geracoes_provou_levou, então não há como
+  // perguntar ao banco daqui. Isto é a trava de UX — quem limpa os dados do
+  // navegador escapa dela; a trava DE VERDADE é o gerador no n8n, que continua
+  // podendo recusar (o `limite_diario` abaixo é honrado e marca o número aqui).
+  function provasKey() { return PROVAS_KEY + ':' + STORE_SLUG; }
+  // Data LOCAL do aparelho: toISOString() é UTC e viraria o dia às 21h no Brasil.
+  function hojeStr() {
+    const d = new Date();
+    const p = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  function lerProvas() {
+    let o = null;
+    try { o = JSON.parse(localStorage.getItem(provasKey()) || 'null'); } catch (e) {}
+    if (!o || typeof o !== 'object' || o.dia !== hojeStr() || !o.tel || typeof o.tel !== 'object') {
+      o = { dia: hojeStr(), tel: {} };   // virou o dia (ou nunca existiu): zera
+    }
+    return o;
+  }
+  function salvarProvas(o) {
+    try { localStorage.setItem(provasKey(), JSON.stringify(o)); } catch (e) {}
+  }
+  function provasUsadas(tel) {
+    if (!tel) return 0;
+    return Number(lerProvas().tel[tel]) || 0;
+  }
+  function provasRestantes(tel) { return Math.max(0, MAX_PROVAS_DIA - provasUsadas(tel)); }
+  function registraProva(tel) {
+    if (!tel) return;
+    const o = lerProvas();
+    o.tel[tel] = (Number(o.tel[tel]) || 0) + 1;
+    salvarProvas(o);
+  }
+  // O servidor recusou por limite: zera o saldo deste número aqui também, senão
+  // a tela continua oferecendo provas que o gerador não vai entregar.
+  function marcaLimite(tel) {
+    if (!tel) return;
+    const o = lerProvas();
+    o.tel[tel] = MAX_PROVAS_DIA;
+    salvarProvas(o);
+  }
+
+  // Telefone do campo, no formato usado como chave (55 + DDD + número).
+  // Só devolve algo quando o número está completo — número pela metade não é
+  // cliente identificado, e contar por ele daria saldo grátis a cada dígito.
+  function telAtual() {
+    const n = soDigitos($('#phone-input') && $('#phone-input').value);
+    if (n.length < 10 || n.length > 11) return '';
+    return '55' + n;
+  }
+
+  // Mostra saldo/limite e devolve se o cliente ainda pode provar.
+  function atualizaLimite() {
+    const tel = telAtual();
+    const msg = $('#provas-restantes');
+    const box = $('#limite-box');
+    const btnW = $('#btn-limite-whats');
+    const restantes = tel ? provasRestantes(tel) : MAX_PROVAS_DIA;
+    const bloqueado = !!tel && restantes <= 0;
+
+    if (msg) {
+      if (tel && !bloqueado) {
+        msg.textContent = restantes + (restantes === 1 ? ' prova restante hoje' : ' provas restantes hoje');
+        msg.classList.toggle('is-warn', restantes === 1);
+        msg.hidden = false;
+      } else {
+        msg.textContent = '';
+        msg.classList.remove('is-warn');
+        msg.hidden = true;
+      }
+    }
+    if (box) {
+      box.hidden = !bloqueado;
+      const tit = $('#limite-titulo');
+      if (tit) tit.textContent = 'Você já usou suas ' + MAX_PROVAS_DIA + ' provas de hoje';
+      const t = $('#limite-texto');
+      if (t) {
+        t.textContent = 'Volte amanhã para provar outras peças' +
+          (temWhatsappLoja() ? ' — ou chame a loja para tirar dúvidas.' : '.');
+      }
+      if (btnW) btnW.hidden = !temWhatsappLoja();
+    }
+    return !bloqueado;
+  }
+
+  function temWhatsappLoja() {
+    return !!String((storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
+  }
+
   // dataURL -> Blob sem passar por fetch() (evita CSP e é síncrono)
   function dataUrlParaBlob(d) {
     const [cab, b64] = String(d).split(',');
@@ -348,6 +448,14 @@
     const tel = soDigitos($('#phone-input') && $('#phone-input').value);
     if (!telefoneValido(tel)) { $('#phone-input').focus(); return; }
     if (!userPhoto) return;
+    // Trava antes de gastar geração: o cliente já usou as 3 provas do dia.
+    if (!atualizaLimite()) {
+      atualizaBotaoProvar();
+      toast('Você já usou suas ' + MAX_PROVAS_DIA + ' provas de hoje');
+      const box = $('#limite-box');
+      if (box && box.scrollIntoView) { try { box.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {} }
+      return;
+    }
 
     // O catálogo renderiza do cache do localStorage, então a tela funciona mesmo
     // quando a leitura da loja falha — e aí storeRow fica nulo e a prova morria com
@@ -399,12 +507,17 @@
         let msg = 'Não consegui gerar sua prova agora. Tente de novo em instantes.';
         try {
           const j = await res.json();
-          if (j.error === 'limite_diario') msg = 'Você já usou suas provas de hoje. Volte amanhã!';
+          if (j.error === 'limite_diario' || j.error === 'limite_atingido' || j.limited) {
+            msg = 'Você já usou suas provas de hoje. Volte amanhã!';
+            marcaLimite('55' + tel);   // o servidor mandou parar: a tela para também
+          }
         } catch (e) {}
         throw new Error(msg);
       }
 
       const blob = await res.blob();
+      // Só conta o que o gerador entregou: prova que falhou não foi usada.
+      registraProva('55' + tel);
       clearInterval(iv); bar.style.width = '100%';
       showResult(URL.createObjectURL(blob));
     } catch (e) {
@@ -413,6 +526,7 @@
       show('tryon');
     } finally {
       _gerando = false;
+      atualizaBotaoProvar();   // repinta saldo/limite com a contagem já atualizada
     }
   }
 
@@ -715,8 +829,9 @@
     const temTel = soDigitos($('#phone-input') && $('#phone-input').value).length >= 10;
     const ok = $('#accept-terms');
     const aceitou = !ok || ok.checked;   // guard: HTML em cache sem o checkbox
+    const podeProvar = atualizaLimite();
     const b = $('#btn-generate');
-    if (b) b.disabled = !(temFoto && temTel && aceitou);
+    if (b) b.disabled = !(temFoto && temTel && aceitou && podeProvar);
   }
   {
     const ok = $('#accept-terms');
@@ -734,6 +849,19 @@
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
   }
   $('#btn-buy').addEventListener('click', comprarNoWhatsapp);
+  // Limite atingido: a conversa com a loja é a única saída hoje, então o texto
+  // já vai pronto — sem isso o cliente sai da página e não volta.
+  {
+    const bw = $('#btn-limite-whats');
+    if (bw) bw.addEventListener('click', () => {
+      const tel = String((storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
+      if (!tel) return;
+      const num = tel.length <= 11 ? '55' + tel : tel;
+      const txt = 'Oi! Usei minhas provas de hoje no provador virtual da ' + STORE.name +
+        (current && current.name ? ' e fiquei interessado no ' + current.name : '') + '.';
+      window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
+    });
+  }
   $('#btn-tryother').addEventListener('click', () => show('catalog'));
   $('#btn-back-catalog').addEventListener('click', () => { clearTimeout(pixTimer); show('catalog'); });
   $$('[data-back]').forEach(b => b.addEventListener('click', () => { clearTimeout(pixTimer); show(b.dataset.back); }));

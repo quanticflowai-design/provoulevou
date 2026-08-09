@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=36">
+  <link rel="stylesheet" href="styles.css?v=37">
 </head>
 <body>
   <div id="app">
@@ -83,6 +83,9 @@
           <input type="tel" id="phone-input" inputmode="numeric" autocomplete="tel"
                  placeholder="(11) 90000-0000" maxlength="16">
           <p class="field-error" id="phone-error" hidden></p>
+          <!-- Quantas provas ainda restam pra ESTE WhatsApp hoje. Só aparece com
+               o número completo: antes disso não há cliente pra contar. -->
+          <p class="provas-msg" id="provas-restantes" hidden></p>
         </div>
 
         <p class="tryon-passo"><span class="passo">2</span> Sua foto</p>
@@ -119,6 +122,14 @@
           <input type="checkbox" id="accept-terms">
           <span>Concordo com os <a href="https://provoulevou.com.br/termos.html" target="_blank" rel="noopener">Termos e Condições</a></span>
         </label>
+        <!-- Limite do cliente: entra no lugar do botão quando o WhatsApp digitado
+             já gastou as provas do dia. Sem isto o cliente clicava em "Provar
+             agora", esperava a animação inteira e só então levava o erro. -->
+        <div class="limite-box" id="limite-box" hidden>
+          <strong id="limite-titulo">Você já usou suas provas de hoje</strong>
+          <p id="limite-texto">Volte amanhã para provar outras peças.</p>
+          <button type="button" class="btn-outline" id="btn-limite-whats" hidden>Falar com a loja</button>
+        </div>
         <button class="btn-primary big" id="btn-generate" disabled>Provar agora</button>
       </div>
     </section>
@@ -327,6 +338,6 @@
   </template>
   <div id="toast"></div>
 
-  <script src="app.js?v=36"></script>
+  <script src="app.js?v=37"></script>
 </body>
 </html>
