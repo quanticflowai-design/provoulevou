@@ -1,0 +1,96 @@
+{
+ "name": "PL Catálogo — Check de limite (colar nos geradores)",
+ "nodes": [
+  {
+   "id": "pl-cat-check",
+   "name": "Check limite catálogo",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    520,
+    300
+   ],
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "jsCode": "// [PL Catálogo] Check de limite — 3 provas por cliente, por dia, por catálogo.\n//\n// ONDE ENTRA: logo depois do Webhook, nos DOIS geradores (gerador-oculos e\n// quantic-materialize), ANTES de qualquer chamada paga. O catalogo/app.js já\n// avisa o cliente, mas aviso não é trava: quem posta direto no webhook passa\n// por cima do front. Quem recusa de verdade é este nó.\n//\n// COMO LIGA: Code (este arquivo) → IF ({{ $json.limitado }} é true) →\n//   • true  → Respond to Webhook com {\"error\":\"limite_diario\"}\n//             (o app.js já entende essa resposta e trava o número na tela)\n//   • false → segue o fluxo normal de geração\n// O JSON pronto pra colar no canvas está em catalogo-check-limit.json.\n//\n// Prova de WIDGET não passa por aqui: sem catalog_slug o nó deixa seguir, que\n// o limite das lojas é outro e não é este nó que decide.\nconst SVC = '<SUPABASE_SERVICE_ROLE_KEY>';\nconst RPC = 'https://quantic-supabase.k5jwra.easypanel.host/rest/v1/rpc/pl_catalog_check_limit';\nconst LIMITE = 3;\n\nconst out = [];\nfor (const item of $input.all()) {\n  // multipart cai em $json.body em parte das versões do Webhook, e solto no\n  // $json nas outras — lê dos dois sem depender de qual.\n  const b = Object.assign({}, item.json, item.json.body || {});\n  const slug = String(b.catalog_slug || '').trim();\n  const fone = String(b.whatsapp || b.phone_raw || '').trim();\n  const passa = extra => out.push({ json: Object.assign({}, item.json, extra), binary: item.binary });\n\n  if (!slug || !fone) { passa({ limitado: false, motivo: 'nao_e_catalogo' }); continue; }\n\n  let r = null;\n  try {\n    r = await this.helpers.httpRequest({\n      method: 'POST', url: RPC,\n      headers: { apikey: SVC, Authorization: 'Bearer ' + SVC, 'Content-Type': 'application/json' },\n      body: { p_slug: slug, p_phone: fone, p_limite: LIMITE }, json: true\n    });\n  } catch (e) {\n    // Banco fora do ar não pode derrubar quem ainda tem saldo: deixa passar e\n    // registra o motivo na execução. Errar pro lado de recusar seria pior —\n    // o cliente perde a prova e a loja perde a venda.\n    passa({ limitado: false, motivo: 'check_indisponivel', check_erro: String((e && e.message) || e) });\n    continue;\n  }\n\n  // A função devolve `erro` (loja/telefone que ela não reconheceu) em vez de\n  // limited. Nesse caso não há contagem confiável pra barrar ninguém.\n  if (!r || r.erro) { passa({ limitado: false, motivo: (r && r.erro) || 'sem_resposta' }); continue; }\n\n  const usadas = Number(r.usadas) || 0;\n  passa({\n    limitado: r.limited === true,\n    usadas,\n    restantes: Math.max(0, LIMITE - usadas),\n    limite: LIMITE,\n    ip_usadas: Number(r.ip_usadas) || 0   // mesmo aparelho trocando de número; hoje não bloqueia\n  });\n}\nreturn out;\n"
+   }
+  },
+  {
+   "id": "pl-cat-if",
+   "name": "Limite atingido?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
+   "position": [
+    760,
+    300
+   ],
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose"
+     },
+     "conditions": [
+      {
+       "id": "limitado",
+       "operator": {
+        "type": "boolean",
+        "operation": "true",
+        "singleValue": true
+       },
+       "leftValue": "={{ $json.limitado }}",
+       "rightValue": ""
+      }
+     ],
+     "combinator": "and"
+    }
+   }
+  },
+  {
+   "id": "pl-cat-resp",
+   "name": "Responde limite_diario",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1,
+   "position": [
+    1000,
+    200
+   ],
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({ error: 'limite_diario', limite: $json.limite, usadas: $json.usadas, restantes: 0 }) }}",
+    "options": {
+     "responseCode": 200
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Check limite catálogo": {
+   "main": [
+    [
+     {
+      "node": "Limite atingido?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Limite atingido?": {
+   "main": [
+    [
+     {
+      "node": "Responde limite_diario",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    []
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}
