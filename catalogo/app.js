@@ -26,6 +26,11 @@
   document.documentElement.classList.add('loja-' + STORE_SLUG.replace(/[^a-z0-9-]/gi, ''));
   const MAX_UPLOAD_PX = 1280;   // reduz foto de celular antes de subir (custo/velocidade)
   const JPEG_QUALITY = 0.85;
+  // Cada cliente (WhatsApp) tem 3 provas por dia neste catálogo. O catálogo não
+  // tinha limite nenhum: o mesmo número provava o catálogo inteiro e cada prova
+  // custa geração pro lojista.
+  const MAX_PROVAS_DIA = 3;
+  const PROVAS_KEY = 'pc_provas_v1';
 
   // ─────────── Estado ───────────
   let storeRow = null;      // linha de pl_catalog_stores
@@ -139,6 +144,7 @@
       await loadCatalog();
       renderStore(); renderCatalog();
       aplicaPermissoes();   // owner_email so chega com a loja carregada
+      atualizaLimite();     // o whatsapp da loja (CTA do limite) so chega agora
     } catch (e) {
       console.warn('[Provou Catálogo] falha ao carregar do servidor:', e);
       toast('Não consegui carregar o catálogo');
@@ -261,6 +267,10 @@
     $('#btn-generate').disabled = true;
     $('#photo-input').value = '';
     const g = $('#photo-gallery'); if (g) g.value = '';
+    // O telefone continua digitado entre uma prova e outra, então o saldo tem
+    // que ser repintado toda vez que a tela abre — inclusive na 4a tentativa.
+    atualizaLimite();
+    agendaConsultaLimite();
   }
   function recebeFoto(e) {
     const file = e.target.files && e.target.files[0];
@@ -331,6 +341,152 @@
     return true;
   }
 
+  // ─────────── Limite de provas por cliente ───────────
+  // Quem conta de verdade é o BANCO: pl_catalog_check_limit(slug, telefone)
+  // devolve quantas provas aquele WhatsApp já fez nesta loja hoje. É uma função
+  // SECURITY DEFINER que responde só CONTAGEM, então a chave ANON pode chamar
+  // sem abrir geracoes_provou_levou (que continua fechada).
+  //
+  // O localStorage abaixo não sumiu: ele cobre a janela entre gerar a prova e o
+  // servidor contá-la, e mantém o limite de pé quando a rede cai no meio. Onde
+  // os dois discordam, vale o MAIOR — saldo a mais é prova que o lojista paga.
+  function provasKey() { return PROVAS_KEY + ':' + STORE_SLUG; }
+  // Data LOCAL do aparelho: toISOString() é UTC e viraria o dia às 21h no Brasil.
+  function hojeStr() {
+    const d = new Date();
+    const p = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  function lerProvas() {
+    let o = null;
+    try { o = JSON.parse(localStorage.getItem(provasKey()) || 'null'); } catch (e) {}
+    if (!o || typeof o !== 'object' || o.dia !== hojeStr() || !o.tel || typeof o.tel !== 'object') {
+      o = { dia: hojeStr(), tel: {} };   // virou o dia (ou nunca existiu): zera
+    }
+    return o;
+  }
+  function salvarProvas(o) {
+    try { localStorage.setItem(provasKey(), JSON.stringify(o)); } catch (e) {}
+  }
+  function provasLocais(tel) {
+    if (!tel) return 0;
+    return Number(lerProvas().tel[tel]) || 0;
+  }
+
+  // O contador do navegador é a marca d'água do dia: ele SÓ SOBE, e a resposta
+  // do banco o empurra pra cima quando vem maior. Nunca puxa pra baixo — o
+  // banco pode responder antes de gravar a prova que acabou de sair, e aceitar
+  // esse número devolveria ao cliente uma prova que ele já usou.
+  function absorveServidor(tel, usadas) {
+    if (!tel || !(usadas > provasLocais(tel))) return;
+    const o = lerProvas();
+    o.tel[tel] = usadas;
+    salvarProvas(o);
+  }
+  function provasUsadas(tel) { return provasLocais(tel); }
+  function provasRestantes(tel) { return Math.max(0, MAX_PROVAS_DIA - provasUsadas(tel)); }
+
+  // Pergunta ao banco. Devolve o número de provas usadas, ou null se não deu
+  // pra saber (rede fora, função ausente) — null NÃO é zero.
+  async function consultaServidor(tel) {
+    if (!tel) return null;
+    try {
+      const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_check_limit', {
+        method: 'POST',
+        headers: { apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_slug: STORE_SLUG, p_phone: tel, p_limite: MAX_PROVAS_DIA })
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const d = await r.json();
+      // Telefone/loja que a função não reconheceu não zera o contador local.
+      if (!d || d.erro) return null;
+      const usadas = Number(d.usadas) || 0;
+      absorveServidor(tel, usadas);
+      return usadas;
+    } catch (e) {
+      console.warn('[Provou Catálogo] check de limite indisponível:', e);
+      return null;
+    }
+  }
+
+  // Consulta em segundo plano enquanto o cliente digita, pra que o saldo na
+  // tela já esteja certo antes de ele mandar a foto.
+  let _limiteDebounce, _ultimoTelConsultado = '';
+  function agendaConsultaLimite() {
+    const tel = telAtual();
+    if (!tel || tel === _ultimoTelConsultado) return;
+    clearTimeout(_limiteDebounce);
+    _limiteDebounce = setTimeout(async () => {
+      _ultimoTelConsultado = tel;
+      const usadas = await consultaServidor(tel);
+      if (usadas === null) { _ultimoTelConsultado = ''; return; }   // deu erro: tenta de novo depois
+      if (telAtual() === tel) atualizaBotaoProvar();                // o campo pode ter mudado no meio
+    }, 500);
+  }
+  function registraProva(tel) {
+    if (!tel) return;
+    const o = lerProvas();
+    o.tel[tel] = (Number(o.tel[tel]) || 0) + 1;
+    salvarProvas(o);
+    _ultimoTelConsultado = '';   // o banco tem uma prova a mais: vale perguntar de novo
+  }
+  // O servidor recusou por limite: zera o saldo deste número aqui também, senão
+  // a tela continua oferecendo provas que o gerador não vai entregar.
+  function marcaLimite(tel) {
+    if (!tel) return;
+    const o = lerProvas();
+    o.tel[tel] = MAX_PROVAS_DIA;
+    salvarProvas(o);
+    _ultimoTelConsultado = '';
+  }
+
+  // Telefone do campo, no formato usado como chave (55 + DDD + número).
+  // Só devolve algo quando o número está completo — número pela metade não é
+  // cliente identificado, e contar por ele daria saldo grátis a cada dígito.
+  function telAtual() {
+    const n = soDigitos($('#phone-input') && $('#phone-input').value);
+    if (n.length < 10 || n.length > 11) return '';
+    return '55' + n;
+  }
+
+  // Mostra saldo/limite e devolve se o cliente ainda pode provar.
+  function atualizaLimite() {
+    const tel = telAtual();
+    const msg = $('#provas-restantes');
+    const box = $('#limite-box');
+    const btnW = $('#btn-limite-whats');
+    const restantes = tel ? provasRestantes(tel) : MAX_PROVAS_DIA;
+    const bloqueado = !!tel && restantes <= 0;
+
+    if (msg) {
+      if (tel && !bloqueado) {
+        msg.textContent = restantes + (restantes === 1 ? ' prova restante hoje' : ' provas restantes hoje');
+        msg.classList.toggle('is-warn', restantes === 1);
+        msg.hidden = false;
+      } else {
+        msg.textContent = '';
+        msg.classList.remove('is-warn');
+        msg.hidden = true;
+      }
+    }
+    if (box) {
+      box.hidden = !bloqueado;
+      const tit = $('#limite-titulo');
+      if (tit) tit.textContent = 'Você já usou suas ' + MAX_PROVAS_DIA + ' provas de hoje';
+      const t = $('#limite-texto');
+      if (t) {
+        t.textContent = 'Volte amanhã para provar outras peças' +
+          (temWhatsappLoja() ? ' — ou chame a loja para tirar dúvidas.' : '.');
+      }
+      if (btnW) btnW.hidden = !temWhatsappLoja();
+    }
+    return !bloqueado;
+  }
+
+  function temWhatsappLoja() {
+    return !!String((storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
+  }
+
   // dataURL -> Blob sem passar por fetch() (evita CSP e é síncrono)
   function dataUrlParaBlob(d) {
     const [cab, b64] = String(d).split(',');
@@ -343,23 +499,50 @@
 
   let _gerando = false;
 
+  // Tela de limite: repinta, avisa e leva o olho até o aviso.
+  function mostraLimite() {
+    atualizaBotaoProvar();
+    toast('Você já usou suas ' + MAX_PROVAS_DIA + ' provas de hoje');
+    const box = $('#limite-box');
+    if (box && box.scrollIntoView) { try { box.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {} }
+  }
+
   async function runGeneration() {
     if (_gerando) return;               // trava contra clique duplo (custa prova e dinheiro)
     const tel = soDigitos($('#phone-input') && $('#phone-input').value);
     if (!telefoneValido(tel)) { $('#phone-input').focus(); return; }
     if (!userPhoto) return;
+    const telKey = '55' + tel;
+    // Trava antes de gastar geração: o cliente já usou as 3 provas do dia.
+    if (!atualizaLimite()) { mostraLimite(); return; }
 
-    // O catálogo renderiza do cache do localStorage, então a tela funciona mesmo
-    // quando a leitura da loja falha — e aí storeRow fica nulo e a prova morria com
-    // "loja sem chave". Antes de desistir, tenta buscar a loja de novo.
-    let chave = storeRow && storeRow.store_api_key;
-    if (!chave) {
-      try { await loadStore(); } catch (e) {}
-      chave = storeRow && storeRow.store_api_key;
-    }
-    if (!chave) { toast('Não consegui falar com o servidor. Tente de novo.'); return; }
-
+    // Marca ANTES do await: o check no banco leva uns milissegundos, e sem isso
+    // dois cliques rápidos passavam os dois pela verificação.
     _gerando = true;
+    try {
+      // Palavra final é do banco — este navegador pode ter sido limpo.
+      // Se ele não responder, segue com a contagem local: rede caída não pode
+      // impedir de provar quem ainda tem saldo.
+      await consultaServidor(telKey);
+      if (provasUsadas(telKey) >= MAX_PROVAS_DIA) { mostraLimite(); return; }
+
+      // O catálogo renderiza do cache do localStorage, então a tela funciona mesmo
+      // quando a leitura da loja falha — e aí storeRow fica nulo e a prova morria com
+      // "loja sem chave". Antes de desistir, tenta buscar a loja de novo.
+      let chave = storeRow && storeRow.store_api_key;
+      if (!chave) {
+        try { await loadStore(); } catch (e) {}
+        chave = storeRow && storeRow.store_api_key;
+      }
+      if (!chave) { toast('Não consegui falar com o servidor. Tente de novo.'); return; }
+      await geraProva(tel, chave);
+    } finally {
+      _gerando = false;
+      atualizaBotaoProvar();   // repinta saldo/limite com a contagem já atualizada
+    }
+  }
+
+  async function geraProva(tel, chave) {
     show('loading');
     const bar = $('#progress-bar');
     let i = 0; bar.style.width = '8%';
@@ -399,20 +582,23 @@
         let msg = 'Não consegui gerar sua prova agora. Tente de novo em instantes.';
         try {
           const j = await res.json();
-          if (j.error === 'limite_diario') msg = 'Você já usou suas provas de hoje. Volte amanhã!';
+          if (j.error === 'limite_diario' || j.error === 'limite_atingido' || j.limited) {
+            msg = 'Você já usou suas provas de hoje. Volte amanhã!';
+            marcaLimite('55' + tel);   // o servidor mandou parar: a tela para também
+          }
         } catch (e) {}
         throw new Error(msg);
       }
 
       const blob = await res.blob();
+      // Só conta o que o gerador entregou: prova que falhou não foi usada.
+      registraProva('55' + tel);
       clearInterval(iv); bar.style.width = '100%';
       showResult(URL.createObjectURL(blob));
     } catch (e) {
       clearInterval(iv);
       toast((e && e.message) || 'Não consegui gerar sua prova agora.');
       show('tryon');
-    } finally {
-      _gerando = false;
     }
   }
 
@@ -707,6 +893,7 @@
             : '(' + n.slice(0, 2) + ') ' + n.slice(2, 7) + '-' + n.slice(7);
       const err = $('#phone-error'); if (err) err.hidden = true;
       atualizaBotaoProvar();
+      agendaConsultaLimite();   // saldo real do banco enquanto ele ainda digita
     });
   })();
 
@@ -715,8 +902,9 @@
     const temTel = soDigitos($('#phone-input') && $('#phone-input').value).length >= 10;
     const ok = $('#accept-terms');
     const aceitou = !ok || ok.checked;   // guard: HTML em cache sem o checkbox
+    const podeProvar = atualizaLimite();
     const b = $('#btn-generate');
-    if (b) b.disabled = !(temFoto && temTel && aceitou);
+    if (b) b.disabled = !(temFoto && temTel && aceitou && podeProvar);
   }
   {
     const ok = $('#accept-terms');
@@ -734,6 +922,19 @@
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
   }
   $('#btn-buy').addEventListener('click', comprarNoWhatsapp);
+  // Limite atingido: a conversa com a loja é a única saída hoje, então o texto
+  // já vai pronto — sem isso o cliente sai da página e não volta.
+  {
+    const bw = $('#btn-limite-whats');
+    if (bw) bw.addEventListener('click', () => {
+      const tel = String((storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
+      if (!tel) return;
+      const num = tel.length <= 11 ? '55' + tel : tel;
+      const txt = 'Oi! Usei minhas provas de hoje no provador virtual da ' + STORE.name +
+        (current && current.name ? ' e fiquei interessado no ' + current.name : '') + '.';
+      window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
+    });
+  }
   $('#btn-tryother').addEventListener('click', () => show('catalog'));
   $('#btn-back-catalog').addEventListener('click', () => { clearTimeout(pixTimer); show('catalog'); });
   $$('[data-back]').forEach(b => b.addEventListener('click', () => { clearTimeout(pixTimer); show(b.dataset.back); }));
