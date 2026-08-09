@@ -21,11 +21,13 @@
         if (!sid) { sid = 'sid_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10); sessionStorage.setItem('pl_session_id', sid); }
       } catch (e) { sid = null; }
 
-      // page_viewed nao dispara sozinho neste SDK — tem que chamar
+      // Os dados do usuario sao por requisicao: vao no init, nunca no measure.
+      // Por isso o init roda de novo assim que o hash fica pronto.
       if (sid) {
         sha256(sid).then(function (h) {
           window.__plExternalId = h;
-          oaiq('measure', 'page_viewed', h ? { type: 'contents', user_data: { external_id_sha256: h } } : { type: 'contents' });
+          if (h) oaiq('init', { pixelId: 'PRLbm6WsqoRUmezfmDY9YG', user: { external_id_sha256: h } });
+          oaiq('measure', 'page_viewed', { type: 'contents' });
         });
       } else {
         oaiq('measure', 'page_viewed', { type: 'contents' });
@@ -6289,9 +6291,8 @@
             // nao aceita telefone (so email/external_id) — que e o unico dado que temos
             // de quem chega pelo WhatsApp. Por isso o lead_created sai daqui.
             if (!jaContou && typeof oaiq === 'function') {
-              var dadosGpt = { type: 'customer_action', event_id: eventoId };
-              if (window.__plExternalId) dadosGpt.user_data = { external_id_sha256: window.__plExternalId };
-              oaiq('measure', 'lead_created', dadosGpt);
+              // event_id vai no 4o argumento (options) — e ele que deduplica com a API
+              oaiq('measure', 'lead_created', { type: 'customer_action' }, { event_id: eventoId });
             }
 
             if (!jaContou) { try { sessionStorage.setItem(chave, '1'); } catch (e) {} }
