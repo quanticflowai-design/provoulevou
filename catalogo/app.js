@@ -123,6 +123,10 @@
     // MV Ótica: dourado e BRANCO — o fundo padrão do app é lilás, então ele
     // também entra aqui. O dourado do botão é mais fechado que o do logo pra
     // o texto branco em cima dele continuar legível (contraste 4,8 : 1).
+    // Valter Ótica: o logo é vermelho sobre branco, então o fundo lilás padrão
+    // não combina. Vermelho da própria marca, que já passa contraste (7,6:1).
+    valterotica: { bg: '#ffffff', card: '#ffffff', line: '#F0E2E1',
+                   brand: '#AC0300', dark: '#8A0200', soft: 'rgba(172,3,0,.09)', on: '#ffffff' },
     mvotica: { bg: '#ffffff', card: '#ffffff', line: '#EFE6D2',
                brand: '#8F6D2E', dark: '#75581F', soft: 'rgba(143,109,46,.12)', on: '#ffffff' },
     vyre: { bg: '#08132B', card: '#0E1D3D', line: 'rgba(199,162,74,.28)',
@@ -131,7 +135,11 @@
 
   function aplicaTema(cor) {
     const el = document.documentElement;
-    const lum = luminancia(cor);
+    const ac0 = ACENTOS[STORE_SLUG];
+    // Quem manda no tema é o FUNDO, não a cor da marca. O vermelho da Valter é
+    // escuro, mas o catálogo dela é branco — sem isto entrava o tema escuro e,
+    // com ele, borda branca em fundo branco e o logo do rodapé sumindo.
+    const lum = luminancia(ac0 ? ac0.bg : cor);
     const escuro = lum !== null && lum < 60;
     el.classList.toggle('tema-escuro', escuro);
     if (escuro) {
@@ -141,7 +149,7 @@
     } else if (cor) {
       el.style.setProperty('--brand', cor);
     }
-    const ac = ACENTOS[STORE_SLUG];
+    const ac = ac0;
     if (ac) {
       // depois do tema, porque sobrescreve o que ele acabou de definir
       el.style.setProperty('--brand', ac.brand);
