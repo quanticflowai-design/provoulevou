@@ -114,6 +114,21 @@
   // A cor da loja também escolhe o TEMA. Loja que define uma cor bem escura
   // (Saint Pierre = #0B0B0B) quer identidade preta: fundo preto, texto branco e
   // botões brancos — usar aquele preto como cor de botão deixaria tudo invisível.
+  // Lojas com DUAS cores de marca. `primary_color` guarda uma só e define o
+  // tema; quem tem cor de destaque (a Vyre é marinho + dourado) precisa dizer
+  // qual é, senão o tema escuro pinta tudo de branco e o dourado some.
+  // Fica aqui porque pl_catalog_stores não tem coluna de acento — quando tiver,
+  // isto vira leitura do banco.
+  const ACENTOS = {
+    // MV Ótica: dourado e BRANCO — o fundo padrão do app é lilás, então ele
+    // também entra aqui. O dourado do botão é mais fechado que o do logo pra
+    // o texto branco em cima dele continuar legível (contraste 4,8 : 1).
+    mvotica: { bg: '#ffffff', card: '#ffffff', line: '#EFE6D2',
+               brand: '#8F6D2E', dark: '#75581F', soft: 'rgba(143,109,46,.12)', on: '#ffffff' },
+    vyre: { bg: '#08132B', card: '#0E1D3D', line: 'rgba(199,162,74,.28)',
+            brand: '#C7A24A', dark: '#A9863A', soft: 'rgba(199,162,74,.16)', on: '#08132B' }
+  };
+
   function aplicaTema(cor) {
     const el = document.documentElement;
     const lum = luminancia(cor);
@@ -125,6 +140,18 @@
       el.style.setProperty('--brand-soft', 'rgba(255,255,255,.10)');
     } else if (cor) {
       el.style.setProperty('--brand', cor);
+    }
+    const ac = ACENTOS[STORE_SLUG];
+    if (ac) {
+      // depois do tema, porque sobrescreve o que ele acabou de definir
+      el.style.setProperty('--brand', ac.brand);
+      el.style.setProperty('--brand-dark', ac.dark);
+      el.style.setProperty('--brand-soft', ac.soft);
+      el.style.setProperty('--on-brand', ac.on);
+      el.style.setProperty('--bg', ac.bg);
+      el.style.setProperty('--card', ac.card);
+      el.style.setProperty('--line', ac.line);
+      document.body.style.background = ac.bg;
     }
   }
 
