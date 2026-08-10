@@ -10,7 +10,17 @@
   // Nome neutro: o padrão nunca pode ser o de uma loja real, senão a marca dela
   // aparece no catálogo das outras enquanto a loja certa não carrega.
   const STORE = { name: 'Catálogo' };
-  const KEY = 'pc_catalog_v1';
+  // v2: o v1 ficou envenenado. A versão antiga do app tinha um catálogo de
+  // demonstração e o `save()` gravava ELE no localStorage — então quem abriu o
+  // catálogo antes da correção tem 6 produtos de outra loja guardados no
+  // navegador, e continua vendo o flash mesmo com o código novo. Trocar a chave
+  // abandona esses caches de uma vez; o v1 é apagado logo abaixo.
+  const KEY = 'pc_catalog_v2';
+  try {
+    Object.keys(localStorage)
+      .filter(k => k.indexOf('pc_catalog_v1') === 0)
+      .forEach(k => localStorage.removeItem(k));
+  } catch (e) {}
 
   // ─────────── Backend (Supabase + n8n) ───────────
   // Leitura: direto no Supabase com a chave ANON (pública, só lê).
