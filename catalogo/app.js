@@ -242,6 +242,11 @@
 
   // ─────────── Router ───────────
   function show(name) {
+    // sair do produto tira o ?p= da URL: senão o lojista copia da barra achando
+    // que é o link do catálogo e manda o cliente pra um modelo só
+    if (name === 'catalog' && new URLSearchParams(location.search).get('p')) {
+      try { history.pushState({}, '', location.pathname + '?loja=' + encodeURIComponent(STORE_SLUG)); } catch (e) {}
+    }
     $$('.screen').forEach(s => s.classList.toggle('active', s.dataset.screen === name));
     document.getElementById('app').scrollTop = 0;
     window.scrollTo(0, 0);
@@ -300,14 +305,34 @@
   }
 
   // ─────────── Produto ───────────
-  function openProduct(p) {
+  // Link de UM produto: o lojista manda direto pro cliente e ele cai na página
+  // daquele modelo, não no catálogo inteiro. É só isso que o `p` na URL faz.
+  function linkProduto(prod) {
+    return location.origin + location.pathname +
+      '?loja=' + encodeURIComponent(STORE_SLUG) + '&p=' + encodeURIComponent(prod.id);
+  }
+
+  function openProduct(p, semHistorico) {
     current = p;
     bindImg($('#p-img'), p.img, p.name);
     $('#p-name').textContent = p.name;
     $('#p-price').textContent = brl(p.price);
     $('#p-install').textContent = 'ou 12x de ' + brl(p.price / 12);
     show('product');
+    // troca a URL sem recarregar, pra quem chegou pelo catálogo poder copiar da
+    // barra de endereço e o "voltar" do navegador funcionar
+    if (!semHistorico) {
+      try { history.pushState({ p: p.id }, '', linkProduto(p)); } catch (e) {}
+    }
   }
+
+  // voltar do navegador: sai do produto pro catálogo em vez de sair do site
+  window.addEventListener('popstate', ev => {
+    const id = ev.state && ev.state.p;
+    const prod = id && catalog.find(x => String(x.id) === String(id));
+    if (prod) openProduct(prod, true);
+    else show('catalog');
+  });
 
   // ─────────── Try-on: upload ───────────
   function resetUploader() {
@@ -790,13 +815,31 @@
       const foto = document.createElement('img'); foto.alt = '';
       const nome = document.createElement('span'); nome.className = 'ai-name'; nome.textContent = p.name;
       const preco = document.createElement('span'); preco.className = 'ai-price'; preco.textContent = brl(p.price);
+      const copiar = document.createElement('button');
+      copiar.type = 'button'; copiar.className = 'ai-link';
+      copiar.title = 'Copiar link deste produto';
+      copiar.setAttribute('aria-label', 'Copiar link de ' + p.name);
+      const tplLink = $('#tpl-link');
+      if (tplLink) copiar.appendChild(tplLink.content.cloneNode(true)); else copiar.textContent = '🔗';
+      copiar.addEventListener('click', async () => {
+        const url = linkProduto(p);
+        try { await navigator.clipboard.writeText(url); toast('Link copiado ✓'); }
+        catch (e) {
+          // clipboard bloqueado (http, permissão): seleciona pra copiar na mão
+          const i = document.createElement('input');
+          i.value = url; document.body.appendChild(i); i.select();
+          try { document.execCommand('copy'); toast('Link copiado ✓'); }
+          catch (_) { toast('Copie: ' + url); }
+          i.remove();
+        }
+      });
       const del = document.createElement('button');
       del.type = 'button'; del.className = 'ai-del';
       del.title = 'Excluir produto'; del.setAttribute('aria-label', 'Excluir ' + p.name);
       const tpl = $('#tpl-lixeira');
       if (tpl) del.appendChild(tpl.content.cloneNode(true));
       else del.textContent = '✕';   // guard: HTML em cache sem o template
-      item.append(foto, nome, preco, del);
+      item.append(foto, nome, preco, copiar, del);
       bindImg(foto, p.img, p.name);
       del.addEventListener('click', () => { del.disabled = true; removeProduct(p.id); });
       list.appendChild(item);
@@ -1002,6 +1045,8 @@
   }
 
   // ─────────── Init ───────────
+  const pedido = (location.hash === '#admin' || location.hash === '#login')
+    ? null : new URLSearchParams(location.search).get('p');
   aplicaPermissoes();   // esconde a area do lojista antes de pintar a tela
   renderStore();
   renderCatalog();          // pinta na hora com o cache
@@ -1019,4 +1064,16 @@
     else location.href = 'painel/';
   }
   else show('catalog');
+
+  // Chegou por um link de produto: espera o catálogo carregar e abre nele.
+  // `pedido` é lido lá em cima, ANTES de qualquer show(): o show('catalog') do
+  // init limpa o ?p= da URL, e lendo aqui ele já teria sumido.
+  if (pedido) {
+    const abre = () => {
+      const prod = catalog.find(x => String(x.id) === String(pedido));
+      if (prod) openProduct(prod, true);
+      else toast('Esse produto não está mais disponível');
+    };
+    if (cargaInicial) cargaInicial.then(abre); else abre();
+  }
 })();
