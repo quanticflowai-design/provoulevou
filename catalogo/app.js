@@ -123,6 +123,10 @@
     // MV Ótica: dourado e BRANCO — o fundo padrão do app é lilás, então ele
     // também entra aqui. O dourado do botão é mais fechado que o do logo pra
     // o texto branco em cima dele continuar legível (contraste 4,8 : 1).
+    // Aqui Lentes: azul e amarelo. O azul do fundo é mais fundo que o do logo,
+    // senão o selo circular deles some dentro da página.
+    aquilentes: { bg: '#0B2350', card: '#122F63', line: 'rgba(245,222,0,.30)',
+                  brand: '#F5DE00', dark: '#DCC800', soft: 'rgba(245,222,0,.15)', on: '#0B2350' },
     // Ótica Stilus Prime: preto e dourado. O logo deles já vem com fundo preto
     // chapado, então o fundo do catálogo é preto puro pra imagem encaixar sem
     // virar um retângulo dentro da página.
