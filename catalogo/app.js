@@ -123,6 +123,11 @@
     // MV Ótica: dourado e BRANCO — o fundo padrão do app é lilás, então ele
     // também entra aqui. O dourado do botão é mais fechado que o do logo pra
     // o texto branco em cima dele continuar legível (contraste 4,8 : 1).
+    // Ótica Stilus Prime: preto e dourado. O logo deles já vem com fundo preto
+    // chapado, então o fundo do catálogo é preto puro pra imagem encaixar sem
+    // virar um retângulo dentro da página.
+    stilus: { bg: '#000000', card: '#0D0D0D', line: 'rgba(212,166,60,.30)',
+              brand: '#D4A63C', dark: '#B88C2C', soft: 'rgba(212,166,60,.16)', on: '#000000' },
     // Ronaldo Óculos: preto e branco. O logo é uma assinatura preta de traço
     // fino — invertê-la pra um fundo escuro estragaria o desenho, então o preto
     // é a cor da marca e o fundo fica branco.
