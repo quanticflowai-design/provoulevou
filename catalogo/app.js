@@ -123,6 +123,10 @@
     // MV Ótica: dourado e BRANCO — o fundo padrão do app é lilás, então ele
     // também entra aqui. O dourado do botão é mais fechado que o do logo pra
     // o texto branco em cima dele continuar legível (contraste 4,8 : 1).
+    // Ótica CatGlass: preto e roxo. O logo deles ja vem em fundo preto, entao o
+    // catalogo tambem — o selo circular encaixa sem virar quadrado na pagina.
+    catglass: { bg: '#000000', card: '#120A1C', line: 'rgba(151,64,224,.34)',
+                brand: '#9740E0', dark: '#7A22C4', soft: 'rgba(151,64,224,.18)', on: '#ffffff' },
     // Ótica Paranhos: azul e amarelo, como a Aqui Lentes — mas o azul deles é
     // mais violeta (#283796), então o fundo acompanha esse tom pra não parecer
     // a mesma loja.
