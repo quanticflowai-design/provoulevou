@@ -123,6 +123,11 @@
     // MV Ótica: dourado e BRANCO — o fundo padrão do app é lilás, então ele
     // também entra aqui. O dourado do botão é mais fechado que o do logo pra
     // o texto branco em cima dele continuar legível (contraste 4,8 : 1).
+    // Ótica Paranhos: azul e amarelo, como a Aqui Lentes — mas o azul deles é
+    // mais violeta (#283796), então o fundo acompanha esse tom pra não parecer
+    // a mesma loja.
+    paranhos: { bg: '#151B63', card: '#1D247A', line: 'rgba(254,238,5,.30)',
+                brand: '#FEEE05', dark: '#E2D400', soft: 'rgba(254,238,5,.15)', on: '#151B63' },
     // Aqui Lentes: azul e amarelo. O azul do fundo é mais fundo que o do logo,
     // senão o selo circular deles some dentro da página.
     aquilentes: { bg: '#0B2350', card: '#122F63', line: 'rgba(245,222,0,.30)',
