@@ -29,6 +29,7 @@
   const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.pCFnSnrlSUM2EwXi9gxAegpoC-9U0Mjx3iAtROR-E20';
   const WH_ADD_PRODUCT = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-product';
   const WH_DEL_PRODUCT = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-product-delete';
+  const WH_EDIT_PRODUCT = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-product-update';
   // slug da loja: ?loja=<slug> na URL (cada lojista tem o seu link)
   const STORE_SLUG = (new URLSearchParams(location.search).get('loja') || 'lojateste').trim();
   // Gancho de CSS por loja: o app é um só, então ajuste que vale pra UMA loja
@@ -833,6 +834,13 @@
       const foto = document.createElement('img'); foto.alt = '';
       const nome = document.createElement('span'); nome.className = 'ai-name'; nome.textContent = p.name;
       const preco = document.createElement('span'); preco.className = 'ai-price'; preco.textContent = brl(p.price);
+      const editar = document.createElement('button');
+      editar.type = 'button'; editar.className = 'ai-edit';
+      editar.title = 'Editar produto';
+      editar.setAttribute('aria-label', 'Editar ' + p.name);
+      const tplLapis = $('#tpl-lapis');
+      if (tplLapis) editar.appendChild(tplLapis.content.cloneNode(true)); else editar.textContent = '✎';
+      editar.addEventListener('click', () => entraEdicao(p));
       const copiar = document.createElement('button');
       copiar.type = 'button'; copiar.className = 'ai-link';
       copiar.title = 'Copiar link deste produto';
@@ -857,7 +865,7 @@
       const tpl = $('#tpl-lixeira');
       if (tpl) del.appendChild(tpl.content.cloneNode(true));
       else del.textContent = '✕';   // guard: HTML em cache sem o template
-      item.append(foto, nome, preco, copiar, del);
+      item.append(foto, nome, preco, editar, copiar, del);
       bindImg(foto, p.img, p.name);
       del.addEventListener('click', () => { del.disabled = true; removeProduct(p.id); });
       list.appendChild(item);
@@ -884,6 +892,36 @@
     }
   }
   let adminPhotoB64 = '';   // base64 já comprimido, pronto pra subir
+  let editando = null;      // produto em edição (null = cadastrando um novo)
+
+  // Editar reaproveita o formulário de cadastro em vez de abrir outra tela: é o
+  // mesmo par nome+preço, e o lojista já sabe onde ficam os campos.
+  function entraEdicao(p) {
+    editando = p;
+    $('#admin-name').value = p.name;
+    $('#admin-price').value = Number(p.price).toFixed(2).replace('.', ',');
+    const prev = $('#admin-up-preview');
+    if (p.img) { prev.src = p.img; prev.hidden = false; $('#admin-up-empty').style.display = 'none'; }
+    $('#btn-add-product').textContent = 'Salvar alterações';
+    $('#btn-cancel-edit').hidden = false;
+    $('#admin-name').focus();
+    $('#admin-name').scrollIntoView({ block: 'center', behavior: 'smooth' });
+    toast('Editando ' + p.name);
+  }
+
+  function saiEdicao() {
+    editando = null;
+    $('#admin-name').value = ''; $('#admin-price').value = '';
+    adminPhoto = ''; adminPhotoB64 = '';
+    $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = '';
+    const f = $('#admin-photo'); if (f) f.value = '';
+    $('#btn-add-product').textContent = 'Adicionar ao catálogo';
+    $('#btn-cancel-edit').hidden = true;
+  }
+  {
+    const c = $('#btn-cancel-edit');
+    if (c) c.addEventListener('click', saiEdicao);
+  }
   $('#admin-photo').addEventListener('change', async e => {
     const file = e.target.files && e.target.files[0]; if (!file) return;
     const b64 = await compressImage(file);
@@ -900,8 +938,31 @@
     const price = parseFloat(priceRaw);
     if (!name) { toast('Dê um nome ao produto'); return; }
     if (!price || price <= 0) { toast('Informe um preço válido'); return; }
-    if (!adminPhotoB64) { toast('Envie a foto do produto'); return; }
+    // na edição a foto continua a mesma: só nome e preço mudam
+    if (!editando && !adminPhotoB64) { toast('Envie a foto do produto'); return; }
     if (!storeRow) { toast('Loja não encontrada — recarregue a página'); return; }
+
+    if (editando) {
+      const txt0 = btn.textContent;
+      btn.disabled = true; btn.textContent = 'Salvando…';
+      try {
+        const r = await fetch(WH_EDIT_PRODUCT, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ product_id: editando.id, name, price })
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        await loadCatalog();
+        renderAdmin(); renderCatalog();
+        saiEdicao();
+        toast('Produto atualizado ✓');
+      } catch (e) {
+        console.warn('[Provou Catálogo] erro ao editar:', e);
+        toast('Não consegui salvar. Tente de novo.');
+      } finally {
+        btn.disabled = false; btn.textContent = editando ? txt0 : 'Adicionar ao catálogo';
+      }
+      return;
+    }
 
     // Espera a confirmação de propósito: produto que "aparece" sem ter subido
     // dá ao lojista a certeza errada de que o catálogo está publicado. Ele fica
