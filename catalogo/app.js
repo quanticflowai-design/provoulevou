@@ -223,9 +223,7 @@
         id: r.id, name: r.name, price: Number(r.price), img: urls[0] || '',
         imgs: urls,                       // a galeria e as referências da prova saem daqui
         desc: r.description || '',
-        // `sku` guarda o nº máximo de parcelas até existir coluna própria — ver
-        // o SQL de migração em references/dados.md da skill de onboarding
-        parcelas: Number(r.sku) || 0,
+        parcelas: Number(r.parcelas) || 0,
         categoria: categoriaDe(r)
       };
     });
