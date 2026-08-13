@@ -185,7 +185,15 @@
     mvotica: { bg: '#ffffff', card: '#ffffff', line: '#EFE6D2',
                brand: '#8F6D2E', dark: '#75581F', soft: 'rgba(143,109,46,.12)', on: '#ffffff' },
     vyre: { bg: '#08132B', card: '#0E1D3D', line: 'rgba(199,162,74,.28)',
-            brand: '#C7A24A', dark: '#A9863A', soft: 'rgba(199,162,74,.16)', on: '#08132B' }
+            brand: '#C7A24A', dark: '#A9863A', soft: 'rgba(199,162,74,.16)', on: '#08132B' },
+    // Ótica Matheus: o laranja do logo é o #FF7100 puro. Texto do botão vai
+    // preto — laranja com branco por cima dá 2,9:1 e some no sol.
+    oticamatheus: { bg: '#000000', card: '#0D0D0D', line: 'rgba(255,113,0,.30)',
+                    brand: '#FF7100', dark: '#E06200', soft: 'rgba(255,113,0,.15)', on: '#0A0A0A' },
+    // Ótica Popular: azul-marinho do logo; o amarelo e o verde ficam só na arte,
+    // como no original — viram ruído se usados em botão.
+    oticapopular: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E2E8F1',
+                    brand: '#184678', dark: '#123353', soft: 'rgba(24,70,120,.10)', on: '#ffffff' }
   };
 
   function aplicaTema(cor) {
