@@ -124,6 +124,12 @@
     // MV Ótica: dourado e BRANCO — o fundo padrão do app é lilás, então ele
     // também entra aqui. O dourado do botão é mais fechado que o do logo pra
     // o texto branco em cima dele continuar legível (contraste 4,8 : 1).
+    // Florão Óculos: creme e dourado, direto do selo deles. O fundo acompanha o
+    // creme do anel externo pra a logo nao virar um adesivo colado na pagina; o
+    // dourado do botao e mais fechado que o do desenho, senao o texto branco em
+    // cima nao le (3,9:1 -> 4,7:1).
+    florao: { bg: '#FBF3E8', card: '#FFFFFF', line: '#EADDC7',
+              brand: '#956C26', dark: '#7C5A1F', soft: 'rgba(149,108,38,.12)', on: '#ffffff' },
     // Ótica CatGlass: preto e roxo. O logo deles ja vem em fundo preto, entao o
     // catalogo tambem — o selo circular encaixa sem virar quadrado na pagina.
     catglass: { bg: '#000000', card: '#120A1C', line: 'rgba(151,64,224,.34)',
