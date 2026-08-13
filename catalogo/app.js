@@ -222,6 +222,10 @@
       return {
         id: r.id, name: r.name, price: Number(r.price), img: urls[0] || '',
         imgs: urls,                       // a galeria e as referências da prova saem daqui
+        desc: r.description || '',
+        // `sku` guarda o nº máximo de parcelas até existir coluna própria — ver
+        // o SQL de migração em references/dados.md da skill de onboarding
+        parcelas: Number(r.sku) || 0,
         categoria: categoriaDe(r)
       };
     });
@@ -383,7 +387,12 @@
     bindImg($('#p-img'), p.img, p.name);
     $('#p-name').textContent = p.name;
     $('#p-price').textContent = brl(p.price);
-    $('#p-install').textContent = 'ou 12x de ' + brl(p.price / 12);
+    // sem parcelamento informado o campo some, em vez de anunciar 12x que a
+    // loja talvez não pratique
+    const par = Number(p.parcelas) || 0;
+    $('#p-install').textContent = par > 1 ? 'ou até ' + par + 'x de ' + brl(p.price / par)
+                                : (par === 1 ? 'à vista' : '');
+    $('#p-desc').textContent = p.desc || '';
     montaMiniaturas(p);
     show('product');
     // troca a URL sem recarregar, pra quem chegou pelo catálogo poder copiar da
@@ -966,6 +975,8 @@
     editando = p;
     $('#admin-name').value = p.name;
     $('#admin-price').value = Number(p.price).toFixed(2).replace('.', ',');
+    $('#admin-desc').value = p.desc || '';
+    $('#admin-parcelas').value = p.parcelas ? String(p.parcelas) : '';
     const prev = $('#admin-up-preview');
     if (p.img) { prev.src = p.img; prev.hidden = false; $('#admin-up-empty').style.display = 'none'; }
     $('#btn-add-product').textContent = 'Salvar alterações';
@@ -978,6 +989,7 @@
   function saiEdicao() {
     editando = null;
     $('#admin-name').value = ''; $('#admin-price').value = '';
+    $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
     adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = [];
     $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = '';
     const cc0 = $('#admin-up-conta'); if (cc0) cc0.hidden = true;
@@ -1029,7 +1041,9 @@
       try {
         const r = await fetch(WH_EDIT_PRODUCT, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ product_id: editando.id, name, price })
+          body: JSON.stringify({ product_id: editando.id, name, price,
+                                 description: $('#admin-desc').value.trim() || null,
+                                 parcelas: Number($('#admin-parcelas').value) || null })
         });
         if (!r.ok) throw new Error('HTTP ' + r.status);
         await loadCatalog();
@@ -1053,7 +1067,10 @@
     try {
       const r = await fetch(WH_ADD_PRODUCT, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ store_slug: STORE_SLUG, name, price, mime: 'image/jpeg', image_b64: adminPhotoB64 })
+        body: JSON.stringify({ store_slug: STORE_SLUG, name, price, descricao_e_parcelas: 1,
+                               description: $('#admin-desc').value.trim() || null,
+                               parcelas: Number($('#admin-parcelas').value) || null,
+                               mime: 'image/jpeg', image_b64: adminPhotoB64 })
       });
       const data = await r.json().catch(() => null);
       if (!r.ok || !data || !data.ok) throw new Error('falha no upload');
@@ -1079,6 +1096,7 @@
       await loadCatalog();
       renderAdmin(); renderCatalog();
       $('#admin-name').value = ''; $('#admin-price').value = '';
+      $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
       adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = [];
       $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = ''; $('#admin-photo').value = '';
       const cc = $('#admin-up-conta'); if (cc) cc.hidden = true;

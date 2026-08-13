@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=57">
+  <link rel="stylesheet" href="styles.css?v=58">
 </head>
 <body>
   <div id="app">
@@ -57,7 +57,7 @@
             <span class="p-price" id="p-price">R$ 0,00</span>
             <span class="p-install" id="p-install"></span>
           </div>
-          <p class="p-desc" id="p-desc">Experimente esse modelo em você antes de comprar. É só enviar uma foto sua.</p>
+          <p class="p-desc" id="p-desc"></p>
           <!-- Sem "Comprar" aqui: a página do produto existe pra levar o cliente
                à prova. Quem compra sem provar não vira lead e não usa o produto
                que o lojista está pagando. A compra aparece DEPOIS, na tela do
@@ -324,6 +324,21 @@
             <!-- decimal, nao numeric: o teclado "numeric" do Android nao tem virgula,
                  e o lojista so conseguia digitar preco inteiro. -->
             <input type="text" id="admin-price" inputmode="decimal" placeholder="Preço (ex: 149,90)">
+            <!-- O lojista é quem sabe em quantas vezes ele parcela: a maquininha
+                 dele, o acordo com a operadora. Calcular 12x fixo no código
+                 mostrava uma condição que muitos não praticam. -->
+            <select id="admin-parcelas">
+              <option value="">Parcelamento (opcional)</option>
+              <option value="1">à vista</option>
+              <option value="2">em até 2x</option>
+              <option value="3">em até 3x</option>
+              <option value="4">em até 4x</option>
+              <option value="5">em até 5x</option>
+              <option value="6">em até 6x</option>
+              <option value="10">em até 10x</option>
+              <option value="12">em até 12x</option>
+            </select>
+            <textarea id="admin-desc" rows="2" placeholder="Descrição (opcional): material, medidas, cor…"></textarea>
             <button class="btn-primary" id="btn-add-product">Adicionar ao catálogo</button>
             <button class="btn-outline" id="btn-cancel-edit" hidden>Cancelar edição</button>
           </div>
@@ -357,6 +372,6 @@
   </template>
   <div id="toast"></div>
 
-  <script src="app.js?v=57"></script>
+  <script src="app.js?v=58"></script>
 </body>
 </html>

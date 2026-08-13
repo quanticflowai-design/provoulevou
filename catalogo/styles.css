@@ -366,7 +366,13 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 .p-thumbs img.sel { border-color: var(--brand); }
 .admin-fields { flex: 1; display: flex; flex-direction: column; gap: 9px; }
 .admin-fields input { border: 1.5px solid var(--line); border-radius: 10px; padding: 11px; font-size: 14px; font-family: 'Hanken Grotesk', sans-serif; }
-.admin-fields input:focus { outline: none; border-color: var(--brand); }
+.admin-fields input:focus, .admin-fields select:focus, .admin-fields textarea:focus { outline: none; border-color: var(--brand); }
+.admin-fields select, .admin-fields textarea {
+  border: 1.5px solid var(--line); border-radius: 10px; padding: 11px; font-size: 14px;
+  font-family: 'Hanken Grotesk', sans-serif; background: var(--card); color: var(--ink); width: 100%;
+}
+.admin-fields textarea { resize: vertical; min-height: 44px; }
+.p-desc:empty { display: none; }
 .admin-fields .btn-primary { padding: 11px; font-size: 14px; }
 .admin-count { font-size: 13px; color: var(--muted); margin: 20px 0 10px; font-weight: 600; }
 .admin-list { display: flex; flex-direction: column; gap: 9px; }
