@@ -126,6 +126,11 @@
     // MV Ótica: dourado e BRANCO — o fundo padrão do app é lilás, então ele
     // também entra aqui. O dourado do botão é mais fechado que o do logo pra
     // o texto branco em cima dele continuar legível (contraste 4,8 : 1).
+    // Diamond Óculos: preto e dourado. Logo em fundo preto chapado, como o da
+    // Stilus e o da CatGlass — fundo preto puro pra a arte encaixar na página.
+    // No botão o texto é o próprio preto: 13:1 e o dourado da marca preservado.
+    diamond: { bg: '#000000', card: '#101010', line: 'rgba(242,205,124,.30)',
+               brand: '#F2CD7C', dark: '#D9B265', soft: 'rgba(242,205,124,.15)', on: '#0A0A0A' },
     // Óticas Carone: magenta e preto sobre branco. O magenta do logo (#E40677)
     // fica em 4,57 com texto branco — passa raspando, então fechei um pouco.
     carone: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F6E1EC',
