@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=56">
+  <link rel="stylesheet" href="styles.css?v=57">
 </head>
 <body>
   <div id="app">
@@ -49,6 +49,8 @@
       <button class="back" data-back="catalog">‹ Voltar</button>
       <div class="product-view">
         <div class="product-photo"><img id="p-img" alt=""></div>
+        <!-- miniaturas: só aparecem quando o produto tem mais de uma foto -->
+        <div class="p-thumbs" id="p-thumbs" hidden></div>
         <div class="product-info">
           <h2 id="p-name">—</h2>
           <div class="price-row">
@@ -306,13 +308,16 @@
         <p class="muted">Adicione as fotos dos seus produtos. Elas aparecem no seu link para os clientes provarem.</p>
 
         <div class="admin-add">
+          <!-- multiple: o cliente decide melhor com 2-3 ângulos, e o gerador
+               acerta mais a armação recebendo mais de uma referência. -->
           <label class="admin-uploader" id="admin-uploader">
-            <input type="file" id="admin-photo" accept="image/*" hidden>
+            <input type="file" id="admin-photo" accept="image/*" multiple hidden>
             <div id="admin-up-empty">
               <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              <span>Foto do produto</span>
+              <span>Fotos do produto</span>
             </div>
             <img id="admin-up-preview" alt="" hidden>
+            <span class="admin-up-conta" id="admin-up-conta" hidden></span>
           </label>
           <div class="admin-fields">
             <input type="text" id="admin-name" placeholder="Nome do produto">
@@ -352,6 +357,6 @@
   </template>
   <div id="toast"></div>
 
-  <script src="app.js?v=56"></script>
+  <script src="app.js?v=57"></script>
 </body>
 </html>

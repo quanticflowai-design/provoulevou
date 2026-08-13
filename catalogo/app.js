@@ -30,6 +30,8 @@
   const WH_ADD_PRODUCT = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-product';
   const WH_DEL_PRODUCT = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-product-delete';
   const WH_EDIT_PRODUCT = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-product-update';
+  const WH_ADD_IMAGE = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-product-image';
+  const MAX_FOTOS_PRODUTO = 5;   // teto: além disso o cadastro fica lento e o ganho some
   // slug da loja: ?loja=<slug> na URL (cada lojista tem o seu link)
   const STORE_SLUG = (new URLSearchParams(location.search).get('loja') || 'lojateste').trim();
   // Gancho de CSS por loja: o app é um só, então ajuste que vale pra UMA loja
@@ -216,8 +218,10 @@
     catalog = (rows || []).map(r => {
       const imgs = (r.pl_catalog_product_images || [])
         .slice().sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.position || 0) - (b.position || 0));
+      const urls = imgs.map(x => x.url).filter(Boolean);
       return {
-        id: r.id, name: r.name, price: Number(r.price), img: (imgs[0] || {}).url || '',
+        id: r.id, name: r.name, price: Number(r.price), img: urls[0] || '',
+        imgs: urls,                       // a galeria e as referências da prova saem daqui
         categoria: categoriaDe(r)
       };
     });
@@ -344,6 +348,29 @@
   }
 
   // ─────────── Produto ───────────
+  // Miniaturas só fazem sentido com mais de uma foto — com uma só, viram um
+  // quadradinho solto embaixo da imagem sem função nenhuma.
+  function montaMiniaturas(p) {
+    const box = $('#p-thumbs');
+    if (!box) return;
+    box.textContent = '';
+    const fotos = (p.imgs && p.imgs.length ? p.imgs : [p.img]).filter(Boolean);
+    box.hidden = fotos.length < 2;
+    if (box.hidden) return;
+    fotos.forEach((u, i) => {
+      const t = document.createElement('img');
+      t.alt = '';
+      if (i === 0) t.classList.add('sel');
+      bindImg(t, u, p.name);
+      t.addEventListener('click', () => {
+        bindImg($('#p-img'), u, p.name);
+        box.querySelectorAll('img').forEach(x => x.classList.remove('sel'));
+        t.classList.add('sel');
+      });
+      box.appendChild(t);
+    });
+  }
+
   // Link de UM produto: o lojista manda direto pro cliente e ele cai na página
   // daquele modelo, não no catálogo inteiro. É só isso que o `p` na URL faz.
   function linkProduto(prod) {
@@ -357,6 +384,7 @@
     $('#p-name').textContent = p.name;
     $('#p-price').textContent = brl(p.price);
     $('#p-install').textContent = 'ou 12x de ' + brl(p.price / 12);
+    montaMiniaturas(p);
     show('product');
     // troca a URL sem recarregar, pra quem chegou pelo catálogo poder copiar da
     // barra de endereço e o "voltar" do navegador funcionar
@@ -677,6 +705,23 @@
       // a foto do produto vem do nosso proprio Storage, entao o fetch passa
       const prodBlob = await fetch(current.img).then(r => r.blob());
       fd.append('product_image', prodBlob, 'produto.jpg');
+      // As demais fotos vão como referência extra de geometria e cor — o gerador
+      // já lê product_image_2_b64 em diante e ajusta o prompt sozinho. Com um
+      // ângulo só a IA erra formato e proporção da armação; é o mesmo motivo
+      // pelo qual os widgets das lojas mandam de 4 a 6 fotos.
+      const extras = (current.imgs || []).slice(1, 6);
+      for (let i = 0; i < extras.length; i++) {
+        try {
+          const b = await fetch(extras[i]).then(r => r.blob());
+          const b64 = await new Promise(res => {
+            const fr = new FileReader();
+            fr.onload = () => res(String(fr.result).split(',')[1] || '');
+            fr.onerror = () => res('');
+            fr.readAsDataURL(b);
+          });
+          if (b64) fd.append('product_image_' + (i + 2) + '_b64', b64);
+        } catch (e) { console.warn('[Provou Catálogo] foto de referência falhou:', e); }
+      }
       fd.append('whatsapp', '55' + tel);
       fd.append('phone_raw', $('#phone-input').value);
       fd.append('product_name', current.name);
@@ -912,6 +957,7 @@
     }
   }
   let adminPhotoB64 = '';   // base64 já comprimido, pronto pra subir
+  let adminFotosB64 = [];   // todas as fotos escolhidas; a 1ª é a de capa
   let editando = null;      // produto em edição (null = cadastrando um novo)
 
   // Editar reaproveita o formulário de cadastro em vez de abrir outra tela: é o
@@ -932,8 +978,9 @@
   function saiEdicao() {
     editando = null;
     $('#admin-name').value = ''; $('#admin-price').value = '';
-    adminPhoto = ''; adminPhotoB64 = '';
+    adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = [];
     $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = '';
+    const cc0 = $('#admin-up-conta'); if (cc0) cc0.hidden = true;
     const f = $('#admin-photo'); if (f) f.value = '';
     $('#btn-add-product').textContent = 'Adicionar ao catálogo';
     $('#btn-cancel-edit').hidden = true;
@@ -943,13 +990,27 @@
     if (c) c.addEventListener('click', saiEdicao);
   }
   $('#admin-photo').addEventListener('change', async e => {
-    const file = e.target.files && e.target.files[0]; if (!file) return;
-    const b64 = await compressImage(file);
-    if (!b64) { toast('Não consegui ler essa imagem'); return; }
-    adminPhotoB64 = b64;
-    adminPhoto = 'data:image/jpeg;base64,' + b64;
+    const files = Array.from(e.target.files || []).slice(0, MAX_FOTOS_PRODUTO);
+    if (!files.length) return;
+    const btn = $('#btn-add-product');
+    const txt0 = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Lendo fotos…';   // comprimir 5 fotos leva alguns segundos
+    const lidas = [];
+    for (const f of files) {
+      const b64 = await compressImage(f);
+      if (b64) lidas.push(b64);
+    }
+    btn.disabled = false; btn.textContent = txt0;
+    if (!lidas.length) { toast('Não consegui ler essas imagens'); return; }
+    adminFotosB64 = lidas;
+    adminPhotoB64 = lidas[0];
+    adminPhoto = 'data:image/jpeg;base64,' + lidas[0];
     const prev = $('#admin-up-preview'); prev.src = adminPhoto; prev.hidden = false;
     $('#admin-up-empty').style.display = 'none';
+    const conta = $('#admin-up-conta');
+    if (conta) { conta.textContent = lidas.length + ' foto' + (lidas.length > 1 ? 's' : ''); conta.hidden = lidas.length < 2; }
+    if ((e.target.files || []).length > lidas.length)
+      toast('Usei as ' + lidas.length + ' primeiras fotos');
   });
   $('#btn-add-product').addEventListener('click', async () => {
     const btn = $('#btn-add-product');
@@ -997,12 +1058,30 @@
       const data = await r.json().catch(() => null);
       if (!r.ok || !data || !data.ok) throw new Error('falha no upload');
 
+      // as demais fotos entram uma a uma no produto recém-criado. Falha aqui não
+      // derruba o cadastro: o produto já existe com a foto de capa, e é melhor
+      // publicar com menos fotos do que perder o cadastro inteiro.
+      const pid = data.product && data.product.id;
+      if (pid && adminFotosB64.length > 1) {
+        for (let i = 1; i < adminFotosB64.length; i++) {
+          btn.textContent = 'Enviando foto ' + (i + 1) + ' de ' + adminFotosB64.length + '…';
+          try {
+            await fetch(WH_ADD_IMAGE, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ store_slug: STORE_SLUG, product_id: pid,
+                                     mime: 'image/jpeg', image_b64: adminFotosB64[i], position: i })
+            });
+          } catch (e) { console.warn('[Provou Catálogo] foto extra falhou:', e); }
+        }
+      }
+
       btn.textContent = 'Publicando…';
       await loadCatalog();
       renderAdmin(); renderCatalog();
       $('#admin-name').value = ''; $('#admin-price').value = '';
-      adminPhoto = ''; adminPhotoB64 = '';
+      adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = [];
       $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = ''; $('#admin-photo').value = '';
+      const cc = $('#admin-up-conta'); if (cc) cc.hidden = true;
       toast(name + ' publicado ✓');
     } catch (err) {
       // nada entrou na lista, então não há o que desfazer: os campos e a foto
