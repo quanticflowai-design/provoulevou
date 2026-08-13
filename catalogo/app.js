@@ -126,6 +126,10 @@
     // MV Ótica: dourado e BRANCO — o fundo padrão do app é lilás, então ele
     // também entra aqui. O dourado do botão é mais fechado que o do logo pra
     // o texto branco em cima dele continuar legível (contraste 4,8 : 1).
+    // Óticas Carone: magenta e preto sobre branco. O magenta do logo (#E40677)
+    // fica em 4,57 com texto branco — passa raspando, então fechei um pouco.
+    carone: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F6E1EC',
+              brand: '#D1056D', dark: '#A80457', soft: 'rgba(209,5,109,.10)', on: '#ffffff' },
     // Óculos Sunrise: manuscrito preto com a armacao rosa, sobre transparente.
     // O rosa do logo (#D875A3) da so 3,0:1 com texto branco — fechado ate 5,0
     // pro botao ser legivel; ao lado do logo a diferenca nao aparece.
