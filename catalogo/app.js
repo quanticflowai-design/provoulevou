@@ -124,6 +124,10 @@
     // MV Ótica: dourado e BRANCO — o fundo padrão do app é lilás, então ele
     // também entra aqui. O dourado do botão é mais fechado que o do logo pra
     // o texto branco em cima dele continuar legível (contraste 4,8 : 1).
+    // For Eyes: logo grafite com armacao magenta, sobre transparente — feito pra
+    // fundo claro. O magenta da armacao vira a cor de acao (5,9:1 com branco).
+    foreyes: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F0E4EB',
+               brand: '#B2326B', dark: '#8E2755', soft: 'rgba(178,50,107,.10)', on: '#ffffff' },
     // Óptica Ruby: o logo é grafite com o rubi vermelho, feito pra fundo claro.
     // O vermelho da pedra vira a cor de ação, um tom mais fechado pro texto
     // branco ler em cima (5,2 -> 5,9:1).
