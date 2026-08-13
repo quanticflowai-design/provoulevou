@@ -68,7 +68,7 @@
     btn.disabled = true; btn.textContent = 'Entrando…';
     try {
       const s = await entrar($('#login-email').value.trim(), $('#login-pass').value);
-      const lojas = await sbGet('pl_catalog_stores?owner_email=eq.' +
+      const lojas = await sbGet('pl_catalog_stores?owner_email=ilike.' +
         encodeURIComponent(s.email.toLowerCase()) +
         '&is_active=eq.true&select=slug,display_name&order=display_name.asc');
       if (!lojas || !lojas.length) {
@@ -88,13 +88,17 @@
     }
   });
 
+  // `ilike` e não `eq` acima: o e-mail pode ter sido cadastrado com maiúscula
+  // (Oticaforeyesja@gmail.com) enquanto a sessão devolve tudo minúsculo — com
+  // `eq` o lojista logava e ouvia "esta conta não tem nenhum catálogo".
+
   // Já logado? Não faz sentido pedir senha de novo — vai direto pro catálogo dele.
   (async () => {
     let s = null;
     try { s = JSON.parse(localStorage.getItem(SESSAO) || 'null'); } catch (e) {}
     if (!s || !s.email) return;
     try {
-      const lojas = await sbGet('pl_catalog_stores?owner_email=eq.' +
+      const lojas = await sbGet('pl_catalog_stores?owner_email=ilike.' +
         encodeURIComponent(String(s.email).toLowerCase()) +
         '&is_active=eq.true&select=slug,display_name&order=display_name.asc');
       if (lojas && lojas.length === 1) irPara(lojas[0].slug);
