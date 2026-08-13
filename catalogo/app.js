@@ -124,6 +124,11 @@
     // MV Ótica: dourado e BRANCO — o fundo padrão do app é lilás, então ele
     // também entra aqui. O dourado do botão é mais fechado que o do logo pra
     // o texto branco em cima dele continuar legível (contraste 4,8 : 1).
+    // Óptica Ruby: o logo é grafite com o rubi vermelho, feito pra fundo claro.
+    // O vermelho da pedra vira a cor de ação, um tom mais fechado pro texto
+    // branco ler em cima (5,2 -> 5,9:1).
+    ruby: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EFE3E3',
+            brand: '#C22125', dark: '#9E1B1E', soft: 'rgba(194,33,37,.10)', on: '#ffffff' },
     // Florão Óculos: creme e dourado, direto do selo deles. O fundo acompanha o
     // creme do anel externo pra a logo nao virar um adesivo colado na pagina; o
     // dourado do botao e mais fechado que o do desenho, senao o texto branco em
