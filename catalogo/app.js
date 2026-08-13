@@ -124,6 +124,11 @@
     // MV Ótica: dourado e BRANCO — o fundo padrão do app é lilás, então ele
     // também entra aqui. O dourado do botão é mais fechado que o do logo pra
     // o texto branco em cima dele continuar legível (contraste 4,8 : 1).
+    // Óculos Sunrise: manuscrito preto com a armacao rosa, sobre transparente.
+    // O rosa do logo (#D875A3) da so 3,0:1 com texto branco — fechado ate 5,0
+    // pro botao ser legivel; ao lado do logo a diferenca nao aparece.
+    sunrise: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F2E4EC',
+               brand: '#A2577A', dark: '#864763', soft: 'rgba(162,87,122,.10)', on: '#ffffff' },
     // For Eyes: logo grafite com armacao magenta, sobre transparente — feito pra
     // fundo claro. O magenta da armacao vira a cor de acao (5,9:1 com branco).
     foreyes: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F0E4EB',
