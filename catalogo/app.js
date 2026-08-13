@@ -197,7 +197,12 @@
     // Ótica Popular: azul-marinho do logo; o amarelo e o verde ficam só na arte,
     // como no original — viram ruído se usados em botão.
     oticapopular: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E2E8F1',
-                    brand: '#184678', dark: '#123353', soft: 'rgba(24,70,120,.10)', on: '#ffffff' }
+                    brand: '#184678', dark: '#123353', soft: 'rgba(24,70,120,.10)', on: '#ffffff' },
+    // Ótica Moderna: preto e amarelo. O amarelo do logo é #FFFF00 puro — como
+    // cor de botão daria 1,07:1 com texto branco, ilegível. Então o preto do
+    // logo é que vira a marca, e o amarelo fica no traço e nos realces.
+    oticamoderna: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EDE7BC',
+                    brand: '#111111', dark: '#000000', soft: 'rgba(255,255,0,.20)', on: '#ffffff' }
   };
 
   function aplicaTema(cor) {
