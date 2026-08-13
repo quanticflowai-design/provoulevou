@@ -157,8 +157,12 @@
               brand: '#956C26', dark: '#7C5A1F', soft: 'rgba(149,108,38,.12)', on: '#ffffff' },
     // Ótica CatGlass: preto e roxo. O logo deles ja vem em fundo preto, entao o
     // catalogo tambem — o selo circular encaixa sem virar quadrado na pagina.
-    catglass: { bg: '#000000', card: '#120A1C', line: 'rgba(151,64,224,.34)',
-                brand: '#9740E0', dark: '#7A22C4', soft: 'rgba(151,64,224,.18)', on: '#ffffff' },
+    // Ótica CatGlass: o fundo é o lilás EXATO do logo (#E6C4FF) porque o arquivo
+    // é JPEG e carrega esse fundo chapado — em qualquer outro tom ele apareceria
+    // como um retângulo colado na página. As letras do logo são pretas, então
+    // tema escuro está fora de questão.
+    catglass: { bg: '#E6C4FF', card: '#FFFFFF', line: 'rgba(116,15,217,.20)',
+                brand: '#740FD9', dark: '#5E0BB0', soft: 'rgba(116,15,217,.10)', on: '#ffffff' },
     // Ótica Paranhos: azul e amarelo, como a Aqui Lentes — mas o azul deles é
     // mais violeta (#283796), então o fundo acompanha esse tom pra não parecer
     // a mesma loja.
