@@ -495,11 +495,19 @@
   // mandava "Óculos de sol Alcázar" pro gerador de ROUPA — que não põe armação
   // no rosto. Só quando o texto não decide é que o valor gravado vale.
   const RE_OCULOS = /[óo]culos|armaç|armac|lente|solar|clip[- ]?on|de grau/i;
+  // Deduzir pelo nome não basta: a For Eyes batizou os 45 produtos dela de
+  // "Britney C2", "Madona Bordô", "Hexagonal Prata" — nenhum diz "óculos", e os
+  // 45 foram parar no gerador de ROUPA, que vestia o cliente em vez de pôr a
+  // armação no rosto. Toda loja do catálogo hoje é ótica, então o padrão é
+  // óculos e a exceção é declarada. Quando entrar uma loja de roupa, o slug
+  // dela entra aqui — até existir coluna de categoria na loja (é DDL).
+  const LOJAS_ROUPA = ['lojateste', 'provoulevou'];
   function categoriaDe(row) {
     const t = ((row && row.name) || '') + ' ' + ((row && row.description) || '');
     if (RE_OCULOS.test(t)) return 'oculos';
     const c = String(row && row.categoria || '').toLowerCase().trim();
     if (c === 'oculos' || c === 'óculos') return 'oculos';
+    if (c === 'roupa' && LOJAS_ROUPA.indexOf(STORE_SLUG) === -1) return 'oculos';
     return 'roupa';
   }
 
