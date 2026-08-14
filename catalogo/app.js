@@ -202,7 +202,12 @@
     // cor de botão daria 1,07:1 com texto branco, ilegível. Então o preto do
     // logo é que vira a marca, e o amarelo fica no traço e nos realces.
     oticamoderna: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EDE7BC',
-                    brand: '#111111', dark: '#000000', soft: 'rgba(255,255,0,.20)', on: '#ffffff' }
+                    brand: '#111111', dark: '#000000', soft: 'rgba(255,255,0,.20)', on: '#ffffff' },
+    // Ótica Mendonça: o vinho é o fundo EXATO do logo (JPEG, fundo chapado), e o
+    // laranja do olho vira o botão. Texto do botão em preto: com branco o
+    // laranja dá 2,4:1.
+    mendonca: { bg: '#87000E', card: '#9B0714', line: 'rgba(248,147,31,.30)',
+                brand: '#F8931F', dark: '#DE7F14', soft: 'rgba(248,147,31,.15)', on: '#111111' }
   };
 
   function aplicaTema(cor) {
