@@ -3453,6 +3453,7 @@
                                 <div class="vg-toggle">
                                     <button type="button" class="fat-toggle-btn active" data-gran="month">Mês</button>
                                     <button type="button" class="fat-toggle-btn" data-gran="week">Semana</button>
+                                    <button type="button" class="fat-toggle-btn" data-gran="day">Dia</button>
                                 </div>
                             </div>
                             <div class="vg-revenue-chart">
@@ -13579,10 +13580,22 @@
                 return monday;
             }
 
+            // Visão diária: 12+ meses de barras vira ilegível — corta nos últimos 90 dias
+            let dayCutoff = '';
+            if (granularity === 'day') {
+                const d = new Date();
+                d.setDate(d.getDate() - 89);
+                const pad = n => String(n).padStart(2, '0');
+                dayCutoff = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+            }
+
             const buckets = {};
             allOrders.forEach(o => {
                 const raw = o[fDataPedido] || o.created_at || ''; // fallback created_at: pedido com data_pedido nula sumia do gráfico
-                const key = granularity === 'week' ? isoWeekKey(raw) : raw.slice(0, 7);
+                if (dayCutoff && raw.slice(0, 10) < dayCutoff) return;
+                const key = granularity === 'week' ? isoWeekKey(raw)
+                          : granularity === 'day' ? raw.slice(0, 10)
+                          : raw.slice(0, 7);
                 if (!key) return;
                 if (!buckets[key]) buckets[key] = { total: 0, provador: 0 };
                 const v = parseFloat(o[fTotal]) || 0;
@@ -13601,18 +13614,26 @@
                     const fmt = d => String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
                     return fmt(start) + '–' + fmt(end);
                 }
+                if (granularity === 'day') {
+                    const [, dm, dd] = k.split('-');
+                    return dd + '/' + dm;
+                }
                 const [y, mo] = k.split('-');
                 return nomes[parseInt(mo) - 1] + '/' + y.slice(2);
             });
             // For week granularity, install marker = ISO week of first prova
-            const installKey = granularity === 'week' ? isoWeekKey(installDate) : installMonth;
+            const installKey = granularity === 'week' ? isoWeekKey(installDate)
+                             : granularity === 'day' ? installDate.slice(0, 10)
+                             : installMonth;
             // alias mantém compatibilidade do bloco abaixo
             const months = keys;
             const byMonth = buckets;
             const installMonthCalc = installKey;
             // Atualiza título
             const titleEl = document.getElementById('fatChartTitle');
-            if (titleEl) titleEl.textContent = granularity === 'week' ? 'Faturamento Semanal' : 'Faturamento Mensal';
+            if (titleEl) titleEl.textContent = granularity === 'week' ? 'Faturamento Semanal'
+                                             : granularity === 'day' ? 'Faturamento Diário (últimos 90 dias)'
+                                             : 'Faturamento Mensal';
 
             if (container) container.style.display = 'block';
             const ctx = document.getElementById('fatMensalChart');
