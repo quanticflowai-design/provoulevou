@@ -213,7 +213,11 @@
     // original. Azul-royal para não virar cópia da Aqui Lentes (marinho) nem da
     // Paranhos (índigo), que também são azul e amarelo.
     malu: { bg: '#0D3B8F', card: '#14459E', line: 'rgba(238,210,23,.30)',
-            brand: '#EED217', dark: '#D4BA12', soft: 'rgba(238,210,23,.15)', on: '#0D3B8F' }
+            brand: '#EED217', dark: '#D4BA12', soft: 'rgba(238,210,23,.15)', on: '#0D3B8F' },
+    // Ótica Goulart: logo preto em traço fino sobre transparente — fundo branco
+    // e preto como marca, igual à Ronaldo Óculos.
+    goulart: { bg: '#ffffff', card: '#ffffff', line: '#E8E8EA',
+               brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.07)', on: '#ffffff' }
   };
 
   function aplicaTema(cor) {
