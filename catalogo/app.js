@@ -207,7 +207,13 @@
     // laranja do olho vira o botão. Texto do botão em preto: com branco o
     // laranja dá 2,4:1.
     mendonca: { bg: '#87000E', card: '#9B0714', line: 'rgba(248,147,31,.30)',
-                brand: '#F8931F', dark: '#DE7F14', soft: 'rgba(248,147,31,.15)', on: '#111111' }
+                brand: '#F8931F', dark: '#DE7F14', soft: 'rgba(248,147,31,.15)', on: '#111111' },
+    // Ótica Malu: o logo veio todo amarelo (o "removebg" tirou o fundo azul), e
+    // amarelo em branco dá 1,5:1 — some. Por isso o fundo é azul, como no
+    // original. Azul-royal para não virar cópia da Aqui Lentes (marinho) nem da
+    // Paranhos (índigo), que também são azul e amarelo.
+    malu: { bg: '#0D3B8F', card: '#14459E', line: 'rgba(238,210,23,.30)',
+            brand: '#EED217', dark: '#D4BA12', soft: 'rgba(238,210,23,.15)', on: '#0D3B8F' }
   };
 
   function aplicaTema(cor) {
