@@ -212,7 +212,12 @@
     // Ótica Goulart: logo preto em traço fino sobre transparente — fundo branco
     // e preto como marca, igual à Ronaldo Óculos.
     goulart: { bg: '#ffffff', card: '#ffffff', line: '#E8E8EA',
-               brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.07)', on: '#ffffff' }
+               brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.07)', on: '#ffffff' },
+    // GC Store: o dourado do logo (#C49837) da 2,7:1 com texto branco no botao.
+    // Fechei o tom ate 4,6:1 -- ao lado do logo a diferenca nao se nota, a
+    // ilegibilidade no sol sim.
+    gcstore: { bg: '#ffffff', card: '#ffffff', line: '#EFE4CC',
+               brand: '#96701F', dark: '#7C5E1C', soft: 'rgba(196,152,55,.14)', on: '#ffffff' }
   };
 
   function aplicaTema(cor) {
