@@ -177,11 +177,6 @@
     // virar um retângulo dentro da página.
     stilus: { bg: '#000000', card: '#0D0D0D', line: 'rgba(212,166,60,.30)',
               brand: '#D4A63C', dark: '#B88C2C', soft: 'rgba(212,166,60,.16)', on: '#000000' },
-    // Ronaldo Óculos: preto e branco. O logo é uma assinatura preta de traço
-    // fino — invertê-la pra um fundo escuro estragaria o desenho, então o preto
-    // é a cor da marca e o fundo fica branco.
-    ronaldooculos: { bg: '#ffffff', card: '#ffffff', line: '#E8E8EA',
-                     brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.07)', on: '#ffffff' },
     // Valter Ótica: o logo é vermelho sobre branco, então o fundo lilás padrão
     // não combina. Vermelho da própria marca, que já passa contraste (7,6:1).
     valterotica: { bg: '#ffffff', card: '#ffffff', line: '#F0E2E1',
