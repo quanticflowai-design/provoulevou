@@ -142,8 +142,12 @@
                brand: '#A2577A', dark: '#864763', soft: 'rgba(162,87,122,.10)', on: '#ffffff' },
     // For Eyes: logo grafite com armacao magenta, sobre transparente — feito pra
     // fundo claro. O magenta da armacao vira a cor de acao (5,9:1 com branco).
-    foreyes: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F0E4EB',
-               brand: '#B2326B', dark: '#8E2755', soft: 'rgba(178,50,107,.10)', on: '#ffffff' },
+    // For Eyes: a lojista pediu fundo cinza claro, preco rosa e botao cinza
+    // escuro. Por isso o `cta` -- e a unica loja que separa a cor do botao da
+    // cor da marca.
+    foreyes: { bg: '#EDEDEE', card: '#FFFFFF', line: '#E3E3E5',
+               brand: '#B2326B', dark: '#8E2755', soft: 'rgba(178,50,107,.10)', on: '#ffffff',
+               cta: '#3F4448', ctaDark: '#2E3235', onCta: '#ffffff' },
     // Óptica Ruby: o logo é grafite com o rubi vermelho, feito pra fundo claro.
     // O vermelho da pedra vira a cor de ação, um tom mais fechado pro texto
     // branco ler em cima (5,2 -> 5,9:1).
@@ -246,6 +250,12 @@
       el.style.setProperty('--bg', ac.bg);
       el.style.setProperty('--card', ac.card);
       el.style.setProperty('--line', ac.line);
+      // loja sem `cta` nao define a variavel: o CSS cai no --brand sozinho
+      if (ac.cta) {
+        el.style.setProperty('--cta', ac.cta);
+        el.style.setProperty('--cta-dark', ac.ctaDark || ac.cta);
+        el.style.setProperty('--on-cta', ac.onCta || '#ffffff');
+      }
       document.body.style.background = ac.bg;
     }
   }
@@ -390,7 +400,7 @@
       const nome = document.createElement('div'); nome.className = 'pc-name'; nome.textContent = p.name;
       const preco = document.createElement('div'); preco.className = 'pc-price'; preco.textContent = brl(p.price);
       const btn = document.createElement('button');
-      btn.type = 'button'; btn.className = 'pc-try'; btn.textContent = '👓 Provar virtualmente';
+      btn.type = 'button'; btn.className = 'pc-try'; btn.textContent = 'Provar virtualmente';
       body.append(nome, preco, btn);
       card.append(thumb, body);
       bindImg(thumb, p.img, p.name);
