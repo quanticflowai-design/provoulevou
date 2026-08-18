@@ -541,6 +541,17 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 .tryon-phone { margin-top: 18px; }
 .uploader { margin-top: 9px; }
 
+/* ─── Filtros de categoria ─── */
+.cat-filtros { display: flex; gap: 8px; overflow-x: auto; padding: 0 0 12px; margin-bottom: 4px; scrollbar-width: none; }
+.cat-filtros::-webkit-scrollbar { display: none; }
+.cat-chip {
+  flex: 0 0 auto; border: 1.5px solid var(--line); background: var(--card); color: var(--ink-2);
+  border-radius: 999px; padding: 7px 15px; font: 600 13.5px 'Hanken Grotesk', sans-serif;
+  cursor: pointer; white-space: nowrap; transition: background .15s, color .15s, border-color .15s;
+}
+.cat-chip:hover { border-color: var(--brand); }
+.cat-chip.sel { background: var(--brand); border-color: var(--brand); color: var(--brand-on, #fff); }
+
 /* ═══════════ DESKTOP ═══════════
    Até aqui o catálogo era uma coluna de 440px centralizada: no celular é o
    certo, no PC virava um "print de celular" no meio de uma tela vazia. A partir
@@ -553,6 +564,7 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 
   /* vitrine: quantas couberem, sem esticar card a ponto de virar banner */
   .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(212px, 1fr)); gap: 22px; }
+  .cat-filtros { flex-wrap: wrap; overflow: visible; padding-bottom: 18px; }
   .store-head { padding-bottom: 4px; }
   .brand-logo { height: 54px; }
   .admin-cta { max-width: 320px; }

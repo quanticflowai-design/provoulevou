@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=70">
+  <link rel="stylesheet" href="styles.css?v=71">
 </head>
 <body>
   <div id="app">
@@ -30,6 +30,10 @@
       <!-- Painel que segura a vitrine. Só ganha fundo onde o CSS da loja pede
            (hoje, .loja-provoulevou); nas demais é um wrapper transparente. -->
       <div class="catalogo-painel">
+        <!-- Filtros: saem das categorias que os produtos usam, então a lista
+             nasce e some sozinha conforme o lojista cadastra. Some quando a
+             loja não usa nenhuma. -->
+        <nav class="cat-filtros" id="cat-filtros" hidden></nav>
         <div class="catalog-grid" id="catalog-grid"><!-- produtos --></div>
         <p class="catalog-empty" id="catalog-empty" hidden>
           Seu catálogo ainda está vazio.<br>Toque em <b>Cadastrar novo produto</b> para adicionar o primeiro.
@@ -324,6 +328,11 @@
             <!-- decimal, nao numeric: o teclado "numeric" do Android nao tem virgula,
                  e o lojista so conseguia digitar preco inteiro. -->
             <input type="text" id="admin-price" inputmode="decimal" placeholder="Preço (ex: 149,90)">
+            <!-- Sem tabela de categorias: a lista é o que os produtos já usam.
+                 O datalist sugere as existentes e o campo aceita uma nova. -->
+            <input type="text" id="admin-categoria" list="lista-categorias" autocomplete="off"
+                   placeholder="Categoria (ex: Feminino) — opcional">
+            <datalist id="lista-categorias"></datalist>
             <!-- O lojista é quem sabe em quantas vezes ele parcela: a maquininha
                  dele, o acordo com a operadora. Calcular 12x fixo no código
                  mostrava uma condição que muitos não praticam. -->
@@ -372,6 +381,6 @@
   </template>
   <div id="toast"></div>
 
-  <script src="app.js?v=70"></script>
+  <script src="app.js?v=71"></script>
 </body>
 </html>

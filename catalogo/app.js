@@ -265,6 +265,7 @@
         imgs: urls,                       // a galeria e as referências da prova saem daqui
         imgIds: imgs.map(x => x.id).filter(Boolean),   // quais apagar quando trocar a foto
         desc: r.description || '',
+        cat: (r.categoria_vitrine || '').trim(),   // categoria criada pelo lojista
         parcelas: Number(r.parcelas) || 0,
         categoria: categoriaDe(r)
       };
@@ -343,10 +344,39 @@
   function renderStore() {
     const ss = $('#s-store'); if (ss) ss.textContent = STORE.name;
   }
+  // Categoria escolhida no filtro ('' = todas). Não vai pro localStorage de
+  // propósito: quem volta ao catálogo espera ver a vitrine inteira.
+  let catFiltro = '';
+
+  function categoriasDaLoja() {
+    const vistas = [];
+    catalog.forEach(p => { if (p.cat && vistas.indexOf(p.cat) === -1) vistas.push(p.cat); });
+    return vistas.sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }
+
+  function renderFiltros() {
+    const box = $('#cat-filtros');
+    if (!box) return;
+    const cats = categoriasDaLoja();
+    // uma categoria só não é filtro: não há o que separar
+    if (cats.length < 2) { box.hidden = true; box.textContent = ''; return; }
+    if (cats.indexOf(catFiltro) === -1) catFiltro = '';
+    box.hidden = false;
+    box.textContent = '';
+    [''].concat(cats).forEach(c => {
+      const b = document.createElement('button');
+      b.className = 'cat-chip' + (c === catFiltro ? ' sel' : '');
+      b.textContent = c || 'Todos';
+      b.addEventListener('click', () => { catFiltro = c; renderCatalog(); });
+      box.appendChild(b);
+    });
+  }
+
   function renderCatalog() {
     const grid = $('#catalog-grid');
     grid.innerHTML = '';
-    catalog.forEach(p => {
+    const visiveis = catFiltro ? catalog.filter(p => p.cat === catFiltro) : catalog;
+    visiveis.forEach(p => {
       // DOM seguro: nome do produto vem do lojista, nunca concatenar em HTML.
       const card = document.createElement('div');
       card.className = 'prod-card';
@@ -382,6 +412,22 @@
     }
     if (vazio) vazio.hidden = !(carregou && catalog.length === 0);
     grid.hidden = carregou && catalog.length === 0;
+    // um só ponto redesenha chips e sugestões: quem chama renderCatalog não
+    // precisa lembrar de nada
+    renderFiltros();
+    renderSugestoesCategoria();
+  }
+
+  // Sugestões do campo de categoria: o que a loja já usa.
+  function renderSugestoesCategoria() {
+    const dl = $('#lista-categorias');
+    if (!dl) return;
+    dl.textContent = '';
+    categoriasDaLoja().forEach(c => {
+      const o = document.createElement('option');
+      o.value = c;
+      dl.appendChild(o);
+    });
   }
 
   // Abre a prova virtual já com o produto escolhido
@@ -1028,6 +1074,7 @@
     $('#admin-price').value = Number(p.price).toFixed(2).replace('.', ',');
     $('#admin-desc').value = p.desc || '';
     $('#admin-parcelas').value = p.parcelas ? String(p.parcelas) : '';
+    $('#admin-categoria').value = p.cat || '';
     const prev = $('#admin-up-preview');
     if (p.img) { prev.src = p.img; prev.hidden = false; $('#admin-up-empty').style.display = 'none'; }
     $('#btn-add-product').textContent = 'Salvar alterações';
@@ -1041,6 +1088,7 @@
     editando = null;
     $('#admin-name').value = ''; $('#admin-price').value = '';
     $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
+    $('#admin-categoria').value = '';
     adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = [];
     $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = '';
     const cc0 = $('#admin-up-conta'); if (cc0) cc0.hidden = true;
@@ -1115,6 +1163,7 @@
           body: JSON.stringify({ product_id: editando.id, name, price,
                                  description: $('#admin-desc').value.trim() || null,
                                  parcelas: Number($('#admin-parcelas').value) || null,
+                                 categoria_vitrine: $('#admin-categoria').value.trim() || null,
                                  remove_image_ids: trocouFoto ? (editando.imgIds || []) : [] })
         });
         if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -1142,6 +1191,7 @@
         body: JSON.stringify({ store_slug: STORE_SLUG, name, price, descricao_e_parcelas: 1,
                                description: $('#admin-desc').value.trim() || null,
                                parcelas: Number($('#admin-parcelas').value) || null,
+                               categoria_vitrine: $('#admin-categoria').value.trim() || null,
                                mime: 'image/jpeg', image_b64: adminPhotoB64 })
       });
       const data = await r.json().catch(() => null);
@@ -1169,6 +1219,7 @@
       renderAdmin(); renderCatalog();
       $('#admin-name').value = ''; $('#admin-price').value = '';
       $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
+      $('#admin-categoria').value = '';
       adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = [];
       $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = ''; $('#admin-photo').value = '';
       const cc = $('#admin-up-conta'); if (cc) cc.hidden = true;
