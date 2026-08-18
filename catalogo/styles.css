@@ -540,3 +540,54 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 .tryon-passo { margin: 18px 0 0; font-size: 13px; font-weight: 600; color: var(--ink-2); text-align: left; }
 .tryon-phone { margin-top: 18px; }
 .uploader { margin-top: 9px; }
+
+/* ═══════════ DESKTOP ═══════════
+   Até aqui o catálogo era uma coluna de 440px centralizada: no celular é o
+   certo, no PC virava um "print de celular" no meio de uma tela vazia. A partir
+   de 900px a vitrine e a página do produto se espalham, mas as telas de FLUXO
+   (prova, pagamento, resultado) continuam estreitas e centralizadas — ler um
+   formulário de ponta a ponta em 1100px é pior, não melhor. */
+@media (min-width: 900px) {
+  #app { max-width: 1160px; }
+  .screen { padding: 26px 32px 56px; }
+
+  /* vitrine: quantas couberem, sem esticar card a ponto de virar banner */
+  .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(212px, 1fr)); gap: 22px; }
+  .store-head { padding-bottom: 4px; }
+  .brand-logo { height: 54px; }
+  .admin-cta { max-width: 320px; }
+
+  /* produto: foto de um lado, informação e ação do outro */
+  .product-view {
+    display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    column-gap: 44px; align-items: start;
+  }
+  /* teto na foto: 1/1 sem limite vira um quadrado mais alto que a tela */
+  .product-photo { grid-column: 1; grid-row: 1; max-width: 520px; }
+  .p-thumbs { grid-column: 1; grid-row: 2; margin-top: 12px; }
+  .p-thumbs img { width: 76px; height: 76px; }
+  .product-info { grid-column: 2; grid-row: 1 / span 2; padding: 4px 0 0; position: sticky; top: 26px; }
+  .product-info h2 { font-size: 30px; }
+  .product-info .btn-primary.big { max-width: 380px; }
+
+  /* fluxo: estreito de propósito */
+  .checkout-box, .pix-box, .card-box, .login-box { max-width: 520px; margin: 0 auto; }
+  /* a area de foto e 3/4: em 520px de largura ela passa de 690px de altura
+     e empurra o botao pra fora da tela */
+  .tryon-box { max-width: 430px; margin: 0 auto; }
+  .result-box, .loading-box { max-width: 640px; margin: 0 auto; }
+
+  /* painel do lojista: form em duas colunas, lista larga */
+  .admin-box { max-width: 900px; margin: 0 auto; }
+  .admin-add { gap: 18px; padding: 18px; }
+  .admin-uploader { width: 132px; height: 132px; }
+  .admin-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; align-items: start; }
+  .admin-fields textarea, .admin-fields .btn-primary, .admin-fields .btn-ghost { grid-column: 1 / -1; }
+  .admin-item { padding: 12px 14px; }
+}
+
+/* Telão: mais colunas, sem deixar o card gigante */
+@media (min-width: 1400px) {
+  #app { max-width: 1320px; }
+  .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+}
