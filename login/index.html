@@ -10021,8 +10021,15 @@
             // send_log -> dispByPhone (regra de recuperação) + eventsByPhone (cid pelo template)
             let sendRows = [];
             try {
-                const { data } = await supabaseClient.from('whatsapp_send_log')
-                    .select('lead_phone, sent_at, status, template_name, source, source_id').eq('email', activeUser.email).limit(20000);
+                // Só o período pedido (+30 dias de margem): a regra de recuperação casa
+                // compra em até 30d DEPOIS do disparo, então disparos um pouco anteriores
+                // à janela ainda contam. Antes isto baixava o histórico inteiro — 16 mil
+                // linhas / 3 MB na Cacifé — e filtrava no navegador.
+                let _q = supabaseClient.from('whatsapp_send_log')
+                    .select('lead_phone, sent_at, status, template_name, source, source_id')
+                    .eq('email', activeUser.email);
+                if (cutoff) _q = _q.gte('sent_at', new Date(cutoff - 30 * 86400000).toISOString());
+                const { data } = await _q.limit(20000);
                 sendRows = data || [];
             } catch (e) { console.warn('[dashboard] send_log:', e); }
 
@@ -10707,7 +10714,9 @@
 
         function waExportLogCSV() {
             (async () => {
-                const { data } = await supabaseClient.from('whatsapp_send_log').select('*').eq('email', activeUser.email).order('sent_at', { ascending: false }).limit(10000);
+                const { data } = await supabaseClient.from('whatsapp_send_log')
+                    .select('lead_phone, sent_at, status, template_name, template_language, error_message')
+                    .eq('email', activeUser.email).order('sent_at', { ascending: false }).limit(1000);
                 if (!data || data.length === 0) { alert('Sem disparos pra exportar.'); return; }
                 const headers = ['Data', 'Telefone', 'Template', 'Idioma', 'Status', 'Meta Message ID', 'Erro'];
                 const rows = [headers.map(h => '"'+h+'"').join(';')];
