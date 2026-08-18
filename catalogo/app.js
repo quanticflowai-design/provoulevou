@@ -31,6 +31,7 @@
   const WH_DEL_PRODUCT = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-product-delete';
   const WH_EDIT_PRODUCT = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-product-update';
   const WH_ADD_IMAGE = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-product-image';
+  const WH_THEME = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-theme';
   const MAX_FOTOS_PRODUTO = 5;   // teto: além disso o cadastro fica lento e o ganho some
   // slug da loja: ?loja=<slug> na URL (cada lojista tem o seu link)
   const STORE_SLUG = (new URLSearchParams(location.search).get('loja') || 'lojateste').trim();
@@ -224,9 +225,68 @@
                brand: '#96701F', dark: '#7C5E1C', soft: 'rgba(196,152,55,.14)', on: '#ffffff' }
   };
 
+  // ─────────── Tema ───────────
+  // O lojista escolhe 5 cores; as outras (hover, borda, transparencias) saem
+  // daqui. Pedir 10 cores a quem so quer "azul e amarelo" nao termina bem.
+  function hexRgb(hex) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '').trim());
+    if (!m) return null;
+    const n = parseInt(m[1], 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function escurece(hex, fator) {
+    const c = hexRgb(hex);
+    if (!c) return hex;
+    return '#' + c.map(v => Math.max(0, Math.round(v * (1 - fator)))
+      .toString(16).padStart(2, '0')).join('');
+  }
+  function comAlfa(hex, a) {
+    const c = hexRgb(hex);
+    return c ? 'rgba(' + c.join(',') + ',' + a + ')' : hex;
+  }
+  // contraste WCAG: e o que diz se o texto do botao vai ser legivel
+  function contraste(a, b) {
+    const rel = hex => {
+      const c = hexRgb(hex);
+      if (!c) return null;
+      const l = c.map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
+      return .2126 * l[0] + .7152 * l[1] + .0722 * l[2];
+    };
+    const x = rel(a), y = rel(b);
+    if (x === null || y === null) return null;
+    return (Math.max(x, y) + .05) / (Math.min(x, y) + .05);
+  }
+
+  // Padrao da loja (codigo) + o que o lojista salvou (banco). O banco manda.
+  // Cores padrao do app (as mesmas do :root). Servem de base pra loja que nao
+  // tem paleta propria no codigo: sem isto, loja nova ficava sem a secao de
+  // aparencia justamente por nunca ter sido personalizada.
+  const TEMA_PADRAO = { bg: '#f6f4fb', card: '#ffffff', line: '#ece9f1',
+                        brand: '#6d3bef', dark: '#4d24bd', soft: '#f1ecfe', on: '#ffffff' };
+
+  function temaEfetivo() {
+    const base = ACENTOS[STORE_SLUG] || TEMA_PADRAO;
+    const salvo = (storeRow && storeRow.tema) || null;
+    const t = Object.assign({}, base, salvo || {});
+    if (!t.bg || !t.card || !t.brand) return base;
+    // derivados: so recalcula o que o lojista nao definiu explicitamente
+    const cta = t.cta || t.brand;
+    return {
+      bg: t.bg, card: t.card,
+      line: t.line || comAlfa(t.brand, .22),
+      brand: t.brand,
+      dark: t.dark || escurece(t.brand, .18),
+      soft: t.soft || comAlfa(t.brand, .12),
+      on: t.on || '#ffffff',
+      cta: cta,
+      ctaDark: t.ctaDark || escurece(cta, .18),
+      onCta: t.onCta || t.on || '#ffffff'
+    };
+  }
+
   function aplicaTema(cor) {
     const el = document.documentElement;
-    const ac0 = ACENTOS[STORE_SLUG];
+    const ac0 = temaEfetivo();
     // Quem manda no tema é o FUNDO, não a cor da marca. O vermelho da Valter é
     // escuro, mas o catálogo dela é branco — sem isto entrava o tema escuro e,
     // com ele, borda branca em fundo branco e o logo do rodapé sumindo.
@@ -255,6 +315,11 @@
         el.style.setProperty('--cta', ac.cta);
         el.style.setProperty('--cta-dark', ac.ctaDark || ac.cta);
         el.style.setProperty('--on-cta', ac.onCta || '#ffffff');
+      } else {
+        // loja que tirou a cor propria do botao volta a seguir a marca
+        el.style.removeProperty('--cta');
+        el.style.removeProperty('--cta-dark');
+        el.style.removeProperty('--on-cta');
       }
       document.body.style.background = ac.bg;
     }
@@ -431,6 +496,123 @@
     renderFiltros();
     renderSugestoesCategoria();
     renderLinksCategoria();
+  }
+
+  // ─────────── Aparência (painel do lojista) ───────────
+  const CAMPOS_TEMA = [['#tema-bg', 'bg'], ['#tema-card', 'card'], ['#tema-brand', 'brand'],
+                       ['#tema-cta', 'cta'], ['#tema-oncta', 'onCta']];
+
+  function temaDosCampos() {
+    const t = {};
+    CAMPOS_TEMA.forEach(([sel, chave]) => {
+      const el = $(sel);
+      if (el && el.value) t[chave] = el.value;
+    });
+    return t;
+  }
+
+  // Preenche os seletores com o que está valendo hoje.
+  function renderTema() {
+    const box = $('#tema-box');
+    if (!box) return;
+    const t = temaEfetivo();
+    if (!t) { box.hidden = true; return; }
+    box.hidden = false;
+    CAMPOS_TEMA.forEach(([sel, chave]) => {
+      const el = $(sel);
+      if (el && t[chave]) el.value = t[chave];
+    });
+    avisaContraste();
+  }
+
+  // Aviso, não bloqueio: a decisão é do lojista. Mas texto claro em botão claro
+  // é o erro que mais aparece, e no celular sob sol vira botão invisível.
+  function avisaContraste() {
+    const av = $('#tema-alerta');
+    if (!av) return;
+    const t = temaDosCampos();
+    const problemas = [];
+    const cBotao = contraste(t.cta, t.onCta);
+    if (cBotao !== null && cBotao < 4.5)
+      problemas.push('o texto do botão quase some no fundo dele' +
+                     ' (' + cBotao.toFixed(1) + ':1, o mínimo legível é 4,5:1)');
+    const cPreco = contraste(t.brand, t.card);
+    if (cPreco !== null && cPreco < 3)
+      problemas.push('o preço fica difícil de ler sobre o cartão (' + cPreco.toFixed(1) + ':1)');
+    av.hidden = problemas.length === 0;
+    av.textContent = problemas.length ? 'Atenção: ' + problemas.join('; ') + '.' : '';
+  }
+
+  // Prévia ao vivo: pinta a tela inteira sem salvar nada.
+  function previaTema() {
+    const el = document.documentElement;
+    const t = temaDosCampos();
+    const cheio = Object.assign({}, temaEfetivo() || {}, t);
+    el.style.setProperty('--bg', cheio.bg);
+    el.style.setProperty('--card', cheio.card);
+    el.style.setProperty('--brand', cheio.brand);
+    el.style.setProperty('--brand-dark', escurece(cheio.brand, .18));
+    el.style.setProperty('--brand-soft', comAlfa(cheio.brand, .12));
+    el.style.setProperty('--line', comAlfa(cheio.brand, .22));
+    el.style.setProperty('--cta', cheio.cta);
+    el.style.setProperty('--cta-dark', escurece(cheio.cta, .18));
+    el.style.setProperty('--on-cta', cheio.onCta);
+    document.body.style.background = cheio.bg;
+    // fundo escuro troca o tema inteiro, senão borda branca some em branco
+    const l = luminancia(cheio.bg);
+    el.classList.toggle('tema-escuro', l !== null && l < 60);
+    avisaContraste();
+  }
+
+  CAMPOS_TEMA.forEach(([sel]) => {
+    const el = $(sel);
+    if (el) el.addEventListener('input', previaTema);
+  });
+
+  {
+    const bs = $('#btn-tema-salvar');
+    if (bs) bs.addEventListener('click', async () => {
+      const txt = bs.textContent;
+      bs.disabled = true; bs.textContent = 'Salvando…';
+      try {
+        const tema = temaDosCampos();
+        const r = await fetch(WH_THEME, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ store_slug: STORE_SLUG, tema })
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        if (storeRow) storeRow.tema = tema;
+        aplicaTema(storeRow && storeRow.primary_color);
+        toast('Aparência salva ✓');
+      } catch (e) {
+        console.warn('[Provou Catálogo] erro ao salvar tema:', e);
+        toast('Não consegui salvar. Tente de novo.');
+      } finally {
+        bs.disabled = false; bs.textContent = txt;
+      }
+    });
+
+    const br = $('#btn-tema-reset');
+    if (br) br.addEventListener('click', async () => {
+      const txt = br.textContent;
+      br.disabled = true; br.textContent = 'Restaurando…';
+      try {
+        const r = await fetch(WH_THEME, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ store_slug: STORE_SLUG, tema: null })
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        if (storeRow) storeRow.tema = null;
+        aplicaTema(storeRow && storeRow.primary_color);
+        renderTema();
+        toast('Aparência restaurada ✓');
+      } catch (e) {
+        console.warn('[Provou Catálogo] erro ao restaurar tema:', e);
+        toast('Não consegui restaurar. Tente de novo.');
+      } finally {
+        br.disabled = false; br.textContent = txt;
+      }
+    });
   }
 
   function renderLinksCategoria() {
@@ -1061,6 +1243,7 @@
   // ─────────── Admin (lojista) ───────────
   let adminPhoto = '';
   function renderAdmin() {
+    renderTema();
     $('#admin-count').textContent = catalog.length + ' produto' + (catalog.length === 1 ? '' : 's') + ' no catálogo';
     const list = $('#admin-list'); list.innerHTML = '';
     catalog.forEach(p => {

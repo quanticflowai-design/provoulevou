@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=75">
+  <link rel="stylesheet" href="styles.css?v=76">
 </head>
 <body>
   <div id="app">
@@ -353,6 +353,31 @@
           </div>
         </div>
 
+        <!-- Aparencia: o lojista escolhe as cores do proprio catalogo. O que
+             ele salva vira a coluna `tema` da loja e passa por cima do padrao
+             que existe no codigo. -->
+        <div class="tema-box" id="tema-box">
+          <h3 class="tema-tit">Aparencia do catalogo</h3>
+          <p class="tema-sub">Escolha as cores da sua loja. A previa muda enquanto voce mexe.</p>
+          <div class="tema-campos">
+            <label class="tema-campo"><span>Fundo da pagina</span>
+              <input type="color" id="tema-bg"></label>
+            <label class="tema-campo"><span>Fundo dos cartoes</span>
+              <input type="color" id="tema-card"></label>
+            <label class="tema-campo"><span>Cor do preco e detalhes</span>
+              <input type="color" id="tema-brand"></label>
+            <label class="tema-campo"><span>Cor do botao</span>
+              <input type="color" id="tema-cta"></label>
+            <label class="tema-campo"><span>Texto do botao</span>
+              <input type="color" id="tema-oncta"></label>
+          </div>
+          <p class="tema-alerta" id="tema-alerta" hidden></p>
+          <div class="tema-acoes">
+            <button class="btn-primary" id="btn-tema-salvar">Salvar aparencia</button>
+            <button class="btn-outline" id="btn-tema-reset">Restaurar padrao</button>
+          </div>
+        </div>
+
         <!-- Um link por categoria, pro lojista mandar "so os femininos" pra
              quem pediu isso. So aparece quando existe categoria. -->
         <div class="cat-links" id="cat-links" hidden>
@@ -388,6 +413,6 @@
   </template>
   <div id="toast"></div>
 
-  <script src="app.js?v=75"></script>
+  <script src="app.js?v=76"></script>
 </body>
 </html>
