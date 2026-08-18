@@ -253,7 +253,7 @@
   async function loadCatalog() {
     if (!storeRow) return catalog;
     const rows = await sbGet('pl_catalog_products?store_id=eq.' + storeRow.id +
-      '&is_active=eq.true&select=*,pl_catalog_product_images(url,is_primary,position)' +
+      '&is_active=eq.true&select=*,pl_catalog_product_images(id,url,is_primary,position)' +
       '&order=position.asc,created_at.desc');
     carregou = true;
     catalog = (rows || []).map(r => {
@@ -263,6 +263,7 @@
       return {
         id: r.id, name: r.name, price: Number(r.price), img: urls[0] || '',
         imgs: urls,                       // a galeria e as referências da prova saem daqui
+        imgIds: imgs.map(x => x.id).filter(Boolean),   // quais apagar quando trocar a foto
         desc: r.description || '',
         parcelas: Number(r.parcelas) || 0,
         categoria: categoriaDe(r)
@@ -1020,6 +1021,9 @@
   // mesmo par nome+preço, e o lojista já sabe onde ficam os campos.
   function entraEdicao(p) {
     editando = p;
+    adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = [];
+    const fi = $('#admin-photo'); if (fi) fi.value = '';
+    const cc = $('#admin-up-conta'); if (cc) cc.hidden = true;
     $('#admin-name').value = p.name;
     $('#admin-price').value = Number(p.price).toFixed(2).replace('.', ',');
     $('#admin-desc').value = p.desc || '';
@@ -1078,7 +1082,7 @@
     const price = parseFloat(priceRaw);
     if (!name) { toast('Dê um nome ao produto'); return; }
     if (!price || price <= 0) { toast('Informe um preço válido'); return; }
-    // na edição a foto continua a mesma: só nome e preço mudam
+    // no cadastro a foto é obrigatória; na edição, só se o lojista escolher outra
     if (!editando && !adminPhotoB64) { toast('Envie a foto do produto'); return; }
     if (!storeRow) { toast('Loja não encontrada — recarregue a página'); return; }
 
@@ -1086,11 +1090,32 @@
       const txt0 = btn.textContent;
       btn.disabled = true; btn.textContent = 'Salvando…';
       try {
+        // Sobe as fotos novas ANTES de mandar apagar as velhas. Se o upload
+        // falhar no meio, o produto continua com as fotos antigas em vez de
+        // ficar sem nenhuma.
+        const trocouFoto = adminFotosB64.length > 0;
+        if (trocouFoto) {
+          for (let i = 0; i < adminFotosB64.length; i++) {
+            btn.textContent = adminFotosB64.length > 1
+              ? 'Enviando foto ' + (i + 1) + ' de ' + adminFotosB64.length + '…' : 'Enviando foto…';
+            const ri = await fetch(WH_ADD_IMAGE, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              // position 1-based: o n8n faz `position || 1` e trataria o 0 como
+              // ausente, jogando a 1a e a 2a foto na mesma posicao — e a capa
+              // sai justamente da menor posicao
+              body: JSON.stringify({ store_slug: STORE_SLUG, product_id: editando.id,
+                                     mime: 'image/jpeg', image_b64: adminFotosB64[i], position: i + 1 })
+            });
+            if (!ri.ok) throw new Error('foto HTTP ' + ri.status);
+          }
+        }
+        btn.textContent = 'Salvando…';
         const r = await fetch(WH_EDIT_PRODUCT, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ product_id: editando.id, name, price,
                                  description: $('#admin-desc').value.trim() || null,
-                                 parcelas: Number($('#admin-parcelas').value) || null })
+                                 parcelas: Number($('#admin-parcelas').value) || null,
+                                 remove_image_ids: trocouFoto ? (editando.imgIds || []) : [] })
         });
         if (!r.ok) throw new Error('HTTP ' + r.status);
         await loadCatalog();
