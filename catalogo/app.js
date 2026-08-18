@@ -328,7 +328,7 @@
     // sair do produto tira o ?p= da URL: senão o lojista copia da barra achando
     // que é o link do catálogo e manda o cliente pra um modelo só
     if (name === 'catalog' && new URLSearchParams(location.search).get('p')) {
-      try { history.pushState({}, '', location.pathname + '?loja=' + encodeURIComponent(STORE_SLUG)); } catch (e) {}
+      try { history.pushState({}, '', linkCategoria(catFiltro)); } catch (e) {}
     }
     $$('.screen').forEach(s => s.classList.toggle('active', s.dataset.screen === name));
     document.getElementById('app').scrollTop = 0;
@@ -362,7 +362,11 @@
       const b = document.createElement('button');
       b.className = 'cat-chip' + (c === catFiltro ? ' sel' : '');
       b.textContent = c || 'Todos';
-      b.addEventListener('click', () => { catFiltro = c; renderCatalog(); });
+      b.addEventListener('click', () => {
+        catFiltro = c;
+        try { history.pushState({ cat: c }, '', linkCategoria(c)); } catch (e) {}
+        renderCatalog();
+      });
       box.appendChild(b);
     });
   }
@@ -411,6 +415,41 @@
     // precisa lembrar de nada
     renderFiltros();
     renderSugestoesCategoria();
+    renderLinksCategoria();
+  }
+
+  function renderLinksCategoria() {
+    const box = $('#cat-links'), lista = $('#cat-links-lista');
+    if (!box || !lista) return;
+    const cats = categoriasDaLoja();
+    box.hidden = cats.length === 0;
+    lista.textContent = '';
+    cats.forEach(c => {
+      const item = document.createElement('div'); item.className = 'cat-link-item';
+      const nome = document.createElement('span'); nome.className = 'cat-link-nome'; nome.textContent = c;
+      const qtd = document.createElement('span'); qtd.className = 'cat-link-qtd';
+      const n = catalog.filter(x => x.cat === c).length;
+      qtd.textContent = n + (n > 1 ? ' produtos' : ' produto');
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'cat-link-btn';
+      btn.title = 'Copiar link de ' + c;
+      btn.setAttribute('aria-label', 'Copiar link da categoria ' + c);
+      const tpl = $('#tpl-link');
+      if (tpl) btn.appendChild(tpl.content.cloneNode(true)); else btn.textContent = '🔗';
+      btn.addEventListener('click', async () => {
+        const url = linkCategoria(c);
+        try { await navigator.clipboard.writeText(url); toast('Link copiado ✓'); }
+        catch (e) {
+          const i = document.createElement('input');
+          i.value = url; document.body.appendChild(i); i.select();
+          try { document.execCommand('copy'); toast('Link copiado ✓'); }
+          catch (_) { toast('Copie: ' + url); }
+          i.remove();
+        }
+      });
+      item.append(nome, qtd, btn);
+      lista.appendChild(item);
+    });
   }
 
   // Sugestões do campo de categoria: o que a loja já usa.
@@ -463,6 +502,13 @@
       '?loja=' + encodeURIComponent(STORE_SLUG) + '&p=' + encodeURIComponent(prod.id);
   }
 
+  // Link de UMA categoria: o lojista manda "so os femininos" pra quem pediu
+  // isso, em vez do catalogo inteiro.
+  function linkCategoria(cat) {
+    const base = location.origin + location.pathname + '?loja=' + encodeURIComponent(STORE_SLUG);
+    return cat ? base + '&cat=' + encodeURIComponent(cat) : base;
+  }
+
   function openProduct(p, semHistorico) {
     current = p;
     bindImg($('#p-img'), p.img, p.name);
@@ -487,9 +533,21 @@
   window.addEventListener('popstate', ev => {
     const id = ev.state && ev.state.p;
     const prod = id && catalog.find(x => String(x.id) === String(id));
-    if (prod) openProduct(prod, true);
-    else show('catalog');
+    if (prod) { openProduct(prod, true); return; }
+    catFiltro = achaCategoria(new URLSearchParams(location.search).get('cat'));
+    renderCatalog();
+    show('catalog');
   });
+
+  // Casa o que veio na URL com o que a loja tem, sem exigir acento e caixa
+  // identicos: link com "feminino" tem que achar a categoria "Feminino".
+  function achaCategoria(bruta) {
+    if (!bruta) return '';
+    const norm = t => String(t).trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const alvo = norm(bruta);
+    return categoriasDaLoja().find(c => norm(c) === alvo) || '';
+  }
 
   // ─────────── Try-on: upload ───────────
   function resetUploader() {
@@ -1361,6 +1419,9 @@
   // ─────────── Init ───────────
   const pedido = (location.hash === '#admin' || location.hash === '#login')
     ? null : new URLSearchParams(location.search).get('p');
+  // lido aqui em cima pelo mesmo motivo do `pedido`: o show('catalog') do init
+  // reescreve a URL e o ?cat= ja teria sumido
+  const catPedida = new URLSearchParams(location.search).get('cat');
   aplicaPermissoes();   // esconde a area do lojista antes de pintar a tela
   renderStore();
   renderCatalog();          // pinta na hora com o cache
@@ -1382,6 +1443,17 @@
   // Chegou por um link de produto: espera o catálogo carregar e abre nele.
   // `pedido` é lido lá em cima, ANTES de qualquer show(): o show('catalog') do
   // init limpa o ?p= da URL, e lendo aqui ele já teria sumido.
+  // Chegou por um link de categoria: aplica o filtro assim que o catalogo carrega.
+  if (catPedida) {
+    const filtra = () => {
+      catFiltro = achaCategoria(catPedida);
+      if (!catFiltro) { toast('Essa categoria nao existe mais'); return; }
+      renderCatalog();
+      try { history.replaceState({ cat: catFiltro }, '', linkCategoria(catFiltro)); } catch (e) {}
+    };
+    if (cargaInicial) cargaInicial.then(filtra); else filtra();
+  }
+
   if (pedido) {
     const abre = () => {
       const prod = catalog.find(x => String(x.id) === String(pedido));
