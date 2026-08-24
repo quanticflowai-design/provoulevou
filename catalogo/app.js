@@ -46,10 +46,15 @@
   // Loja que pediu limite diferente do padrão entra aqui. (O ideal é coluna na
   // loja, pra mudar sem deploy — hoje é DDL, que só passa pelo SQL Editor.)
   const LIMITE_POR_LOJA = { ruby: 1 };
-  const MAX_PROVAS_DIA = LIMITE_POR_LOJA[STORE_SLUG] || 3;
+  // Vale enquanto o servidor nao responde. Quem manda e a franquia da loja no
+  // banco: assim da pra mudar o limite sem deploy, e o navegador nao decide
+  // quantas provas ele mesmo pode fazer.
+  let MAX_PROVAS_DIA = LIMITE_POR_LOJA[STORE_SLUG] || 3;
   // "suas 1 provas de hoje" fica errado; com limite 1 o texto muda junto
-  const PROVAS_TXT = MAX_PROVAS_DIA === 1 ? 'sua prova de hoje'
-                                          : 'suas ' + MAX_PROVAS_DIA + ' provas de hoje';
+  function provasTxt() {
+    return MAX_PROVAS_DIA === 1 ? 'sua prova de hoje'
+                                : 'suas ' + MAX_PROVAS_DIA + ' provas de hoje';
+  }
   const PROVAS_KEY = 'pc_provas_v1';
 
   // ─────────── Estado ───────────
@@ -905,7 +910,10 @@
       const d = await r.json();
       // Telefone/loja que a função não reconheceu não zera o contador local.
       if (!d || d.erro) return null;
-      const usadas = Number(d.usadas) || 0;
+      // franquia definida no banco (por loja) vence a constante local
+      if (Number(d.limite) > 0) MAX_PROVAS_DIA = Number(d.limite);
+      // o servidor tambem conta por IP: trocar um digito do telefone nao zera
+      const usadas = Math.max(Number(d.usadas) || 0, Number(d.ip_usadas) || 0);
       absorveServidor(tel, usadas);
       return usadas;
     } catch (e) {
@@ -977,7 +985,7 @@
     if (box) {
       box.hidden = !bloqueado;
       const tit = $('#limite-titulo');
-      if (tit) tit.textContent = 'Você já usou ' + PROVAS_TXT;
+      if (tit) tit.textContent = 'Você já usou ' + provasTxt();
       const t = $('#limite-texto');
       if (t) {
         t.textContent = 'Volte amanhã para provar outras peças' +
@@ -1007,7 +1015,7 @@
   // Tela de limite: repinta, avisa e leva o olho até o aviso.
   function mostraLimite() {
     atualizaBotaoProvar();
-    toast('Você já usou ' + PROVAS_TXT);
+    toast('Você já usou ' + provasTxt());
     const box = $('#limite-box');
     if (box && box.scrollIntoView) { try { box.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {} }
   }
