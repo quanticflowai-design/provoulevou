@@ -6495,7 +6495,7 @@
                 const { data, error } = await supabaseClient
                     .from('whatsapp_mensagens')
                     .select('lead_phone,direction,body,msg_type,template_name,wa_timestamp,contact_name,read_by_lojista,created_at')
-                    .eq('email', activeUser.email)
+                    .in('email', plScopeEmails())
                     .order('created_at', { ascending: false })
                     .limit(1000);
                 if (error) throw error;
@@ -6702,7 +6702,7 @@
             if (isUnread) { await chatMarkRead(phone); return; }
             try {
                 const { data } = await supabaseClient.from('whatsapp_mensagens')
-                    .select('id').eq('email', activeUser.email).eq('lead_phone', phone)
+                    .select('id').in('email', plScopeEmails()).eq('lead_phone', phone)
                     .eq('direction', 'in').order('created_at', { ascending: false }).limit(1);
                 if (data && data[0]) {
                     await supabaseClient.from('whatsapp_mensagens').update({ read_by_lojista: false }).eq('id', data[0].id);
@@ -6785,7 +6785,7 @@
                 const { data } = await supabaseClient
                     .from('whatsapp_mensagens')
                     .select('*')
-                    .eq('email', activeUser.email)
+                    .in('email', plScopeEmails())
                     .eq('lead_phone', phone)
                     .order('created_at', { ascending: true })
                     .limit(500);
@@ -7484,7 +7484,7 @@
             const map = {};
             try {
                 const { data } = await supabaseClient
-                    .from('pl_wa_templates').select('name,header_image_url').eq('email', activeUser.email);
+                    .from('pl_wa_templates').select('name,header_image_url').in('email', plScopeEmails());
                 (data || []).forEach(r => { if (r.header_image_url) map[r.name] = r.header_image_url; });
             } catch (e) { console.warn('[pl-templates] images:', e); }
             _plTplImagesCache = map;
@@ -7534,7 +7534,7 @@
             if (_plTplNamesCache) return _plTplNamesCache;
             try {
                 const { data, error } = await supabaseClient
-                    .from('pl_wa_templates').select('name').eq('email', activeUser.email);
+                    .from('pl_wa_templates').select('name').in('email', plScopeEmails());
                 if (error) throw error;
                 _plTplNamesCache = new Set((data || []).map(r => r.name));
             } catch (e) { console.warn('[pl-templates] load:', e); return null; }
@@ -8775,7 +8775,7 @@
             if (!box || !activeUser) return;
             try {
                 const { data, error } = await supabaseClient.from('flows')
-                    .select('*').eq('lojista_email', activeUser.email)
+                    .select('*').in('lojista_email', plScopeEmails())
                     .order('id', { ascending: true });
                 if (error) throw error;
                 AUTOM.flows = data || [];
@@ -8883,7 +8883,7 @@
                 // Se a definição não estiver em memória, busca a linha completa.
                 if (!f || !f.definicao) {
                     const { data, error } = await supabaseClient.from('flows')
-                        .select('*').eq('id', flowId).eq('lojista_email', activeUser.email).single();
+                        .select('*').eq('id', flowId).in('lojista_email', plScopeEmails()).single();
                     if (error) throw error;
                     f = data;
                 }
@@ -10005,10 +10005,10 @@
 
             // campanhas: flows (nome + templates dos passos) e agendados (template) -> mapa template->cid
             let flows = [];
-            try { const { data } = await supabaseClient.from('flows').select('id, nome, ativo, passos').eq('lojista_email', activeUser.email); flows = data || []; }
+            try { const { data } = await supabaseClient.from('flows').select('id, nome, ativo, passos').in('lojista_email', plScopeEmails()); flows = data || []; }
             catch (e) { console.warn('[dashboard] flows:', e); }
             let agend = [];
-            try { const { data } = await supabaseClient.from('disparos_agendados').select('id, template, status, active, sent_count').eq('lojista_email', activeUser.email); agend = data || []; }
+            try { const { data } = await supabaseClient.from('disparos_agendados').select('id, template, status, active, sent_count').in('lojista_email', plScopeEmails()); agend = data || []; }
             catch (e) { console.warn('[dashboard] agendados:', e); }
 
             const tplToCid = {};
@@ -10108,7 +10108,7 @@
             let kpiRespondidas = 0;
             try {
                 const { data: inb } = await supabaseClient.from('whatsapp_mensagens')
-                    .select('lead_phone, wa_timestamp, created_at').eq('email', activeUser.email).eq('direction', 'in').limit(20000);
+                    .select('lead_phone, wa_timestamp, created_at').in('email', plScopeEmails()).eq('direction', 'in').limit(20000);
                 const inByPhone = {};
                 (inb || []).forEach(m => {
                     const ph = normalize(m.lead_phone); if (!ph) return;
@@ -11654,7 +11654,7 @@
             let rows = [];
             try {
                 const { data } = await supabaseClient.from('disparos_agendados')
-                    .select('*').eq('lojista_email', activeUser.email).order('created_at', { ascending: false }).limit(200);
+                    .select('*').in('lojista_email', plScopeEmails()).order('created_at', { ascending: false }).limit(200);
                 rows = data || [];
             } catch (e) { el.innerHTML = shell('<div class="camp-empty">Não foi possível carregar as campanhas.</div>'); return; }
 
@@ -12213,7 +12213,7 @@
             try { if (!allOrdersCache || !allOrdersCache.length) await loadSharedData(); } catch (e) {}
             let custom = [];
             try {
-                const { data } = await supabaseClient.from('segmentacoes').select('*').eq('lojista_email', activeUser.email).order('created_at', { ascending: true });
+                const { data } = await supabaseClient.from('segmentacoes').select('*').in('lojista_email', plScopeEmails()).order('created_at', { ascending: true });
                 custom = data || [];
             } catch (e) {}
             window._segCustom = custom;
@@ -12257,7 +12257,7 @@
         async function segEnsureCustom() {
             if (window._segCustom) return;
             try {
-                const { data } = await supabaseClient.from('segmentacoes').select('*').eq('lojista_email', activeUser.email).order('created_at', { ascending: true });
+                const { data } = await supabaseClient.from('segmentacoes').select('*').in('lojista_email', plScopeEmails()).order('created_at', { ascending: true });
                 window._segCustom = data || [];
             } catch (e) { window._segCustom = []; }
         }
@@ -12396,7 +12396,7 @@
             if (typeof populateRecurStage === 'function') populateRecurStage();
             try {
                 const { data, error } = await supabaseClient.from('disparos_agendados')
-                    .select('*').eq('lojista_email', activeUser.email)
+                    .select('*').in('lojista_email', plScopeEmails())
                     .order('scheduled_at', { ascending: false }).limit(50);
                 if (error) throw error;
                 if (!data || !data.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Nenhum disparo agendado ainda.</div>'; return; }
@@ -13978,7 +13978,7 @@
                 if (activeUser.email) {
                     const r1 = await supabaseClient.from('provou_levou_stores')
                         .select('plan, plano_personalizado, valor_personalizado, limite_personalizado, domain, last_payment')
-                        .eq('email', activeUser.email).maybeSingle();
+                        .in('email', plScopeEmails()).limit(1).maybeSingle();
                     store = r1.error ? null : r1.data;
                     if (!store && activeUser.origem) {
                         const r2 = await supabaseClient.from('provou_levou_stores')
@@ -15398,7 +15398,7 @@
                     const r1 = await supabaseClient
                         .from('provou_levou_stores')
                         .select('plan, status, last_payment, implementation_date, plano_personalizado, valor_personalizado, limite_personalizado, domain')
-                        .eq('email', activeUser.email)
+                        .in('email', plScopeEmails())
                         .maybeSingle();
                     if (!r1.error && r1.data) store = r1.data;
                 }
