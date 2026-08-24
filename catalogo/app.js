@@ -40,10 +40,16 @@
   document.documentElement.classList.add('loja-' + STORE_SLUG.replace(/[^a-z0-9-]/gi, ''));
   const MAX_UPLOAD_PX = 1280;   // reduz foto de celular antes de subir (custo/velocidade)
   const JPEG_QUALITY = 0.85;
-  // Cada cliente (WhatsApp) tem 3 provas por dia neste catálogo. O catálogo não
+  // Cada cliente (WhatsApp) tem N provas por dia neste catálogo. O catálogo não
   // tinha limite nenhum: o mesmo número provava o catálogo inteiro e cada prova
   // custa geração pro lojista.
-  const MAX_PROVAS_DIA = 3;
+  // Loja que pediu limite diferente do padrão entra aqui. (O ideal é coluna na
+  // loja, pra mudar sem deploy — hoje é DDL, que só passa pelo SQL Editor.)
+  const LIMITE_POR_LOJA = { ruby: 1 };
+  const MAX_PROVAS_DIA = LIMITE_POR_LOJA[STORE_SLUG] || 3;
+  // "suas 1 provas de hoje" fica errado; com limite 1 o texto muda junto
+  const PROVAS_TXT = MAX_PROVAS_DIA === 1 ? 'sua prova de hoje'
+                                          : 'suas ' + MAX_PROVAS_DIA + ' provas de hoje';
   const PROVAS_KEY = 'pc_provas_v1';
 
   // ─────────── Estado ───────────
@@ -971,7 +977,7 @@
     if (box) {
       box.hidden = !bloqueado;
       const tit = $('#limite-titulo');
-      if (tit) tit.textContent = 'Você já usou suas ' + MAX_PROVAS_DIA + ' provas de hoje';
+      if (tit) tit.textContent = 'Você já usou ' + PROVAS_TXT;
       const t = $('#limite-texto');
       if (t) {
         t.textContent = 'Volte amanhã para provar outras peças' +
@@ -1001,7 +1007,7 @@
   // Tela de limite: repinta, avisa e leva o olho até o aviso.
   function mostraLimite() {
     atualizaBotaoProvar();
-    toast('Você já usou suas ' + MAX_PROVAS_DIA + ' provas de hoje');
+    toast('Você já usou ' + PROVAS_TXT);
     const box = $('#limite-box');
     if (box && box.scrollIntoView) { try { box.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {} }
   }
