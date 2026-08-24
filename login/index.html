@@ -8316,7 +8316,7 @@
                 let q = supabaseClient
                     .from('whatsapp_send_log')
                     .select('*')
-                    .eq('email', activeUser.email)
+                    .in('email', plScopeEmails())
                     .order('sent_at', { ascending: false })
                     .limit(500);
                 if (filter !== 'all') q = q.eq('status', filter);
@@ -8327,7 +8327,7 @@
                 const { data: allData } = await supabaseClient
                     .from('whatsapp_send_log')
                     .select('status, sent_at')
-                    .eq('email', activeUser.email)
+                    .in('email', plScopeEmails())
                     .limit(10000);
                 const all = allData || [];
                 const stats = {
@@ -9783,7 +9783,7 @@
                 const { data, error } = await supabaseClient
                     .from('whatsapp_send_log')
                     .select('*')
-                    .eq('email', activeUser.email)
+                    .in('email', plScopeEmails())
                     .order('sent_at', { ascending: false })
                     .limit(500);
                 if (error) throw error;
@@ -9793,7 +9793,7 @@
                 const { data: allData } = await supabaseClient
                     .from('whatsapp_send_log')
                     .select('status, sent_at')
-                    .eq('email', activeUser.email)
+                    .in('email', plScopeEmails())
                     .limit(10000);
                 const all = allData || [];
                 const total = all.length;
@@ -10027,7 +10027,7 @@
                 // linhas / 3 MB na Cacifé — e filtrava no navegador.
                 let _q = supabaseClient.from('whatsapp_send_log')
                     .select('lead_phone, sent_at, status, template_name, source, source_id')
-                    .eq('email', activeUser.email);
+                    .in('email', plScopeEmails());
                 if (cutoff) _q = _q.gte('sent_at', new Date(cutoff - 30 * 86400000).toISOString());
                 const { data } = await _q.limit(20000);
                 sendRows = data || [];
@@ -10394,7 +10394,7 @@
                 const { data } = await supabaseClient
                     .from('whatsapp_send_log')
                     .select('lead_phone, sent_at, status, template_name')
-                    .eq('email', activeUser.email)
+                    .in('email', plScopeEmails())
                     .limit(10000);
                 dispRows = data || [];
             } catch (e) { console.warn('[disparos] recovered log:', e); }
@@ -10570,7 +10570,7 @@
                 const { data } = await supabaseClient
                     .from('whatsapp_send_log')
                     .select('lead_phone, sent_at, status')
-                    .eq('email', activeUser.email)
+                    .in('email', plScopeEmails())
                     .limit(10000);
                 dispRows = data || [];
             } catch (e) { console.warn('[disparos] sales log:', e); }
@@ -10716,7 +10716,7 @@
             (async () => {
                 const { data } = await supabaseClient.from('whatsapp_send_log')
                     .select('lead_phone, sent_at, status, template_name, template_language, error_message')
-                    .eq('email', activeUser.email).order('sent_at', { ascending: false }).limit(1000);
+                    .in('email', plScopeEmails()).order('sent_at', { ascending: false }).limit(1000);
                 if (!data || data.length === 0) { alert('Sem disparos pra exportar.'); return; }
                 const headers = ['Data', 'Telefone', 'Template', 'Idioma', 'Status', 'Meta Message ID', 'Erro'];
                 const rows = [headers.map(h => '"'+h+'"').join(';')];
@@ -10816,7 +10816,7 @@
             const { data: recent } = await supabaseClient
                 .from('whatsapp_send_log')
                 .select('lead_phone')
-                .eq('email', activeUser.email)
+                .in('email', plScopeEmails())
                 .in('status', ['sent', 'delivered', 'read'])
                 .gte('sent_at', since)
                 .limit(10000);
@@ -15051,7 +15051,7 @@
                 const { data } = await supabaseClient
                     .from('whatsapp_send_log')
                     .select('lead_phone, sent_at, status')
-                    .eq('email', activeUser.email)
+                    .in('email', plScopeEmails())
                     .limit(10000);
                 dispRows = data || [];
             } catch (e) { console.warn('[vg recuperado] log:', e); }
@@ -16480,6 +16480,15 @@
         // só deixa cada login enxergar a PRÓPRIA linha, então não dá pra descobrir os
         // irmãos consultando por `origem`. Ao criar um 2º login pra uma loja, some ele
         // ao grupo aqui — senão os dois voltam a ter CRMs separados.
+        // Lojas com 2+ logins: leituras de disparo usam a UNIAO do grupo, senao o
+        // que a Juliana dispara nao aparece pro outro login da mesma loja (caso Koros).
+        function plScopeEmails() {
+            try {
+                const mine = ((activeUser && activeUser.email) || '').toLowerCase();
+                const g = CRM_LOGIN_GROUPS.find(x => x.indexOf(mine) !== -1);
+                return (g ? g.slice() : [mine]).filter(Boolean);
+            } catch (e) { return [(activeUser && activeUser.email)].filter(Boolean); }
+        }
         const CRM_LOGIN_GROUPS = [
             ['gustavomota@oculoslindamenina.com', 'olm@oculoslindamenina.com'],
             ['cacifebrand@outlook.com',           'meta-review@provoulevou.com.br'],
