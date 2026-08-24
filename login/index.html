@@ -10400,7 +10400,10 @@
             } catch (e) { console.warn('[disparos] recovered log:', e); }
             const dispByPhone = {};
             dispRows.forEach(r => {
-                if (r.status === 'failed') return;
+                // So conta recuperacao se a mensagem COMPROVADAMENTE chegou (webhook da Meta).
+                // 'sent' e apenas "aceita" — na Koros 813 sends ficaram em sent sem entregar
+                // (131042 pagamento) e o card creditava compra organica ao disparo.
+                if (['delivered', 'read'].indexOf(String(r.status || '').toLowerCase()) === -1) return;
                 const ph = normalize(r.lead_phone);
                 if (!ph || !r.sent_at) return;
                 const ms = new Date(r.sent_at).getTime();
@@ -10577,7 +10580,10 @@
 
             const dispByPhone = {};
             dispRows.forEach(r => {
-                if (r.status === 'failed') return;
+                // So conta recuperacao se a mensagem COMPROVADAMENTE chegou (webhook da Meta).
+                // 'sent' e apenas "aceita" — na Koros 813 sends ficaram em sent sem entregar
+                // (131042 pagamento) e o card creditava compra organica ao disparo.
+                if (['delivered', 'read'].indexOf(String(r.status || '').toLowerCase()) === -1) return;
                 const ph = normalize(r.lead_phone);
                 if (!ph || !r.sent_at) return;
                 const ms = new Date(r.sent_at).getTime();
@@ -15057,7 +15063,10 @@
             } catch (e) { console.warn('[vg recuperado] log:', e); }
             const dispByPhone = {};
             dispRows.forEach(r => {
-                if (r.status === 'failed') return;
+                // So conta recuperacao se a mensagem COMPROVADAMENTE chegou (webhook da Meta).
+                // 'sent' e apenas "aceita" — na Koros 813 sends ficaram em sent sem entregar
+                // (131042 pagamento) e o card creditava compra organica ao disparo.
+                if (['delivered', 'read'].indexOf(String(r.status || '').toLowerCase()) === -1) return;
                 const ph = normalize(r.lead_phone);
                 if (!ph || !r.sent_at) return;
                 const ms = new Date(r.sent_at).getTime();
