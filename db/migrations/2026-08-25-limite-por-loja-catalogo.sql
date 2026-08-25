@@ -2,6 +2,14 @@
 -- limite_diario) passa a ser autoritativa — era só o argumento p_limite, que o
 -- gerador fixava em 3 e o browser podia inventar. NULL em limite_diario = SEM
 -- limite (caso Satika). Loja com valor (ruby=1, demais=3) segue igual a hoje.
+--
+-- COMO RODAR: colar inteiro no SQL editor do Supabase (DDL não passa pelo REST).
+
+-- NULL passa a significar "sem limite" — a coluna nasceu NOT NULL default 3.
+alter table public.pl_catalog_stores alter column limite_diario drop not null;
+
+-- Satika: sem limite de provas (pedido de 25/08/2026).
+update public.pl_catalog_stores set limite_diario = null where slug = 'satika';
 create or replace function public.pl_catalog_check_limit(
   p_slug   text,
   p_phone  text,
