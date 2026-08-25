@@ -52,6 +52,7 @@
   let MAX_PROVAS_DIA = LIMITE_POR_LOJA[STORE_SLUG] || 3;
   // "suas 1 provas de hoje" fica errado; com limite 1 o texto muda junto
   function provasTxt() {
+    if (!isFinite(MAX_PROVAS_DIA)) return 'suas provas de hoje';
     return MAX_PROVAS_DIA === 1 ? 'sua prova de hoje'
                                 : 'suas ' + MAX_PROVAS_DIA + ' provas de hoje';
   }
@@ -913,8 +914,10 @@
       const d = await r.json();
       // Telefone/loja que a função não reconheceu não zera o contador local.
       if (!d || d.erro) return null;
-      // franquia definida no banco (por loja) vence a constante local
-      if (Number(d.limite) > 0) MAX_PROVAS_DIA = Number(d.limite);
+      // franquia definida no banco (por loja) vence a constante local.
+      // ilimitado=true (limite_diario NULL na loja) = sem teto — Satika foi a 1ª.
+      if (d.ilimitado === true) MAX_PROVAS_DIA = Infinity;
+      else if (Number(d.limite) > 0) MAX_PROVAS_DIA = Number(d.limite);
       // o servidor tambem conta por IP: trocar um digito do telefone nao zera
       const usadas = Math.max(Number(d.usadas) || 0, Number(d.ip_usadas) || 0);
       absorveServidor(tel, usadas);
@@ -949,7 +952,7 @@
   // O servidor recusou por limite: zera o saldo deste número aqui também, senão
   // a tela continua oferecendo provas que o gerador não vai entregar.
   function marcaLimite(tel) {
-    if (!tel) return;
+    if (!tel || !isFinite(MAX_PROVAS_DIA)) return;
     const o = lerProvas();
     o.tel[tel] = MAX_PROVAS_DIA;
     salvarProvas(o);
@@ -975,7 +978,8 @@
     const bloqueado = !!tel && restantes <= 0;
 
     if (msg) {
-      if (tel && !bloqueado) {
+      // loja sem teto: não há saldo a mostrar (Infinity no texto assustaria)
+      if (tel && !bloqueado && isFinite(restantes)) {
         msg.textContent = restantes + (restantes === 1 ? ' prova restante hoje' : ' provas restantes hoje');
         msg.classList.toggle('is-warn', restantes === 1);
         msg.hidden = false;
