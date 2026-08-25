@@ -237,7 +237,10 @@
     // Otica Millu: o rosa do logo (#E0457F) da 3,8:1 com texto branco. Fechei
     // pra 5,0:1; ao lado do logo a diferenca nao aparece.
     millu: { bg: '#ffffff', card: '#ffffff', line: '#F5DDE8',
-             brand: '#C43A72', dark: '#A32E5E', soft: 'rgba(224,69,127,.12)', on: '#ffffff' }
+             brand: '#C43A72', dark: '#A32E5E', soft: 'rgba(224,69,127,.12)', on: '#ffffff' },
+    // Satika: vermelho do logo (#B02828) da 6,6:1 com texto branco — usado puro.
+    satika: { bg: '#ffffff', card: '#ffffff', line: '#F0DBDB',
+              brand: '#B02828', dark: '#962222', soft: 'rgba(176,40,40,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
