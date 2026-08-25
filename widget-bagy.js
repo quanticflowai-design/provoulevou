@@ -209,14 +209,7 @@
             localStorage.setItem('calmo_provador_usage', JSON.stringify(usage));
         }
 
-        // -- Tracking de abertura do provador (session anonima) - Provou Levou --
-        // source: 'flutuante' (unico botao neste widget) — mesmo payload dos widgets koros/univisao
-        var WEBHOOK_OPEN_PL = 'https://n8n.segredosdodrop.com/webhook/pl-provador-open';
-        function plSid() { try { var s = localStorage.getItem('pl_sid'); if (!s) { s = 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); localStorage.setItem('pl_sid', s); } return s; } catch (e) { return 'nostore'; } }
-        function plTrackOpen(source) { try { fetch(WEBHOOK_OPEN_PL, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: plSid(), origin: location.origin, botao: source || null, produto: (document.querySelector('h1.product-name, h1.product__title, .product-single__title, h1') || {}).innerText || document.title || '' }) }).catch(function () {}); } catch (e) {} }
-
         openBtn.onclick = () => {
-            plTrackOpen('flutuante');
             const usage = getDailyUsage();
             const limitMsg = document.getElementById('q-limit-msg');
             if (usage.count >= 2) {
