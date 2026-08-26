@@ -1089,30 +1089,11 @@
 
       const fd = new FormData();
       fd.append('person_image', dataUrlParaBlob(userPhoto), 'pessoa.jpg');
-      // A foto PRINCIPAL é a que o cliente deixou selecionada na galeria — antes
-      // era sempre a primeira, e quem escolhia outra cor provava a cor errada.
-      const fotos = (current.imgs && current.imgs.length ? current.imgs : [current.img]).filter(Boolean);
-      const principal = fotoAtual();
-      // a foto do produto vem do nosso proprio Storage, entao o fetch passa
-      const prodBlob = await fetch(principal || current.img).then(r => r.blob());
+      // Vai SÓ a foto que o cliente deixou selecionada na galeria. No catálogo as
+      // fotos do mesmo produto costumam ser CORES diferentes (caso For Eyes), e
+      // mandar as outras como referência fazia a IA misturar as cores na prova.
+      const prodBlob = await fetch(fotoAtual() || current.img).then(r => r.blob());
       fd.append('product_image', prodBlob, 'produto.jpg');
-      // As demais fotos vão como referência extra de geometria e cor — o gerador
-      // já lê product_image_2_b64 em diante e ajusta o prompt sozinho. Com um
-      // ângulo só a IA erra formato e proporção da armação; é o mesmo motivo
-      // pelo qual os widgets das lojas mandam de 4 a 6 fotos.
-      const extras = fotos.filter(u => u !== principal).slice(0, 5);
-      for (let i = 0; i < extras.length; i++) {
-        try {
-          const b = await fetch(extras[i]).then(r => r.blob());
-          const b64 = await new Promise(res => {
-            const fr = new FileReader();
-            fr.onload = () => res(String(fr.result).split(',')[1] || '');
-            fr.onerror = () => res('');
-            fr.readAsDataURL(b);
-          });
-          if (b64) fd.append('product_image_' + (i + 2) + '_b64', b64);
-        } catch (e) { console.warn('[Provou Catálogo] foto de referência falhou:', e); }
-      }
       fd.append('whatsapp', '55' + tel);
       fd.append('phone_raw', $('#phone-input').value);
       fd.append('product_name', current.name);
