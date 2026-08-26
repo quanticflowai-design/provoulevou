@@ -63,6 +63,13 @@
   let carregou = false;     // o servidor já respondeu ao menos uma vez?
   let catalog = load();
   let current = null;       // produto selecionado
+  let fotoSel = 0;          // foto escolhida na galeria — a prova sai DELA (cores diferentes por foto, caso For Eyes)
+  // A foto que o cliente está vendo/escolheu — resultado, checkout e prova usam ela.
+  function fotoAtual() {
+    if (!current) return '';
+    const fotos = (current.imgs && current.imgs.length ? current.imgs : [current.img]).filter(Boolean);
+    return fotos[Math.min(Math.max(0, fotoSel), fotos.length - 1)] || current.img || '';
+  }
   let userPhoto = '';       // dataURL da foto do cliente
   let payMethod = 'pix';
   let pixTimer = null;
@@ -703,6 +710,7 @@
       if (i === 0) t.classList.add('sel');
       bindImg(t, u, p.name);
       t.addEventListener('click', () => {
+        fotoSel = i;   // a prova respeita a foto escolhida (ex.: outra cor do modelo)
         bindImg($('#p-img'), u, p.name);
         box.querySelectorAll('img').forEach(x => x.classList.remove('sel'));
         t.classList.add('sel');
@@ -727,6 +735,7 @@
 
   function openProduct(p, semHistorico) {
     current = p;
+    fotoSel = 0;   // produto novo, galeria volta pra primeira foto
     bindImg($('#p-img'), p.img, p.name);
     $('#p-name').textContent = p.name;
     $('#p-price').textContent = brl(p.price);
@@ -1080,14 +1089,18 @@
 
       const fd = new FormData();
       fd.append('person_image', dataUrlParaBlob(userPhoto), 'pessoa.jpg');
+      // A foto PRINCIPAL é a que o cliente deixou selecionada na galeria — antes
+      // era sempre a primeira, e quem escolhia outra cor provava a cor errada.
+      const fotos = (current.imgs && current.imgs.length ? current.imgs : [current.img]).filter(Boolean);
+      const principal = fotoAtual();
       // a foto do produto vem do nosso proprio Storage, entao o fetch passa
-      const prodBlob = await fetch(current.img).then(r => r.blob());
+      const prodBlob = await fetch(principal || current.img).then(r => r.blob());
       fd.append('product_image', prodBlob, 'produto.jpg');
       // As demais fotos vão como referência extra de geometria e cor — o gerador
       // já lê product_image_2_b64 em diante e ajusta o prompt sozinho. Com um
       // ângulo só a IA erra formato e proporção da armação; é o mesmo motivo
       // pelo qual os widgets das lojas mandam de 4 a 6 fotos.
-      const extras = (current.imgs || []).slice(1, 6);
+      const extras = fotos.filter(u => u !== principal).slice(0, 5);
       for (let i = 0; i < extras.length; i++) {
         try {
           const b = await fetch(extras[i]).then(r => r.blob());
@@ -1143,7 +1156,7 @@
     const img = $('#result-img');
     img.onerror = null;
     img.src = urlProva || userPhoto || fallbackSvg('Sua prova');
-    bindImg($('#result-thumb'), current.img, current.name);
+    bindImg($('#result-thumb'), fotoAtual() || current.img, current.name);
     $('#result-name').textContent = current.name;
     $('#result-price').textContent = brl(current.price);
     show('result');
@@ -1151,7 +1164,7 @@
 
   // ─────────── Checkout ───────────
   function openCheckout() {
-    bindImg($('#co-thumb'), current.img, current.name);
+    bindImg($('#co-thumb'), fotoAtual() || current.img, current.name);
     $('#co-name').textContent = current.name;
     $('#co-price').textContent = brl(current.price);
     show('checkout');
@@ -1258,7 +1271,7 @@
 
   // ─────────── Sucesso ───────────
   function success(payLabel) {
-    bindImg($('#s-thumb'), current.img, current.name);
+    bindImg($('#s-thumb'), fotoAtual() || current.img, current.name);
     $('#s-name').textContent = current.name;
     $('#s-price').textContent = brl(current.price);
     $('#s-pay').textContent = payLabel;
