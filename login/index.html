@@ -14533,18 +14533,31 @@
 
         // Busca TODAS as páginas de uma query paginada em LOTES PARALELOS (em vez de
         // página-a-página em série). makeQuery() deve devolver um builder novo a cada chamada.
-        async function fetchPagesParallel(makeQuery, pageSize = 1000, concurrency = 8) {
+        async function fetchPagesParallel(makeQuery, pageSize = 1000, concurrency = 6) {
+            // Uma pagina com retry: o Supabase self-hosted devolve 504 esporadico sob carga.
+            // Sem retry, um 504 virava [] e a paginacao PARAVA no meio (tela incompleta e
+            // "rapida demais" = subcontagem silenciosa). Aqui 3 tentativas com backoff antes
+            // de desistir; erro real (nao dado) propaga para nao mascarar bug de verdade.
+            const fetchPage = async (p) => {
+                let lastErr = null;
+                for (let attempt = 0; attempt < 3; attempt++) {
+                    if (attempt) await new Promise(r => setTimeout(r, 400 * attempt));
+                    const r = await makeQuery().range(p * pageSize, (p + 1) * pageSize - 1);
+                    if (r && !r.error) return (r.data || []);
+                    lastErr = r && r.error;
+                }
+                console.warn('[fetchPages] pagina', p, 'falhou apos retries:', lastErr && lastErr.message);
+                return null; // null = falha (diferente de [] = fim)
+            };
             const out = [];
             let base = 0;
             while (true) {
                 const reqs = [];
-                for (let k = 0; k < concurrency; k++) {
-                    const p = base + k;
-                    reqs.push(makeQuery().range(p * pageSize, (p + 1) * pageSize - 1).then(r => (r && r.data) || []));
-                }
+                for (let k = 0; k < concurrency; k++) reqs.push(fetchPage(base + k));
                 const groups = await Promise.all(reqs);
                 let done = false;
                 for (const batch of groups) {
+                    if (batch === null) { done = true; continue; } // falha real: para sem fingir fim limpo
                     out.push(...batch);
                     if (batch.length < pageSize) done = true;
                 }
