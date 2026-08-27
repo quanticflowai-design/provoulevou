@@ -10042,7 +10042,7 @@
             const NOW = Date.now();
             const chartCutoff = (cutoff === 0) ? (NOW - 90 * 86400000) : cutoff;
             const dayKey = ms => new Date(ms).toISOString().slice(0, 10);
-            const disparosPorDia = {}, recuperadoPorDia = {};
+            const disparosPorDia = {}, recuperadoPorDia = {}, faturamentoPorDia = {};
             let kpiEnviados = 0, kpiFalhas = 0, kpi24h = 0, kpiEntregues = 0, kpiLidas = 0;
             sendRows.forEach(r => {
                 if (!r.sent_at) return;
@@ -10083,10 +10083,14 @@
                 if (!ts) return;
                 const oms = new Date(ts).getTime(); if (!oms) return;
                 if (cutoff !== 0 && oms < cutoff) return;
+                const _val = parseFloat(o[fTotal]) || 0;
+                // Faturamento da loja no dia (TODOS os pedidos pagos) — serve de pano de fundo
+                // pra comparar com o recuperado: dia de mais recuperacao foi dia de mais venda?
+                if (_val > 0 && oms >= chartCutoff) faturamentoPorDia[dayKey(oms)] = (faturamentoPorDia[dayKey(oms)] || 0) + _val;
                 const keys = orderPhoneKeys(o);
                 const recovered = keys.some(ph => (dispByPhone[ph] || []).some(ms => ms <= oms && (oms - ms) <= WINDOW_MS));
                 if (!recovered) return;
-                const val = parseFloat(o[fTotal]) || 0;
+                const val = _val;
                 total.valor += val; total.pedidos++;
                 if (oms >= chartCutoff) recuperadoPorDia[dayKey(oms)] = (recuperadoPorDia[dayKey(oms)] || 0) + val;
                 let best = null;
@@ -10103,7 +10107,7 @@
               const end = new Date(NOW); end.setHours(0, 0, 0, 0);
               for (let t = start.getTime(); t <= end.getTime(); t += 86400000) {
                 const k = new Date(t).toISOString().slice(0, 10);
-                serieDiaria.push({ dia: k, disparos: disparosPorDia[k] || 0, recuperado: recuperadoPorDia[k] || 0 });
+                serieDiaria.push({ dia: k, disparos: disparosPorDia[k] || 0, recuperado: recuperadoPorDia[k] || 0, faturamento: faturamentoPorDia[k] || 0 });
               } }
             const kpis = { total: kpiEnviados + kpiFalhas, enviados: kpiEnviados, falhas: kpiFalhas, ultimas24h: kpi24h };
 
@@ -10323,16 +10327,37 @@
             const labels = serie.map(x => { const dt = new Date(x.dia + 'T00:00:00'); return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }); });
             const disp = serie.map(x => x.disparos);
             const rec = serie.map(x => +(x.recuperado || 0).toFixed(2));
+            const fat = serie.map(x => +(x.faturamento || 0).toFixed(2));
+            const temFat = fat.some(v => v > 0);
             if (_dispDashChart) { try { _dispDashChart.destroy(); } catch (e) {} }
             const muted = (getComputedStyle(document.body).getPropertyValue('--text-muted') || '#94a3b8').trim();
             _dispDashChart = new Chart(canvas.getContext('2d'), {
                 data: { labels, datasets: [
                     { type: 'bar', label: 'Disparos', data: disp, backgroundColor: 'rgba(124,58,237,.35)', borderColor: 'rgba(124,58,237,.7)', borderWidth: 1, borderRadius: 3, yAxisID: 'y', order: 2 },
                     { type: 'line', label: 'Recuperado (R$)', data: rec, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.15)', borderWidth: 2, tension: .3, pointRadius: 2, fill: true, yAxisID: 'y1', order: 1 }
-                ] },
+                ].concat(temFat ? [
+                    // Faturamento total da loja no dia: pano de fundo pra ler se o dia de mais
+                    // recuperacao foi tambem dia de mais venda. Mesmo eixo R$ do recuperado.
+                    { type: 'line', label: 'Faturamento da loja (R$)', data: fat, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.08)', borderWidth: 2, borderDash: [5, 4], tension: .3, pointRadius: 0, fill: false, yAxisID: 'y1', order: 0 }
+                ] : []) },
                 options: {
                     responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-                    plugins: { legend: { display: true, labels: { color: muted, boxWidth: 12, font: { size: 11 } } } },
+                    plugins: {
+                        legend: { display: true, labels: { color: muted, boxWidth: 12, font: { size: 11 } } },
+                        tooltip: { callbacks: {
+                            label: (ctx) => {
+                                const v = ctx.parsed.y;
+                                if (ctx.dataset.yAxisID !== 'y1') return ctx.dataset.label + ': ' + v;
+                                const txt = ctx.dataset.label + ': ' + v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                                // No recuperado, mostra que fatia do dia ele representa
+                                if (ctx.dataset.label.indexOf('Recuperado') === 0) {
+                                    const f = fat[ctx.dataIndex] || 0;
+                                    if (f > 0) return txt + '  (' + (v / f * 100).toFixed(0) + '% do dia)';
+                                }
+                                return txt;
+                            }
+                        } }
+                    },
                     scales: {
                         x: { grid: { display: false }, ticks: { color: muted, maxRotation: 0, autoSkip: true, font: { size: 10 } } },
                         y: { position: 'left', beginAtZero: true, grid: { color: 'rgba(127,127,127,.1)' }, ticks: { color: muted, precision: 0, font: { size: 10 } } },
