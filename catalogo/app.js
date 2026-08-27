@@ -252,8 +252,12 @@
     // S.E Outlet dos Oculos: fundo e o roxo EXATO do circulo do logo (senao o
     // circulo vira um disco recortado na pagina); botao no ciano do "OUTLET"
     // com texto preto — ciano com branco daria ~1,9:1.
-    seoutlet: { bg: '#782575', card: '#86307F', line: 'rgba(14,231,223,.30)',
-                brand: '#0EE7DF', dark: '#0BC4BD', soft: 'rgba(14,231,223,.15)', on: '#0A0A0A' }
+    // S.E Outlet: fundo BRANCO (pedido do Lucas). O roxo do logo vira a marca
+    // (preco/detalhes, 8,8:1 no branco) e o ciano do "OUTLET" fica no botao,
+    // com texto preto — ciano e claro demais pra texto sobre branco.
+    seoutlet: { bg: '#ffffff', card: '#ffffff', line: '#EBD9EA',
+                brand: '#782575', dark: '#611E5F', soft: 'rgba(120,37,117,.10)', on: '#ffffff',
+                cta: '#0EE7DF', ctaDark: '#0BC4BD', onCta: '#0A0A0A' }
   };
 
   // ─────────── Tema ───────────
