@@ -6039,6 +6039,7 @@
             try { localStorage.setItem('pl-master-active-lojista', email); } catch(e) {}
             activeUser = cfg;
             // Reseta caches que dependem de activeUser
+            invalidateSendLogCache();   // senao a loja nova mostraria disparos da anterior
             _crmConfigMem = null;
             _crmOverridesMem = null;
             crmLeadMapCache = null;
@@ -6784,7 +6785,7 @@
             try {
                 const { data } = await supabaseClient
                     .from('whatsapp_mensagens')
-                    .select('*')
+                    .select('direction, body, msg_type, media_id, media_url, template_name, btn_label, btn_url, status, wa_timestamp, created_at')
                     .in('email', plScopeEmails())
                     .eq('lead_phone', phone)
                     .order('created_at', { ascending: true })
@@ -8313,9 +8314,11 @@
             const filter = document.getElementById('waLogFilter').value;
             list.innerHTML = '<div class="wa-tpl-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando…</div>';
             try {
+                // select('*') puxava colunas pesadas nao usadas na tela (1,76s / 291 KB).
+                // So o que o render le: 0,15s / 62 KB.
                 let q = supabaseClient
                     .from('whatsapp_send_log')
-                    .select('*')
+                    .select('lead_phone, sent_at, status, template_name, error_message')
                     .in('email', plScopeEmails())
                     .order('sent_at', { ascending: false })
                     .limit(500);
@@ -9782,7 +9785,7 @@
             try {
                 const { data, error } = await supabaseClient
                     .from('whatsapp_send_log')
-                    .select('*')
+                    .select('lead_phone, sent_at, status, template_name, error_message, source, source_id')
                     .in('email', plScopeEmails())
                     .order('sent_at', { ascending: false })
                     .limit(500);
@@ -10391,12 +10394,7 @@
             }
             let dispRows = [];
             try {
-                const { data } = await supabaseClient
-                    .from('whatsapp_send_log')
-                    .select('lead_phone, sent_at, status, template_name')
-                    .in('email', plScopeEmails())
-                    .limit(10000);
-                dispRows = data || [];
+                dispRows = await getSendLogShared('lead_phone, sent_at, status, template_name');
             } catch (e) { console.warn('[disparos] recovered log:', e); }
             const dispByPhone = {};
             dispRows.forEach(r => {
@@ -10570,12 +10568,7 @@
             // Disparos não-falhos por telefone -> lista de timestamps (ms)
             let dispRows = [];
             try {
-                const { data } = await supabaseClient
-                    .from('whatsapp_send_log')
-                    .select('lead_phone, sent_at, status')
-                    .in('email', plScopeEmails())
-                    .limit(10000);
-                dispRows = data || [];
+                dispRows = await getSendLogShared('lead_phone, sent_at, status, template_name');
             } catch (e) { console.warn('[disparos] sales log:', e); }
 
             const dispByPhone = {};
@@ -13212,6 +13205,25 @@
         let provaMinDateMap = {};
         let nameMap = {};
         let allOrdersCache = [];
+        // Cache do whatsapp_send_log: "Velocidade de compra", "Clientes recuperados" e o
+        // dashboard de disparos baixavam as MESMAS ~10 mil linhas, cada um por conta.
+        // Agora a primeira busca serve as tres (invalidado ao trocar de lojista/periodo).
+        let _sendLogCache = null, _sendLogCacheKey = '';
+        async function getSendLogShared(cols) {
+            const key = plScopeEmails().join(',') + '|' + cols;
+            if (_sendLogCache && _sendLogCacheKey === key) return _sendLogCache;
+            const { data } = await supabaseClient
+                .from('whatsapp_send_log')
+                .select(cols)
+                .in('email', plScopeEmails())
+                .order('sent_at', { ascending: false })
+                .limit(10000);
+            _sendLogCache = data || [];
+            _sendLogCacheKey = key;
+            return _sendLogCache;
+        }
+        function invalidateSendLogCache() { _sendLogCache = null; _sendLogCacheKey = ''; }
+
         let allGensShared = [];
         let provasAggShared = null;   // preenchido quando a RPC pl_provas_agg responde
         // Contagem de provas de um item de allGensShared. Com o agregado do servidor cada
