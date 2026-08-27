@@ -10063,8 +10063,15 @@
                 const cid = (r.source === 'automacao' && r.source_id) ? ('flow:' + r.source_id)
                           : (r.source === 'campanha' && r.source_id) ? ('ag:' + r.source_id)
                           : (tplToCid[r.template_name] || 'avulsos');
-                (dispByPhone[ph] = dispByPhone[ph] || []).push(ms);
-                (eventsByPhone[ph] = eventsByPhone[ph] || []).push({ ms, cid });
+                // So atribui venda se a mensagem COMPROVADAMENTE chegou (webhook da Meta).
+                // 'sent' e apenas "aceita" — mesma regra do card da Visao Geral e da lista
+                // "Clientes recuperados". Sem isso os dois numeros davam diferente na mesma
+                // tela (R$ 3.117,90 no topo x R$ 1.269,96 na lista). Os contadores de
+                // disparo abaixo seguem contando todo envio nao-falho: sao coisas diferentes.
+                if (['delivered', 'read'].indexOf(String(r.status || '').toLowerCase()) !== -1) {
+                    (dispByPhone[ph] = dispByPhone[ph] || []).push(ms);
+                    (eventsByPhone[ph] = eventsByPhone[ph] || []).push({ ms, cid });
+                }
                 if (inPeriod) {
                     disparosTotal++; alcTotal.add(ph);
                     disparosPorCamp[cid] = (disparosPorCamp[cid] || 0) + 1;
