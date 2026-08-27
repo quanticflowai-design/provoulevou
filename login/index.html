@@ -6785,7 +6785,7 @@
             try {
                 const { data } = await supabaseClient
                     .from('whatsapp_mensagens')
-                    .select('direction, body, msg_type, media_id, media_url, template_name, btn_label, btn_url, status, wa_timestamp, created_at')
+                    .select('direction, body, msg_type, media_id, template_name, btn_label, btn_url, status, wa_timestamp, created_at')
                     .in('email', plScopeEmails())
                     .eq('lead_phone', phone)
                     .order('created_at', { ascending: true })
