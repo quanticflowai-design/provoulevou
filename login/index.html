@@ -11692,12 +11692,24 @@
             const _sendAgg = {};
             if (_ranIds.length) {
                 try {
-                    let _from = 0;
-                    while (true) {
-                        const { data: _sl } = await supabaseClient.from('whatsapp_send_log').select('source_id,status').in('source_id', _ranIds).range(_from, _from + 999);
-                        (_sl || []).forEach(r => { const a = _sendAgg[r.source_id] = _sendAgg[r.source_id] || { ok: 0, fail: 0 }; if (r.status === 'failed') a.fail++; else a.ok++; });
-                        if (!_sl || _sl.length < 1000) break;
-                        _from += 1000;
+                    // Paginava o send_log em SERIE (1 pagina por vez) so pra contar por campanha.
+                    // O cache compartilhado ja tem essas linhas na memoria; so quando ele nao
+                    // cobre (campanha antiga fora das 10 mil) cai pra busca direcionada.
+                    const _idSet = new Set(_ranIds.map(String));
+                    const _cached = await getSendLogShared('lead_phone, sent_at, status, template_name, source, source_id');
+                    let _cobre = false;
+                    (_cached || []).forEach(r => {
+                        if (!r.source_id || !_idSet.has(String(r.source_id))) return;
+                        _cobre = true;
+                        const a = _sendAgg[r.source_id] = _sendAgg[r.source_id] || { ok: 0, fail: 0 };
+                        if (r.status === 'failed') a.fail++; else a.ok++;
+                    });
+                    if (!_cobre) {
+                        const _pgs = await Promise.all([0, 1, 2, 3].map(i => supabaseClient
+                            .from('whatsapp_send_log').select('source_id,status')
+                            .in('source_id', _ranIds).range(i * 1000, i * 1000 + 999)
+                            .then(r => (r && r.data) || [])));
+                        _pgs.flat().forEach(r => { const a = _sendAgg[r.source_id] = _sendAgg[r.source_id] || { ok: 0, fail: 0 }; if (r.status === 'failed') a.fail++; else a.ok++; });
                     }
                 } catch (e) { console.warn('[camp] agregação de envios:', e); }
             }
