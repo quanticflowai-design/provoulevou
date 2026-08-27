@@ -248,7 +248,12 @@
              brand: '#C43A72', dark: '#A32E5E', soft: 'rgba(224,69,127,.12)', on: '#ffffff' },
     // Satika: vermelho do logo (#B02828) da 6,6:1 com texto branco — usado puro.
     satika: { bg: '#ffffff', card: '#ffffff', line: '#F0DBDB',
-              brand: '#B02828', dark: '#962222', soft: 'rgba(176,40,40,.10)', on: '#ffffff' }
+              brand: '#B02828', dark: '#962222', soft: 'rgba(176,40,40,.10)', on: '#ffffff' },
+    // S.E Outlet dos Oculos: fundo e o roxo EXATO do circulo do logo (senao o
+    // circulo vira um disco recortado na pagina); botao no ciano do "OUTLET"
+    // com texto preto — ciano com branco daria ~1,9:1.
+    seoutlet: { bg: '#782575', card: '#86307F', line: 'rgba(14,231,223,.30)',
+                brand: '#0EE7DF', dark: '#0BC4BD', soft: 'rgba(14,231,223,.15)', on: '#0A0A0A' }
   };
 
   // ─────────── Tema ───────────
