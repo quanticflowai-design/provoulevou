@@ -14603,7 +14603,11 @@
 
         // Busca TODAS as páginas de uma query paginada em LOTES PARALELOS (em vez de
         // página-a-página em série). makeQuery() deve devolver um builder novo a cada chamada.
-        async function fetchPagesParallel(makeQuery, pageSize = 1000, concurrency = 6) {
+        // pageSize 10000: o PostgREST daqui aceita ate 10 mil por requisicao — pedir de mil
+        // em mil so multiplicava round-trips. Medido na Cacife (72.913 pedidos pagos):
+        // 73 paginas = 12,1s  ->  8 paginas = 0,5s (24x). O custo por pagina quase nao muda
+        // (0,10s para 1k vs 0,15s para 10k) porque o gargalo era a latencia, nao o volume.
+        async function fetchPagesParallel(makeQuery, pageSize = 10000, concurrency = 6) {
             // Uma pagina com retry: o Supabase self-hosted devolve 504 esporadico sob carga.
             // Sem retry, um 504 virava [] e a paginacao PARAVA no meio (tela incompleta e
             // "rapida demais" = subcontagem silenciosa). Aqui 3 tentativas com backoff antes
@@ -16311,7 +16315,7 @@
             // Paginate sessions (Regra 1 — no silent 1000-row cutoff)
             const allSessions = [];
             {
-                const pageSize = 1000;
+                const pageSize = 10000;   // servidor aceita 10 mil: 10x menos round-trips
                 let pFrom = 0;
                 while (true) {
                     const { data: batch } = await supabaseClient
@@ -16358,7 +16362,7 @@
             const selectFields = comStatus([fPhone, fTotal, fStatus, fDataPedido, fNome].filter((v, i, a) => a.indexOf(v) === i).join(','), _temStatusPedidos);
             const allOrders = [];
             {
-                const pageSize = 1000;
+                const pageSize = 10000;   // servidor aceita 10 mil: 10x menos round-trips
                 let pFrom = 0;
                 while (true) {
                     let ordQuery = supabaseClient
@@ -17486,7 +17490,7 @@
                 // Provas (todas as sessões da origem do lojista)
                 const allSessions = [];
                 {
-                    const pageSize = 1000;
+                    const pageSize = 10000;   // servidor aceita 10 mil: 10x menos round-trips
                     let pFrom = 0;
                     while (true) {
                         const { data: batch } = await supabaseClient
@@ -17623,7 +17627,7 @@
                 const selectFields = '*';
                 const allOrders = [];
                 {
-                    const pageSize = 1000;
+                    const pageSize = 10000;   // servidor aceita 10 mil: 10x menos round-trips
                     let pFrom = 0;
                     while (true) {
                         let q = supabaseClient
