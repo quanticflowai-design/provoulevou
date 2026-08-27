@@ -13213,6 +13213,11 @@
         let nameMap = {};
         let allOrdersCache = [];
         let allGensShared = [];
+        let provasAggShared = null;   // preenchido quando a RPC pl_provas_agg responde
+        // Contagem de provas de um item de allGensShared. Com o agregado do servidor cada
+        // item ja traz o total (_provas); no fallback antigo cada linha vale 1.
+        const gensProvaCount = g => (g && typeof g._provas === 'number') ? g._provas : 1;
+        const gensDiasCount  = g => (g && typeof g._dias === 'number') ? g._dias : 1;
         let preProvadorBaseline = null; // { pedidosPerDay, fatPerDay, unicosPerDay, days, firstProvaDate }
         let yoyBaseline = null; // { fatPerDay, pedidosPerDay, days, windowStart, windowEnd } — mesmo período pós-instalação do ano anterior
         let _csvProvasData = [];
@@ -13785,7 +13790,50 @@
 
         // ===== Cards de engajamento (Visão Geral): re-engajamento, tempo médio por sessão, retorno em outro dia =====
         // Detecta sessões pelo gap entre provas do mesmo telefone (< 30min = mesma sessão).
+        // Versao servidor-side: recebe 1 linha por cliente (pl_provas_agg) em vez das
+        // provas cruas. Mesmas metricas; o "tempo de sessao" vira o intervalo entre a
+        // primeira e a ultima prova do cliente no mesmo dia (aproximacao honesta —
+        // sem os timestamps individuais nao da pra fatiar sessoes de 30min).
+        function renderEngajamentoCardsAgg(agg) {
+            const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            const totalUnicos = agg.length;
+            let reengaj = 0, voltaramDia = 0, totalProvas = 0;
+            const spans = [];
+            agg.forEach(a => {
+                const n = a.provas || 0;
+                totalProvas += n;
+                if (n > 1) reengaj++;
+                if ((a.dias_distintos || 0) > 1) voltaramDia++;
+                if (n > 1 && a.primeira_ts && a.ultima_ts && (a.dias_distintos || 0) === 1) {
+                    const ms = new Date(a.ultima_ts).getTime() - new Date(a.primeira_ts).getTime();
+                    if (ms > 0) spans.push(ms);
+                }
+            });
+            const reengajPct = totalUnicos > 0 ? (reengaj / totalUnicos * 100) : 0;
+            const voltaramPct = totalUnicos > 0 ? (voltaramDia / totalUnicos * 100) : 0;
+            setText('provasReengajaram', reengaj.toLocaleString('pt-BR'));
+            setText('provasReengajaramPct', reengajPct.toFixed(0) + '%');
+            setText('provasVoltaramDia', voltaramDia.toLocaleString('pt-BR'));
+            setText('provasVoltaramDiaPct', voltaramPct.toFixed(0) + '%');
+            setText('vgStatProvasPorCliente', totalUnicos > 0 ? Math.round(totalProvas / totalUnicos).toLocaleString('pt-BR') : '—');
+            const tempoEl = document.getElementById('provasTempoMedio');
+            if (!tempoEl) return;
+            if (!spans.length) { tempoEl.textContent = '—'; tempoEl.dataset.segundos = '0'; return; }
+            const _s = spans.sort((a, b) => a - b);
+            const _mid = Math.floor(_s.length / 2);
+            const medMs = _s.length % 2 ? _s[_mid] : (_s[_mid - 1] + _s[_mid]) / 2;
+            const sec = medMs / 1000;
+            tempoEl.dataset.segundos = String(Math.round(sec));
+            const min = sec / 60, hr = min / 60;
+            if (sec < 60) tempoEl.textContent = Math.round(sec) + 's';
+            else if (min < 60) tempoEl.textContent = min.toFixed(1).replace('.', ',') + ' min';
+            else tempoEl.textContent = hr.toFixed(1).replace('.', ',') + ' h';
+        }
+
         function renderEngajamentoCards(allProvas) {
+            // Com o agregado do servidor nao existem timestamps individuais: o tempo de sessao
+            // sai do intervalo primeira->ultima prova do cliente, e as contagens vem prontas.
+            if (provasAggShared) { renderEngajamentoCardsAgg(provasAggShared); return; }
             const provasPorPhone = {};
             (allProvas || []).forEach(r => {
                 const ph = normalize(r.telefone_cliente);
@@ -14246,14 +14294,12 @@
             (allGensShared || []).forEach(g => {
                 const ph = normalize(g.telefone_cliente);
                 if (!ph) return;
-                provasPorPhone[ph] = (provasPorPhone[ph] || 0) + 1;
-                if (!diasPorPhone[ph]) diasPorPhone[ph] = new Set();
-                const d = (g.created_at || '').slice(0, 10);
-                if (d) diasPorPhone[ph].add(d);
+                provasPorPhone[ph] = (provasPorPhone[ph] || 0) + gensProvaCount(g);
+                diasPorPhone[ph] = (diasPorPhone[ph] || 0) + gensDiasCount(g);
             });
             const totalProvas = Object.values(provasPorPhone).reduce((s, n) => s + n, 0);
             const voltaram = Object.values(provasPorPhone).filter(c => c > 1).length;
-            const voltaramOutroDia = Object.values(diasPorPhone).filter(s => s.size > 1).length;
+            const voltaramOutroDia = Object.values(diasPorPhone).filter(n => n > 1).length;
             const compraram = boughtPhonesSet.size;
 
             // Faturamento atribuído ao provador e total da loja no período
@@ -14401,7 +14447,7 @@
             (allGensShared || []).forEach(g => {
                 const ph = normalize(g.telefone_cliente);
                 if (!ph) return;
-                provasPorPhone[ph] = (provasPorPhone[ph] || 0) + 1;
+                provasPorPhone[ph] = (provasPorPhone[ph] || 0) + gensProvaCount(g);
             });
             const voltaram = Object.values(provasPorPhone).filter(c => c > 1).length;
             const compraram = boughtPhonesSet.size;
@@ -14593,8 +14639,30 @@
             const _temStatusPedidos = await tabelaTemStatus(activeUser.tabela_pedidos);
             const selectFields = comStatus([fPhone, fTotal, fStatus, 'created_at', fDataPedido, fNome, fProduto].filter(Boolean).join(', '), _temStatusPedidos);
 
-            // Carrega TODAS as provas em lotes paralelos (antes era página-a-página em série).
-            const allGens = await fetchPagesParallel(() => supabaseClient
+            // Provas AGREGADAS no servidor (1 linha por telefone) em vez de baixar todas as
+            // linhas: Linda Menina tinha 71 mil provas -> ~26 mil agregados. Era esse download
+            // que fazia as telas demorarem. Se a RPC nao existir (SQL ainda nao rodado), cai
+            // pro caminho antigo — o painel funciona nos dois mundos.
+            let allGens = null;
+            try {
+                const { data: _agg, error: _aggErr } = await supabaseClient
+                    .rpc('pl_provas_agg', { p_origem: activeUser.origem });
+                if (!_aggErr && Array.isArray(_agg)) {
+                    provasAggShared = _agg;
+                    // Reconstroi o formato que o resto do painel espera, mas SEM as linhas
+                    // repetidas: 1 item por telefone carregando a contagem em _provas.
+                    allGens = _agg.map(a => ({
+                        telefone_cliente: a.telefone,
+                        created_at: a.primeira_ts,
+                        produtos: a.ultimo_produto || '',
+                        _provas: a.provas,
+                        _dias: a.dias_distintos,
+                        _ultimaTs: a.ultima_ts,
+                        _clicou: a.clicou_comprar
+                    }));
+                }
+            } catch (e) { console.warn('[provas] RPC indisponivel, usando fallback:', e && e.message); }
+            if (!allGens) allGens = await fetchPagesParallel(() => supabaseClient
                 .from(activeUser.tabela)
                 .select('telefone_cliente, created_at, produtos')
                 .ilike('origin', `%${activeUser.origem}%`)
