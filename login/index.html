@@ -13283,12 +13283,17 @@
         async function getSendLogShared(cols) {
             const key = plScopeEmails().join(',') + '|' + cols;
             if (_sendLogCache && _sendLogCacheKey === key) return _sendLogCache;
-            const { data } = await supabaseClient
+            // PAGINADO. Antes era .limit(10000): na Cacife (18.359 disparos) a lista
+            // "Clientes recuperados pelos disparos" so via os 10 mil mais recentes e perdia
+            // 8 mil disparos antigos — mostrava R$ 33.470 onde o card do topo (que baixa
+            // 20 mil) mostrava R$ 54.052. O teto era silencioso: nao dava erro, so subcontava.
+            // Desempate por id: sem ORDER BY estavel o Postgres repete/pula linhas entre paginas.
+            const data = await fetchPagesParallel(() => supabaseClient
                 .from('whatsapp_send_log')
                 .select(cols)
                 .in('email', plScopeEmails())
                 .order('sent_at', { ascending: false })
-                .limit(10000);
+                .order('id', { ascending: false }));
             _sendLogCache = data || [];
             _sendLogCacheKey = key;
             return _sendLogCache;
