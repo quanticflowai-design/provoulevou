@@ -192,10 +192,6 @@
     // a mesma loja.
     paranhos: { bg: '#151B63', card: '#1D247A', line: 'rgba(254,238,5,.30)',
                 brand: '#FEEE05', dark: '#E2D400', soft: 'rgba(254,238,5,.15)', on: '#151B63' },
-    // Aqui Lentes: azul e amarelo. O azul do fundo é mais fundo que o do logo,
-    // senão o selo circular deles some dentro da página.
-    aquilentes: { bg: '#0B2350', card: '#122F63', line: 'rgba(245,222,0,.30)',
-                  brand: '#F5DE00', dark: '#DCC800', soft: 'rgba(245,222,0,.15)', on: '#0B2350' },
     // Ótica Stilus Prime: preto e dourado. O logo deles já vem com fundo preto
     // chapado, então o fundo do catálogo é preto puro pra imagem encaixar sem
     // virar um retângulo dentro da página.
@@ -248,16 +244,7 @@
              brand: '#C43A72', dark: '#A32E5E', soft: 'rgba(224,69,127,.12)', on: '#ffffff' },
     // Satika: vermelho do logo (#B02828) da 6,6:1 com texto branco — usado puro.
     satika: { bg: '#ffffff', card: '#ffffff', line: '#F0DBDB',
-              brand: '#B02828', dark: '#962222', soft: 'rgba(176,40,40,.10)', on: '#ffffff' },
-    // S.E Outlet dos Oculos: fundo e o roxo EXATO do circulo do logo (senao o
-    // circulo vira um disco recortado na pagina); botao no ciano do "OUTLET"
-    // com texto preto — ciano com branco daria ~1,9:1.
-    // S.E Outlet: fundo BRANCO (pedido do Lucas). O roxo do logo vira a marca
-    // (preco/detalhes, 8,8:1 no branco) e o ciano do "OUTLET" fica no botao,
-    // com texto preto — ciano e claro demais pra texto sobre branco.
-    seoutlet: { bg: '#ffffff', card: '#ffffff', line: '#EBD9EA',
-                brand: '#782575', dark: '#611E5F', soft: 'rgba(120,37,117,.10)', on: '#ffffff',
-                cta: '#0EE7DF', ctaDark: '#0BC4BD', onCta: '#0A0A0A' }
+              brand: '#B02828', dark: '#962222', soft: 'rgba(176,40,40,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
