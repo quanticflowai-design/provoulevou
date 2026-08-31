@@ -17554,7 +17554,7 @@
                     while (true) {
                         const { data: batch } = await supabaseClient
                             .from(user.tabela)
-                            .select('telefone_cliente,produtos,produto_url,created_at,carrinho_adicionado')
+                            .select('telefone_cliente,produtos,produto_url,created_at,carrinho_adicionado,nome_cliente')
                             .ilike('origin', '%' + user.origem + '%')
                             .order('created_at', { ascending: true })
                             .order('id', { ascending: true })
@@ -17575,6 +17575,13 @@
                         leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: '', firstDate: '', lastProduct: '', lastProductUrl: '', checkoutUrl: '', rawPhone: s.telefone_cliente, bought: false, jaCliente: false, clicked: false, name: '' };
                     }
                     leadMap[ph].provaCount++;
+                    // Nome capturado no PROVADOR. Antes o CRM so tinha nome de quem comprou
+                    // (nameMap vem de pedidos) ou de lead importado — quem so provou ficava
+                    // como telefone solto. A prova nao sobrescreve nome de pedido: pedido tem
+                    // nome de cadastro, a prova e' o que a pessoa digitou.
+                    if (!leadMap[ph].name && s.nome_cliente) {
+                        leadMap[ph].name = String(s.nome_cliente).trim().split(' ')[0];
+                    }
                     if (s.carrinho_adicionado) leadMap[ph].clicked = true;   // clicou em "Comprar Agora" no provador
                     const ts = s.created_at || '';
                     const d = ts.slice(0, 10);
