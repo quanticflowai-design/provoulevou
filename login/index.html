@@ -2577,6 +2577,9 @@
                 <button class="tab-btn" id="tab-btn-provas" data-tab="provas" onclick="showTab('provas')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-t-shirt"></i> Provas
                 </button>
+                <button class="tab-btn" id="tab-btn-lentes" data-tab="lentes" onclick="showTab('lentes')" role="tab" aria-selected="false" style="display:none;">
+                    <i class="ph-bold ph-eyeglasses"></i> Lentes
+                </button>
                 <button class="tab-btn" data-tab="meu-plano" id="tab-btn-meu-plano" onclick="showTab('meu-plano')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-credit-card"></i> Meu Plano
                 </button>
@@ -3899,6 +3902,37 @@
                 </div>
             </div>
 
+
+            <!-- ====== ABA LENTES (so aparece nas lojas com fluxo de lentes) ====== -->
+            <div class="tab-pane" id="tab-lentes" role="tabpanel" aria-labelledby="tab-btn-lentes">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                    <div>
+                        <h2 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em;">Fluxo de lentes</h2>
+                        <p style="margin:4px 0 0;color:var(--text-muted);font-size:13.5px;">Quem escolheu lente pelo provador — e quem mandou a receita.</p>
+                    </div>
+                    <div class="disp-period" id="lentesPeriodo"></div>
+                </div>
+
+                <div id="lentesCards" class="lentes-cards"></div>
+
+                <div class="card" style="margin-top:18px;">
+                    <h3 style="margin:0 0 4px;font-size:16px;"><i class="ph-bold ph-funnel" style="color:#7c3aed;"></i> Do clique à lente no carrinho</h3>
+                    <p style="margin:0 0 14px;color:var(--text-muted);font-size:13px;">Cada etapa mostra quantas pessoas chegaram nela.</p>
+                    <div id="lentesFunil"></div>
+                </div>
+
+                <div class="card" style="margin-top:18px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                        <div>
+                            <h3 style="margin:0 0 4px;font-size:16px;"><i class="ph-bold ph-identification-card" style="color:#10b981;"></i> Clientes que usaram o fluxo</h3>
+                            <p style="margin:0;color:var(--text-muted);font-size:13px;" id="lentesListaSub">—</p>
+                        </div>
+                        <button class="btn-outline" id="lentesCsv" style="white-space:nowrap;"><i class="ph-bold ph-download-simple"></i> Baixar CSV</button>
+                    </div>
+                    <div id="lentesLista" style="margin-top:14px;"></div>
+                </div>
+            </div>
+
             <!-- ====== ABA RECUPERAR LEADS ====== -->
 
             <!-- ====== ABA CRM ====== -->
@@ -4074,6 +4108,24 @@
                         display: inline-flex; align-items: center; gap: 4px;
                     }
                     .disp-log-retry:hover { border-color: #7c3aed; color: #7c3aed; }
+                    .lentes-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:20px; }
+                    .lentes-card { background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:16px 18px; }
+                    .lentes-card-l { font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.4px; }
+                    .lentes-card-v { font-size:28px; font-weight:700; line-height:1.2; margin:6px 0 2px; }
+                    .lentes-card-s { font-size:12px; color:var(--text-muted); }
+                    .lentes-etapa { margin-bottom:12px; }
+                    .lentes-etapa-top { display:flex; justify-content:space-between; font-size:13px; color:var(--text-main); margin-bottom:5px; }
+                    .lentes-etapa-top span:last-child { color:var(--text-muted); }
+                    .lentes-barra { height:8px; border-radius:6px; background:var(--border-color); overflow:hidden; }
+                    .lentes-barra > div { height:100%; border-radius:6px; background:linear-gradient(90deg,#7c3aed,#a855f7); }
+                    .lentes-tab-wrap { overflow-x:auto; }
+                    .lentes-tab { width:100%; border-collapse:collapse; font-size:13px; }
+                    .lentes-tab th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--text-muted); padding:8px 10px; border-bottom:1px solid var(--border-color); white-space:nowrap; }
+                    .lentes-tab td { padding:9px 10px; border-bottom:1px solid var(--border-color); vertical-align:top; }
+                    .lentes-tab td.num { text-align:right; white-space:nowrap; }
+                    .lentes-tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; background:var(--border-color); color:var(--text-muted); white-space:nowrap; }
+                    .lentes-tag.ok { background:rgba(16,185,129,.15); color:#10b981; }
+                    .lentes-tag.no { background:rgba(239,68,68,.13); color:#ef4444; }
                     .disp-empty { text-align: center; color: var(--text-muted); padding: 40px 20px; font-size: 13px; }
 
                     @media (max-width: 900px) {
@@ -5821,6 +5873,9 @@
                     crmLoaded = false;
                 });
             }
+            if (name === 'lentes' && activeUser) {
+                if (typeof loadLentes === 'function') loadLentes().catch(e => console.error('[lentes]', e));
+            }
             if (name === 'disparos' && activeUser) {
                 if (typeof loadDisparos === 'function') {
                     loadDisparos().catch(err => console.error('Erro carregando Disparos:', err));
@@ -5828,6 +5883,199 @@
             }
             try { localStorage.setItem('pl-active-tab', name); } catch(e) {}
         }
+
+        /* ===================== ABA LENTES =====================================
+           Fonte: lentes_funnel (webhook pl-lentes-step). Cada passo do fluxo vira
+           uma linha; a sessao amarra tudo. So as lojas com fluxo de lentes tem
+           dados — por isso a aba fica escondida ate a 1a consulta achar algo.
+           Telefone so existe quando a pessoa fez uma prova antes (o campo vem do
+           provador); quem entra pelo botao da pagina do produto aparece sem ele.
+        ==================================================================== */
+        let _lentesCarregado = false, _lentesLinhas = [], _lentesPeriodo = '30';
+
+        function _lentesCutoff() {
+            if (_lentesPeriodo === 'tudo') return 0;
+            return Date.now() - parseInt(_lentesPeriodo, 10) * 86400000;
+        }
+
+        /* A aba so existe para quem usa o fluxo. Roda uma vez no load. */
+        async function checkAbaLentes() {
+            try {
+                if (!activeUser || !activeUser.origem) return;
+                const { data } = await supabaseClient.from('lentes_funnel')
+                    .select('id').ilike('origin', '%' + activeUser.origem + '%').limit(1);
+                if (data && data.length) {
+                    const b = document.getElementById('tab-btn-lentes');
+                    if (b) b.style.display = '';
+                }
+            } catch (e) { console.warn('[lentes] check:', e); }
+        }
+
+        async function loadLentes() {
+            const cards = document.getElementById('lentesCards');
+            if (!cards || !activeUser) return;
+            if (!_lentesCarregado) {
+                cards.innerHTML = '<div class="disp-empty">Carregando…</div>';
+                const linhas = await fetchPagesParallel(() => supabaseClient
+                    .from('lentes_funnel')
+                    .select('session_id, telefone, step, detail, produto, created_at')
+                    .ilike('origin', '%' + activeUser.origem + '%')
+                    .order('created_at', { ascending: true })
+                    .order('id', { ascending: true }));
+                _lentesLinhas = linhas || [];
+                _lentesCarregado = true;
+                _pintaLentesPeriodo();
+            }
+            _pintaLentes();
+        }
+
+        function _pintaLentesPeriodo() {
+            const el = document.getElementById('lentesPeriodo');
+            if (!el) return;
+            const OPTS = [['7', '7 dias'], ['30', '30 dias'], ['90', '90 dias'], ['tudo', 'Tudo']];
+            el.innerHTML = OPTS.map(o => '<button type="button" class="disp-per-btn' +
+                (o[0] === _lentesPeriodo ? ' on' : '') + '" data-lper="' + o[0] + '">' + o[1] + '</button>').join('');
+            el.querySelectorAll('[data-lper]').forEach(b => b.onclick = () => {
+                _lentesPeriodo = b.dataset.lper; _pintaLentesPeriodo(); _pintaLentes();
+            });
+        }
+
+        /* Uma SESSAO = uma pessoa usando o fluxo. Junta os passos dela. */
+        function _lentesSessoes() {
+            const corte = _lentesCutoff();
+            const ses = {};
+            _lentesLinhas.forEach(r => {
+                const ms = new Date(r.created_at).getTime();
+                if (!ms || (corte && ms < corte)) return;
+                const k = r.session_id || ('sem-' + r.created_at);
+                const s = ses[k] || (ses[k] = {
+                    inicio: ms, fim: ms, passos: {}, telefone: null, produto: null,
+                    visao: null, trat: null, lente: null, preco: 0, confianca: null
+                });
+                s.fim = Math.max(s.fim, ms);
+                s.inicio = Math.min(s.inicio, ms);
+                s.passos[r.step] = true;
+                if (r.telefone && !s.telefone) s.telefone = r.telefone;
+                if (r.produto && !s.produto) s.produto = r.produto;
+                const d = r.detail || {};
+                if (d.visao) s.visao = d.visao;
+                if (d.trat) s.trat = d.trat;
+                if (r.step === 'receita_lida') { s.leu = !!d.ok; s.confianca = d.confianca || null; }
+                if (r.step === 'recomendou' && d.lente) { s.lente = d.lente; s.preco = Number(d.preco) || 0; }
+                if (r.step === 'carrinho') { s.carrinho = true; if (d.lente) { s.lente = d.lente; s.preco = Number(d.preco) || s.preco; } }
+                if (r.step === 'so_armacao') s.soArmacao = true;
+                if (r.step === 'sem_receita_whatsapp') s.pediuWhats = true;
+            });
+            return Object.keys(ses).map(k => ses[k]).sort((a, b) => b.inicio - a.inicio);
+        }
+
+        const _LENTES_VISAO = { simples: 'Visão simples', multifocal: 'Multifocal', descanso: 'Sem grau' };
+        const _LENTES_TRAT = { antirreflexo: 'Antirreflexo', blue: 'AR + luz azul',
+            fotocromatica: 'Fotossensível', fotocromatica_blue: 'Fotossensível + azul', nenhum: 'Sem tratamento' };
+
+        function _pintaLentes() {
+            const ses = _lentesSessoes();
+            const leram = ses.filter(s => s.leu);
+            const comLente = ses.filter(s => s.lente);
+            const carrinho = ses.filter(s => s.carrinho);
+
+            const card = (rot, val, sub, cor) => '<div class="lentes-card">'
+                + '<div class="lentes-card-l">' + rot + '</div>'
+                + '<div class="lentes-card-v" style="color:' + (cor || 'var(--text-main)') + '">' + val + '</div>'
+                + '<div class="lentes-card-s">' + sub + '</div></div>';
+            const pct = (a, b) => b ? (a / b * 100).toFixed(0) + '%' : '—';
+
+            document.getElementById('lentesCards').innerHTML =
+                  card('Usaram o fluxo', ses.length.toLocaleString('pt-BR'), 'sessões no período')
+                + card('Mandaram a receita', leram.length.toLocaleString('pt-BR'),
+                       pct(leram.length, ses.length) + ' de quem entrou', '#7c3aed')
+                + card('Receberam indicação', comLente.length.toLocaleString('pt-BR'),
+                       pct(comLente.length, ses.length) + ' de quem entrou')
+                + card('Levaram a lente', carrinho.length.toLocaleString('pt-BR'),
+                       pct(carrinho.length, comLente.length) + ' de quem viu a indicação', '#10b981');
+
+            const ETAPAS = [
+                ['abriu', 'Abriu o fluxo'], ['visao', 'Escolheu o tipo de lente'],
+                ['tratamento', 'Escolheu o tratamento'], ['receita_metodo', 'Chegou na receita'],
+                ['receita_lida', 'Mandou a receita'], ['recomendou', 'Viu a lente indicada'],
+                ['carrinho', 'Levou armação + lente']
+            ];
+            const base = ses.filter(s => s.passos['abriu']).length || ses.length || 1;
+            document.getElementById('lentesFunil').innerHTML = ETAPAS.map(e => {
+                const n = ses.filter(s => s.passos[e[0]]).length;
+                const p = Math.max(2, n / base * 100);
+                return '<div class="lentes-etapa"><div class="lentes-etapa-top">'
+                    + '<span>' + e[1] + '</span><span><b>' + n.toLocaleString('pt-BR') + '</b> · '
+                    + (n / base * 100).toFixed(0) + '%</span></div>'
+                    + '<div class="lentes-barra"><div style="width:' + Math.min(100, p) + '%"></div></div></div>';
+            }).join('');
+
+            const linhas = ses.filter(s => s.passos['receita_metodo'] || s.lente);
+            const subEl = document.getElementById('lentesListaSub');
+            if (subEl) subEl.textContent = linhas.length.toLocaleString('pt-BR')
+                + (linhas.length === 1 ? ' cliente' : ' clientes') + ' no período';
+            const _d = ms => new Date(ms).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+            const _brl = v => v ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—';
+            document.getElementById('lentesLista').innerHTML = linhas.length
+                ? '<div class="lentes-tab-wrap"><table class="lentes-tab"><thead><tr>'
+                + '<th>Quando</th><th>Cliente</th><th>Armação</th><th>Escolha</th><th>Receita</th><th>Lente indicada</th><th>Valor</th><th>Fim</th>'
+                + '</tr></thead><tbody>' + linhas.map(s => {
+                    const rec = s.leu ? ('<span class="lentes-tag ok">enviou' + (s.confianca === 'baixa' ? ' (difícil de ler)' : '') + '</span>')
+                        : s.passos['receita_lida'] ? '<span class="lentes-tag no">falhou</span>'
+                        : s.pediuWhats ? '<span class="lentes-tag">pediu ajuda</span>'
+                        : '<span class="lentes-tag">digitou</span>';
+                    const fim = s.carrinho ? '<span class="lentes-tag ok">armação + lente</span>'
+                        : s.soArmacao ? '<span class="lentes-tag">só a armação</span>'
+                        : s.pediuWhats ? '<span class="lentes-tag">foi pro WhatsApp</span>'
+                        : '<span class="lentes-tag no">parou no meio</span>';
+                    return '<tr><td>' + _d(s.inicio) + '</td>'
+                        + '<td>' + (s.telefone ? _fmtTelBR(s.telefone) : '<span style="color:var(--text-muted)">sem telefone</span>') + '</td>'
+                        + '<td>' + (_lesc(s.produto) || '—') + '</td>'
+                        + '<td>' + [(_LENTES_VISAO[s.visao] || ''), (_LENTES_TRAT[s.trat] || '')].filter(Boolean).join(' · ') + '</td>'
+                        + '<td>' + rec + '</td>'
+                        + '<td>' + (_lesc(s.lente) || '—') + '</td>'
+                        + '<td class="num">' + _brl(s.preco) + '</td>'
+                        + '<td>' + fim + '</td></tr>';
+                }).join('') + '</tbody></table></div>'
+                : '<div class="disp-empty">Ninguém usou o fluxo de lentes neste período.</div>';
+
+            const csv = document.getElementById('lentesCsv');
+            if (csv) csv.onclick = () => _lentesBaixaCsv(linhas);
+        }
+
+        /* Nome de produto e de lente vem da PAGINA DA LOJA (o widget le do DOM). Nao e'
+           texto nosso: escapa antes de jogar no innerHTML. */
+        function _lesc(v) {
+            return String(v == null ? '' : v)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function _fmtTelBR(t) {
+            const d = String(t || '').replace(/[^0-9]/g, '');
+            if (d.length === 11) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+            if (d.length === 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+            return d || '—';
+        }
+
+        function _lentesBaixaCsv(linhas) {
+            const cab = ['data', 'telefone', 'armacao', 'visao', 'tratamento', 'receita', 'lente', 'valor', 'fim'];
+            const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+            const rows = linhas.map(s => [
+                new Date(s.inicio).toLocaleString('pt-BR'), s.telefone || '', s.produto || '',
+                _LENTES_VISAO[s.visao] || '', _LENTES_TRAT[s.trat] || '',
+                s.leu ? ('enviou' + (s.confianca === 'baixa' ? ' (baixa confianca)' : '')) : (s.passos['receita_lida'] ? 'falhou' : (s.pediuWhats ? 'pediu ajuda' : 'digitou')),
+                s.lente || '', s.preco || '',
+                s.carrinho ? 'armacao + lente' : (s.soArmacao ? 'so a armacao' : (s.pediuWhats ? 'whatsapp' : 'parou no meio'))
+            ].map(esc).join(','));
+            const blob = new Blob([cab.join(',') + '\n' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'fluxo-lentes.csv';
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        }
+
 
         function restoreTab() {
             if (isDisparosOnly()) { showTab('disparos'); return; }
@@ -6047,6 +6295,11 @@
             leadsRecupLoaded = false;
             _fatChartOrdersCache = null;
             _waConfigCache = null;
+            _lentesCarregado = false;
+            _lentesLinhas = [];
+            var _bl = document.getElementById('tab-btn-lentes');
+            if (_bl) _bl.style.display = 'none';
+            checkAbaLentes();
             if (window._fatMensalChart) { window._fatMensalChart.destroy(); window._fatMensalChart = null; }
             loadData();
             loadCredits(cfg);
@@ -6217,6 +6470,7 @@
             }
             loadData();
             loadCredits(userObj);
+            checkAbaLentes();
             waLoadConfig();
             maybeStartTourOnLogin();
             try { waEsCheckRedirect(); } catch (e) {}
