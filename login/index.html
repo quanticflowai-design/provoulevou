@@ -4129,6 +4129,9 @@
                     .lentes-ver { font-size:11px; padding:3px 10px; border-radius:999px; border:1px solid var(--border-color); background:transparent; color:var(--text-main); cursor:pointer; }
                     .lentes-ver:hover { background:var(--border-color); }
                     .lentes-ver:disabled { opacity:.5; cursor:default; }
+                    .lentes-grau { white-space:nowrap; font-variant-numeric:tabular-nums; }
+                    .lentes-olho { display:block; font-size:12px; line-height:1.5; }
+                    .lentes-olho b { color:var(--text-muted); font-weight:600; margin-right:3px; }
                     .lentes-tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; background:var(--border-color); color:var(--text-muted); white-space:nowrap; }
                     .lentes-tag.ok { background:rgba(16,185,129,.15); color:#10b981; }
                     .lentes-tag.no { background:rgba(239,68,68,.13); color:#ef4444; }
@@ -5969,6 +5972,7 @@
                 if (d.visao) s.visao = d.visao;
                 if (d.trat) s.trat = d.trat;
                 if (r.step === 'receita_lida') { s.leu = !!d.ok; s.confianca = d.confianca || null; if (d.arq) s.arq = d.arq; }
+                if (d.grau) s.grau = d.grau;
                 if (r.step === 'recomendou' && d.lente) { s.lente = d.lente; s.preco = Number(d.preco) || 0; }
                 if (r.step === 'carrinho') { s.carrinho = true; if (d.lente) { s.lente = d.lente; s.preco = Number(d.preco) || s.preco; } }
                 if (r.step === 'so_armacao') s.soArmacao = true;
@@ -6044,7 +6048,7 @@
             const _brl = v => v ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—';
             document.getElementById('lentesLista').innerHTML = linhas.length
                 ? '<div class="lentes-tab-wrap"><table class="lentes-tab"><thead><tr>'
-                + '<th>Quando</th><th>Cliente</th><th>Armação</th><th>Escolha</th><th>Receita</th><th>Arquivo</th><th>Lente indicada</th><th>Valor</th><th>Fim</th>'
+                + '<th>Quando</th><th>Cliente</th><th>Armação</th><th>Escolha</th><th>Receita</th><th>Arquivo</th><th>Grau</th><th>Lente indicada</th><th>Valor</th><th>Fim</th>'
                 + '</tr></thead><tbody>' + linhas.map(s => {
                     const rec = s.leu ? ('<span class="lentes-tag ok">enviou' + (s.confianca === 'baixa' ? ' (difícil de ler)' : '') + '</span>')
                         : s.passos['receita_lida'] ? '<span class="lentes-tag no">falhou</span>'
@@ -6062,6 +6066,7 @@
                         + '<td>' + (s.arq
                             ? '<button type="button" class="lentes-ver" data-arq="' + _lesc(s.arq) + '">ver</button>'
                             : '<span style="color:var(--text-muted)">—</span>') + '</td>'
+                        + '<td class="lentes-grau">' + _lentesGrau(s.grau) + '</td>'
                         + '<td>' + (_lesc(s.lente) || '—') + '</td>'
                         + '<td class="num">' + _brl(s.preco) + '</td>'
                         + '<td>' + fim + '</td></tr>';
@@ -6154,6 +6159,37 @@
                 .replace(/"/g, '&quot;');
         }
 
+        /* Grau do jeito que a otica escreve: sinal sempre visivel, virgula decimal,
+           eixo em graus. Cilindrico 0 nao se omite - 0 e' informacao, nao ausencia. */
+        function _lentesGrau(g) {
+            if (!g) return '<span style="color:var(--text-muted)">—</span>';
+            const n = v => (v == null || v === '') ? null
+                : (Number(v) > 0 ? '+' : '') + Number(v).toFixed(2).replace('.', ',');
+            const olho = (esf, cil, eixo) => {
+                if (esf == null && cil == null) return null;
+                let t = n(esf) || '—';
+                if (cil != null) t += ' ' + n(cil);
+                if (eixo != null && eixo !== '') t += ' ' + Math.round(Number(eixo)) + '\u00b0';
+                return t;
+            };
+            const od = olho(g.odEsf, g.odCil, g.odEixo);
+            const oe = olho(g.oeEsf, g.oeCil, g.oeEixo);
+            if (!od && !oe) return '<span style="color:var(--text-muted)">—</span>';
+            let out = '';
+            if (od) out += '<span class="lentes-olho"><b>OD</b> ' + _lesc(od) + '</span>';
+            if (oe) out += '<span class="lentes-olho"><b>OE</b> ' + _lesc(oe) + '</span>';
+            if (g.adicao != null) out += '<span class="lentes-olho"><b>Ad</b> ' + _lesc(n(g.adicao)) + '</span>';
+            if (g.dp != null) out += '<span class="lentes-olho"><b>DP</b> ' + _lesc(String(g.dp)) + '</span>';
+            return out;
+        }
+
+        /* Texto puro pro CSV: a otica cola isso no pedido do laboratorio. */
+        function _lentesGrauTexto(g) {
+            const h = _lentesGrau(g);
+            return h.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ')
+                    .replace(/\s+/g, ' ').replace('—', '').trim();
+        }
+
         function _fmtTelBR(t) {
             const d = String(t || '').replace(/[^0-9]/g, '');
             if (d.length === 11) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
@@ -6162,13 +6198,13 @@
         }
 
         function _lentesBaixaCsv(linhas) {
-            const cab = ['data', 'telefone', 'armacao', 'visao', 'tratamento', 'receita', 'arquivo', 'lente', 'valor', 'fim'];
+            const cab = ['data', 'telefone', 'armacao', 'visao', 'tratamento', 'receita', 'arquivo', 'grau', 'lente', 'valor', 'fim'];
             const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
             const rows = linhas.map(s => [
                 new Date(s.inicio).toLocaleString('pt-BR'), s.telefone || '', s.produto || '',
                 _LENTES_VISAO[s.visao] || '', _LENTES_TRAT[s.trat] || '',
                 s.leu ? ('enviou' + (s.confianca === 'baixa' ? ' (baixa confianca)' : '')) : (s.passos['receita_lida'] ? 'falhou' : (s.pediuWhats ? 'pediu ajuda' : 'digitou')),
-                s.arq || '', s.lente || '', s.preco || '',
+                s.arq || '', _lentesGrauTexto(s.grau), s.lente || '', s.preco || '',
                 s.carrinho ? 'armacao + lente' : (s.soArmacao ? 'so a armacao' : (s.pediuWhats ? 'whatsapp' : 'parou no meio'))
             ].map(esc).join(','));
             const blob = new Blob([cab.join(',') + '\n' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
