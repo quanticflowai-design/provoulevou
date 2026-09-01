@@ -3923,6 +3923,12 @@
                 </div>
 
                 <div class="card" style="margin-top:18px;">
+                    <h3 style="margin:0 0 4px;font-size:16px;"><i class="ph-bold ph-kanban" style="color:#7c3aed;"></i> Em que etapa cada cliente parou</h3>
+                    <p style="margin:0 0 14px;color:var(--text-muted);font-size:13px;">Cada pessoa aparece na etapa mais longe que chegou. Quem deixou WhatsApp dá pra chamar direto pelo card.</p>
+                    <div id="lentesCrm" class="lentes-board"></div>
+                </div>
+
+                <div class="card" style="margin-top:18px;">
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
                         <div>
                             <h3 style="margin:0 0 4px;font-size:16px;"><i class="ph-bold ph-identification-card" style="color:#10b981;"></i> Clientes que usaram o fluxo</h3>
@@ -4109,6 +4115,17 @@
                         display: inline-flex; align-items: center; gap: 4px;
                     }
                     .disp-log-retry:hover { border-color: #7c3aed; color: #7c3aed; }
+                    .lentes-board { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(255px,1fr); gap:14px; overflow-x:auto; padding-bottom:8px; }
+                    .lentes-card-tel { font-weight:650; color:var(--text-main); font-size:13px; display:flex; align-items:center; gap:6px; }
+                    .lentes-card-tel i { font-size:14px; color:var(--text-faint); }
+                    .lentes-card-sem { color:var(--text-muted); font-weight:500; font-style:italic; }
+                    .lentes-card-linha { font-size:11px; color:var(--text-muted); display:flex; gap:6px; align-items:baseline; }
+                    .lentes-card-linha b { color:var(--text-main); font-weight:600; }
+                    .lentes-card-grau { font-size:11px; font-variant-numeric:tabular-nums; color:var(--text-muted); background:rgba(124,58,237,.09); border:1px solid rgba(124,58,237,.22); border-radius:6px; padding:4px 7px; }
+                    .lentes-card-grau b { color:var(--text-main); }
+                    .lentes-wpp { display:inline-flex; align-items:center; justify-content:center; gap:6px; color:var(--whatsapp,#25d366); font-weight:600; font-size:11.5px; text-decoration:none; margin-top:2px; border:1px solid color-mix(in srgb, var(--whatsapp,#25d366) 35%, transparent); border-radius:7px; padding:5px 8px; }
+                    .lentes-wpp:hover { background:color-mix(in srgb, var(--whatsapp,#25d366) 12%, transparent); }
+                    .lentes-vazio { font-size:12px; color:var(--text-muted); text-align:center; padding:18px 8px; }
                     .lentes-nota { font-size:13px; color:var(--text-muted); background:var(--bg-card); border:1px solid var(--border-color); border-left:3px solid #7c3aed; border-radius:8px; padding:11px 14px; margin:-6px 0 20px; line-height:1.5; }
                     .lentes-nota b { color:var(--text-main); }
                     .lentes-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:20px; }
@@ -6029,6 +6046,8 @@
                     + '<div class="lentes-barra"><div style="width:' + Math.min(100, p) + '%"></div></div></div>';
             }).join('');
 
+            _pintaLentesCrm(ses);
+
             const notaEl = document.getElementById('lentesNota');
             if (notaEl) {
                 const semTel = ses.filter(x => !x.telefone).length;
@@ -6076,7 +6095,7 @@
             const csv = document.getElementById('lentesCsv');
             if (csv) csv.onclick = () => _lentesBaixaCsv(linhas);
 
-            document.querySelectorAll('#lentesLista [data-arq]').forEach(b =>
+            document.querySelectorAll('#lentesLista [data-arq], #lentesCrm [data-arq]').forEach(b =>
                 b.onclick = () => _lentesAbreReceita(b));
         }
 
@@ -6157,6 +6176,98 @@
             return String(v == null ? '' : v)
                 .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;');
+        }
+
+        /* A etapa e' a mais longe que a pessoa chegou, de tras pra frente: quem
+           comprou nao pode aparecer tambem em "parou na receita". */
+        const _LENTES_ETAPAS = [
+            { id: 'carrinho',  rot: 'Levou a lente',      cor: '#10b981', icone: 'ph-shopping-cart',
+              dica: 'Fechou armação + lente.' },
+            { id: 'whatsapp',  rot: 'Pediu ajuda',        cor: '#25d366', icone: 'ph-whatsapp-logo',
+              dica: 'Foi pro WhatsApp da ótica — precisa de atendimento.' },
+            { id: 'so_armacao',rot: 'Só a armação',       cor: '#f59e0b', icone: 'ph-eyeglasses',
+              dica: 'Recusou a lente.' },
+            { id: 'indicacao', rot: 'Viu a indicação',    cor: '#7c3aed', icone: 'ph-sparkle',
+              dica: 'Recebeu a lente indicada e não seguiu.' },
+            { id: 'receita',   rot: 'Parou na receita',   cor: '#ef4444', icone: 'ph-file-text',
+              dica: 'Travou na hora de informar o grau.' },
+            { id: 'escolha',   rot: 'Escolheu o tipo',    cor: '#3b82f6', icone: 'ph-list-checks',
+              dica: 'Escolheu visão/tratamento e sumiu.' },
+            { id: 'abriu',     rot: 'Só abriu',           cor: '#94a3b8', icone: 'ph-cursor-click',
+              dica: 'Entrou e saiu no começo.' }
+        ];
+
+        function _lentesEtapa(v) {
+            const p = v.passos;
+            if (p['carrinho']) return 'carrinho';
+            if (p['sem_receita_whatsapp']) return 'whatsapp';
+            if (p['so_armacao']) return 'so_armacao';
+            if (v.lente || p['recomendou']) return 'indicacao';
+            if (p['receita_metodo'] || p['receita_lida']) return 'receita';
+            if (p['visao'] || p['tratamento']) return 'escolha';
+            return 'abriu';
+        }
+
+        function _pintaLentesCrm(ses) {
+            const el = document.getElementById('lentesCrm');
+            if (!el) return;
+            const balde = {};
+            ses.forEach(v => (balde[_lentesEtapa(v)] = balde[_lentesEtapa(v)] || []).push(v));
+            const _q = ms => {
+                const h = (Date.now() - ms) / 36e5;
+                if (h < 1) return 'agora há pouco';
+                if (h < 24) return Math.round(h) + 'h atrás';
+                const d = Math.round(h / 24);
+                return d === 1 ? 'ontem' : d + ' dias atrás';
+            };
+            el.innerHTML = _LENTES_ETAPAS.map(e => {
+                const itens = (balde[e.id] || []).sort((a, b) => b.inicio - a.inicio);
+                return '<div class="crm-col" style="--col-accent:' + e.cor + '" title="' + e.dica + '">'
+                    + '<div class="crm-col-header">'
+                    +   '<span class="crm-col-title"><i class="ph-bold ' + e.icone + '"></i>' + e.rot + '</span>'
+                    +   '<span class="crm-col-count">' + itens.length + '</span>'
+                    + '</div>'
+                    + '<div class="crm-col-body">'
+                    + (itens.length ? itens.map(v => _lentesCard(v, e, _q)).join('')
+                                    : '<div class="lentes-vazio">ninguém aqui</div>')
+                    + '</div></div>';
+            }).join('');
+        }
+
+        function _lentesCard(v, etapa, _q) {
+            const tel = v.telefone ? _fmtTelBR(v.telefone) : null;
+            const escolha = [(_LENTES_VISAO[v.visao] || ''), (_LENTES_TRAT[v.trat] || '')].filter(Boolean).join(' · ');
+            const grau = _lentesGrau(v.grau);
+            let h = '<div class="crm-card">'
+                + '<div class="lentes-card-tel">'
+                + (tel ? '<i class="ph-bold ph-user"></i>' + _lesc(tel)
+                       : '<i class="ph-bold ph-user-minus"></i><span class="lentes-card-sem">sem WhatsApp</span>')
+                + '</div>';
+            if (v.produto) h += '<div class="crm-card-product"><i class="ph-bold ph-eyeglasses"></i>' + _lesc(v.produto) + '</div>';
+            if (escolha) h += '<div class="lentes-card-linha">' + _lesc(escolha) + '</div>';
+            if (v.lente) h += '<div class="lentes-card-linha"><b>' + _lesc(v.lente) + '</b>'
+                + (v.preco ? '<span>' + v.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) + '</span>' : '') + '</div>';
+            if (v.grau) h += '<div class="lentes-card-grau">' + grau + '</div>';
+            if (v.arq) h += '<button type="button" class="lentes-ver" data-arq="' + _lesc(v.arq) + '" style="align-self:flex-start;">ver receita</button>';
+            h += '<div class="crm-card-meta"><span><i class="ph-bold ph-clock"></i>' + _q(v.inicio) + '</span></div>';
+            if (tel) {
+                const num = String(v.telefone).replace(/[^0-9]/g, '');
+                h += '<a class="lentes-wpp" target="_blank" rel="noopener" href="https://wa.me/'
+                   + (num.length > 11 ? num : '55' + num) + '?text=' + encodeURIComponent(_lentesMsg(v, etapa))
+                   + '"><i class="ph-bold ph-whatsapp-logo"></i>Chamar no WhatsApp</a>';
+            }
+            return h + '</div>';
+        }
+
+        /* Mensagem pronta por etapa: o lojista so aperta enviar. */
+        function _lentesMsg(v, etapa) {
+            const p = v.produto ? ' (' + v.produto + ')' : '';
+            if (etapa.id === 'carrinho') return 'Oi! Vi que você montou seu óculos' + p + ' com as lentes. Precisa de ajuda pra finalizar?';
+            if (etapa.id === 'whatsapp') return 'Oi! Você pediu ajuda pra escolher a lente' + p + '. Posso te ajudar agora?';
+            if (etapa.id === 'so_armacao') return 'Oi! Vi que você escolheu a armação' + p + '. Quer que eu te ajude com as lentes de grau?';
+            if (etapa.id === 'indicacao') return 'Oi! Separei a lente ideal pro seu grau' + p + '. Quer que eu finalize pra você?';
+            if (etapa.id === 'receita') return 'Oi! Vi que você estava escolhendo suas lentes' + p + '. Se quiser, me manda a foto da sua receita que eu resolvo pra você.';
+            return 'Oi! Vi que você estava vendo lentes pra' + (v.produto ? ' ' + v.produto : ' um óculos') + '. Posso te ajudar?';
         }
 
         /* Grau do jeito que a otica escreve: sinal sempre visivel, virgula decimal,
