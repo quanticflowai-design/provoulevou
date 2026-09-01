@@ -4123,6 +4123,9 @@
                     .lentes-tab th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--text-muted); padding:8px 10px; border-bottom:1px solid var(--border-color); white-space:nowrap; }
                     .lentes-tab td { padding:9px 10px; border-bottom:1px solid var(--border-color); vertical-align:top; }
                     .lentes-tab td.num { text-align:right; white-space:nowrap; }
+                    .lentes-ver { font-size:11px; padding:3px 10px; border-radius:999px; border:1px solid var(--border-color); background:transparent; color:var(--text-main); cursor:pointer; }
+                    .lentes-ver:hover { background:var(--border-color); }
+                    .lentes-ver:disabled { opacity:.5; cursor:default; }
                     .lentes-tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; background:var(--border-color); color:var(--text-muted); white-space:nowrap; }
                     .lentes-tag.ok { background:rgba(16,185,129,.15); color:#10b981; }
                     .lentes-tag.no { background:rgba(239,68,68,.13); color:#ef4444; }
@@ -5960,7 +5963,7 @@
                 const d = r.detail || {};
                 if (d.visao) s.visao = d.visao;
                 if (d.trat) s.trat = d.trat;
-                if (r.step === 'receita_lida') { s.leu = !!d.ok; s.confianca = d.confianca || null; }
+                if (r.step === 'receita_lida') { s.leu = !!d.ok; s.confianca = d.confianca || null; if (d.arq) s.arq = d.arq; }
                 if (r.step === 'recomendou' && d.lente) { s.lente = d.lente; s.preco = Number(d.preco) || 0; }
                 if (r.step === 'carrinho') { s.carrinho = true; if (d.lente) { s.lente = d.lente; s.preco = Number(d.preco) || s.preco; } }
                 if (r.step === 'so_armacao') s.soArmacao = true;
@@ -6018,7 +6021,7 @@
             const _brl = v => v ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—';
             document.getElementById('lentesLista').innerHTML = linhas.length
                 ? '<div class="lentes-tab-wrap"><table class="lentes-tab"><thead><tr>'
-                + '<th>Quando</th><th>Cliente</th><th>Armação</th><th>Escolha</th><th>Receita</th><th>Lente indicada</th><th>Valor</th><th>Fim</th>'
+                + '<th>Quando</th><th>Cliente</th><th>Armação</th><th>Escolha</th><th>Receita</th><th>Arquivo</th><th>Lente indicada</th><th>Valor</th><th>Fim</th>'
                 + '</tr></thead><tbody>' + linhas.map(s => {
                     const rec = s.leu ? ('<span class="lentes-tag ok">enviou' + (s.confianca === 'baixa' ? ' (difícil de ler)' : '') + '</span>')
                         : s.passos['receita_lida'] ? '<span class="lentes-tag no">falhou</span>'
@@ -6033,6 +6036,9 @@
                         + '<td>' + (_lesc(s.produto) || '—') + '</td>'
                         + '<td>' + [(_LENTES_VISAO[s.visao] || ''), (_LENTES_TRAT[s.trat] || '')].filter(Boolean).join(' · ') + '</td>'
                         + '<td>' + rec + '</td>'
+                        + '<td>' + (s.arq
+                            ? '<button type="button" class="lentes-ver" data-arq="' + _lesc(s.arq) + '">ver</button>'
+                            : '<span style="color:var(--text-muted)">—</span>') + '</td>'
                         + '<td>' + (_lesc(s.lente) || '—') + '</td>'
                         + '<td class="num">' + _brl(s.preco) + '</td>'
                         + '<td>' + fim + '</td></tr>';
@@ -6041,6 +6047,28 @@
 
             const csv = document.getElementById('lentesCsv');
             if (csv) csv.onclick = () => _lentesBaixaCsv(linhas);
+
+            document.querySelectorAll('#lentesLista [data-arq]').forEach(b =>
+                b.onclick = () => _lentesAbreReceita(b));
+        }
+
+        /* Bucket privado: o link nao existe pronto, e' assinado na hora e vale 5 min.
+           Abre a aba ANTES do await — senao o Safari trata como popup e bloqueia. */
+        async function _lentesAbreReceita(btn) {
+            const path = btn.dataset.arq;
+            const antes = btn.textContent;
+            btn.textContent = '…'; btn.disabled = true;
+            const aba = window.open('', '_blank');
+            try {
+                const { data, error } = await supabaseClient.storage
+                    .from('receitas').createSignedUrl(path, 300);
+                if (error || !data) throw error || new Error('sem url');
+                aba.location = data.signedUrl;
+            } catch (e) {
+                if (aba) aba.close();
+                console.error('[lentes] receita:', e);
+                alert('Não consegui abrir a receita. Tente de novo em instantes.');
+            } finally { btn.textContent = antes; btn.disabled = false; }
         }
 
         /* Nome de produto e de lente vem da PAGINA DA LOJA (o widget le do DOM). Nao e'
@@ -6059,13 +6087,13 @@
         }
 
         function _lentesBaixaCsv(linhas) {
-            const cab = ['data', 'telefone', 'armacao', 'visao', 'tratamento', 'receita', 'lente', 'valor', 'fim'];
+            const cab = ['data', 'telefone', 'armacao', 'visao', 'tratamento', 'receita', 'arquivo', 'lente', 'valor', 'fim'];
             const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
             const rows = linhas.map(s => [
                 new Date(s.inicio).toLocaleString('pt-BR'), s.telefone || '', s.produto || '',
                 _LENTES_VISAO[s.visao] || '', _LENTES_TRAT[s.trat] || '',
                 s.leu ? ('enviou' + (s.confianca === 'baixa' ? ' (baixa confianca)' : '')) : (s.passos['receita_lida'] ? 'falhou' : (s.pediuWhats ? 'pediu ajuda' : 'digitou')),
-                s.lente || '', s.preco || '',
+                s.arq || '', s.lente || '', s.preco || '',
                 s.carrinho ? 'armacao + lente' : (s.soArmacao ? 'so a armacao' : (s.pediuWhats ? 'whatsapp' : 'parou no meio'))
             ].map(esc).join(','));
             const blob = new Blob([cab.join(',') + '\n' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
