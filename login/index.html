@@ -3914,6 +3914,7 @@
                 </div>
 
                 <div id="lentesCards" class="lentes-cards"></div>
+                <div id="lentesNota" class="lentes-nota"></div>
 
                 <div class="card" style="margin-top:18px;">
                     <h3 style="margin:0 0 4px;font-size:16px;"><i class="ph-bold ph-funnel" style="color:#7c3aed;"></i> Do clique à lente no carrinho</h3>
@@ -4108,6 +4109,8 @@
                         display: inline-flex; align-items: center; gap: 4px;
                     }
                     .disp-log-retry:hover { border-color: #7c3aed; color: #7c3aed; }
+                    .lentes-nota { font-size:13px; color:var(--text-muted); background:var(--bg-card); border:1px solid var(--border-color); border-left:3px solid #7c3aed; border-radius:8px; padding:11px 14px; margin:-6px 0 20px; line-height:1.5; }
+                    .lentes-nota b { color:var(--text-main); }
                     .lentes-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:20px; }
                     .lentes-card { background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:16px 18px; }
                     .lentes-card-l { font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.4px; }
@@ -5895,6 +5898,7 @@
            provador); quem entra pelo botao da pagina do produto aparece sem ele.
         ==================================================================== */
         let _lentesCarregado = false, _lentesLinhas = [], _lentesPeriodo = '30';
+        let _lentesPedidos = null;   // pedidos pagos que levaram lente
 
         function _lentesCutoff() {
             if (_lentesPeriodo === 'tudo') return 0;
@@ -5926,6 +5930,7 @@
                     .order('created_at', { ascending: true })
                     .order('id', { ascending: true }));
                 _lentesLinhas = linhas || [];
+                _lentesPedidos = await _lentesCarregaVendas();
                 _lentesCarregado = true;
                 _pintaLentesPeriodo();
             }
@@ -5988,6 +5993,9 @@
                 + '<div class="lentes-card-s">' + sub + '</div></div>';
             const pct = (a, b) => b ? (a / b * 100).toFixed(0) + '%' : '—';
 
+            const v = _lentesCasaVendas(ses);
+            const _brlC = x => x.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+
             document.getElementById('lentesCards').innerHTML =
                   card('Usaram o fluxo', ses.length.toLocaleString('pt-BR'), 'sessões no período')
                 + card('Mandaram a receita', leram.length.toLocaleString('pt-BR'),
@@ -5995,7 +6003,11 @@
                 + card('Receberam indicação', comLente.length.toLocaleString('pt-BR'),
                        pct(comLente.length, ses.length) + ' de quem entrou')
                 + card('Levaram a lente', carrinho.length.toLocaleString('pt-BR'),
-                       pct(carrinho.length, comLente.length) + ' de quem viu a indicação', '#10b981');
+                       pct(carrinho.length, comLente.length) + ' de quem viu a indicação', '#10b981')
+                + card('Compraram (confirmado)', v.nossos.toLocaleString('pt-BR'),
+                       _brlC(v.receita) + ' — casou telefone com o pedido', '#10b981')
+                + card('Lentes vendidas na loja', v.teto.toLocaleString('pt-BR'),
+                       _brlC(v.tetoReceita) + ' — inclui vendas fora do fluxo');
 
             const ETAPAS = [
                 ['abriu', 'Abriu o fluxo'], ['visao', 'Escolheu o tipo de lente'],
@@ -6012,6 +6024,17 @@
                     + (n / base * 100).toFixed(0) + '%</span></div>'
                     + '<div class="lentes-barra"><div style="width:' + Math.min(100, p) + '%"></div></div></div>';
             }).join('');
+
+            const notaEl = document.getElementById('lentesNota');
+            if (notaEl) {
+                const semTel = ses.filter(x => !x.telefone).length;
+                notaEl.innerHTML = v.teto
+                    ? 'Confirmamos <b>' + v.nossos + '</b> das <b>' + v.teto + '</b> lentes vendidas no período. '
+                      + 'O resto pode ter vindo do fluxo e não conseguimos provar: '
+                      + '<b>' + semTel + '</b> ' + (semTel === 1 ? 'pessoa entrou' : 'pessoas entraram')
+                      + ' sem deixar o WhatsApp — ou a venda veio por outro caminho da loja.'
+                    : 'Nenhuma lente vendida no período.';
+            }
 
             const linhas = ses.filter(s => s.passos['receita_metodo'] || s.lente);
             const subEl = document.getElementById('lentesListaSub');
@@ -6050,6 +6073,58 @@
 
             document.querySelectorAll('#lentesLista [data-arq]').forEach(b =>
                 b.onclick = () => _lentesAbreReceita(b));
+        }
+
+        /* Pedidos pagos que levaram um par de lente. Le a config da loja em vez de
+           chutar nome de tabela/coluna: cada lojista tem o seu. */
+        async function _lentesCarregaVendas() {
+            const cfg = activeUser || {};
+            const tab = cfg.tabela_pedidos, campoProd = cfg.campo_produto_pedido || 'product_name';
+            const campoSt = cfg.campo_status_pedido || 'payment_status';
+            const campoTel = cfg.campo_telefone_pedido || 'customer_phone';
+            const campoData = cfg.campo_data_pedido || 'created_at';
+            const campoTot = cfg.campo_total_pedido || 'total';
+            const pagos = cfg.valores_status_pago || ['paid'];
+            if (!tab) return [];
+            try {
+                const rows = await fetchPagesParallel(() => supabaseClient.from(tab)
+                    .select([campoTel, campoData, campoTot, campoProd, campoSt].join(','))
+                    .ilike(campoProd, '%par de lentes%')
+                    .in(campoSt, pagos)
+                    .order(campoData, { ascending: false }));
+                return (rows || []).map(r => ({
+                    tel: _lentesSo9(r[campoTel]),
+                    ms: new Date(r[campoData]).getTime(),
+                    total: Number(r[campoTot]) || 0
+                })).filter(o => o.ms);
+            } catch (e) { console.warn('[lentes] vendas:', e); return []; }
+        }
+
+        /* Os ultimos 8 digitos: o mesmo criterio do resto do painel, porque o
+           telefone chega com e sem 55, com e sem o 9. */
+        function _lentesSo9(v) {
+            const d = String(v == null ? '' : v).replace(/[^0-9]/g, '');
+            return d.length >= 8 ? d.slice(-8) : '';
+        }
+
+        /* Casa sessao com venda: mesmo telefone e compra DEPOIS da sessao. */
+        function _lentesCasaVendas(ses) {
+            const corte = _lentesCutoff();
+            const peds = (_lentesPedidos || []).filter(o => !corte || o.ms >= corte);
+            const porTel = {};
+            peds.forEach(o => { if (o.tel) (porTel[o.tel] = porTel[o.tel] || []).push(o); });
+            const usados = new Set();
+            let n = 0, receita = 0;
+            ses.forEach(v => {
+                const k = _lentesSo9(v.telefone);
+                if (!k) return;
+                const cand = (porTel[k] || []).filter(o => o.ms >= v.inicio && !usados.has(o));
+                if (!cand.length) return;
+                const o = cand.sort((a, b) => a.ms - b.ms)[0];
+                usados.add(o); n++; receita += o.total;
+            });
+            return { nossos: n, receita: receita, teto: peds.length,
+                     tetoReceita: peds.reduce((a, o) => a + o.total, 0) };
         }
 
         /* Bucket privado: o link nao existe pronto, e' assinado na hora e vale 5 min.
