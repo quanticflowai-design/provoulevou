@@ -3924,7 +3924,8 @@
 
                 <div class="card" style="margin-top:18px;">
                     <h3 style="margin:0 0 4px;font-size:16px;"><i class="ph-bold ph-kanban" style="color:#7c3aed;"></i> Em que etapa cada cliente parou</h3>
-                    <p style="margin:0 0 14px;color:var(--text-muted);font-size:13px;">Cada pessoa aparece na etapa mais longe que chegou. Quem deixou WhatsApp dá pra chamar direto pelo card.</p>
+                    <p style="margin:0 0 14px;color:var(--text-muted);font-size:13px;">Só quem deixou WhatsApp — o resto não dá pra recuperar. Cada pessoa aparece na etapa mais longe que chegou.</p>
+                    <div id="lentesSemTel" class="lentes-semtel" style="display:none;"></div>
                     <div id="lentesCrm" class="lentes-board"></div>
                 </div>
 
@@ -4115,6 +4116,9 @@
                         display: inline-flex; align-items: center; gap: 4px;
                     }
                     .disp-log-retry:hover { border-color: #7c3aed; color: #7c3aed; }
+                    .lentes-semtel { font-size:12.5px; color:var(--text-muted); background:rgba(148,163,184,.08); border:1px solid var(--border-color); border-radius:8px; padding:9px 12px; margin-bottom:14px; line-height:1.5; }
+                    .lentes-semtel b { color:var(--text-main); }
+                    .lentes-semtel i { margin-right:4px; opacity:.7; }
                     .lentes-board { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(255px,1fr); gap:14px; overflow-x:auto; padding-bottom:8px; }
                     .lentes-card-tel { font-weight:650; color:var(--text-main); font-size:13px; display:flex; align-items:center; gap:6px; }
                     .lentes-card-tel i { font-size:14px; color:var(--text-faint); }
@@ -6211,8 +6215,20 @@
         function _pintaLentesCrm(ses) {
             const el = document.getElementById('lentesCrm');
             if (!el) return;
+            const comTel = ses.filter(v => v.telefone);
+            const semTel = ses.length - comTel.length;
+            const aviso = document.getElementById('lentesSemTel');
+            if (aviso) {
+                aviso.innerHTML = semTel
+                    ? '<i class="ph-bold ph-info"></i> <b>' + semTel + '</b> '
+                      + (semTel === 1 ? 'pessoa não deixou' : 'pessoas não deixaram') + ' WhatsApp e '
+                      + (semTel === 1 ? 'ficou' : 'ficaram') + ' de fora do quadro — sem número não dá pra chamar. '
+                      + 'Elas continuam contando no funil e nos números acima.'
+                    : '';
+                aviso.style.display = semTel ? '' : 'none';
+            }
             const balde = {};
-            ses.forEach(v => (balde[_lentesEtapa(v)] = balde[_lentesEtapa(v)] || []).push(v));
+            comTel.forEach(v => (balde[_lentesEtapa(v)] = balde[_lentesEtapa(v)] || []).push(v));
             const _q = ms => {
                 const h = (Date.now() - ms) / 36e5;
                 if (h < 1) return 'agora há pouco';
@@ -6229,7 +6245,7 @@
                     + '</div>'
                     + '<div class="crm-col-body">'
                     + (itens.length ? itens.map(v => _lentesCard(v, e, _q)).join('')
-                                    : '<div class="lentes-vazio">ninguém aqui</div>')
+                                    : '<div class="lentes-vazio">ninguém com WhatsApp aqui</div>')
                     + '</div></div>';
             }).join('');
         }
