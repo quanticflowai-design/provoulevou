@@ -6028,10 +6028,10 @@
                        pct(leram.length, ses.length) + ' de quem entrou', '#7c3aed')
                 + card('Receberam indicação', comLente.length.toLocaleString('pt-BR'),
                        pct(comLente.length, ses.length) + ' de quem entrou')
-                + card('Levaram a lente', carrinho.length.toLocaleString('pt-BR'),
-                       pct(carrinho.length, comLente.length) + ' de quem viu a indicação', '#10b981')
-                + card('Compraram (confirmado)', v.nossos.toLocaleString('pt-BR'),
-                       _brlC(v.receita) + ' — casou telefone com o pedido', '#10b981')
+                + card('Puseram no carrinho', carrinho.length.toLocaleString('pt-BR'),
+                       pct(carrinho.length, comLente.length) + ' de quem viu a indicação')
+                + card('Compraram', v.nossos.toLocaleString('pt-BR'),
+                       _brlC(v.receita) + ' — pedido pago com a armação e a lente', '#10b981')
                 + card('Lentes vendidas na loja', v.teto.toLocaleString('pt-BR'),
                        _brlC(v.tetoReceita) + ' — inclui vendas fora do fluxo');
 
@@ -6039,7 +6039,7 @@
                 ['abriu', 'Abriu o fluxo'], ['visao', 'Escolheu o tipo de lente'],
                 ['tratamento', 'Escolheu o tratamento'], ['receita_metodo', 'Chegou na receita'],
                 ['receita_lida', 'Mandou a receita'], ['recomendou', 'Viu a lente indicada'],
-                ['carrinho', 'Levou armação + lente']
+                ['carrinho', 'Pôs armação + lente no carrinho']
             ];
             const base = ses.filter(s => s.passos['abriu']).length || ses.length || 1;
             document.getElementById('lentesFunil').innerHTML = ETAPAS.map(e => {
@@ -6057,10 +6057,11 @@
             if (notaEl) {
                 const semTel = ses.filter(x => !x.telefone).length;
                 notaEl.innerHTML = v.teto
-                    ? 'Confirmamos <b>' + v.nossos + '</b> das <b>' + v.teto + '</b> lentes vendidas no período. '
-                      + 'O resto pode ter vindo do fluxo e não conseguimos provar: '
-                      + '<b>' + semTel + '</b> ' + (semTel === 1 ? 'pessoa entrou' : 'pessoas entraram')
-                      + ' sem deixar o WhatsApp — ou a venda veio por outro caminho da loja.'
+                    ? 'A loja vendeu <b>' + v.teto + '</b> pares de lente no período e conseguimos provar que '
+                      + '<b>' + v.nossos + '</b> saíram do fluxo — casando a armação e a lente do pedido. '
+                      + 'O resto pode ser venda pelo balcão da loja, ou gente que passou pelo fluxo e não deu '
+                      + 'pra rastrear (<b>' + semTel + '</b> ' + (semTel === 1 ? 'sessão' : 'sessões')
+                      + ' sem WhatsApp no período).'
                     : 'Nenhuma lente vendida no período.';
             }
 
@@ -6117,14 +6118,16 @@
             if (!tab) return [];
             try {
                 const rows = await fetchPagesParallel(() => supabaseClient.from(tab)
-                    .select([campoTel, campoData, campoTot, campoProd, campoSt].join(','))
-                    .ilike(campoProd, '%par de lentes%')
+                    .select(['id_pedido', campoTel, campoData, campoTot, campoProd, campoSt].join(','))
                     .in(campoSt, pagos)
-                    .order(campoData, { ascending: false }));
+                    .order(campoData, { ascending: false })
+                    .order('id_pedido', { ascending: false }));
                 return (rows || []).map(r => ({
+                    id: r.id_pedido,
                     tel: _lentesSo9(r[campoTel]),
                     ms: new Date(r[campoData]).getTime(),
-                    total: Number(r[campoTot]) || 0
+                    total: Number(r[campoTot]) || 0,
+                    prod: _lentesNorm(r[campoProd])
                 })).filter(o => o.ms);
             } catch (e) { console.warn('[lentes] vendas:', e); return []; }
         }
@@ -6136,24 +6139,78 @@
             return d.length >= 8 ? d.slice(-8) : '';
         }
 
-        /* Casa sessao com venda: mesmo telefone e compra DEPOIS da sessao. */
+        /* Sem acento, sem pontuacao, minusculo: o nome na pagina da loja e no
+           pedido quase nunca vem identico. */
+        function _lentesNorm(v) {
+            return String(v == null ? '' : v)
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+
+        /* Palavras que identificam a armacao. Descarta as curtas (de, com, em)
+           e fica com as 3 primeiras - normalmente "oculos de grau NOME (cor)". */
+        function _lentesChave(produto) {
+            return _lentesNorm(produto).split(' ').filter(w => w.length > 3).slice(0, 3);
+        }
+
+        const _LENTES_JANELA_H = 24;   // comprou no mesmo dia ou no dia seguinte
+
+        /* Um item do pedido e' uma lente. Nao da pra usar so a palavra "lente":
+           pegaria "Kit Spray Limpa Lente" e armacao "(Leopardo/Lente Azul)".
+           Tambem nao da pra usar os nomes que o fluxo indica: o catalogo da loja
+           usa outros (a Koros caia de 126 pedidos para 4). */
+        const _LENTES_RE_PRODUTO = /\b(par de lentes|multifocal|multifocais|monofocal|monofocais)\b/;
+
+        /* Marca cada sessao com a venda que ela gerou.
+           Criterio forte: o pedido tem a MESMA lente e a MESMA armacao que a
+           pessoa montou, e saiu logo depois. Isso funciona sem telefone.
+           Criterio fraco (so se o forte nao achar): mesmo telefone.
+           Cada pedido e' usado uma vez so, senao um pedido vira 4 vendas. */
         function _lentesCasaVendas(ses) {
             const corte = _lentesCutoff();
             const peds = (_lentesPedidos || []).filter(o => !corte || o.ms >= corte);
-            const porTel = {};
-            peds.forEach(o => { if (o.tel) (porTel[o.tel] = porTel[o.tel] || []).push(o); });
+            ses.forEach(v => { v.venda = null; });
+
+            const comLenteNoPedido = peds.filter(o => _LENTES_RE_PRODUTO.test(o.prod));
+
             const usados = new Set();
-            let n = 0, receita = 0;
-            ses.forEach(v => {
+            const antigasPrimeiro = ses.slice().sort((a, b) => a.inicio - b.inicio);
+
+            // 1a passada: armacao + lente + janela curta
+            antigasPrimeiro.forEach(v => {
+                if (!v.lente || !v.produto) return;
+                const lente = _lentesNorm(v.lente).slice(0, 25);
+                const chave = _lentesChave(v.produto);
+                if (!lente || !chave.length) return;
+                for (const o of comLenteNoPedido) {
+                    if (usados.has(o.id)) continue;
+                    const h = (o.ms - v.inicio) / 36e5;
+                    if (h < -0.1 || h > _LENTES_JANELA_H) continue;
+                    if (o.prod.indexOf(lente) === -1) continue;
+                    if (!chave.every(k => o.prod.indexOf(k) !== -1)) continue;
+                    usados.add(o.id); v.venda = o; break;
+                }
+            });
+
+            // 2a passada: telefone, para quem a 1a nao pegou
+            const porTel = {};
+            comLenteNoPedido.forEach(o => { if (o.tel) (porTel[o.tel] = porTel[o.tel] || []).push(o); });
+            antigasPrimeiro.forEach(v => {
+                if (v.venda) return;
                 const k = _lentesSo9(v.telefone);
                 if (!k) return;
-                const cand = (porTel[k] || []).filter(o => o.ms >= v.inicio && !usados.has(o));
-                if (!cand.length) return;
-                const o = cand.sort((a, b) => a.ms - b.ms)[0];
-                usados.add(o); n++; receita += o.total;
+                const cand = (porTel[k] || []).filter(o => !usados.has(o.id) && o.ms >= v.inicio)
+                                              .sort((a, b) => a.ms - b.ms);
+                if (cand.length) { usados.add(cand[0].id); v.venda = cand[0]; }
             });
-            return { nossos: n, receita: receita, teto: peds.length,
-                     tetoReceita: peds.reduce((a, o) => a + o.total, 0) };
+
+            const vendidas = ses.filter(v => v.venda);
+            return {
+                nossos: vendidas.length,
+                receita: vendidas.reduce((a, v) => a + v.venda.total, 0),
+                teto: comLenteNoPedido.length,
+                tetoReceita: comLenteNoPedido.reduce((a, o) => a + o.total, 0)
+            };
         }
 
         /* Bucket privado: o link nao existe pronto, e' assinado na hora e vale 5 min.
@@ -6186,8 +6243,10 @@
         /* A etapa e' a mais longe que a pessoa chegou, de tras pra frente: quem
            comprou nao pode aparecer tambem em "parou na receita". */
         const _LENTES_ETAPAS = [
-            { id: 'carrinho',  rot: 'Levou a lente',      cor: '#10b981', icone: 'ph-shopping-cart',
-              dica: 'Fechou armação + lente.' },
+            { id: 'comprou',   rot: 'Comprou',            cor: '#10b981', icone: 'ph-check-circle',
+              dica: 'Pedido pago com a armação e a lente do fluxo.' },
+            { id: 'carrinho',  rot: 'Ficou no carrinho',  cor: '#22d3ee', icone: 'ph-shopping-cart',
+              dica: 'Pôs armação + lente no carrinho e não fechou.' },
             { id: 'whatsapp',  rot: 'Pediu ajuda',        cor: '#25d366', icone: 'ph-whatsapp-logo',
               dica: 'Foi pro WhatsApp da ótica — precisa de atendimento.' },
             { id: 'so_armacao',rot: 'Só a armação',       cor: '#f59e0b', icone: 'ph-eyeglasses',
@@ -6204,6 +6263,7 @@
 
         function _lentesEtapa(v) {
             const p = v.passos;
+            if (v.venda) return 'comprou';
             if (p['carrinho']) return 'carrinho';
             if (p['sem_receita_whatsapp']) return 'whatsapp';
             if (p['so_armacao']) return 'so_armacao';
@@ -6284,6 +6344,7 @@
         /* Mensagem pronta por etapa: o lojista so aperta enviar. */
         function _lentesMsg(v, etapa) {
             const p = v.produto ? ' (' + v.produto + ')' : '';
+            if (etapa.id === 'comprou') return 'Oi! Seu óculos' + p + ' com as lentes já está com a gente. Qualquer dúvida é só chamar!';
             if (etapa.id === 'carrinho') return 'Oi! Vi que você montou seu óculos' + p + ' com as lentes. Precisa de ajuda pra finalizar?';
             if (etapa.id === 'whatsapp') return 'Oi! Você pediu ajuda pra escolher a lente' + p + '. Posso te ajudar agora?';
             if (etapa.id === 'so_armacao') return 'Oi! Vi que você escolheu a armação' + p + '. Quer que eu te ajude com as lentes de grau?';
