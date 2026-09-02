@@ -6157,12 +6157,13 @@
             const campoTel = cfg.campo_telefone_pedido || 'customer_phone';
             const campoData = cfg.campo_data_pedido || 'created_at';
             const campoTot = cfg.campo_total_pedido || 'total';
+            const _temPaidAt = await tabelaTemCampo(tab, 'paid_at');
             const pagos = cfg.valores_status_pago || ['paid'];
             if (!tab) return [];
             try {
                 const rows = await fetchPagesParallel(() => supabaseClient.from(tab)
                     .select(['id_pedido', 'order_number', cfg.campo_nome_pedido || 'customer_name',
-                             campoTel, campoData, campoTot, campoProd, campoSt].join(','))
+                             campoTel, campoData, campoTot, campoProd, campoSt].concat(_temPaidAt ? ['paid_at'] : []).join(','))
                     .in(campoSt, pagos)
                     .order(campoData, { ascending: false })
                     .order('id_pedido', { ascending: false }));
@@ -6171,7 +6172,7 @@
                     numero: r.order_number,
                     nome: r[cfg.campo_nome_pedido || 'customer_name'],
                     tel: _lentesSo9(r[campoTel]),
-                    ms: new Date(r[campoData]).getTime(),
+                    ms: new Date((usaPaidAtParaAtribuicao(cfg) && r.paid_at) ? r.paid_at : r[campoData]).getTime(),
                     total: Number(r[campoTot]) || 0,
                     prod: _lentesNorm(r[campoProd])
                 })).filter(o => o.ms);
@@ -11202,7 +11203,7 @@
             const rows = [];
             let totalRev = 0;
             (allOrdersCache || []).forEach(o => {
-                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                const orderTs = timestampAtribuicaoPedido(o, activeUser);
                 if (!orderTs) return;
                 const orderMs = new Date(orderTs).getTime();
                 if (!orderMs) return;
@@ -11379,7 +11380,7 @@
 
             let totalRev = 0, totalCnt = 0;
             (allOrdersCache || []).forEach(o => {
-                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                const orderTs = timestampAtribuicaoPedido(o, activeUser);
                 if (!orderTs) return;
                 const orderMs = new Date(orderTs).getTime();
                 if (!orderMs) return;
@@ -14122,7 +14123,38 @@
             return tem && (',' + campos + ',').indexOf(',status,') === -1 ? campos + ',status' : campos;
         }
 
-        function isOrderAfterProva(orderTs, phone) {
+        let _temCampoCache = {};
+        async function tabelaTemCampo(tabela, campo) {
+            const key = tabela + ':' + campo;
+            if (_temCampoCache[key] !== undefined) return _temCampoCache[key];
+            try {
+                const { error } = await supabaseClient.from(tabela).select(campo).limit(1);
+                _temCampoCache[key] = !error;
+            } catch (e) { _temCampoCache[key] = false; }
+            return _temCampoCache[key];
+        }
+
+        function usaPaidAtParaAtribuicao(cfg) {
+            const canal = String((cfg && cfg.canal_provador) || '').toLowerCase();
+            const plataforma = String((cfg && (cfg.platform || cfg._platform)) || '').toLowerCase();
+            return canal === 'nuvemshop' || plataforma === 'nuvemshop';
+        }
+
+        function timestampAtribuicaoPedido(order, cfg) {
+            if (!order) return '';
+            if (usaPaidAtParaAtribuicao(cfg) && order.paid_at) return order.paid_at;
+            const field = (cfg && cfg.campo_data_pedido) || 'created_at';
+            return order[field] || order.created_at || '';
+        }
+
+        function pagamentoTemHorarioEstimado(order, cfg) {
+            return !!(usaPaidAtParaAtribuicao(cfg) && order && !order.paid_at);
+        }
+
+        function isOrderAfterProva(orderOrTs, phone) {
+            const orderTs = orderOrTs && typeof orderOrTs === 'object'
+                ? timestampAtribuicaoPedido(orderOrTs, activeUser)
+                : (orderOrTs || '');
             const provaDate = provaMinDateMap[phone];
             if (!provaDate) return false;
             const orderDate = (orderTs || '').slice(0, 10);
@@ -14171,8 +14203,8 @@
             allOrdersCache.forEach(o => {
                 const ph = normalize(o[fPhone]);
                 if (!ph || !generationPhones.has(ph)) return;
-                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
-                if (!isOrderAfterProva(orderTs, ph)) return;
+                const orderTs = timestampAtribuicaoPedido(o, activeUser);
+                if (!isOrderAfterProva(o, ph)) return;
                 // Normaliza para timestamp completo com timezone se vier só data (YYYY-MM-DD)
                 let cmpStr = orderTs;
                 if (cmpStr && cmpStr.length === 10) cmpStr = cmpStr + 'T00:00:00-03:00';
@@ -14453,7 +14485,7 @@
 
             const buckets = {};
             allOrders.forEach(o => {
-                const raw = o[fDataPedido] || o.created_at || ''; // fallback created_at: pedido com data_pedido nula sumia do gráfico
+                const raw = timestampAtribuicaoPedido(o, activeUser); // fallback created_at: pedido com data_pedido nula sumia do gráfico
                 if (dayCutoff && raw.slice(0, 10) < dayCutoff) return;
                 const key = granularity === 'week' ? isoWeekKey(raw)
                           : granularity === 'day' ? raw.slice(0, 10)
@@ -14463,7 +14495,7 @@
                 const v = parseFloat(o[fTotal]) || 0;
                 buckets[key].total += v;
                 const ph = normalize(o[fPhone]);
-                if (ph && isOrderAfterProva(raw, ph)) buckets[key].provador += v;
+                if (ph && isOrderAfterProva(o, ph)) buckets[key].provador += v;
             });
             const keys = Object.keys(buckets).sort();
             if (keys.length === 0) { if (container) container.style.display = 'none'; return; }
@@ -15148,8 +15180,8 @@
                 // data_pedido PRIMEIRO (igual computeKpis/boughtPhonesSet). Usar created_at
                 // primeiro inflava lojas de import manual (created_at = data do import),
                 // contando como pós-prova pedidos pagos ANTES da prova no mesmo dia.
-                const orderTs = (activeUser.campo_data_pedido && o[activeUser.campo_data_pedido]) || o.created_at || '';
-                if (ph && isOrderAfterProva(orderTs, ph)) fatPosProva += v;
+                const orderTs = timestampAtribuicaoPedido(o, activeUser);
+                if (ph && isOrderAfterProva(o, ph)) fatPosProva += v;
             });
 
             // Pcts
@@ -15251,8 +15283,8 @@
                 allOrdersCache.forEach(o => {
                     const ph = normalize(o[fPhone]);
                     if (!ph || !generationPhones.has(ph)) return;
-                    const orderTs = (activeUser.campo_data_pedido && o[activeUser.campo_data_pedido]) || o.created_at || '';
-                    if (!isOrderAfterProva(orderTs, ph)) return;
+                    const orderTs = timestampAtribuicaoPedido(o, activeUser);
+                    if (!isOrderAfterProva(o, ph)) return;
                     totalOrders += 1;
                 });
                 const ticket = totalOrders > 0 ? fatPosProva / totalOrders : 0;
@@ -15318,8 +15350,8 @@
                 if (v <= 0) return;
                 fatTotal += v; pedidosTotal += 1;
                 const ph = normalize(o[fPhone]);
-                const orderTs = (activeUser.campo_data_pedido && o[activeUser.campo_data_pedido]) || o.created_at || '';
-                if (ph && isOrderAfterProva(orderTs, ph)) {
+                const orderTs = timestampAtribuicaoPedido(o, activeUser);
+                if (ph && isOrderAfterProva(o, ph)) {
                     fatPosProva += v; pedidosPos += 1;
                 }
             });
@@ -15384,8 +15416,8 @@
             const ordersPos = allOrdersCache.filter(o => {
                 const ph = normalize(o[fPhone]);
                 if (!ph || !boughtPhonesSet.has(ph)) return false;
-                const orderTs = (activeUser.campo_data_pedido && o[activeUser.campo_data_pedido]) || o.created_at || '';
-                return isOrderAfterProva(orderTs, ph);
+                const orderTs = timestampAtribuicaoPedido(o, activeUser);
+                return isOrderAfterProva(o, ph);
             });
             const ticket = ordersPos.length > 0
                 ? ordersPos.reduce((s, o) => s + (parseFloat(o[fTotal]) || 0), 0) / ordersPos.length
@@ -15469,6 +15501,11 @@
         }
 
         async function loadSharedData() {
+            try {
+                const { data: _storeMeta } = await supabaseClient.from('provou_levou_stores')
+                    .select('platform').eq('email', activeUser.email).limit(1);
+                if (_storeMeta && _storeMeta[0] && _storeMeta[0].platform) activeUser._platform = _storeMeta[0].platform;
+            } catch (e) {}
             const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
             const fTotal = activeUser.campo_total_pedido || 'total';
             const fStatus = activeUser.campo_status_pedido || 'payment_status';
@@ -15477,7 +15514,10 @@
             const fNome = activeUser.campo_nome_pedido || null;
             const fProduto = activeUser.campo_produto_pedido || null;
             const _temStatusPedidos = await tabelaTemStatus(activeUser.tabela_pedidos);
-            const selectFields = comStatus([fPhone, fTotal, fStatus, 'created_at', fDataPedido, fNome, fProduto].filter(Boolean).join(', '), _temStatusPedidos);
+            const _temPaidAt = await tabelaTemCampo(activeUser.tabela_pedidos, 'paid_at');
+            const _orderFields = [fPhone, fTotal, fStatus, 'created_at', fDataPedido, fNome, fProduto].filter(Boolean);
+            if (_temPaidAt) _orderFields.push('paid_at');
+            const selectFields = comStatus([...new Set(_orderFields)].join(', '), _temStatusPedidos);
 
             // Provas AGREGADAS no servidor (1 linha por telefone) em vez de baixar todas as
             // linhas: Linda Menina tinha 71 mil provas -> ~26 mil agregados. Era esse download
@@ -15725,11 +15765,11 @@
             // inflando "compradores" e divergindo de comprasPedidosCount (que filtra direito).
             boughtPhonesSet = new Set();
             allOrdersCache.forEach(o => {
-                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                const orderTs = timestampAtribuicaoPedido(o, activeUser);
                 // Casa o pedido por QUALQUER telefone dele (cliente/entrega/cobrança)
                 orderPhoneKeys(o).forEach(ph => {
                     if (!generationPhones.has(ph)) return;
-                    if (!isOrderAfterProva(orderTs, ph)) return;
+                    if (!isOrderAfterProva(o, ph)) return;
                     boughtPhonesSet.add(ph);
                 });
             });
@@ -15755,8 +15795,8 @@
             allOrdersCache.forEach(o => {
                 const ph = normalize(o[fPhone]);
                 if (!ph || !generationPhones.has(ph)) return;
-                const ts = (fDataPedido && o[fDataPedido]) || o.created_at || '';
-                if (!isOrderAfterProva(ts, ph)) return;
+                const ts = timestampAtribuicaoPedido(o, activeUser);
+                if (!isOrderAfterProva(o, ph)) return;
                 if (!map.has(ph)) map.set(ph, []);
                 const normalizedTs = ts.length === 10 ? ts + 'T00:00:00-03:00' : ts;
                 map.get(ph).push({ ts: normalizedTs, val: parseFloat(o[fTotal]) || 0 });
@@ -15999,7 +16039,7 @@
             const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
             let rev = 0, cnt = 0;
             (allOrdersCache || []).forEach(o => {
-                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                const orderTs = timestampAtribuicaoPedido(o, activeUser);
                 if (!orderTs) return;
                 const d = orderTs.slice(0, 10);
                 if (dateFromCompras && d < dateFromCompras) return;
@@ -16029,16 +16069,16 @@
             allOrdersCache.forEach(o => {
                 const ph = normalize(o[fPhone]);
                 if (!generationPhones.has(ph)) return;
-                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
-                if (!isOrderAfterProva(orderTs, ph)) return;
+                const orderTs = timestampAtribuicaoPedido(o, activeUser);
+                if (!isOrderAfterProva(o, ph)) return;
                 _orderCountAll[ph] = (_orderCountAll[ph] || 0) + 1;
             });
 
             const filtered = allOrdersCache.filter(o => {
                 const ph = normalize(o[fPhone]);
                 if (!generationPhones.has(ph)) return false;
-                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
-                if (!isOrderAfterProva(orderTs, ph)) return false;
+                const orderTs = timestampAtribuicaoPedido(o, activeUser);
+                if (!isOrderAfterProva(o, ph)) return false;
                 const d = orderTs.slice(0, 10);
                 if (dateFromCompras && d < dateFromCompras) return false;
                 if (dateToCompras && d > dateToCompras) return false;
@@ -16077,7 +16117,7 @@
             allOrdersCache.forEach(o => {
                 const v = parseFloat(o[fTotal]) || 0;
                 if (v <= 0) return;
-                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                const orderTs = timestampAtribuicaoPedido(o, activeUser);
                 const d = orderTs.slice(0, 10);
                 if (dateFromCompras && d < dateFromCompras) return;
                 if (dateToCompras && d > dateToCompras) return;
@@ -16295,8 +16335,8 @@
                 // SOMENTE vendas via provador (pós-prova): telefone provou E comprou depois da prova
                 const ph = normalize(o[fPhone]);
                 if (!ph || !generationPhones || !generationPhones.has(ph)) return;
-                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
-                if (!isOrderAfterProva(orderTs, ph)) return;
+                const orderTs = timestampAtribuicaoPedido(o, activeUser);
+                if (!isOrderAfterProva(o, ph)) return;
                 const nome = String(o[fProduto] || '').trim();
                 if (!nome) return;
                 const m = map[nome] || (map[nome] = { count: 0, rev: 0 });
@@ -16932,8 +16972,8 @@
             allOrdersCache.forEach(o => {
                 const ph = normalize(o[fPhone]);
                 if (!ph || !generationPhones.has(ph)) return;
-                const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
-                if (!isOrderAfterProva(orderTs, ph)) return;
+                const orderTs = timestampAtribuicaoPedido(o, activeUser);
+                if (!isOrderAfterProva(o, ph)) return;
                 const val = parseFloat(o[fTotal]) || 0;
                 if (!byPhone[ph]) {
                     const rawName = (fNome && o[fNome]) || nameMap[ph] || '';
@@ -18468,7 +18508,7 @@
                 }
 
                 allOrders.forEach(o => {
-                    const orderTs = (fDataPedido && o[fDataPedido]) || o.created_at || '';
+                    const orderTs = timestampAtribuicaoPedido(o, activeUser);
                     // Casa por QUALQUER telefone do pedido (cliente/entrega/cobrança) — pega
                     // quem provou com o número dele mas comprou com outro deixando o dele na entrega.
                     orderPhoneKeys(o).forEach(ph => {
