@@ -3924,7 +3924,7 @@
 
                 <div class="card" style="margin-top:18px;">
                     <h3 style="margin:0 0 4px;font-size:16px;"><i class="ph-bold ph-kanban" style="color:#7c3aed;"></i> Em que etapa cada cliente parou</h3>
-                    <p style="margin:0 0 14px;color:var(--text-muted);font-size:13px;">Só quem deixou WhatsApp — o resto não dá pra recuperar. Cada pessoa aparece na etapa mais longe que chegou.</p>
+                    <p style="margin:0 0 14px;color:var(--text-muted);font-size:13px;">Só quem deixou WhatsApp — o resto não dá pra recuperar. O número na coluna é <b>quantos dá pra chamar / quantos passaram por ali</b>. Cada pessoa aparece na etapa mais longe que chegou.</p>
                     <div id="lentesSemTel" class="lentes-semtel" style="display:none;"></div>
                     <div id="lentesCrm" class="lentes-board"></div>
                 </div>
@@ -4116,6 +4116,7 @@
                         display: inline-flex; align-items: center; gap: 4px;
                     }
                     .disp-log-retry:hover { border-color: #7c3aed; color: #7c3aed; }
+                    .lentes-col-tot { opacity:.5; font-weight:600; }
                     .lentes-semtel { font-size:12.5px; color:var(--text-muted); background:rgba(148,163,184,.08); border:1px solid var(--border-color); border-radius:8px; padding:9px 12px; margin-bottom:14px; line-height:1.5; }
                     .lentes-semtel b { color:var(--text-main); }
                     .lentes-semtel i { margin-right:4px; opacity:.7; }
@@ -6227,8 +6228,9 @@
                     : '';
                 aviso.style.display = semTel ? '' : 'none';
             }
-            const balde = {};
+            const balde = {}, baldeTudo = {};
             comTel.forEach(v => (balde[_lentesEtapa(v)] = balde[_lentesEtapa(v)] || []).push(v));
+            ses.forEach(v => baldeTudo[_lentesEtapa(v)] = (baldeTudo[_lentesEtapa(v)] || 0) + 1);
             const _q = ms => {
                 const h = (Date.now() - ms) / 36e5;
                 if (h < 1) return 'agora há pouco';
@@ -6241,7 +6243,11 @@
                 return '<div class="crm-col" style="--col-accent:' + e.cor + '" title="' + e.dica + '">'
                     + '<div class="crm-col-header">'
                     +   '<span class="crm-col-title"><i class="ph-bold ' + e.icone + '"></i>' + e.rot + '</span>'
-                    +   '<span class="crm-col-count">' + itens.length + '</span>'
+                    +   '<span class="crm-col-count" title="' + itens.length + ' com WhatsApp de '
+                    +       (baldeTudo[e.id] || 0) + ' que chegaram nesta etapa">' + itens.length
+                    +       ((baldeTudo[e.id] || 0) > itens.length
+                             ? '<span class="lentes-col-tot">/' + baldeTudo[e.id] + '</span>' : '')
+                    +   '</span>'
                     + '</div>'
                     + '<div class="crm-col-body">'
                     + (itens.length ? itens.map(v => _lentesCard(v, e, _q)).join('')
