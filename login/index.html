@@ -5925,6 +5925,19 @@
         let _lentesCarregado = false, _lentesLinhas = [], _lentesPeriodo = '30';
         let _lentesPedidos = null;   // pedidos pagos que levaram lente
 
+        /* Dia em que o fluxo entrou no ar nesta loja. Comparar as vendas da loja
+           com o fluxo so faz sentido a partir daqui: antes disso toda lente
+           vendida e' de balcao, e na Koros isso eram 126 pares contra 2 dias
+           de fluxo. */
+        function _lentesDesde() {
+            let min = Infinity;
+            _lentesLinhas.forEach(r => {
+                const ms = new Date(r.created_at).getTime();
+                if (ms && ms < min) min = ms;
+            });
+            return min === Infinity ? 0 : min;
+        }
+
         function _lentesCutoff() {
             if (_lentesPeriodo === 'tudo') return 0;
             return Date.now() - parseInt(_lentesPeriodo, 10) * 86400000;
@@ -6032,8 +6045,7 @@
                        pct(carrinho.length, comLente.length) + ' de quem viu a indicação')
                 + card('Compraram', v.nossos.toLocaleString('pt-BR'),
                        _brlC(v.receita) + ' — pedido pago com a armação e a lente', '#10b981')
-                + card('Lentes vendidas na loja', v.teto.toLocaleString('pt-BR'),
-                       _brlC(v.tetoReceita) + ' — inclui vendas fora do fluxo');
+;
 
             const ETAPAS = [
                 ['abriu', 'Abriu o fluxo'], ['visao', 'Escolheu o tipo de lente'],
@@ -6056,12 +6068,13 @@
             const notaEl = document.getElementById('lentesNota');
             if (notaEl) {
                 const semTel = ses.filter(x => !x.telefone).length;
+                const dt = v.desde ? new Date(v.desde).toLocaleDateString('pt-BR',
+                            { day: '2-digit', month: '2-digit', year: '2-digit' }) : null;
                 notaEl.innerHTML = v.teto
-                    ? 'A loja vendeu <b>' + v.teto + '</b> pares de lente no período e conseguimos provar que '
-                      + '<b>' + v.nossos + '</b> saíram do fluxo — casando a armação e a lente do pedido. '
-                      + 'O resto pode ser venda pelo balcão da loja, ou gente que passou pelo fluxo e não deu '
-                      + 'pra rastrear (<b>' + semTel + '</b> ' + (semTel === 1 ? 'sessão' : 'sessões')
-                      + ' sem WhatsApp no período).'
+                    ? 'Os números acima são <b>só do fluxo de lentes</b> — casamos a armação e a lente do '
+                      + 'pedido com o que a pessoa montou aqui. Para comparar: desde que o fluxo entrou no ar'
+                      + (dt ? ' (' + dt + ')' : '') + ' a loja vendeu <b>' + v.teto + '</b> pares de lente no '
+                      + 'total, contando o balcão e o carrinho da própria loja.'
                     : 'Nenhuma lente vendida no período.';
             }
 
@@ -6172,6 +6185,8 @@
             ses.forEach(v => { v.venda = null; });
 
             const comLenteNoPedido = peds.filter(o => _LENTES_RE_PRODUTO.test(o.prod));
+            const desde = _lentesDesde();
+            const tetoPeds = comLenteNoPedido.filter(o => o.ms >= desde);
 
             const usados = new Set();
             const antigasPrimeiro = ses.slice().sort((a, b) => a.inicio - b.inicio);
@@ -6208,8 +6223,9 @@
             return {
                 nossos: vendidas.length,
                 receita: vendidas.reduce((a, v) => a + v.venda.total, 0),
-                teto: comLenteNoPedido.length,
-                tetoReceita: comLenteNoPedido.reduce((a, o) => a + o.total, 0)
+                teto: tetoPeds.length,
+                tetoReceita: tetoPeds.reduce((a, o) => a + o.total, 0),
+                desde: desde
             };
         }
 
