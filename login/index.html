@@ -3913,6 +3913,15 @@
                     <div class="disp-period" id="lentesPeriodo"></div>
                 </div>
 
+                <div class="card" style="margin-bottom:18px;">
+                    <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+                        <h3 style="margin:0;font-size:16px;"><i class="ph-bold ph-package" style="color:#f59e0b;"></i> Pedidos pra fabricar</h3>
+                        <p style="margin:0;color:var(--text-muted);font-size:13px;" id="lentesProdSub">—</p>
+                    </div>
+                    <p style="margin:4px 0 14px;color:var(--text-muted);font-size:12.5px;">Pedido pago com armação + lente. O grau já vem na ficha; a receita abre no botão. Não some quando o filtro de período muda.</p>
+                    <div id="lentesProd" class="lentes-board"></div>
+                </div>
+
                 <div id="lentesCards" class="lentes-cards"></div>
                 <div id="lentesNota" class="lentes-nota"></div>
 
@@ -4131,6 +4140,21 @@
                     .lentes-wpp { display:inline-flex; align-items:center; justify-content:center; gap:6px; color:var(--whatsapp,#25d366); font-weight:600; font-size:11.5px; text-decoration:none; margin-top:2px; border:1px solid color-mix(in srgb, var(--whatsapp,#25d366) 35%, transparent); border-radius:7px; padding:5px 8px; }
                     .lentes-wpp:hover { background:color-mix(in srgb, var(--whatsapp,#25d366) 12%, transparent); }
                     .lentes-vazio { font-size:12px; color:var(--text-muted); text-align:center; padding:18px 8px; }
+                    .lentes-ficha { gap:9px; }
+                    .lentes-ficha-topo { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+                    .lentes-ficha-ped { font-size:15px; font-weight:750; letter-spacing:-.02em; color:var(--text-main); font-variant-numeric:tabular-nums; }
+                    .lentes-ficha-idade { font-size:11px; color:var(--text-muted); }
+                    .lentes-ficha-idade.atrasado { color:#ef4444; font-weight:650; }
+                    .lentes-ficha-lente { font-size:12px; font-weight:600; color:var(--text-main); line-height:1.35; }
+                    .lentes-ficha-grau { font-size:13px; font-variant-numeric:tabular-nums; background:rgba(124,58,237,.10); border:1px solid rgba(124,58,237,.25); border-radius:8px; padding:8px 10px; }
+                    .lentes-ficha-grau .lentes-olho { font-size:13px; line-height:1.65; letter-spacing:.01em; }
+                    .lentes-ficha-grau .lentes-olho b { color:#a78bfa; }
+                    .lentes-ficha-grau.sem { background:rgba(239,68,68,.08); border-color:rgba(239,68,68,.25); color:var(--text-muted); font-size:12px; line-height:1.45; }
+                    .lentes-ficha-bts { display:flex; gap:6px; flex-wrap:wrap; }
+                    .lentes-ficha-bts .lentes-ver { text-decoration:none; }
+                    .lentes-avanca { width:100%; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:650; padding:8px 10px; border-radius:8px; border:1px solid var(--col-accent); background:color-mix(in srgb, var(--col-accent) 14%, transparent); color:var(--text-main); cursor:pointer; }
+                    .lentes-avanca:hover { background:color-mix(in srgb, var(--col-accent) 26%, transparent); }
+                    .lentes-avanca:disabled { opacity:.6; cursor:default; }
                     .lentes-nota { font-size:13px; color:var(--text-muted); background:var(--bg-card); border:1px solid var(--border-color); border-left:3px solid #7c3aed; border-radius:8px; padding:11px 14px; margin:-6px 0 20px; line-height:1.5; }
                     .lentes-nota b { color:var(--text-main); }
                     .lentes-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:20px; }
@@ -5987,16 +6011,17 @@
         }
 
         /* Uma SESSAO = uma pessoa usando o fluxo. Junta os passos dela. */
-        function _lentesSessoes() {
-            const corte = _lentesCutoff();
+        function _lentesSessoes(semCorte) {
+            const corte = semCorte ? 0 : _lentesCutoff();
             const ses = {};
             _lentesLinhas.forEach(r => {
                 const ms = new Date(r.created_at).getTime();
                 if (!ms || (corte && ms < corte)) return;
                 const k = r.session_id || ('sem-' + r.created_at);
                 const s = ses[k] || (ses[k] = {
-                    inicio: ms, fim: ms, passos: {}, telefone: null, produto: null,
-                    visao: null, trat: null, lente: null, preco: 0, confianca: null
+                    sid: k, inicio: ms, fim: ms, passos: {}, telefone: null, produto: null,
+                    visao: null, trat: null, lente: null, preco: 0, confianca: null,
+                    etapaProd: null, etapaProdMs: 0
                 });
                 s.fim = Math.max(s.fim, ms);
                 s.inicio = Math.min(s.inicio, ms);
@@ -6012,6 +6037,10 @@
                 if (r.step === 'carrinho') { s.carrinho = true; if (d.lente) { s.lente = d.lente; s.preco = Number(d.preco) || s.preco; } }
                 if (r.step === 'so_armacao') s.soArmacao = true;
                 if (r.step === 'sem_receita_whatsapp') s.pediuWhats = true;
+                // vale a marcacao mais recente: o lojista pode voltar uma etapa
+                if (r.step === 'producao' && d.etapa && ms >= s.etapaProdMs) {
+                    s.etapaProd = d.etapa; s.etapaProdMs = ms;
+                }
             });
             return Object.keys(ses).map(k => ses[k]).sort((a, b) => b.inicio - a.inicio);
         }
@@ -6063,6 +6092,7 @@
                     + '<div class="lentes-barra"><div style="width:' + Math.min(100, p) + '%"></div></div></div>';
             }).join('');
 
+            _pintaProducao();
             _pintaLentesCrm(ses);
 
             const notaEl = document.getElementById('lentesNota');
@@ -6131,12 +6161,15 @@
             if (!tab) return [];
             try {
                 const rows = await fetchPagesParallel(() => supabaseClient.from(tab)
-                    .select(['id_pedido', campoTel, campoData, campoTot, campoProd, campoSt].join(','))
+                    .select(['id_pedido', 'order_number', cfg.campo_nome_pedido || 'customer_name',
+                             campoTel, campoData, campoTot, campoProd, campoSt].join(','))
                     .in(campoSt, pagos)
                     .order(campoData, { ascending: false })
                     .order('id_pedido', { ascending: false }));
                 return (rows || []).map(r => ({
                     id: r.id_pedido,
+                    numero: r.order_number,
+                    nome: r[cfg.campo_nome_pedido || 'customer_name'],
                     tel: _lentesSo9(r[campoTel]),
                     ms: new Date(r[campoData]).getTime(),
                     total: Number(r[campoTot]) || 0,
@@ -6179,8 +6212,8 @@
            pessoa montou, e saiu logo depois. Isso funciona sem telefone.
            Criterio fraco (so se o forte nao achar): mesmo telefone.
            Cada pedido e' usado uma vez so, senao um pedido vira 4 vendas. */
-        function _lentesCasaVendas(ses) {
-            const corte = _lentesCutoff();
+        function _lentesCasaVendas(ses, corteForcado) {
+            const corte = corteForcado === undefined ? _lentesCutoff() : corteForcado;
             const peds = (_lentesPedidos || []).filter(o => !corte || o.ms >= corte);
             ses.forEach(v => { v.venda = null; });
 
@@ -6227,6 +6260,118 @@
                 tetoReceita: tetoPeds.reduce((a, o) => a + o.total, 0),
                 desde: desde
             };
+        }
+
+        const _LENTES_PROD = [
+            { id: 'a-fazer',    rot: 'Fazer',          cor: '#f59e0b', icone: 'ph-package',
+              acao: 'Mandar fabricar', prox: 'fabricando' },
+            { id: 'fabricando', rot: 'Em fabricação',  cor: '#3b82f6', icone: 'ph-gear',
+              acao: 'Marcar pronto',   prox: 'pronto' },
+            { id: 'pronto',     rot: 'Pronto',         cor: '#7c3aed', icone: 'ph-check-square',
+              acao: 'Marcar entregue', prox: 'entregue' },
+            { id: 'entregue',   rot: 'Entregue',       cor: '#10b981', icone: 'ph-hand-heart',
+              acao: null, prox: null }
+        ];
+
+        /* Pedidos pagos que ainda precisam virar oculos. Ignora o filtro de
+           periodo: trabalho pendente nao expira. */
+        function _lentesProducao() {
+            const todas = _lentesSessoes(true);
+            _lentesCasaVendas(todas, 0);
+            const limite = Date.now() - 30 * 86400000;
+            return todas.filter(v => v.venda &&
+                (v.etapaProd !== 'entregue' || v.venda.ms >= limite));
+        }
+
+        function _pintaProducao() {
+            const el = document.getElementById('lentesProd');
+            if (!el) return;
+            const itens = _lentesProducao();
+            const sub = document.getElementById('lentesProdSub');
+            const aFazer = itens.filter(v => !v.etapaProd || v.etapaProd === 'a-fazer').length;
+            if (sub) sub.innerHTML = aFazer
+                ? '<b>' + aFazer + '</b> ' + (aFazer === 1 ? 'pedido esperando' : 'pedidos esperando')
+                  + ' pra mandar fabricar.'
+                : 'Nenhum pedido esperando — tudo encaminhado.';
+
+            const balde = {};
+            itens.forEach(v => {
+                const e = v.etapaProd || 'a-fazer';
+                (balde[e] = balde[e] || []).push(v);
+            });
+            el.innerHTML = _LENTES_PROD.map(e => {
+                const lista = (balde[e.id] || []).sort((a, b) => a.venda.ms - b.venda.ms);
+                return '<div class="crm-col" style="--col-accent:' + e.cor + '">'
+                    + '<div class="crm-col-header">'
+                    +   '<span class="crm-col-title"><i class="ph-bold ' + e.icone + '"></i>' + e.rot + '</span>'
+                    +   '<span class="crm-col-count">' + lista.length + '</span>'
+                    + '</div><div class="crm-col-body">'
+                    + (lista.length ? lista.map(v => _lentesFicha(v, e)).join('')
+                                    : '<div class="lentes-vazio">nada aqui</div>')
+                    + '</div></div>';
+            }).join('');
+
+            el.querySelectorAll('[data-arq]').forEach(b => b.onclick = () => _lentesAbreReceita(b));
+            el.querySelectorAll('[data-prod-sid]').forEach(b => b.onclick = () =>
+                _lentesMoveProducao(b, b.dataset.prodSid, b.dataset.prodEtapa));
+        }
+
+        /* Ficha de producao: o que a otica precisa pra fazer a lente, na ordem
+           em que ela olha - quem e', o que e', com que grau. */
+        function _lentesFicha(v, etapa) {
+            const nome = (v.venda.nome || '').split(' ')[0];
+            const dias = Math.floor((Date.now() - v.venda.ms) / 864e5);
+            const idade = dias === 0 ? 'hoje' : dias === 1 ? 'ontem' : 'há ' + dias + ' dias';
+            let h = '<div class="crm-card lentes-ficha">'
+                + '<div class="lentes-ficha-topo">'
+                +   '<span class="lentes-ficha-ped">#' + _lesc(v.venda.numero || v.venda.id) + '</span>'
+                +   '<span class="lentes-ficha-idade' + (dias >= 3 && etapa.id !== 'entregue' ? ' atrasado' : '') + '">'
+                +     idade + '</span>'
+                + '</div>';
+            if (nome) h += '<div class="lentes-card-tel"><i class="ph-bold ph-user"></i>' + _lesc(nome) + '</div>';
+            if (v.produto) h += '<div class="crm-card-product"><i class="ph-bold ph-eyeglasses"></i>' + _lesc(v.produto) + '</div>';
+            if (v.lente) h += '<div class="lentes-ficha-lente">' + _lesc(v.lente) + '</div>';
+            h += v.grau
+                ? '<div class="lentes-ficha-grau">' + _lentesGrau(v.grau) + '</div>'
+                : '<div class="lentes-ficha-grau sem">' + (v.arq
+                    ? 'Grau não registrado — está na receita anexada.'
+                    : 'Grau não registrado. Confirme com o cliente pelo WhatsApp.') + '</div>';
+            const bts = [];
+            if (v.arq) bts.push('<button type="button" class="lentes-ver" data-arq="' + _lesc(v.arq) + '">ver receita</button>');
+            if (v.telefone) {
+                const num = String(v.telefone).replace(/[^0-9]/g, '');
+                bts.push('<a class="lentes-ver" target="_blank" rel="noopener" href="https://wa.me/'
+                    + (num.length > 11 ? num : '55' + num) + '">WhatsApp</a>');
+            }
+            if (bts.length) h += '<div class="lentes-ficha-bts">' + bts.join('') + '</div>';
+            if (etapa.prox) h += '<button type="button" class="lentes-avanca" data-prod-sid="' + _lesc(v.sid)
+                + '" data-prod-etapa="' + etapa.prox + '">' + etapa.acao + ' <i class="ph-bold ph-arrow-right"></i></button>';
+            return h + '</div>';
+        }
+
+        /* Grava a etapa como mais uma linha do funil, pelo mesmo webhook do
+           widget - sem tabela nova e sem precisar dar escrita pro lojista. */
+        async function _lentesMoveProducao(btn, sid, etapa) {
+            const antes = btn.innerHTML;
+            btn.disabled = true; btn.textContent = 'salvando…';
+            try {
+                const r = await fetch('https://n8n.segredosdodrop.com/webhook/pl-lentes-step', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sid, origin: 'https://' + (activeUser.origem || ''),
+                        step: 'producao', detail: { etapa: etapa, por: 'painel' }
+                    })
+                });
+                if (!r.ok) throw new Error('http ' + r.status);
+                // reflete local pra nao esperar o proximo carregamento
+                _lentesLinhas.push({ session_id: sid, telefone: null, step: 'producao',
+                    detail: { etapa: etapa }, produto: null, created_at: new Date().toISOString() });
+                _pintaProducao();
+            } catch (e) {
+                console.error('[lentes] producao:', e);
+                btn.disabled = false; btn.innerHTML = antes;
+                alert('Não consegui salvar. Tente de novo.');
+            }
         }
 
         /* Bucket privado: o link nao existe pronto, e' assinado na hora e vale 5 min.
