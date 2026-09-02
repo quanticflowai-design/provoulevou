@@ -244,7 +244,11 @@
              brand: '#C43A72', dark: '#A32E5E', soft: 'rgba(224,69,127,.12)', on: '#ffffff' },
     // Satika: vermelho do logo (#B02828) da 6,6:1 com texto branco — usado puro.
     satika: { bg: '#ffffff', card: '#ffffff', line: '#F0DBDB',
-              brand: '#B02828', dark: '#962222', soft: 'rgba(176,40,40,.10)', on: '#ffffff' }
+              brand: '#B02828', dark: '#962222', soft: 'rgba(176,40,40,.10)', on: '#ffffff' },
+    // Otica Debora: circulo turquesa do logo solto no fundo branco. O turquesa
+    // puro (#1AADB7) da 2,7:1 com texto branco; fechei pra #137884 (5,2:1).
+    oticadebora: { bg: '#ffffff', card: '#ffffff', line: '#D6ECEF',
+                   brand: '#137884', dark: '#0F5F69', soft: 'rgba(26,173,183,.12)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
