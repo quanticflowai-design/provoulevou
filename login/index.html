@@ -5897,7 +5897,7 @@
         let activeUser = null;
         // Moeda por loja: a Velaro cobra em US$; o resto da frota em R$. Trocado
         // em 1 lugar (PL_CUR/PL_SYM) em vez de nos ~40 pontos de formatacao.
-        let PL_CUR = 'BRL', PL_SYM = PL_SYM;
+        let PL_CUR = 'BRL', PL_SYM = 'R$ ';
         function plSetMoeda() {
             var o = (activeUser && activeUser.origem || '').toLowerCase();
             if (o.indexOf('usevelaro') !== -1) { PL_CUR = 'USD'; PL_SYM = 'US$ '; }
