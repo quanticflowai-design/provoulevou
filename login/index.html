@@ -5895,6 +5895,14 @@
 
         let supabaseClient = null;
         let activeUser = null;
+        // Moeda por loja: a Velaro cobra em US$; o resto da frota em R$. Trocado
+        // em 1 lugar (PL_CUR/PL_SYM) em vez de nos ~40 pontos de formatacao.
+        let PL_CUR = 'BRL', PL_SYM = PL_SYM;
+        function plSetMoeda() {
+            var o = (activeUser && activeUser.origem || '').toLowerCase();
+            if (o.indexOf('usevelaro') !== -1) { PL_CUR = 'USD'; PL_SYM = 'US$ '; }
+            else { PL_CUR = 'BRL'; PL_SYM = PL_SYM; }
+        }
 
         function showTab(name) {
             if (isDisparosOnly() && name !== 'disparos') name = 'disparos';
@@ -6062,7 +6070,7 @@
             const pct = (a, b) => b ? (a / b * 100).toFixed(0) + '%' : '—';
 
             const v = _lentesCasaVendas(ses);
-            const _brlC = x => x.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+            const _brlC = x => x.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR, maximumFractionDigits: 0 });
 
             document.getElementById('lentesCards').innerHTML =
                   card('Usaram o fluxo', ses.length.toLocaleString('pt-BR'), 'sessões no período')
@@ -6113,7 +6121,7 @@
             if (subEl) subEl.textContent = linhas.length.toLocaleString('pt-BR')
                 + (linhas.length === 1 ? ' cliente' : ' clientes') + ' no período';
             const _d = ms => new Date(ms).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-            const _brl = v => v ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—';
+            const _brl = v => v ? v.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR }) : '—';
             document.getElementById('lentesLista').innerHTML = linhas.length
                 ? '<div class="lentes-tab-wrap"><table class="lentes-tab"><thead><tr>'
                 + '<th>Quando</th><th>Cliente</th><th>Armação</th><th>Escolha</th><th>Receita</th><th>Arquivo</th><th>Grau</th><th>Lente indicada</th><th>Valor</th><th>Fim</th>'
@@ -6490,7 +6498,7 @@
             if (v.produto) h += '<div class="crm-card-product"><i class="ph-bold ph-eyeglasses"></i>' + _lesc(v.produto) + '</div>';
             if (escolha) h += '<div class="lentes-card-linha">' + _lesc(escolha) + '</div>';
             if (v.lente) h += '<div class="lentes-card-linha"><b>' + _lesc(v.lente) + '</b>'
-                + (v.preco ? '<span>' + v.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) + '</span>' : '') + '</div>';
+                + (v.preco ? '<span>' + v.preco.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR }) + '</span>' : '') + '</div>';
             if (v.grau) h += '<div class="lentes-card-grau">' + grau + '</div>';
             if (v.arq) h += '<button type="button" class="lentes-ver" data-arq="' + _lesc(v.arq) + '" style="align-self:flex-start;">ver receita</button>';
             h += '<div class="crm-card-meta"><span><i class="ph-bold ph-clock"></i>' + _q(v.inicio) + '</span></div>';
@@ -6790,6 +6798,7 @@
             leadsRecupLoaded = false;
             _fatChartOrdersCache = null;
             _waConfigCache = null;
+            plSetMoeda();
             _lentesCarregado = false;
             _lentesLinhas = [];
             var _bl = document.getElementById('tab-btn-lentes');
@@ -6963,6 +6972,7 @@
                     if (b) b.style.display = 'none';
                 });
             }
+            plSetMoeda();
             loadData();
             loadCredits(userObj);
             checkAbaLentes();
@@ -10904,7 +10914,7 @@
             return { period, total, recPorCamp, disparosPorCamp, alcancadosPorCamp, disparosTotal, alcancadosTotal: alcTotal.size, flows, agend, campativas, kpis, serieDiaria, msgStats, custoEstimado, roi };
         }
 
-        function _brl(v) { return 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+        function _brl(v) { return PL_SYM + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
         function _int(v) { return (Number(v) || 0).toLocaleString('pt-BR'); }
         function _esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
@@ -11107,7 +11117,7 @@
                             label: (ctx) => {
                                 const v = ctx.parsed.y;
                                 if (ctx.dataset.yAxisID !== 'y1') return ctx.dataset.label + ': ' + v;
-                                const txt = ctx.dataset.label + ': ' + v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                                const txt = ctx.dataset.label + ': ' + v.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
                                 // No recuperado, mostra que fatia do dia ele representa
                                 if (ctx.dataset.label.indexOf('Recuperado') === 0) {
                                     const f = fat[ctx.dataIndex] || 0;
@@ -11254,7 +11264,7 @@
                 }
             }
 
-            if (totalEl) totalEl.textContent = 'R$ ' + totalRev.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (totalEl) totalEl.textContent = PL_SYM + totalRev.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             if (subEl) subEl.textContent = rows.length.toLocaleString('pt-BR') + (rows.length === 1 ? ' cliente recuperado' : ' clientes recuperados');
 
             if (!rows.length) {
@@ -11295,7 +11305,7 @@
                     { t: fmtDT(r.dispMs), al: 'left' },
                     { t: fmtDT(r.orderMs), al: 'left' },
                     { t: fmtGap(r.gap), al: 'right', hot: fast },
-                    { t: 'R$ ' + r.val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), al: 'right', strong: true }
+                    { t: PL_SYM + r.val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), al: 'right', strong: true }
                 ];
                 cells.forEach(c => {
                     const td = document.createElement('td');
@@ -11394,7 +11404,7 @@
                 totalRev += val; totalCnt++;
             });
 
-            if (totalEl) totalEl.textContent = 'R$ ' + totalRev.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (totalEl) totalEl.textContent = PL_SYM + totalRev.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             if (subEl) subEl.textContent = totalCnt.toLocaleString('pt-BR') + (totalCnt === 1 ? ' pedido recuperado' : ' pedidos recuperados');
 
             const labels = days.map(d => {
@@ -11422,14 +11432,14 @@
                         legend: { display: false },
                         tooltip: {
                             callbacks: {
-                                label: ctx => 'R$ ' + ctx.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                                label: ctx => PL_SYM + ctx.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
                                 afterLabel: ctx => { const c = cntByDay[days[ctx.dataIndex]] || 0; return c + (c === 1 ? ' pedido' : ' pedidos'); }
                             }
                         }
                     },
                     scales: {
                         x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 0 } },
-                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { callback: v => 'R$ ' + v.toLocaleString('pt-BR') } }
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { callback: v => PL_SYM + v.toLocaleString('pt-BR') } }
                     }
                 }
             });
@@ -11629,7 +11639,7 @@
             const targets = await waGetBulkTargets(stageKey, limit);
             window._waBulkTargets = targets;
             document.getElementById('waBulkCount').textContent = targets.length.toLocaleString('pt-BR');
-            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
             // Estimativa (teto): a Meta cobra ~R$0,35 por mensagem ENTREGUE — mesma taxa do ROI.
             // É teto porque nem todo alvo é entregue (só delivered é cobrado).
             document.getElementById('waBulkCost').textContent = 'até ' + brl(targets.length * DISPARO_RATE_BRL);
@@ -12106,7 +12116,7 @@
             if (txt !== undefined && txt !== null) e.textContent = String(txt);
             return e;
         }
-        const _comBRL = v => 'R$ ' + (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const _comBRL = v => PL_SYM + (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
         async function comercialRender() {
             const pane = document.getElementById('dispSubComercial');
@@ -14304,7 +14314,7 @@
             const useYoy = yoyBaseline && yoyBaseline.fatPerDay > 0;
             const baseFatDay = useYoy ? yoyBaseline.fatPerDay : preProvadorBaseline.fatPerDay;
             const basePedDay = useYoy ? yoyBaseline.pedidosPerDay : preProvadorBaseline.pedidosPerDay;
-            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR, maximumFractionDigits: 0 });
             document.getElementById('crescAntesFat').textContent = brl(baseFatDay);
             document.getElementById('crescAntesPedidos').textContent = basePedDay.toFixed(1) + ' pedidos/dia';
             document.getElementById('crescDepoisFat').textContent = brl(postFatDay);
@@ -14362,7 +14372,7 @@
             const postFatDay = postFat / postDays;
             const baseFatDay = preProvadorBaseline.fatPerDay;
 
-            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR, maximumFractionDigits: 0 });
             document.getElementById('vheroBaBefore').textContent = brl(baseFatDay);
             document.getElementById('vheroBaAfter').textContent = brl(postFatDay);
             // Explicação do cálculo
@@ -14570,7 +14580,7 @@
                                     const tot = c.parsed.y;
                                     const prov = (byMonth[m] && byMonth[m].provador) || 0;
                                     const pct = tot > 0 ? (prov / tot * 100) : 0;
-                                    const brl = v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                                    const brl = v => PL_SYM + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
                                     return [
                                         ' Faturamento: ' + brl(tot),
                                         ' Via provador: ' + brl(prov) + ' (' + pct.toFixed(1).replace('.', ',') + '%)'
@@ -14826,7 +14836,7 @@
                 nudge.style.display = 'none'; return;
             }
             const lastPay = store.last_payment;
-            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR, minimumFractionDigits: 2 });
             const planAtualValor = PACKS_PLAN_VALUES[planAtual] || 0;
             const nextValor = PACKS_PLAN_VALUES[nextPlan];
             const nextLimite = PACKS_PLAN_LIMITS_REF[nextPlan];
@@ -14936,7 +14946,7 @@
             if (precoFoto == null || precoFoto <= 0) { card.style.display = 'none'; return; }
             _packPrecoFotoLoja = precoFoto;
             card.style.display = '';
-            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR, minimumFractionDigits: 2 });
             document.getElementById('packExtraPrecoFoto').textContent = brl(precoFoto);
             document.getElementById('packExtraSub').textContent = isOverride
                 ? 'Acordo especial: provas extras por ' + brl(precoFoto) + ' cada.'
@@ -14970,7 +14980,7 @@
         async function iniciarCompraExtra(qty, valor) {
             const modal = document.getElementById('packPixModal');
             modal.style.display = 'flex';
-            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR, minimumFractionDigits: 2 });
             document.getElementById('packPixTitle').textContent = qty.toLocaleString('pt-BR') + ' provas extras · ' + brl(valor);
             document.getElementById('packPixLoading').style.display = '';
             document.getElementById('packPixQr').style.display = 'none';
@@ -15073,7 +15083,7 @@
             const prevEndIso = fmt(prevEndDate);
             const k0 = computeKpis(curr.start, curr.end);
             const k1 = computeKpis(prev.start, prevEndIso);
-            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
             const num = v => String(v);
             const pct = v => v.toFixed(1) + '%';
             renderDelta('kpiDeltaPedidos', k0.pedidos, k1.pedidos, num);
@@ -15192,7 +15202,7 @@
             const provasPerClient = uniqProvadores > 0 ? (totalProvas / uniqProvadores) : 0;
 
             const fmtNum = n => n.toLocaleString('pt-BR');
-            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
 
             // ===== FUNIL VISUAL =====
             // Largura proporcional à etapa anterior
@@ -15359,7 +15369,7 @@
             const pedidosOrg = Math.max(0, pedidosTotal - pedidosPos);
             const pctPos = fatTotal > 0 ? (fatPosProva / fatTotal * 100) : 0;
             const pctOrg = 100 - pctPos;
-            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
 
             document.getElementById('attrLegend').innerHTML = `
                 <div class="pl-attr-item">
@@ -15426,7 +15436,7 @@
             if (leads === 0 || ticket === 0) { section.style.display = 'none'; return; }
             section.style.display = 'block';
 
-            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
             const fmtNum = n => n.toLocaleString('pt-BR');
             const potencialBruto = leads * ticket;
 
@@ -16051,7 +16061,7 @@
                 if (!recovered) return;
                 rev += parseFloat(o[fTotal]) || 0; cnt++;
             });
-            valEl.textContent = rev.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            valEl.textContent = rev.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
             if (subEl) subEl.textContent = cnt.toLocaleString('pt-BR') + (cnt === 1 ? ' venda recuperada' : ' vendas recuperadas');
         }
 
@@ -16099,7 +16109,7 @@
             const pedidosCount = filtered.length;
             const faturamento = filtered.reduce((s, o) => s + (parseFloat(o[fTotal]) || 0), 0);
             document.getElementById('comprasPedidosCount').textContent = pedidosCount;
-            document.getElementById('comprasFaturamento').textContent = faturamento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('comprasFaturamento').textContent = faturamento.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
 
             // Compraram = clientes com pedido no período que têm prova registrada antes do pedido
             const compraramSet = new Set();
@@ -16135,7 +16145,7 @@
                     data: d ? (d.length === 10 ? d.split('-').reverse().join('/') : new Date(d).toLocaleDateString('pt-BR')) : '',
                     cliente: (fNome && o[fNome]) ? o[fNome].trim().split(' ')[0] : (nameMap[normalize(o[fPhone])] || '').trim().split(' ')[0] || '',
                     telefone: String(o[fPhone] || ''),
-                    valor: (parseFloat(o[fTotal]) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                    valor: (parseFloat(o[fTotal]) || 0).toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR })
                 };
             });
 
@@ -16166,7 +16176,7 @@
                 const dateStr = dateRaw ? (dateRaw.length === 10 ? dateRaw.split('-').reverse().join('/') : new Date(dateRaw).toLocaleDateString('pt-BR')) : '';
                 const clienteNome = (fNome && o[fNome]) || nameMap[phone] || '';
                 const firstName = clienteNome.trim().split(' ').slice(0, 2).join(' ') || '\u2014';
-                const valor = (parseFloat(o[fTotal]) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                const valor = (parseFloat(o[fTotal]) || 0).toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
                 const isRecorrente = (orderCountByPhone[phone] || 0) > 1;
                 const tr = document.createElement('tr');
                 const tdDate = document.createElement('td'); tdDate.textContent = dateStr;
@@ -16234,12 +16244,12 @@
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
                         legend: { display: true, labels: { color: '#94a3b8', font: { size: 12 }, usePointStyle: true, pointStyle: 'circle' } },
-                        tooltip: { backgroundColor: '#1e1e2e', titleColor: '#fff', bodyColor: '#c4b5fd', borderColor: '#8b5cf6', borderWidth: 1, cornerRadius: 8, callbacks: { label: c => c.datasetIndex === 0 ? c.parsed.y + (c.parsed.y > 1 ? ' vendas' : ' venda') : 'R$ ' + c.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } }
+                        tooltip: { backgroundColor: '#1e1e2e', titleColor: '#fff', bodyColor: '#c4b5fd', borderColor: '#8b5cf6', borderWidth: 1, cornerRadius: 8, callbacks: { label: c => c.datasetIndex === 0 ? c.parsed.y + (c.parsed.y > 1 ? ' vendas' : ' venda') : PL_SYM + c.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } }
                     },
                     scales: {
                         x: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { display: false } },
                         y: { position: 'left', beginAtZero: true, ticks: { color: '#8b5cf6', font: { size: 11 }, stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'Vendas', color: '#8b5cf6', font: { size: 11 } } },
-                        y1: { position: 'right', beginAtZero: true, ticks: { color: '#10b981', font: { size: 11 }, callback: v => 'R$ ' + v.toLocaleString('pt-BR') }, grid: { drawOnChartArea: false }, title: { display: true, text: 'Faturamento', color: '#10b981', font: { size: 11 } } }
+                        y1: { position: 'right', beginAtZero: true, ticks: { color: '#10b981', font: { size: 11 }, callback: v => PL_SYM + v.toLocaleString('pt-BR') }, grid: { drawOnChartArea: false }, title: { display: true, text: 'Faturamento', color: '#10b981', font: { size: 11 } } }
                     }
                 }
             });
@@ -16305,7 +16315,7 @@
                 const count = (data || []).length;
                 const total = (data || []).reduce((s, r) => s + (parseFloat(r.valor) || 0), 0);
                 document.getElementById('provasExtrasCount').textContent = count.toLocaleString('pt-BR');
-                document.getElementById('provasExtrasValor').textContent = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                document.getElementById('provasExtrasValor').textContent = total.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
                 if (card) card.style.display = count > 0 ? '' : 'none';
             } catch (err) {
                 console.error('loadProvasExtras error', err);
@@ -16352,7 +16362,7 @@
                 + '<td style="color:var(--text-muted);font-weight:600;">' + (i + 1) + '</td>'
                 + '<td>' + escapeHtml(r.nome) + '</td>'
                 + '<td style="text-align:right;font-weight:600;">' + r.count.toLocaleString('pt-BR') + '</td>'
-                + '<td style="text-align:right;">' + r.rev.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) + '</td>'
+                + '<td style="text-align:right;">' + r.rev.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR }) + '</td>'
                 + '</tr>').join('');
             if (sub) sub.textContent = rows.length + ' produtos · ' + totalVendas.toLocaleString('pt-BR') + ' vendas via provador' + (rows.length > TOP ? ' (top ' + TOP + ')' : '');
             sec.style.display = '';
@@ -16418,7 +16428,7 @@
                 const planValor = isPersonalizado
                     ? parseFloat(store.valor_personalizado || 0)
                     : (PACKS_PLAN_VALUES[store.plan] || 0);
-                const fmtBRL = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                const fmtBRL = v => v.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR, minimumFractionDigits: 0, maximumFractionDigits: 2 });
                 const valorSufix = (planValor > 0 && !isTeste) ? ' · ' + fmtBRL(planValor) + '/mês' : '';
                 document.getElementById('consumoPlanName').textContent = (isUnlimited
                     ? planLabel + ' · Ilimitado'
@@ -16661,7 +16671,7 @@
                 const pctReengaj = provaram > 0 ? voltaram / provaram * 100 : 0;
                 const pctImpacto = fatTotal > 0 ? fat / fatTotal * 100 : 0;
                 const fmtNum = n => n.toLocaleString('pt-BR');
-                const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
                 const hero = document.getElementById('vhero'); if (hero) hero.style.display = '';
                 const vfunnel = document.getElementById('vfunnel');
                 if (vfunnel) vfunnel.innerHTML = `
@@ -16850,9 +16860,9 @@
                     } else { tdPhone.textContent = '\u2014'; }
                     const tdTotal = document.createElement('td');
                     tdTotal.style.cssText = 'font-weight:700;color:#10b981;';
-                    tdTotal.textContent = r.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    tdTotal.textContent = r.total.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
                     const tdCount = document.createElement('td'); tdCount.textContent = String(r.count);
-                    const tdAvg = document.createElement('td'); tdAvg.textContent = r.avg.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    const tdAvg = document.createElement('td'); tdAvg.textContent = r.avg.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
                     tr.append(tdRank, tdName, tdPhone, tdTotal, tdCount, tdAvg);
                     tbody.appendChild(tr);
                 });
@@ -16930,7 +16940,7 @@
                     const dateStr = dateRaw ? (dateRaw.length === 10 ? dateRaw.split('-').reverse().join('/') : new Date(dateRaw).toLocaleDateString('pt-BR')) : '';
                     const clienteNome = (fNome && item[fNome]) || nameMap[phone] || '';
                     const firstName = clienteNome.trim().split(' ').slice(0, 2).join(' ') || '\u2014';
-                    const valor = (parseFloat(item[fTotal]) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    const valor = (parseFloat(item[fTotal]) || 0).toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
                     const tr = document.createElement('tr');
                     const tdDate = document.createElement('td'); tdDate.textContent = dateStr;
                     const tdName = document.createElement('td'); tdName.style.fontWeight = '600'; tdName.textContent = firstName;
@@ -16998,9 +17008,9 @@
                 rank: i + 1,
                 cliente: r.name ? r.name.trim() : '',
                 telefone: r.rawPhone,
-                total: r.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                total: r.total.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR }),
                 pedidos: r.count,
-                ticket: r.avg.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                ticket: r.avg.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR })
             }));
 
             const tbody = document.getElementById('ltvTableBody');
@@ -17054,14 +17064,14 @@
 
                 const tdTotal = document.createElement('td');
                 tdTotal.style.cssText = 'font-weight:700;color:#10b981;';
-                tdTotal.textContent = r.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                tdTotal.textContent = r.total.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
 
                 const tdCount = document.createElement('td');
                 tdCount.style.cssText = 'font-weight:700;color:#630ed4;';
                 tdCount.textContent = String(r.count);
 
                 const tdAvg = document.createElement('td');
-                tdAvg.textContent = r.avg.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                tdAvg.textContent = r.avg.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
 
                 // Ordem: # · Cliente · WhatsApp · Nº Pedidos · Total Gasto · Ticket Médio
                 tr.append(tdRank, tdName, tdPhone, tdCount, tdTotal, tdAvg);
@@ -17279,8 +17289,8 @@
             const statsData = [
                 { icon: 'ph-users', title: 'Leads para recuperar', value: String(allLeadsRecup.length), sub: 'provaram e não compraram', color: '#f59e0b' },
                 { icon: 'ph-currency-circle-dollar', title: 'Potencial de faturamento',
-                  value: potencial.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-                  sub: 'se converter 10% (' + Math.floor(allLeadsRecup.length * 0.1) + ') pelo ticket médio de ' + avgTicket.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                  value: potencial.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR }),
+                  sub: 'se converter 10% (' + Math.floor(allLeadsRecup.length * 0.1) + ') pelo ticket médio de ' + avgTicket.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR }),
                   color: '#f59e0b' },
                 { icon: 'ph-fire', title: 'Leads quentes', value: String(hotLeads), sub: '3+ provas — alto interesse', color: '#f59e0b', highlight: true }
             ];
