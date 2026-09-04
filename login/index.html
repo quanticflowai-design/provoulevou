@@ -3905,48 +3905,73 @@
 
             <!-- ====== ABA LENTES (so aparece nas lojas com fluxo de lentes) ====== -->
             <div class="tab-pane" id="tab-lentes" role="tabpanel" aria-labelledby="tab-btn-lentes">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                <div class="lentes-page-head">
                     <div>
-                        <h2 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em;">Fluxo de lentes</h2>
-                        <p style="margin:4px 0 0;color:var(--text-muted);font-size:13.5px;">Quem escolheu lente pelo provador — e quem mandou a receita.</p>
+                        <h2>Lentes</h2>
+                        <p>Acompanhe os pedidos e saiba quem precisa de atendimento.</p>
                     </div>
                     <div class="disp-period" id="lentesPeriodo"></div>
                 </div>
 
-                <div class="card" style="margin-bottom:18px;">
+                <div class="lentes-fluxo-guia" aria-label="Etapas da compra de lentes">
+                    <div><span>1</span><b>Cliente escolhe</b><small>tipo e tratamento</small></div>
+                    <i class="ph-bold ph-arrow-right"></i>
+                    <div><span>2</span><b>Informa o grau</b><small>receita ou digitação</small></div>
+                    <i class="ph-bold ph-arrow-right"></i>
+                    <div><span>3</span><b>Recebe a indicação</b><small>lente compatível</small></div>
+                    <i class="ph-bold ph-arrow-right"></i>
+                    <div><span>4</span><b>Compra</b><small>armação + lente</small></div>
+                </div>
+
+                <div class="lentes-view-tabs" role="tablist" aria-label="Visão da área de lentes">
+                    <button type="button" class="on" data-lentes-view="operacao" aria-selected="true" onclick="_lentesMudaVisao('operacao')">
+                        <i class="ph-bold ph-check-square-offset"></i> Para fazer
+                    </button>
+                    <button type="button" data-lentes-view="resultados" aria-selected="false" onclick="_lentesMudaVisao('resultados')">
+                        <i class="ph-bold ph-chart-line-up"></i> Resultados
+                    </button>
+                </div>
+
+                <div id="lentesViewOperacao">
+                    <div id="lentesResumoAcao" class="lentes-resumo-acao"></div>
+
+                <div class="card lentes-secao" style="margin-bottom:18px;">
                     <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
-                        <h3 style="margin:0;font-size:16px;"><i class="ph-bold ph-package" style="color:#f59e0b;"></i> Pedidos pra fabricar</h3>
+                        <h3><i class="ph-bold ph-package" style="color:#f59e0b;"></i> Pedidos de lentes</h3>
                         <p style="margin:0;color:var(--text-muted);font-size:13px;" id="lentesProdSub">—</p>
                     </div>
-                    <p style="margin:4px 0 14px;color:var(--text-muted);font-size:12.5px;">Pedido pago com armação + lente. O grau já vem na ficha; a receita abre no botão. Não some quando o filtro de período muda.</p>
+                    <p class="lentes-secao-ajuda">Movimente cada pedido conforme ele avança na fabricação. A receita e o grau ficam dentro da ficha.</p>
                     <div id="lentesProd" class="lentes-board"></div>
                 </div>
 
-                <div id="lentesCards" class="lentes-cards"></div>
-                <div id="lentesNota" class="lentes-nota"></div>
-
-                <div class="card" style="margin-top:18px;">
-                    <h3 style="margin:0 0 4px;font-size:16px;"><i class="ph-bold ph-funnel" style="color:#7c3aed;"></i> Do clique à lente no carrinho</h3>
-                    <p style="margin:0 0 14px;color:var(--text-muted);font-size:13px;">Cada etapa mostra quantas pessoas chegaram nela.</p>
-                    <div id="lentesFunil"></div>
-                </div>
-
-                <div class="card" style="margin-top:18px;">
-                    <h3 style="margin:0 0 4px;font-size:16px;"><i class="ph-bold ph-kanban" style="color:#7c3aed;"></i> Em que etapa cada cliente parou</h3>
-                    <p style="margin:0 0 14px;color:var(--text-muted);font-size:13px;">Só quem deixou WhatsApp — o resto não dá pra recuperar. O número na coluna é <b>quantos dá pra chamar / quantos passaram por ali</b>. Cada pessoa aparece na etapa mais longe que chegou.</p>
+                <div class="card lentes-secao" style="margin-top:18px;">
+                    <h3><i class="ph-bold ph-chats-circle" style="color:#25d366;"></i> Clientes para atender</h3>
+                    <p class="lentes-secao-ajuda">Cada pessoa aparece uma única vez. Comece por “Precisa de ajuda” e “Carrinho”.</p>
                     <div id="lentesSemTel" class="lentes-semtel" style="display:none;"></div>
                     <div id="lentesCrm" class="lentes-board"></div>
                 </div>
+                </div>
 
-                <div class="card" style="margin-top:18px;">
+                <div id="lentesViewResultados" style="display:none;">
+                    <div id="lentesCards" class="lentes-cards"></div>
+                    <div id="lentesNota" class="lentes-nota"></div>
+
+                    <div class="card lentes-secao" style="margin-top:18px;">
+                        <h3><i class="ph-bold ph-funnel" style="color:#7c3aed;"></i> Conversão do fluxo</h3>
+                        <p class="lentes-secao-ajuda">Veja quantas pessoas avançaram em cada etapa no período selecionado.</p>
+                        <div id="lentesFunil"></div>
+                    </div>
+
+                <details class="card lentes-detalhes" style="margin-top:18px;">
+                    <summary><span><i class="ph-bold ph-list-magnifying-glass"></i> Ver histórico detalhado</span><small id="lentesListaSub">—</small></summary>
+                    <div class="lentes-detalhes-corpo">
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-                        <div>
-                            <h3 style="margin:0 0 4px;font-size:16px;"><i class="ph-bold ph-identification-card" style="color:#10b981;"></i> Clientes que usaram o fluxo</h3>
-                            <p style="margin:0;color:var(--text-muted);font-size:13px;" id="lentesListaSub">—</p>
-                        </div>
+                        <p class="lentes-secao-ajuda" style="margin:0;">Uma linha por cliente, com todas as informações técnicas.</p>
                         <button class="btn-outline" id="lentesCsv" style="white-space:nowrap;"><i class="ph-bold ph-download-simple"></i> Baixar CSV</button>
                     </div>
                     <div id="lentesLista" style="margin-top:14px;"></div>
+                    </div>
+                </details>
                 </div>
             </div>
 
@@ -4125,6 +4150,32 @@
                         display: inline-flex; align-items: center; gap: 4px;
                     }
                     .disp-log-retry:hover { border-color: #7c3aed; color: #7c3aed; }
+                    .lentes-page-head { display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px; }
+                    .lentes-page-head h2 { margin:0;font-size:22px;font-weight:750;letter-spacing:-.02em; }
+                    .lentes-page-head p { margin:4px 0 0;color:var(--text-muted);font-size:13.5px; }
+                    .lentes-fluxo-guia { display:flex;align-items:center;gap:10px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:13px 16px;margin-bottom:14px;overflow-x:auto; }
+                    .lentes-fluxo-guia > div { min-width:135px;display:grid;grid-template-columns:26px 1fr;column-gap:8px;align-items:center; }
+                    .lentes-fluxo-guia > div span { grid-row:1/3;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:rgba(124,58,237,.12);color:#a78bfa;font-size:12px;font-weight:750; }
+                    .lentes-fluxo-guia b { font-size:12.5px;color:var(--text-main);white-space:nowrap; }
+                    .lentes-fluxo-guia small { font-size:10.5px;color:var(--text-muted);white-space:nowrap; }
+                    .lentes-fluxo-guia > i { color:var(--text-faint);font-size:14px;flex:0 0 auto; }
+                    .lentes-view-tabs { display:inline-flex;padding:4px;background:rgba(148,163,184,.10);border:1px solid var(--border-color);border-radius:10px;margin-bottom:16px;gap:3px; }
+                    .lentes-view-tabs button { display:flex;align-items:center;gap:7px;border:0;background:transparent;color:var(--text-muted);padding:8px 14px;border-radius:7px;font:inherit;font-size:12.5px;font-weight:650;cursor:pointer; }
+                    .lentes-view-tabs button.on { background:var(--bg-card);color:var(--text-main);box-shadow:0 1px 4px rgba(0,0,0,.12); }
+                    .lentes-resumo-acao { display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:12px;margin-bottom:14px; }
+                    .lentes-acao-card { display:flex;align-items:center;gap:12px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:13px 15px; }
+                    .lentes-acao-icone { width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font-size:18px;flex:0 0 auto; }
+                    .lentes-acao-card b { display:block;font-size:14px;color:var(--text-main); }
+                    .lentes-acao-card small { display:block;color:var(--text-muted);font-size:11.5px;margin-top:2px; }
+                    .lentes-secao h3 { margin:0;font-size:16px;display:flex;align-items:center;gap:7px; }
+                    .lentes-secao-ajuda { margin:5px 0 14px;color:var(--text-muted);font-size:12.5px;line-height:1.45; }
+                    .lentes-detalhes { padding:0!important;overflow:hidden; }
+                    .lentes-detalhes summary { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;cursor:pointer;list-style:none; }
+                    .lentes-detalhes summary::-webkit-details-marker { display:none; }
+                    .lentes-detalhes summary span { display:flex;align-items:center;gap:8px;font-size:14px;font-weight:650;color:var(--text-main); }
+                    .lentes-detalhes summary small { color:var(--text-muted);font-size:12px; }
+                    .lentes-detalhes[open] summary { border-bottom:1px solid var(--border-color); }
+                    .lentes-detalhes-corpo { padding:16px 18px 18px; }
                     .lentes-col-tot { opacity:.5; font-weight:600; }
                     .lentes-semtel { font-size:12.5px; color:var(--text-muted); background:rgba(148,163,184,.08); border:1px solid var(--border-color); border-radius:8px; padding:9px 12px; margin-bottom:14px; line-height:1.5; }
                     .lentes-semtel b { color:var(--text-main); }
@@ -4181,6 +4232,15 @@
                     .lentes-tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; background:var(--border-color); color:var(--text-muted); white-space:nowrap; }
                     .lentes-tag.ok { background:rgba(16,185,129,.15); color:#10b981; }
                     .lentes-tag.no { background:rgba(239,68,68,.13); color:#ef4444; }
+                    @media (max-width:720px) {
+                        .lentes-page-head { align-items:flex-start; }
+                        .lentes-page-head .disp-period { width:100%;overflow-x:auto; }
+                        .lentes-fluxo-guia { padding:11px 12px; }
+                        .lentes-fluxo-guia > div { min-width:120px; }
+                        .lentes-resumo-acao { grid-template-columns:1fr; }
+                        .lentes-view-tabs { width:100%; }
+                        .lentes-view-tabs button { flex:1;justify-content:center; }
+                    }
                     .disp-empty { text-align: center; color: var(--text-muted); padding: 40px 20px; font-size: 13px; }
 
                     @media (max-width: 900px) {
@@ -6007,6 +6067,19 @@
             _pintaLentes();
         }
 
+        function _lentesMudaVisao(visao) {
+            const operacao = visao !== 'resultados';
+            const op = document.getElementById('lentesViewOperacao');
+            const res = document.getElementById('lentesViewResultados');
+            if (op) op.style.display = operacao ? '' : 'none';
+            if (res) res.style.display = operacao ? 'none' : '';
+            document.querySelectorAll('[data-lentes-view]').forEach(b => {
+                const on = b.dataset.lentesView === (operacao ? 'operacao' : 'resultados');
+                b.classList.toggle('on', on);
+                b.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+        }
+
         function _pintaLentesPeriodo() {
             const el = document.getElementById('lentesPeriodo');
             if (!el) return;
@@ -6059,9 +6132,7 @@
 
         function _pintaLentes() {
             const ses = _lentesSessoes();
-            const leram = ses.filter(s => s.leu);
             const comLente = ses.filter(s => s.lente);
-            const carrinho = ses.filter(s => s.carrinho);
 
             const card = (rot, val, sub, cor) => '<div class="lentes-card">'
                 + '<div class="lentes-card-l">' + rot + '</div>'
@@ -6073,22 +6144,17 @@
             const _brlC = x => x.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR, maximumFractionDigits: 0 });
 
             document.getElementById('lentesCards').innerHTML =
-                  card('Usaram o fluxo', ses.length.toLocaleString('pt-BR'), 'sessões no período')
-                + card('Mandaram a receita', leram.length.toLocaleString('pt-BR'),
-                       pct(leram.length, ses.length) + ' de quem entrou', '#7c3aed')
-                + card('Receberam indicação', comLente.length.toLocaleString('pt-BR'),
-                       pct(comLente.length, ses.length) + ' de quem entrou')
-                + card('Puseram no carrinho', carrinho.length.toLocaleString('pt-BR'),
-                       pct(carrinho.length, comLente.length) + ' de quem viu a indicação')
+                  card('Entraram', ses.length.toLocaleString('pt-BR'), 'pessoas no fluxo')
+                + card('Viram uma lente', comLente.length.toLocaleString('pt-BR'),
+                       pct(comLente.length, ses.length) + ' avançaram até a indicação', '#7c3aed')
                 + card('Compraram', v.nossos.toLocaleString('pt-BR'),
-                       _brlC(v.receita) + ' — pedido pago com a armação e a lente', '#10b981')
-;
+                       _brlC(v.receita) + ' em pedidos confirmados', '#10b981');
 
             const ETAPAS = [
-                ['abriu', 'Abriu o fluxo'], ['visao', 'Escolheu o tipo de lente'],
-                ['tratamento', 'Escolheu o tratamento'], ['receita_metodo', 'Chegou na receita'],
-                ['receita_lida', 'Mandou a receita'], ['recomendou', 'Viu a lente indicada'],
-                ['carrinho', 'Pôs armação + lente no carrinho']
+                ['abriu', 'Entrou no fluxo'], ['visao', 'Escolheu a lente'],
+                ['receita_metodo', 'Informou como enviaria o grau'],
+                ['recomendou', 'Viu a indicação'],
+                ['carrinho', 'Adicionou armação + lente']
             ];
             const base = ses.filter(s => s.passos['abriu']).length || ses.length || 1;
             document.getElementById('lentesFunil').innerHTML = ETAPAS.map(e => {
@@ -6103,16 +6169,27 @@
             _pintaProducao();
             _pintaLentesCrm(ses);
 
+            const resumo = document.getElementById('lentesResumoAcao');
+            if (resumo) {
+                const prod = _lentesProducao();
+                const esperando = prod.filter(x => !x.etapaProd || x.etapaProd === 'a-fazer').length;
+                const atender = ses.filter(x => x.telefone && ['ajuda', 'carrinho'].includes(_lentesEtapa(x))).length;
+                const acao = (icone, cor, n, titulo, vazio) => '<div class="lentes-acao-card">'
+                    + '<span class="lentes-acao-icone" style="background:' + cor + '18;color:' + cor + '"><i class="ph-bold ' + icone + '"></i></span>'
+                    + '<div><b>' + (n ? n + ' ' + titulo : vazio) + '</b><small>'
+                    + (n ? 'Prioridade para hoje' : 'Nenhuma ação pendente') + '</small></div></div>';
+                resumo.innerHTML = acao('ph-package', '#f59e0b', esperando, esperando === 1 ? 'pedido para fabricar' : 'pedidos para fabricar', 'Fabricação em dia')
+                    + acao('ph-whatsapp-logo', '#25d366', atender, atender === 1 ? 'cliente para atender' : 'clientes para atender', 'Atendimento em dia');
+            }
+
             const notaEl = document.getElementById('lentesNota');
             if (notaEl) {
-                const semTel = ses.filter(x => !x.telefone).length;
                 const dt = v.desde ? new Date(v.desde).toLocaleDateString('pt-BR',
                             { day: '2-digit', month: '2-digit', year: '2-digit' }) : null;
                 notaEl.innerHTML = v.teto
-                    ? 'Os números acima são <b>só do fluxo de lentes</b> — casamos a armação e a lente do '
-                      + 'pedido com o que a pessoa montou aqui. Para comparar: desde que o fluxo entrou no ar'
-                      + (dt ? ' (' + dt + ')' : '') + ' a loja vendeu <b>' + v.teto + '</b> pares de lente no '
-                      + 'total, contando o balcão e o carrinho da própria loja.'
+                    ? '<b>Como contamos as compras:</b> os números mostram apenas pedidos que conseguimos ligar ao fluxo. '
+                      + 'Desde o início da medição' + (dt ? ' (' + dt + ')' : '') + ', a loja vendeu <b>' + v.teto
+                      + '</b> pares de lentes no total, incluindo vendas de balcão e do site.'
                     : 'Nenhuma lente vendida no período.';
             }
 
@@ -6413,34 +6490,25 @@
         /* A etapa e' a mais longe que a pessoa chegou, de tras pra frente: quem
            comprou nao pode aparecer tambem em "parou na receita". */
         const _LENTES_ETAPAS = [
-            { id: 'comprou',   rot: 'Comprou',            cor: '#10b981', icone: 'ph-check-circle',
-              dica: 'Pedido pago com a armação e a lente do fluxo.' },
-            { id: 'carrinho',  rot: 'Ficou no carrinho',  cor: '#22d3ee', icone: 'ph-shopping-cart',
-              dica: 'Pôs armação + lente no carrinho e não fechou.' },
-            { id: 'whatsapp',  rot: 'Pediu ajuda',        cor: '#25d366', icone: 'ph-whatsapp-logo',
-              dica: 'Foi pro WhatsApp da ótica — precisa de atendimento.' },
-            { id: 'so_armacao',rot: 'Só a armação',       cor: '#f59e0b', icone: 'ph-eyeglasses',
-              dica: 'Recusou a lente.' },
-            { id: 'indicacao', rot: 'Viu a indicação',    cor: '#7c3aed', icone: 'ph-sparkle',
-              dica: 'Recebeu a lente indicada e não seguiu.' },
-            { id: 'receita',   rot: 'Parou na receita',   cor: '#ef4444', icone: 'ph-file-text',
-              dica: 'Travou na hora de informar o grau.' },
-            { id: 'escolha',   rot: 'Escolheu o tipo',    cor: '#3b82f6', icone: 'ph-list-checks',
-              dica: 'Escolheu visão/tratamento e sumiu.' },
-            { id: 'abriu',     rot: 'Só abriu',           cor: '#94a3b8', icone: 'ph-cursor-click',
-              dica: 'Entrou e saiu no começo.' }
+            { id: 'ajuda', rot: 'Precisa de ajuda', cor: '#ef4444', icone: 'ph-lifebuoy',
+              dica: 'Pediu atendimento ou parou ao informar o grau.' },
+            { id: 'carrinho', rot: 'Carrinho', cor: '#f59e0b', icone: 'ph-shopping-cart',
+              dica: 'Adicionou armação e lente, mas a compra ainda não foi confirmada.' },
+            { id: 'escolhendo', rot: 'Ainda escolhendo', cor: '#7c3aed', icone: 'ph-sparkle',
+              dica: 'Começou o fluxo ou viu uma indicação e ainda não comprou.' },
+            { id: 'comprou', rot: 'Comprou', cor: '#10b981', icone: 'ph-check-circle',
+              dica: 'Pedido pago com armação e lente.' },
+            { id: 'so_armacao', rot: 'Só armação', cor: '#94a3b8', icone: 'ph-eyeglasses',
+              dica: 'Decidiu continuar sem lentes.' }
         ];
 
         function _lentesEtapa(v) {
             const p = v.passos;
             if (v.venda) return 'comprou';
             if (p['carrinho']) return 'carrinho';
-            if (p['sem_receita_whatsapp']) return 'whatsapp';
             if (p['so_armacao']) return 'so_armacao';
-            if (v.lente || p['recomendou']) return 'indicacao';
-            if (p['receita_metodo'] || p['receita_lida']) return 'receita';
-            if (p['visao'] || p['tratamento']) return 'escolha';
-            return 'abriu';
+            if (p['sem_receita_whatsapp'] || (p['receita_metodo'] && !p['recomendou'] && !v.lente)) return 'ajuda';
+            return 'escolhendo';
         }
 
         function _pintaLentesCrm(ses) {
@@ -6516,10 +6584,9 @@
             const p = v.produto ? ' (' + v.produto + ')' : '';
             if (etapa.id === 'comprou') return 'Oi! Seu óculos' + p + ' com as lentes já está com a gente. Qualquer dúvida é só chamar!';
             if (etapa.id === 'carrinho') return 'Oi! Vi que você montou seu óculos' + p + ' com as lentes. Precisa de ajuda pra finalizar?';
-            if (etapa.id === 'whatsapp') return 'Oi! Você pediu ajuda pra escolher a lente' + p + '. Posso te ajudar agora?';
+            if (etapa.id === 'ajuda') return 'Oi! Vi que você estava escolhendo suas lentes' + p + '. Posso te ajudar com o grau ou com a receita?';
             if (etapa.id === 'so_armacao') return 'Oi! Vi que você escolheu a armação' + p + '. Quer que eu te ajude com as lentes de grau?';
-            if (etapa.id === 'indicacao') return 'Oi! Separei a lente ideal pro seu grau' + p + '. Quer que eu finalize pra você?';
-            if (etapa.id === 'receita') return 'Oi! Vi que você estava escolhendo suas lentes' + p + '. Se quiser, me manda a foto da sua receita que eu resolvo pra você.';
+            if (etapa.id === 'escolhendo') return 'Oi! Vi que você começou a escolher as lentes' + p + '. Quer que eu te ajude a encontrar a melhor opção?';
             return 'Oi! Vi que você estava vendo lentes pra' + (v.produto ? ' ' + v.produto : ' um óculos') + '. Posso te ajudar?';
         }
 
