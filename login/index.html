@@ -9257,7 +9257,7 @@
             if (name === 'crm') {
                 try {
                     if (!crmLeadMapCache && typeof loadCRM === 'function') { crmLoaded = true; loadCRM().catch(() => { crmLoaded = false; }); }
-                    else if (typeof renderCrmBoard === 'function') renderCrmBoard();
+                    else if (typeof loadCRM === 'function') loadCRM(true).catch(() => { try { renderCrmBoard(); } catch (e) {} });
                     crmStartAutoRefresh();
                 } catch (e) {}
             } else {
@@ -10744,13 +10744,21 @@
         }
 
         /* ===== Dashboard de Efetividade dos Disparos (1ª sub-aba) ===== */
-        let _dispDashPeriod = 'all'; // 1 (hoje) | 7 | 30 | 90 | 'all' — abre em "Tudo"
+        let _dispDashPeriod = 'all'; // 1 (hoje) | 7 | 30 | 90 | 'all' | 'custom' — abre em "Tudo"
+        let _dispCustomFrom = null; // ms, começo do dia inicial (filtro Personalizado)
+        let _dispCustomTo = null;   // ms, fim do dia final (filtro Personalizado)
 
         function _dispPeriodCutoffMs(period) {
             if (period === 'all') return 0;
+            if (period === 'custom') return _dispCustomFrom || 0;
             const d = new Date(); d.setHours(0, 0, 0, 0);
             d.setDate(d.getDate() - (Number(period) - 1));
             return d.getTime();
+        }
+        // Fim da janela: só o Personalizado tem teto; os demais vão até "agora".
+        function _dispPeriodEndMs(period) {
+            if (period === 'custom' && _dispCustomTo) return _dispCustomTo;
+            return Infinity;
         }
 
         // Atribuição por TEMPLATE: cada flow/agendado tem seu(s) template(s); o template_name do
@@ -10763,6 +10771,7 @@
         async function computeDispEfetividade(period) {
             const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
             const cutoff = _dispPeriodCutoffMs(period);
+            const endMs = _dispPeriodEndMs(period); // Infinity, exceto no Personalizado
 
             if (!allOrdersCache || !allOrdersCache.length) {
                 try { await loadSharedData(); } catch (e) { console.warn('[dashboard] sharedData:', e); }
@@ -10794,6 +10803,7 @@
                     .select('lead_phone, sent_at, status, template_name, source, source_id')
                     .in('email', plScopeEmails());
                 if (cutoff) _q = _q.gte('sent_at', new Date(cutoff - 30 * 86400000).toISOString());
+                if (isFinite(endMs)) _q = _q.lte('sent_at', new Date(endMs).toISOString());
                 const { data } = await _q.limit(20000);
                 sendRows = data || [];
             } catch (e) { console.warn('[dashboard] send_log:', e); }
@@ -10803,13 +10813,14 @@
             // KPIs + serie diaria (janela do grafico: periodo, ou ultimos 90d quando "tudo")
             const NOW = Date.now();
             const chartCutoff = (cutoff === 0) ? (NOW - 90 * 86400000) : cutoff;
+            const chartEnd = isFinite(endMs) ? endMs : NOW; // teto do gráfico (só no Personalizado difere de "agora")
             const dayKey = ms => new Date(ms).toISOString().slice(0, 10);
             const disparosPorDia = {}, recuperadoPorDia = {}, faturamentoPorDia = {};
             let kpiEnviados = 0, kpiFalhas = 0, kpi24h = 0, kpiEntregues = 0, kpiLidas = 0;
             sendRows.forEach(r => {
                 if (!r.sent_at) return;
                 const ms = new Date(r.sent_at).getTime(); if (!ms) return;
-                const inPeriod = (cutoff === 0 || ms >= cutoff);
+                const inPeriod = (cutoff === 0 || ms >= cutoff) && ms <= endMs;
                 if (r.status === 'failed') { if (inPeriod) kpiFalhas++; return; }
                 if (inPeriod) {
                     kpiEnviados++;
@@ -10838,7 +10849,7 @@
                     disparosTotal++; alcTotal.add(ph);
                     disparosPorCamp[cid] = (disparosPorCamp[cid] || 0) + 1;
                     (alcancadosPorCamp[cid] = alcancadosPorCamp[cid] || new Set()).add(ph);
-                    if (ms >= chartCutoff) disparosPorDia[dayKey(ms)] = (disparosPorDia[dayKey(ms)] || 0) + 1;
+                    if (ms >= chartCutoff && ms <= chartEnd) disparosPorDia[dayKey(ms)] = (disparosPorDia[dayKey(ms)] || 0) + 1;
                 }
             });
 
@@ -10852,16 +10863,17 @@
                 if (!ts) return;
                 const oms = new Date(ts).getTime(); if (!oms) return;
                 if (cutoff !== 0 && oms < cutoff) return;
+                if (isFinite(endMs) && oms > endMs) return;
                 const _val = parseFloat(o[fTotal]) || 0;
                 // Faturamento da loja no dia (TODOS os pedidos pagos) — serve de pano de fundo
                 // pra comparar com o recuperado: dia de mais recuperacao foi dia de mais venda?
-                if (_val > 0 && oms >= chartCutoff) faturamentoPorDia[dayKey(oms)] = (faturamentoPorDia[dayKey(oms)] || 0) + _val;
+                if (_val > 0 && oms >= chartCutoff && oms <= chartEnd) faturamentoPorDia[dayKey(oms)] = (faturamentoPorDia[dayKey(oms)] || 0) + _val;
                 const keys = orderPhoneKeys(o);
                 const recovered = keys.some(ph => (dispByPhone[ph] || []).some(ms => ms <= oms && (oms - ms) <= WINDOW_MS));
                 if (!recovered) return;
                 const val = _val;
                 total.valor += val; total.pedidos++;
-                if (oms >= chartCutoff) recuperadoPorDia[dayKey(oms)] = (recuperadoPorDia[dayKey(oms)] || 0) + val;
+                if (oms >= chartCutoff && oms <= chartEnd) recuperadoPorDia[dayKey(oms)] = (recuperadoPorDia[dayKey(oms)] || 0) + val;
                 let best = null;
                 keys.forEach(ph => (eventsByPhone[ph] || []).forEach(e => {
                     if (e.ms <= oms && (oms - e.ms) <= WINDOW_MS) { if (!best || e.ms > best.ms) best = e; }
@@ -10873,7 +10885,7 @@
 
             const serieDiaria = [];
             { const start = new Date(chartCutoff); start.setHours(0, 0, 0, 0);
-              const end = new Date(NOW); end.setHours(0, 0, 0, 0);
+              const end = new Date(chartEnd); end.setHours(0, 0, 0, 0);
               for (let t = start.getTime(); t <= end.getTime(); t += 86400000) {
                 const k = new Date(t).toISOString().slice(0, 10);
                 serieDiaria.push({ dia: k, disparos: disparosPorDia[k] || 0, recuperado: recuperadoPorDia[k] || 0, faturamento: faturamentoPorDia[k] || 0 });
@@ -10894,7 +10906,7 @@
                 const respSet = new Set();
                 Object.keys(dispByPhone).forEach(ph => {
                     const ins = inByPhone[ph]; if (!ins) return;
-                    const ok = dispByPhone[ph].some(dms => (cutoff === 0 || dms >= cutoff) && ins.some(ims => ims >= dms && (ims - dms) <= WINDOW_MS));
+                    const ok = dispByPhone[ph].some(dms => (cutoff === 0 || dms >= cutoff) && dms <= endMs && ins.some(ims => ims >= dms && (ims - dms) <= WINDOW_MS));
                     if (ok) respSet.add(ph);
                 });
                 kpiRespondidas = respSet.size;
@@ -10919,7 +10931,10 @@
         function _esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
         function dispDashboardHTML(d) {
-            const perLabel = { 1: 'hoje', 7: 'últimos 7 dias', 30: 'últimos 30 dias', 90: 'últimos 90 dias', all: 'todo o período' }[d.period];
+            const _fmtDia = ms => { const dt = new Date(ms); return String(dt.getDate()).padStart(2, '0') + '/' + String(dt.getMonth() + 1).padStart(2, '0'); };
+            const perLabel = d.period === 'custom'
+                ? ((_dispCustomFrom && _dispCustomTo) ? (_fmtDia(_dispCustomFrom) + ' a ' + _fmtDia(_dispCustomTo)) : 'período personalizado')
+                : { 1: 'hoje', 7: 'últimos 7 dias', 30: 'últimos 30 dias', 90: 'últimos 90 dias', all: 'todo o período' }[d.period];
             const pill = (p, txt) => '<button class="dd-seg' + (String(d.period) === String(p) ? ' on' : '') + '" aria-pressed="' + (String(d.period) === String(p)) + '" onclick="dispDashSetPeriod(\'' + p + '\')">' + txt + '</button>';
             const taxa = d.disparosTotal ? (d.total.pedidos / d.disparosTotal * 100) : 0;
 
@@ -10968,8 +10983,14 @@
                 + '<div class="dd">'
                 + '  <div class="dd-top">'
                 + '    <div class="dd-eyebrow">Efetividade dos disparos</div>'
-                + '    <div class="dd-segs" role="group" aria-label="Período">' + pill(1, 'Hoje') + pill(7, '7 dias') + pill(30, '30 dias') + pill(90, '90 dias') + pill('all', 'Tudo') + '</div>'
+                + '    <div class="dd-segs" role="group" aria-label="Período">' + pill(1, 'Hoje') + pill(7, '7 dias') + pill(30, '30 dias') + pill(90, '90 dias') + pill('all', 'Tudo') + pill('custom', 'Personalizado') + '</div>'
                 + '  </div>'
+                + (d.period === 'custom' ? (''
+                    + '  <div class="dd-custom">'
+                    + '    <label>De <input type="date" id="dispCustomFrom" value="' + _dispIsoDay(_dispCustomFrom) + '" max="' + _dispIsoDay(Date.now()) + '"></label>'
+                    + '    <label>Até <input type="date" id="dispCustomTo" value="' + _dispIsoDay(_dispCustomTo) + '" max="' + _dispIsoDay(Date.now()) + '"></label>'
+                    + '    <button class="dd-custom-go" onclick="dispDashApplyCustom()">Aplicar</button>'
+                    + '  </div>') : '')
                 + '  <div class="dd-hero">'
                 + '    <div class="dd-hero-lead">'
                 + '      <div class="dd-hero-eyebrow"><i class="ph-bold ph-arrow-u-down-left" aria-hidden="true"></i> Recuperado · ' + perLabel + '</div>'
@@ -11001,7 +11022,39 @@
                 + '</div>';
         }
 
-        function dispDashSetPeriod(p) { _dispDashPeriod = (p === 'all') ? 'all' : Number(p); initDispDashboard(); if (typeof dispRenderRecoveredList === 'function') dispRenderRecoveredList().catch(() => {}); }
+        // yyyy-mm-dd no fuso local (pra popular <input type=date>)
+        function _dispIsoDay(ms) {
+            const dt = ms ? new Date(ms) : new Date();
+            return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+        }
+        function dispDashSetPeriod(p) {
+            if (p === 'custom') {
+                _dispDashPeriod = 'custom';
+                // Abre com um range padrão (últimos 30 dias) se ainda não escolheu datas.
+                if (!_dispCustomFrom || !_dispCustomTo) {
+                    const hoje = new Date(); hoje.setHours(23, 59, 59, 999);
+                    const ini = new Date(); ini.setHours(0, 0, 0, 0); ini.setDate(ini.getDate() - 29);
+                    _dispCustomFrom = ini.getTime(); _dispCustomTo = hoje.getTime();
+                }
+            } else {
+                _dispDashPeriod = (p === 'all') ? 'all' : Number(p);
+            }
+            initDispDashboard();
+            if (typeof dispRenderRecoveredList === 'function') dispRenderRecoveredList().catch(() => {});
+        }
+        // Lê os dois <input type=date> e aplica o range (início 00:00 → fim 23:59:59).
+        function dispDashApplyCustom() {
+            const fEl = document.getElementById('dispCustomFrom');
+            const tEl = document.getElementById('dispCustomTo');
+            if (!fEl || !tEl || !fEl.value || !tEl.value) { crmToast && crmToast('Escolha as duas datas.', true); return; }
+            let ini = new Date(fEl.value + 'T00:00:00');
+            let fim = new Date(tEl.value + 'T23:59:59.999');
+            if (ini.getTime() > fim.getTime()) { const _t = ini; ini = fim; ini.setHours(0, 0, 0, 0); fim = _t; fim.setHours(23, 59, 59, 999); }
+            _dispCustomFrom = ini.getTime(); _dispCustomTo = fim.getTime();
+            _dispDashPeriod = 'custom';
+            initDispDashboard();
+            if (typeof dispRenderRecoveredList === 'function') dispRenderRecoveredList().catch(() => {});
+        }
 
         function _dispDashInjectCSS() {
             if (document.getElementById('dispDashStyle')) return;
@@ -11018,6 +11071,11 @@
                 + '.dd-seg{border:0;background:transparent;color:var(--text-muted);font-size:12px;font-weight:700;padding:6px 14px;border-radius:999px;cursor:pointer;transition:background .18s,color .18s;}'
                 + '.dd-seg:hover{color:var(--text-main);}'
                 + '.dd-seg.on{background:var(--primary);color:#fff;box-shadow:0 2px 8px var(--primary-glow,rgba(124,58,237,.3));}'
+                + '.dd-custom{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin:12px 0 4px;}'
+                + '.dd-custom label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;}'
+                + '.dd-custom input[type=date]{font:inherit;font-size:13px;color:var(--text-main);background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:9px;padding:7px 10px;}'
+                + '.dd-custom-go{border:0;background:var(--primary);color:#fff;font-size:12.5px;font-weight:700;padding:9px 18px;border-radius:9px;cursor:pointer;}'
+                + '.dd-custom-go:hover{filter:brightness(1.05);}'
                 + '.dd-seg:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}'
                 + '.dd-hero{display:flex;justify-content:space-between;align-items:center;gap:28px;flex-wrap:wrap;background:linear-gradient(135deg,color-mix(in srgb,#10b981 8%,var(--card-bg)),var(--card-bg) 55%);border:1px solid var(--border);border-radius:20px;padding:24px 28px;position:relative;overflow:hidden;margin-bottom:22px;}'
                 + '.dd-hero::after{content:"";position:absolute;right:-70px;top:-70px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,.13),transparent 70%);pointer-events:none;}'
@@ -11143,7 +11201,7 @@
             _dispDashInjectCSS();
             let view = document.getElementById('dispDashView');
             // Cache de frescor: reabrir o painel em <90s (mesmo período) não recomputa a efetividade.
-            if (!force && view && view.innerHTML && _dispDashCachePeriod === _dispDashPeriod && (Date.now() - _dispDashAt < 90000)) {
+            if (!force && view && view.innerHTML && _dispDashCachePeriod === _dispDashPeriod && _dispDashPeriod !== 'custom' && (Date.now() - _dispDashAt < 90000)) {
                 return;
             }
             if (!view) { view = document.createElement('div'); view.id = 'dispDashView'; pane.insertBefore(view, pane.firstChild); }
@@ -11208,7 +11266,8 @@
             const fNome = activeUser.campo_nome_pedido || null;
             const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
             const WINDOW_MS = 30 * 24 * 60 * 60 * 1000; // janela de ATRIBUIÇÃO (gap disparo→compra), fixa 30d
-            const cutoffMs = _dispPeriodCutoffMs(_dispDashPeriod); // recorte de EXIBIÇÃO segue o filtro de período (Hoje/7/30/90/Tudo)
+            const cutoffMs = _dispPeriodCutoffMs(_dispDashPeriod); // recorte de EXIBIÇÃO segue o filtro de período (Hoje/7/30/90/Tudo/Personalizado)
+            const endMsList = _dispPeriodEndMs(_dispDashPeriod);
 
             const rows = [];
             let totalRev = 0;
@@ -11218,6 +11277,7 @@
                 const orderMs = new Date(orderTs).getTime();
                 if (!orderMs) return;
                 if (cutoffMs !== 0 && orderMs < cutoffMs) return; // respeita o filtro de período (era fixo em 30 dias)
+                if (isFinite(endMsList) && orderMs > endMsList) return; // teto do Personalizado
                 // melhor disparo = o mais recente ANTES da compra, dentro de 30 dias
                 let best = null;
                 orderPhoneKeys(o).forEach(ph => {
@@ -11899,8 +11959,17 @@
                 return;
             }
 
+            let markedMessage1 = 0;
+            try {
+                markedMessage1 = await markCrmMessage1(sendTargets.map(lead => lead.crmPhone || lead.phone));
+            } catch (e) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Disparar agora';
+                crmToast('Não consegui reservar os clientes em "Mensagem 1". O disparo foi cancelado para evitar repetição.', true);
+                return;
+            }
+
             let sent = 0, failed = 0;
-            const sentPhones = [];
             const total = sendTargets.length;
             const update = () => {
                 document.getElementById('waBulkSent').textContent = sent;
@@ -11951,7 +12020,6 @@
                     const result = await res.json().catch(() => ({}));
                     if (res.ok && result.ok) {
                         sent++;
-                        if (lead.crmPhone || lead.phone) sentPhones.push(lead.crmPhone || normalize(lead.phone));
                         chatLogOutbound(lead.phone, {
                             template_name: _waBulkTemplate || _waConfigCache.default_template,
                             body: chatRenderTplBody(bodyText, params),
@@ -11977,16 +12045,9 @@
             }
             await Promise.all(workers);
 
-            // Mover leads que receberam pra etapa escolhida no CRM.
-            // Padrão: quem recebe disparo vira "Em contato" (a menos que outra etapa seja escolhida).
-            const moveTo = ((document.getElementById('waBulkMoveTo') || {}).value) || 'msg-1';
-            let movedMsg = '';
-            if (moveTo && sentPhones.length && typeof setCrmLeadOverride === 'function') {
-                const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
-                const stageTitle = ((cfg.columns || []).find(c => c.key === moveTo) || {}).title || 'a etapa escolhida';
-                sentPhones.forEach(ph => { if (ph) setCrmLeadOverride(ph, moveTo); });
-                movedMsg = ' · ' + sentPhones.length + ' lead' + (sentPhones.length > 1 ? 's' : '') + ' movido' + (sentPhones.length > 1 ? 's' : '') + ' pra "' + stageTitle + '"';
-            }
+            const movedMsg = markedMessage1
+                ? ' · ' + markedMessage1 + ' lead' + (markedMessage1 > 1 ? 's' : '') + ' reservado' + (markedMessage1 > 1 ? 's' : '') + ' em "Mensagem 1"'
+                : '';
 
             btn.innerHTML = '<i class="ph-bold ph-check-circle"></i> Concluído (' + sent + ' enviados)';
             const fbEl = document.getElementById('waBulkProgress');
@@ -17685,6 +17746,26 @@
                         if (error) console.warn('[CRM] override delete falhou:', error.message);
                     });
             }
+        }
+
+        async function markCrmMessage1(phones) {
+            const keys = [...new Set((phones || []).map(normalize).filter(Boolean))];
+            if (!keys.length || !supabaseClient || !activeUser) return 0;
+            const ov = getCrmOverrides();
+            keys.forEach(phone => { ov[phone] = 'msg-1'; });
+            _crmOverridesMem = ov;
+            try { localStorage.setItem(crmOverridesKey(), JSON.stringify(ov)); } catch(e) {}
+            const updatedAt = new Date().toISOString();
+            const rows = keys.map(phone => ({
+                lojista_email: crmScopeEmail(),
+                telefone: phone,
+                column_key: 'msg-1',
+                updated_at: updatedAt
+            }));
+            const { error } = await supabaseClient.from('crm_lead_overrides')
+                .upsert(rows, { onConflict: 'lojista_email,telefone' });
+            if (error) throw error;
+            return keys.length;
         }
 
         // ============================================================
