@@ -3907,20 +3907,9 @@
             <div class="tab-pane" id="tab-lentes" role="tabpanel" aria-labelledby="tab-btn-lentes">
                 <div class="lentes-page-head">
                     <div>
-                        <h2>Lentes</h2>
-                        <p>Acompanhe os pedidos e saiba quem precisa de atendimento.</p>
+                        <h2>Central de lentes</h2>
+                        <p>Comece pelo que exige ação e acompanhe cada pedido até a entrega.</p>
                     </div>
-                    <div class="disp-period" id="lentesPeriodo"></div>
-                </div>
-
-                <div class="lentes-fluxo-guia" aria-label="Etapas da compra de lentes">
-                    <div><span>1</span><b>Cliente escolhe</b><small>tipo e tratamento</small></div>
-                    <i class="ph-bold ph-arrow-right"></i>
-                    <div><span>2</span><b>Informa o grau</b><small>receita ou digitação</small></div>
-                    <i class="ph-bold ph-arrow-right"></i>
-                    <div><span>3</span><b>Recebe a indicação</b><small>lente compatível</small></div>
-                    <i class="ph-bold ph-arrow-right"></i>
-                    <div><span>4</span><b>Compra</b><small>armação + lente</small></div>
                 </div>
 
                 <div class="lentes-view-tabs" role="tablist" aria-label="Visão da área de lentes">
@@ -3935,24 +3924,50 @@
                 <div id="lentesViewOperacao">
                     <div id="lentesResumoAcao" class="lentes-resumo-acao"></div>
 
-                <div class="card lentes-secao" style="margin-bottom:18px;">
-                    <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
-                        <h3><i class="ph-bold ph-package" style="color:#f59e0b;"></i> Pedidos de lentes</h3>
-                        <p style="margin:0;color:var(--text-muted);font-size:13px;" id="lentesProdSub">—</p>
-                    </div>
-                    <p class="lentes-secao-ajuda">Movimente cada pedido conforme ele avança na fabricação. A receita e o grau ficam dentro da ficha.</p>
-                    <div id="lentesProd" class="lentes-board"></div>
-                </div>
+                    <div class="lentes-central-grid">
+                        <section class="card lentes-secao lentes-painel-producao">
+                            <div class="lentes-secao-topo">
+                                <div>
+                                    <span class="lentes-eyebrow">PRODUÇÃO</span>
+                                    <h3>Fila de pedidos</h3>
+                                </div>
+                                <p id="lentesProdSub">—</p>
+                            </div>
+                            <div id="lentesProd"></div>
+                        </section>
 
-                <div class="card lentes-secao" style="margin-top:18px;">
-                    <h3><i class="ph-bold ph-chats-circle" style="color:#25d366;"></i> Clientes para atender</h3>
-                    <p class="lentes-secao-ajuda">Cada pessoa aparece uma única vez. Comece por “Precisa de ajuda” e “Carrinho”.</p>
-                    <div id="lentesSemTel" class="lentes-semtel" style="display:none;"></div>
-                    <div id="lentesCrm" class="lentes-board"></div>
-                </div>
+                        <section class="card lentes-secao lentes-painel-clientes">
+                            <div class="lentes-secao-topo">
+                                <div>
+                                    <span class="lentes-eyebrow">ATENDIMENTO</span>
+                                    <h3>Clientes</h3>
+                                </div>
+                            </div>
+                            <p class="lentes-secao-ajuda">Veja primeiro quem pediu ajuda ou abandonou o carrinho.</p>
+                            <div id="lentesSemTel" class="lentes-semtel" style="display:none;"></div>
+                            <div id="lentesCrm"></div>
+                        </section>
+                    </div>
                 </div>
 
                 <div id="lentesViewResultados" style="display:none;">
+                    <div class="lentes-resultados-topo">
+                        <div>
+                            <span class="lentes-eyebrow">DESEMPENHO</span>
+                            <h3>Jornada de compra</h3>
+                        </div>
+                        <div class="disp-period" id="lentesPeriodo"></div>
+                    </div>
+
+                    <div class="lentes-fluxo-guia" aria-label="Etapas da compra de lentes">
+                        <div><span>1</span><b>Cliente escolhe</b><small>tipo e tratamento</small></div>
+                        <i class="ph-bold ph-arrow-right"></i>
+                        <div><span>2</span><b>Informa o grau</b><small>receita ou digitação</small></div>
+                        <i class="ph-bold ph-arrow-right"></i>
+                        <div><span>3</span><b>Recebe a indicação</b><small>lente compatível</small></div>
+                        <i class="ph-bold ph-arrow-right"></i>
+                        <div><span>4</span><b>Compra</b><small>armação + lente</small></div>
+                    </div>
                     <div id="lentesCards" class="lentes-cards"></div>
                     <div id="lentesNota" class="lentes-nota"></div>
 
@@ -4162,13 +4177,52 @@
                     .lentes-view-tabs { display:inline-flex;padding:4px;background:rgba(148,163,184,.10);border:1px solid var(--border-color);border-radius:10px;margin-bottom:16px;gap:3px; }
                     .lentes-view-tabs button { display:flex;align-items:center;gap:7px;border:0;background:transparent;color:var(--text-muted);padding:8px 14px;border-radius:7px;font:inherit;font-size:12.5px;font-weight:650;cursor:pointer; }
                     .lentes-view-tabs button.on { background:var(--bg-card);color:var(--text-main);box-shadow:0 1px 4px rgba(0,0,0,.12); }
-                    .lentes-resumo-acao { display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:12px;margin-bottom:14px; }
-                    .lentes-acao-card { display:flex;align-items:center;gap:12px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:13px 15px; }
+                    .lentes-resumo-acao { display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;margin-bottom:16px; }
+                    .lentes-acao-card { display:flex;align-items:center;gap:11px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 14px;min-width:0; }
                     .lentes-acao-icone { width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font-size:18px;flex:0 0 auto; }
                     .lentes-acao-card b { display:block;font-size:14px;color:var(--text-main); }
                     .lentes-acao-card small { display:block;color:var(--text-muted);font-size:11.5px;margin-top:2px; }
                     .lentes-secao h3 { margin:0;font-size:16px;display:flex;align-items:center;gap:7px; }
                     .lentes-secao-ajuda { margin:5px 0 14px;color:var(--text-muted);font-size:12.5px;line-height:1.45; }
+                    .lentes-central-grid { display:grid;grid-template-columns:minmax(0,1.65fr) minmax(320px,.85fr);gap:16px;align-items:start; }
+                    .lentes-secao-topo,.lentes-resultados-topo { display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:14px; }
+                    .lentes-secao-topo p { margin:0;color:var(--text-muted);font-size:12.5px;text-align:right; }
+                    .lentes-eyebrow { display:block;font-size:10px;font-weight:750;letter-spacing:.09em;color:#8b5cf6;margin-bottom:4px; }
+                    .lentes-resultados-topo { margin:2px 0 14px; }
+                    .lentes-resultados-topo h3 { margin:0;font-size:18px; }
+                    .lentes-prod-etapas { display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:15px; }
+                    .lentes-prod-etapa { position:relative;border-radius:9px;padding:9px 10px;background:rgba(148,163,184,.08);border:1px solid var(--border-color);overflow:hidden; }
+                    .lentes-prod-etapa::before { content:'';position:absolute;left:0;right:0;top:0;height:2px;background:var(--etapa-cor); }
+                    .lentes-prod-etapa b { display:block;color:var(--text-main);font-size:17px;line-height:1.1; }
+                    .lentes-prod-etapa span { display:block;color:var(--text-muted);font-size:10.5px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+                    .lentes-fila { display:flex;flex-direction:column;border-top:1px solid var(--border-color); }
+                    .lentes-pedido-linha { display:grid;grid-template-columns:minmax(120px,.72fr) minmax(190px,1.35fr) minmax(150px,1fr) auto;gap:14px;align-items:center;padding:13px 2px;border-bottom:1px solid var(--border-color); }
+                    .lentes-pedido-id { display:flex;align-items:center;gap:8px;flex-wrap:wrap; }
+                    .lentes-pedido-id strong { color:var(--text-main);font-size:14px; }
+                    .lentes-status { display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border-radius:999px;font-size:10.5px;font-weight:700;background:color-mix(in srgb,var(--status-cor) 13%,transparent);color:var(--status-cor);white-space:nowrap; }
+                    .lentes-pedido-tempo { display:block;font-size:10.5px;color:var(--text-muted);margin-top:5px; }
+                    .lentes-pedido-tempo.atrasado { color:#ef4444;font-weight:650; }
+                    .lentes-pedido-cliente b,.lentes-pedido-lente b { display:block;font-size:12.5px;color:var(--text-main);line-height:1.35; }
+                    .lentes-pedido-cliente span,.lentes-pedido-lente span { display:block;font-size:11px;color:var(--text-muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+                    .lentes-pedido-acoes { display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap; }
+                    .lentes-pedido-acoes .lentes-avanca { width:auto;white-space:nowrap;padding:7px 10px; }
+                    .lentes-lista-rodape { display:flex;justify-content:center;padding-top:12px; }
+                    .lentes-link-btn { border:0;background:transparent;color:var(--text-muted);font:inherit;font-size:11.5px;cursor:pointer;padding:5px 8px; }
+                    .lentes-link-btn:hover { color:var(--text-main); }
+                    .lentes-lead-filtros { display:flex;gap:5px;padding-bottom:12px;overflow-x:auto; }
+                    .lentes-lead-filtros button { border:1px solid var(--border-color);background:transparent;color:var(--text-muted);border-radius:999px;padding:6px 9px;font:inherit;font-size:10.5px;font-weight:650;cursor:pointer;white-space:nowrap; }
+                    .lentes-lead-filtros button.on { color:var(--text-main);background:rgba(124,58,237,.11);border-color:rgba(124,58,237,.3); }
+                    .lentes-lead-lista { display:flex;flex-direction:column;gap:8px; }
+                    .lentes-lead-linha { border:1px solid var(--border-color);border-left:3px solid var(--lead-cor);border-radius:10px;padding:11px 12px;background:rgba(148,163,184,.035); }
+                    .lentes-lead-topo { display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px; }
+                    .lentes-lead-topo b { font-size:12.5px;color:var(--text-main); }
+                    .lentes-lead-topo time { font-size:10.5px;color:var(--text-muted);white-space:nowrap; }
+                    .lentes-lead-produto { font-size:11.5px;color:var(--text-main);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+                    .lentes-lead-detalhe { font-size:10.5px;color:var(--text-muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+                    .lentes-lead-acoes { display:flex;gap:6px;align-items:center;margin-top:9px; }
+                    .lentes-lead-acoes .lentes-wpp { flex:1;margin:0; }
+                    .lentes-vazio-foco { text-align:center;padding:28px 12px;color:var(--text-muted);font-size:12px; }
+                    .lentes-vazio-foco i { display:block;font-size:25px;color:#10b981;margin-bottom:7px; }
                     .lentes-detalhes { padding:0!important;overflow:hidden; }
                     .lentes-detalhes summary { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;cursor:pointer;list-style:none; }
                     .lentes-detalhes summary::-webkit-details-marker { display:none; }
@@ -4232,14 +4286,23 @@
                     .lentes-tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; background:var(--border-color); color:var(--text-muted); white-space:nowrap; }
                     .lentes-tag.ok { background:rgba(16,185,129,.15); color:#10b981; }
                     .lentes-tag.no { background:rgba(239,68,68,.13); color:#ef4444; }
+                    @media (max-width:1100px) {
+                        .lentes-central-grid { grid-template-columns:1fr; }
+                        .lentes-resumo-acao { grid-template-columns:repeat(2,minmax(150px,1fr)); }
+                    }
                     @media (max-width:720px) {
                         .lentes-page-head { align-items:flex-start; }
                         .lentes-page-head .disp-period { width:100%;overflow-x:auto; }
                         .lentes-fluxo-guia { padding:11px 12px; }
                         .lentes-fluxo-guia > div { min-width:120px; }
-                        .lentes-resumo-acao { grid-template-columns:1fr; }
                         .lentes-view-tabs { width:100%; }
                         .lentes-view-tabs button { flex:1;justify-content:center; }
+                        .lentes-prod-etapas { grid-template-columns:repeat(2,1fr); }
+                        .lentes-pedido-linha { grid-template-columns:1fr;gap:8px;padding:14px 2px; }
+                        .lentes-pedido-acoes { justify-content:flex-start; }
+                        .lentes-pedido-acoes .lentes-avanca { flex:1; }
+                        .lentes-resultados-topo { align-items:flex-start;flex-direction:column; }
+                        .lentes-resultados-topo .disp-period { width:100%;overflow-x:auto; }
                     }
                     .disp-empty { text-align: center; color: var(--text-muted); padding: 40px 20px; font-size: 13px; }
 
@@ -6172,14 +6235,16 @@
             const resumo = document.getElementById('lentesResumoAcao');
             if (resumo) {
                 const prod = _lentesProducao();
-                const esperando = prod.filter(x => !x.etapaProd || x.etapaProd === 'a-fazer').length;
+                const nProd = id => prod.filter(x => (x.etapaProd || 'a-fazer') === id).length;
                 const atender = ses.filter(x => x.telefone && ['ajuda', 'carrinho'].includes(_lentesEtapa(x))).length;
                 const acao = (icone, cor, n, titulo, vazio) => '<div class="lentes-acao-card">'
                     + '<span class="lentes-acao-icone" style="background:' + cor + '18;color:' + cor + '"><i class="ph-bold ' + icone + '"></i></span>'
                     + '<div><b>' + (n ? n + ' ' + titulo : vazio) + '</b><small>'
-                    + (n ? 'Prioridade para hoje' : 'Nenhuma ação pendente') + '</small></div></div>';
-                resumo.innerHTML = acao('ph-package', '#f59e0b', esperando, esperando === 1 ? 'pedido para fabricar' : 'pedidos para fabricar', 'Fabricação em dia')
-                    + acao('ph-whatsapp-logo', '#25d366', atender, atender === 1 ? 'cliente para atender' : 'clientes para atender', 'Atendimento em dia');
+                    + (n ? 'aguardando ação' : 'nenhuma pendência') + '</small></div></div>';
+                resumo.innerHTML = acao('ph-package', '#f59e0b', nProd('a-fazer'), nProd('a-fazer') === 1 ? 'para fabricar' : 'para fabricar', 'Nada para fabricar')
+                    + acao('ph-gear', '#3b82f6', nProd('fabricando'), 'em fabricação', 'Nada em fabricação')
+                    + acao('ph-check-square', '#7c3aed', nProd('pronto'), nProd('pronto') === 1 ? 'pronto para entregar' : 'prontos para entregar', 'Nenhum pronto')
+                    + acao('ph-whatsapp-logo', '#25d366', atender, atender === 1 ? 'cliente prioritário' : 'clientes prioritários', 'Atendimento em dia');
             }
 
             const notaEl = document.getElementById('lentesNota');
@@ -6369,6 +6434,8 @@
                 (v.etapaProd !== 'entregue' || v.venda.ms >= limite));
         }
 
+        let _lentesMostraEntregues = false;
+
         function _pintaProducao() {
             const el = document.getElementById('lentesProd');
             if (!el) return;
@@ -6376,62 +6443,55 @@
             const sub = document.getElementById('lentesProdSub');
             const aFazer = itens.filter(v => !v.etapaProd || v.etapaProd === 'a-fazer').length;
             if (sub) sub.innerHTML = aFazer
-                ? '<b>' + aFazer + '</b> ' + (aFazer === 1 ? 'pedido esperando' : 'pedidos esperando')
-                  + ' pra mandar fabricar.'
-                : 'Nenhum pedido esperando — tudo encaminhado.';
+                ? '<b>' + aFazer + '</b> ' + (aFazer === 1 ? 'pedido precisa começar' : 'pedidos precisam começar')
+                : 'Todos os pedidos já foram encaminhados.';
 
-            const balde = {};
-            itens.forEach(v => {
-                const e = v.etapaProd || 'a-fazer';
-                (balde[e] = balde[e] || []).push(v);
-            });
-            el.innerHTML = _LENTES_PROD.map(e => {
-                const lista = (balde[e.id] || []).sort((a, b) => a.venda.ms - b.venda.ms);
-                return '<div class="crm-col" style="--col-accent:' + e.cor + '">'
-                    + '<div class="crm-col-header">'
-                    +   '<span class="crm-col-title"><i class="ph-bold ' + e.icone + '"></i>' + e.rot + '</span>'
-                    +   '<span class="crm-col-count">' + lista.length + '</span>'
-                    + '</div><div class="crm-col-body">'
-                    + (lista.length ? lista.map(v => _lentesFicha(v, e)).join('')
-                                    : '<div class="lentes-vazio">nada aqui</div>')
-                    + '</div></div>';
-            }).join('');
+            const qtd = id => itens.filter(v => (v.etapaProd || 'a-fazer') === id).length;
+            const etapas = '<div class="lentes-prod-etapas">' + _LENTES_PROD.map(e =>
+                '<div class="lentes-prod-etapa" style="--etapa-cor:' + e.cor + '"><b>' + qtd(e.id)
+                + '</b><span>' + e.rot + '</span></div>').join('') + '</div>';
+            const ordem = { 'a-fazer': 0, fabricando: 1, pronto: 2, entregue: 3 };
+            const visiveis = itens.filter(v => _lentesMostraEntregues || v.etapaProd !== 'entregue')
+                .sort((a, b) => (ordem[a.etapaProd || 'a-fazer'] - ordem[b.etapaProd || 'a-fazer']) || a.venda.ms - b.venda.ms);
+            const entregues = qtd('entregue');
+            el.innerHTML = etapas
+                + '<div class="lentes-fila">' + (visiveis.length
+                    ? visiveis.map(_lentesLinhaProducao).join('')
+                    : '<div class="lentes-vazio-foco"><i class="ph-bold ph-check-circle"></i>Nenhum pedido pendente.</div>')
+                + '</div>'
+                + (entregues ? '<div class="lentes-lista-rodape"><button type="button" class="lentes-link-btn" data-lentes-entregues>'
+                    + (_lentesMostraEntregues ? 'Ocultar entregues' : 'Ver ' + entregues + (entregues === 1 ? ' entregue' : ' entregues'))
+                    + '</button></div>' : '');
 
             el.querySelectorAll('[data-arq]').forEach(b => b.onclick = () => _lentesAbreReceita(b));
             el.querySelectorAll('[data-prod-sid]').forEach(b => b.onclick = () =>
                 _lentesMoveProducao(b, b.dataset.prodSid, b.dataset.prodEtapa));
+            const verEntregues = el.querySelector('[data-lentes-entregues]');
+            if (verEntregues) verEntregues.onclick = () => { _lentesMostraEntregues = !_lentesMostraEntregues; _pintaProducao(); };
         }
 
-        /* Ficha de producao: o que a otica precisa pra fazer a lente, na ordem
-           em que ela olha - quem e', o que e', com que grau. */
-        function _lentesFicha(v, etapa) {
+        function _lentesLinhaProducao(v) {
+            const etapa = _LENTES_PROD.find(e => e.id === (v.etapaProd || 'a-fazer')) || _LENTES_PROD[0];
             const nome = (v.venda.nome || '').split(' ')[0];
             const dias = Math.floor((Date.now() - v.venda.ms) / 864e5);
             const idade = dias === 0 ? 'hoje' : dias === 1 ? 'ontem' : 'há ' + dias + ' dias';
-            let h = '<div class="crm-card lentes-ficha">'
-                + '<div class="lentes-ficha-topo">'
-                +   '<span class="lentes-ficha-ped">#' + _lesc(v.venda.numero || v.venda.id) + '</span>'
-                +   '<span class="lentes-ficha-idade' + (dias >= 3 && etapa.id !== 'entregue' ? ' atrasado' : '') + '">'
-                +     idade + '</span>'
-                + '</div>';
-            if (nome) h += '<div class="lentes-card-tel"><i class="ph-bold ph-user"></i>' + _lesc(nome) + '</div>';
-            if (v.produto) h += '<div class="crm-card-product"><i class="ph-bold ph-eyeglasses"></i>' + _lesc(v.produto) + '</div>';
-            if (v.lente) h += '<div class="lentes-ficha-lente">' + _lesc(v.lente) + '</div>';
-            h += v.grau
-                ? '<div class="lentes-ficha-grau">' + _lentesGrau(v.grau) + '</div>'
-                : '<div class="lentes-ficha-grau sem">' + (v.arq
-                    ? 'Grau não registrado — está na receita anexada.'
-                    : 'Grau não registrado. Confirme com o cliente pelo WhatsApp.') + '</div>';
+            let h = '<div class="lentes-pedido-linha">'
+                + '<div><div class="lentes-pedido-id"><strong>#' + _lesc(v.venda.numero || v.venda.id) + '</strong>'
+                + '<span class="lentes-status" style="--status-cor:' + etapa.cor + '"><i class="ph-bold ' + etapa.icone + '"></i>' + etapa.rot + '</span></div>'
+                + '<span class="lentes-pedido-tempo' + (dias >= 3 && etapa.id !== 'entregue' ? ' atrasado' : '') + '">' + idade + '</span></div>'
+                + '<div class="lentes-pedido-cliente"><b>' + _lesc(nome || 'Cliente') + '</b><span>' + _lesc(v.produto || 'Armação não identificada') + '</span></div>'
+                + '<div class="lentes-pedido-lente"><b>' + _lesc(v.lente || 'Lente não identificada') + '</b><span>'
+                + (v.grau ? _lentesGrauTexto(v.grau) : (v.arq ? 'Grau disponível na receita' : 'Confirmar grau com o cliente')) + '</span></div>';
             const bts = [];
-            if (v.arq) bts.push('<button type="button" class="lentes-ver" data-arq="' + _lesc(v.arq) + '">ver receita</button>');
+            if (v.arq) bts.push('<button type="button" class="lentes-ver" data-arq="' + _lesc(v.arq) + '">Receita</button>');
             if (v.telefone) {
                 const num = String(v.telefone).replace(/[^0-9]/g, '');
                 bts.push('<a class="lentes-ver" target="_blank" rel="noopener" href="https://wa.me/'
-                    + (num.length > 11 ? num : '55' + num) + '">WhatsApp</a>');
+                    + (num.length > 11 ? num : '55' + num) + '"><i class="ph-bold ph-whatsapp-logo"></i></a>');
             }
-            if (bts.length) h += '<div class="lentes-ficha-bts">' + bts.join('') + '</div>';
-            if (etapa.prox) h += '<button type="button" class="lentes-avanca" data-prod-sid="' + _lesc(v.sid)
-                + '" data-prod-etapa="' + etapa.prox + '">' + etapa.acao + ' <i class="ph-bold ph-arrow-right"></i></button>';
+            if (etapa.prox) bts.push('<button type="button" class="lentes-avanca" style="--col-accent:' + etapa.cor + '" data-prod-sid="' + _lesc(v.sid)
+                + '" data-prod-etapa="' + etapa.prox + '">' + etapa.acao + ' <i class="ph-bold ph-arrow-right"></i></button>');
+            h += '<div class="lentes-pedido-acoes">' + bts.join('') + '</div>';
             return h + '</div>';
         }
 
@@ -6511,6 +6571,13 @@
             return 'escolhendo';
         }
 
+        let _lentesLeadFiltro = 'prioridade';
+
+        function _lentesSetLeadFiltro(filtro) {
+            _lentesLeadFiltro = filtro;
+            _pintaLentesCrm(_lentesSessoes());
+        }
+
         function _pintaLentesCrm(ses) {
             const el = document.getElementById('lentesCrm');
             if (!el) return;
@@ -6520,15 +6587,11 @@
             if (aviso) {
                 aviso.innerHTML = semTel
                     ? '<i class="ph-bold ph-info"></i> <b>' + semTel + '</b> '
-                      + (semTel === 1 ? 'pessoa não deixou' : 'pessoas não deixaram') + ' WhatsApp e '
-                      + (semTel === 1 ? 'ficou' : 'ficaram') + ' de fora do quadro — sem número não dá pra chamar. '
-                      + 'Elas continuam contando no funil e nos números acima.'
+                      + (semTel === 1 ? 'pessoa não deixou' : 'pessoas não deixaram') + ' WhatsApp. '
+                      + 'Ela continua aparecendo nos resultados, mas não pode ser contatada.'
                     : '';
                 aviso.style.display = semTel ? '' : 'none';
             }
-            const balde = {}, baldeTudo = {};
-            comTel.forEach(v => (balde[_lentesEtapa(v)] = balde[_lentesEtapa(v)] || []).push(v));
-            ses.forEach(v => baldeTudo[_lentesEtapa(v)] = (baldeTudo[_lentesEtapa(v)] || 0) + 1);
             const _q = ms => {
                 const h = (Date.now() - ms) / 36e5;
                 if (h < 1) return 'agora há pouco';
@@ -6536,47 +6599,44 @@
                 const d = Math.round(h / 24);
                 return d === 1 ? 'ontem' : d + ' dias atrás';
             };
-            el.innerHTML = _LENTES_ETAPAS.map(e => {
-                const itens = (balde[e.id] || []).sort((a, b) => b.inicio - a.inicio);
-                return '<div class="crm-col" style="--col-accent:' + e.cor + '" title="' + e.dica + '">'
-                    + '<div class="crm-col-header">'
-                    +   '<span class="crm-col-title"><i class="ph-bold ' + e.icone + '"></i>' + e.rot + '</span>'
-                    +   '<span class="crm-col-count" title="' + itens.length + ' com WhatsApp de '
-                    +       (baldeTudo[e.id] || 0) + ' que chegaram nesta etapa">' + itens.length
-                    +       ((baldeTudo[e.id] || 0) > itens.length
-                             ? '<span class="lentes-col-tot">/' + baldeTudo[e.id] + '</span>' : '')
-                    +   '</span>'
-                    + '</div>'
-                    + '<div class="crm-col-body">'
-                    + (itens.length ? itens.map(v => _lentesCard(v, e, _q)).join('')
-                                    : '<div class="lentes-vazio">ninguém com WhatsApp aqui</div>')
-                    + '</div></div>';
-            }).join('');
+            const grupos = {
+                prioridade: ['ajuda', 'carrinho'],
+                escolhendo: ['escolhendo'],
+                encerrados: ['comprou', 'so_armacao']
+            };
+            const contagem = filtro => comTel.filter(v => grupos[filtro].includes(_lentesEtapa(v))).length;
+            const filtros = [
+                ['prioridade', 'Prioridade'], ['escolhendo', 'Escolhendo'], ['encerrados', 'Encerrados']
+            ];
+            const peso = { ajuda: 0, carrinho: 1, escolhendo: 2, comprou: 3, so_armacao: 4 };
+            const itens = comTel.filter(v => grupos[_lentesLeadFiltro].includes(_lentesEtapa(v)))
+                .sort((a, b) => (peso[_lentesEtapa(a)] - peso[_lentesEtapa(b)]) || b.inicio - a.inicio);
+            el.innerHTML = '<div class="lentes-lead-filtros" role="tablist">' + filtros.map(f =>
+                '<button type="button" class="' + (f[0] === _lentesLeadFiltro ? 'on' : '') + '" data-lentes-lead-filtro="' + f[0]
+                + '">' + f[1] + ' · ' + contagem(f[0]) + '</button>').join('') + '</div>'
+                + '<div class="lentes-lead-lista">' + (itens.length ? itens.map(v => {
+                    const etapa = _LENTES_ETAPAS.find(e => e.id === _lentesEtapa(v));
+                    return _lentesLeadLinha(v, etapa, _q);
+                }).join('') : '<div class="lentes-vazio-foco"><i class="ph-bold ph-check-circle"></i>Ninguém nesta lista.</div>') + '</div>';
+            el.querySelectorAll('[data-lentes-lead-filtro]').forEach(b => b.onclick = () => _lentesSetLeadFiltro(b.dataset.lentesLeadFiltro));
         }
 
-        function _lentesCard(v, etapa, _q) {
+        function _lentesLeadLinha(v, etapa, _q) {
             const tel = v.telefone ? _fmtTelBR(v.telefone) : null;
             const escolha = [(_LENTES_VISAO[v.visao] || ''), (_LENTES_TRAT[v.trat] || '')].filter(Boolean).join(' · ');
-            const grau = _lentesGrau(v.grau);
-            let h = '<div class="crm-card">'
-                + '<div class="lentes-card-tel">'
-                + (tel ? '<i class="ph-bold ph-user"></i>' + _lesc(tel)
-                       : '<i class="ph-bold ph-user-minus"></i><span class="lentes-card-sem">sem WhatsApp</span>')
-                + '</div>';
-            if (v.produto) h += '<div class="crm-card-product"><i class="ph-bold ph-eyeglasses"></i>' + _lesc(v.produto) + '</div>';
-            if (escolha) h += '<div class="lentes-card-linha">' + _lesc(escolha) + '</div>';
-            if (v.lente) h += '<div class="lentes-card-linha"><b>' + _lesc(v.lente) + '</b>'
-                + (v.preco ? '<span>' + v.preco.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR }) + '</span>' : '') + '</div>';
-            if (v.grau) h += '<div class="lentes-card-grau">' + grau + '</div>';
-            if (v.arq) h += '<button type="button" class="lentes-ver" data-arq="' + _lesc(v.arq) + '" style="align-self:flex-start;">ver receita</button>';
-            h += '<div class="crm-card-meta"><span><i class="ph-bold ph-clock"></i>' + _q(v.inicio) + '</span></div>';
-            if (tel) {
-                const num = String(v.telefone).replace(/[^0-9]/g, '');
-                h += '<a class="lentes-wpp" target="_blank" rel="noopener" href="https://wa.me/'
-                   + (num.length > 11 ? num : '55' + num) + '?text=' + encodeURIComponent(_lentesMsg(v, etapa))
-                   + '"><i class="ph-bold ph-whatsapp-logo"></i>Chamar no WhatsApp</a>';
-            }
-            return h + '</div>';
+            const detalhe = [escolha, v.lente, v.preco ? v.preco.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR }) : ''].filter(Boolean).join(' · ');
+            const num = String(v.telefone).replace(/[^0-9]/g, '');
+            let h = '<div class="lentes-lead-linha" style="--lead-cor:' + etapa.cor + '">'
+                + '<div class="lentes-lead-topo"><b>' + _lesc(tel) + '</b><time>' + _q(v.inicio) + '</time></div>'
+                + '<div class="lentes-status" style="--status-cor:' + etapa.cor + '"><i class="ph-bold ' + etapa.icone + '"></i>' + etapa.rot + '</div>'
+                + '<div class="lentes-lead-produto">' + _lesc(v.produto || 'Armação não identificada') + '</div>'
+                + (detalhe ? '<div class="lentes-lead-detalhe">' + _lesc(detalhe) + '</div>' : '')
+                + '<div class="lentes-lead-acoes">';
+            if (v.arq) h += '<button type="button" class="lentes-ver" data-arq="' + _lesc(v.arq) + '">Receita</button>';
+            h += '<a class="lentes-wpp" target="_blank" rel="noopener" href="https://wa.me/'
+                + (num.length > 11 ? num : '55' + num) + '?text=' + encodeURIComponent(_lentesMsg(v, etapa))
+                + '"><i class="ph-bold ph-whatsapp-logo"></i>Conversar</a></div></div>';
+            return h;
         }
 
         /* Mensagem pronta por etapa: o lojista so aperta enviar. */
@@ -7016,6 +7076,13 @@
             document.querySelectorAll('.th-email-maxilook').forEach(function(el){
                 el.style.display = show ? '' : 'none';
             });
+            var velaro = isVelaroStore();
+            var provasIdentity = document.querySelector('#provasTable thead th:nth-child(3)');
+            var comprasIdentity = document.querySelector('#comprasTable thead th:nth-child(3)');
+            var ltvIdentity = document.querySelector('#ltvTable thead th:nth-child(3)');
+            if (provasIdentity) provasIdentity.textContent = velaro ? 'Email' : 'WhatsApp';
+            if (comprasIdentity) comprasIdentity.textContent = velaro ? 'Email' : 'WhatsApp';
+            if (ltvIdentity) ltvIdentity.textContent = velaro ? 'Email' : 'WhatsApp';
         }
 
         function showDashboard(userObj) {
@@ -13111,7 +13178,7 @@
             if (regras.tipo === 'provou_nao_comprou') {
                 const buyers = segBuildAgg(); const seen = new Set();
                 (allGensShared || []).forEach(g => {
-                    const key = normalize(g.telefone_cliente); if (!key || seen.has(key) || buyers.has(key)) return;
+                    const key = generationCustomerKey(g); if (!key || seen.has(key) || buyers.has(key)) return;
                     if (segJaContatado(key)) return;   // já recebeu disparo → fora da lista
                     seen.add(key);
                     const send = normalizeFull(g.telefone_cliente);
@@ -14209,6 +14276,24 @@
             return n.length >= 9 ? n.slice(-9) : n;
         };
 
+        // A Velaro identifica a pessoa pelo e-mail informado no provador. Essa excecao fica
+        // restrita a ela: todas as demais lojas continuam usando telefone/WhatsApp.
+        function isVelaroStore(cfg) {
+            const c = cfg || activeUser || {};
+            const origem = String(c.origem || '').toLowerCase();
+            return origem.indexOf('usevelaro.shop') !== -1 || c.tabela_pedidos === 'velaro_orders';
+        }
+        const normalizeEmail = value => String(value || '').trim().toLowerCase();
+        function generationCustomerKey(g) {
+            return isVelaroStore() ? normalizeEmail(g && g.email_cliente) : normalize(g && g.telefone_cliente);
+        }
+        function orderPrimaryCustomerKey(o) {
+            if (!o) return '';
+            if (isVelaroStore()) return normalizeEmail(o.customer_email || o[(activeUser && activeUser.campo_telefone_pedido) || 'customer_email']);
+            const field = (activeUser && activeUser.campo_telefone_pedido) || 'customer_phone';
+            return normalize(o[field]);
+        }
+
         // Telefones candidatos de um pedido: o campo configurado da loja + entrega/cobrança
         // e variações comuns. Assim, se o cliente provou com o número dele mas comprou com
         // outro (e o dele ficou na entrega/cobrança), a venda é detectada mesmo assim.
@@ -14223,6 +14308,10 @@
         }
         // Telefones (normalizados, sem repetir) de um pedido
         function orderPhoneKeys(o) {
+            if (isVelaroStore()) {
+                const email = normalizeEmail(o && (o.customer_email || o[(activeUser && activeUser.campo_telefone_pedido) || 'customer_email']));
+                return email ? [email] : [];
+            }
             return [...new Set(orderPhones(o).map(normalize).filter(Boolean))];
         }
 
@@ -14269,7 +14358,7 @@
         function usaPaidAtParaAtribuicao(cfg) {
             const canal = String((cfg && cfg.canal_provador) || '').toLowerCase();
             const plataforma = String((cfg && (cfg.platform || cfg._platform)) || '').toLowerCase();
-            return canal === 'nuvemshop' || plataforma === 'nuvemshop';
+            return isVelaroStore(cfg) || canal === 'nuvemshop' || plataforma === 'nuvemshop';
         }
 
         function timestampAtribuicaoPedido(order, cfg) {
@@ -14333,7 +14422,7 @@
             let pedidos = 0, fat = 0;
             const uniq = new Set();
             allOrdersCache.forEach(o => {
-                const ph = normalize(o[fPhone]);
+                const ph = orderPrimaryCustomerKey(o);
                 if (!ph || !generationPhones.has(ph)) return;
                 const orderTs = timestampAtribuicaoPedido(o, activeUser);
                 if (!isOrderAfterProva(o, ph)) return;
@@ -14626,7 +14715,7 @@
                 if (!buckets[key]) buckets[key] = { total: 0, provador: 0 };
                 const v = parseFloat(o[fTotal]) || 0;
                 buckets[key].total += v;
-                const ph = normalize(o[fPhone]);
+                const ph = orderPrimaryCustomerKey(o);
                 if (ph && isOrderAfterProva(o, ph)) buckets[key].provador += v;
             });
             const keys = Object.keys(buckets).sort();
@@ -14836,7 +14925,7 @@
             if (provasAggShared) { renderEngajamentoCardsAgg(provasAggShared); return; }
             const provasPorPhone = {};
             (allProvas || []).forEach(r => {
-                const ph = normalize(r.telefone_cliente);
+                const ph = generationCustomerKey(r);
                 if (!ph || !r.created_at) return;
                 if (!provasPorPhone[ph]) provasPorPhone[ph] = { ts: [], dias: new Set() };
                 provasPorPhone[ph].ts.push(new Date(r.created_at).getTime());
@@ -15248,7 +15337,7 @@
                 // Ticket médio dos compradores pós-prova
                 const fStatusValues = activeUser.valores_status_pago || ['paid', 'Confirmado'];
                 const ordersPostProva = allOrdersCache.filter(o => {
-                    const ph = normalize(o[activeUser.campo_telefone_pedido || 'customer_phone']);
+                    const ph = orderPrimaryCustomerKey(o);
                     return boughtPhonesSet.has(ph);
                 });
                 const ticketMedio = ordersPostProva.length > 0
@@ -15292,7 +15381,7 @@
             const provasPorPhone = {};
             const diasPorPhone = {};
             (allGensShared || []).forEach(g => {
-                const ph = normalize(g.telefone_cliente);
+                const ph = generationCustomerKey(g);
                 if (!ph) return;
                 provasPorPhone[ph] = (provasPorPhone[ph] || 0) + gensProvaCount(g);
                 diasPorPhone[ph] = (diasPorPhone[ph] || 0) + gensDiasCount(g);
@@ -15308,7 +15397,7 @@
                 const v = parseFloat(o[fTotal]) || 0;
                 if (v <= 0) return;
                 fatTotalLoja += v;
-                const ph = normalize(o[fPhone]);
+                const ph = orderPrimaryCustomerKey(o);
                 // data_pedido PRIMEIRO (igual computeKpis/boughtPhonesSet). Usar created_at
                 // primeiro inflava lojas de import manual (created_at = data do import),
                 // contando como pós-prova pedidos pagos ANTES da prova no mesmo dia.
@@ -15413,7 +15502,7 @@
                 // Conta cada pedido individualmente — clientes que compraram várias vezes contam várias.
                 let totalOrders = 0;
                 allOrdersCache.forEach(o => {
-                    const ph = normalize(o[fPhone]);
+                    const ph = orderPrimaryCustomerKey(o);
                     if (!ph || !generationPhones.has(ph)) return;
                     const orderTs = timestampAtribuicaoPedido(o, activeUser);
                     if (!isOrderAfterProva(o, ph)) return;
@@ -15445,7 +15534,7 @@
             // Voltaram = phones com mais de 1 prova em allGensShared
             const provasPorPhone = {};
             (allGensShared || []).forEach(g => {
-                const ph = normalize(g.telefone_cliente);
+                const ph = generationCustomerKey(g);
                 if (!ph) return;
                 provasPorPhone[ph] = (provasPorPhone[ph] || 0) + gensProvaCount(g);
             });
@@ -15481,7 +15570,7 @@
                 const v = parseFloat(o[fTotal]) || 0;
                 if (v <= 0) return;
                 fatTotal += v; pedidosTotal += 1;
-                const ph = normalize(o[fPhone]);
+                const ph = orderPrimaryCustomerKey(o);
                 const orderTs = timestampAtribuicaoPedido(o, activeUser);
                 if (ph && isOrderAfterProva(o, ph)) {
                     fatPosProva += v; pedidosPos += 1;
@@ -15546,7 +15635,7 @@
             // boughtPhonesSet.has(phone) → entravam pedidos PRÉ-prova do mesmo cliente no
             // numerador, divergindo do ticket do card principal.
             const ordersPos = allOrdersCache.filter(o => {
-                const ph = normalize(o[fPhone]);
+                const ph = orderPrimaryCustomerKey(o);
                 if (!ph || !boughtPhonesSet.has(ph)) return false;
                 const orderTs = timestampAtribuicaoPedido(o, activeUser);
                 return isOrderAfterProva(o, ph);
@@ -15649,6 +15738,7 @@
             const _temPaidAt = await tabelaTemCampo(activeUser.tabela_pedidos, 'paid_at');
             const _orderFields = [fPhone, fTotal, fStatus, 'created_at', fDataPedido, fNome, fProduto].filter(Boolean);
             if (_temPaidAt) _orderFields.push('paid_at');
+            if (isVelaroStore()) _orderFields.push('customer_email');
             const selectFields = comStatus([...new Set(_orderFields)].join(', '), _temStatusPedidos);
 
             // Provas AGREGADAS no servidor (1 linha por telefone) em vez de baixar todas as
@@ -15656,7 +15746,9 @@
             // que fazia as telas demorarem. Se a RPC nao existir (SQL ainda nao rodado), cai
             // pro caminho antigo — o painel funciona nos dois mundos.
             let allGens = null;
-            try {
+            if (!isVelaroStore()) try {
+                // A RPC atual agrega por telefone. Na Velaro precisamos manter o e-mail,
+                // entao usamos as linhas originais ate existir uma RPC especifica por e-mail.
                 const { data: _agg, error: _aggErr } = await supabaseClient
                     .rpc('pl_provas_agg', { p_origem: activeUser.origem });
                 if (!_aggErr && Array.isArray(_agg)) {
@@ -15676,7 +15768,7 @@
             } catch (e) { console.warn('[provas] RPC indisponivel, usando fallback:', e && e.message); }
             if (!allGens) allGens = await fetchPagesParallel(() => supabaseClient
                 .from(activeUser.tabela)
-                .select('telefone_cliente, created_at, produtos')
+                .select('telefone_cliente, email_cliente, created_at, produtos')
                 .ilike('origin', `%${activeUser.origem}%`)
                 .order('created_at', { ascending: true })
                 .order('id', { ascending: true }));
@@ -15684,11 +15776,11 @@
             // celular) do conjunto de provadores únicos. Antes o bucket '' entrava como +1
             // "cliente único" no denominador → diluía conversão, re-engajamento e provas/cliente,
             // e não batia com provaMinDateMap/provaMinTsMap (que já ignoram vazio).
-            generationPhones = new Set(allGens.map(r => normalize(r.telefone_cliente)).filter(Boolean));
+            generationPhones = new Set(allGens.map(generationCustomerKey).filter(Boolean));
             provaMinDateMap = {};
             provaMinTsMap = {};
             (allGens || []).forEach(r => {
-                const ph = normalize(r.telefone_cliente);
+                const ph = generationCustomerKey(r);
                 if (!ph) return;
                 const ts = r.created_at || '';
                 const d = ts.slice(0, 10);
@@ -15770,7 +15862,7 @@
                         if (_phRaw && _ts) { const kComp = _phRaw + '|' + _ts + '|' + _tot; if (_seenComp.has(kComp)) continue; _seenComp.add(kComp); }
                         totalFat += parseFloat(r[fTotal]) || 0;
                         totalPedidos++;
-                        const ph = normalize(r[fPhone]);
+                        const ph = orderPrimaryCustomerKey(r);
                         if (ph) phones.add(ph);
                         const d = (r[fDataPedido || 'created_at'] || '').slice(0, 10);
                         if (d && (!minDate || d < minDate)) minDate = d;
@@ -15874,7 +15966,7 @@
                     const kPedido = o.id_pedido != null ? String(o.id_pedido) : (o.id != null ? 'pk:' + o.id : null);
                     if (kPedido && seenPedido.has(kPedido)) continue;
                     if (kPedido) seenPedido.add(kPedido);
-                    const phone = String(o[phoneField] || '').replace(/\D/g, '');
+                    const phone = orderPrimaryCustomerKey(o);
                     const ts = String(o[dateField] || o.created_at || '').slice(0, 19);
                     const total = Number(o[totalField] || 0).toFixed(2);
                     const kComposite = phone && ts ? `${phone}|${ts}|${total}` : null;
@@ -15912,7 +16004,7 @@
             nameMap = {};
             if (fNome) {
                 allOrdersCache.forEach(o => {
-                    const ph = normalize(o[fPhone]);
+                    const ph = orderPrimaryCustomerKey(o);
                     if (ph && o[fNome] && !nameMap[ph]) nameMap[ph] = o[fNome];
                 });
             }
@@ -15925,7 +16017,7 @@
             const fDataPedido = activeUser.campo_data_pedido || null;
             const map = new Map();
             allOrdersCache.forEach(o => {
-                const ph = normalize(o[fPhone]);
+                const ph = orderPrimaryCustomerKey(o);
                 if (!ph || !generationPhones.has(ph)) return;
                 const ts = timestampAtribuicaoPedido(o, activeUser);
                 if (!isOrderAfterProva(o, ph)) return;
@@ -16023,7 +16115,7 @@
                 _allProvasForSearch = (allProvas || []).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
                 const totalProvas = count || 0;
-                const uniquePhonesSet = new Set((allProvas || []).map(r => normalize(r.telefone_cliente)).filter(Boolean));
+                const uniquePhonesSet = new Set((allProvas || []).map(generationCustomerKey).filter(Boolean));
 
                 document.getElementById('provasTotalCount').textContent = totalProvas;
                 document.getElementById('provasUniqueCount').textContent = uniquePhonesSet.size;
@@ -16065,7 +16157,7 @@
                     document.getElementById('provasEmptyState').style.display = 'none';
                     document.getElementById('provasTable').style.display = 'table';
                     data.forEach(item => {
-                        const phone = normalize(item.telefone_cliente);
+                        const phone = generationCustomerKey(item);
                         let dateStr = '';
                         if (item.created_at) {
                             const d = new Date(item.created_at);
@@ -16078,7 +16170,8 @@
                         const tr = document.createElement('tr');
                         const tdDate = document.createElement('td'); tdDate.textContent = dateStr;
                         const tdName = document.createElement('td'); tdName.style.fontWeight = '600'; tdName.textContent = firstName;
-                        const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display'; tdPhone.textContent = String(item.telefone_cliente || '');
+                        const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display';
+                        tdPhone.textContent = isVelaroStore() ? String(item.email_cliente || '') : String(item.telefone_cliente || '');
                         const tdProd = document.createElement('td'); tdProd.className = 'product-cell'; tdProd.textContent = produto;
                         const tdAction = document.createElement('td');
                         const link = document.createElement('a');
@@ -16087,7 +16180,8 @@
                         link.className = 'btn-whats';
                         const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
                         const waTxt1 = document.createElement('span'); waTxt1.className='btn-whats-text'; waTxt1.textContent=' Chamar'; link.append(waIcon, waTxt1);
-                        tdAction.appendChild(link);
+                        if (isVelaroStore()) tdAction.textContent = '\u2014';
+                        else tdAction.appendChild(link);
                         if (isMaxilook()) {
                             const tdEmail = document.createElement('td');
                             tdEmail.className = 'email-display';
@@ -16110,14 +16204,14 @@
                 }
 
                 _csvProvasData = (allProvas || []).map(item => {
-                    const ph = normalize(item.telefone_cliente);
+                    const ph = generationCustomerKey(item);
                     const row = {
                         data: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : '',
                         cliente: (nameMap[ph] || '').trim().split(' ')[0] || '',
                         telefone: String(item.telefone_cliente || ''),
                         produto: item.produtos || item.produto_provado || ''
                     };
-                    if (isMaxilook()) row.email = String(item.email_cliente || '');
+                    if (isMaxilook() || isVelaroStore()) row.email = String(item.email_cliente || '');
                     return row;
                 });
 
@@ -16194,7 +16288,7 @@
             // Pre-calculate order count per phone for recorrente filter
             const _orderCountAll = {};
             allOrdersCache.forEach(o => {
-                const ph = normalize(o[fPhone]);
+                const ph = orderPrimaryCustomerKey(o);
                 if (!generationPhones.has(ph)) return;
                 const orderTs = timestampAtribuicaoPedido(o, activeUser);
                 if (!isOrderAfterProva(o, ph)) return;
@@ -16202,7 +16296,7 @@
             });
 
             const filtered = allOrdersCache.filter(o => {
-                const ph = normalize(o[fPhone]);
+                const ph = orderPrimaryCustomerKey(o);
                 if (!generationPhones.has(ph)) return false;
                 const orderTs = timestampAtribuicaoPedido(o, activeUser);
                 if (!isOrderAfterProva(o, ph)) return false;
@@ -16231,7 +16325,7 @@
             // Compraram = clientes com pedido no período que têm prova registrada antes do pedido
             const compraramSet = new Set();
             filtered.forEach(o => {
-                const ph = normalize(o[fPhone]);
+                const ph = orderPrimaryCustomerKey(o);
                 if (!ph) return;
                 compraramSet.add(ph);
             });
@@ -16260,7 +16354,7 @@
                 const d = (fDataPedido && o[fDataPedido]) || o.created_at || '';
                 return {
                     data: d ? (d.length === 10 ? d.split('-').reverse().join('/') : new Date(d).toLocaleDateString('pt-BR')) : '',
-                    cliente: (fNome && o[fNome]) ? o[fNome].trim().split(' ')[0] : (nameMap[normalize(o[fPhone])] || '').trim().split(' ')[0] || '',
+                    cliente: (fNome && o[fNome]) ? o[fNome].trim().split(' ')[0] : (nameMap[orderPrimaryCustomerKey(o)] || '').trim().split(' ')[0] || '',
                     telefone: String(o[fPhone] || ''),
                     valor: (parseFloat(o[fTotal]) || 0).toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR })
                 };
@@ -16283,12 +16377,12 @@
 
             const orderCountByPhone = {};
             filtered.forEach(o => {
-                const ph = normalize(o[fPhone]);
+                const ph = orderPrimaryCustomerKey(o);
                 orderCountByPhone[ph] = (orderCountByPhone[ph] || 0) + 1;
             });
 
             pageData.forEach(o => {
-                const phone = normalize(o[fPhone]);
+                const phone = orderPrimaryCustomerKey(o);
                 const dateRaw = (fDataPedido && o[fDataPedido]) || o.created_at || '';
                 const dateStr = dateRaw ? (dateRaw.length === 10 ? dateRaw.split('-').reverse().join('/') : new Date(dateRaw).toLocaleDateString('pt-BR')) : '';
                 const clienteNome = (fNome && o[fNome]) || nameMap[phone] || '';
@@ -16305,7 +16399,7 @@
                     tag.style.cssText = 'margin-left:6px;font-size:10px;font-weight:600;padding:2px 6px;border-radius:999px;background:rgba(139,92,246,0.15);color:#a78bfa;vertical-align:middle;';
                     tdName.appendChild(tag);
                 }
-                const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display'; tdPhone.textContent = String(o[fPhone] || '');
+                const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display'; tdPhone.textContent = isVelaroStore() ? String(o.customer_email || o[fPhone] || '') : String(o[fPhone] || '');
                 const tdValor = document.createElement('td'); tdValor.textContent = valor;
                 const tdAction = document.createElement('td');
                 const link = document.createElement('a');
@@ -16314,7 +16408,8 @@
                 link.className = 'btn-whats';
                 const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
                 const waTxt2 = document.createElement('span'); waTxt2.className='btn-whats-text'; waTxt2.textContent=' Chamar'; link.append(waIcon, waTxt2);
-                tdAction.appendChild(link);
+                if (isVelaroStore()) tdAction.textContent = '\u2014';
+                else tdAction.appendChild(link);
                 tr.append(tdDate, tdName, tdPhone, tdValor, tdAction);
                 tbody.appendChild(tr);
             });
@@ -16460,7 +16555,7 @@
             const map = {};
             allOrdersCache.forEach(o => {
                 // SOMENTE vendas via provador (pós-prova): telefone provou E comprou depois da prova
-                const ph = normalize(o[fPhone]);
+                const ph = orderPrimaryCustomerKey(o);
                 if (!ph || !generationPhones || !generationPhones.has(ph)) return;
                 const orderTs = timestampAtribuicaoPedido(o, activeUser);
                 if (!isOrderAfterProva(o, ph)) return;
@@ -17000,9 +17095,9 @@
 
             const matches = allData.filter(item => {
                 const phone = String(item.telefone_cliente || item[fPhone] || '');
-                const nome = (isProvas ? (nameMap[normalize(phone)] || '') : ((fNome && item[fNome]) || nameMap[normalize(item[fPhone])] || ''));
+                const nome = (isProvas ? (nameMap[generationCustomerKey(item)] || '') : ((fNome && item[fNome]) || nameMap[orderPrimaryCustomerKey(item)] || ''));
                 const produto = item.produtos || item.produto_provado || '';
-                const email = (isProvas && isMaxilook()) ? String(item.email_cliente || '') : '';
+                const email = (isProvas && (isMaxilook() || isVelaroStore())) ? String(item.email_cliente || '') : '';
                 const searchText = [phone, nome, produto, email].join(' ').toLowerCase();
                 return searchText.includes(q);
             });
@@ -17023,7 +17118,7 @@
             const limit = 50;
             matches.slice(0, limit).forEach(item => {
                 if (isProvas) {
-                    const phone = normalize(item.telefone_cliente);
+                    const phone = generationCustomerKey(item);
                     let dateStr = '';
                     if (item.created_at) {
                         const d = new Date(item.created_at);
@@ -17035,13 +17130,16 @@
                     const tr = document.createElement('tr');
                     const tdDate = document.createElement('td'); tdDate.textContent = dateStr;
                     const tdName = document.createElement('td'); tdName.style.fontWeight = '600'; tdName.textContent = firstName;
-                    const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display'; tdPhone.textContent = String(item.telefone_cliente || '');
+                    const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display';
+                    tdPhone.textContent = isVelaroStore() ? String(item.email_cliente || '') : String(item.telefone_cliente || '');
                     const tdProd = document.createElement('td'); tdProd.className = 'product-cell'; tdProd.textContent = produto;
                     const tdAction = document.createElement('td');
                     const link = document.createElement('a'); link.href = 'https://wa.me/55' + normalizeFull(item.telefone_cliente); link.target = '_blank'; link.className = 'btn-whats';
                     const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
                     const waTxt = document.createElement('span'); waTxt.className = 'btn-whats-text'; waTxt.textContent = ' Chamar';
-                    link.append(waIcon, waTxt); tdAction.appendChild(link);
+                    link.append(waIcon, waTxt);
+                    if (isVelaroStore()) tdAction.textContent = '\u2014';
+                    else tdAction.appendChild(link);
                     if (isMaxilook()) {
                         const tdEmail = document.createElement('td');
                         tdEmail.className = 'email-display';
@@ -17052,7 +17150,7 @@
                     }
                     tbody.appendChild(tr);
                 } else {
-                    const phone = normalize(item[fPhone]);
+                    const phone = orderPrimaryCustomerKey(item);
                     const dateRaw = (fDataPedido && item[fDataPedido]) || item.created_at || '';
                     const dateStr = dateRaw ? (dateRaw.length === 10 ? dateRaw.split('-').reverse().join('/') : new Date(dateRaw).toLocaleDateString('pt-BR')) : '';
                     const clienteNome = (fNome && item[fNome]) || nameMap[phone] || '';
@@ -17061,13 +17159,15 @@
                     const tr = document.createElement('tr');
                     const tdDate = document.createElement('td'); tdDate.textContent = dateStr;
                     const tdName = document.createElement('td'); tdName.style.fontWeight = '600'; tdName.textContent = firstName;
-                    const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display'; tdPhone.textContent = String(item[fPhone] || '');
+                    const tdPhone = document.createElement('td'); tdPhone.className = 'phone-display'; tdPhone.textContent = isVelaroStore() ? String(item.customer_email || item[fPhone] || '') : String(item[fPhone] || '');
                     const tdValor = document.createElement('td'); tdValor.textContent = valor;
                     const tdAction = document.createElement('td');
                     const link = document.createElement('a'); link.href = 'https://wa.me/55' + normalizeFull(item[fPhone]); link.target = '_blank'; link.className = 'btn-whats';
                     const waIcon = document.createElement('i'); waIcon.className = 'ph-bold ph-whatsapp-logo';
                     const waTxt = document.createElement('span'); waTxt.className = 'btn-whats-text'; waTxt.textContent = ' Chamar';
-                    link.append(waIcon, waTxt); tdAction.appendChild(link);
+                    link.append(waIcon, waTxt);
+                    if (isVelaroStore()) tdAction.textContent = '\u2014';
+                    else tdAction.appendChild(link);
                     tr.append(tdDate, tdName, tdPhone, tdValor, tdAction);
                     tbody.appendChild(tr);
                 }
@@ -17097,7 +17197,7 @@
             // Agrega LTV por telefone (apenas compras pós-prova)
             const byPhone = {};
             allOrdersCache.forEach(o => {
-                const ph = normalize(o[fPhone]);
+                const ph = orderPrimaryCustomerKey(o);
                 if (!ph || !generationPhones.has(ph)) return;
                 const orderTs = timestampAtribuicaoPedido(o, activeUser);
                 if (!isOrderAfterProva(o, ph)) return;
@@ -17317,7 +17417,7 @@
 
             const phoneMap = {};
             allSessions.forEach(s => {
-                const ph = normalize(s.telefone_cliente);
+                const ph = generationCustomerKey(s);
                 if (!ph) return;
                 if (!phoneMap[ph]) phoneMap[ph] = { sessions: 0, products: [], lastDate: '', firstDate: '', rawPhone: s.telefone_cliente };
                 phoneMap[ph].sessions++;
@@ -17364,7 +17464,7 @@
             let totalRevenue = 0;
             let totalPaidOrders = 0;
             allOrders.forEach(o => {
-                const ph = normalize(o[fPhone]);
+                const ph = orderPrimaryCustomerKey(o);
                 if (!ph) return;
                 if (o[fNome]) nameMapLeads[ph] = o[fNome];
                 if (!phoneMap[ph]) return;
@@ -18509,7 +18609,7 @@
                 const leadMap = {};
                 const provaMinTs = {}; // pra replicar isOrderAfterProva exatamente
                 allSessions.forEach(s => {
-                    const ph = normalize(s.telefone_cliente);
+                    const ph = generationCustomerKey(s);
                     if (!ph) return;
                     if (!leadMap[ph]) {
                         leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: '', firstDate: '', lastProduct: '', lastProductUrl: '', checkoutUrl: '', rawPhone: s.telefone_cliente, bought: false, jaCliente: false, clicked: false, name: '' };
