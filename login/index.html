@@ -10862,17 +10862,9 @@
             // send_log -> dispByPhone (regra de recuperação) + eventsByPhone (cid pelo template)
             let sendRows = [];
             try {
-                // Só o período pedido (+30 dias de margem): a regra de recuperação casa
-                // compra em até 30d DEPOIS do disparo, então disparos um pouco anteriores
-                // à janela ainda contam. Antes isto baixava o histórico inteiro — 16 mil
-                // linhas / 3 MB na Cacifé — e filtrava no navegador.
-                let _q = supabaseClient.from('whatsapp_send_log')
-                    .select('lead_phone, sent_at, status, template_name, source, source_id')
-                    .in('email', plScopeEmails());
-                if (cutoff) _q = _q.gte('sent_at', new Date(cutoff - 30 * 86400000).toISOString());
-                if (isFinite(endMs)) _q = _q.lte('sent_at', new Date(endMs).toISOString());
-                const { data } = await _q.limit(20000);
-                sendRows = data || [];
+                // Usa o mesmo histórico paginado da lista e do card da Visão Geral.
+                // Assim todos os blocos atribuem a venda sobre o mesmo conjunto de disparos.
+                sendRows = await getSendLogShared();
             } catch (e) { console.warn('[dashboard] send_log:', e); }
 
             const dispByPhone = {}, eventsByPhone = {}, disparosPorCamp = {}, alcancadosPorCamp = {};
@@ -10922,11 +10914,12 @@
 
             // recuperado (total) + atribuição last-touch
             const fTotal = activeUser.campo_total_pedido || 'total';
-            const fData = activeUser.campo_data_pedido || null;
             const total = { valor: 0, pedidos: 0 };
             const recPorCamp = {};
             (allOrdersCache || []).forEach(o => {
-                const ts = (fData && o[fData]) || o.created_at || '';
+                // Em integrações Nuvemshop, a atribuição acontece no pagamento real.
+                // Usar created_at aqui fazia o topo divergir da lista de recuperados.
+                const ts = timestampAtribuicaoPedido(o, activeUser);
                 if (!ts) return;
                 const oms = new Date(ts).getTime(); if (!oms) return;
                 if (cutoff !== 0 && oms < cutoff) return;
@@ -11313,7 +11306,7 @@
             }
             let dispRows = [];
             try {
-                dispRows = await getSendLogShared('lead_phone, sent_at, status, template_name');
+                dispRows = await getSendLogShared();
             } catch (e) { console.warn('[disparos] recovered log:', e); }
             const dispByPhone = {};
             dispRows.forEach(r => {
@@ -11489,7 +11482,7 @@
             // Disparos não-falhos por telefone -> lista de timestamps (ms)
             let dispRows = [];
             try {
-                dispRows = await getSendLogShared('lead_phone, sent_at, status, template_name');
+                dispRows = await getSendLogShared();
             } catch (e) { console.warn('[disparos] sales log:', e); }
 
             const dispByPhone = {};
@@ -12618,7 +12611,7 @@
                     // O cache compartilhado ja tem essas linhas na memoria; so quando ele nao
                     // cobre (campanha antiga fora das 10 mil) cai pra busca direcionada.
                     const _idSet = new Set(_ranIds.map(String));
-                    const _cached = await getSendLogShared('lead_phone, sent_at, status, template_name, source, source_id');
+                    const _cached = await getSendLogShared();
                     let _cobre = false;
                     (_cached || []).forEach(r => {
                         if (!r.source_id || !_idSet.has(String(r.source_id))) return;
@@ -14167,8 +14160,9 @@
         // dashboard de disparos baixavam as MESMAS ~10 mil linhas, cada um por conta.
         // Agora a primeira busca serve as tres (invalidado ao trocar de lojista/periodo).
         let _sendLogCache = null, _sendLogCacheKey = '';
-        async function getSendLogShared(cols) {
-            const key = plScopeEmails().join(',') + '|' + cols;
+        const SEND_LOG_SHARED_COLS = 'id, lead_phone, sent_at, status, template_name, source, source_id';
+        async function getSendLogShared() {
+            const key = plScopeEmails().join(',');
             if (_sendLogCache && _sendLogCacheKey === key) return _sendLogCache;
             // PAGINADO. Antes era .limit(10000): na Cacife (18.359 disparos) a lista
             // "Clientes recuperados pelos disparos" so via os 10 mil mais recentes e perdia
@@ -14177,7 +14171,7 @@
             // Desempate por id: sem ORDER BY estavel o Postgres repete/pula linhas entre paginas.
             const data = await fetchPagesParallel(() => supabaseClient
                 .from('whatsapp_send_log')
-                .select(cols)
+                .select(SEND_LOG_SHARED_COLS)
                 .in('email', plScopeEmails())
                 .order('sent_at', { ascending: false })
                 .order('id', { ascending: false }));
@@ -16153,12 +16147,7 @@
             }
             let dispRows = [];
             try {
-                const { data } = await supabaseClient
-                    .from('whatsapp_send_log')
-                    .select('lead_phone, sent_at, status')
-                    .in('email', plScopeEmails())
-                    .limit(10000);
-                dispRows = data || [];
+                dispRows = await getSendLogShared();
             } catch (e) { console.warn('[vg recuperado] log:', e); }
             const dispByPhone = {};
             dispRows.forEach(r => {
