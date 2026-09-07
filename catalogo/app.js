@@ -45,7 +45,7 @@
   // custa geração pro lojista.
   // Loja que pediu limite diferente do padrão entra aqui. (O ideal é coluna na
   // loja, pra mudar sem deploy — hoje é DDL, que só passa pelo SQL Editor.)
-  const LIMITE_POR_LOJA = { ruby: 1 };
+  const LIMITE_POR_LOJA = { ruby: 1, precisionprime: 5 };
   // Vale enquanto o servidor nao responde. Quem manda e a franquia da loja no
   // banco: assim da pra mudar o limite sem deploy, e o navegador nao decide
   // quantas provas ele mesmo pode fazer.
