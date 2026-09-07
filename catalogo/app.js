@@ -259,7 +259,10 @@
                       brand: '#2F5F86', dark: '#244A69', soft: 'rgba(47,95,134,.12)', on: '#FFFFFF' },
     // Ótica Social: identidade monocromática sobre fundo transparente.
     oticasocial: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E6E6E6',
-                   brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.08)', on: '#FFFFFF' }
+                   brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.08)', on: '#FFFFFF' },
+    // Ótica Visão Solidária: verde-petróleo para manter a leitura do logo em fundo claro.
+    visaodf: { bg: '#FFFFFF', card: '#FFFFFF', line: '#D9E9E9',
+               brand: '#0B6B6E', dark: '#075356', soft: 'rgba(11,107,110,.10)', on: '#FFFFFF' }
   };
 
   // ─────────── Tema ───────────
