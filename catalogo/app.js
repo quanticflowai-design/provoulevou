@@ -265,7 +265,10 @@
                brand: '#0B6B6E', dark: '#075356', soft: 'rgba(11,107,110,.10)', on: '#FFFFFF' },
     // Ótica Visualmix: cobre do logo sobre branco, com o botão escurecido para contraste.
     visualmix: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EADDD8',
-                 brand: '#7A4030', dark: '#603124', soft: 'rgba(122,64,48,.10)', on: '#FFFFFF' }
+                  brand: '#7A4030', dark: '#603124', soft: 'rgba(122,64,48,.10)', on: '#FFFFFF' },
+    // Studio Visual: vermelho do arco do logo, escurecido no CTA para contraste.
+    studiovisual: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F2D7D7',
+                    brand: '#C5161D', dark: '#9F1016', soft: 'rgba(197,22,29,.10)', on: '#FFFFFF' }
   };
 
   // ─────────── Tema ───────────
