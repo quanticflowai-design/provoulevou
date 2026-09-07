@@ -252,7 +252,11 @@
     // Ótica Dafflon: logo branco em fundo preto chapado. O catálogo acompanha
     // o preto da arte para o JPEG não aparecer como um retângulo colado.
     dafflon: { bg: '#000000', card: '#101010', line: '#2A2A2A',
-               brand: '#FFFFFF', dark: '#D9D9D9', soft: 'rgba(255,255,255,.12)', on: '#000000' }
+               brand: '#FFFFFF', dark: '#D9D9D9', soft: 'rgba(255,255,255,.12)', on: '#000000' },
+    // Precision Prime: azul do lettering e fundo cinza claro da própria arte.
+    // O catálogo acompanha essa base para o retângulo do logo se integrar à página.
+    precisionprime: { bg: '#F3F3F3', card: '#FFFFFF', line: '#DCE4EA',
+                      brand: '#2F5F86', dark: '#244A69', soft: 'rgba(47,95,134,.12)', on: '#FFFFFF' }
   };
 
   // ─────────── Tema ───────────
