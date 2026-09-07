@@ -248,7 +248,11 @@
     // Otica Debora: circulo turquesa do logo solto no fundo branco. O turquesa
     // puro (#1AADB7) da 2,7:1 com texto branco; fechei pra #137884 (5,2:1).
     oticadebora: { bg: '#ffffff', card: '#ffffff', line: '#D6ECEF',
-                   brand: '#137884', dark: '#0F5F69', soft: 'rgba(26,173,183,.12)', on: '#ffffff' }
+                   brand: '#137884', dark: '#0F5F69', soft: 'rgba(26,173,183,.12)', on: '#ffffff' },
+    // Ótica Dafflon: logo branco em fundo preto chapado. O catálogo acompanha
+    // o preto da arte para o JPEG não aparecer como um retângulo colado.
+    dafflon: { bg: '#000000', card: '#101010', line: '#2A2A2A',
+               brand: '#FFFFFF', dark: '#D9D9D9', soft: 'rgba(255,255,255,.12)', on: '#000000' }
   };
 
   // ─────────── Tema ───────────
