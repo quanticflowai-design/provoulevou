@@ -256,7 +256,10 @@
     // Precision Prime: azul do lettering e fundo cinza claro da própria arte.
     // O catálogo acompanha essa base para o retângulo do logo se integrar à página.
     precisionprime: { bg: '#F3F3F3', card: '#FFFFFF', line: '#DCE4EA',
-                      brand: '#2F5F86', dark: '#244A69', soft: 'rgba(47,95,134,.12)', on: '#FFFFFF' }
+                      brand: '#2F5F86', dark: '#244A69', soft: 'rgba(47,95,134,.12)', on: '#FFFFFF' },
+    // Ótica Social: identidade monocromática sobre fundo transparente.
+    oticasocial: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E6E6E6',
+                   brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.08)', on: '#FFFFFF' }
   };
 
   // ─────────── Tema ───────────
