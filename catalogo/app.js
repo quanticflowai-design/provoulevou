@@ -262,7 +262,10 @@
                    brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.08)', on: '#FFFFFF' },
     // Ótica Visão Solidária: verde-petróleo para manter a leitura do logo em fundo claro.
     visaodf: { bg: '#FFFFFF', card: '#FFFFFF', line: '#D9E9E9',
-               brand: '#0B6B6E', dark: '#075356', soft: 'rgba(11,107,110,.10)', on: '#FFFFFF' }
+               brand: '#0B6B6E', dark: '#075356', soft: 'rgba(11,107,110,.10)', on: '#FFFFFF' },
+    // Ótica Visualmix: cobre do logo sobre branco, com o botão escurecido para contraste.
+    visualmix: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EADDD8',
+                 brand: '#7A4030', dark: '#603124', soft: 'rgba(122,64,48,.10)', on: '#FFFFFF' }
   };
 
   // ─────────── Tema ───────────
