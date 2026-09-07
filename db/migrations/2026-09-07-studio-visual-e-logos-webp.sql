@@ -7,7 +7,7 @@ insert into public.pl_catalog_stores (
 )
 select
   'studiovisual', 'Ótica Studio Visual',
-  'https://provoulevou.com.br/catalogo/assets/logo-studiovisual.webp',
+  'https://cdn.jsdelivr.net/gh/quanticflowai-design/provoulevou@71bcf40/catalogo/assets/logo-studiovisual.webp',
   '5521992984688', 'Ótica Studio Visual', '#C5161D',
   'pl_cat_' || encode(gen_random_bytes(32), 'hex'),
   'studiovisualotica@gmail.com', 'basic', true,
@@ -56,7 +56,7 @@ where not exists (
 );
 
 update public.pl_catalog_stores
-   set logo_url = 'https://provoulevou.com.br/catalogo/assets/logo-' || slug || '.webp'
+   set logo_url = 'https://cdn.jsdelivr.net/gh/quanticflowai-design/provoulevou@71bcf40/catalogo/assets/logo-' || slug || '.webp'
  where slug in (
    'carone', 'catglass', 'dafflon', 'diamond', 'florao', 'foreyes',
    'gcstore', 'goulart', 'mendonca', 'millu', 'mvotica', 'oticadebora',
