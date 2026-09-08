@@ -276,7 +276,10 @@
               brand: '#B30B20', dark: '#8E0919', soft: 'rgba(179,11,32,.10)', on: '#FFFFFF' },
     // Sabrina Ótica Design: identidade preta e branca do logo.
     sabrina: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E6E6E6',
-               brand: '#1F1B1C', dark: '#000000', soft: 'rgba(31,27,28,.08)', on: '#FFFFFF' }
+               brand: '#1F1B1C', dark: '#000000', soft: 'rgba(31,27,28,.08)', on: '#FFFFFF' },
+    // Club dos Óculos: laranja quente do fundo do logo, com CTA mais escuro.
+    clubdosoculos: { bg: '#FFF8F0', card: '#FFFFFF', line: '#F0D8BF',
+                     brand: '#D96F0C', dark: '#A94E05', soft: 'rgba(217,111,12,.12)', on: '#FFFFFF' }
   };
 
   // ─────────── Tema ───────────
