@@ -6,7 +6,7 @@ insert into public.pl_catalog_stores (
 )
 select
   'rever', 'Ótica Rever',
-  'https://provoulevou.com.br/catalogo/assets/logo-rever.webp',
+  'https://cdn.jsdelivr.net/gh/quanticflowai-design/provoulevou@3e86f13/catalogo/assets/logo-rever.webp',
   '5584991333038', 'Ótica Rever', '#0868C9',
   'pl_cat_' || encode(gen_random_bytes(32), 'hex'),
   'oticarever@hotmail.com', 'basic', true,
