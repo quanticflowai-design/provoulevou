@@ -8594,6 +8594,32 @@
         function closeCreateTemplateModal() { document.getElementById('waTplModal').style.display = 'none'; }
 
         // ===== Disparo manual de template =====
+        function waBodyVarKindFromSample(sample, pos) {
+            const value = String(sample || '').trim().toLowerCase();
+            if (/^https?:\/\//.test(value) || value.includes('sualoja.com.br/')) return 'link';
+            if (value.includes('aviator solis')) return 'produto';
+            if (value === 'maria') return 'nome';
+            return ['nome', 'produto', 'link'][pos] || 'nome';
+        }
+
+        // A Meta exige {{1}}..{{N}} sem buracos. O exemplo salvo no próprio template
+        // identifica o significado de cada posição, permitindo qualquer combinação
+        // das variáveis amigáveis (inclusive somente produto ou somente link).
+        function waTemplateBodyParamKinds(tpl) {
+            const body = (tpl && tpl.components || []).find(c => (c.type || '').toUpperCase() === 'BODY');
+            const text = (body && body.text) || '';
+            const nums = (text.match(/\{\{\s*(\d+)\s*\}\}/g) || [])
+                .map(m => parseInt(m.replace(/\D/g, ''), 10)).filter(Boolean);
+            const count = nums.length ? Math.max(...nums) : 0;
+            const examples = (body && body.example && body.example.body_text && body.example.body_text[0]) || [];
+            return Array.from({ length: count }, (_, i) => waBodyVarKindFromSample(examples[i], i));
+        }
+
+        function waBuildLeadBodyParams(tpl, firstName, produto, link) {
+            const values = { nome: firstName || '👋', produto: produto || 'o modelo que você provou', link: link || '' };
+            return waTemplateBodyParamKinds(tpl).map(kind => values[kind] != null ? values[kind] : values.nome);
+        }
+
         // Lê os componentes do template e devolve a lista ordenada de campos que ele precisa
         function waParseTemplateParams(tpl) {
             const specs = [];
@@ -8602,15 +8628,16 @@
                 const type = (comp.type || '').toUpperCase();
                 const countPh = txt => (String(txt || '').match(/\{\{\s*\d+\s*\}\}/g) || []).length;
                 if (type === 'BODY') {
-                    const n = countPh(comp.text);
+                    const n = waTemplateBodyParamKinds(tpl).length;
                     const ex = (comp.example && comp.example.body_text && comp.example.body_text[0]) || [];
-                    // Convenção Provou Levou: {{1}}=nome, {{2}}=produto, {{3}}=link
-                    const friendly = ['Nome do cliente', 'Produto que ele provou', 'Link do produto'];
+                    const kinds = waTemplateBodyParamKinds(tpl);
+                    const friendly = { nome: 'Nome do cliente', produto: 'Produto que ele provou', link: 'Link do produto' };
                     for (let i = 1; i <= n; i++) {
-                        const isName = (i === 1);   // {{1}} = nome (pode não existir p/ quem só provou)
+                        const kind = kinds[i - 1] || ['nome', 'produto', 'link'][i - 1] || 'nome';
+                        const isName = kind === 'nome';
                         specs.push({
                             id: 'body' + i, kind: 'body', pos: i,
-                            label: (friendly[i - 1] || 'Variável {{' + i + '}}') + (isName ? ' (opcional)' : '') + ' — vai no {{' + i + '}}',
+                            label: (friendly[kind] || 'Variável {{' + i + '}}') + (isName ? ' (opcional)' : '') + ' — vai no {{' + i + '}}',
                             placeholder: isName ? 'deixe em branco se não souber o nome' : (ex[i - 1] ? 'ex: ' + ex[i - 1] : 'preencha o {{' + i + '}}'),
                             optional: isName,
                             fallback: isName ? '👋' : ''
@@ -9073,12 +9100,22 @@
                 return;
             }
 
-            // Os chips mostram nomes amigáveis; a Meta e o disparo usam variáveis numéricas.
-            // Mapeamento FIXO (o disparo SEMPRE preenche nesta ordem): cliente={{1}}, produto={{2}}, link={{3}}.
-            body = body
-                .replace(/\{\{\s*nome do cliente\s*\}\}/gi, '{{1}}')
-                .replace(/\{\{\s*nome do produto\s*\}\}/gi, '{{2}}')
-                .replace(/\{\{\s*link do produto\s*\}\}/gi, '{{3}}');
+            // Numera apenas as variáveis realmente usadas. A Meta exige uma sequência sem
+            // buracos, mas nome, produto e link são independentes para o lojista.
+            const _bodyKinds = [];
+            const _friendlyKinds = {
+                'nome do cliente': 'nome',
+                'nome do produto': 'produto',
+                'link do produto': 'link'
+            };
+            const _legacyKinds = { 1: 'nome', 2: 'produto', 3: 'link' };
+            body = body.replace(/\{\{\s*(nome do cliente|nome do produto|link do produto|\d+)\s*\}\}/gi, function (_, token) {
+                const normalized = String(token || '').trim().toLowerCase();
+                const kind = _friendlyKinds[normalized] || _legacyKinds[parseInt(normalized, 10)] || ('custom_' + normalized);
+                let idx = _bodyKinds.indexOf(kind);
+                if (idx < 0) { _bodyKinds.push(kind); idx = _bodyKinds.length - 1; }
+                return '{{' + (idx + 1) + '}}';
+            });
 
             // A Meta rejeita template que começa OU termina com variável (subcode 2388299 —
             // "As variáveis não podem estar no início ou no fim do modelo"). O erro dela vem
@@ -9095,23 +9132,10 @@
                 return;
             }
 
-            // As variáveis precisam ser sequenciais (regra da Meta) E na ordem do disparo
-            // (cliente → produto → link). Ex.: usar "link do produto" sem "nome do produto" deixaria
-            // um buraco ({{1}},{{3}}) → a Meta devolveria "Invalid parameter". Avisamos claramente.
-            const _varNums = (bodyTrim.match(/\{\{\s*\d+\s*\}\}/g) || []).map(s => parseInt(s.replace(/\D/g, ''), 10));
-            const _varNames = { 1: 'nome do cliente', 2: 'nome do produto', 3: 'link do produto' };
-            const _maxVar = _varNums.length ? Math.max(..._varNums) : 0;
-            for (let i = 1; i <= _maxVar; i++) {
-                if (!_varNums.includes(i)) {
-                    fb.className = 'wa-feedback error';
-                    fb.innerHTML = 'Falta o <strong>' + (_varNames[i] || ('parâmetro ' + i)) + '</strong> na mensagem. Use as variáveis na ordem: <em>nome do cliente → nome do produto → link do produto</em> (não dá pra usar uma sem a anterior).';
-                    return;
-                }
-            }
-
             // Conta placeholders e gera exemplos (obrigatório pra Meta aceitar)
-            const placeholderCount = (body.match(/\{\{(\d+)\}\}/g) || []).length;
-            const sampleValues = ['Maria', 'Aviator Solis Dourado', 'https://sualoja.com.br/produto', 'CUPOM10', 'amanhã'];
+            const placeholderCount = _bodyKinds.length;
+            const _sampleByKind = { nome: 'Maria', produto: 'Aviator Solis Dourado', link: 'https://sualoja.com.br/produto' };
+            const sampleValues = _bodyKinds.map((kind, i) => _sampleByKind[kind] || ('Exemplo ' + (i + 1)));
             const bodyExamples = placeholderCount > 0
                 ? { body_text: [sampleValues.slice(0, placeholderCount)] }
                 : null;
@@ -9123,7 +9147,7 @@
             } else if (header) {
                 const headerPh = (header.match(/\{\{(\d+)\}\}/g) || []).length;
                 const headerComp = { type: 'HEADER', format: 'TEXT', text: header };
-                if (headerPh > 0) headerComp.example = { header_text: sampleValues.slice(0, headerPh) };
+                if (headerPh > 0) headerComp.example = { header_text: ['Oferta', 'Novidade', 'Hoje'].slice(0, headerPh) };
                 components.push(headerComp);
             }
             const bodyComp = { type: 'BODY', text: body };
@@ -10272,9 +10296,9 @@
             const ctxOptions = (selVal) => AUTOM_CTX_KEYS.map(k => '<option value="' + k.key + '"' + (selVal === k.key ? ' selected' : '') + '>' + escapeHtml(k.label) + '</option>').join('')
                 + '<option value="__literal__"' + ((selVal != null && !AUTOM_CTX_KEYS.some(k => k.key === selVal)) ? ' selected' : '') + '>Texto fixo</option>';
 
-            // Convenção Provou Levou: {{1}}=nome, {{2}}=produto, {{3}}=link.
-            // Default por posição quando o parâmetro ainda não foi configurado.
-            const paramDefault = ['nome', 'produto', 'link'];
+            // Usa o significado salvo nos exemplos do template; templates antigos
+            // continuam com o fallback nome → produto → link.
+            const paramDefault = waTemplateBodyParamKinds(tpl);
             let html = '';
             if (nParams > 0) {
                 html += '<div class="autom-cfg-subtitle">Parâmetros do corpo</div>';
@@ -11988,9 +12012,8 @@
             } else if (prev) {
                 prev.style.display = 'none';
             }
-            // Detecta se o template usa link de checkout: 3+ variáveis no corpo OU botão de URL com variável
-            const bodyText = (bodyComp && bodyComp.text) || '';
-            const placeholders = (bodyText.match(/\{\{\s*\d+\s*\}\}/g) || []).length;
+            // Detecta se o template usa link no corpo ou em botão de URL dinâmica.
+            const bodyKinds = waTemplateBodyParamKinds(tpl);
             const btnComp = tpl && (tpl.components || []).find(c => c.type === 'BUTTONS');
             const buttons = (btnComp && btnComp.buttons) || [];
             let urlBtnIndex = -1;
@@ -11998,11 +12021,9 @@
                 if ((b.type || '').toUpperCase() === 'URL' && /\{\{\s*\d+\s*\}\}/.test(b.url || '')) urlBtnIndex = i;
             });
             window._waBulkUrlBtnIndex = urlBtnIndex;
-            // Link vai no corpo sempre que o template tem 3+ variáveis ({{3}} = URL), MESMO
-            // que também exista botão de URL (templates que repetem o link no corpo e no botão,
-            // ex. automacao_clicou_nao_comprou_msg1). Antes exigia urlBtnIndex<0 e o {{3}}
-            // acabava preenchido com o nome → link errado no corpo.
-            window._waBulkLinkInBody = placeholders >= 3;
+            // O exemplo salvo no template identifica em qual {{n}} está o link,
+            // inclusive quando ele é a única variável do corpo.
+            window._waBulkLinkInBody = bodyKinds.includes('link');
             const needLink = urlBtnIndex >= 0 || window._waBulkLinkInBody;
             window._waBulkNeedLink = needLink;
             // O link de cada lead é sempre o do produto que ELE provou (produto_url),
@@ -12027,14 +12048,10 @@
             // pra montar os params na quantidade certa (evita erro da Meta).
             const tplName = _waBulkTemplate || _waConfigCache.default_template;
             const tplObj = (_waTemplatesCache || []).find(t => t.name === tplName);
-            const bodyComp = tplObj && (tplObj.components || []).find(c => c.type === 'BODY');
-            const bodyText = (bodyComp && bodyComp.text) || '';
-            const placeholders = (bodyText.match(/\{\{\s*\d+\s*\}\}/g) || []).length;
 
             // Link do produto: cada lead usa o link do produto que ELE provou (produto_url),
             // preenchido automaticamente. Não existe campo manual de checkout.
             const urlBtnIndex = (typeof _waBulkUrlBtnIndex === 'number') ? _waBulkUrlBtnIndex : -1;
-            const linkInBody = !!window._waBulkLinkInBody;
             const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
             // Link decidido pela ETAPA do disparo (não pelo dado do lead): etapa "Carrinho
             // abandonado" → link do checkout; qualquer outra etapa (ou "Todas") → link do produto.
@@ -12113,12 +12130,7 @@
                 // Convenção: {{1}} = primeiro nome, {{2}} = produto provado.
                 // Link deste lead: prioriza o checkout abandonado da loja; senão, o produto provado.
                 const leadLink = leadLinkOf(lead);
-                const fill = [firstName, produto];
-                if (linkInBody) fill[2] = leadLink;   // {{3}} = link no corpo
-                const params = [];
-                for (let i = 0; i < placeholders; i++) {
-                    params.push(fill[i] != null ? fill[i] : firstName);
-                }
+                const params = waBuildLeadBodyParams(tplObj, firstName, produto, leadLink);
                 // Se o link vai num botão de URL, manda components com o param do botão
                 let components = null;
                 if (urlBtnIndex >= 0 && leadLink) {
@@ -13027,7 +13039,8 @@
             const tplObj = (_waTemplatesCache || []).find(t => t.name === CAMP.tplName);
             const tplLang = (tplObj && tplObj.language) || CAMP.tplLang || 'pt_BR';
             const bodyComp = tplObj && (tplObj.components || []).find(c => (c.type || '').toUpperCase() === 'BODY');
-            const placeholders = (((bodyComp && bodyComp.text) || '').match(/\{\{\s*\d+\s*\}\}/g) || []).length;
+            const bodyKinds = waTemplateBodyParamKinds(tplObj);
+            const placeholders = bodyKinds.length;
             const aprovado = !CAMP.tplPending && !!tplObj && (tplObj.status || '').toUpperCase() === 'APPROVED';
             const status = aprovado ? 'agendado' : 'aguardando_aprovacao';
             const btn = document.getElementById('campCreateBtn'); if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Criando…'; }
@@ -13053,7 +13066,7 @@
                         ? (hasUrl(l.checkoutUrl) ? l.checkoutUrl : (hasUrl(l.productUrl) ? l.productUrl : ''))
                         : (hasUrl(l.productUrl) ? l.productUrl : '');
                     // Detecta se o link vai no corpo ({{3}}) ou num botão de URL dinâmico ({{1}} do botão).
-                    const linkInBody = placeholders >= 3;
+                    const linkInBody = bodyKinds.includes('link');
                     const btnComp = tplObj && (tplObj.components || []).find(c => (c.type || '').toUpperCase() === 'BUTTONS');
                     let urlBtnIndex = -1;
                     ((btnComp && btnComp.buttons) || []).forEach((b, i) => {
@@ -13079,9 +13092,7 @@
                         const firstName = (lead.name || '').split(' ')[0] || '👋';
                         const produto = lead.product || 'o modelo que você provou';
                         const leadLink = leadLinkOf(lead) || '';
-                        const fill = [firstName, produto];
-                        if (linkInBody) fill[2] = leadLink;   // {{3}} = link no corpo
-                        const params = []; for (let i = 0; i < placeholders; i++) params.push(fill[i] != null ? fill[i] : firstName);
+                        const params = waBuildLeadBodyParams(tplObj, firstName, produto, leadLink);
                         const p = { to: lead.phone, params: params };
                         if (urlBtnIndex >= 0 && leadLink) {
                             const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || leadLink;
@@ -13346,11 +13357,7 @@
             const tplName = _waBulkTemplate || _waConfigCache.default_template;
             const tplLang = _waBulkTemplateLang || _waConfigCache.default_language || 'pt_BR';
             const tplObj = (_waTemplatesCache || []).find(t => t.name === tplName);
-            const bodyComp = tplObj && (tplObj.components || []).find(c => c.type === 'BODY');
-            const bodyText = (bodyComp && bodyComp.text) || '';
-            const placeholders = (bodyText.match(/\{\{\s*\d+\s*\}\}/g) || []).length;
             const urlBtnIndex = (typeof _waBulkUrlBtnIndex === 'number') ? _waBulkUrlBtnIndex : -1;
-            const linkInBody = !!window._waBulkLinkInBody;
             const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
             // Link decidido pela ETAPA do disparo (não pelo dado do lead): etapa "Carrinho
             // abandonado" → link do checkout; qualquer outra etapa (ou "Todas") → link do produto.
@@ -13367,10 +13374,7 @@
                 const firstName = (lead.name || '').split(' ')[0] || '👋';
                 const produto = lead.product || 'o modelo que você provou';
                 const leadLink = leadLinkOf(lead);
-                const fill = [firstName, produto];
-                if (linkInBody) fill[2] = leadLink;
-                const params = [];
-                for (let i = 0; i < placeholders; i++) params.push(fill[i] != null ? fill[i] : firstName);
+                const params = waBuildLeadBodyParams(tplObj, firstName, produto, leadLink);
                 const p = { to: lead.phone, params: params };
                 if (urlBtnIndex >= 0 && leadLink) {
                     const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || leadLink;
@@ -13476,8 +13480,7 @@
             const tplLang = _waBulkTemplateLang || _waConfigCache.default_language || 'pt_BR';
             if (!tplName) { fb.style.color = '#ef4444'; fb.textContent = 'Escolha o modelo de mensagem acima primeiro.'; return; }
             const tplObj = (_waTemplatesCache || []).find(t => t.name === tplName);
-            const bodyComp = tplObj && (tplObj.components || []).find(c => c.type === 'BODY');
-            const placeholders = (((bodyComp && bodyComp.text) || '').match(/\{\{\s*\d+\s*\}\}/g) || []).length;
+            const placeholders = waTemplateBodyParamKinds(tplObj).length;
             const btn = document.getElementById('recurBtn'); btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Ativando…';
             try {
                 const { error } = await supabaseClient.from('disparos_agendados').insert({
@@ -13537,9 +13540,7 @@
             // link no corpo ({{3}}) e/ou botão de URL dinâmico. Antes mandava fixo [nome, produto]
             // e nenhum components → faltava o {{3}} e o parâmetro do botão.
             const tplObj = (_waTemplatesCache || []).find(t => t.name === _waConfigCache.default_template);
-            const bodyComp = tplObj && (tplObj.components || []).find(c => c.type === 'BODY');
-            const bodyText = (bodyComp && bodyComp.text) || '';
-            const placeholders = (bodyText.match(/\{\{\s*\d+\s*\}\}/g) || []).length;
+            const bodyKinds = waTemplateBodyParamKinds(tplObj);
             const btnComp = tplObj && (tplObj.components || []).find(c => c.type === 'BUTTONS');
             const buttons = (btnComp && btnComp.buttons) || [];
             let urlBtnIndex = -1;
@@ -13548,7 +13549,7 @@
             const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
             const leadLink = hasUrl(btn.dataset.checkouturl) ? btn.dataset.checkouturl
                 : (hasUrl(btn.dataset.producturl) ? btn.dataset.producturl : '');
-            const needLink = urlBtnIndex >= 0 || placeholders >= 3;
+            const needLink = urlBtnIndex >= 0 || bodyKinds.includes('link');
             if (needLink && !leadLink) {
                 btn.classList.add('failed');
                 btn.innerHTML = '<i class="ph-bold ph-warning"></i> Sem link do produto';
@@ -13559,10 +13560,7 @@
 
             const firstName = (name || '').split(' ')[0] || '👋';
             const produto = product || 'o modelo que você provou';
-            const fill = [firstName, produto];
-            if (placeholders >= 3) fill[2] = leadLink;   // {{3}} = link no corpo
-            const params = [];
-            for (let i = 0; i < placeholders; i++) params.push(fill[i] != null ? fill[i] : firstName);
+            const params = waBuildLeadBodyParams(tplObj, firstName, produto, leadLink);
             // Se há botão de URL dinâmico, manda components com o param do botão (só o caminho,
             // pra Meta concatenar com a base do botão sem duplicar domínio).
             let components = null;
