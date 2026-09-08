@@ -285,7 +285,10 @@
                      brand: '#F15A24', dark: '#C74316', soft: 'rgba(241,90,36,.11)', on: '#FFFFFF' },
     // Óticas Rufins: amarelo e grafite presentes no logo.
     oticasrufins: { bg: '#FFFDF4', card: '#FFFFFF', line: '#EEE4B8',
-                    brand: '#E0B900', dark: '#3F3F43', soft: 'rgba(224,185,0,.13)', on: '#FFFFFF' }
+                    brand: '#E0B900', dark: '#3F3F43', soft: 'rgba(224,185,0,.13)', on: '#FFFFFF' },
+    // Ótica Salvador: turquesa do símbolo com contraste em fundo claro.
+    oticasalvador: { bg: '#F5FCFC', card: '#FFFFFF', line: '#CFE9E7',
+                     brand: '#55BDB8', dark: '#287F7B', soft: 'rgba(85,189,184,.12)', on: '#FFFFFF' }
   };
 
   // ─────────── Tema ───────────
