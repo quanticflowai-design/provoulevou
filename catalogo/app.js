@@ -282,7 +282,10 @@
                      brand: '#D96F0C', dark: '#A94E05', soft: 'rgba(217,111,12,.12)', on: '#FFFFFF' },
     // Óptica Santa Efigênia: laranja do logo sobre uma base clara e quente.
     santaefigenia: { bg: '#FFF8F3', card: '#FFFFFF', line: '#F2D8CC',
-                     brand: '#F15A24', dark: '#C74316', soft: 'rgba(241,90,36,.11)', on: '#FFFFFF' }
+                     brand: '#F15A24', dark: '#C74316', soft: 'rgba(241,90,36,.11)', on: '#FFFFFF' },
+    // Óticas Rufins: amarelo e grafite presentes no logo.
+    oticasrufins: { bg: '#FFFDF4', card: '#FFFFFF', line: '#EEE4B8',
+                    brand: '#E0B900', dark: '#3F3F43', soft: 'rgba(224,185,0,.13)', on: '#FFFFFF' }
   };
 
   // ─────────── Tema ───────────
