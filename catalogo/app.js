@@ -279,7 +279,10 @@
                brand: '#1F1B1C', dark: '#000000', soft: 'rgba(31,27,28,.08)', on: '#FFFFFF' },
     // Club dos Óculos: laranja quente do fundo do logo, com CTA mais escuro.
     clubdosoculos: { bg: '#FFF8F0', card: '#FFFFFF', line: '#F0D8BF',
-                     brand: '#D96F0C', dark: '#A94E05', soft: 'rgba(217,111,12,.12)', on: '#FFFFFF' }
+                     brand: '#D96F0C', dark: '#A94E05', soft: 'rgba(217,111,12,.12)', on: '#FFFFFF' },
+    // Óptica Santa Efigênia: laranja do logo sobre uma base clara e quente.
+    santaefigenia: { bg: '#FFF8F3', card: '#FFFFFF', line: '#F2D8CC',
+                     brand: '#F15A24', dark: '#C74316', soft: 'rgba(241,90,36,.11)', on: '#FFFFFF' }
   };
 
   // ─────────── Tema ───────────
