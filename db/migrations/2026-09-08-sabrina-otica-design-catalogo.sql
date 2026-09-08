@@ -6,7 +6,7 @@ insert into public.pl_catalog_stores (
 )
 select
   'sabrina', 'Sabrina Ótica Design',
-  'https://provoulevou.com.br/catalogo/assets/logo-sabrina.webp',
+  'https://cdn.jsdelivr.net/gh/quanticflowai-design/provoulevou@c23b6a9/catalogo/assets/logo-sabrina.webp',
   '5511997561707', 'Sabrina Ótica Design', '#1F1B1C',
   'pl_cat_' || encode(gen_random_bytes(32), 'hex'),
   'sabrina2560@hotmail.com', 'basic', true,
