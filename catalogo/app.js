@@ -271,7 +271,9 @@
                     brand: '#C5161D', dark: '#9F1016', soft: 'rgba(197,22,29,.10)', on: '#FFFFFF' },
     // Ótica Rever: azul do lettering sobre fundo transparente e claro.
     rever: { bg: '#FFFFFF', card: '#FFFFFF', line: '#D9E7F7',
-             brand: '#0868C9', dark: '#0754A1', soft: 'rgba(8,104,201,.10)', on: '#FFFFFF' }
+             brand: '#0868C9', dark: '#0754A1', soft: 'rgba(8,104,201,.10)', on: '#FFFFFF' },
+    bamboo: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E6DADC',
+              brand: '#B30B20', dark: '#8E0919', soft: 'rgba(179,11,32,.10)', on: '#FFFFFF' }
   };
 
   // ─────────── Tema ───────────
