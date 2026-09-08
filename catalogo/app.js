@@ -273,7 +273,10 @@
     rever: { bg: '#FFFFFF', card: '#FFFFFF', line: '#D9E7F7',
              brand: '#0868C9', dark: '#0754A1', soft: 'rgba(8,104,201,.10)', on: '#FFFFFF' },
     bamboo: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E6DADC',
-              brand: '#B30B20', dark: '#8E0919', soft: 'rgba(179,11,32,.10)', on: '#FFFFFF' }
+              brand: '#B30B20', dark: '#8E0919', soft: 'rgba(179,11,32,.10)', on: '#FFFFFF' },
+    // Sabrina Ótica Design: identidade preta e branca do logo.
+    sabrina: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E6E6E6',
+               brand: '#1F1B1C', dark: '#000000', soft: 'rgba(31,27,28,.08)', on: '#FFFFFF' }
   };
 
   // ─────────── Tema ───────────
