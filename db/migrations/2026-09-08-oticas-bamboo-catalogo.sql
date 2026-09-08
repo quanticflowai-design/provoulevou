@@ -6,7 +6,7 @@ insert into public.pl_catalog_stores (
 )
 select
   'bamboo', 'Óticas Bamboo',
-  'https://provoulevou.com.br/catalogo/assets/logo-bamboo.webp',
+  'https://cdn.jsdelivr.net/gh/quanticflowai-design/provoulevou@9aecb9f/catalogo/assets/logo-bamboo.webp',
   '5594981471752', 'Óticas Bamboo', '#B30B20',
   'pl_cat_' || encode(gen_random_bytes(32), 'hex'),
   'eduarda.rodrigues743@outlook.com', 'basic', true,
