@@ -11,7 +11,7 @@ select
   'pl_cat_' || encode(gen_random_bytes(32), 'hex'),
   'oticarever@hotmail.com', 'basic', true,
   '{"bg":"#ffffff","card":"#ffffff","brand":"#0868C9","cta":"#0754A1","onCta":"#ffffff"}'::jsonb,
-  3
+  5
 where not exists (
   select 1 from public.pl_catalog_stores
    where slug = 'rever' or lower(owner_email) = 'oticarever@hotmail.com'
