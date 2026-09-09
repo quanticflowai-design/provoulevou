@@ -297,7 +297,13 @@
                       brand: '#54240D', dark: '#321205', soft: 'rgba(84,36,13,.10)', on: '#FFFFFF' },
     // Carola Óculos: grafite monocromático do logo.
     carolaoculos: { bg: '#F8F8F9', card: '#FFFFFF', line: '#DEDEE2',
-                    brand: '#414044', dark: '#222124', soft: 'rgba(65,64,68,.09)', on: '#FFFFFF' }
+                    brand: '#414044', dark: '#222124', soft: 'rgba(65,64,68,.09)', on: '#FFFFFF' },
+    // Ótica Kadima: azul-marinho e azul vivo presentes na marca.
+    oticakadima: { bg: '#F5F9FD', card: '#FFFFFF', line: '#D4E2F0',
+                   brand: '#123C70', dark: '#082447', soft: 'rgba(18,60,112,.11)', on: '#FFFFFF' },
+    // Óticas Porto: azul profundo do nome com o verde-água do símbolo.
+    oticasporto: { bg: '#F4FCFA', card: '#FFFFFF', line: '#CDEBE4',
+                   brand: '#111064', dark: '#08073F', soft: 'rgba(45,207,167,.13)', on: '#FFFFFF' }
   };
 
   // ─────────── Tema ───────────
