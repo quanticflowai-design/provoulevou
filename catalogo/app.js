@@ -122,6 +122,7 @@
         }
       }
       if (nomeTxt) nomeTxt.textContent = STORE.name;
+      configuraBotoesCompra();
     }
     return storeRow;
   }
@@ -1649,8 +1650,33 @@
   }
   // Loja de catalogo nao tem carrinho: quem quer comprar fala com o lojista, ja
   // com o modelo provado no texto. So cai no checkout se a loja nao tiver WhatsApp.
-  function comprarNoWhatsapp() {
-    const tel = String((storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
+  const LOJAS_COMPRA_WHATSAPP = {
+    oticakadima: [
+      { rotulo: 'Loja Várzea Paulista' },
+      { rotulo: 'Campo Limpo Paulista', telefone: '5511942329445' }
+    ]
+  };
+
+  function configuraBotoesCompra() {
+    const principal = $('#btn-buy'), secundario = $('#btn-buy-secondary');
+    const labelPrincipal = $('#btn-buy-label'), labelSecundario = $('#btn-buy-secondary-label');
+    if (!principal || !secundario) return;
+    const lojas = LOJAS_COMPRA_WHATSAPP[STORE_SLUG] || [];
+    principal.dataset.telefone = lojas[0] && lojas[0].telefone || '';
+    if (labelPrincipal) labelPrincipal.textContent = lojas.length
+      ? 'Comprar — ' + lojas[0].rotulo : 'Comprar no WhatsApp';
+    if (lojas.length > 1) {
+      secundario.dataset.telefone = lojas[1].telefone || '';
+      if (labelSecundario) labelSecundario.textContent = 'Comprar — ' + lojas[1].rotulo;
+      secundario.hidden = false;
+    } else {
+      secundario.dataset.telefone = '';
+      secundario.hidden = true;
+    }
+  }
+
+  function comprarNoWhatsapp(telefone) {
+    const tel = String(telefone || (storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
     if (!tel) { openCheckout(); return; }
     const num = tel.length <= 11 ? '55' + tel : tel;
     const txt = 'Oi! Provei o ' + (current && current.name || 'produto') +
@@ -1658,7 +1684,8 @@
       ' no provador virtual da ' + STORE.name + ' e quero comprar.';
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
   }
-  $('#btn-buy').addEventListener('click', comprarNoWhatsapp);
+  $('#btn-buy').addEventListener('click', e => comprarNoWhatsapp(e.currentTarget.dataset.telefone));
+  $('#btn-buy-secondary').addEventListener('click', e => comprarNoWhatsapp(e.currentTarget.dataset.telefone));
   // Limite atingido: a conversa com a loja é a única saída hoje, então o texto
   // já vai pronto — sem isso o cliente sai da página e não volta.
   {
