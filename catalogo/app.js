@@ -288,7 +288,13 @@
                     brand: '#E0B900', dark: '#3F3F43', soft: 'rgba(224,185,0,.13)', on: '#FFFFFF' },
     // Ótica Salvador: turquesa do símbolo com contraste em fundo claro.
     oticasalvador: { bg: '#F5FCFC', card: '#FFFFFF', line: '#CFE9E7',
-                     brand: '#55BDB8', dark: '#287F7B', soft: 'rgba(85,189,184,.12)', on: '#FFFFFF' }
+                     brand: '#55BDB8', dark: '#287F7B', soft: 'rgba(85,189,184,.12)', on: '#FFFFFF' },
+    // Ótica Olho D'Gatto: violeta e laranja vibrantes do símbolo.
+    olhodgatto: { bg: '#FCF8FF', card: '#FFFFFF', line: '#E8D7F5',
+                  brand: '#7A16C7', dark: '#4E0B8A', soft: 'rgba(122,22,199,.11)', on: '#FFFFFF' },
+    // Lume Sunglasses: marrom profundo do logo sobre tons quentes e claros.
+    lumesunglasses: { bg: '#FFF9F4', card: '#FFFFFF', line: '#EAD9CC',
+                      brand: '#54240D', dark: '#321205', soft: 'rgba(84,36,13,.10)', on: '#FFFFFF' }
   };
 
   // ─────────── Tema ───────────
