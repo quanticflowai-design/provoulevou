@@ -5788,11 +5788,25 @@
                                     <div class="wa-body-backdrop" id="newTplBackdrop" aria-hidden="true"></div>
                                     <textarea class="wa-input wa-body-ta" id="newTplBody" rows="6" placeholder="Oi {{nome do cliente}}, você provou o {{nome do produto}} mas ainda não comprou. Finalize aqui: {{link do produto}} — te espero! 🧡" oninput="tplSyncHighlight();tplUpdatePreview()" onscroll="tplSyncScroll()" ondrop="tplVarDrop(event)"></textarea>
                                 </div>
+                                <div class="wa-help">Você também pode colar <strong>qualquer link completo</strong> diretamente no texto da mensagem.</div>
                             </div>
                             <div style="margin-top:14px;">
                                 <label class="wa-label">Botão de ação (CTA) <span style="color:var(--text-muted);font-weight:500;">(opcional — recomendado pela Meta)</span></label>
                                 <input type="text" class="wa-input" id="newTplBtnText" maxlength="25" placeholder="Ex: Comprar agora" oninput="tplUpdatePreview()">
-                                <div class="wa-help">Aqui vai só o <strong>texto do botão</strong> (ex: "Comprar agora"). O <strong>link é preenchido automaticamente</strong> pra cada lead — você <strong>não precisa colar nada</strong>. Cria um botão que leva o cliente direto pro produto que ele provou (converte mais que link no texto). Deixe vazio pra não ter botão.</div>
+                                <div class="wa-help">Escreva o texto que aparece no botão (ex.: "Comprar agora"). Deixe vazio pra criar a mensagem sem botão.</div>
+                                <div style="margin-top:10px;">
+                                    <label class="wa-label">Destino do botão</label>
+                                    <select class="wa-input" id="newTplBtnLinkMode" onchange="tplUpdateButtonLinkMode()">
+                                        <option value="product">Link do produto — automático para cada cliente</option>
+                                        <option value="custom">Link personalizado — o mesmo para todos</option>
+                                    </select>
+                                </div>
+                                <div id="newTplBtnProductHelp" class="wa-help">O botão abre automaticamente a página do produto que cada cliente provou.</div>
+                                <div id="newTplBtnCustomWrap" style="display:none;margin-top:10px;">
+                                    <label class="wa-label">Link personalizado</label>
+                                    <input type="url" class="wa-input" id="newTplBtnUrl" placeholder="https://sualoja.com.br/qualquer-pagina" oninput="tplUpdatePreview()">
+                                    <div class="wa-help">Cole qualquer link completo começando com <strong>https://</strong> ou <strong>http://</strong>. Pode ser uma página da loja, coleção, checkout, WhatsApp ou outro site.</div>
+                                </div>
                             </div>
                             <div>
                                 <label class="wa-label">Prévia da mensagem</label>
@@ -8588,6 +8602,7 @@
             // limpa a imagem de cabeçalho de uma abertura anterior
             const _hi = document.getElementById('newTplHeaderImg'); if (_hi) _hi.value = '';
             try { tplPreviewHeaderImg(); } catch (e) {}
+            try { tplUpdateButtonLinkMode(); } catch (e) {}
             try { tplUpdatePreview(); } catch (e) {}
             try { tplSyncHighlight(); } catch (e) {} // sincroniza o realce do corpo com o conteúdo atual
         }
@@ -9013,6 +9028,15 @@
             tplPreviewHeaderImg();
         }
         // Prévia estilo WhatsApp: imagem no topo + corpo (com variáveis de exemplo) + botão.
+        function tplUpdateButtonLinkMode() {
+            const mode = ((document.getElementById('newTplBtnLinkMode') || {}).value || 'product');
+            const customWrap = document.getElementById('newTplBtnCustomWrap');
+            const productHelp = document.getElementById('newTplBtnProductHelp');
+            if (customWrap) customWrap.style.display = mode === 'custom' ? 'block' : 'none';
+            if (productHelp) productHelp.style.display = mode === 'product' ? 'block' : 'none';
+            tplUpdatePreview();
+        }
+
         function tplUpdatePreview() {
             const pvBody = document.getElementById('waPvBody');
             if (!pvBody) return;
@@ -9034,8 +9058,14 @@
                     .replace(/\{\{\s*link do produto\s*\}\}/gi, '<span class="wa-msg-var">sualoja.com.br/produto</span>');
             }
             const btnText = ((document.getElementById('newTplBtnText') || {}).value || '').trim();
+            const btnMode = ((document.getElementById('newTplBtnLinkMode') || {}).value || 'product');
+            const btnUrl = ((document.getElementById('newTplBtnUrl') || {}).value || '').trim();
             if (pvBtn) {
-                if (btnText) { pvBtn.innerHTML = '<i class="ph-bold ph-arrow-square-out"></i> ' + escapeHtml(btnText); pvBtn.style.display = 'flex'; }
+                if (btnText) {
+                    pvBtn.innerHTML = '<i class="ph-bold ph-arrow-square-out"></i> ' + escapeHtml(btnText);
+                    pvBtn.title = btnMode === 'custom' ? (btnUrl || 'Informe o link personalizado') : 'Link automático do produto';
+                    pvBtn.style.display = 'flex';
+                }
                 else { pvBtn.style.display = 'none'; pvBtn.innerHTML = ''; }
             }
         }
@@ -9155,24 +9185,44 @@
             components.push(bodyComp);
             if (footer) components.push({ type: 'FOOTER', text: footer });
 
-            // Botão de link do produto (URL dinâmica: domínio da loja + {{1}} = caminho do produto)
+            // O CTA pode usar o link dinâmico do produto de cada lead ou qualquer URL fixa.
             const btnText = (document.getElementById('newTplBtnText')?.value || '').trim();
+            const btnLinkMode = (document.getElementById('newTplBtnLinkMode')?.value || 'product');
             if (btnText) {
-                const cleanDomain = (activeUser.origem || '')
-                    .replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '').replace(/\/$/, '');
-                if (!cleanDomain) {
-                    fb.className = 'wa-feedback error';
-                    fb.innerHTML = 'Não consegui identificar o domínio da loja pra montar o botão. Remova o texto do botão ou configure a origem da loja.';
-                    return;
-                }
-                components.push({
-                    type: 'BUTTONS',
-                    buttons: [{
+                let button;
+                if (btnLinkMode === 'custom') {
+                    const customUrl = (document.getElementById('newTplBtnUrl')?.value || '').trim();
+                    let parsedUrl = null;
+                    try { parsedUrl = new URL(customUrl); } catch (e) {}
+                    if (!parsedUrl || !/^https?:$/.test(parsedUrl.protocol) || /\s/.test(customUrl)) {
+                        fb.className = 'wa-feedback error';
+                        fb.innerHTML = 'Informe um <strong>link personalizado válido e completo</strong>, começando com https:// ou http://.';
+                        return;
+                    }
+                    if (/\{\{.*?\}\}/.test(customUrl)) {
+                        fb.className = 'wa-feedback error';
+                        fb.innerHTML = 'O link personalizado deve ser fixo. Para preencher a página de cada lead automaticamente, escolha <strong>Link do produto</strong>.';
+                        return;
+                    }
+                    button = { type: 'URL', text: btnText, url: customUrl };
+                } else {
+                    const cleanDomain = (activeUser.origem || '')
+                        .replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '').replace(/\/$/, '');
+                    if (!cleanDomain) {
+                        fb.className = 'wa-feedback error';
+                        fb.innerHTML = 'Não consegui identificar o domínio da loja pra montar o botão. Use um link personalizado ou configure a origem da loja.';
+                        return;
+                    }
+                    button = {
                         type: 'URL',
                         text: btnText,
                         url: 'https://' + cleanDomain + '/{{1}}',
                         example: ['https://' + cleanDomain + '/produto-exemplo']
-                    }]
+                    };
+                }
+                components.push({
+                    type: 'BUTTONS',
+                    buttons: [button]
                 });
             }
 
