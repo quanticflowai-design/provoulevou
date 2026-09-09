@@ -10,7 +10,7 @@ select
   '5581996465275', 'Ótica ESM Premium', '#FFC20E',
   'pl_cat_' || encode(gen_random_bytes(32), 'hex'),
   'exclusivaoculosesm@gmail.com', 'basic', true,
-  '{"bg":"#FFF9E5","card":"#ffffff","brand":"#FFC20E","cta":"#111111","onCta":"#ffffff"}'::jsonb,
+  '{"bg":"#FDC40D","card":"#ffffff","brand":"#111111","cta":"#111111","onCta":"#ffffff"}'::jsonb,
   3
 where not exists (
   select 1 from public.pl_catalog_stores
