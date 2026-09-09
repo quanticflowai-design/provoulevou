@@ -294,7 +294,10 @@
                   brand: '#7A16C7', dark: '#4E0B8A', soft: 'rgba(122,22,199,.11)', on: '#FFFFFF' },
     // Lume Sunglasses: marrom profundo do logo sobre tons quentes e claros.
     lumesunglasses: { bg: '#FFF9F4', card: '#FFFFFF', line: '#EAD9CC',
-                      brand: '#54240D', dark: '#321205', soft: 'rgba(84,36,13,.10)', on: '#FFFFFF' }
+                      brand: '#54240D', dark: '#321205', soft: 'rgba(84,36,13,.10)', on: '#FFFFFF' },
+    // Carola Óculos: grafite monocromático do logo.
+    carolaoculos: { bg: '#F8F8F9', card: '#FFFFFF', line: '#DEDEE2',
+                    brand: '#414044', dark: '#222124', soft: 'rgba(65,64,68,.09)', on: '#FFFFFF' }
   };
 
   // ─────────── Tema ───────────
