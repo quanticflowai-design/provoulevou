@@ -100,7 +100,7 @@
     // Fica exposta no browser, igual a api_key dos widgets das outras lojas — o
     // gerador so aceita se o Origin bater com o domain registrado.
     const rows = await sbGet('pl_catalog_stores?slug=eq.' + encodeURIComponent(STORE_SLUG) +
-      '&select=id,slug,display_name,logo_url,whatsapp,bio,primary_color,is_active,store_api_key,owner_email&limit=1');
+      '&select=id,slug,display_name,logo_url,whatsapp,bio,primary_color,tema,is_active,store_api_key,owner_email&limit=1');
     storeRow = (rows && rows[0]) || null;
     if (storeRow) {
       STORE.name = storeRow.display_name || STORE.name;
