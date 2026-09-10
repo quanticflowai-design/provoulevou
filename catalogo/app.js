@@ -100,8 +100,13 @@
     // Fica exposta no browser, igual a api_key dos widgets das outras lojas — o
     // gerador so aceita se o Origin bater com o domain registrado.
     const rows = await sbGet('pl_catalog_stores?slug=eq.' + encodeURIComponent(STORE_SLUG) +
-      '&select=id,slug,display_name,logo_url,whatsapp,bio,primary_color,tema,is_active,store_api_key,owner_email&limit=1');
+      '&is_active=eq.true&select=id,slug,display_name,logo_url,whatsapp,bio,primary_color,tema,is_active,store_api_key,owner_email&limit=1');
     storeRow = (rows && rows[0]) || null;
+    if (!storeRow) {
+      document.title = 'Catálogo indisponível';
+      document.body.innerHTML = '<main style="min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center;font-family:Inter,system-ui,sans-serif;background:#f7f7f8;color:#17171b"><section><h1 style="margin:0 0 10px;font-size:28px">Catálogo indisponível</h1><p style="margin:0;color:#666">Este catálogo não está disponível no momento.</p></section></main>';
+      return null;
+    }
     if (storeRow) {
       STORE.name = storeRow.display_name || STORE.name;
       aplicaTema(storeRow.primary_color);
@@ -224,12 +229,6 @@
     // laranja dá 2,4:1.
     mendonca: { bg: '#87000E', card: '#9B0714', line: 'rgba(248,147,31,.30)',
                 brand: '#F8931F', dark: '#DE7F14', soft: 'rgba(248,147,31,.15)', on: '#111111' },
-    // Ótica Malu: o logo veio todo amarelo (o "removebg" tirou o fundo azul), e
-    // amarelo em branco dá 1,5:1 — some. Por isso o fundo é azul, como no
-    // original. Azul-royal para não virar cópia da Aqui Lentes (marinho) nem da
-    // Paranhos (índigo), que também são azul e amarelo.
-    malu: { bg: '#0D3B8F', card: '#14459E', line: 'rgba(238,210,23,.30)',
-            brand: '#EED217', dark: '#D4BA12', soft: 'rgba(238,210,23,.15)', on: '#0D3B8F' },
     // Ótica Goulart: logo preto em traço fino sobre transparente — fundo branco
     // e preto como marca, igual à Ronaldo Óculos.
     goulart: { bg: '#ffffff', card: '#ffffff', line: '#E8E8EA',
@@ -436,6 +435,7 @@
   async function refreshFromServer() {
     try {
       await loadStore();
+      if (!storeRow) return;
       await loadCatalog();
       renderStore(); renderCatalog();
       aplicaPermissoes();   // owner_email so chega com a loja carregada
