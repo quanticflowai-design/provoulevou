@@ -64,7 +64,7 @@ values (
   'produto_provado',
   'Sunglasses Ubatuba',
   'oculos',
-  'tray'
+  null
 )
 on conflict (email) do update set
   tabela = excluded.tabela,
