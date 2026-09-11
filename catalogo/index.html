@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=88">
+  <link rel="stylesheet" href="styles.css?v=89">
 </head>
 <body>
   <div id="app">
@@ -53,7 +53,8 @@
       <button class="back" data-back="catalog">‹ Voltar</button>
       <div class="product-view">
         <div class="product-photo"><img id="p-img" alt=""></div>
-        <!-- miniaturas: só aparecem quando o produto tem mais de uma foto -->
+        <p class="p-variant-title" id="p-variant-title" hidden>Escolha a variação:</p>
+        <!-- miniaturas: aparecem com várias fotos ou quando há uma variação nomeada -->
         <div class="p-thumbs" id="p-thumbs" hidden></div>
         <div class="product-info">
           <h2 id="p-name">—</h2>
@@ -330,6 +331,10 @@
             <span class="admin-up-conta" id="admin-up-conta" hidden></span>
           </label>
           <div class="admin-fields">
+            <div class="admin-variacoes" id="admin-variacoes" hidden>
+              <p>Nomeie a cor ou variação de cada foto</p>
+              <div id="admin-variacoes-lista"></div>
+            </div>
             <input type="text" id="admin-name" placeholder="Nome do produto">
             <!-- decimal, nao numeric: o teclado "numeric" do Android nao tem virgula,
                  e o lojista so conseguia digitar preco inteiro. -->
@@ -419,6 +424,6 @@
   </template>
   <div id="toast"></div>
 
-  <script src="app.js?v=97"></script>
+  <script src="app.js?v=98"></script>
 </body>
 </html>

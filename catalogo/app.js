@@ -70,6 +70,16 @@
     const fotos = (current.imgs && current.imgs.length ? current.imgs : [current.img]).filter(Boolean);
     return fotos[Math.min(Math.max(0, fotoSel), fotos.length - 1)] || current.img || '';
   }
+  function variacaoAtual() {
+    if (!current || !current.imageMeta || !current.imageMeta.length) return '';
+    const item = current.imageMeta[Math.min(Math.max(0, fotoSel), current.imageMeta.length - 1)];
+    return (item && item.variantName) || '';
+  }
+  function nomeProdutoAtual() {
+    const nome = (current && current.name) || 'produto';
+    const variacao = variacaoAtual();
+    return variacao ? nome + ' — ' + variacao : nome;
+  }
   let userPhoto = '';       // dataURL da foto do cliente
   let payMethod = 'pix';
   let pixTimer = null;
@@ -409,7 +419,7 @@
   async function loadCatalog() {
     if (!storeRow) return catalog;
     const rows = await sbGet('pl_catalog_products?store_id=eq.' + storeRow.id +
-      '&is_active=eq.true&select=*,pl_catalog_product_images(id,url,is_primary,position)' +
+      '&is_active=eq.true&select=*,pl_catalog_product_images(id,url,is_primary,position,variant_name)' +
       '&order=position.asc,created_at.desc');
     carregou = true;
     catalog = (rows || []).map(r => {
@@ -420,6 +430,7 @@
         id: r.id, name: r.name, price: Number(r.price), img: urls[0] || '',
         imgs: urls,                       // a galeria e as referências da prova saem daqui
         imgIds: imgs.map(x => x.id).filter(Boolean),   // quais apagar quando trocar a foto
+        imageMeta: imgs.map(x => ({ id: x.id, url: x.url, variantName: (x.variant_name || '').trim() })),
         desc: r.description || '',
         cat: (r.categoria_vitrine || '').trim(),   // categoria criada pelo lojista
         parcelas: Number(r.parcelas) || 0,
@@ -751,24 +762,38 @@
   }
 
   // ─────────── Produto ───────────
-  // Miniaturas só fazem sentido com mais de uma foto — com uma só, viram um
-  // quadradinho solto embaixo da imagem sem função nenhuma.
+  // Cada foto pode representar uma cor/variação. Produtos antigos, sem nomes,
+  // continuam usando a galeria simples que já existia.
   function montaMiniaturas(p) {
     const box = $('#p-thumbs');
     if (!box) return;
     box.textContent = '';
     const fotos = (p.imgs && p.imgs.length ? p.imgs : [p.img]).filter(Boolean);
-    box.hidden = fotos.length < 2;
+    const meta = (p.imageMeta && p.imageMeta.length ? p.imageMeta : fotos.map(u => ({ url: u, variantName: '' })));
+    const temVariacoes = meta.some(x => x.variantName);
+    const titulo = $('#p-variant-title');
+    if (titulo) titulo.hidden = !temVariacoes;
+    box.classList.toggle('com-variacoes', temVariacoes);
+    box.hidden = fotos.length < 2 && !temVariacoes;
     if (box.hidden) return;
     fotos.forEach((u, i) => {
-      const t = document.createElement('img');
-      t.alt = '';
+      const t = document.createElement('button');
+      t.type = 'button';
+      t.className = 'p-thumb';
+      const img = document.createElement('img');
+      img.alt = (meta[i] && meta[i].variantName) || '';
+      bindImg(img, u, p.name);
+      t.appendChild(img);
+      if (temVariacoes) {
+        const nome = document.createElement('span');
+        nome.textContent = (meta[i] && meta[i].variantName) || ('Foto ' + (i + 1));
+        t.appendChild(nome);
+      }
       if (i === 0) t.classList.add('sel');
-      bindImg(t, u, p.name);
       t.addEventListener('click', () => {
         fotoSel = i;   // a prova respeita a foto escolhida (ex.: outra cor do modelo)
         bindImg($('#p-img'), u, p.name);
-        box.querySelectorAll('img').forEach(x => x.classList.remove('sel'));
+        box.querySelectorAll('.p-thumb').forEach(x => x.classList.remove('sel'));
         t.classList.add('sel');
       });
       box.appendChild(t);
@@ -1152,7 +1177,7 @@
       fd.append('product_image', prodBlob, 'produto.jpg');
       fd.append('whatsapp', '55' + tel);
       fd.append('phone_raw', $('#phone-input').value);
-      fd.append('product_name', current.name);
+      fd.append('product_name', nomeProdutoAtual());
       fd.append('product_type', cat);
       fd.append('api_key', chave);
       // Sem isto toda prova de catálogo grava origin 'https://provoulevou.com.br',
@@ -1194,7 +1219,7 @@
     img.onerror = null;
     img.src = urlProva || userPhoto || fallbackSvg('Sua prova');
     bindImg($('#result-thumb'), fotoAtual() || current.img, current.name);
-    $('#result-name').textContent = current.name;
+    $('#result-name').textContent = nomeProdutoAtual();
     $('#result-price').textContent = brl(current.price);
     show('result');
   }
@@ -1202,7 +1227,7 @@
   // ─────────── Checkout ───────────
   function openCheckout() {
     bindImg($('#co-thumb'), fotoAtual() || current.img, current.name);
-    $('#co-name').textContent = current.name;
+    $('#co-name').textContent = nomeProdutoAtual();
     $('#co-price').textContent = brl(current.price);
     show('checkout');
   }
@@ -1309,7 +1334,7 @@
   // ─────────── Sucesso ───────────
   function success(payLabel) {
     bindImg($('#s-thumb'), fotoAtual() || current.img, current.name);
-    $('#s-name').textContent = current.name;
+    $('#s-name').textContent = nomeProdutoAtual();
     $('#s-price').textContent = brl(current.price);
     $('#s-pay').textContent = payLabel;
     show('success');
@@ -1387,13 +1412,45 @@
   }
   let adminPhotoB64 = '';   // base64 já comprimido, pronto pra subir
   let adminFotosB64 = [];   // todas as fotos escolhidas; a 1ª é a de capa
+  let adminFotosPreview = [];
   let editando = null;      // produto em edição (null = cadastrando um novo)
+
+  function renderAdminVariacoes(fotos) {
+    const box = $('#admin-variacoes');
+    const lista = $('#admin-variacoes-lista');
+    if (!box || !lista) return;
+    lista.textContent = '';
+    box.hidden = !fotos.length;
+    fotos.forEach((foto, i) => {
+      const linha = document.createElement('label');
+      linha.className = 'admin-variacao';
+      const img = document.createElement('img');
+      img.alt = '';
+      img.src = foto.url;
+      const campo = document.createElement('input');
+      campo.type = 'text';
+      campo.maxLength = 50;
+      campo.placeholder = 'Cor ou variação (ex.: Preto)';
+      campo.value = foto.variantName || '';
+      campo.dataset.imageId = foto.id || '';
+      campo.dataset.index = String(i);
+      linha.append(img, campo);
+      lista.appendChild(linha);
+    });
+  }
+
+  function variacoesDigitadas() {
+    return $$('#admin-variacoes-lista input').map(campo => ({
+      id: campo.dataset.imageId || null,
+      variant_name: campo.value.trim().slice(0, 50)
+    }));
+  }
 
   // Editar reaproveita o formulário de cadastro em vez de abrir outra tela: é o
   // mesmo par nome+preço, e o lojista já sabe onde ficam os campos.
   function entraEdicao(p) {
     editando = p;
-    adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = [];
+    adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = []; adminFotosPreview = [];
     const fi = $('#admin-photo'); if (fi) fi.value = '';
     const cc = $('#admin-up-conta'); if (cc) cc.hidden = true;
     $('#admin-name').value = p.name;
@@ -1403,6 +1460,7 @@
     $('#admin-categoria').value = p.cat || '';
     const prev = $('#admin-up-preview');
     if (p.img) { prev.src = p.img; prev.hidden = false; $('#admin-up-empty').style.display = 'none'; }
+    renderAdminVariacoes((p.imageMeta || []).map(x => ({ id: x.id, url: x.url, variantName: x.variantName })));
     $('#btn-add-product').textContent = 'Salvar alterações';
     $('#btn-cancel-edit').hidden = false;
     $('#admin-name').focus();
@@ -1415,7 +1473,8 @@
     $('#admin-name').value = ''; $('#admin-price').value = '';
     $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
     $('#admin-categoria').value = '';
-    adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = [];
+    adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = []; adminFotosPreview = [];
+    renderAdminVariacoes([]);
     $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = '';
     const cc0 = $('#admin-up-conta'); if (cc0) cc0.hidden = true;
     const f = $('#admin-photo'); if (f) f.value = '';
@@ -1440,6 +1499,8 @@
     btn.disabled = false; btn.textContent = txt0;
     if (!lidas.length) { toast('Não consegui ler essas imagens'); return; }
     adminFotosB64 = lidas;
+    adminFotosPreview = lidas.map(b64 => ({ url: 'data:image/jpeg;base64,' + b64, variantName: '' }));
+    renderAdminVariacoes(adminFotosPreview);
     adminPhotoB64 = lidas[0];
     adminPhoto = 'data:image/jpeg;base64,' + lidas[0];
     const prev = $('#admin-up-preview'); prev.src = adminPhoto; prev.hidden = false;
@@ -1468,6 +1529,7 @@
         // falhar no meio, o produto continua com as fotos antigas em vez de
         // ficar sem nenhuma.
         const trocouFoto = adminFotosB64.length > 0;
+        const variacoes = variacoesDigitadas();
         if (trocouFoto) {
           for (let i = 0; i < adminFotosB64.length; i++) {
             btn.textContent = adminFotosB64.length > 1
@@ -1478,7 +1540,8 @@
               // ausente, jogando a 1a e a 2a foto na mesma posicao — e a capa
               // sai justamente da menor posicao
               body: JSON.stringify({ store_slug: STORE_SLUG, product_id: editando.id,
-                                     mime: 'image/jpeg', image_b64: adminFotosB64[i], position: i + 1 })
+                                     mime: 'image/jpeg', image_b64: adminFotosB64[i], position: i + 1,
+                                     variant_name: (variacoes[i] && variacoes[i].variant_name) || null })
             });
             if (!ri.ok) throw new Error('foto HTTP ' + ri.status);
           }
@@ -1490,6 +1553,7 @@
                                  description: $('#admin-desc').value.trim() || null,
                                  parcelas: Number($('#admin-parcelas').value) || null,
                                  categoria_vitrine: $('#admin-categoria').value.trim() || null,
+                                 image_variants: trocouFoto ? [] : variacoes.filter(x => x.id),
                                  remove_image_ids: trocouFoto ? (editando.imgIds || []) : [] })
         });
         if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -1512,13 +1576,15 @@
     const txt = btn.textContent;
     btn.disabled = true; btn.textContent = 'Enviando foto…';
     try {
+      const variacoes = variacoesDigitadas();
       const r = await fetch(WH_ADD_PRODUCT, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ store_slug: STORE_SLUG, name, price, descricao_e_parcelas: 1,
                                description: $('#admin-desc').value.trim() || null,
                                parcelas: Number($('#admin-parcelas').value) || null,
                                categoria_vitrine: $('#admin-categoria').value.trim() || null,
-                               mime: 'image/jpeg', image_b64: adminPhotoB64 })
+                               mime: 'image/jpeg', image_b64: adminPhotoB64,
+                               variant_name: (variacoes[0] && variacoes[0].variant_name) || null })
       });
       const data = await r.json().catch(() => null);
       if (!r.ok || !data || !data.ok) throw new Error('falha no upload');
@@ -1534,7 +1600,8 @@
             await fetch(WH_ADD_IMAGE, {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ store_slug: STORE_SLUG, product_id: pid,
-                                     mime: 'image/jpeg', image_b64: adminFotosB64[i], position: i })
+                                     mime: 'image/jpeg', image_b64: adminFotosB64[i], position: i,
+                                     variant_name: (variacoes[i] && variacoes[i].variant_name) || null })
             });
           } catch (e) { console.warn('[Provou Catálogo] foto extra falhou:', e); }
         }
@@ -1546,7 +1613,8 @@
       $('#admin-name').value = ''; $('#admin-price').value = '';
       $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
       $('#admin-categoria').value = '';
-      adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = [];
+      adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = []; adminFotosPreview = [];
+      renderAdminVariacoes([]);
       $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = ''; $('#admin-photo').value = '';
       const cc = $('#admin-up-conta'); if (cc) cc.hidden = true;
       toast(name + ' publicado ✓');
@@ -1679,7 +1747,7 @@
     const tel = String(telefone || (storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
     if (!tel) { openCheckout(); return; }
     const num = tel.length <= 11 ? '55' + tel : tel;
-    const txt = 'Oi! Provei o ' + (current && current.name || 'produto') +
+    const txt = 'Oi! Provei o ' + nomeProdutoAtual() +
       (current && current.price ? ' (' + brl(current.price) + ')' : '') +
       ' no provador virtual da ' + STORE.name + ' e quero comprar.';
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
@@ -1695,7 +1763,7 @@
       if (!tel) return;
       const num = tel.length <= 11 ? '55' + tel : tel;
       const txt = 'Oi! Usei minhas provas de hoje no provador virtual da ' + STORE.name +
-        (current && current.name ? ' e fiquei interessado no ' + current.name : '') + '.';
+        (current && current.name ? ' e fiquei interessado no ' + nomeProdutoAtual() : '') + '.';
       window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
     });
   }
