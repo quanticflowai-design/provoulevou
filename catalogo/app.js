@@ -38,8 +38,8 @@
   // Gancho de CSS por loja: o app é um só, então ajuste que vale pra UMA loja
   // (e não pro tema claro/escuro inteiro) precisa de um seletor pra se prender.
   document.documentElement.classList.add('loja-' + STORE_SLUG.replace(/[^a-z0-9-]/gi, ''));
-  const MAX_UPLOAD_PX = 1280;   // reduz foto de celular antes de subir (custo/velocidade)
-  const JPEG_QUALITY = 0.85;
+  const MAX_UPLOAD_PX = 1024;   // suficiente para a prova e muito mais leve no 4G
+  const JPEG_QUALITY = 0.80;
   // Cada cliente (WhatsApp) tem N provas por dia neste catálogo. O catálogo não
   // tinha limite nenhum: o mesmo número provava o catálogo inteiro e cada prova
   // custa geração pro lojista.
@@ -518,7 +518,13 @@
   // Categoria escolhida no filtro ('' = todas). Não vai pro localStorage de
   // propósito: quem volta ao catálogo espera ver a vitrine inteira.
   let catFiltro = '';
+  let buscaProduto = '';
   let adminCategoriasSelecionadas = [];
+
+  function textoBusca(valor) {
+    return String(valor || '').trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
 
   function normalizaCategorias(valores) {
     const saida = [];
@@ -573,7 +579,11 @@
   function renderCatalog() {
     const grid = $('#catalog-grid');
     grid.innerHTML = '';
-    const visiveis = catFiltro ? catalog.filter(p => produtoTemCategoria(p, catFiltro)) : catalog;
+    const termo = textoBusca(buscaProduto);
+    const visiveis = catalog.filter(p =>
+      (!catFiltro || produtoTemCategoria(p, catFiltro)) &&
+      (!termo || textoBusca(p.name).includes(termo))
+    );
     visiveis.forEach(p => {
       // DOM seguro: nome do produto vem do lojista, nunca concatenar em HTML.
       const card = document.createElement('div');
@@ -600,6 +610,8 @@
     // "Seu catálogo está vazio" só depois que o servidor respondeu: antes disso
     // não se sabe se está vazio ou ainda carregando.
     const vazio = $('#catalog-empty');
+    const buscaBox = $('#catalog-search');
+    const buscaVazia = $('#catalog-search-empty');
     if (!catalog.length && !carregou) {
       for (let i = 0; i < 4; i++) {
         const sk = document.createElement('div');
@@ -609,12 +621,22 @@
       }
     }
     if (vazio) vazio.hidden = !(carregou && catalog.length === 0);
-    grid.hidden = carregou && catalog.length === 0;
+    if (buscaBox) buscaBox.hidden = !catalog.length;
+    if (buscaVazia) buscaVazia.hidden = !(carregou && catalog.length > 0 && visiveis.length === 0);
+    grid.hidden = carregou && (catalog.length === 0 || visiveis.length === 0);
     // um só ponto redesenha chips e sugestões: quem chama renderCatalog não
     // precisa lembrar de nada
     renderFiltros();
     renderSugestoesCategoria();
     renderLinksCategoria();
+  }
+
+  {
+    const campoBusca = $('#catalog-search-input');
+    if (campoBusca) campoBusca.addEventListener('input', () => {
+      buscaProduto = campoBusca.value;
+      renderCatalog();
+    });
   }
 
   // ─────────── Aparência (painel do lojista) ───────────
@@ -1658,20 +1680,20 @@
         const trocouFoto = adminFotosB64.length > 0;
         const variacoes = variacoesDigitadas();
         if (trocouFoto) {
-          for (let i = 0; i < adminFotosB64.length; i++) {
-            btn.textContent = adminFotosB64.length > 1
-              ? 'Enviando foto ' + (i + 1) + ' de ' + adminFotosB64.length + '…' : 'Enviando foto…';
+          btn.textContent = adminFotosB64.length > 1
+            ? 'Enviando ' + adminFotosB64.length + ' fotos…' : 'Enviando foto…';
+          await Promise.all(adminFotosB64.map(async (foto, i) => {
             const ri = await fetch(WH_ADD_IMAGE, {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               // position 1-based: o n8n faz `position || 1` e trataria o 0 como
               // ausente, jogando a 1a e a 2a foto na mesma posicao — e a capa
               // sai justamente da menor posicao
               body: JSON.stringify({ store_slug: STORE_SLUG, product_id: editando.id,
-                                     mime: 'image/jpeg', image_b64: adminFotosB64[i], position: i + 1,
+                                     mime: 'image/jpeg', image_b64: foto, position: i + 1,
                                      variant_name: (variacoes[i] && variacoes[i].variant_name) || null })
             });
             if (!ri.ok) throw new Error('foto HTTP ' + ri.status);
-          }
+          }));
         }
         btn.textContent = 'Salvando…';
         const r = await fetch(WH_EDIT_PRODUCT, {
@@ -1718,22 +1740,24 @@
       const data = await r.json().catch(() => null);
       if (!r.ok || !data || !data.ok) throw new Error('falha no upload');
 
-      // as demais fotos entram uma a uma no produto recém-criado. Falha aqui não
+      // As demais fotos sobem juntas depois que o produto existe. Falha aqui não
       // derruba o cadastro: o produto já existe com a foto de capa, e é melhor
       // publicar com menos fotos do que perder o cadastro inteiro.
       const pid = data.product && data.product.id;
       if (pid && adminFotosB64.length > 1) {
-        for (let i = 1; i < adminFotosB64.length; i++) {
-          btn.textContent = 'Enviando foto ' + (i + 1) + ' de ' + adminFotosB64.length + '…';
+        btn.textContent = 'Enviando ' + (adminFotosB64.length - 1) + ' fotos restantes…';
+        await Promise.allSettled(adminFotosB64.slice(1).map(async (foto, offset) => {
+          const i = offset + 1;
           try {
-            await fetch(WH_ADD_IMAGE, {
+            const ri = await fetch(WH_ADD_IMAGE, {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ store_slug: STORE_SLUG, product_id: pid,
-                                     mime: 'image/jpeg', image_b64: adminFotosB64[i], position: i,
+                                     mime: 'image/jpeg', image_b64: foto, position: i,
                                      variant_name: (variacoes[i] && variacoes[i].variant_name) || null })
             });
+            if (!ri.ok) throw new Error('foto HTTP ' + ri.status);
           } catch (e) { console.warn('[Provou Catálogo] foto extra falhou:', e); }
-        }
+        }));
       }
 
       btn.textContent = 'Publicando…';

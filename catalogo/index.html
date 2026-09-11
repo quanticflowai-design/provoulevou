@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=92">
+  <link rel="stylesheet" href="styles.css?v=93">
 </head>
 <body>
   <div id="app">
@@ -30,6 +30,10 @@
       <!-- Painel que segura a vitrine. Só ganha fundo onde o CSS da loja pede
            (hoje, .loja-provoulevou); nas demais é um wrapper transparente. -->
       <div class="catalogo-painel">
+        <label class="catalog-search" id="catalog-search" hidden>
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+          <input type="search" id="catalog-search-input" placeholder="Buscar produto" autocomplete="off" aria-label="Buscar produto">
+        </label>
         <!-- Filtros: saem das categorias que os produtos usam, então a lista
              nasce e some sozinha conforme o lojista cadastra. Some quando a
              loja não usa nenhuma. -->
@@ -38,6 +42,7 @@
         <p class="catalog-empty" id="catalog-empty" hidden>
           Seu catálogo ainda está vazio.<br>Toque em <b>Cadastrar novo produto</b> para adicionar o primeiro.
         </p>
+        <p class="catalog-search-empty" id="catalog-search-empty" hidden>Nenhum produto encontrado.</p>
       </div>
       <!-- Duas versões do logo: a nova tem o "catálogo" em BRANCO, então some em
            fundo claro. O CSS mostra a certa conforme o tema da loja. -->
@@ -436,6 +441,6 @@
   </template>
   <div id="toast"></div>
 
-  <script src="app.js?v=99"></script>
+  <script src="app.js?v=100"></script>
 </body>
 </html>
