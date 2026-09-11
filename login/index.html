@@ -1959,7 +1959,7 @@
         }
         @media (max-width: 1200px) { .crm-board { grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: minmax(280px, 1fr); } }
         .crm-col {
-            --col-accent: #94a3b8;
+            --col-accent: var(--primary);
             background: linear-gradient(180deg, color-mix(in srgb, var(--col-accent) 7%, var(--card-bg)) 0%, var(--card-bg) 28%);
             border: 1px solid var(--border);
             border-radius: 16px;
@@ -2197,14 +2197,14 @@
             border-radius: 8px;
             margin: 4px;
         }
-        .crm-col[data-key="cold"]       { --col-accent: #94a3b8; }
-        .crm-col[data-key="multiplas"]  { --col-accent: #fbbf24; }
-        .crm-col[data-key="reengajou"]  { --col-accent: #fb923c; }
-        .crm-col[data-key="voltou"]     { --col-accent: #ef4444; }
-        .crm-col[data-key="convertido"] { --col-accent: #10b981; }
-        /* Custom columns padrão acento ciano (accent) */
+        .crm-col[data-key="cold"]       { --col-accent: #8b5cf6; }
+        .crm-col[data-key="multiplas"]  { --col-accent: #7c3aed; }
+        .crm-col[data-key="reengajou"]  { --col-accent: #9333ea; }
+        .crm-col[data-key="voltou"]     { --col-accent: #a855f7; }
+        .crm-col[data-key="convertido"] { --col-accent: #6d28d9; }
+        /* Colunas personalizadas seguem a identidade roxa do CRM. */
         .crm-col:not([data-key="cold"]):not([data-key="multiplas"]):not([data-key="reengajou"]):not([data-key="voltou"]):not([data-key="convertido"]) {
-            --col-accent: var(--accent);
+            --col-accent: var(--primary);
         }
         .crm-col-dragover {
             border-color: var(--col-accent) !important;
@@ -9611,6 +9611,7 @@
         };
         const AUTOM_GATILHOS = [
             { key: 'carrinho_abandonado',          label: '🛒 Carrinho abandonado',              desc: 'Dispara quando o cliente adiciona produtos ao carrinho na loja e sai sem finalizar a compra.' },
+            { key: 'pagamento_pendente',            label: '💳 Pagamento pendente',               desc: 'Dispara quando um pedido é criado e o pagamento continua pendente.' },
             { key: 'provou_nao_comprou',           label: '🕶️ Provou e não comprou',             desc: 'Dispara quando o cliente usa o provador virtual (experimenta um produto) mas não compra.' },
             { key: 'clicou_comprar_nao_comprou',   label: '🛍️ Clicou em comprar e não comprou',  desc: 'Dispara quando o cliente, dentro do provador, clica em comprar / adiciona ao carrinho, mas não finaliza a compra.' },
             { key: 'crm_etapa',                    label: '📋 Entrou numa etapa do CRM',          desc: 'Dispara quando você move um cliente para a etapa escolhida no seu CRM (aba CRM). Escolha a etapa ao lado.' }
