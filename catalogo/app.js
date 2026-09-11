@@ -88,15 +88,18 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
   const brl = n => 'R$ ' + Number(n).toFixed(2).replace('.', ',');
-  const temOferta = p => !!(p && p.originalPrice && p.originalPrice > p.price);
-  const precoAtualTxt = p => (temOferta(p) ? 'POR: ' : '') + brl(p.price);
+  const numeroPositivo = v => Number.isFinite(Number(v)) && Number(v) > 0;
+  const precoProduto = p => numeroPositivo(p && p.price) ? Number(p.price) : Number(p && p.originalPrice);
+  const temOferta = p => !!(p && numeroPositivo(p.price) && numeroPositivo(p.originalPrice) && Number(p.originalPrice) > Number(p.price));
+  const precoAtualTxt = p => (temOferta(p) ? 'POR: ' : '') + brl(precoProduto(p));
   const precoOriginalTxt = p => temOferta(p) ? 'DE ' + brl(p.originalPrice) : '';
 
   function valorParcela(p, parcelas) {
     const n = Math.max(1, Number(parcelas) || 1);
     const juros = Math.max(0, Number(p && p.installmentInterestRate) || 0);
-    if (n === 1 || !juros) return Number(p.price) / n;
-    return Number(p.price) * (1 + (juros / 100) * n) / n;
+    const preco = precoProduto(p);
+    if (n === 1 || !juros) return preco / n;
+    return preco * (1 + (juros / 100) * n) / n;
   }
   const espera = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -492,7 +495,7 @@
       const cats = normalizaCategorias(Array.isArray(r.categorias_vitrine) && r.categorias_vitrine.length
         ? r.categorias_vitrine : [r.categoria_vitrine]);
       return {
-        id: r.id, name: r.name, price: Number(r.price),
+        id: r.id, name: r.name, price: r.price == null ? null : Number(r.price),
         originalPrice: r.original_price == null ? null : Number(r.original_price), img: urls[0] || '',
         imgs: urls,                       // a galeria e as referências da prova saem daqui
         imgIds: imgs.map(x => x.id).filter(Boolean),   // quais apagar quando trocar a foto
@@ -1456,7 +1459,7 @@
   function openCheckout() {
     bindImg($('#co-thumb'), fotoAtual() || current.img, current.name);
     $('#co-name').textContent = nomeProdutoAtual();
-    $('#co-price').textContent = brl(current.price);
+    $('#co-price').textContent = brl(precoProduto(current));
     show('checkout');
   }
   $$('.pay-method').forEach(b => b.addEventListener('click', () => {
@@ -1466,8 +1469,8 @@
 
   // ─────────── PIX (fake) ───────────
   function openPix() {
-    $('#qr-wrap').innerHTML = fakeQr(current.id + '|' + current.price);
-    $('#pix-amount').textContent = brl(current.price);
+    $('#qr-wrap').innerHTML = fakeQr(current.id + '|' + precoProduto(current));
+    $('#pix-amount').textContent = brl(precoProduto(current));
     const st = $('#pix-status');
     st.classList.remove('ok');
     st.innerHTML = '<span class="dot-pulse"></span> Aguardando pagamento…';
@@ -1531,7 +1534,7 @@
     $('#cv-number').textContent = '•••• •••• •••• ••••';
     $('#cv-name').textContent = 'NOME NO CARTÃO';
     $('#cv-exp').textContent = 'MM/AA';
-    $('#card-amount').textContent = brl(current.price);
+    $('#card-amount').textContent = brl(precoProduto(current));
     show('card');
   }
   $('#f-install').addEventListener('change', e => {
@@ -1570,7 +1573,7 @@
   function success(payLabel) {
     bindImg($('#s-thumb'), fotoAtual() || current.img, current.name);
     $('#s-name').textContent = nomeProdutoAtual();
-    $('#s-price').textContent = brl(current.price);
+    $('#s-price').textContent = brl(precoProduto(current));
     $('#s-pay').textContent = payLabel;
     show('success');
   }
@@ -1589,7 +1592,7 @@
       item.dataset.pid = p.id;
       const foto = document.createElement('img'); foto.alt = '';
       const nome = document.createElement('span'); nome.className = 'ai-name'; nome.textContent = p.name;
-      const preco = document.createElement('span'); preco.className = 'ai-price'; preco.textContent = brl(p.price);
+      const preco = document.createElement('span'); preco.className = 'ai-price'; preco.textContent = brl(precoProduto(p));
       const editar = document.createElement('button');
       editar.type = 'button'; editar.className = 'ai-edit';
       editar.title = 'Editar produto';
@@ -1700,9 +1703,10 @@
     const fi = $('#admin-photo'); if (fi) fi.value = '';
     const cc = $('#admin-up-conta'); if (cc) cc.hidden = true;
     $('#admin-name').value = p.name;
-    $('#admin-price').value = Number(p.price).toFixed(2).replace('.', ',');
-    $('#admin-original-price').value = p.originalPrice && p.originalPrice > p.price
-      ? Number(p.originalPrice).toFixed(2).replace('.', ',') : '';
+    $('#admin-price').value = temOferta(p) ? Number(p.price).toFixed(2).replace('.', ',') : '';
+    $('#admin-original-price').value = numeroPositivo(p.originalPrice)
+      ? Number(p.originalPrice).toFixed(2).replace('.', ',')
+      : (numeroPositivo(p.price) ? Number(p.price).toFixed(2).replace('.', ',') : '');
     $('#admin-desc').value = p.desc || '';
     $('#admin-parcelas').value = p.parcelas ? String(p.parcelas) : '';
     $('#admin-interest-type').value = p.installmentInterestRate > 0 ? 'interest' : 'none';
@@ -1776,7 +1780,7 @@
     const btn = $('#btn-add-product');
     const name = $('#admin-name').value.trim();
     const priceRaw = $('#admin-price').value.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
-    const price = parseFloat(priceRaw);
+    const price = priceRaw ? parseFloat(priceRaw) : null;
     const originalPriceRaw = $('#admin-original-price').value.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
     const originalPrice = originalPriceRaw ? parseFloat(originalPriceRaw) : null;
     const interestRateRaw = $('#admin-interest-rate').value.replace(',', '.').replace(/[^\d.]/g, '');
@@ -1786,8 +1790,10 @@
     if ($('#admin-categoria').value.trim()) adicionaCategoriaDigitada();
     const categorias = normalizaCategorias(adminCategoriasSelecionadas);
     if (!name) { toast('Dê um nome ao produto'); return; }
-    if (!price || price <= 0) { toast('Informe um preço válido'); return; }
-    if (originalPrice !== null && (!originalPrice || originalPrice <= price)) {
+    if (!numeroPositivo(price) && !numeroPositivo(originalPrice)) { toast('Informe o preço original ou o promocional'); return; }
+    if (price !== null && !numeroPositivo(price)) { toast('Informe um preço promocional válido'); return; }
+    if (originalPrice !== null && !numeroPositivo(originalPrice)) { toast('Informe um preço original válido'); return; }
+    if (price !== null && originalPrice !== null && originalPrice <= price) {
       toast('O preço original deve ser maior que o promocional'); return;
     }
     if ($('#admin-interest-type').value === 'interest' && (!interestRate || interestRate <= 0 || interestRate > 20)) {
@@ -2049,7 +2055,7 @@
     if (!tel) { openCheckout(); return; }
     const num = tel.length <= 11 ? '55' + tel : tel;
     const txt = 'Oi! Provei o ' + nomeProdutoAtual() +
-      (current && current.price ? ' (' + brl(current.price) + ')' : '') +
+      (current && numeroPositivo(precoProduto(current)) ? ' (' + brl(precoProduto(current)) + ')' : '') +
       ' no provador virtual da ' + STORE.name + ' e quero comprar.';
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
   }
