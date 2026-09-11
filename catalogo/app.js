@@ -721,14 +721,21 @@
   }
 
   // ─────────── Aparência (painel do lojista) ───────────
-  const CAMPOS_TEMA = [['#tema-bg', 'bg'], ['#tema-card', 'card'], ['#tema-brand', 'brand'],
-                       ['#tema-cta', 'cta'], ['#tema-oncta', 'onCta']];
+  const CAMPOS_TEMA = [['#tema-bg', '#tema-bg-code', 'bg'], ['#tema-card', '#tema-card-code', 'card'],
+                       ['#tema-brand', '#tema-brand-code', 'brand'], ['#tema-cta', '#tema-cta-code', 'cta'],
+                       ['#tema-oncta', '#tema-oncta-code', 'onCta']];
+
+  function normalizaCodigoCor(valor) {
+    const limpo = String(valor || '').trim().replace(/^#/, '').toUpperCase();
+    return /^[0-9A-F]{6}$/.test(limpo) ? '#' + limpo : null;
+  }
 
   function temaDosCampos() {
     const t = {};
-    CAMPOS_TEMA.forEach(([sel, chave]) => {
-      const el = $(sel);
-      if (el && el.value) t[chave] = el.value;
+    CAMPOS_TEMA.forEach(([sel, codigoSel, chave]) => {
+      const el = $(sel), codigo = $(codigoSel);
+      const hex = normalizaCodigoCor(codigo && codigo.value) || normalizaCodigoCor(el && el.value);
+      if (hex) t[chave] = hex;
     });
     return t;
   }
@@ -740,9 +747,11 @@
     const t = temaEfetivo();
     if (!t) { box.hidden = true; return; }
     box.hidden = false;
-    CAMPOS_TEMA.forEach(([sel, chave]) => {
-      const el = $(sel);
-      if (el && t[chave]) el.value = t[chave];
+    CAMPOS_TEMA.forEach(([sel, codigoSel, chave]) => {
+      const el = $(sel), codigo = $(codigoSel);
+      const hex = normalizaCodigoCor(t[chave]);
+      if (el && hex) el.value = hex;
+      if (codigo && hex) codigo.value = hex;
     });
     avisaContraste();
   }
@@ -786,9 +795,27 @@
     avisaContraste();
   }
 
-  CAMPOS_TEMA.forEach(([sel]) => {
-    const el = $(sel);
-    if (el) el.addEventListener('input', previaTema);
+  CAMPOS_TEMA.forEach(([sel, codigoSel]) => {
+    const el = $(sel), codigo = $(codigoSel);
+    if (el) el.addEventListener('input', () => {
+      if (codigo) codigo.value = String(el.value || '').toUpperCase();
+      previaTema();
+    });
+    if (codigo) {
+      codigo.addEventListener('input', () => {
+        const hex = normalizaCodigoCor(codigo.value);
+        codigo.classList.toggle('invalido', !hex);
+        if (!hex || !el) return;
+        codigo.value = hex;
+        el.value = hex;
+        previaTema();
+      });
+      codigo.addEventListener('blur', () => {
+        const hex = normalizaCodigoCor(codigo.value) || normalizaCodigoCor(el && el.value);
+        if (hex) codigo.value = hex;
+        codigo.classList.remove('invalido');
+      });
+    }
   });
 
   {
