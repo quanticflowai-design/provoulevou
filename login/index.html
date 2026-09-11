@@ -9618,7 +9618,7 @@
         };
         const AUTOM_GATILHOS = [
             { key: 'carrinho_abandonado',          label: '🛒 Carrinho abandonado',              desc: 'Dispara quando o cliente adiciona produtos ao carrinho na loja e sai sem finalizar a compra.' },
-            { key: 'pagamento_pendente',            label: '💳 Pagamento pendente',               desc: 'Dispara quando um pedido é criado e o pagamento continua pendente.' },
+            { key: 'pagamento_pendente',            label: '💳 Pagamentos pendentes',             desc: 'Dispara quando um pedido é criado e o pagamento continua pendente.' },
             { key: 'provou_nao_comprou',           label: '🕶️ Provou e não comprou',             desc: 'Dispara quando o cliente usa o provador virtual (experimenta um produto) mas não compra.' },
             { key: 'clicou_comprar_nao_comprou',   label: '🛍️ Clicou em comprar e não comprou',  desc: 'Dispara quando o cliente, dentro do provador, clica em comprar / adiciona ao carrinho, mas não finaliza a compra.' },
             { key: 'crm_etapa',                    label: '📋 Entrou numa etapa do CRM',          desc: 'Dispara quando você move um cliente para a etapa escolhida no seu CRM (aba CRM). Escolha a etapa ao lado.' }
@@ -11355,8 +11355,6 @@
                 .some(v => v.indexOf(search) !== -1));
             if (_dispCampFilter === 'returned') rows = rows.filter(r => r.rec.valor > 0);
             else if (_dispCampFilter === 'no_return') rows = rows.filter(r => r.stats.disparadas > 0 && r.rec.valor <= 0);
-            else if (_dispCampFilter === 'failed') rows = rows.filter(r => r.stats.falhas > 0);
-            else if (_dispCampFilter === 'no_send') rows = rows.filter(r => r.stats.disparadas === 0);
             rows.sort((a, b) => {
                 const value = (r, key) => ({
                     audience: r.publico == null ? -1 : r.publico,
@@ -11373,7 +11371,7 @@
         }
 
         function dispDashCampaignFilter(v) {
-            _dispCampFilter = v || 'all';
+            _dispCampFilter = ['all', 'returned', 'no_return'].includes(v) ? v : 'all';
             if (_dispDashLastData) {
                 const view = document.getElementById('dispDashView');
                 if (view) { view.innerHTML = dispDashboardHTML(_dispDashLastData); _dispRenderDashChart(_dispDashLastData.serieDiaria); }
@@ -11478,8 +11476,8 @@
             if (!_dispDashLastData) return;
             const rows = _dispBuildCampaignRows(_dispDashLastData);
             const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-            const head = ['Campanha','Tipo','Estado','Data','Público','Processadas','Disparadas','Entregues','Lidas','Falhas','Ignoradas','Respondidas','Clientes recuperados','Pedidos recuperados','Valor recuperado','Taxa de entrega','Taxa de resposta','Taxa de conversão','Template'];
-            const lines = rows.map(r => [r.nome,r.tipo,r.estado,r.dateMs ? new Date(r.dateMs).toLocaleString('pt-BR') : '',r.publico == null ? '' : r.publico,r.stats.processadas,r.stats.disparadas,r.stats.entregues,r.stats.lidas,r.stats.falhas,r.stats.ignoradas,r.respondidas,r.clientesRec,r.rec.pedidos,r.rec.valor.toFixed(2).replace('.',','),r.taxaEntrega.toFixed(1).replace('.',',')+'%',r.taxaResposta.toFixed(1).replace('.',',')+'%',r.taxaConversao.toFixed(1).replace('.',',')+'%',r.template].map(esc).join(';'));
+            const head = ['Campanha','Tipo','Estado','Data','Público','Processadas','Disparadas','Entregues','Lidas','Respondidas','Clientes recuperados','Pedidos recuperados','Valor recuperado','Taxa de entrega','Taxa de resposta','Taxa de conversão','Template'];
+            const lines = rows.map(r => [r.nome,r.tipo,r.estado,r.dateMs ? new Date(r.dateMs).toLocaleString('pt-BR') : '',r.publico == null ? '' : r.publico,r.stats.processadas,r.stats.disparadas,r.stats.entregues,r.stats.lidas,r.respondidas,r.clientesRec,r.rec.pedidos,r.rec.valor.toFixed(2).replace('.',','),r.taxaEntrega.toFixed(1).replace('.',',')+'%',r.taxaResposta.toFixed(1).replace('.',',')+'%',r.taxaConversao.toFixed(1).replace('.',',')+'%',r.template].map(esc).join(';'));
             const blob = new Blob(['\ufeff' + head.map(esc).join(';') + '\n' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'campanhas-disparos.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1500);
         }
@@ -11496,8 +11494,6 @@
             const list = _dispCampaignFilteredRows(d);
             const returnedCount = allCampaigns.filter(c => c.rec.valor > 0).length;
             const noReturnCount = allCampaigns.filter(c => c.stats.disparadas > 0 && c.rec.valor <= 0).length;
-            const failedCount = allCampaigns.filter(c => c.stats.falhas > 0).length;
-            const noSendCount = allCampaigns.filter(c => c.stats.disparadas === 0).length;
             const campaignDate = c => c.dateMs ? new Date(c.dateMs).toLocaleDateString('pt-BR') : '—';
             const typeCls = c => c.tipo === 'Automação' ? 'auto' : (c.tipo === 'Manual' ? 'manual' : 'sched');
             const phoneFmt = p => { const n = String(p || '').replace(/\D/g, ''); return n ? ('+' + (n.startsWith('55') ? n : '55' + n)) : '—'; };
@@ -11521,15 +11517,13 @@
                     + '<td>' + (c.publico == null ? '—' : _int(c.publico)) + '</td>'
                     + '<td><b>' + _int(c.stats.disparadas) + '</b></td>'
                     + '<td><b class="dd-num ' + deliveryTone + '">' + _int(c.stats.entregues) + '</b><small>' + c.taxaEntrega.toFixed(1).replace('.', ',') + '%</small></td>'
-                    + '<td><b class="dd-num bad">' + _int(c.stats.falhas) + '</b></td>'
-                    + '<td><b>' + _int(c.stats.ignoradas) + '</b><small>duplicados/compraram</small></td>'
                     + '<td><b>' + _int(c.respondidas) + '</b><small>' + c.taxaResposta.toFixed(1).replace('.', ',') + '%</small></td>'
                     + '<td><b>' + _int(c.clientesRec) + '</b><small>' + c.taxaConversao.toFixed(1).replace('.', ',') + '%</small></td>'
                     + '<td class="dd-result-cell">' + result + '<i class="ph-bold ph-caret-down dd-expand-icon"></i></td>'
                     + '</tr>'
-                    + '<tr class="dd-buyers-row" id="' + detailId + '" style="display:' + (isOpen ? 'table-row' : 'none') + '"><td colspan="9"><div class="dd-buyers"><div class="dd-buyers-title"><i class="ph-bold ph-users-three"></i> Clientes que compraram após esta campanha <span>' + _int(c.compradores.length) + '</span></div>' + buyers + '</div></td></tr>';
+                    + '<tr class="dd-buyers-row" id="' + detailId + '" style="display:' + (isOpen ? 'table-row' : 'none') + '"><td colspan="7"><div class="dd-buyers"><div class="dd-buyers-title"><i class="ph-bold ph-users-three"></i> Clientes que compraram após esta campanha <span>' + _int(c.compradores.length) + '</span></div>' + buyers + '</div></td></tr>';
             }).join('');
-            if (!list.length) rows = '<tr><td colspan="9"><div class="dd-empty"><p>Nenhuma campanha neste filtro.</p></div></td></tr>';
+            if (!list.length) rows = '<tr><td colspan="7"><div class="dd-empty"><p>Nenhuma campanha neste filtro.</p></div></td></tr>';
 
             // funil: disparos -> alcançados -> recuperados
             const fn = (icon, val, label, on) => '<div class="dd-fn' + (on ? ' on' : '') + '"><i class="ph-bold ' + icon + '" aria-hidden="true"></i><b>' + val + '</b><span>' + label + '</span></div>';
@@ -11570,24 +11564,20 @@
                 + '    <div class="dd-kpi"><span class="dd-kpi-l">Entregues</span><span class="dd-kpi-v">' + _int(d.msgStats.entregues) + '</span><span class="dd-kpi-s">' + (d.msgStats.disparadas ? Math.round(d.msgStats.entregues / d.msgStats.disparadas * 100) : 0) + '% das disparadas</span></div>'
                 + '    <div class="dd-kpi"><span class="dd-kpi-l">Lidas</span><span class="dd-kpi-v">' + _int(d.msgStats.lidas) + '</span><span class="dd-kpi-s">' + (d.msgStats.entregues ? Math.round(d.msgStats.lidas / d.msgStats.entregues * 100) : 0) + '% das entregues</span></div>'
                 + '    <div class="dd-kpi ok"><span class="dd-kpi-l">Respondidas</span><span class="dd-kpi-v">' + _int(d.msgStats.respondidas) + '</span><span class="dd-kpi-s">' + (d.msgStats.disparadas ? Math.round(d.msgStats.respondidas / d.msgStats.disparadas * 100) : 0) + '% das disparadas</span></div>'
-                + '    <div class="dd-kpi bad"><span class="dd-kpi-l">Falhas</span><span class="dd-kpi-v">' + _int(d.msgStats.falhas) + '</span><span class="dd-kpi-s">' + ((d.msgStats.disparadas + d.msgStats.falhas) ? Math.round(d.msgStats.falhas / (d.msgStats.disparadas + d.msgStats.falhas) * 100) : 0) + '% do total</span></div>'
-                + '    <div class="dd-kpi"><span class="dd-kpi-l">Ignoradas</span><span class="dd-kpi-v">' + _int(d.msgStats.ignoradas) + '</span><span class="dd-kpi-s">duplicados ou quem já comprou</span></div>'
                 + '  </div>'
                 + '  <div class="dd-chart-card"><div class="dd-chart-head"><i class="ph-bold ph-chart-bar" aria-hidden="true"></i> Disparos \u00d7 recupera\u00e7\u00e3o por dia</div><div class="dd-chart-wrap"><canvas id="dispDashDailyChart"></canvas></div></div>'
                 + '  <div class="dd-campaign-head">'
                 + '    <div><div class="dd-list-head"><i class="ph-bold ph-megaphone" aria-hidden="true"></i> Todas as campanhas <span>· ' + _int(allCampaigns.length) + ' no período</span></div><p>Nenhuma campanha é ocultada, mesmo quando não enviou ou não gerou retorno.</p></div>'
-                + '    <div class="dd-campaign-actions"><select onchange="dispDashCampaignSort(this.value)" aria-label="Ordenar campanhas"><option value="recent"' + (_dispCampSort === 'recent' ? ' selected' : '') + '>Mais recentes</option><option value="revenue"' + (_dispCampSort === 'revenue' ? ' selected' : '') + '>Maior retorno</option><option value="delivered"' + (_dispCampSort === 'delivered' ? ' selected' : '') + '>Mais entregues</option><option value="failures"' + (_dispCampSort === 'failures' ? ' selected' : '') + '>Mais falhas</option></select><button onclick="dispExportCampaignsCSV()"><i class="ph-bold ph-download-simple"></i> CSV</button></div>'
+                + '    <div class="dd-campaign-actions"><select onchange="dispDashCampaignSort(this.value)" aria-label="Ordenar campanhas"><option value="recent"' + (_dispCampSort === 'recent' ? ' selected' : '') + '>Mais recentes</option><option value="revenue"' + (_dispCampSort === 'revenue' ? ' selected' : '') + '>Maior retorno</option><option value="delivered"' + (_dispCampSort === 'delivered' ? ' selected' : '') + '>Mais entregues</option></select><button onclick="dispExportCampaignsCSV()"><i class="ph-bold ph-download-simple"></i> CSV</button></div>'
                 + '  </div>'
                 + '  <div class="dd-campaign-search"><i class="ph-bold ph-magnifying-glass"></i><input id="dispCampaignSearch" type="search" value="' + _esc(_dispCampSearch) + '" placeholder="Pesquisar por nome, template, tipo ou situação…" aria-label="Pesquisar campanhas" autocomplete="off" oninput="dispDashCampaignSearch(this.value)">' + (_dispCampSearch ? '<button type="button" onclick="dispDashCampaignClearSearch()" aria-label="Limpar pesquisa"><i class="ph-bold ph-x"></i></button>' : '') + '<span>' + _int(list.length) + (list.length === 1 ? ' campanha exibida' : ' campanhas exibidas') + '</span></div>'
                 + '  <div class="dd-campaign-filters" role="group" aria-label="Filtrar campanhas">'
                 + '    <button class="' + (_dispCampFilter === 'all' ? 'on' : '') + '" onclick="dispDashCampaignFilter(\'all\')">Todas <b>' + _int(allCampaigns.length) + '</b></button>'
                 + '    <button class="' + (_dispCampFilter === 'returned' ? 'on' : '') + '" onclick="dispDashCampaignFilter(\'returned\')">Com retorno <b>' + _int(returnedCount) + '</b></button>'
                 + '    <button class="' + (_dispCampFilter === 'no_return' ? 'on' : '') + '" onclick="dispDashCampaignFilter(\'no_return\')">Sem retorno <b>' + _int(noReturnCount) + '</b></button>'
-                + '    <button class="' + (_dispCampFilter === 'failed' ? 'on' : '') + '" onclick="dispDashCampaignFilter(\'failed\')">Com falhas <b>' + _int(failedCount) + '</b></button>'
-                + '    <button class="' + (_dispCampFilter === 'no_send' ? 'on' : '') + '" onclick="dispDashCampaignFilter(\'no_send\')">Sem envio <b>' + _int(noSendCount) + '</b></button>'
                 + '  </div>'
-                + '  <div class="dd-campaign-table-wrap"><table class="dd-campaign-table"><thead><tr><th>Campanha</th>' + sortTh('audience','Público') + sortTh('sent','Disparadas') + sortTh('delivered','Entregues') + sortTh('failures','Falhas') + sortTh('skipped','Ignoradas') + sortTh('replies','Respostas') + sortTh('converted','Convertidos') + sortTh('revenue','Retorno') + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
-                + '  <div class="dd-campaign-note"><i class="ph-bold ph-info"></i><span><b>Disparadas</b> foram aceitas pela Meta. <b>Entregues</b> têm confirmação no WhatsApp. <b>Ignoradas</b> são duplicados ou clientes que já haviam comprado. O retorno usa a venda paga em até 30 dias e atribui à última campanha entregue antes da compra.</span></div>'
+                + '  <div class="dd-campaign-table-wrap"><table class="dd-campaign-table"><thead><tr><th>Campanha</th>' + sortTh('audience','Público') + sortTh('sent','Disparadas') + sortTh('delivered','Entregues') + sortTh('replies','Respostas') + sortTh('converted','Convertidos') + sortTh('revenue','Retorno') + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+                + '  <div class="dd-campaign-note"><i class="ph-bold ph-info"></i><span><b>Disparadas</b> foram aceitas pela Meta. <b>Entregues</b> têm confirmação no WhatsApp. O retorno usa a venda paga em até 30 dias e atribui à última campanha entregue antes da compra.</span></div>'
                 + '</div>';
         }
 
@@ -11724,27 +11714,28 @@
                 + '.dd-campaign-filters button.on{background:var(--primary);border-color:var(--primary);color:#fff;}'
                 + '.dd-campaign-filters button.on b{background:rgba(255,255,255,.18);color:#fff;}'
                 + '.dd-campaign-table-wrap{max-height:560px;overflow:auto;border:1px solid var(--border);border-radius:14px;background:var(--card-bg);overscroll-behavior:contain;}'
-                + '.dd-campaign-table{width:100%;min-width:1080px;border-collapse:separate;border-spacing:0;font-size:12px;}'
+                + '.dd-campaign-table{width:100%;min-width:980px;border-collapse:separate;border-spacing:0;font-size:12px;background:var(--card-bg);}'
                 + '.dd-campaign-table th{position:sticky;top:0;z-index:2;background:color-mix(in srgb,var(--card-bg) 94%,var(--text-main));color:var(--text-muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;text-align:right;padding:10px;border-bottom:1px solid var(--border);white-space:nowrap;}'
                 + '.dd-campaign-table th:first-child{text-align:left;left:0;z-index:3;}'
                 + '.dd-sort-th{padding:0!important;}.dd-sort-th button{width:100%;height:100%;padding:10px;border:0;background:transparent;color:inherit;font:inherit;text-transform:inherit;letter-spacing:inherit;display:flex;align-items:center;justify-content:flex-end;gap:4px;cursor:pointer;white-space:nowrap;}.dd-sort-th button:hover{color:var(--primary);}.dd-sort-th button i{font-size:11px;}'
-                + '.dd-campaign-table td{padding:11px 10px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle;color:var(--text-main);}'
+                + '.dd-campaign-table td{padding:11px 10px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle;color:var(--text-main);background:var(--card-bg);}'
                 + '.dd-campaign-table tbody tr:last-child td{border-bottom:0;}'
-                + '.dd-campaign-table tbody tr:hover td{background:rgba(127,127,127,.045);}'
-                + '.dd-campaign-table td:first-child{position:sticky;left:0;z-index:1;text-align:left;background:var(--card-bg);min-width:280px;max-width:360px;}'
+                + '.dd-campaign-table tbody tr:hover td{background:color-mix(in srgb,var(--text-main) 5%,var(--card-bg));}'
+                + '.dd-campaign-table td:first-child{position:sticky;left:0;z-index:1;text-align:left;background:var(--card-bg);min-width:360px;max-width:520px;}'
                 + '.dd-campaign-table tbody tr:hover td:first-child{background:color-mix(in srgb,var(--card-bg) 95%,var(--text-main));}'
                 + '.dd-campaign-table td>small{display:block;margin-top:2px;color:var(--text-muted);font-size:10px;white-space:nowrap;}'
                 + '.dd-ct-name>div{display:flex;align-items:center;gap:7px;min-width:0;}'
-                + '.dd-ct-name>div>b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;}'
-                + '.dd-ct-name>small{overflow:hidden;text-overflow:ellipsis;max-width:340px;}'
+                + '.dd-ct-name>div{align-items:flex-start;flex-wrap:wrap;}'
+                + '.dd-ct-name>div>b{flex:1 1 220px;min-width:0;overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere;line-height:1.35;font-size:12.5px;}'
+                + '.dd-ct-name>small{white-space:normal!important;overflow-wrap:anywhere;max-width:500px;line-height:1.35;}'
                 + '.dd-details-btn{flex:0 0 auto;border:0;background:transparent;color:var(--primary);font:inherit;font-size:10px;font-weight:800;display:inline-flex;align-items:center;gap:4px;cursor:pointer;padding:3px 5px;border-radius:6px;}.dd-details-btn:hover{background:color-mix(in srgb,var(--primary) 10%,transparent);}.dd-details-btn i{font-size:12px;}'
-                + '.dd-campaign-row{cursor:pointer;}.dd-campaign-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;}.dd-campaign-row.open td{background:color-mix(in srgb,var(--primary) 5%,var(--card-bg));}.dd-campaign-row.open td:first-child{background:color-mix(in srgb,var(--primary) 5%,var(--card-bg));}'
+                + '.dd-campaign-row{cursor:pointer;}.dd-campaign-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;}.dd-campaign-row.open td{background:color-mix(in srgb,var(--primary) 8%,var(--card-bg));}.dd-campaign-row.open td:first-child{background:color-mix(in srgb,var(--primary) 8%,var(--card-bg));}'
                 + '.dd-num.good{color:var(--dd-money);}.dd-num.bad{color:#dc2626;}'
                 + '.dd-result{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;}'
                 + '.dd-result b{font-size:13px;}.dd-result small{font-size:10px;color:var(--text-muted);}'
                 + '.dd-result.good b{color:var(--dd-money);}.dd-result.zero b{color:var(--text-muted);font-weight:600;}'
                 + '.dd-result-cell{position:relative;padding-right:28px!important;}.dd-expand-icon{position:absolute;right:9px;top:50%;transform:translateY(-50%);color:var(--text-muted);transition:transform .18s;}.dd-campaign-row.open .dd-expand-icon{transform:translateY(-50%) rotate(180deg);}'
-                + '.dd-buyers-row>td{padding:0!important;text-align:left!important;background:color-mix(in srgb,var(--primary) 3%,var(--card-bg))!important;position:static!important;max-width:none!important;}.dd-buyers{padding:12px 16px 16px 28px;display:flex;flex-direction:column;align-items:flex-start;gap:7px;}.dd-buyers-title{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--text-main);margin-bottom:2px;}.dd-buyers-title i{color:var(--primary);}.dd-buyers-title span{background:var(--dd-soft);padding:2px 7px;border-radius:99px;color:var(--text-muted);}.dd-buyer{width:100%;display:flex;justify-content:flex-start;align-items:center;gap:24px;border:1px solid var(--border);background:var(--card-bg);border-radius:10px;padding:10px 12px;text-align:left;}.dd-buyer>div:not(.dd-buyer-person){display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-width:65px;}.dd-buyer small{display:block;color:var(--text-muted);font-size:9.5px;font-weight:600;}.dd-buyer b{display:block;color:var(--text-main);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}.dd-buyer-person{display:flex;align-items:center;gap:8px;min-width:220px;max-width:280px;}.dd-buyer-person>span:last-child{min-width:0;}.dd-buyer-product{flex:0 1 340px;}.dd-buyer-avatar{width:29px;height:29px;flex:0 0 29px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary);}.dd-buyer-value b{color:var(--dd-money);}.dd-buyers-empty{width:100%;padding:18px;text-align:left;color:var(--text-muted);border:1px dashed var(--border);border-radius:10px;font-size:11.5px;}'
+                + '.dd-buyers-row>td{padding:0!important;text-align:left!important;background:color-mix(in srgb,var(--primary) 5%,var(--card-bg))!important;position:static!important;min-width:0!important;max-width:none!important;}.dd-buyers-row:hover>td{background:color-mix(in srgb,var(--primary) 5%,var(--card-bg))!important;}.dd-buyers{padding:12px 16px 16px 28px;display:flex;flex-direction:column;align-items:flex-start;gap:7px;}.dd-buyers-title{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--text-main);margin-bottom:2px;}.dd-buyers-title i{color:var(--primary);}.dd-buyers-title span{background:var(--dd-soft);padding:2px 7px;border-radius:99px;color:var(--text-muted);}.dd-buyer{width:100%;display:flex;justify-content:flex-start;align-items:center;gap:24px;border:1px solid var(--border);background:var(--card-bg);border-radius:10px;padding:10px 12px;text-align:left;}.dd-buyer>div:not(.dd-buyer-person){display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-width:65px;}.dd-buyer small{display:block;color:var(--text-muted);font-size:9.5px;font-weight:600;}.dd-buyer b{display:block;color:var(--text-main);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}.dd-buyer-person{display:flex;align-items:center;gap:8px;min-width:220px;max-width:280px;}.dd-buyer-person>span:last-child{min-width:0;}.dd-buyer-product{flex:0 1 340px;}.dd-buyer-avatar{width:29px;height:29px;flex:0 0 29px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary);}.dd-buyer-value b{color:var(--dd-money);}.dd-buyers-empty{width:100%;padding:18px;text-align:left;color:var(--text-muted);border:1px dashed var(--border);border-radius:10px;font-size:11.5px;}'
                 + '.dd-detail-overlay{position:fixed;inset:0;z-index:10020;background:rgba(15,23,42,.62);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;}.dd-detail-modal{width:min(560px,100%);max-height:min(760px,90vh);overflow:auto;background:var(--card-bg);border:1px solid var(--border);border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.35);}.dd-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:20px 22px 15px;border-bottom:1px solid var(--border);}.dd-detail-head span{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--primary);}.dd-detail-head h3{margin:3px 0 0;color:var(--text-main);font-size:18px;}.dd-detail-head button{width:32px;height:32px;border:0;border-radius:9px;background:var(--dd-soft);color:var(--text-muted);cursor:pointer;display:grid;place-items:center;}.dd-detail-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 22px;border-bottom:1px solid var(--border);}.dd-detail-meta span{min-width:0;}.dd-detail-meta small{display:block;color:var(--text-muted);font-size:9.5px;}.dd-detail-meta b{display:block;color:var(--text-main);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.dd-detail-loading,.dd-detail-empty{padding:34px 22px;text-align:center;color:var(--text-muted);font-size:12px;}.dd-detail-loading i{display:inline-block;margin-right:5px;animation:spin 1s linear infinite;}.dd-detail-messages{padding:18px 22px 22px;display:flex;flex-direction:column;gap:16px;}.dd-detail-message-name{font-size:10px;font-weight:800;color:var(--text-muted);margin:0 0 7px 3px;}.dd-message-bubble{background:#dcf8c6;color:#17221b;border-radius:4px 13px 13px 13px;padding:13px 15px;font-size:13px;line-height:1.5;white-space:normal;box-shadow:0 1px 2px rgba(0,0,0,.08);}.dd-message-bubble small{display:block;margin-top:9px;padding-top:8px;border-top:1px solid rgba(0,0,0,.08);color:#607266;font-size:10.5px;}.dd-message-buttons{display:flex;flex-direction:column;gap:1px;margin-top:3px;}.dd-message-buttons span{background:var(--dd-soft);color:#0284c7;text-align:center;padding:8px;border-radius:7px;font-size:11px;font-weight:700;}'
                 + '.dd-campaign-note{display:flex;align-items:flex-start;gap:8px;margin:10px 2px 24px;color:var(--text-muted);font-size:11px;line-height:1.5;}'
                 + '.dd-campaign-note i{color:var(--primary);font-size:14px;flex:0 0 auto;margin-top:1px;}'
@@ -19693,7 +19684,7 @@
 
         // cor por etapa (índice na config do funil)
         function crmStageColor(key, cols) {
-            const palette = ['#94a3b8','#7c3aed','#f59e0b','#3b82f6','#10b981','#ec4899','#06b6d4','#ef4444'];
+            const palette = ['#c4b5fd','#a78bfa','#8b5cf6','#7c3aed','#6d28d9','#9333ea','#a855f7','#d8b4fe'];
             const idx = Math.max(0, cols.findIndex(c => c.key === key));
             return palette[idx % palette.length];
         }
@@ -19842,6 +19833,7 @@
                 const colEl = document.createElement('div');
                 colEl.className = 'crm-col';
                 colEl.dataset.key = col.key;
+                colEl.style.setProperty('--col-accent', crmStageColor(col.key, config.columns));
 
                 // Drag-drop: coluna é zona de drop
                 colEl.addEventListener('dragover', (e) => {
