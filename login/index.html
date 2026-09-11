@@ -19399,6 +19399,12 @@
             return ordem.find(id => p[id]) || 'abriu';
         }
 
+        function _lentesCrmSessoesVisiveis(sessoes) {
+            const origem = String((activeUser && activeUser.origem) || '').toLowerCase();
+            if (!origem.includes('korosoculos.com.br')) return sessoes;
+            return sessoes.filter(v => String(v.telefone || '').replace(/\D/g, '').length > 0);
+        }
+
         function _lentesUltimaEtapaAntesDeSair(v) {
             const p = v.passos || {};
             const ordem = ['carrinho', 'trocou_lente', 'alternativa', 'recomendou', 'receita_lida',
@@ -19413,7 +19419,7 @@
             const board = document.getElementById('crmBoard');
             if (!board) return;
             const q = _crmSearchTerm;
-            const todas = _lentesSessoes(true);
+            const todas = _lentesCrmSessoesVisiveis(_lentesSessoes(true));
             _lentesCasaVendas(todas, 0);
             const itens = todas.filter(v => {
                 if (!q) return true;
@@ -19520,7 +19526,7 @@
         function exportLentesCrmCSV() {
             const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
             const rows = [['Pedido','Cliente','WhatsApp','Etapa atual','Etapas rastreadas','Armação','Visão','Tratamento','Lente','Última atividade'].map(esc).join(';')];
-            const todas = _lentesSessoes(true);
+            const todas = _lentesCrmSessoesVisiveis(_lentesSessoes(true));
             _lentesCasaVendas(todas, 0);
             todas.forEach(v => {
                 const etapa = _LENTES_CRM_ETAPAS.find(e => e.id === _lentesEtapaCrm(v));
