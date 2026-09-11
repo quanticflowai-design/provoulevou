@@ -3969,6 +3969,20 @@
                             <div id="lentesProd"></div>
                         </section>
 
+                        <section class="card lentes-secao lentes-painel-producao" id="lentesPrioritariosPanel" hidden>
+                            <div class="lentes-secao-topo">
+                                <div>
+                                    <span class="lentes-eyebrow">AÇÃO</span>
+                                    <h3>Clientes prioritários</h3>
+                                </div>
+                                <button type="button" class="lentes-fecha-prioritarios" onclick="_lentesFechaPrioritarios()" aria-label="Fechar clientes prioritários">
+                                    <i class="ph-bold ph-x"></i>
+                                </button>
+                            </div>
+                            <div id="lentesSemTel" class="lentes-sem-tel"></div>
+                            <div id="lentesCrm"></div>
+                        </section>
+
                     </div>
                 </div>
 
@@ -4206,10 +4220,16 @@
                     .lentes-view-tabs button { display:flex;align-items:center;gap:7px;border:0;background:transparent;color:var(--text-muted);padding:8px 14px;border-radius:7px;font:inherit;font-size:12.5px;font-weight:650;cursor:pointer; }
                     .lentes-view-tabs button.on { background:var(--bg-card);color:var(--text-main);box-shadow:0 1px 4px rgba(0,0,0,.12); }
                     .lentes-resumo-acao { display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;margin-bottom:16px; }
-                    .lentes-acao-card { display:flex;align-items:center;gap:11px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 14px;min-width:0; }
+                    .lentes-acao-card { display:flex;align-items:center;gap:11px;width:100%;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 14px;min-width:0;color:var(--text-main);font:inherit;text-align:left;cursor:pointer;transition:border-color .16s ease,transform .16s ease,box-shadow .16s ease; }
+                    .lentes-acao-card:hover { border-color:var(--primary);transform:translateY(-1px);box-shadow:0 7px 20px rgba(124,58,237,.10); }
+                    .lentes-acao-card:focus-visible { outline:2px solid var(--primary);outline-offset:2px; }
                     .lentes-acao-icone { width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font-size:18px;flex:0 0 auto; }
                     .lentes-acao-card b { display:block;font-size:14px;color:var(--text-main); }
                     .lentes-acao-card small { display:block;color:var(--text-muted);font-size:11.5px;margin-top:2px; }
+                    .lentes-fecha-prioritarios { width:34px;height:34px;border-radius:9px;border:1px solid var(--border-color);background:transparent;color:var(--text-muted);display:grid;place-items:center;cursor:pointer; }
+                    .lentes-fecha-prioritarios:hover { color:var(--text-main);border-color:var(--primary); }
+                    .lentes-alvo-destaque { animation:lentesAlvoDestaque 1.4s ease; }
+                    @keyframes lentesAlvoDestaque { 0%,100% { box-shadow:none; } 35% { box-shadow:0 0 0 3px rgba(124,58,237,.32); } }
                     .lentes-secao h3 { margin:0;font-size:16px;display:flex;align-items:center;gap:7px; }
                     .lentes-secao-ajuda { margin:5px 0 14px;color:var(--text-muted);font-size:12.5px;line-height:1.45; }
                     .lentes-central-grid { display:grid;grid-template-columns:minmax(0,1.65fr) minmax(320px,.85fr);gap:16px;align-items:start; }
@@ -6291,14 +6311,14 @@
                 const prod = _lentesProducao();
                 const nProd = id => prod.filter(x => _lentesEtapaProducao(x) === id).length;
                 const atender = ses.filter(x => x.telefone && ['ajuda', 'carrinho'].includes(_lentesEtapa(x))).length;
-                const acao = (icone, cor, n, titulo, vazio) => '<div class="lentes-acao-card">'
+                const acao = (icone, cor, n, titulo, vazio, destino) => '<button type="button" class="lentes-acao-card" onclick="_lentesResumoAbre(\'' + destino + '\')">'
                     + '<span class="lentes-acao-icone" style="background:' + cor + '18;color:' + cor + '"><i class="ph-bold ' + icone + '"></i></span>'
                     + '<div><b>' + (n ? n + ' ' + titulo : vazio) + '</b><small>'
-                    + (n ? 'aguardando ação' : 'nenhuma pendência') + '</small></div></div>';
-                resumo.innerHTML = acao('ph-file-text', '#f59e0b', nProd('receita-chegou'), nProd('receita-chegou') === 1 ? 'receita recebida' : 'receitas recebidas', 'Nenhuma receita nova')
-                    + acao('ph-check-circle', '#7c3aed', nProd('confirmar-receita'), nProd('confirmar-receita') === 1 ? 'receita para confirmar' : 'receitas para confirmar', 'Nada para confirmar')
-                    + acao('ph-gear', '#3b82f6', nProd('fabricando'), 'em fabricação', 'Nada em fabricação')
-                    + acao('ph-whatsapp-logo', '#25d366', atender, atender === 1 ? 'cliente prioritário' : 'clientes prioritários', 'Atendimento em dia');
+                    + (n ? 'aguardando ação' : 'nenhuma pendência') + '</small></div></button>';
+                resumo.innerHTML = acao('ph-file-text', '#f59e0b', nProd('receita-chegou'), nProd('receita-chegou') === 1 ? 'receita recebida' : 'receitas recebidas', 'Nenhuma receita nova', 'receita-chegou')
+                    + acao('ph-check-circle', '#7c3aed', nProd('confirmar-receita'), nProd('confirmar-receita') === 1 ? 'receita para confirmar' : 'receitas para confirmar', 'Nada para confirmar', 'confirmar-receita')
+                    + acao('ph-gear', '#3b82f6', nProd('fabricando'), 'em fabricação', 'Nada em fabricação', 'fabricando')
+                    + acao('ph-whatsapp-logo', '#25d366', atender, atender === 1 ? 'cliente prioritário' : 'clientes prioritários', 'Atendimento em dia', 'prioridade');
             }
 
             const notaEl = document.getElementById('lentesNota');
@@ -6350,6 +6370,31 @@
 
             document.querySelectorAll('#lentesLista [data-arq], #lentesCrm [data-arq]').forEach(b =>
                 b.onclick = () => _lentesAbreReceita(b));
+        }
+
+        function _lentesResumoAbre(destino) {
+            if (destino === 'prioridade') {
+                const painel = document.getElementById('lentesPrioritariosPanel');
+                if (!painel) return;
+                painel.hidden = false;
+                _lentesSetLeadFiltro('prioridade');
+                painel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                painel.classList.remove('lentes-alvo-destaque');
+                requestAnimationFrame(() => painel.classList.add('lentes-alvo-destaque'));
+                return;
+            }
+            const coluna = document.querySelector('#lentesProd .crm-col[data-key="' + destino + '"]');
+            if (!coluna) return;
+            coluna.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            coluna.classList.remove('lentes-alvo-destaque');
+            requestAnimationFrame(() => coluna.classList.add('lentes-alvo-destaque'));
+        }
+
+        function _lentesFechaPrioritarios() {
+            const painel = document.getElementById('lentesPrioritariosPanel');
+            if (painel) painel.hidden = true;
+            const resumo = document.getElementById('lentesResumoAcao');
+            if (resumo) resumo.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         /* Pedidos pagos que levaram um par de lente. Le a config da loja em vez de
