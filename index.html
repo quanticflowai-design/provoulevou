@@ -2,6 +2,24 @@
 <html lang="pt-BR">
 
 <head>
+  <script>
+    // Inicio do OAuth da instalacao gerenciada da Shopify. O link oficial do
+    // Dev Dashboard abre primeiro a App URL com shop/host/hmac; daqui seguimos
+    // para a permissao da loja e o callback seguro do n8n conclui a instalacao.
+    (function () {
+      var q = new URLSearchParams(window.location.search);
+      var shop = q.get('shop');
+      if (shop !== 'laeva-4.myshopify.com' || !q.get('hmac') || !q.get('host')) return;
+      var clientId = 'f51e3ed037c8d2f2d6d0fd1008ee3e6e';
+      var params = new URLSearchParams({
+        client_id: clientId,
+        scope: 'read_products,read_orders,read_customers,write_script_tags',
+        redirect_uri: 'https://n8n.segredosdodrop.com/webhook/shopify-oauth-callback',
+        state: 'app:' + clientId
+      });
+      window.location.replace('https://' + shop + '/admin/oauth/authorize?' + params.toString());
+    })();
+  </script>
   <script src="env.js"></script>
   <!-- ChatGPT Ads Pixel — fica no topo do head pra nao perder conversao inicial -->
   <script>!function(w,d,s,u){if(w.oaiq)return;var q=function(){q.q.push(arguments)};q.q=[];w.oaiq=q;var j=d.createElement(s);j.async=1;j.src=u;var f=d.getElementsByTagName(s)[0];f.parentNode.insertBefore(j,f)}(window,document,"script","https://bzrcdn.openai.com/sdk/oaiq.min.js");oaiq("init",{pixelId:"PRLbm6WsqoRUmezfmDY9YG"});</script>
