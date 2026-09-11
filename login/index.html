@@ -6637,15 +6637,9 @@
                 detalhe.pedido = item.venda.numero || item.venda.id || null;
                 detalhe.cliente = item.venda.nome || null;
             }
-            let clienteAvisado = false;
             try {
-                // O pedido só entra em Enviado depois que a Meta confirma o disparo.
-                // Assim não exibimos no painel que o cliente foi avisado quando houve falha.
-                if (etapa === 'enviado') {
-                    await _lentesAvisaEnviado(item);
-                    clienteAvisado = true;
-                    detalhe.whatsapp = 'enviado';
-                }
+                // A movimentação da produção não pode depender da configuração do
+                // WhatsApp. Primeiro salva a etapa; depois tenta avisar o cliente.
                 const r = await fetch('https://n8n.segredosdodrop.com/webhook/pl-lentes-step', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -6663,12 +6657,17 @@
                 if (typeof _crmPipelineMode !== 'undefined' && _crmPipelineMode === 'lentes') renderLentesCrmPipeline();
 
                 if (etapa === 'enviado') {
-                    crmToast('Pedido marcado como enviado e cliente avisado no WhatsApp.');
+                    try {
+                        await _lentesAvisaEnviado(item);
+                        crmToast('Pedido marcado como enviado e cliente avisado no WhatsApp.');
+                    } catch (avisoErro) {
+                        console.warn('[lentes] pedido salvo, aviso no WhatsApp falhou:', avisoErro);
+                        crmToast('Pedido marcado como enviado. O aviso no WhatsApp não foi enviado.', true);
+                    }
                 }
                 return true;
             } catch (e) {
                 console.error('[lentes] producao:', e);
-                if (clienteAvisado) e.message = 'O cliente foi avisado, mas não consegui salvar a etapa. Tente novamente.';
                 throw e;
             }
         }
