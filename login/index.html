@@ -14899,6 +14899,11 @@
         }
 
         function usaPaidAtParaAtribuicao(cfg) {
+            // A OSS acompanha o faturamento pela data de criacao do pedido no painel
+            // da Nuvemshop. Mantemos essa excecao explicita e restrita a ela para nao
+            // alterar a atribuicao por paid_at das demais lojas Nuvemshop.
+            const origem = String((cfg && cfg.origem) || '').toLowerCase();
+            if (origem.indexOf('ossglasses.com.br') !== -1) return false;
             const canal = String((cfg && cfg.canal_provador) || '').toLowerCase();
             const plataforma = String((cfg && (cfg.platform || cfg._platform)) || '').toLowerCase();
             return isVelaroStore(cfg) || canal === 'nuvemshop' || plataforma === 'nuvemshop';
