@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=89">
+  <link rel="stylesheet" href="styles.css?v=90">
 </head>
 <body>
   <div id="app">
@@ -339,11 +339,16 @@
             <!-- decimal, nao numeric: o teclado "numeric" do Android nao tem virgula,
                  e o lojista so conseguia digitar preco inteiro. -->
             <input type="text" id="admin-price" inputmode="decimal" placeholder="Preço (ex: 149,90)">
-            <!-- Sem tabela de categorias: a lista é o que os produtos já usam.
-                 O datalist sugere as existentes e o campo aceita uma nova. -->
-            <input type="text" id="admin-categoria" list="lista-categorias" autocomplete="off"
-                   placeholder="Categoria (ex: Feminino) — opcional">
-            <datalist id="lista-categorias"></datalist>
+            <div class="admin-categorias">
+              <p class="admin-categorias-tit">Categorias do produto</p>
+              <p class="admin-categorias-sub">Selecione quantas quiser.</p>
+              <div class="admin-categorias-opcoes" id="admin-categorias-opcoes"></div>
+              <div class="admin-categoria-nova">
+                <input type="text" id="admin-categoria" autocomplete="off" maxlength="50"
+                       placeholder="Nova categoria (ex.: Feminino)">
+                <button type="button" class="btn-outline" id="btn-add-categoria">Adicionar</button>
+              </div>
+            </div>
             <!-- O lojista é quem sabe em quantas vezes ele parcela: a maquininha
                  dele, o acordo com a operadora. Calcular 12x fixo no código
                  mostrava uma condição que muitos não praticam. -->
@@ -396,6 +401,13 @@
           <div class="cat-links-lista" id="cat-links-lista"></div>
         </div>
 
+        <div class="cat-order" id="cat-order" hidden>
+          <h3 class="cat-links-tit">Ordem das categorias</h3>
+          <p class="cat-order-sub">Use as setas para definir como elas aparecem para o cliente.</p>
+          <div class="cat-order-lista" id="cat-order-lista"></div>
+          <button type="button" class="btn-primary" id="btn-save-cat-order">Salvar ordem</button>
+        </div>
+
         <p class="admin-count" id="admin-count"></p>
         <div class="admin-list" id="admin-list"></div>
       </div>
@@ -424,6 +436,6 @@
   </template>
   <div id="toast"></div>
 
-  <script src="app.js?v=98"></script>
+  <script src="app.js?v=99"></script>
 </body>
 </html>

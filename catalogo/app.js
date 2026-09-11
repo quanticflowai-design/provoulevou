@@ -110,7 +110,7 @@
     // Fica exposta no browser, igual a api_key dos widgets das outras lojas — o
     // gerador so aceita se o Origin bater com o domain registrado.
     const rows = await sbGet('pl_catalog_stores?slug=eq.' + encodeURIComponent(STORE_SLUG) +
-      '&is_active=eq.true&select=id,slug,display_name,logo_url,whatsapp,bio,primary_color,tema,is_active,store_api_key,owner_email&limit=1');
+      '&is_active=eq.true&select=id,slug,display_name,logo_url,whatsapp,bio,primary_color,tema,is_active,store_api_key,owner_email,categorias_ordem&limit=1');
     storeRow = (rows && rows[0]) || null;
     if (!storeRow) {
       document.title = 'Catálogo indisponível';
@@ -426,13 +426,16 @@
       const imgs = (r.pl_catalog_product_images || [])
         .slice().sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.position || 0) - (b.position || 0));
       const urls = imgs.map(x => x.url).filter(Boolean);
+      const cats = normalizaCategorias(Array.isArray(r.categorias_vitrine) && r.categorias_vitrine.length
+        ? r.categorias_vitrine : [r.categoria_vitrine]);
       return {
         id: r.id, name: r.name, price: Number(r.price), img: urls[0] || '',
         imgs: urls,                       // a galeria e as referências da prova saem daqui
         imgIds: imgs.map(x => x.id).filter(Boolean),   // quais apagar quando trocar a foto
         imageMeta: imgs.map(x => ({ id: x.id, url: x.url, variantName: (x.variant_name || '').trim() })),
         desc: r.description || '',
-        cat: (r.categoria_vitrine || '').trim(),   // categoria criada pelo lojista
+        cat: cats[0] || '',                 // compatibilidade com caches e links antigos
+        cats: cats,                         // o produto pode aparecer em varias categorias
         parcelas: Number(r.parcelas) || 0,
         categoria: categoriaDe(r)
       };
@@ -515,11 +518,34 @@
   // Categoria escolhida no filtro ('' = todas). Não vai pro localStorage de
   // propósito: quem volta ao catálogo espera ver a vitrine inteira.
   let catFiltro = '';
+  let adminCategoriasSelecionadas = [];
+
+  function normalizaCategorias(valores) {
+    const saida = [];
+    (Array.isArray(valores) ? valores : []).forEach(valor => {
+      const nome = String(valor || '').trim().replace(/\s+/g, ' ').slice(0, 50);
+      if (!nome || saida.some(x => x.localeCompare(nome, 'pt-BR', { sensitivity: 'base' }) === 0)) return;
+      if (saida.length < 20) saida.push(nome);
+    });
+    return saida;
+  }
+
+  function produtoTemCategoria(produto, categoria) {
+    const cats = produto.cats && produto.cats.length ? produto.cats : [produto.cat];
+    return cats.some(c => String(c).localeCompare(categoria, 'pt-BR', { sensitivity: 'base' }) === 0);
+  }
 
   function categoriasDaLoja() {
-    const vistas = [];
-    catalog.forEach(p => { if (p.cat && vistas.indexOf(p.cat) === -1) vistas.push(p.cat); });
-    return vistas.sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    const vistas = normalizaCategorias(catalog.flatMap(p => p.cats && p.cats.length ? p.cats : [p.cat]));
+    const salvas = normalizaCategorias(storeRow && storeRow.categorias_ordem);
+    const ordenadas = [];
+    salvas.forEach(nome => {
+      const real = vistas.find(c => c.localeCompare(nome, 'pt-BR', { sensitivity: 'base' }) === 0);
+      if (real && ordenadas.indexOf(real) === -1) ordenadas.push(real);
+    });
+    vistas.filter(c => ordenadas.indexOf(c) === -1)
+      .sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(c => ordenadas.push(c));
+    return ordenadas;
   }
 
   function renderFiltros() {
@@ -547,7 +573,7 @@
   function renderCatalog() {
     const grid = $('#catalog-grid');
     grid.innerHTML = '';
-    const visiveis = catFiltro ? catalog.filter(p => p.cat === catFiltro) : catalog;
+    const visiveis = catFiltro ? catalog.filter(p => produtoTemCategoria(p, catFiltro)) : catalog;
     visiveis.forEach(p => {
       // DOM seguro: nome do produto vem do lojista, nunca concatenar em HTML.
       const card = document.createElement('div');
@@ -718,7 +744,7 @@
       const item = document.createElement('div'); item.className = 'cat-link-item';
       const nome = document.createElement('span'); nome.className = 'cat-link-nome'; nome.textContent = c;
       const qtd = document.createElement('span'); qtd.className = 'cat-link-qtd';
-      const n = catalog.filter(x => x.cat === c).length;
+      const n = catalog.filter(x => produtoTemCategoria(x, c)).length;
       qtd.textContent = n + (n > 1 ? ' produtos' : ' produto');
       const btn = document.createElement('button');
       btn.type = 'button'; btn.className = 'cat-link-btn';
@@ -742,16 +768,108 @@
     });
   }
 
-  // Sugestões do campo de categoria: o que a loja já usa.
-  function renderSugestoesCategoria() {
-    const dl = $('#lista-categorias');
-    if (!dl) return;
-    dl.textContent = '';
-    categoriasDaLoja().forEach(c => {
-      const o = document.createElement('option');
-      o.value = c;
-      dl.appendChild(o);
+  function renderAdminCategorias() {
+    const box = $('#admin-categorias-opcoes');
+    if (!box) return;
+    const disponiveis = normalizaCategorias(categoriasDaLoja().concat(adminCategoriasSelecionadas));
+    box.textContent = '';
+    if (!disponiveis.length) {
+      const vazio = document.createElement('span');
+      vazio.className = 'admin-categorias-vazio';
+      vazio.textContent = 'Nenhuma categoria criada ainda.';
+      box.appendChild(vazio);
+      return;
+    }
+    disponiveis.forEach(categoria => {
+      const selecionada = adminCategoriasSelecionadas.some(c => c.localeCompare(categoria, 'pt-BR', { sensitivity: 'base' }) === 0);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'admin-cat-chip' + (selecionada ? ' sel' : '');
+      btn.textContent = categoria;
+      btn.setAttribute('aria-pressed', selecionada ? 'true' : 'false');
+      btn.addEventListener('click', () => {
+        if (selecionada) adminCategoriasSelecionadas = adminCategoriasSelecionadas.filter(c => c.localeCompare(categoria, 'pt-BR', { sensitivity: 'base' }) !== 0);
+        else adminCategoriasSelecionadas = normalizaCategorias(adminCategoriasSelecionadas.concat(categoria));
+        renderAdminCategorias();
+      });
+      box.appendChild(btn);
     });
+  }
+
+  function adicionaCategoriaDigitada() {
+    const campo = $('#admin-categoria');
+    const nome = String(campo && campo.value || '').trim();
+    if (!nome) return;
+    adminCategoriasSelecionadas = normalizaCategorias(adminCategoriasSelecionadas.concat(nome));
+    campo.value = '';
+    renderAdminCategorias();
+  }
+
+  {
+    const btn = $('#btn-add-categoria');
+    if (btn) btn.addEventListener('click', adicionaCategoriaDigitada);
+    const campo = $('#admin-categoria');
+    if (campo) campo.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); adicionaCategoriaDigitada(); }
+    });
+  }
+
+  function renderOrdemCategorias() {
+    const box = $('#cat-order'), lista = $('#cat-order-lista');
+    if (!box || !lista) return;
+    const cats = categoriasDaLoja();
+    box.hidden = cats.length < 2;
+    lista.textContent = '';
+    cats.forEach((categoria, indice) => {
+      const linha = document.createElement('div');
+      linha.className = 'cat-order-item';
+      const nome = document.createElement('span');
+      nome.textContent = categoria;
+      const cima = document.createElement('button');
+      cima.type = 'button'; cima.className = 'cat-order-btn'; cima.textContent = '↑'; cima.title = 'Mover para cima'; cima.disabled = indice === 0;
+      const baixo = document.createElement('button');
+      baixo.type = 'button'; baixo.className = 'cat-order-btn'; baixo.textContent = '↓'; baixo.title = 'Mover para baixo'; baixo.disabled = indice === cats.length - 1;
+      const mover = direcao => {
+        const ordem = cats.slice();
+        const destino = indice + direcao;
+        [ordem[indice], ordem[destino]] = [ordem[destino], ordem[indice]];
+        if (storeRow) storeRow.categorias_ordem = ordem;
+        renderOrdemCategorias(); renderFiltros(); renderLinksCategoria();
+      };
+      cima.addEventListener('click', () => mover(-1));
+      baixo.addEventListener('click', () => mover(1));
+      linha.append(nome, cima, baixo);
+      lista.appendChild(linha);
+    });
+  }
+
+  {
+    const salvar = $('#btn-save-cat-order');
+    if (salvar) salvar.addEventListener('click', async () => {
+      const texto = salvar.textContent;
+      salvar.disabled = true; salvar.textContent = 'Salvando…';
+      try {
+        const ordem = categoriasDaLoja();
+        const r = await fetch(WH_THEME, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ store_slug: STORE_SLUG, categorias_ordem: ordem })
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        if (storeRow) storeRow.categorias_ordem = ordem;
+        toast('Ordem das categorias salva ✓');
+      } catch (e) {
+        console.warn('[Provou Catálogo] erro ao salvar categorias:', e);
+        toast('Não consegui salvar a ordem. Tente de novo.');
+      } finally {
+        salvar.disabled = false; salvar.textContent = texto;
+      }
+    });
+  }
+
+  // Atualiza as categorias disponíveis no cadastro e a área de ordenação.
+  function renderSugestoesCategoria() {
+    renderAdminCategorias();
+    renderOrdemCategorias();
   }
 
   // Abre a prova virtual já com o produto escolhido
@@ -1344,6 +1462,8 @@
   let adminPhoto = '';
   function renderAdmin() {
     renderTema();
+    renderAdminCategorias();
+    renderOrdemCategorias();
     $('#admin-count').textContent = catalog.length + ' produto' + (catalog.length === 1 ? '' : 's') + ' no catálogo';
     const list = $('#admin-list'); list.innerHTML = '';
     catalog.forEach(p => {
@@ -1457,7 +1577,9 @@
     $('#admin-price').value = Number(p.price).toFixed(2).replace('.', ',');
     $('#admin-desc').value = p.desc || '';
     $('#admin-parcelas').value = p.parcelas ? String(p.parcelas) : '';
-    $('#admin-categoria').value = p.cat || '';
+    adminCategoriasSelecionadas = normalizaCategorias(p.cats && p.cats.length ? p.cats : [p.cat]);
+    $('#admin-categoria').value = '';
+    renderAdminCategorias();
     const prev = $('#admin-up-preview');
     if (p.img) { prev.src = p.img; prev.hidden = false; $('#admin-up-empty').style.display = 'none'; }
     renderAdminVariacoes((p.imageMeta || []).map(x => ({ id: x.id, url: x.url, variantName: x.variantName })));
@@ -1473,6 +1595,8 @@
     $('#admin-name').value = ''; $('#admin-price').value = '';
     $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
     $('#admin-categoria').value = '';
+    adminCategoriasSelecionadas = [];
+    renderAdminCategorias();
     adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = []; adminFotosPreview = [];
     renderAdminVariacoes([]);
     $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = '';
@@ -1515,6 +1639,9 @@
     const name = $('#admin-name').value.trim();
     const priceRaw = $('#admin-price').value.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
     const price = parseFloat(priceRaw);
+    // Se a categoria nova ainda estiver digitada, inclui antes de salvar.
+    if ($('#admin-categoria').value.trim()) adicionaCategoriaDigitada();
+    const categorias = normalizaCategorias(adminCategoriasSelecionadas);
     if (!name) { toast('Dê um nome ao produto'); return; }
     if (!price || price <= 0) { toast('Informe um preço válido'); return; }
     // no cadastro a foto é obrigatória; na edição, só se o lojista escolher outra
@@ -1552,7 +1679,8 @@
           body: JSON.stringify({ product_id: editando.id, name, price,
                                  description: $('#admin-desc').value.trim() || null,
                                  parcelas: Number($('#admin-parcelas').value) || null,
-                                 categoria_vitrine: $('#admin-categoria').value.trim() || null,
+                                 categoria_vitrine: categorias[0] || null,
+                                 categorias_vitrine: categorias.length ? categorias : null,
                                  image_variants: trocouFoto ? [] : variacoes.filter(x => x.id),
                                  remove_image_ids: trocouFoto ? (editando.imgIds || []) : [] })
         });
@@ -1582,7 +1710,8 @@
         body: JSON.stringify({ store_slug: STORE_SLUG, name, price, descricao_e_parcelas: 1,
                                description: $('#admin-desc').value.trim() || null,
                                parcelas: Number($('#admin-parcelas').value) || null,
-                               categoria_vitrine: $('#admin-categoria').value.trim() || null,
+                               categoria_vitrine: categorias[0] || null,
+                               categorias_vitrine: categorias.length ? categorias : null,
                                mime: 'image/jpeg', image_b64: adminPhotoB64,
                                variant_name: (variacoes[0] && variacoes[0].variant_name) || null })
       });
@@ -1613,6 +1742,8 @@
       $('#admin-name').value = ''; $('#admin-price').value = '';
       $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
       $('#admin-categoria').value = '';
+      adminCategoriasSelecionadas = [];
+      renderAdminCategorias();
       adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = []; adminFotosPreview = [];
       renderAdminVariacoes([]);
       $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = ''; $('#admin-photo').value = '';
