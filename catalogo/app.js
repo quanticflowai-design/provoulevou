@@ -379,7 +379,12 @@
                    brand: '#123C70', dark: '#082447', soft: 'rgba(18,60,112,.11)', on: '#FFFFFF' },
     // Óticas Porto: azul profundo do nome com o verde-água do símbolo.
     oticasporto: { bg: '#F4FCFA', card: '#FFFFFF', line: '#CDEBE4',
-                   brand: '#111064', dark: '#08073F', soft: 'rgba(45,207,167,.13)', on: '#FFFFFF' }
+                    brand: '#111064', dark: '#08073F', soft: 'rgba(45,207,167,.13)', on: '#FFFFFF' },
+    // Ótica ESM: amarelo e preto desde o primeiro quadro, antes da consulta ao banco.
+    // Evita que os botões pisquem em roxo enquanto o tema salvo está carregando.
+    oticaesm: { bg: '#000000', card: '#000000', line: 'rgba(253,196,13,.28)',
+                brand: '#FDC40D', dark: '#C99C0A', soft: 'rgba(253,196,13,.14)', on: '#000000',
+                cta: '#FDC40D', ctaDark: '#C99C0A', onCta: '#000000' }
   };
 
   // ─────────── Tema ───────────
@@ -2153,6 +2158,7 @@
   // reescreve a URL e o ?cat= ja teria sumido
   const catPedida = new URLSearchParams(location.search).get('cat');
   const sessaoPronta = validaSessaoAtual();
+  aplicaTema(null);       // aplica a paleta conhecida antes da primeira consulta ao banco
   aplicaPermissoes();   // esconde a area do lojista antes de pintar a tela
   renderStore();
   renderCatalog();          // pinta na hora com o cache
