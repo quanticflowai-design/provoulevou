@@ -19,10 +19,15 @@ for(const f of flows){
     // gatilho: lead entrou numa etapa do CRM (sinal = crm_lead_overrides).
     // A chave do CRM tem só 9 dígitos (sem DDD) => resolve o número completo via prova p/ poder enviar.
     if(!f.gatilho_etapa)continue;
-    const cfg=(await get(`/lojistas?email=eq.${enc(f.lojista_email)}&select=origem`))[0];
+    const cfg=(await get(`/lojistas?email=eq.${enc(f.lojista_email)}&select=origem,tabela_pedidos,campo_status_pedido,campo_telefone_pedido,campo_nome_pedido,campo_produto_pedido,campo_total_pedido,campo_data_pedido`))[0];
     const etapaCod=String(f.gatilho_etapa||'');
     const etapaLentes=etapaCod.startsWith('lentes:');
     const etapaAlvo=etapaLentes?etapaCod.slice(7):etapaCod;
+    if(!etapaLentes&&etapaAlvo==='pagamento-pendente'&&cfg&&cfg.tabela_pedidos){
+      const statusField=cfg.campo_status_pedido||'payment_status', phoneField=cfg.campo_telefone_pedido||'customer_phone', nameField=cfg.campo_nome_pedido||'customer_name', productField=cfg.campo_produto_pedido||'product_name', totalField=cfg.campo_total_pedido||'total', dateField=cfg.campo_data_pedido||'created_at';
+      const orders=await get(`/${enc(cfg.tabela_pedidos)}?${enc(dateField)}=gte.${enc(since)}&select=*&limit=500`);
+      for(const o of orders){if(!isPending(o[statusField]))continue;cand.push({phone:o[phoneField]||o.customer_phone||o.contact_phone||o.shipping_phone,contexto:{nome:primeiroNome(o[nameField]),produto:String(o[productField]||'').trim(),url:o.checkout_url||o.order_url||o.payment_url||o.checkout_link||o.gateway_link||'',total:o[totalField]||0,pedido:o.order_number||o.id_pedido||o.id||''}});}
+    }
     if(etapaLentes){
       if(!cfg||!cfg.origem)continue;
       const rows=await get(`/lentes_funnel?origin=ilike.*${enc(cfg.origem)}*&created_at=gte.${since}&select=session_id,telefone,step,detail,produto,created_at&order=created_at.asc&limit=1000`);
@@ -37,7 +42,7 @@ for(const f of flows){
       // O fluxo de lentes já foi resolvido acima; o CRM tradicional continua abaixo.
       if(eventos.length||etapaLentes){ /* segue para deduplicação */ }
     }
-    const movs=etapaLentes?[]:await get(`/crm_lead_overrides?lojista_email=eq.${enc(f.lojista_email)}&column_key=eq.${enc(etapaAlvo)}&updated_at=gte.${since}&select=telefone&limit=500`);
+    const movs=(etapaLentes||etapaAlvo==='pagamento-pendente')?[]:await get(`/crm_lead_overrides?lojista_email=eq.${enc(f.lojista_email)}&column_key=eq.${enc(etapaAlvo)}&updated_at=gte.${since}&select=telefone&limit=500`);
     for(const m of movs){
       const key=String(m.telefone||'').replace(/\D/g,''); if(key.length<8)continue;
       let full=null, ctx={nome:'',produto:'',url:''};
@@ -67,7 +72,7 @@ for(const f of flows){
       const orders=await get(`/${enc(cfg.tabela_pedidos)}?${enc(dateField)}=gte.${enc(since)}&select=*&limit=500`);
       for(const o of orders){
         if(!isPending(o[statusField]))continue;
-        cand.push({phone:o[phoneField]||o.customer_phone||o.contact_phone||o.shipping_phone,contexto:{nome:primeiroNome(o[nameField]),produto:String(o[productField]||'').trim(),url:o.checkout_url||o.order_url||'',total:o[totalField]||0,pedido:o.order_number||o.id_pedido||o.id||''}});
+        cand.push({phone:o[phoneField]||o.customer_phone||o.contact_phone||o.shipping_phone,contexto:{nome:primeiroNome(o[nameField]),produto:String(o[productField]||'').trim(),url:o.checkout_url||o.order_url||o.payment_url||o.checkout_link||o.gateway_link||'',total:o[totalField]||0,pedido:o.order_number||o.id_pedido||o.id||''}});
       }
     } else if(f.gatilho==='carrinho_abandonado'){
       if(!cfg.origem)continue;

@@ -12722,9 +12722,9 @@
             // Link decidido pela ETAPA do disparo (não pelo dado do lead): etapa "Carrinho
             // abandonado" → link do checkout; qualquer outra etapa (ou "Todas") → link do produto.
             const bulkStageKey = (document.getElementById('waBulkStageSelect') || {}).value || 'all';
-            const isCarrinhoSeg = bulkStageKey === 'carrinho-abandonado';
-            const leadLinkOf = (l) => isCarrinhoSeg
-                ? (hasUrl(l.checkoutUrl) ? l.checkoutUrl : (hasUrl(l.productUrl) ? l.productUrl : ''))
+            const isCheckoutStage = bulkStageKey === 'carrinho-abandonado' || bulkStageKey === 'pagamento-pendente';
+            const leadLinkOf = (l) => isCheckoutStage
+                ? (hasUrl(l.checkoutUrl) ? l.checkoutUrl : '')
                 : (hasUrl(l.productUrl) ? l.productUrl : '');
             // Quando o template usa link, leads sem NENHUM link (nem checkout nem produto) são
             // automaticamente pulados — não dá pra mandar o template sem o link deles.
@@ -13741,9 +13741,9 @@
                     // Link de cada lead — MESMA lógica do disparo imediato (leadLinkOf vive no escopo do
                     // executeBulkSend e não existe aqui; antes o {{3}} saía sempre vazio → Meta #131008).
                     const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
-                    const isCarrinhoSeg = CAMP.stage === 'carrinho-abandonado';
-                    const leadLinkOf = (l) => isCarrinhoSeg
-                        ? (hasUrl(l.checkoutUrl) ? l.checkoutUrl : (hasUrl(l.productUrl) ? l.productUrl : ''))
+                    const isCheckoutStage = CAMP.stage === 'carrinho-abandonado' || CAMP.stage === 'pagamento-pendente';
+                    const leadLinkOf = (l) => isCheckoutStage
+                        ? (hasUrl(l.checkoutUrl) ? l.checkoutUrl : '')
                         : (hasUrl(l.productUrl) ? l.productUrl : '');
                     // Detecta se o link vai no corpo ({{3}}) ou num botão de URL dinâmico ({{1}} do botão).
                     const linkInBody = bodyKinds.includes('link');
@@ -14043,9 +14043,9 @@
             // Link decidido pela ETAPA do disparo (não pelo dado do lead): etapa "Carrinho
             // abandonado" → link do checkout; qualquer outra etapa (ou "Todas") → link do produto.
             const bulkStageKey = (document.getElementById('waBulkStageSelect') || {}).value || 'all';
-            const isCarrinhoSeg = bulkStageKey === 'carrinho-abandonado';
-            const leadLinkOf = (l) => isCarrinhoSeg
-                ? (hasUrl(l.checkoutUrl) ? l.checkoutUrl : (hasUrl(l.productUrl) ? l.productUrl : ''))
+            const isCheckoutStage = bulkStageKey === 'carrinho-abandonado' || bulkStageKey === 'pagamento-pendente';
+            const leadLinkOf = (l) => isCheckoutStage
+                ? (hasUrl(l.checkoutUrl) ? l.checkoutUrl : '')
                 : (hasUrl(l.productUrl) ? l.productUrl : '');
             const sendTargets = window._waBulkNeedLink ? targets.filter(t => !!leadLinkOf(t)) : targets;
             if (!sendTargets.length) { fb.style.color = '#ef4444'; fb.textContent = 'Nenhum lead com link salvo (checkout ou produto) pra este modelo.'; return; }
@@ -19466,6 +19466,7 @@
                                 lead.pendingPaymentOrderId = o.id_pedido || o.id || '';
                                 const pendingProduct = String(o[user.campo_produto_pedido || 'product_name'] || '').trim();
                                 if (pendingProduct) lead.lastProduct = pendingProduct;
+                                lead.checkoutUrl = o.checkout_url || o.order_url || o.payment_url || o.checkout_link || o.gateway_link || '';
                             }
                             if (orderDate && (!lead.lastDate || orderDate > lead.lastDate)) lead.lastDate = orderDate;
                             if (!lead.name && o[fNome]) lead.name = String(o[fNome]).trim();
