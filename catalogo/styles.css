@@ -201,6 +201,7 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
   color: var(--muted); text-decoration: line-through; font-weight: 500;
 }
 .prod-card .pc-old-price { font-size: 12px; }
+.prod-card .pc-price.offer, .p-price.offer, .result-prod-price.offer { font-weight: 800; }
 /* CTA do cliente final: botão de verdade, largura cheia, alvo de toque grande. */
 .prod-card .pc-try {
   width: 100%; margin-top: 9px; padding: 11px 8px;
@@ -420,6 +421,8 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
   font-family: 'Hanken Grotesk', sans-serif; background: var(--card); color: var(--ink); width: 100%;
 }
 .admin-fields textarea { resize: vertical; min-height: 44px; }
+.admin-interest { display: grid; gap: 5px; color: var(--ink-2); font-size: 12px; font-weight: 600; }
+.admin-interest input { width: 100%; background: var(--card); color: var(--ink); }
 .p-desc:empty { display: none; }
 .admin-fields .btn-primary { padding: 11px; font-size: 14px; }
 .admin-count { font-size: 13px; color: var(--muted); margin: 20px 0 10px; font-weight: 600; }
@@ -641,6 +644,11 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 /* No celular, foto e formulário em colunas lado a lado deixam os campos
    estreitos e empurram a área de categorias para a borda. */
 @media (max-width: 599px) {
+  /* No celular a foto usa sua proporção real: sem corte, preenchimento ou
+     painel colorido criado pelo catálogo. */
+  .prod-card .thumb { aspect-ratio: auto; height: auto; background: transparent; }
+  .product-photo { aspect-ratio: auto; background: transparent; }
+  .product-photo img { height: auto; display: block; }
   .admin-add { flex-direction: column; }
   .admin-uploader { width: 132px; height: 132px; align-self: center; }
   .admin-fields { width: 100%; min-width: 0; }

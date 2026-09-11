@@ -88,6 +88,16 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
   const brl = n => 'R$ ' + Number(n).toFixed(2).replace('.', ',');
+  const temOferta = p => !!(p && p.originalPrice && p.originalPrice > p.price);
+  const precoAtualTxt = p => (temOferta(p) ? 'POR: ' : '') + brl(p.price);
+  const precoOriginalTxt = p => temOferta(p) ? 'DE ' + brl(p.originalPrice) : '';
+
+  function valorParcela(p, parcelas) {
+    const n = Math.max(1, Number(parcelas) || 1);
+    const juros = Math.max(0, Number(p && p.installmentInterestRate) || 0);
+    if (n === 1 || !juros) return Number(p.price) / n;
+    return Number(p.price) * (1 + (juros / 100) * n) / n;
+  }
   const espera = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   function novoRequestId() {
@@ -103,7 +113,7 @@
     for (let tentativa = 1; tentativa <= (tentativas || 2); tentativa++) {
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 45000);
+        const timer = setTimeout(() => controller.abort(), 18000);
         let r;
         try {
           r = await fetch(url, {
@@ -137,10 +147,25 @@
   function save() { try { localStorage.setItem(cacheKey(), JSON.stringify(catalog)); } catch (e) {} }
 
   // ─────────── Carga do backend ───────────
-  function sbGet(path) {
-    return fetch(SB_URL + '/rest/v1/' + path, {
-      headers: { apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON }
-    }).then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)));
+  async function sbGet(path) {
+    let erro;
+    for (let tentativa = 1; tentativa <= 2; tentativa++) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 12000);
+      try {
+        const r = await fetch(SB_URL + '/rest/v1/' + path, {
+          headers: { apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON },
+          signal: controller.signal
+        });
+        if (!r.ok) throw Object.assign(new Error('HTTP ' + r.status), { retryable: r.status >= 500 || r.status === 429 });
+        return await r.json();
+      } catch (e) {
+        erro = e;
+        if (tentativa === 2 || e.retryable === false) break;
+        await espera(500);
+      } finally { clearTimeout(timer); }
+    }
+    throw erro || new Error('Falha ao carregar');
   }
 
   async function loadStore() {
@@ -476,6 +501,7 @@
         cat: cats[0] || '',                 // compatibilidade com caches e links antigos
         cats: cats,                         // o produto pode aparecer em varias categorias
         parcelas: Number(r.parcelas) || 0,
+        installmentInterestRate: Number(r.installment_interest_rate) || 0,
         categoria: categoriaDe(r)
       };
     });
@@ -504,6 +530,7 @@
     return new Promise(resolve => {
       try {
         const img = new Image();
+        img.decoding = 'async';
         const u = URL.createObjectURL(file);
         img.onload = function () {
           URL.revokeObjectURL(u);
@@ -513,7 +540,13 @@
           const c = document.createElement('canvas');
           c.width = Math.round(w * sc); c.height = Math.round(h * sc);
           c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-          resolve(c.toDataURL('image/jpeg', JPEG_QUALITY).split(',')[1]);
+          c.toBlob(blob => {
+            if (!blob) { resolve(null); return; }
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result || '').split(',')[1] || null);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(blob);
+          }, 'image/jpeg', JPEG_QUALITY);
         };
         img.onerror = function () { URL.revokeObjectURL(u); resolve(null); };
         img.src = u;
@@ -632,11 +665,11 @@
       const body = document.createElement('div'); body.className = 'pc-body';
       const nome = document.createElement('div'); nome.className = 'pc-name'; nome.textContent = p.name;
       const precos = document.createElement('div'); precos.className = 'pc-prices';
-      if (p.originalPrice && p.originalPrice > p.price) {
-        const original = document.createElement('span'); original.className = 'pc-old-price'; original.textContent = brl(p.originalPrice);
+      if (temOferta(p)) {
+        const original = document.createElement('span'); original.className = 'pc-old-price'; original.textContent = precoOriginalTxt(p);
         precos.appendChild(original);
       }
-      const preco = document.createElement('span'); preco.className = 'pc-price'; preco.textContent = brl(p.price);
+      const preco = document.createElement('span'); preco.className = 'pc-price' + (temOferta(p) ? ' offer' : ''); preco.textContent = precoAtualTxt(p);
       precos.appendChild(preco);
       const btn = document.createElement('button');
       btn.type = 'button'; btn.className = 'pc-try'; btn.textContent = 'Provar virtualmente';
@@ -1005,13 +1038,16 @@
     bindImg($('#p-img'), p.img, p.name);
     $('#p-name').textContent = p.name;
     const precoOriginal = $('#p-old-price');
-    precoOriginal.textContent = p.originalPrice && p.originalPrice > p.price ? brl(p.originalPrice) : '';
+    precoOriginal.textContent = precoOriginalTxt(p);
     precoOriginal.hidden = !precoOriginal.textContent;
-    $('#p-price').textContent = brl(p.price);
+    $('#p-price').textContent = precoAtualTxt(p);
+    $('#p-price').classList.toggle('offer', temOferta(p));
     // sem parcelamento informado o campo some, em vez de anunciar 12x que a
     // loja talvez não pratique
     const par = Number(p.parcelas) || 0;
-    $('#p-install').textContent = par > 1 ? 'ou até ' + par + 'x de ' + brl(p.price / par)
+    const juros = Number(p.installmentInterestRate) || 0;
+    $('#p-install').textContent = par > 1 ? 'ou até ' + par + 'x de ' + brl(valorParcela(p, par)) +
+                                  (juros ? ' com ' + String(juros).replace('.', ',') + '% de juros por parcela' : ' sem juros')
                                 : (par === 1 ? 'à vista' : '');
     $('#p-desc').textContent = p.desc || '';
     montaMiniaturas(p);
@@ -1409,10 +1445,10 @@
     bindImg($('#result-thumb'), fotoAtual() || current.img, current.name);
     $('#result-name').textContent = nomeProdutoAtual();
     const precoOriginal = $('#result-old-price');
-    precoOriginal.textContent = current.originalPrice && current.originalPrice > current.price
-      ? brl(current.originalPrice) : '';
+    precoOriginal.textContent = precoOriginalTxt(current);
     precoOriginal.hidden = !precoOriginal.textContent;
-    $('#result-price').textContent = brl(current.price);
+    $('#result-price').textContent = precoAtualTxt(current);
+    $('#result-price').classList.toggle('offer', temOferta(current));
     show('result');
   }
 
@@ -1479,10 +1515,13 @@
   // ─────────── Cartão (fake) ───────────
   function buildInstallments() {
     const sel = $('#f-install'); sel.innerHTML = '';
-    for (let n = 1; n <= 12; n++) {
+    const max = Math.max(1, Number(current.parcelas) || 1);
+    const juros = Number(current.installmentInterestRate) || 0;
+    for (let n = 1; n <= max; n++) {
       const opt = document.createElement('option');
       opt.value = n;
-      opt.textContent = n + 'x de ' + brl(current.price / n) + (n === 1 ? ' à vista' : ' sem juros');
+      opt.textContent = n + 'x de ' + brl(valorParcela(current, n)) +
+        (n === 1 ? ' à vista' : (juros ? ' com juros' : ' sem juros'));
       sel.appendChild(opt);
     }
   }
@@ -1495,6 +1534,10 @@
     $('#card-amount').textContent = brl(current.price);
     show('card');
   }
+  $('#f-install').addEventListener('change', e => {
+    const n = Math.max(1, Number(e.target.value) || 1);
+    $('#card-amount').textContent = brl(valorParcela(current, n) * n);
+  });
   $('#f-number').addEventListener('input', e => {
     let v = e.target.value.replace(/\D/g, '').slice(0, 16);
     e.target.value = v.replace(/(.{4})/g, '$1 ').trim();
@@ -1610,6 +1653,13 @@
   let adminUploadRequestId = ''; // persiste se o lojista tocar novamente após uma falha
   let editando = null;      // produto em edição (null = cadastrando um novo)
 
+  function atualizaCampoJuros() {
+    const comJuros = $('#admin-interest-type').value === 'interest';
+    $('#admin-interest-wrap').hidden = !comJuros;
+    if (!comJuros) $('#admin-interest-rate').value = '';
+  }
+  $('#admin-interest-type').addEventListener('change', atualizaCampoJuros);
+
   function renderAdminVariacoes(fotos) {
     const box = $('#admin-variacoes');
     const lista = $('#admin-variacoes-lista');
@@ -1655,6 +1705,10 @@
       ? Number(p.originalPrice).toFixed(2).replace('.', ',') : '';
     $('#admin-desc').value = p.desc || '';
     $('#admin-parcelas').value = p.parcelas ? String(p.parcelas) : '';
+    $('#admin-interest-type').value = p.installmentInterestRate > 0 ? 'interest' : 'none';
+    $('#admin-interest-rate').value = p.installmentInterestRate > 0
+      ? String(p.installmentInterestRate).replace('.', ',') : '';
+    atualizaCampoJuros();
     adminCategoriasSelecionadas = normalizaCategorias(p.cats && p.cats.length ? p.cats : [p.cat]);
     $('#admin-categoria').value = '';
     renderAdminCategorias();
@@ -1672,6 +1726,8 @@
     editando = null;
     $('#admin-name').value = ''; $('#admin-price').value = ''; $('#admin-original-price').value = '';
     $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
+    $('#admin-interest-type').value = 'none'; $('#admin-interest-rate').value = '';
+    atualizaCampoJuros();
     $('#admin-categoria').value = '';
     adminCategoriasSelecionadas = [];
     renderAdminCategorias();
@@ -1693,11 +1749,13 @@
     if (!files.length) return;
     const btn = $('#btn-add-product');
     const txt0 = btn.textContent;
-    btn.disabled = true; btn.textContent = 'Lendo fotos…';   // comprimir 5 fotos leva alguns segundos
+    btn.disabled = true; btn.textContent = 'Otimizando fotos…';
     const lidas = [];
-    for (const f of files) {
-      const b64 = await compressImage(f);
+    for (let i = 0; i < files.length; i++) {
+      btn.textContent = 'Otimizando foto ' + (i + 1) + ' de ' + files.length + '…';
+      const b64 = await compressImage(files[i]);
       if (b64) lidas.push(b64);
+      await espera(0); // devolve a tela ao navegador entre fotos grandes
     }
     btn.disabled = false; btn.textContent = txt0;
     if (!lidas.length) { toast('Não consegui ler essas imagens'); return; }
@@ -1721,6 +1779,9 @@
     const price = parseFloat(priceRaw);
     const originalPriceRaw = $('#admin-original-price').value.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
     const originalPrice = originalPriceRaw ? parseFloat(originalPriceRaw) : null;
+    const interestRateRaw = $('#admin-interest-rate').value.replace(',', '.').replace(/[^\d.]/g, '');
+    const interestRate = $('#admin-interest-type').value === 'interest' ? parseFloat(interestRateRaw) : null;
+    const parcelas = Number($('#admin-parcelas').value) || null;
     // Se a categoria nova ainda estiver digitada, inclui antes de salvar.
     if ($('#admin-categoria').value.trim()) adicionaCategoriaDigitada();
     const categorias = normalizaCategorias(adminCategoriasSelecionadas);
@@ -1728,6 +1789,12 @@
     if (!price || price <= 0) { toast('Informe um preço válido'); return; }
     if (originalPrice !== null && (!originalPrice || originalPrice <= price)) {
       toast('O preço original deve ser maior que o promocional'); return;
+    }
+    if ($('#admin-interest-type').value === 'interest' && (!interestRate || interestRate <= 0 || interestRate > 20)) {
+      toast('Informe os juros por parcela entre 0,01% e 20%'); return;
+    }
+    if ($('#admin-interest-type').value === 'interest' && (!parcelas || parcelas < 2)) {
+      toast('Escolha em quantas vezes será o parcelamento'); return;
     }
     // no cadastro a foto é obrigatória; na edição, só se o lojista escolher outra
     if (!editando && !adminPhotoB64) { toast('Envie a foto do produto'); return; }
@@ -1761,8 +1828,9 @@
         btn.textContent = 'Salvando…';
         await postJsonComRetry(WH_EDIT_PRODUCT, {
           product_id: editando.id, name, price, original_price: originalPrice,
+          installment_interest_rate: interestRate,
           description: $('#admin-desc').value.trim() || null,
-          parcelas: Number($('#admin-parcelas').value) || null,
+          parcelas,
           categoria_vitrine: categorias[0] || null,
           categorias_vitrine: categorias.length ? categorias : null,
           image_variants: trocouFoto ? [] : variacoes.filter(x => x.id),
@@ -1791,38 +1859,49 @@
       const requestId = adminUploadRequestId || (adminUploadRequestId = novoRequestId());
       const data = await postJsonComRetry(WH_ADD_PRODUCT, {
         store_slug: STORE_SLUG, name, price, original_price: originalPrice,
+        installment_interest_rate: interestRate,
         request_id: requestId, descricao_e_parcelas: 1,
         description: $('#admin-desc').value.trim() || null,
-        parcelas: Number($('#admin-parcelas').value) || null,
+        parcelas,
         categoria_vitrine: categorias[0] || null,
         categorias_vitrine: categorias.length ? categorias : null,
         mime: 'image/jpeg', image_b64: adminPhotoB64,
         variant_name: (variacoes[0] && variacoes[0].variant_name) || null
       });
 
-      // As demais fotos sobem juntas depois que o produto existe. Falha aqui não
-      // derruba o cadastro: o produto já existe com a foto de capa, e é melhor
-      // publicar com menos fotos do que perder o cadastro inteiro.
       const pid = data.product && data.product.id;
-      if (pid && adminFotosB64.length > 1) {
-        btn.textContent = 'Enviando ' + (adminFotosB64.length - 1) + ' fotos restantes…';
-        await Promise.allSettled(adminFotosB64.slice(1).map(async (foto, offset) => {
-          const i = offset + 1;
-          try {
-            await postJsonComRetry(WH_ADD_IMAGE, {
-              store_slug: STORE_SLUG, product_id: pid, request_id: requestId + '-' + i,
-              mime: 'image/jpeg', image_b64: foto, position: i,
-              variant_name: (variacoes[i] && variacoes[i].variant_name) || null
-            });
-          } catch (e) { console.warn('[Provou Catálogo] foto extra falhou:', e); }
-        }));
-      }
+      if (!pid) throw new Error('Servidor não devolveu o produto');
 
-      btn.textContent = 'Publicando…';
-      await loadCatalog();
-      renderAdmin(); renderCatalog();
+      // A foto principal já tornou o produto publicável. Atualiza a tela agora,
+      // sem esperar uma segunda consulta ao banco nem as fotos adicionais.
+      // Isso elimina a sensação de travamento depois que o servidor já concluiu.
+      const capa = data.image_url || adminPhoto;
+      const novo = {
+        id: pid, name, price, originalPrice, img: capa, imgs: [capa], imgIds: [],
+        imageMeta: [{ id: null, url: capa, variantName: (variacoes[0] && variacoes[0].variant_name) || '' }],
+        desc: $('#admin-desc').value.trim(), cat: categorias[0] || '', cats: categorias,
+        parcelas: parcelas || 0, installmentInterestRate: interestRate || 0,
+        categoria: 'oculos'
+      };
+      catalog = [novo].concat(catalog.filter(p => p.id !== pid));
+      save(); renderAdmin(); renderCatalog();
+
+      // Cópias locais: o formulário pode ser limpo enquanto as fotos restantes
+      // continuam em segundo plano com seus IDs seguros contra duplicação.
+      const fotosRestantes = adminFotosB64.slice(1);
+      const variacoesRestantes = variacoes.slice(1);
+      const enviaRestantes = Promise.allSettled(fotosRestantes.map(async (foto, offset) => {
+        const i = offset + 1;
+        await postJsonComRetry(WH_ADD_IMAGE, {
+          store_slug: STORE_SLUG, product_id: pid, request_id: requestId + '-' + i,
+          mime: 'image/jpeg', image_b64: foto, position: i,
+          variant_name: (variacoesRestantes[offset] && variacoesRestantes[offset].variant_name) || null
+        });
+      }));
       $('#admin-name').value = ''; $('#admin-price').value = ''; $('#admin-original-price').value = '';
       $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
+      $('#admin-interest-type').value = 'none'; $('#admin-interest-rate').value = '';
+      atualizaCampoJuros();
       $('#admin-categoria').value = '';
       adminCategoriasSelecionadas = [];
       renderAdminCategorias();
@@ -1832,6 +1911,14 @@
       $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = ''; $('#admin-photo').value = '';
       const cc = $('#admin-up-conta'); if (cc) cc.hidden = true;
       toast(name + ' publicado ✓');
+
+      // Sincroniza IDs e URLs das imagens sem bloquear o próximo cadastro.
+      enviaRestantes.then(resultados => {
+        const falhas = resultados.filter(x => x.status === 'rejected').length;
+        loadCatalog().then(() => { renderAdmin(); renderCatalog(); }).catch(e =>
+          console.warn('[Provou Catálogo] atualização em segundo plano falhou:', e));
+        if (falhas) toast('Produto publicado; ' + falhas + ' foto(s) não foram enviadas');
+      });
     } catch (err) {
       // nada entrou na lista, então não há o que desfazer: os campos e a foto
       // continuam preenchidos pra ele só tentar de novo

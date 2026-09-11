@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=94">
+  <link rel="stylesheet" href="styles.css?v=95">
 </head>
 <body>
   <div id="app">
@@ -372,6 +372,14 @@
               <option value="10">em até 10x</option>
               <option value="12">em até 12x</option>
             </select>
+            <select id="admin-interest-type">
+              <option value="none">Parcelamento sem juros</option>
+              <option value="interest">Parcelamento com juros</option>
+            </select>
+            <label class="admin-interest" id="admin-interest-wrap" hidden>
+              <span>Juros por parcela (%)</span>
+              <input type="text" id="admin-interest-rate" inputmode="decimal" placeholder="Ex.: 2,5">
+            </label>
             <textarea id="admin-desc" rows="2" placeholder="Descrição (opcional): material, medidas, cor…"></textarea>
             <button class="btn-primary" id="btn-add-product">Adicionar ao catálogo</button>
             <button class="btn-outline" id="btn-cancel-edit" hidden>Cancelar edição</button>
@@ -445,6 +453,6 @@
   </template>
   <div id="toast"></div>
 
-  <script src="app.js?v=101"></script>
+  <script src="app.js?v=102"></script>
 </body>
 </html>
