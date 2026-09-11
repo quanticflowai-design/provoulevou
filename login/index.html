@@ -6090,6 +6090,9 @@
             var o = (activeUser && activeUser.origem || '').toLowerCase();
             if (o.indexOf('usevelaro') !== -1) { PL_CUR = 'USD'; PL_SYM = 'US$ '; }
             else { PL_CUR = 'BRL'; PL_SYM = 'R$ '; }
+            // Evita o flash de "R$ 0,00" antes de os pedidos terminarem de carregar.
+            var comprasFat = document.getElementById('comprasFaturamento');
+            if (comprasFat) comprasFat.textContent = (0).toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
         }
 
         function showTab(name) {
@@ -11597,7 +11600,7 @@
                 const deliveryTone = c.taxaEntrega >= 80 ? 'good' : (c.stats.disparadas && c.taxaEntrega < 50 ? 'bad' : '');
                 const result = c.rec.valor > 0
                     ? '<span class="dd-result good"><b>' + _brl(c.rec.valor) + '</b><small>' + _int(c.rec.pedidos) + (c.rec.pedidos === 1 ? ' pedido' : ' pedidos') + '</small></span>'
-                    : '<span class="dd-result zero"><b>R$ 0,00</b><small>sem retorno identificado</small></span>';
+                    : '<span class="dd-result zero"><b>' + _brl(0) + '</b><small>sem retorno identificado</small></span>';
                 const detailId = 'dd-buyers-' + encodeURIComponent(c.cid);
                 const isOpen = _dispOpenCampaigns.has(c.cid);
                 const buyers = c.compradores.length ? c.compradores.map(b => '<div class="dd-buyer">'
@@ -11855,11 +11858,11 @@
             _dispDashChart = new Chart(canvas.getContext('2d'), {
                 data: { labels, datasets: [
                     { type: 'bar', label: 'Disparos', data: disp, backgroundColor: 'rgba(124,58,237,.35)', borderColor: 'rgba(124,58,237,.7)', borderWidth: 1, borderRadius: 3, yAxisID: 'y', order: 2 },
-                    { type: 'line', label: 'Recuperado (R$)', data: rec, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.15)', borderWidth: 2, tension: .3, pointRadius: 2, fill: true, yAxisID: 'y1', order: 1 }
+                    { type: 'line', label: 'Recuperado (' + PL_CUR + ')', data: rec, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.15)', borderWidth: 2, tension: .3, pointRadius: 2, fill: true, yAxisID: 'y1', order: 1 }
                 ].concat(temFat ? [
                     // Faturamento total da loja no dia: pano de fundo pra ler se o dia de mais
-                    // recuperacao foi tambem dia de mais venda. Mesmo eixo R$ do recuperado.
-                    { type: 'line', label: 'Faturamento da loja (R$)', data: fat, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.08)', borderWidth: 2, borderDash: [5, 4], tension: .3, pointRadius: 0, fill: false, yAxisID: 'y1', order: 0 }
+                    // recuperacao foi tambem dia de mais venda. Mesmo eixo monetario do recuperado.
+                    { type: 'line', label: 'Faturamento da loja (' + PL_CUR + ')', data: fat, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.08)', borderWidth: 2, borderDash: [5, 4], tension: .3, pointRadius: 0, fill: false, yAxisID: 'y1', order: 0 }
                 ] : []) },
                 options: {
                     responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
@@ -11882,7 +11885,7 @@
                     scales: {
                         x: { grid: { display: false }, ticks: { color: muted, maxRotation: 0, autoSkip: true, font: { size: 10 } } },
                         y: { position: 'left', beginAtZero: true, grid: { color: 'rgba(127,127,127,.1)' }, ticks: { color: muted, precision: 0, font: { size: 10 } } },
-                        y1: { position: 'right', beginAtZero: true, grid: { display: false }, ticks: { color: '#10b981', font: { size: 10 }, callback: v => 'R$' + v } }
+                        y1: { position: 'right', beginAtZero: true, grid: { display: false }, ticks: { color: '#10b981', font: { size: 10 }, callback: v => PL_SYM + v } }
                     }
                 }
             });
@@ -12173,7 +12176,7 @@
                 data: {
                     labels,
                     datasets: [{
-                        label: 'Vendas recuperadas (R$)',
+                        label: 'Vendas recuperadas (' + PL_CUR + ')',
                         data: days.map(d => +revByDay[d].toFixed(2)),
                         backgroundColor: 'rgba(16,185,129,.85)',
                         hoverBackgroundColor: '#10b981',
@@ -13120,7 +13123,7 @@
                 data: {
                     labels: rows.map(r => r.nome),
                     datasets: [
-                        { type: 'bar', label: 'Receita (R$)', data: rows.map(r => +r.receita.toFixed(2)), backgroundColor: 'rgba(16,185,129,.35)', borderColor: '#10b981', borderWidth: 1, borderRadius: 4, yAxisID: 'y' },
+                        { type: 'bar', label: 'Receita (' + PL_CUR + ')', data: rows.map(r => +r.receita.toFixed(2)), backgroundColor: 'rgba(16,185,129,.35)', borderColor: '#10b981', borderWidth: 1, borderRadius: 4, yAxisID: 'y' },
                         { type: 'bar', label: 'Convertidos', data: rows.map(r => r.convertidos), backgroundColor: 'rgba(124,58,237,.35)', borderColor: 'rgba(124,58,237,.8)', borderWidth: 1, borderRadius: 4, yAxisID: 'y1' }
                     ]
                 },
@@ -13129,7 +13132,7 @@
                     plugins: { legend: { labels: { color: muted, boxWidth: 12, font: { size: 11 } } } },
                     scales: {
                         x: { grid: { display: false }, ticks: { color: muted, font: { size: 11 } } },
-                        y: { position: 'left', beginAtZero: true, grid: { color: 'rgba(127,127,127,.1)' }, ticks: { color: '#10b981', font: { size: 10 }, callback: v => 'R$' + v } },
+                        y: { position: 'left', beginAtZero: true, grid: { color: 'rgba(127,127,127,.1)' }, ticks: { color: '#10b981', font: { size: 10 }, callback: v => PL_SYM + v } },
                         y1: { position: 'right', beginAtZero: true, grid: { display: false }, ticks: { color: muted, precision: 0, font: { size: 10 } } }
                     }
                 }
@@ -16004,7 +16007,7 @@
             // Faturamento atribuído (agora dentro do card Impacto)
             if (fatPosProva > 0) {
                 document.getElementById('vheroAttrAmount').innerHTML =
-                    '<span class="currency">R$</span> ' + fatPosProva.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    '<span class="currency">' + PL_SYM.trim() + '</span> ' + fatPosProva.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 const ticket = compraram > 0 ? fatPosProva / compraram : 0;
                 const pctImpactoStr = pctImpacto.toFixed(1).replace('.', ',') + '%';
                 document.getElementById('vheroAttrExtra').innerHTML =
@@ -16783,7 +16786,7 @@
             const valEl = document.getElementById('vgRecuperadoVal');
             const subEl = document.getElementById('vgRecuperadoSub');
             if (!valEl || !supabaseClient || !activeUser) return;
-            if (!activeUser.tabela_pedidos) { valEl.textContent = 'R$ 0,00'; if (subEl) subEl.textContent = 'loja sem pedidos integrados'; return; }
+            if (!activeUser.tabela_pedidos) { valEl.textContent = (0).toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR }); if (subEl) subEl.textContent = 'loja sem pedidos integrados'; return; }
             if (!allOrdersCache || !allOrdersCache.length) {
                 try { await loadSharedData(); } catch (e) { console.warn('[vg recuperado] sharedData:', e); }
             }
@@ -17461,7 +17464,7 @@
                 `;
                 const amt = document.getElementById('vheroAttrAmount');
                 if (amt && fat > 0) {
-                    amt.innerHTML = '<span class="currency">R$</span> ' + fat.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    amt.innerHTML = '<span class="currency">' + PL_SYM.trim() + '</span> ' + fat.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     const ticket = compraram > 0 ? fat / compraram : 0;
                     const pctStr = pctImpacto.toFixed(1).replace('.', ',') + '%';
                     const extra = document.getElementById('vheroAttrExtra');
