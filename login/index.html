@@ -6939,6 +6939,11 @@
             leadsRecupLoaded = false;
             _fatChartOrdersCache = null;
             _waConfigCache = null;
+            _dispDashLastData = null;
+            _dispDashAt = 0;
+            _dispDashCachePeriod = null;
+            _dispCampFilter = 'all';
+            _dispCampSort = 'recent';
             plSetMoeda();
             _lentesCarregado = false;
             _lentesLinhas = [];
@@ -10969,10 +10974,10 @@
             return Infinity;
         }
 
-        // Atribuição por TEMPLATE: cada flow/agendado tem seu(s) template(s); o template_name do
-        // disparo (whatsapp_send_log) identifica a campanha. Sends com template fora de qualquer
-        // campanha -> "Disparos avulsos". Recuperado reusa allOrdersCache (dedup) + normalize() +
-        // orderPhoneKeys(); janela de compra fixa 30d; atribuição last-touch.
+        // Atribuição por source_id da execução; template_name fica apenas como fallback para
+        // disparos antigos. Sends sem uma campanha identificável entram em "Disparos avulsos".
+        // Recuperado reusa allOrdersCache (dedup) + normalize() + orderPhoneKeys(); janela de
+        // compra fixa de 30 dias e atribuição last-touch.
         // Custo estimado por mensagem de marketing ENTREGUE (rate médio Meta Brasil ~R$0,31–0,38).
         // Não temos o valor real por disparo; usamos essa média pros cálculos de custo/ROI.
         const DISPARO_RATE_BRL = 0.35;
@@ -10987,10 +10992,10 @@
 
             // campanhas: flows (nome + templates dos passos) e agendados (template) -> mapa template->cid
             let flows = [];
-            try { const { data } = await supabaseClient.from('flows').select('id, nome, ativo, passos').in('lojista_email', plScopeEmails()); flows = data || []; }
+            try { const { data } = await supabaseClient.from('flows').select('id, nome, ativo, passos, created_at, updated_at').in('lojista_email', plScopeEmails()); flows = data || []; }
             catch (e) { console.warn('[dashboard] flows:', e); }
             let agend = [];
-            try { const { data } = await supabaseClient.from('disparos_agendados').select('id, template, status, active, sent_count').in('lojista_email', plScopeEmails()); agend = data || []; }
+            try { const { data } = await supabaseClient.from('disparos_agendados').select('id, nome, template, status, active, sent_count, failed_count, total, recurrence, recur_time, stage_key, created_at, scheduled_at, executed_at').in('lojista_email', plScopeEmails()); agend = data || []; }
             catch (e) { console.warn('[dashboard] agendados:', e); }
 
             const tplToCid = {};
@@ -11008,7 +11013,11 @@
                 sendRows = await getSendLogShared();
             } catch (e) { console.warn('[dashboard] send_log:', e); }
 
-            const dispByPhone = {}, eventsByPhone = {}, disparosPorCamp = {}, alcancadosPorCamp = {};
+            const dispByPhone = {}, eventsByPhone = {}, disparosPorCamp = {}, alcancadosPorCamp = {}, statsPorCamp = {};
+            const campStats = cid => statsPorCamp[cid] || (statsPorCamp[cid] = {
+                processadas: 0, disparadas: 0, entregues: 0, lidas: 0,
+                falhas: 0, ignoradas: 0, outras: 0
+            });
             let disparosTotal = 0; const alcTotal = new Set();
             // KPIs + serie diaria (janela do grafico: periodo, ou ultimos 90d quando "tudo")
             const NOW = Date.now();
@@ -11016,36 +11025,46 @@
             const chartEnd = isFinite(endMs) ? endMs : NOW; // teto do gráfico (só no Personalizado difere de "agora")
             const dayKey = ms => new Date(ms).toISOString().slice(0, 10);
             const disparosPorDia = {}, recuperadoPorDia = {}, faturamentoPorDia = {};
-            let kpiEnviados = 0, kpiFalhas = 0, kpi24h = 0, kpiEntregues = 0, kpiLidas = 0;
+            let kpiEnviados = 0, kpiFalhas = 0, kpiIgnoradas = 0, kpi24h = 0, kpiEntregues = 0, kpiLidas = 0;
             sendRows.forEach(r => {
                 if (!r.sent_at) return;
                 const ms = new Date(r.sent_at).getTime(); if (!ms) return;
                 const inPeriod = (cutoff === 0 || ms >= cutoff) && ms <= endMs;
-                if (r.status === 'failed') { if (inPeriod) kpiFalhas++; return; }
-                if (inPeriod) {
-                    kpiEnviados++;
-                    if (r.status === 'delivered' || r.status === 'read') kpiEntregues++;
-                    if (r.status === 'read') kpiLidas++;
-                    if (NOW - ms <= 86400000) kpi24h++;
-                }
-                const ph = normalize(r.lead_phone); if (!ph) return;
                 // Atribui pelo disparo real (source_id), nao pelo template: varias campanhas
                 // podem compartilhar o mesmo template, e ai a primeira delas levava 100% do
                 // credito (a Linda Menina tem 3 fluxos no mesmo template). O template fica
                 // so como fallback para envios antigos, sem source_id gravado.
                 const cid = (r.source === 'automacao' && r.source_id) ? ('flow:' + r.source_id)
-                          : (r.source === 'campanha' && r.source_id) ? ('ag:' + r.source_id)
+                          : ((r.source === 'campanha' || r.source === 'recorrente') && r.source_id) ? ('ag:' + r.source_id)
                           : (tplToCid[r.template_name] || 'avulsos');
+                const status = String(r.status || '').toLowerCase();
+                const enviada = ['sent', 'delivered', 'read'].indexOf(status) !== -1;
+                const entregue = status === 'delivered' || status === 'read';
+                const ignorada = status.indexOf('skipped_') === 0;
+                if (inPeriod) {
+                    const cs = campStats(cid); cs.processadas++;
+                    if (enviada) { cs.disparadas++; kpiEnviados++; }
+                    else if (status === 'failed') { cs.falhas++; kpiFalhas++; }
+                    else if (ignorada) { cs.ignoradas++; kpiIgnoradas++; }
+                    else { cs.outras++; }
+                    if (entregue) { cs.entregues++; kpiEntregues++; }
+                    if (status === 'read') { cs.lidas++; kpiLidas++; }
+                    if (enviada && NOW - ms <= 86400000) kpi24h++;
+                }
+                const ph = normalize(r.lead_phone);
+                // Mesmo um registro sem telefone precisa aparecer nos totais de processamento,
+                // falha ou envio. Telefone so e necessario para resposta e conversao.
+                if (!ph) return;
                 // So atribui venda se a mensagem COMPROVADAMENTE chegou (webhook da Meta).
                 // 'sent' e apenas "aceita" — mesma regra do card da Visao Geral e da lista
                 // "Clientes recuperados". Sem isso os dois numeros davam diferente na mesma
                 // tela (R$ 3.117,90 no topo x R$ 1.269,96 na lista). Os contadores de
                 // disparo abaixo seguem contando todo envio nao-falho: sao coisas diferentes.
-                if (['delivered', 'read'].indexOf(String(r.status || '').toLowerCase()) !== -1) {
+                if (entregue) {
                     (dispByPhone[ph] = dispByPhone[ph] || []).push(ms);
                     (eventsByPhone[ph] = eventsByPhone[ph] || []).push({ ms, cid });
                 }
-                if (inPeriod) {
+                if (inPeriod && enviada) {
                     disparosTotal++; alcTotal.add(ph);
                     disparosPorCamp[cid] = (disparosPorCamp[cid] || 0) + 1;
                     (alcancadosPorCamp[cid] = alcancadosPorCamp[cid] || new Set()).add(ph);
@@ -11080,8 +11099,9 @@
                     if (e.ms <= oms && (oms - e.ms) <= WINDOW_MS) { if (!best || e.ms > best.ms) best = e; }
                 }));
                 const cid = best ? best.cid : 'avulsos';
-                const rc = recPorCamp[cid] = recPorCamp[cid] || { valor: 0, pedidos: 0 };
+                const rc = recPorCamp[cid] = recPorCamp[cid] || { valor: 0, pedidos: 0, clientes: new Set() };
                 rc.valor += val; rc.pedidos++;
+                keys.forEach(ph => { if ((eventsByPhone[ph] || []).some(e => e.cid === cid && e.ms <= oms && (oms - e.ms) <= WINDOW_MS)) rc.clientes.add(ph); });
             });
 
             const serieDiaria = [];
@@ -11095,6 +11115,7 @@
 
             // Respondidas: leads disparados que mandaram mensagem DE VOLTA (inbound) após o disparo.
             let kpiRespondidas = 0;
+            const respPorCamp = {};
             try {
                 const { data: inb } = await supabaseClient.from('whatsapp_mensagens')
                     .select('lead_phone, wa_timestamp, created_at').in('email', plScopeEmails()).eq('direction', 'in').limit(20000);
@@ -11109,6 +11130,17 @@
                     const ins = inByPhone[ph]; if (!ins) return;
                     const ok = dispByPhone[ph].some(dms => (cutoff === 0 || dms >= cutoff) && dms <= endMs && ins.some(ims => ims >= dms && (ims - dms) <= WINDOW_MS));
                     if (ok) respSet.add(ph);
+                    // Last-touch por resposta: quando varias campanhas chegaram antes da mesma
+                    // resposta, so a mais recente recebe o credito. Isso evita inflar o retorno.
+                    ins.forEach(ims => {
+                        let best = null;
+                        (eventsByPhone[ph] || []).forEach(e => {
+                            if ((cutoff !== 0 && e.ms < cutoff) || e.ms > endMs) return;
+                            if (e.ms > ims || (ims - e.ms) > WINDOW_MS) return;
+                            if (!best || e.ms > best.ms) best = e;
+                        });
+                        if (best) (respPorCamp[best.cid] = respPorCamp[best.cid] || new Set()).add(ph);
+                    });
                 });
                 kpiRespondidas = respSet.size;
             } catch (e) { console.warn('[dashboard] respondidas:', e); }
@@ -11121,15 +11153,102 @@
             // custo sai baixo — o certo é corrigir o webhook, não contar 'sent' como cobrado.
             const custoEstimado = kpiEntregues * DISPARO_RATE_BRL;
             const roi = custoEstimado > 0 ? (total.valor / custoEstimado) : 0;
-            const msgStats = { disparadas: kpiEnviados, entregues: kpiEntregues, lidas: kpiLidas, respondidas: kpiRespondidas, falhas: kpiFalhas };
+            const msgStats = { disparadas: kpiEnviados, entregues: kpiEntregues, lidas: kpiLidas, respondidas: kpiRespondidas, falhas: kpiFalhas, ignoradas: kpiIgnoradas };
 
             const campativas = flows.filter(f => f.ativo).length + agend.filter(a => a.active).length;
-            return { period, total, recPorCamp, disparosPorCamp, alcancadosPorCamp, disparosTotal, alcancadosTotal: alcTotal.size, flows, agend, campativas, kpis, serieDiaria, msgStats, custoEstimado, roi };
+            return { period, cutoff, endMs, total, recPorCamp, disparosPorCamp, alcancadosPorCamp, statsPorCamp, respPorCamp, disparosTotal, alcancadosTotal: alcTotal.size, flows, agend, campativas, kpis, serieDiaria, msgStats, custoEstimado, roi };
         }
 
         function _brl(v) { return PL_SYM + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
         function _int(v) { return (Number(v) || 0).toLocaleString('pt-BR'); }
         function _esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+        let _dispCampFilter = 'all';
+        let _dispCampSort = 'recent';
+        let _dispDashLastData = null;
+
+        function _dispBuildCampaignRows(d) {
+            const rows = [];
+            const emptyStats = () => ({ processadas: 0, disparadas: 0, entregues: 0, lidas: 0, falhas: 0, ignoradas: 0, outras: 0 });
+            const add = meta => {
+                const stats = Object.assign(emptyStats(), d.statsPorCamp[meta.cid] || {});
+                const rec = d.recPorCamp[meta.cid] || { valor: 0, pedidos: 0, clientes: new Set() };
+                const clientesRec = rec.clientes && typeof rec.clientes.size === 'number' ? rec.clientes.size : rec.pedidos;
+                const respondidas = d.respPorCamp[meta.cid] ? d.respPorCamp[meta.cid].size : 0;
+                const dateMs = meta.date ? new Date(meta.date).getTime() : 0;
+                const hasPeriodData = stats.processadas > 0 || rec.pedidos > 0 || respondidas > 0;
+                const dateInPeriod = dateMs && (d.cutoff === 0 || dateMs >= d.cutoff) && dateMs <= d.endMs;
+                // Em "Tudo", nenhuma campanha some. Nos recortes menores entram as que
+                // rodaram/retornaram no período, as criadas no período e automações ativas.
+                if (d.period !== 'all' && !hasPeriodData && !dateInPeriod && !meta.ativa) return;
+                rows.push(Object.assign({}, meta, {
+                    stats, rec, clientesRec, respondidas, dateMs,
+                    taxaEntrega: stats.disparadas ? (stats.entregues / stats.disparadas * 100) : 0,
+                    taxaResposta: stats.entregues ? (respondidas / stats.entregues * 100) : 0,
+                    taxaConversao: stats.entregues ? (clientesRec / stats.entregues * 100) : 0
+                }));
+            };
+            (d.flows || []).forEach(f => add({
+                cid: 'flow:' + f.id, nome: f.nome || 'Automação sem nome', tipo: 'Automação',
+                ativa: !!f.ativo, estado: f.ativo ? 'Ativa' : 'Pausada',
+                template: (f.passos || []).filter(p => p && p.tipo === 'enviar' && p.template).map(p => p.template).join(' → '),
+                publico: null, date: f.updated_at || f.created_at
+            }));
+            (d.agend || []).forEach(a => {
+                const recorrente = a.recurrence === 'diario';
+                const estado = recorrente ? (a.active ? 'Ativa' : 'Pausada') : ({
+                    agendado: 'Agendada', aguardando_aprovacao: 'Aguardando Meta', enviando: 'Enviando',
+                    concluido: 'Concluída', falhou: 'Falhou', cancelado: 'Cancelada'
+                }[a.status] || a.status || '—');
+                add({
+                    cid: 'ag:' + a.id, nome: (a.nome && a.nome.trim()) || a.template || 'Campanha sem nome',
+                    tipo: recorrente ? 'Recorrente' : 'Campanha', ativa: recorrente ? !!a.active : false,
+                    estado, template: a.template || '', publico: Number(a.total) || 0,
+                    date: a.executed_at || a.scheduled_at || a.created_at
+                });
+            });
+            const avStats = d.statsPorCamp.avulsos || emptyStats();
+            const avRec = d.recPorCamp.avulsos;
+            if (avStats.processadas || (avRec && avRec.pedidos)) add({
+                cid: 'avulsos', nome: 'Disparos avulsos', tipo: 'Manual', ativa: false,
+                estado: 'Avulsos', template: 'Envios individuais ou antigos', publico: null, date: null
+            });
+            return rows;
+        }
+
+        function _dispCampaignFilteredRows(d) {
+            let rows = _dispBuildCampaignRows(d);
+            if (_dispCampFilter === 'returned') rows = rows.filter(r => r.rec.valor > 0);
+            else if (_dispCampFilter === 'no_return') rows = rows.filter(r => r.stats.disparadas > 0 && r.rec.valor <= 0);
+            else if (_dispCampFilter === 'failed') rows = rows.filter(r => r.stats.falhas > 0);
+            else if (_dispCampFilter === 'no_send') rows = rows.filter(r => r.stats.disparadas === 0);
+            rows.sort((a, b) => {
+                if (_dispCampSort === 'revenue') return (b.rec.valor - a.rec.valor) || (b.dateMs - a.dateMs);
+                if (_dispCampSort === 'delivered') return (b.stats.entregues - a.stats.entregues) || (b.dateMs - a.dateMs);
+                if (_dispCampSort === 'failures') return (b.stats.falhas - a.stats.falhas) || (b.dateMs - a.dateMs);
+                return (b.dateMs - a.dateMs) || (b.rec.valor - a.rec.valor);
+            });
+            return rows;
+        }
+
+        function dispDashCampaignFilter(v) {
+            _dispCampFilter = v || 'all';
+            if (_dispDashLastData) {
+                const view = document.getElementById('dispDashView');
+                if (view) { view.innerHTML = dispDashboardHTML(_dispDashLastData); _dispRenderDashChart(_dispDashLastData.serieDiaria); }
+            }
+        }
+        function dispDashCampaignSort(v) { _dispCampSort = v || 'recent'; dispDashCampaignFilter(_dispCampFilter); }
+
+        function dispExportCampaignsCSV() {
+            if (!_dispDashLastData) return;
+            const rows = _dispBuildCampaignRows(_dispDashLastData);
+            const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+            const head = ['Campanha','Tipo','Estado','Data','Público','Processadas','Disparadas','Entregues','Lidas','Falhas','Ignoradas','Respondidas','Clientes recuperados','Pedidos recuperados','Valor recuperado','Taxa de entrega','Taxa de resposta','Taxa de conversão','Template'];
+            const lines = rows.map(r => [r.nome,r.tipo,r.estado,r.dateMs ? new Date(r.dateMs).toLocaleString('pt-BR') : '',r.publico == null ? '' : r.publico,r.stats.processadas,r.stats.disparadas,r.stats.entregues,r.stats.lidas,r.stats.falhas,r.stats.ignoradas,r.respondidas,r.clientesRec,r.rec.pedidos,r.rec.valor.toFixed(2).replace('.',','),r.taxaEntrega.toFixed(1).replace('.',',')+'%',r.taxaResposta.toFixed(1).replace('.',',')+'%',r.taxaConversao.toFixed(1).replace('.',',')+'%',r.template].map(esc).join(';'));
+            const blob = new Blob(['\ufeff' + head.map(esc).join(';') + '\n' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'campanhas-disparos.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+        }
 
         function dispDashboardHTML(d) {
             const _fmtDia = ms => { const dt = new Date(ms); return String(dt.getDate()).padStart(2, '0') + '/' + String(dt.getMonth() + 1).padStart(2, '0'); };
@@ -11139,42 +11258,32 @@
             const pill = (p, txt) => '<button class="dd-seg' + (String(d.period) === String(p) ? ' on' : '') + '" aria-pressed="' + (String(d.period) === String(p)) + '" onclick="dispDashSetPeriod(\'' + p + '\')">' + txt + '</button>';
             const taxa = d.disparosTotal ? (d.total.pedidos / d.disparosTotal * 100) : 0;
 
-            // campanhas -> ranking por recuperado
-            const tagIcon = { 'Automação': 'ph-flow-arrow', 'Agendado': 'ph-clock', 'Manual': 'ph-hand-pointing' };
-            const camps = [];
-            d.flows.forEach(f => camps.push({ cid: 'flow:' + f.id, nome: f.nome || 'Automação sem nome', tipo: 'Automação', ativa: !!f.ativo }));
-            d.agend.forEach(a => camps.push({ cid: 'ag:' + a.id, nome: a.template || 'Disparo agendado', tipo: 'Agendado', ativa: !!a.active }));
-            const avDisp = d.disparosPorCamp['avulsos'] || 0, avRec = d.recPorCamp['avulsos'];
-            if (avDisp > 0 || (avRec && avRec.pedidos)) camps.push({ cid: 'avulsos', nome: 'Disparos avulsos', tipo: 'Manual', ativa: null });
-            camps.forEach(c => {
-                c.disp = d.disparosPorCamp[c.cid] || 0;
-                c.alc = d.alcancadosPorCamp[c.cid] ? d.alcancadosPorCamp[c.cid].size : 0;
-                c.rec = d.recPorCamp[c.cid] || { valor: 0, pedidos: 0 };
-            });
-            camps.sort((a, b) => (b.rec.valor - a.rec.valor) || (b.disp - a.disp));
-            const maxRec = Math.max(1, ...camps.map(c => c.rec.valor));
-            const shown = camps.filter(c => c.disp > 0 || c.rec.valor > 0);
-            const list = shown.length ? shown : camps;
-
-            let rows = list.map((c, i) => {
-                const scale = Math.max(0, Math.min(1, c.rec.valor / maxRec)).toFixed(3);
-                const tipoCls = c.tipo === 'Automação' ? 'auto' : (c.tipo === 'Agendado' ? 'sched' : 'manual');
-                const badge = c.ativa === null ? '' : (c.ativa ? '<span class="dd-badge on">Ativa</span>' : '<span class="dd-badge off">Pausada</span>');
-                const rank = c.rec.valor > 0 ? (i + 1) : '—';
-                return ''
-                    + '<div class="dd-camp">'
-                    + '  <div class="dd-rank" aria-hidden="true">' + rank + '</div>'
-                    + '  <div class="dd-camp-main">'
-                    + '    <div class="dd-camp-head"><span class="dd-tag ' + tipoCls + '"><i class="ph-bold ' + (tagIcon[c.tipo] || 'ph-tag') + '" aria-hidden="true"></i>' + c.tipo + '</span><span class="dd-camp-name">' + _esc(c.nome) + '</span>' + badge + '</div>'
-                    + '    <div class="dd-track"><div class="dd-track-fill" style="transform:scaleX(' + scale + ')"></div></div>'
-                    + '    <div class="dd-camp-sub"><i class="ph-bold ph-paper-plane-tilt" aria-hidden="true"></i> ' + _int(c.disp) + ' disparos <span class="dd-dot-sep">·</span> <i class="ph-bold ph-users-three" aria-hidden="true"></i> ' + _int(c.alc) + ' pessoas</div>'
-                    + '  </div>'
-                    + '  <div class="dd-camp-rec"><div class="dd-rec-v">' + _brl(c.rec.valor) + '</div><div class="dd-rec-l">' + _int(c.rec.pedidos) + (c.rec.pedidos === 1 ? ' pedido' : ' pedidos') + '</div></div>'
-                    + '</div>';
+            const allCampaigns = _dispBuildCampaignRows(d);
+            const list = _dispCampaignFilteredRows(d);
+            const returnedCount = allCampaigns.filter(c => c.rec.valor > 0).length;
+            const noReturnCount = allCampaigns.filter(c => c.stats.disparadas > 0 && c.rec.valor <= 0).length;
+            const failedCount = allCampaigns.filter(c => c.stats.falhas > 0).length;
+            const noSendCount = allCampaigns.filter(c => c.stats.disparadas === 0).length;
+            const campaignDate = c => c.dateMs ? new Date(c.dateMs).toLocaleDateString('pt-BR') : '—';
+            const typeCls = c => c.tipo === 'Automação' ? 'auto' : (c.tipo === 'Manual' ? 'manual' : 'sched');
+            let rows = list.map(c => {
+                const deliveryTone = c.taxaEntrega >= 80 ? 'good' : (c.stats.disparadas && c.taxaEntrega < 50 ? 'bad' : '');
+                const result = c.rec.valor > 0
+                    ? '<span class="dd-result good"><b>' + _brl(c.rec.valor) + '</b><small>' + _int(c.rec.pedidos) + (c.rec.pedidos === 1 ? ' pedido' : ' pedidos') + '</small></span>'
+                    : '<span class="dd-result zero"><b>R$ 0,00</b><small>sem retorno identificado</small></span>';
+                return '<tr>'
+                    + '<td class="dd-ct-name"><div><span class="dd-tag ' + typeCls(c) + '">' + _esc(c.tipo) + '</span><b>' + _esc(c.nome) + '</b></div><small>' + campaignDate(c) + ' · ' + _esc(c.estado) + (c.template ? ' · ' + _esc(c.template) : '') + '</small></td>'
+                    + '<td>' + (c.publico == null ? '—' : _int(c.publico)) + '</td>'
+                    + '<td><b>' + _int(c.stats.disparadas) + '</b></td>'
+                    + '<td><b class="dd-num ' + deliveryTone + '">' + _int(c.stats.entregues) + '</b><small>' + c.taxaEntrega.toFixed(1).replace('.', ',') + '%</small></td>'
+                    + '<td><b class="dd-num bad">' + _int(c.stats.falhas) + '</b></td>'
+                    + '<td><b>' + _int(c.stats.ignoradas) + '</b><small>duplicados/compraram</small></td>'
+                    + '<td><b>' + _int(c.respondidas) + '</b><small>' + c.taxaResposta.toFixed(1).replace('.', ',') + '%</small></td>'
+                    + '<td><b>' + _int(c.clientesRec) + '</b><small>' + c.taxaConversao.toFixed(1).replace('.', ',') + '%</small></td>'
+                    + '<td>' + result + '</td>'
+                    + '</tr>';
             }).join('');
-            if (!list.length) {
-                rows = '<div class="dd-empty"><i class="ph-bold ph-flow-arrow" aria-hidden="true"></i><p>Nenhuma campanha ou disparo neste período.</p><button class="dd-cta" onclick="dispSwitchSub(\'automacoes\')">Criar automação</button></div>';
-            }
+            if (!list.length) rows = '<tr><td colspan="9"><div class="dd-empty"><p>Nenhuma campanha neste filtro.</p></div></td></tr>';
 
             // funil: disparos -> alcançados -> recuperados
             const fn = (icon, val, label, on) => '<div class="dd-fn' + (on ? ' on' : '') + '"><i class="ph-bold ' + icon + '" aria-hidden="true"></i><b>' + val + '</b><span>' + label + '</span></div>';
@@ -11216,10 +11325,22 @@
                 + '    <div class="dd-kpi"><span class="dd-kpi-l">Lidas</span><span class="dd-kpi-v">' + _int(d.msgStats.lidas) + '</span><span class="dd-kpi-s">' + (d.msgStats.entregues ? Math.round(d.msgStats.lidas / d.msgStats.entregues * 100) : 0) + '% das entregues</span></div>'
                 + '    <div class="dd-kpi ok"><span class="dd-kpi-l">Respondidas</span><span class="dd-kpi-v">' + _int(d.msgStats.respondidas) + '</span><span class="dd-kpi-s">' + (d.msgStats.disparadas ? Math.round(d.msgStats.respondidas / d.msgStats.disparadas * 100) : 0) + '% das disparadas</span></div>'
                 + '    <div class="dd-kpi bad"><span class="dd-kpi-l">Falhas</span><span class="dd-kpi-v">' + _int(d.msgStats.falhas) + '</span><span class="dd-kpi-s">' + ((d.msgStats.disparadas + d.msgStats.falhas) ? Math.round(d.msgStats.falhas / (d.msgStats.disparadas + d.msgStats.falhas) * 100) : 0) + '% do total</span></div>'
+                + '    <div class="dd-kpi"><span class="dd-kpi-l">Ignoradas</span><span class="dd-kpi-v">' + _int(d.msgStats.ignoradas) + '</span><span class="dd-kpi-s">duplicados ou quem já comprou</span></div>'
                 + '  </div>'
                 + '  <div class="dd-chart-card"><div class="dd-chart-head"><i class="ph-bold ph-chart-bar" aria-hidden="true"></i> Disparos \u00d7 recupera\u00e7\u00e3o por dia</div><div class="dd-chart-wrap"><canvas id="dispDashDailyChart"></canvas></div></div>'
-                + '  <div class="dd-list-head"><i class="ph-bold ph-ranking" aria-hidden="true"></i> Campanhas <span>· mais efetivas primeiro</span></div>'
-                + '  <div class="dd-list">' + rows + '</div>'
+                + '  <div class="dd-campaign-head">'
+                + '    <div><div class="dd-list-head"><i class="ph-bold ph-megaphone" aria-hidden="true"></i> Todas as campanhas <span>· ' + _int(allCampaigns.length) + ' no período</span></div><p>Nenhuma campanha é ocultada, mesmo quando não enviou ou não gerou retorno.</p></div>'
+                + '    <div class="dd-campaign-actions"><select onchange="dispDashCampaignSort(this.value)" aria-label="Ordenar campanhas"><option value="recent"' + (_dispCampSort === 'recent' ? ' selected' : '') + '>Mais recentes</option><option value="revenue"' + (_dispCampSort === 'revenue' ? ' selected' : '') + '>Maior retorno</option><option value="delivered"' + (_dispCampSort === 'delivered' ? ' selected' : '') + '>Mais entregues</option><option value="failures"' + (_dispCampSort === 'failures' ? ' selected' : '') + '>Mais falhas</option></select><button onclick="dispExportCampaignsCSV()"><i class="ph-bold ph-download-simple"></i> CSV</button></div>'
+                + '  </div>'
+                + '  <div class="dd-campaign-filters" role="group" aria-label="Filtrar campanhas">'
+                + '    <button class="' + (_dispCampFilter === 'all' ? 'on' : '') + '" onclick="dispDashCampaignFilter(\'all\')">Todas <b>' + _int(allCampaigns.length) + '</b></button>'
+                + '    <button class="' + (_dispCampFilter === 'returned' ? 'on' : '') + '" onclick="dispDashCampaignFilter(\'returned\')">Com retorno <b>' + _int(returnedCount) + '</b></button>'
+                + '    <button class="' + (_dispCampFilter === 'no_return' ? 'on' : '') + '" onclick="dispDashCampaignFilter(\'no_return\')">Sem retorno <b>' + _int(noReturnCount) + '</b></button>'
+                + '    <button class="' + (_dispCampFilter === 'failed' ? 'on' : '') + '" onclick="dispDashCampaignFilter(\'failed\')">Com falhas <b>' + _int(failedCount) + '</b></button>'
+                + '    <button class="' + (_dispCampFilter === 'no_send' ? 'on' : '') + '" onclick="dispDashCampaignFilter(\'no_send\')">Sem envio <b>' + _int(noSendCount) + '</b></button>'
+                + '  </div>'
+                + '  <div class="dd-campaign-table-wrap"><table class="dd-campaign-table"><thead><tr><th>Campanha</th><th>Público</th><th>Disparadas</th><th>Entregues</th><th>Falhas</th><th>Ignoradas</th><th>Respostas</th><th>Convertidos</th><th>Retorno</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+                + '  <div class="dd-campaign-note"><i class="ph-bold ph-info"></i><span><b>Disparadas</b> foram aceitas pela Meta. <b>Entregues</b> têm confirmação no WhatsApp. <b>Ignoradas</b> são duplicados ou clientes que já haviam comprado. O retorno usa a venda paga em até 30 dias e atribui à última campanha entregue antes da compra.</span></div>'
                 + '</div>';
         }
 
@@ -11342,8 +11463,39 @@
                 + '.dd-chart-head{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--text-main);margin-bottom:12px;}'
                 + '.dd-chart-head i{color:var(--primary);}'
                 + '.dd-chart-wrap{height:240px;position:relative;}'
+                + '.dd-campaign-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 2px 12px;}'
+                + '.dd-campaign-head .dd-list-head{margin-bottom:3px;}'
+                + '.dd-campaign-head p{margin:0;color:var(--text-muted);font-size:12px;}'
+                + '.dd-campaign-actions{display:flex;align-items:center;gap:8px;}'
+                + '.dd-campaign-actions select,.dd-campaign-actions button{height:36px;border:1px solid var(--border);border-radius:9px;background:var(--card-bg);color:var(--text-main);font:inherit;font-size:12px;font-weight:700;padding:0 11px;}'
+                + '.dd-campaign-actions button{display:inline-flex;align-items:center;gap:6px;cursor:pointer;}'
+                + '.dd-campaign-actions button:hover{border-color:var(--primary);color:var(--primary);}'
+                + '.dd-campaign-filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;}'
+                + '.dd-campaign-filters button{border:1px solid var(--border);background:var(--card-bg);color:var(--text-muted);border-radius:999px;padding:7px 11px;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;}'
+                + '.dd-campaign-filters button b{display:inline-grid;place-items:center;min-width:19px;height:19px;margin-left:4px;padding:0 4px;border-radius:999px;background:var(--dd-soft);color:var(--text-main);font-size:10px;}'
+                + '.dd-campaign-filters button.on{background:var(--primary);border-color:var(--primary);color:#fff;}'
+                + '.dd-campaign-filters button.on b{background:rgba(255,255,255,.18);color:#fff;}'
+                + '.dd-campaign-table-wrap{max-height:560px;overflow:auto;border:1px solid var(--border);border-radius:14px;background:var(--card-bg);overscroll-behavior:contain;}'
+                + '.dd-campaign-table{width:100%;min-width:1080px;border-collapse:separate;border-spacing:0;font-size:12px;}'
+                + '.dd-campaign-table th{position:sticky;top:0;z-index:2;background:color-mix(in srgb,var(--card-bg) 94%,var(--text-main));color:var(--text-muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;text-align:right;padding:10px;border-bottom:1px solid var(--border);white-space:nowrap;}'
+                + '.dd-campaign-table th:first-child{text-align:left;left:0;z-index:3;}'
+                + '.dd-campaign-table td{padding:11px 10px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle;color:var(--text-main);}'
+                + '.dd-campaign-table tbody tr:last-child td{border-bottom:0;}'
+                + '.dd-campaign-table tbody tr:hover td{background:rgba(127,127,127,.045);}'
+                + '.dd-campaign-table td:first-child{position:sticky;left:0;z-index:1;text-align:left;background:var(--card-bg);min-width:280px;max-width:360px;}'
+                + '.dd-campaign-table tbody tr:hover td:first-child{background:color-mix(in srgb,var(--card-bg) 95%,var(--text-main));}'
+                + '.dd-campaign-table td>small{display:block;margin-top:2px;color:var(--text-muted);font-size:10px;white-space:nowrap;}'
+                + '.dd-ct-name>div{display:flex;align-items:center;gap:7px;min-width:0;}'
+                + '.dd-ct-name>div>b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;}'
+                + '.dd-ct-name>small{overflow:hidden;text-overflow:ellipsis;max-width:340px;}'
+                + '.dd-num.good{color:var(--dd-money);}.dd-num.bad{color:#dc2626;}'
+                + '.dd-result{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;}'
+                + '.dd-result b{font-size:13px;}.dd-result small{font-size:10px;color:var(--text-muted);}'
+                + '.dd-result.good b{color:var(--dd-money);}.dd-result.zero b{color:var(--text-muted);font-weight:600;}'
+                + '.dd-campaign-note{display:flex;align-items:flex-start;gap:8px;margin:10px 2px 24px;color:var(--text-muted);font-size:11px;line-height:1.5;}'
+                + '.dd-campaign-note i{color:var(--primary);font-size:14px;flex:0 0 auto;margin-top:1px;}'
                 + '.dd-loading{padding:40px;text-align:center;color:var(--text-muted);}'
-                + '@media(max-width:600px){.dd-hero{flex-direction:column;align-items:flex-start;gap:18px;}.dd-hero-val{font-size:36px;}.dd-funnel{width:100%;justify-content:space-between;}.dd-fn{flex:1;min-width:0;}.dd-camp-rec{min-width:78px;}}'
+                + '@media(max-width:600px){.dd-hero{flex-direction:column;align-items:flex-start;gap:18px;}.dd-hero-val{font-size:36px;}.dd-funnel{width:100%;justify-content:space-between;}.dd-fn{flex:1;min-width:0;}.dd-camp-rec{min-width:78px;}.dd-campaign-actions{width:100%;}.dd-campaign-actions select{flex:1;}.dd-campaign-table-wrap{max-height:480px;}}'
                 + '@media(prefers-reduced-motion:reduce){.dd *,.dd *::before,.dd *::after{transition:none !important;animation:none !important;}}';
             document.head.appendChild(s);
         }
@@ -11409,6 +11561,7 @@
             view.innerHTML = '<div class="dd-loading"><i class="ph-bold ph-spinner" aria-hidden="true"></i> Carregando painel…</div>';
             try {
                 const d = await computeDispEfetividade(_dispDashPeriod);
+                _dispDashLastData = d;
                 view.innerHTML = dispDashboardHTML(d);
                 _dispDashAt = Date.now(); _dispDashCachePeriod = _dispDashPeriod;
                 _dispRenderDashChart(d.serieDiaria);
