@@ -3962,7 +3962,7 @@
                             <div class="lentes-secao-topo">
                                 <div>
                                     <span class="lentes-eyebrow">PRODUÇÃO</span>
-                                    <h3>Fila de pedidos</h3>
+                                    <h3>CRM de produção</h3>
                                 </div>
                                 <p id="lentesProdSub">—</p>
                             </div>
@@ -4224,6 +4224,9 @@
                     .lentes-secao h3 { margin:0;font-size:16px;display:flex;align-items:center;gap:7px; }
                     .lentes-secao-ajuda { margin:5px 0 14px;color:var(--text-muted);font-size:12.5px;line-height:1.45; }
                     .lentes-central-grid { display:grid;grid-template-columns:minmax(0,1.65fr) minmax(320px,.85fr);gap:16px;align-items:start; }
+                    .lentes-painel-producao,.lentes-painel-clientes { grid-column:1/-1; }
+                    .lentes-prod-crm { grid-template-columns:repeat(4,minmax(260px,1fr));gap:12px; }
+                    .lentes-prod-crm .crm-col { min-height:320px;max-height:68vh; }
                     .lentes-secao-topo,.lentes-resultados-topo { display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:14px; }
                     .lentes-secao-topo p { margin:0;color:var(--text-muted);font-size:12.5px;text-align:right; }
                     .lentes-eyebrow { display:block;font-size:10px;font-weight:750;letter-spacing:.09em;color:#8b5cf6;margin-bottom:4px; }
@@ -6502,8 +6505,6 @@
                 (_lentesEtapaProducao(v) !== 'enviado' || v.venda.ms >= limite));
         }
 
-        let _lentesMostraEntregues = false;
-
         function _pintaProducao() {
             const el = document.getElementById('lentesProd');
             if (!el) return;
@@ -6514,28 +6515,83 @@
                 ? '<b>' + aFazer + '</b> ' + (aFazer === 1 ? 'receita nova para conferir' : 'receitas novas para conferir')
                 : 'Nenhuma receita nova aguardando conferência.';
 
-            const qtd = id => itens.filter(v => _lentesEtapaProducao(v) === id).length;
-            const etapas = '<div class="lentes-prod-etapas">' + _LENTES_PROD.map(e =>
-                '<div class="lentes-prod-etapa" style="--etapa-cor:' + e.cor + '"><b>' + qtd(e.id)
-                + '</b><span>' + e.rot + '</span></div>').join('') + '</div>';
-            const ordem = { 'receita-chegou': 0, 'confirmar-receita': 1, fabricando: 2, enviado: 3 };
-            const visiveis = itens.filter(v => _lentesMostraEntregues || _lentesEtapaProducao(v) !== 'enviado')
-                .sort((a, b) => (ordem[_lentesEtapaProducao(a)] - ordem[_lentesEtapaProducao(b)]) || a.venda.ms - b.venda.ms);
-            const entregues = qtd('enviado');
-            el.innerHTML = etapas
-                + '<div class="lentes-fila">' + (visiveis.length
-                    ? visiveis.map(_lentesLinhaProducao).join('')
-                    : '<div class="lentes-vazio-foco"><i class="ph-bold ph-check-circle"></i>Nenhum pedido pendente.</div>')
-                + '</div>'
-                + (entregues ? '<div class="lentes-lista-rodape"><button type="button" class="lentes-link-btn" data-lentes-entregues>'
-                    + (_lentesMostraEntregues ? 'Ocultar enviados' : 'Ver ' + entregues + (entregues === 1 ? ' enviado' : ' enviados'))
-                    + '</button></div>' : '');
+            const buckets = {};
+            _LENTES_PROD.forEach(etapa => { buckets[etapa.id] = []; });
+            itens.forEach(item => (buckets[_lentesEtapaProducao(item)] || buckets['receita-chegou']).push(item));
+            Object.values(buckets).forEach(lista => lista.sort((a, b) => a.venda.ms - b.venda.ms));
 
-            el.querySelectorAll('[data-arq]').forEach(b => b.onclick = () => _lentesAbreReceita(b));
-            el.querySelectorAll('[data-prod-sid]').forEach(b => b.onclick = () =>
-                _lentesMoveProducao(b, b.dataset.prodSid, b.dataset.prodEtapa));
-            const verEntregues = el.querySelector('[data-lentes-entregues]');
-            if (verEntregues) verEntregues.onclick = () => { _lentesMostraEntregues = !_lentesMostraEntregues; _pintaProducao(); };
+            el.textContent = '';
+            el.className = 'crm-board lentes-prod-crm';
+            el.style.gridTemplateColumns = 'repeat(4, minmax(260px, 1fr))';
+            const cores = _LENTES_PROD.map(etapa => ({ key: etapa.id }));
+
+            _LENTES_PROD.forEach(etapa => {
+                const cor = crmStageColor(etapa.id, cores);
+                const col = document.createElement('div');
+                col.className = 'crm-col'; col.dataset.key = etapa.id; col.style.setProperty('--col-accent', cor);
+                col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('crm-col-dragover'); });
+                col.addEventListener('dragleave', () => col.classList.remove('crm-col-dragover'));
+                col.addEventListener('drop', async e => {
+                    e.preventDefault(); col.classList.remove('crm-col-dragover');
+                    const sid = e.dataTransfer.getData('text/plain');
+                    if (!sid) return;
+                    try { await _lentesSalvaEtapa(sid, etapa.id); }
+                    catch (err) { crmToast(err.message || 'Não foi possível mover o pedido.', true); }
+                });
+
+                const head = document.createElement('div'); head.className = 'crm-col-header';
+                const title = document.createElement('div'); title.className = 'crm-col-title';
+                title.innerHTML = '<i class="ph-bold ' + etapa.icone + '"></i><span class="crm-lens-stage-copy"><small>Produção</small><span>'
+                    + etapa.rot + '</span></span>';
+                const total = document.createElement('span'); total.className = 'crm-col-count'; total.textContent = buckets[etapa.id].length;
+                head.append(title, total);
+
+                const body = document.createElement('div'); body.className = 'crm-col-body';
+                if (!buckets[etapa.id].length) {
+                    const empty = document.createElement('div'); empty.className = 'crm-col-empty';
+                    empty.textContent = 'Arraste pedidos para cá'; body.appendChild(empty);
+                }
+                buckets[etapa.id].slice(0, 200).forEach(item => {
+                    const card = document.createElement('div'); card.className = 'crm-card'; card.draggable = true;
+                    card.style.setProperty('--col-accent', cor);
+                    card.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', item.sid); card.classList.add('crm-card-dragging'); });
+                    card.addEventListener('dragend', () => card.classList.remove('crm-card-dragging'));
+                    const nome = String(item.venda.nome || 'Cliente').trim();
+                    const numero = item.venda.numero || item.venda.id || '—';
+                    const dias = Math.max(0, Math.floor((Date.now() - item.venda.ms) / 864e5));
+                    card.innerHTML = '<div class="crm-card-name"><i class="ph-bold ph-user-circle"></i><span>' + _lesc(nome) + '</span></div>'
+                        + '<div class="crm-card-meta"><span><i class="ph-bold ph-receipt"></i> Pedido #' + _lesc(numero) + '</span>'
+                        + '<span><i class="ph-bold ph-clock"></i> ' + (dias === 0 ? 'hoje' : dias === 1 ? 'ontem' : 'há ' + dias + ' dias') + '</span></div>'
+                        + '<div class="crm-lentes-card-detail"><b>' + _lesc(item.produto || 'Armação não identificada') + '</b><span>'
+                        + _lesc(item.lente || 'Lente não identificada') + '</span></div>';
+
+                    const actions = document.createElement('div'); actions.className = 'crm-lentes-card-actions';
+                    if (item.arq) {
+                        const receita = document.createElement('button'); receita.type = 'button'; receita.className = 'lentes-ver';
+                        receita.dataset.arq = item.arq; receita.textContent = 'Receita'; receita.onclick = () => _lentesAbreReceita(receita);
+                        actions.appendChild(receita);
+                    }
+                    if (item.telefone) {
+                        const num = String(item.telefone).replace(/\D/g, '');
+                        const wa = document.createElement('a'); wa.className = 'crm-card-wpp'; wa.target = '_blank'; wa.rel = 'noopener';
+                        wa.href = 'https://wa.me/' + (num.length > 11 ? num : '55' + num);
+                        wa.innerHTML = '<i class="ph-bold ph-whatsapp-logo"></i> WhatsApp'; actions.appendChild(wa);
+                    }
+                    if (actions.children.length) card.appendChild(actions);
+                    if (etapa.prox) {
+                        const next = document.createElement('button'); next.type = 'button'; next.className = 'crm-lentes-next';
+                        next.innerHTML = etapa.acao + ' <i class="ph-bold ph-arrow-right"></i>';
+                        next.onclick = async () => {
+                            const old = next.innerHTML; next.disabled = true; next.textContent = 'Salvando…';
+                            try { await _lentesSalvaEtapa(item.sid, etapa.prox); }
+                            catch (err) { next.disabled = false; next.innerHTML = old; crmToast(err.message || 'Não foi possível avançar o pedido.', true); }
+                        };
+                        card.appendChild(next);
+                    }
+                    body.appendChild(card);
+                });
+                col.append(head, body); el.appendChild(col);
+            });
         }
 
         function _lentesLinhaProducao(v) {
