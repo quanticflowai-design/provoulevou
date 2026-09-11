@@ -1149,7 +1149,7 @@
   // armação no rosto. Toda loja do catálogo hoje é ótica, então o padrão é
   // óculos e a exceção é declarada. Quando entrar uma loja de roupa, o slug
   // dela entra aqui — até existir coluna de categoria na loja (é DDL).
-  const LOJAS_ROUPA = ['lojateste', 'provoulevou'];
+  const LOJAS_ROUPA = ['lojateste', 'provoulevou', 'ayzo'];
   function categoriaDe(row) {
     const t = ((row && row.name) || '') + ' ' + ((row && row.description) || '');
     if (RE_OCULOS.test(t)) return 'oculos';
