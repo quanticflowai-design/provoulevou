@@ -9,11 +9,23 @@
     (function () {
       var q = new URLSearchParams(window.location.search);
       var shop = q.get('shop');
-      if (shop !== 'laeva-4.myshopify.com' || !q.get('hmac') || !q.get('host')) return;
-      var clientId = 'f51e3ed037c8d2f2d6d0fd1008ee3e6e';
+      if (!q.get('hmac') || !q.get('host')) return;
+      var shopApps = {
+        'laeva-4.myshopify.com': {
+          clientId: 'f51e3ed037c8d2f2d6d0fd1008ee3e6e',
+          scope: 'read_products,read_orders,read_customers,write_script_tags'
+        },
+        'liuzzi-eyewear-nfuvt9sg.myshopify.com': {
+          clientId: '868ad020e1069bfaffa188ede227fa02',
+          scope: 'read_products,write_products,read_orders,read_customers,write_script_tags'
+        }
+      };
+      var app = shopApps[shop];
+      if (!app) return;
+      var clientId = app.clientId;
       var params = new URLSearchParams({
         client_id: clientId,
-        scope: 'read_products,read_orders,read_customers,write_script_tags',
+        scope: app.scope,
         redirect_uri: 'https://n8n.segredosdodrop.com/webhook/shopify-oauth-callback',
         state: 'app:' + clientId
       });
