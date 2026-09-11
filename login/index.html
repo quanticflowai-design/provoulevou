@@ -6261,6 +6261,7 @@
                 if (r.telefone && !s.telefone) s.telefone = r.telefone;
                 if (r.produto && !s.produto) s.produto = r.produto;
                 const d = r.detail || {};
+                if (!s.produtoUrl && (d.produto_url || d.product_url || d.url)) s.produtoUrl = d.produto_url || d.product_url || d.url;
                 if (d.visao) s.visao = d.visao;
                 if (d.trat) s.trat = d.trat;
                 if (r.step === 'receita_lida') { s.leu = !!d.ok; s.confianca = d.confianca || null; if (d.arq) s.arq = d.arq; }
