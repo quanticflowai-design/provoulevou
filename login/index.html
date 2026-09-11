@@ -6235,7 +6235,7 @@
                 const s = ses[k] || (ses[k] = {
                     sid: k, inicio: ms, fim: ms, passos: {}, telefone: null, produto: null,
                     visao: null, trat: null, lente: null, preco: 0, confianca: null,
-                    etapaProd: null, etapaProdMs: 0
+                    etapaProd: null, etapaProdMs: 0, etapaCrm: null, etapaCrmMs: 0
                 });
                 s.fim = Math.max(s.fim, ms);
                 s.inicio = Math.min(s.inicio, ms);
@@ -6258,6 +6258,12 @@
                 // vale a marcacao mais recente: o lojista pode voltar uma etapa
                 if (r.step === 'producao' && d.etapa && ms >= s.etapaProdMs) {
                     s.etapaProd = d.etapa; s.etapaProdMs = ms;
+                }
+                // A etapa manual do CRM e separada dos eventos reais da jornada.
+                // Assim o lojista pode organizar qualquer lead sem adulterar os
+                // indicadores do fluxo nem o pipeline de producao.
+                if ((r.step === 'crm_lentes_etapa' || r.step === 'crm_etapa_lentes') && d.etapa && ms >= s.etapaCrmMs) {
+                    s.etapaCrm = d.etapa; s.etapaCrmMs = ms;
                 }
             });
             return Object.keys(ses).map(k => ses[k]).sort((a, b) => b.inicio - a.inicio);
@@ -19472,6 +19478,7 @@
         ];
 
         function _lentesEtapaCrm(v) {
+            if (v.etapaCrm && _LENTES_CRM_ETAPAS.some(e => e.id === v.etapaCrm)) return v.etapaCrm;
             if (v.venda) return 'comprou';
             const p = v.passos || {};
             if (p.so_armacao) return 'so_armacao';
@@ -19481,6 +19488,35 @@
             const ordem = ['recomendou', 'receita_lida', 'receita_metodo',
                 'tratamento', 'visao', 'telefone', 'pediu_telefone', 'abriu'];
             return ordem.find(id => p[id]) || 'abriu';
+        }
+
+        async function _lentesSalvaEtapaCrm(sid, etapa) {
+            if (!_LENTES_CRM_ETAPAS.some(e => e.id === etapa)) throw new Error('Etapa de destino inválida.');
+            const item = _lentesCrmSessoesVisiveis(_lentesSessoes(true)).find(v => v.sid === sid);
+            if (!item) throw new Error('Lead de lentes não encontrado.');
+            if (_lentesEtapaCrm(item) === etapa) return false;
+
+            const detalhe = { etapa: etapa, por: 'painel' };
+            if (item.venda) {
+                detalhe.pedido = item.venda.numero || item.venda.id || null;
+                detalhe.cliente = item.venda.nome || null;
+            }
+            const agora = new Date().toISOString();
+            const r = await fetch('https://n8n.segredosdodrop.com/webhook/pl-lentes-step', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    session_id: sid, origin: 'https://' + (activeUser.origem || ''),
+                    telefone: item.telefone || null, produto: item.produto || null,
+                    step: 'crm_lentes_etapa', detail: detalhe
+                })
+            });
+            if (!r.ok) throw new Error('Não foi possível salvar a nova etapa (HTTP ' + r.status + ').');
+
+            _lentesLinhas.push({ session_id: sid, telefone: item.telefone || null,
+                step: 'crm_lentes_etapa', detail: detalhe, produto: item.produto || null, created_at: agora });
+            renderLentesCrmPipeline();
+            crmToast('Lead movido para ' + (_LENTES_CRM_ETAPAS.find(e => e.id === etapa).rot) + '.');
+            return true;
         }
 
         function _lentesCrmSessoesVisiveis(sessoes) {
@@ -19526,17 +19562,21 @@
                 const etapaCrmCor = crmStageColor(etapa.id, crmLentesCols);
                 const col = document.createElement('div');
                 col.className = 'crm-col'; col.dataset.key = etapa.id; col.style.setProperty('--col-accent', etapaCrmCor);
-                if (etapa.producao) {
-                    col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('crm-col-dragover'); });
-                    col.addEventListener('dragleave', () => col.classList.remove('crm-col-dragover'));
-                    col.addEventListener('drop', async e => {
-                        e.preventDefault(); col.classList.remove('crm-col-dragover');
-                        const sid = e.dataTransfer.getData('text/plain');
-                        if (!sid) return;
-                        try { await _lentesSalvaEtapa(sid, etapa.id); }
-                        catch (err) { crmToast(err.message || 'Não foi possível mover o pedido. Tente novamente.', true); }
-                    });
-                }
+                col.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    col.classList.add('crm-col-dragover');
+                });
+                col.addEventListener('dragleave', e => {
+                    if (!col.contains(e.relatedTarget)) col.classList.remove('crm-col-dragover');
+                });
+                col.addEventListener('drop', async e => {
+                    e.preventDefault(); col.classList.remove('crm-col-dragover');
+                    const sid = e.dataTransfer.getData('text/plain');
+                    if (!sid) return;
+                    try { await _lentesSalvaEtapaCrm(sid, etapa.id); }
+                    catch (err) { crmToast(err.message || 'Não foi possível mover o lead. Tente novamente.', true); }
+                });
 
                 const head = document.createElement('div'); head.className = 'crm-col-header';
                 const title = document.createElement('div'); title.className = 'crm-col-title';
@@ -19548,17 +19588,22 @@
                 const body = document.createElement('div'); body.className = 'crm-col-body';
                 if (!buckets[etapa.id].length) {
                     const empty = document.createElement('div'); empty.className = 'crm-col-empty';
-                    empty.textContent = etapa.producao ? 'Arraste pedidos para cá' : 'Nenhum cliente nesta etapa';
+                    empty.textContent = 'Arraste leads para cá';
                     body.appendChild(empty);
                 }
                 buckets[etapa.id].slice(0, 200).forEach(item => {
-                    const podeMover = !!item.venda;
-                    const card = document.createElement('div'); card.className = 'crm-card'; card.draggable = podeMover;
+                    const card = document.createElement('div'); card.className = 'crm-card'; card.draggable = true;
                     card.style.setProperty('--col-accent', etapaCrmCor);
-                    if (podeMover) {
-                        card.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', item.sid); card.classList.add('crm-card-dragging'); });
-                        card.addEventListener('dragend', () => card.classList.remove('crm-card-dragging'));
-                    } else card.style.cursor = 'default';
+                    card.addEventListener('dragstart', e => {
+                        if (e.target.closest('a,button')) { e.preventDefault(); return; }
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', item.sid);
+                        card.classList.add('crm-card-dragging');
+                    });
+                    card.addEventListener('dragend', () => {
+                        card.classList.remove('crm-card-dragging');
+                        board.querySelectorAll('.crm-col-dragover').forEach(c => c.classList.remove('crm-col-dragover'));
+                    });
                     const nome = String((item.venda && item.venda.nome) || (item.telefone ? _fmtTelBR(item.telefone) : 'Cliente sem WhatsApp')).trim();
                     const numero = item.venda && (item.venda.numero || item.venda.id);
                     const dataBase = (item.venda && item.venda.ms) || item.fim || item.inicio;
