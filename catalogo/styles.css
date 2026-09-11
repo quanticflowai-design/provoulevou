@@ -618,6 +618,19 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 .cat-order-btn:disabled { opacity: .35; cursor: default; }
 .cat-order .btn-primary { padding: 9px 12px; font-size: 13px; }
 
+/* No celular, foto e formulário em colunas lado a lado deixam os campos
+   estreitos e empurram a área de categorias para a borda. */
+@media (max-width: 599px) {
+  .admin-add { flex-direction: column; }
+  .admin-uploader { width: 132px; height: 132px; align-self: center; }
+  .admin-fields { width: 100%; min-width: 0; }
+}
+
+@media (max-width: 359px) {
+  .admin-categoria-nova { flex-direction: column; }
+  .admin-categoria-nova .btn-outline { width: 100%; }
+}
+
 /* ═══════════ DESKTOP ═══════════
    Até aqui o catálogo era uma coluna de 440px centralizada: no celular é o
    certo, no PC virava um "print de celular" no meio de uma tela vazia. A partir
