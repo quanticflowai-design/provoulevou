@@ -6945,6 +6945,7 @@
             _dispCampFilter = 'all';
             _dispCampSort = 'recent';
             _dispCampSortDir = 'desc';
+            _dispCampSearch = '';
             _dispOpenCampaigns.clear();
             plSetMoeda();
             _lentesCarregado = false;
@@ -11179,6 +11180,8 @@
         let _dispCampFilter = 'all';
         let _dispCampSort = 'recent';
         let _dispCampSortDir = 'desc';
+        let _dispCampSearch = '';
+        let _dispCampSearchTimer = null;
         let _dispDashLastData = null;
         const _dispOpenCampaigns = new Set();
 
@@ -11234,6 +11237,10 @@
 
         function _dispCampaignFilteredRows(d) {
             let rows = _dispBuildCampaignRows(d);
+            const search = String(_dispCampSearch || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            if (search) rows = rows.filter(r => [r.nome, r.template, r.tipo, r.estado]
+                .map(v => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase())
+                .some(v => v.indexOf(search) !== -1));
             if (_dispCampFilter === 'returned') rows = rows.filter(r => r.rec.valor > 0);
             else if (_dispCampFilter === 'no_return') rows = rows.filter(r => r.stats.disparadas > 0 && r.rec.valor <= 0);
             else if (_dispCampFilter === 'failed') rows = rows.filter(r => r.stats.falhas > 0);
@@ -11269,6 +11276,27 @@
             if (_dispCampSort === v) _dispCampSortDir = _dispCampSortDir === 'desc' ? 'asc' : 'desc';
             else { _dispCampSort = v; _dispCampSortDir = 'desc'; }
             dispDashCampaignFilter(_dispCampFilter);
+        }
+        function dispDashCampaignSearch(v) {
+            _dispCampSearch = String(v || '');
+            if (_dispCampSearchTimer) clearTimeout(_dispCampSearchTimer);
+            _dispCampSearchTimer = setTimeout(function () {
+                if (!_dispDashLastData) return;
+                const view = document.getElementById('dispDashView');
+                if (!view) return;
+                view.innerHTML = dispDashboardHTML(_dispDashLastData);
+                _dispRenderDashChart(_dispDashLastData.serieDiaria);
+                requestAnimationFrame(function () {
+                    const input = document.getElementById('dispCampaignSearch');
+                    if (input) { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }
+                });
+            }, 140);
+        }
+        function dispDashCampaignClearSearch() {
+            _dispCampSearch = '';
+            if (_dispCampSearchTimer) clearTimeout(_dispCampSearchTimer);
+            dispDashCampaignFilter(_dispCampFilter);
+            requestAnimationFrame(function () { const input = document.getElementById('dispCampaignSearch'); if (input) input.focus(); });
         }
         function dispToggleCampaignBuyers(cid) {
             const id = 'dd-buyers-' + encodeURIComponent(cid);
@@ -11385,6 +11413,7 @@
                 + '    <div><div class="dd-list-head"><i class="ph-bold ph-megaphone" aria-hidden="true"></i> Todas as campanhas <span>· ' + _int(allCampaigns.length) + ' no período</span></div><p>Nenhuma campanha é ocultada, mesmo quando não enviou ou não gerou retorno.</p></div>'
                 + '    <div class="dd-campaign-actions"><select onchange="dispDashCampaignSort(this.value)" aria-label="Ordenar campanhas"><option value="recent"' + (_dispCampSort === 'recent' ? ' selected' : '') + '>Mais recentes</option><option value="revenue"' + (_dispCampSort === 'revenue' ? ' selected' : '') + '>Maior retorno</option><option value="delivered"' + (_dispCampSort === 'delivered' ? ' selected' : '') + '>Mais entregues</option><option value="failures"' + (_dispCampSort === 'failures' ? ' selected' : '') + '>Mais falhas</option></select><button onclick="dispExportCampaignsCSV()"><i class="ph-bold ph-download-simple"></i> CSV</button></div>'
                 + '  </div>'
+                + '  <div class="dd-campaign-search"><i class="ph-bold ph-magnifying-glass"></i><input id="dispCampaignSearch" type="search" value="' + _esc(_dispCampSearch) + '" placeholder="Pesquisar por nome, template, tipo ou situação…" aria-label="Pesquisar campanhas" autocomplete="off" oninput="dispDashCampaignSearch(this.value)">' + (_dispCampSearch ? '<button type="button" onclick="dispDashCampaignClearSearch()" aria-label="Limpar pesquisa"><i class="ph-bold ph-x"></i></button>' : '') + '<span>' + _int(list.length) + (list.length === 1 ? ' campanha exibida' : ' campanhas exibidas') + '</span></div>'
                 + '  <div class="dd-campaign-filters" role="group" aria-label="Filtrar campanhas">'
                 + '    <button class="' + (_dispCampFilter === 'all' ? 'on' : '') + '" onclick="dispDashCampaignFilter(\'all\')">Todas <b>' + _int(allCampaigns.length) + '</b></button>'
                 + '    <button class="' + (_dispCampFilter === 'returned' ? 'on' : '') + '" onclick="dispDashCampaignFilter(\'returned\')">Com retorno <b>' + _int(returnedCount) + '</b></button>'
@@ -11523,6 +11552,7 @@
                 + '.dd-campaign-actions select,.dd-campaign-actions button{height:36px;border:1px solid var(--border);border-radius:9px;background:var(--card-bg);color:var(--text-main);font:inherit;font-size:12px;font-weight:700;padding:0 11px;}'
                 + '.dd-campaign-actions button{display:inline-flex;align-items:center;gap:6px;cursor:pointer;}'
                 + '.dd-campaign-actions button:hover{border-color:var(--primary);color:var(--primary);}'
+                + '.dd-campaign-search{display:flex;align-items:center;gap:9px;border:1px solid var(--border);background:var(--card-bg);border-radius:11px;padding:0 11px;margin-bottom:10px;min-height:42px;transition:border-color .18s,box-shadow .18s;}.dd-campaign-search:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 12%,transparent);}.dd-campaign-search>i{font-size:17px;color:var(--text-muted);}.dd-campaign-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text-main);font:inherit;font-size:13px;padding:10px 0;}.dd-campaign-search input::placeholder{color:var(--text-muted);}.dd-campaign-search button{width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:7px;background:var(--dd-soft);color:var(--text-muted);cursor:pointer;}.dd-campaign-search button:hover{color:var(--primary);}.dd-campaign-search>span{font-size:10.5px;font-weight:700;color:var(--text-muted);white-space:nowrap;border-left:1px solid var(--border);padding-left:10px;}'
                 + '.dd-campaign-filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;}'
                 + '.dd-campaign-filters button{border:1px solid var(--border);background:var(--card-bg);color:var(--text-muted);border-radius:999px;padding:7px 11px;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;}'
                 + '.dd-campaign-filters button b{display:inline-grid;place-items:center;min-width:19px;height:19px;margin-left:4px;padding:0 4px;border-radius:999px;background:var(--dd-soft);color:var(--text-main);font-size:10px;}'
@@ -11553,7 +11583,7 @@
                 + '.dd-campaign-note i{color:var(--primary);font-size:14px;flex:0 0 auto;margin-top:1px;}'
                 + '.dd-loading{padding:40px;text-align:center;color:var(--text-muted);}'
                 + '@media(max-width:800px){.dd-buyer{grid-template-columns:minmax(170px,1fr) 60px minmax(180px,1fr) 95px 95px;}.dd-buyers{padding-left:12px;}}'
-                + '@media(max-width:600px){.dd-hero{flex-direction:column;align-items:flex-start;gap:18px;}.dd-hero-val{font-size:36px;}.dd-funnel{width:100%;justify-content:space-between;}.dd-fn{flex:1;min-width:0;}.dd-camp-rec{min-width:78px;}.dd-campaign-actions{width:100%;}.dd-campaign-actions select{flex:1;}.dd-campaign-table-wrap{max-height:480px;}}'
+                + '@media(max-width:600px){.dd-hero{flex-direction:column;align-items:flex-start;gap:18px;}.dd-hero-val{font-size:36px;}.dd-funnel{width:100%;justify-content:space-between;}.dd-fn{flex:1;min-width:0;}.dd-camp-rec{min-width:78px;}.dd-campaign-actions{width:100%;}.dd-campaign-actions select{flex:1;}.dd-campaign-search>span{display:none;}.dd-campaign-table-wrap{max-height:480px;}}'
                 + '@media(prefers-reduced-motion:reduce){.dd *,.dd *::before,.dd *::after{transition:none !important;animation:none !important;}}';
             document.head.appendChild(s);
         }
