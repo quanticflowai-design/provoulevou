@@ -1943,15 +1943,43 @@
   // quem entrar com o e-mail dono da loja (pl_catalog_stores.owner_email).
   const SESSAO = 'pc_sess_v1';
   let sessao = null;
+  let sessaoValidada = false;
   try { sessao = JSON.parse(localStorage.getItem(SESSAO) || 'null'); } catch (e) { sessao = null; }
+
+  function ehAdminGeral() {
+    return !!(sessaoValidada && sessao && sessao.admin);
+  }
 
   function ehDono() {
     const dono = String((storeRow && storeRow.owner_email) || '').trim().toLowerCase();
     const logado = String((sessao && sessao.email) || '').trim().toLowerCase();
-    return !!dono && !!logado && dono === logado;
+    return !!sessaoValidada && (ehAdminGeral() || (!!dono && !!logado && dono === logado));
   }
 
-  function temSessao() { return !!(sessao && sessao.email); }
+  function temSessao() { return !!(sessaoValidada && sessao && sessao.email); }
+
+  async function validaSessaoAtual() {
+    if (!sessao || !sessao.token) return false;
+    try {
+      const r = await fetch(SB_URL + '/auth/v1/user', {
+        headers: { apikey: SB_ANON, Authorization: 'Bearer ' + sessao.token }
+      });
+      const user = await r.json().catch(() => null);
+      if (!r.ok || !user || !user.email) throw new Error('Sessão expirada');
+      sessao.email = user.email;
+      sessao.admin = !!(user.app_metadata && user.app_metadata.pl_catalog_admin);
+      sessaoValidada = true;
+      try { localStorage.setItem(SESSAO, JSON.stringify(sessao)); } catch (e) {}
+      aplicaPermissoes();
+      return true;
+    } catch (e) {
+      sessao = null;
+      sessaoValidada = false;
+      try { localStorage.removeItem(SESSAO); } catch (e2) {}
+      aplicaPermissoes();
+      return false;
+    }
+  }
 
   // Sem sessão a área do lojista nem aparece — não adianta esconder só o botão
   // se o elemento continua clicável por quem inspeciona a página.
@@ -1973,6 +2001,7 @@
 
   function sair() {
     sessao = null;
+    sessaoValidada = false;
     try { localStorage.removeItem(SESSAO); } catch (e) {}
     aplicaPermissoes();
     show('catalog');
@@ -2096,6 +2125,7 @@
   // lido aqui em cima pelo mesmo motivo do `pedido`: o show('catalog') do init
   // reescreve a URL e o ?cat= ja teria sumido
   const catPedida = new URLSearchParams(location.search).get('cat');
+  const sessaoPronta = validaSessaoAtual();
   aplicaPermissoes();   // esconde a area do lojista antes de pintar a tela
   renderStore();
   renderCatalog();          // pinta na hora com o cache
@@ -2105,12 +2135,10 @@
   // autenticar. Se a sessao nao servir pra esta loja, devolve pro painel em vez
   // de mostrar um catalogo publico sem explicacao.
   else if (location.hash === '#admin' || location.hash === '#login') {
-    if (ehDono()) { renderAdmin(); show('admin'); }
-    else if (cargaInicial) cargaInicial.then(() => {
+    Promise.all([cargaInicial || Promise.resolve(), sessaoPronta]).then(() => {
       if (ehDono()) { renderAdmin(); show('admin'); }
       else location.href = 'painel/';
     });
-    else location.href = 'painel/';
   }
   else show('catalog');
 

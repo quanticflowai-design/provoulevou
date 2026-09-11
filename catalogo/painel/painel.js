@@ -36,7 +36,34 @@
       e.credenciais = true;
       throw e;
     }
-    return { email: (j.user && j.user.email) || email, token: j.access_token, em: Date.now() };
+    return {
+      email: (j.user && j.user.email) || email,
+      token: j.access_token,
+      admin: !!(j.user && j.user.app_metadata && j.user.app_metadata.pl_catalog_admin),
+      em: Date.now()
+    };
+  }
+
+  async function validarSessao(s) {
+    if (!s || !s.token) throw new Error('Sessão inválida');
+    const r = await fetch(SB_URL + '/auth/v1/user', {
+      headers: { apikey: SB_ANON, Authorization: 'Bearer ' + s.token }
+    });
+    const user = await r.json().catch(() => null);
+    if (!r.ok || !user || !user.email) throw new Error('Sessão expirada');
+    return {
+      email: user.email,
+      token: s.token,
+      admin: !!(user.app_metadata && user.app_metadata.pl_catalog_admin),
+      em: s.em || Date.now()
+    };
+  }
+
+  function caminhoLojas(s) {
+    const filtro = s && s.admin ? '' : 'owner_email=ilike.' +
+      encodeURIComponent(String(s && s.email || '').toLowerCase()) + '&';
+    return 'pl_catalog_stores?' + filtro +
+      'is_active=eq.true&select=slug,display_name&order=display_name.asc';
   }
 
   function irPara(slug) { location.href = '../?loja=' + encodeURIComponent(slug) + '#admin'; }
@@ -55,8 +82,22 @@
       b.addEventListener('click', () => irPara(l.slug));
       lista.appendChild(b);
     });
+    const busca = $('#busca-lojas');
+    if (busca) {
+      busca.value = '';
+      busca.oninput = () => {
+        const termo = busca.value.trim().toLocaleLowerCase('pt-BR')
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        Array.from(lista.children).forEach(item => {
+          const nome = item.textContent.toLocaleLowerCase('pt-BR')
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          item.hidden = !!termo && !nome.includes(termo);
+        });
+      };
+    }
     $('#login-form').hidden = true;
     box.hidden = false;
+    if (busca && lojas.length > 8) busca.focus();
   }
 
   const form = $('#login-form');
@@ -68,9 +109,7 @@
     btn.disabled = true; btn.textContent = 'Entrando…';
     try {
       const s = await entrar($('#login-email').value.trim(), $('#login-pass').value);
-      const lojas = await sbGet('pl_catalog_stores?owner_email=ilike.' +
-        encodeURIComponent(s.email.toLowerCase()) +
-        '&is_active=eq.true&select=slug,display_name&order=display_name.asc');
+      const lojas = await sbGet(caminhoLojas(s));
       if (!lojas || !lojas.length) {
         // Autenticou, mas nenhuma loja aponta pra esse e-mail. É config nossa
         // faltando (owner_email), não senha errada — a mensagem tem que dizer isso.
@@ -98,9 +137,9 @@
     try { s = JSON.parse(localStorage.getItem(SESSAO) || 'null'); } catch (e) {}
     if (!s || !s.email) return;
     try {
-      const lojas = await sbGet('pl_catalog_stores?owner_email=ilike.' +
-        encodeURIComponent(String(s.email).toLowerCase()) +
-        '&is_active=eq.true&select=slug,display_name&order=display_name.asc');
+      s = await validarSessao(s);
+      try { localStorage.setItem(SESSAO, JSON.stringify(s)); } catch (e) {}
+      const lojas = await sbGet(caminhoLojas(s));
       if (lojas && lojas.length === 1) irPara(lojas[0].slug);
       else if (lojas && lojas.length > 1) pedeEscolha(lojas);
     } catch (e) { toast('Não consegui carregar seus catálogos'); }
