@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=93">
+  <link rel="stylesheet" href="styles.css?v=94">
 </head>
 <body>
   <div id="app">
@@ -64,6 +64,7 @@
         <div class="product-info">
           <h2 id="p-name">—</h2>
           <div class="price-row">
+            <span class="p-old-price" id="p-old-price" hidden></span>
             <span class="p-price" id="p-price">R$ 0,00</span>
             <span class="p-install" id="p-install"></span>
           </div>
@@ -176,6 +177,7 @@
           <img id="result-thumb" alt="">
           <div>
             <p class="result-prod-name" id="result-name">—</p>
+            <p class="result-prod-old-price" id="result-old-price" hidden></p>
             <p class="result-prod-price" id="result-price">R$ 0,00</p>
           </div>
         </div>
@@ -343,7 +345,9 @@
             <input type="text" id="admin-name" placeholder="Nome do produto">
             <!-- decimal, nao numeric: o teclado "numeric" do Android nao tem virgula,
                  e o lojista so conseguia digitar preco inteiro. -->
-            <input type="text" id="admin-price" inputmode="decimal" placeholder="Preço (ex: 149,90)">
+            <input type="text" id="admin-price" inputmode="decimal" placeholder="Preço promocional (ex.: 99,90)">
+            <input type="text" id="admin-original-price" inputmode="decimal"
+                   placeholder="Preço original (opcional, ex.: 149,90)">
             <div class="admin-categorias">
               <p class="admin-categorias-tit">Categorias do produto</p>
               <p class="admin-categorias-sub">Selecione quantas quiser.</p>
@@ -441,6 +445,6 @@
   </template>
   <div id="toast"></div>
 
-  <script src="app.js?v=100"></script>
+  <script src="app.js?v=101"></script>
 </body>
 </html>

@@ -88,6 +88,44 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
   const brl = n => 'R$ ' + Number(n).toFixed(2).replace('.', ',');
+  const espera = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+  function novoRequestId() {
+    if (self.crypto && typeof self.crypto.randomUUID === 'function') return self.crypto.randomUUID();
+    return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2) + '-' + Math.random().toString(36).slice(2);
+  }
+
+  // No 4G o servidor pode concluir a gravação e a resposta se perder no caminho.
+  // O mesmo request_id acompanha a repetição, então o backend devolve o registro
+  // existente em vez de criar um produto ou uma foto duplicados.
+  async function postJsonComRetry(url, body, tentativas) {
+    let ultimoErro;
+    for (let tentativa = 1; tentativa <= (tentativas || 2); tentativa++) {
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 45000);
+        let r;
+        try {
+          r = await fetch(url, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body), signal: controller.signal
+          });
+        } finally {
+          clearTimeout(timer);
+        }
+        const data = await r.json().catch(() => null);
+        if (r.ok && data && data.ok) return data;
+        const e = new Error('HTTP ' + r.status);
+        e.retryable = r.status === 408 || r.status === 429 || r.status >= 500;
+        throw e;
+      } catch (e) {
+        ultimoErro = e;
+        if (tentativa >= (tentativas || 2) || e.retryable === false) break;
+        await espera(1200 * tentativa);
+      }
+    }
+    throw ultimoErro || new Error('Falha no envio');
+  }
 
   // Cache local só para a primeira pintura da tela (evita catálogo em branco
   // enquanto o fetch não volta). A fonte da verdade é o Supabase.
@@ -429,7 +467,8 @@
       const cats = normalizaCategorias(Array.isArray(r.categorias_vitrine) && r.categorias_vitrine.length
         ? r.categorias_vitrine : [r.categoria_vitrine]);
       return {
-        id: r.id, name: r.name, price: Number(r.price), img: urls[0] || '',
+        id: r.id, name: r.name, price: Number(r.price),
+        originalPrice: r.original_price == null ? null : Number(r.original_price), img: urls[0] || '',
         imgs: urls,                       // a galeria e as referências da prova saem daqui
         imgIds: imgs.map(x => x.id).filter(Boolean),   // quais apagar quando trocar a foto
         imageMeta: imgs.map(x => ({ id: x.id, url: x.url, variantName: (x.variant_name || '').trim() })),
@@ -592,10 +631,16 @@
       thumb.className = 'thumb'; thumb.alt = '';
       const body = document.createElement('div'); body.className = 'pc-body';
       const nome = document.createElement('div'); nome.className = 'pc-name'; nome.textContent = p.name;
-      const preco = document.createElement('div'); preco.className = 'pc-price'; preco.textContent = brl(p.price);
+      const precos = document.createElement('div'); precos.className = 'pc-prices';
+      if (p.originalPrice && p.originalPrice > p.price) {
+        const original = document.createElement('span'); original.className = 'pc-old-price'; original.textContent = brl(p.originalPrice);
+        precos.appendChild(original);
+      }
+      const preco = document.createElement('span'); preco.className = 'pc-price'; preco.textContent = brl(p.price);
+      precos.appendChild(preco);
       const btn = document.createElement('button');
       btn.type = 'button'; btn.className = 'pc-try'; btn.textContent = 'Provar virtualmente';
-      body.append(nome, preco, btn);
+      body.append(nome, precos, btn);
       card.append(thumb, body);
       bindImg(thumb, p.img, p.name);
       // Botão leva DIRETO pra prova (menos um passo pro cliente).
@@ -959,6 +1004,9 @@
     fotoSel = 0;   // produto novo, galeria volta pra primeira foto
     bindImg($('#p-img'), p.img, p.name);
     $('#p-name').textContent = p.name;
+    const precoOriginal = $('#p-old-price');
+    precoOriginal.textContent = p.originalPrice && p.originalPrice > p.price ? brl(p.originalPrice) : '';
+    precoOriginal.hidden = !precoOriginal.textContent;
     $('#p-price').textContent = brl(p.price);
     // sem parcelamento informado o campo some, em vez de anunciar 12x que a
     // loja talvez não pratique
@@ -1360,6 +1408,10 @@
     img.src = urlProva || userPhoto || fallbackSvg('Sua prova');
     bindImg($('#result-thumb'), fotoAtual() || current.img, current.name);
     $('#result-name').textContent = nomeProdutoAtual();
+    const precoOriginal = $('#result-old-price');
+    precoOriginal.textContent = current.originalPrice && current.originalPrice > current.price
+      ? brl(current.originalPrice) : '';
+    precoOriginal.hidden = !precoOriginal.textContent;
     $('#result-price').textContent = brl(current.price);
     show('result');
   }
@@ -1555,6 +1607,7 @@
   let adminPhotoB64 = '';   // base64 já comprimido, pronto pra subir
   let adminFotosB64 = [];   // todas as fotos escolhidas; a 1ª é a de capa
   let adminFotosPreview = [];
+  let adminUploadRequestId = ''; // persiste se o lojista tocar novamente após uma falha
   let editando = null;      // produto em edição (null = cadastrando um novo)
 
   function renderAdminVariacoes(fotos) {
@@ -1593,10 +1646,13 @@
   function entraEdicao(p) {
     editando = p;
     adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = []; adminFotosPreview = [];
+    adminUploadRequestId = '';
     const fi = $('#admin-photo'); if (fi) fi.value = '';
     const cc = $('#admin-up-conta'); if (cc) cc.hidden = true;
     $('#admin-name').value = p.name;
     $('#admin-price').value = Number(p.price).toFixed(2).replace('.', ',');
+    $('#admin-original-price').value = p.originalPrice && p.originalPrice > p.price
+      ? Number(p.originalPrice).toFixed(2).replace('.', ',') : '';
     $('#admin-desc').value = p.desc || '';
     $('#admin-parcelas').value = p.parcelas ? String(p.parcelas) : '';
     adminCategoriasSelecionadas = normalizaCategorias(p.cats && p.cats.length ? p.cats : [p.cat]);
@@ -1614,12 +1670,13 @@
 
   function saiEdicao() {
     editando = null;
-    $('#admin-name').value = ''; $('#admin-price').value = '';
+    $('#admin-name').value = ''; $('#admin-price').value = ''; $('#admin-original-price').value = '';
     $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
     $('#admin-categoria').value = '';
     adminCategoriasSelecionadas = [];
     renderAdminCategorias();
     adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = []; adminFotosPreview = [];
+    adminUploadRequestId = '';
     renderAdminVariacoes([]);
     $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = '';
     const cc0 = $('#admin-up-conta'); if (cc0) cc0.hidden = true;
@@ -1645,6 +1702,7 @@
     btn.disabled = false; btn.textContent = txt0;
     if (!lidas.length) { toast('Não consegui ler essas imagens'); return; }
     adminFotosB64 = lidas;
+    adminUploadRequestId = novoRequestId();
     adminFotosPreview = lidas.map(b64 => ({ url: 'data:image/jpeg;base64,' + b64, variantName: '' }));
     renderAdminVariacoes(adminFotosPreview);
     adminPhotoB64 = lidas[0];
@@ -1661,11 +1719,16 @@
     const name = $('#admin-name').value.trim();
     const priceRaw = $('#admin-price').value.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
     const price = parseFloat(priceRaw);
+    const originalPriceRaw = $('#admin-original-price').value.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
+    const originalPrice = originalPriceRaw ? parseFloat(originalPriceRaw) : null;
     // Se a categoria nova ainda estiver digitada, inclui antes de salvar.
     if ($('#admin-categoria').value.trim()) adicionaCategoriaDigitada();
     const categorias = normalizaCategorias(adminCategoriasSelecionadas);
     if (!name) { toast('Dê um nome ao produto'); return; }
     if (!price || price <= 0) { toast('Informe um preço válido'); return; }
+    if (originalPrice !== null && (!originalPrice || originalPrice <= price)) {
+      toast('O preço original deve ser maior que o promocional'); return;
+    }
     // no cadastro a foto é obrigatória; na edição, só se o lojista escolher outra
     if (!editando && !adminPhotoB64) { toast('Envie a foto do produto'); return; }
     if (!storeRow) { toast('Loja não encontrada — recarregue a página'); return; }
@@ -1679,34 +1742,32 @@
         // ficar sem nenhuma.
         const trocouFoto = adminFotosB64.length > 0;
         const variacoes = variacoesDigitadas();
+        const uploadBaseId = adminUploadRequestId || (adminUploadRequestId = novoRequestId());
         if (trocouFoto) {
           btn.textContent = adminFotosB64.length > 1
             ? 'Enviando ' + adminFotosB64.length + ' fotos…' : 'Enviando foto…';
           await Promise.all(adminFotosB64.map(async (foto, i) => {
-            const ri = await fetch(WH_ADD_IMAGE, {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
+            await postJsonComRetry(WH_ADD_IMAGE, {
               // position 1-based: o n8n faz `position || 1` e trataria o 0 como
               // ausente, jogando a 1a e a 2a foto na mesma posicao — e a capa
               // sai justamente da menor posicao
-              body: JSON.stringify({ store_slug: STORE_SLUG, product_id: editando.id,
-                                     mime: 'image/jpeg', image_b64: foto, position: i + 1,
-                                     variant_name: (variacoes[i] && variacoes[i].variant_name) || null })
+              store_slug: STORE_SLUG, product_id: editando.id,
+              request_id: uploadBaseId + '-' + i,
+              mime: 'image/jpeg', image_b64: foto, position: i + 1,
+              variant_name: (variacoes[i] && variacoes[i].variant_name) || null
             });
-            if (!ri.ok) throw new Error('foto HTTP ' + ri.status);
           }));
         }
         btn.textContent = 'Salvando…';
-        const r = await fetch(WH_EDIT_PRODUCT, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ product_id: editando.id, name, price,
-                                 description: $('#admin-desc').value.trim() || null,
-                                 parcelas: Number($('#admin-parcelas').value) || null,
-                                 categoria_vitrine: categorias[0] || null,
-                                 categorias_vitrine: categorias.length ? categorias : null,
-                                 image_variants: trocouFoto ? [] : variacoes.filter(x => x.id),
-                                 remove_image_ids: trocouFoto ? (editando.imgIds || []) : [] })
+        await postJsonComRetry(WH_EDIT_PRODUCT, {
+          product_id: editando.id, name, price, original_price: originalPrice,
+          description: $('#admin-desc').value.trim() || null,
+          parcelas: Number($('#admin-parcelas').value) || null,
+          categoria_vitrine: categorias[0] || null,
+          categorias_vitrine: categorias.length ? categorias : null,
+          image_variants: trocouFoto ? [] : variacoes.filter(x => x.id),
+          remove_image_ids: trocouFoto ? (editando.imgIds || []) : []
         });
-        if (!r.ok) throw new Error('HTTP ' + r.status);
         await loadCatalog();
         renderAdmin(); renderCatalog();
         saiEdicao();
@@ -1727,18 +1788,17 @@
     btn.disabled = true; btn.textContent = 'Enviando foto…';
     try {
       const variacoes = variacoesDigitadas();
-      const r = await fetch(WH_ADD_PRODUCT, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ store_slug: STORE_SLUG, name, price, descricao_e_parcelas: 1,
-                               description: $('#admin-desc').value.trim() || null,
-                               parcelas: Number($('#admin-parcelas').value) || null,
-                               categoria_vitrine: categorias[0] || null,
-                               categorias_vitrine: categorias.length ? categorias : null,
-                               mime: 'image/jpeg', image_b64: adminPhotoB64,
-                               variant_name: (variacoes[0] && variacoes[0].variant_name) || null })
+      const requestId = adminUploadRequestId || (adminUploadRequestId = novoRequestId());
+      const data = await postJsonComRetry(WH_ADD_PRODUCT, {
+        store_slug: STORE_SLUG, name, price, original_price: originalPrice,
+        request_id: requestId, descricao_e_parcelas: 1,
+        description: $('#admin-desc').value.trim() || null,
+        parcelas: Number($('#admin-parcelas').value) || null,
+        categoria_vitrine: categorias[0] || null,
+        categorias_vitrine: categorias.length ? categorias : null,
+        mime: 'image/jpeg', image_b64: adminPhotoB64,
+        variant_name: (variacoes[0] && variacoes[0].variant_name) || null
       });
-      const data = await r.json().catch(() => null);
-      if (!r.ok || !data || !data.ok) throw new Error('falha no upload');
 
       // As demais fotos sobem juntas depois que o produto existe. Falha aqui não
       // derruba o cadastro: o produto já existe com a foto de capa, e é melhor
@@ -1749,13 +1809,11 @@
         await Promise.allSettled(adminFotosB64.slice(1).map(async (foto, offset) => {
           const i = offset + 1;
           try {
-            const ri = await fetch(WH_ADD_IMAGE, {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ store_slug: STORE_SLUG, product_id: pid,
-                                     mime: 'image/jpeg', image_b64: foto, position: i,
-                                     variant_name: (variacoes[i] && variacoes[i].variant_name) || null })
+            await postJsonComRetry(WH_ADD_IMAGE, {
+              store_slug: STORE_SLUG, product_id: pid, request_id: requestId + '-' + i,
+              mime: 'image/jpeg', image_b64: foto, position: i,
+              variant_name: (variacoes[i] && variacoes[i].variant_name) || null
             });
-            if (!ri.ok) throw new Error('foto HTTP ' + ri.status);
           } catch (e) { console.warn('[Provou Catálogo] foto extra falhou:', e); }
         }));
       }
@@ -1763,12 +1821,13 @@
       btn.textContent = 'Publicando…';
       await loadCatalog();
       renderAdmin(); renderCatalog();
-      $('#admin-name').value = ''; $('#admin-price').value = '';
+      $('#admin-name').value = ''; $('#admin-price').value = ''; $('#admin-original-price').value = '';
       $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
       $('#admin-categoria').value = '';
       adminCategoriasSelecionadas = [];
       renderAdminCategorias();
       adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = []; adminFotosPreview = [];
+      adminUploadRequestId = '';
       renderAdminVariacoes([]);
       $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = ''; $('#admin-photo').value = '';
       const cc = $('#admin-up-conta'); if (cc) cc.hidden = true;
