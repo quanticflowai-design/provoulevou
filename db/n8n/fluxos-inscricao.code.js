@@ -20,7 +20,24 @@ for(const f of flows){
     // A chave do CRM tem só 9 dígitos (sem DDD) => resolve o número completo via prova p/ poder enviar.
     if(!f.gatilho_etapa)continue;
     const cfg=(await get(`/lojistas?email=eq.${enc(f.lojista_email)}&select=origem`))[0];
-    const movs=await get(`/crm_lead_overrides?lojista_email=eq.${enc(f.lojista_email)}&column_key=eq.${enc(f.gatilho_etapa)}&updated_at=gte.${since}&select=telefone&limit=500`);
+    const etapaCod=String(f.gatilho_etapa||'');
+    const etapaLentes=etapaCod.startsWith('lentes:');
+    const etapaAlvo=etapaLentes?etapaCod.slice(7):etapaCod;
+    if(etapaLentes){
+      if(!cfg||!cfg.origem)continue;
+      const rows=await get(`/lentes_funnel?origin=ilike.*${enc(cfg.origem)}*&created_at=gte.${since}&select=session_id,telefone,step,detail,produto,created_at&order=created_at.asc&limit=1000`);
+      const eventos=(rows||[]).filter(r=>r.step===etapaAlvo||((r.step==='crm_lentes_etapa'||r.step==='crm_etapa_lentes')&&r.detail&&r.detail.etapa===etapaAlvo));
+      const sids=[...new Set(eventos.map(r=>r.session_id).filter(Boolean))];
+      const porSessao={};
+      if(sids.length){
+        const hist=await get(`/lentes_funnel?origin=ilike.*${enc(cfg.origem)}*&session_id=in.(${sids.map(enc).join(',')})&select=session_id,telefone,produto,detail,created_at&order=created_at.desc&limit=3000`);
+        for(const r of (hist||[])){ const s=porSessao[r.session_id]||(porSessao[r.session_id]={telefone:'',produto:'',url:''}); if(!s.telefone&&r.telefone)s.telefone=r.telefone;if(!s.produto&&r.produto)s.produto=r.produto;const d=r.detail||{};if(!s.url)s.url=d.produto_url||d.url||''; }
+      }
+      for(const r of eventos){ const s=porSessao[r.session_id]||{}; const d=r.detail||{}; cand.push({phone:r.telefone||s.telefone,contexto:{nome:primeiroNome(d.nome),produto:r.produto||s.produto||d.produto||'',url:d.produto_url||d.url||s.url||''}}); }
+      // O fluxo de lentes já foi resolvido acima; o CRM tradicional continua abaixo.
+      if(eventos.length||etapaLentes){ /* segue para deduplicação */ }
+    }
+    const movs=etapaLentes?[]:await get(`/crm_lead_overrides?lojista_email=eq.${enc(f.lojista_email)}&column_key=eq.${enc(etapaAlvo)}&updated_at=gte.${since}&select=telefone&limit=500`);
     for(const m of movs){
       const key=String(m.telefone||'').replace(/\D/g,''); if(key.length<8)continue;
       let full=null, ctx={nome:'',produto:'',url:''};

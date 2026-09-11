@@ -4650,6 +4650,13 @@
                             <input type="hidden" id="waBulkTemplate">
                             <div id="waBulkTemplatePreview" style="font-size:12px;line-height:1.5;color:var(--text-muted);margin-top:8px;padding:10px 12px;background:rgba(124,58,237,0.05);border:1px solid var(--border);border-radius:8px;display:none;"></div>
                         </div>
+                        <div id="waBulkPipelineWrap" style="display:none;margin-bottom:14px;">
+                            <label class="wa-bulk-field-label">Pipeline do CRM</label>
+                            <select id="waBulkPipelineSelect" class="wa-bulk-field" onchange="waBulkOnPipelineChange(this.value)">
+                                <option value="provador">Provador virtual</option>
+                                <option value="lentes">Fluxo de lentes</option>
+                            </select>
+                        </div>
                         <div class="disp-bulk-grid">
                             <div>
                                 <label class="wa-bulk-field-label">Etapa do funil</label>
@@ -4723,6 +4730,13 @@
                         <div style="font-weight:700;font-size:14.5px;margin-bottom:3px;"><i class="ph-bold ph-repeat" style="color:#7c3aed;"></i> Criar disparo automático diário</div>
                         <div style="font-size:12.5px;color:var(--text-muted);line-height:1.5;margin-bottom:16px;">Todo dia no horário escolhido, envia para os leads de uma etapa do CRM que <strong>ainda não receberam disparo nos últimos 7 dias</strong>. Usa o modelo de mensagem selecionado no disparo em massa acima.</div>
                         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:13px;margin-bottom:16px;">
+                            <div id="recurPipelineWrap" style="display:none;">
+                                <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;">Pipeline</label>
+                                <select id="recurPipeline" class="wa-bulk-field" style="width:100%;" onchange="populateRecurStage()">
+                                    <option value="provador">Provador virtual</option>
+                                    <option value="lentes">Fluxo de lentes</option>
+                                </select>
+                            </div>
                             <div>
                                 <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;">Etapa do CRM</label>
                                 <select id="recurStage" class="wa-bulk-field" style="width:100%;"></select>
@@ -6145,7 +6159,7 @@
            Telefone so existe quando a pessoa fez uma prova antes (o campo vem do
            provador); quem entra pelo botao da pagina do produto aparece sem ele.
         ==================================================================== */
-        let _lentesCarregado = false, _lentesLinhas = [], _lentesPeriodo = '30';
+        let _lentesCarregado = false, _lentesLinhas = [], _lentesPeriodo = '30', _hasLentesPipeline = false;
         let _lentesPedidos = null;   // pedidos pagos que levaram lente
 
         /* Dia em que o fluxo entrou no ar nesta loja. Comparar as vendas da loja
@@ -6173,6 +6187,7 @@
                 const { data } = await supabaseClient.from('lentes_funnel')
                     .select('id').ilike('origin', '%' + activeUser.origem + '%').limit(1);
                 if (data && data.length) {
+                    _hasLentesPipeline = true;
                     const b = document.getElementById('tab-btn-lentes');
                     if (b) b.style.display = '';
                     const crmBtn = document.getElementById('crmPipelineLentesBtn');
@@ -7154,6 +7169,7 @@
             plSetMoeda();
             _lentesCarregado = false;
             _lentesLinhas = [];
+            _hasLentesPipeline = false;
             if (typeof crmResetPipelineSelector === 'function') crmResetPipelineSelector();
             var _bl = document.getElementById('tab-btn-lentes');
             if (_bl) _bl.style.display = 'none';
@@ -9817,6 +9833,10 @@
               + '    </select>'
               + '    <span id="automEtapaWrap" style="display:none;align-items:center;gap:6px;">'
               + '      <i class="ph-bold ph-arrow-right" style="color:var(--text-muted);"></i>'
+              + '      <select id="automGatilhoPipeline" class="autom-input" style="min-width:150px;" onchange="automOnCrmPipelineChange()">'
+              + '        <option value="provador">Provador virtual</option>'
+              + (_hasLentesPipeline ? '        <option value="lentes">Fluxo de lentes</option>' : '')
+              + '      </select>'
               + '      <span style="font-size:12.5px;color:var(--text-muted);">na etapa</span>'
               + '      <select id="automGatilhoEtapa" class="autom-input" style="min-width:170px;"></select>'
               + '    </span>'
@@ -9861,12 +9881,21 @@
             if (descEl) descEl.textContent = g.desc || '';
             const isCrm = gatEl.value === 'crm_etapa';
             if (wrap) wrap.style.display = isCrm ? 'inline-flex' : 'none';
-            if (isCrm && etEl && !etEl.options.length) {
-                let cols = [];
-                try { cols = (typeof getCrmConfig === 'function' && (getCrmConfig().columns || [])) || []; } catch (e) {}
-                etEl.innerHTML = '<option value="">— escolha a etapa —</option>'
-                    + cols.map(c => '<option value="' + escapeHtml(c.key) + '">' + escapeHtml(c.title || c.key) + '</option>').join('');
-            }
+            if (isCrm) automPopulateCrmStages();
+        }
+        function automPopulateCrmStages() {
+            const etEl = document.getElementById('automGatilhoEtapa'); if (!etEl) return;
+            const pipeline = (document.getElementById('automGatilhoPipeline') || {}).value || 'provador';
+            let cols = [];
+            if (pipeline === 'lentes') cols = _LENTES_CRM_ETAPAS.map(e => ({ key: e.id, title: e.rot }));
+            else { try { cols = (typeof getCrmConfig === 'function' && (getCrmConfig().columns || [])) || []; } catch (e) {} }
+            etEl.innerHTML = '<option value="">— escolha a etapa —</option>'
+                + cols.map(c => '<option value="' + escapeHtml(c.key) + '">' + escapeHtml(c.title || c.key) + '</option>').join('');
+        }
+        async function automOnCrmPipelineChange() {
+            const pipeline = (document.getElementById('automGatilhoPipeline') || {}).value || 'provador';
+            if (pipeline === 'lentes') await waEnsureLensPipelineData();
+            automPopulateCrmStages();
         }
 
         // ---------- TOUR GUIADO ----------
@@ -10123,9 +10152,12 @@
             const exR = document.getElementById('automExitRespondeu');
             if (nomeEl) nomeEl.value = (flow && flow.nome) || '';
             if (gatEl)  gatEl.value  = (flow && flow.gatilho) || AUTOM_GATILHOS[0].key;
+            const decodedEtapa = waDecodePipelineStage((flow && flow.gatilho_etapa) || '');
+            const pipeEl = document.getElementById('automGatilhoPipeline');
+            if (pipeEl) pipeEl.value = decodedEtapa.pipeline;
             automOnGatilhoChange();   // popula/mostra o seletor de etapa se gatilho = crm_etapa
             const etEl = document.getElementById('automGatilhoEtapa');
-            if (etEl && flow && flow.gatilho_etapa) etEl.value = flow.gatilho_etapa;
+            if (etEl && decodedEtapa.stage) etEl.value = decodedEtapa.stage;
             if (ativoEl) ativoEl.checked = flow ? !!flow.ativo : false;
             if (exC) exC.checked = !!AUTOM.exits.para_se_comprou;
             if (exR) exR.checked = !!AUTOM.exits.para_se_respondeu;
@@ -10766,6 +10798,7 @@
             };
             AUTOM.exits = exits;
             const gatilhoEtapa = (document.getElementById('automGatilhoEtapa') || {}).value || null;
+            const gatilhoPipeline = (document.getElementById('automGatilhoPipeline') || {}).value || 'provador';
             if (!nome) {
                 automSetEdMsg('Dê um nome à automação.', true);
                 const el = document.getElementById('automNome');
@@ -10789,7 +10822,7 @@
                 nome: nome,
                 ativo: ativo,
                 gatilho: gatilho,
-                gatilho_etapa: (gatilho === 'crm_etapa') ? gatilhoEtapa : null,
+                gatilho_etapa: (gatilho === 'crm_etapa') ? waPipelineStageKey(gatilhoPipeline, gatilhoEtapa) : null,
                 definicao: definicao,
                 passos: passos,
                 janela_envio: AUTOM.janela || AUTOM_JANELA_DEFAULT(),
@@ -12323,9 +12356,73 @@
             return targetKey;
         }
 
+        function waPipelineStageKey(pipeline, stageKey) {
+            return pipeline === 'lentes' ? ('lentes:' + stageKey) : stageKey;
+        }
+
+        function waDecodePipelineStage(encoded) {
+            const raw = String(encoded || '');
+            return raw.indexOf('lentes:') === 0
+                ? { pipeline: 'lentes', stage: raw.slice(7) }
+                : { pipeline: 'provador', stage: raw };
+        }
+
+        function waPipelineStageTitle(encoded) {
+            const parsed = waDecodePipelineStage(encoded);
+            if (parsed.pipeline === 'lentes') {
+                const etapa = (typeof _LENTES_CRM_ETAPAS !== 'undefined' ? _LENTES_CRM_ETAPAS : []).find(e => e.id === parsed.stage);
+                return etapa ? ('Lentes · ' + etapa.rot) : (parsed.stage || 'Fluxo de lentes');
+            }
+            const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+            const col = (cfg.columns || []).find(c => c.key === parsed.stage);
+            return col ? ('Provador · ' + col.title) : (parsed.stage || '—');
+        }
+
+        async function waEnsureLensPipelineData() {
+            if (!_lentesCarregado && typeof loadLentes === 'function') await loadLentes();
+            return _lentesCrmSessoesVisiveis(_lentesSessoes(true));
+        }
+
+        async function waGetLensTargets(stageKey, limit) {
+            const sessoes = await waEnsureLensPipelineData();
+            _lentesCasaVendas(sessoes, 0);
+            const recentesPorTelefone = new Map();
+            sessoes.forEach(s => {
+                const phone = String(s.telefone || '').replace(/\D/g, '');
+                if (phone.length < 10) return;
+                const etapa = _lentesEtapaCrm(s);
+                if ((!stageKey || stageKey === 'all') ? etapa === 'comprou' : etapa !== stageKey) return;
+                const anterior = recentesPorTelefone.get(phone);
+                if (!anterior || Number(s.fim || s.inicio || 0) > Number(anterior.fim || anterior.inicio || 0)) recentesPorTelefone.set(phone, s);
+            });
+            let targets = Array.from(recentesPorTelefone.entries()).map(([phone, s]) => ({
+                phone: phone,
+                crmPhone: phone.slice(-9),
+                name: (s.venda && s.venda.nome) || '',
+                product: s.produto || s.lente || '',
+                productUrl: s.produtoUrl || '',
+                checkoutUrl: '',
+                lastDate: new Date(s.fim || s.inicio || Date.now()).toISOString(),
+                lensSessionId: s.sid
+            }));
+            const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+            const { data: recent } = await supabaseClient.from('whatsapp_send_log')
+                .select('lead_phone').in('email', plScopeEmails()).in('status', ['sent', 'delivered', 'read'])
+                .gte('sent_at', since).limit(10000);
+            const blocked = new Set((recent || []).map(r => String(r.lead_phone || '').replace(/\D/g, '')));
+            targets = targets.filter(t => {
+                const local = t.phone.startsWith('55') ? t.phone.slice(2) : t.phone;
+                return !blocked.has(t.phone) && !blocked.has(local) && !blocked.has('55' + local);
+            });
+            targets.sort((a, b) => (b.lastDate || '').localeCompare(a.lastDate || ''));
+            if (limit && Number(limit) > 0) targets = targets.slice(0, Number(limit));
+            return targets;
+        }
+
         // stageKey: 'all' (todos que não compraram) ou a key de uma coluna específica
         // limit: número máximo de leads (0/null = todos)
-        async function waGetBulkTargets(stageKey, limit) {
+        async function waGetBulkTargets(stageKey, limit, pipeline) {
+            if (pipeline === 'lentes') return waGetLensTargets(stageKey, limit);
             if (!crmLeadMapCache) return [];
             const config = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
             const overrides = (typeof getCrmOverrides === 'function') ? getCrmOverrides() : {};
@@ -12389,13 +12486,14 @@
         // Recalcula a lista de alvos com base nos filtros do modal (etapa + limite)
         async function waBulkRecalcTargets() {
             const stageKey = (document.getElementById('waBulkStageSelect') || {}).value || 'all';
+            const pipeline = (document.getElementById('waBulkPipelineSelect') || {}).value || 'provador';
             const limitRaw = parseInt((document.getElementById('waBulkLimit') || {}).value, 10);
             const limit = (!isNaN(limitRaw) && limitRaw > 0) ? limitRaw : 0;
 
             document.getElementById('waBulkCount').textContent = 'calculando…';
             document.getElementById('waBulkCost').textContent = '—';
 
-            const targets = await waGetBulkTargets(stageKey, limit);
+            const targets = await waGetBulkTargets(stageKey, limit, pipeline);
             window._waBulkTargets = targets;
             document.getElementById('waBulkCount').textContent = targets.length.toLocaleString('pt-BR');
             const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
@@ -12451,6 +12549,19 @@
         function waBulkPopulateStages() {
             const sel = document.getElementById('waBulkStageSelect');
             if (!sel) return;
+            const pipeWrap = document.getElementById('waBulkPipelineWrap');
+            const pipeSel = document.getElementById('waBulkPipelineSelect');
+            if (pipeWrap) pipeWrap.style.display = _hasLentesPipeline ? 'block' : 'none';
+            const pipeline = _hasLentesPipeline && pipeSel ? pipeSel.value : 'provador';
+            if (pipeline === 'lentes') {
+                const sessions = _lentesCrmSessoesVisiveis(_lentesSessoes(true));
+                const counts = {}, total = sessions.filter(s => _lentesEtapaCrm(s) !== 'comprou').length;
+                sessions.forEach(s => { const k = _lentesEtapaCrm(s); counts[k] = (counts[k] || 0) + 1; });
+                sel.innerHTML = ['<option value="all">Todas as etapas — não compraram (' + total + ')</option>']
+                    .concat(_LENTES_CRM_ETAPAS.filter(e => e.id !== 'comprou').map(e => '<option value="' + escapeHtml(e.id) + '">' + escapeHtml(e.rot) + ' (' + (counts[e.id] || 0) + ')</option>')).join('');
+                waBulkPopulateMoveTo();
+                return;
+            }
             const config = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
             const overrides = (typeof getCrmOverrides === 'function') ? getCrmOverrides() : {};
 
@@ -12475,6 +12586,12 @@
                 });
             sel.innerHTML = opts.join('');
             waBulkPopulateMoveTo();
+        }
+
+        async function waBulkOnPipelineChange(value) {
+            if (value === 'lentes') await waEnsureLensPipelineData();
+            waBulkPopulateStages();
+            await waBulkRecalcTargets();
         }
 
         // Popula o "Mover leads para" (todas as etapas do funil)
@@ -12754,7 +12871,7 @@
         }
 
         /* ===== Campanhas — assistente guiado (nome → público → mensagem → agendar) ===== */
-        const CAMP = { step: 0, nome: '', stage: '', stageTitle: '', tplMode: 'novo', tplName: '', tplLang: 'pt_BR', tplPending: false, sched: 'diario', dia: '', hora1: '', hora2: '', targetCount: null, audience: null, limit: null };
+        const CAMP = { step: 0, nome: '', pipeline: 'provador', stage: '', stageTitle: '', tplMode: 'novo', tplName: '', tplLang: 'pt_BR', tplPending: false, sched: 'diario', dia: '', hora1: '', hora2: '', targetCount: null, audience: null, limit: null };
         const CAMP_STEPS = ['Nome', 'Público', 'Mensagem', 'Agendar'];
 
         function _campInjectCSS() {
@@ -13215,7 +13332,7 @@
             const groups = {};
             rows.forEach(r => { const k = (r.nome && r.nome.trim()) ? ('n:' + r.nome.trim().toLowerCase()) : ('id:' + r.id); (groups[k] = groups[k] || []).push(r); });
             const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
-            const stageTitle = k => { const c = (cfg.columns || []).find(x => x.key === k); return c ? c.title : (k || '—'); };
+            const stageTitle = k => waPipelineStageTitle(k) || '—';
             const items = Object.values(groups);
             if (!items.length) {
                 el.innerHTML = shell('<div class="camp-empty">'
@@ -13382,7 +13499,7 @@
         // ---- Wizard ----
         function campWizardOpen(audience) {
             _campInjectCSS();
-            CAMP.step = 0; CAMP.nome = ''; CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.tplMode = 'novo'; CAMP.tplName = ''; CAMP.tplLang = 'pt_BR'; CAMP.tplPending = false; CAMP.sched = 'diario'; CAMP.dia = ''; CAMP.hora1 = ''; CAMP.hora2 = ''; CAMP.targetCount = null; CAMP.limit = null;
+            CAMP.step = 0; CAMP.nome = ''; CAMP.pipeline = 'provador'; CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.tplMode = 'novo'; CAMP.tplName = ''; CAMP.tplLang = 'pt_BR'; CAMP.tplPending = false; CAMP.sched = 'diario'; CAMP.dia = ''; CAMP.hora1 = ''; CAMP.hora2 = ''; CAMP.targetCount = null; CAMP.limit = null;
             CAMP.publicoTipo = 'crm'; CAMP.segId = ''; CAMP.audience = null;
             // Aberto a partir de uma Segmentação (segCriarCampanha passa {id, nome, regras}).
             if (audience && audience.regras) {
@@ -13431,8 +13548,15 @@
                         + campLimitFieldHTML();
                 } else {
                     const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
-                    const opts = (cfg.columns || []).filter(c => c.key !== 'convertido').map(c => '<option value="' + escapeHtml(c.key) + '"' + (c.key === CAMP.stage ? ' selected' : '') + '>' + escapeHtml(c.title) + '</option>').join('');
-                    inner = '<label class="camp-lbl" for="campStage">Público (etapa do CRM) <span style="color:#dc2626;">*</span></label>'
+                    const etapas = CAMP.pipeline === 'lentes'
+                        ? _LENTES_CRM_ETAPAS.filter(e => e.id !== 'comprou').map(e => ({ key: e.id, title: e.rot }))
+                        : (cfg.columns || []).filter(c => c.key !== 'convertido');
+                    const opts = etapas.map(c => '<option value="' + escapeHtml(c.key || c.id) + '"' + ((c.key || c.id) === CAMP.stage ? ' selected' : '') + '>' + escapeHtml(c.title || c.rot) + '</option>').join('');
+                    const pipe = _hasLentesPipeline ? ('<label class="camp-lbl" for="campPipeline">Pipeline do CRM</label>'
+                        + '<select id="campPipeline" class="camp-sel" style="margin-bottom:12px;" onchange="campSetPipeline(this.value)">'
+                        + '<option value="provador"' + (CAMP.pipeline === 'provador' ? ' selected' : '') + '>Provador virtual</option>'
+                        + '<option value="lentes"' + (CAMP.pipeline === 'lentes' ? ' selected' : '') + '>Fluxo de lentes</option></select>') : '';
+                    inner = pipe + '<label class="camp-lbl" for="campStage">Público (etapa do CRM) <span style="color:#dc2626;">*</span></label>'
                         + '<select id="campStage" class="camp-sel" onchange="campOnStage(this.value)"><option value="">Selecione…</option>' + opts + '</select>'
                         + '<div id="campStageCount" class="camp-msg" style="color:var(--text-muted);">' + (CAMP.targetCount != null && !CAMP.audience ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa') : '') + '</div>'
                         + campLimitFieldHTML();
@@ -13491,12 +13615,19 @@
             CAMP.limit = null; // nova etapa → recomeça a quantidade
             const inp0 = document.getElementById('campLimit'); if (inp0) inp0.value = '';
             const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
-            const c = (cfg.columns || []).find(x => x.key === key); CAMP.stageTitle = c ? c.title : key;
+            const c = CAMP.pipeline === 'lentes' ? _LENTES_CRM_ETAPAS.find(x => x.id === key) : (cfg.columns || []).find(x => x.key === key);
+            CAMP.stageTitle = c ? (c.title || c.rot) : key;
             const box = document.getElementById('campStageCount'); if (box) box.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> contando…';
-            try { const t = await waGetBulkTargets(key, ''); CAMP.targetCount = t.length; }
+            try { const t = await waGetBulkTargets(key, '', CAMP.pipeline); CAMP.targetCount = t.length; }
             catch (e) { CAMP.targetCount = null; }
             const b2 = document.getElementById('campStageCount'); if (b2) b2.innerHTML = CAMP.targetCount != null ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa') : '';
             campRevealLimit();
+        }
+        async function campSetPipeline(pipeline) {
+            CAMP.pipeline = pipeline === 'lentes' ? 'lentes' : 'provador';
+            CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.targetCount = null; CAMP.limit = null;
+            if (CAMP.pipeline === 'lentes') await waEnsureLensPipelineData();
+            campWizardRender();
         }
         // Alterna o tipo de público (etapa do CRM vs segmentação) no passo 2 do assistente.
         async function campSetPublicoTipo(t) {
@@ -13605,7 +13736,7 @@
             }
             try {
                 if (CAMP.sched === 'dia' || CAMP.sched === 'agora') {
-                    let targets = CAMP.audience ? CAMP.audience.targets : await waGetBulkTargets(CAMP.stage, '');
+                    let targets = CAMP.audience ? CAMP.audience.targets : await waGetBulkTargets(CAMP.stage, '', CAMP.pipeline);
                     // Link de cada lead — MESMA lógica do disparo imediato (leadLinkOf vive no escopo do
                     // executeBulkSend e não existe aqui; antes o {{3}} saía sempre vazio → Meta #131008).
                     const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
@@ -13655,6 +13786,7 @@
                     const { error } = await campSafeInsert({
                         lojista_email: activeUser.email, nome: CAMP.nome.trim(), scheduled_at: scheduled_at,
                         template: CAMP.tplName, language: tplLang, payloads: payloads, total: payloads.length,
+                        stage_key: CAMP.audience ? '__segmento__' : waPipelineStageKey(CAMP.pipeline, CAMP.stage),
                         move_to_stage: 'msg-1', status: status
                     });
                     if (error) throw error;
@@ -13662,7 +13794,7 @@
                     for (const tm of recurTimes) {
                         const { error } = await campSafeInsert({
                             lojista_email: activeUser.email, nome: CAMP.nome.trim(), scheduled_at: new Date().toISOString(),
-                            recurrence: 'diario', recur_time: tm, stage_key: CAMP.stage, max_per_run: (CAMP.limit && CAMP.limit > 0) ? CAMP.limit : 100,
+                            recurrence: 'diario', recur_time: tm, stage_key: waPipelineStageKey(CAMP.pipeline, CAMP.stage), max_per_run: (CAMP.limit && CAMP.limit > 0) ? CAMP.limit : 100,
                             template: CAMP.tplName, language: tplLang, placeholders: placeholders,
                             active: aprovado, status: status, total: 0
                         });
@@ -13967,7 +14099,7 @@
                 if (error) throw error;
                 if (!data || !data.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Nenhum disparo agendado ainda.</div>'; return; }
                 const stMap = { agendado: ['Agendado', '#f59e0b'], enviando: ['Enviando…', '#3b82f6'], concluido: ['Concluído', '#10b981'], cancelado: ['Cancelado', '#9ca3af'] };
-                const stageTitle = (k) => { const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] }; const c = (cfg.columns || []).find(x => x.key === k); return c ? c.title : (k || ''); };
+                const stageTitle = (k) => waPipelineStageTitle(k);
                 el.innerHTML = data.map(d => {
                     if (d.recurrence === 'diario') {
                         // Disparo recorrente (todo dia)
@@ -14014,6 +14146,17 @@
         // ===== Disparo recorrente (todo dia, por etapa do CRM) =====
         function populateRecurStage() {
             const sel = document.getElementById('recurStage'); if (!sel) return;
+            const wrap = document.getElementById('recurPipelineWrap');
+            const pipeSel = document.getElementById('recurPipeline');
+            if (wrap) wrap.style.display = _hasLentesPipeline ? 'block' : 'none';
+            const pipeline = _hasLentesPipeline && pipeSel ? pipeSel.value : 'provador';
+            if (pipeline === 'lentes') {
+                waEnsureLensPipelineData().then(() => {
+                    sel.innerHTML = _LENTES_CRM_ETAPAS.filter(e => e.id !== 'comprou')
+                        .map(e => '<option value="' + escapeHtml(e.id) + '">' + escapeHtml(e.rot) + '</option>').join('');
+                });
+                return;
+            }
             const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
             sel.innerHTML = (cfg.columns || []).filter(c => c.key !== 'convertido')
                 .map(c => '<option value="' + c.key + '">' + escapeHtml(c.title) + '</option>').join('');
@@ -14022,6 +14165,7 @@
             const fb = document.getElementById('recurFeedback');
             const time = (document.getElementById('recurTime') || {}).value;
             const stage = (document.getElementById('recurStage') || {}).value;
+            const pipeline = _hasLentesPipeline ? ((document.getElementById('recurPipeline') || {}).value || 'provador') : 'provador';
             const max = parseInt((document.getElementById('recurMax') || {}).value, 10) || 100;
             if (!time || !stage) { fb.style.color = '#ef4444'; fb.textContent = 'Escolha horário e etapa.'; return; }
             const tplName = _waBulkTemplate || _waConfigCache.default_template;
@@ -14033,7 +14177,7 @@
             try {
                 const { error } = await supabaseClient.from('disparos_agendados').insert({
                     lojista_email: activeUser.email, scheduled_at: new Date().toISOString(),
-                    recurrence: 'diario', recur_time: time, stage_key: stage, max_per_run: max,
+                    recurrence: 'diario', recur_time: time, stage_key: waPipelineStageKey(pipeline, stage), max_per_run: max,
                     template: tplName, language: tplLang,
                     link_in_body: !!window._waBulkLinkInBody,
                     url_btn_index: (typeof _waBulkUrlBtnIndex === 'number') ? _waBulkUrlBtnIndex : -1,
