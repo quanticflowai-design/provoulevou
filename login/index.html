@@ -2099,6 +2099,36 @@
         #crmRespFilter:hover { border-color: var(--border-strong, rgba(127,127,127,.3)) !important; }
         .crm-board::-webkit-scrollbar { height: 8px; }
         .crm-board::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+        .crm-pipeline-switch {
+            display: inline-flex; gap: 4px; padding: 4px;
+            border: 1px solid var(--border); border-radius: 11px;
+            background: color-mix(in srgb, var(--text-muted) 8%, transparent);
+        }
+        .crm-pipeline-switch button {
+            display: inline-flex; align-items: center; gap: 6px;
+            border: 0; border-radius: 8px; padding: 8px 13px;
+            background: transparent; color: var(--text-muted);
+            font: inherit; font-size: 12.5px; font-weight: 650; cursor: pointer;
+        }
+        .crm-pipeline-switch button.on {
+            background: var(--card-bg); color: var(--text-main);
+            box-shadow: 0 1px 5px rgba(0,0,0,.12);
+        }
+        .crm-lentes-card-detail {
+            display: flex; flex-direction: column; gap: 3px; padding: 7px 8px;
+            border: 1px solid var(--border); border-radius: 7px;
+            background: color-mix(in srgb, var(--text-muted) 4%, transparent);
+            color: var(--text-muted); font-size: 11px;
+        }
+        .crm-lentes-card-detail b { color: var(--text-main); font-size: 11.5px; }
+        .crm-lentes-card-actions { display: flex; gap: 6px; margin-top: 3px; }
+        .crm-lentes-card-actions > * { flex: 1; margin: 0; }
+        .crm-lentes-next {
+            display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+            border: 0; border-radius: 7px; padding: 7px 9px; cursor: pointer;
+            color: #fff; background: var(--col-accent); font: inherit; font-size: 11px; font-weight: 700;
+        }
+        .crm-lentes-next:disabled { opacity: .6; cursor: wait; }
         .crm-team-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:14px; }
         .crm-team-card {
             background: var(--card-bg); border:1px solid var(--border); border-radius:14px; padding:16px 18px;
@@ -3908,7 +3938,7 @@
                 <div class="lentes-page-head">
                     <div>
                         <h2>Central de lentes</h2>
-                        <p>Comece pelo que exige ação e acompanhe cada pedido até a entrega.</p>
+                        <p>Comece pelo que exige ação e acompanhe cada pedido até o envio.</p>
                     </div>
                 </div>
 
@@ -3995,11 +4025,17 @@
             <!-- ====== ABA CRM ====== -->
             <div class="tab-pane" id="tab-crm" role="tabpanel" aria-labelledby="tab-btn-crm">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-                    <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
-                        <i class="ph-bold ph-kanban" style="color:var(--primary);"></i> CRM
-                        <span style="font-size:12px;font-weight:500;color:var(--text-muted);background:rgba(139,92,246,0.08);padding:4px 10px;border-radius:8px;">funil de leads do provador</span>
-                    </h2>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;">
+                            <i class="ph-bold ph-kanban" style="color:var(--primary);"></i> CRM
+                            <span id="crmPipelineSubtitle" style="font-size:12px;font-weight:500;color:var(--text-muted);background:rgba(139,92,246,0.08);padding:4px 10px;border-radius:8px;">funil de leads do provador</span>
+                        </h2>
+                        <div class="crm-pipeline-switch" id="crmPipelineSwitch" role="tablist" aria-label="Pipeline do CRM">
+                            <button type="button" class="on" data-crm-pipeline="provador" aria-selected="true" onclick="crmSwitchPipeline('provador')"><i class="ph-bold ph-eyeglasses"></i> Provador</button>
+                            <button type="button" id="crmPipelineLentesBtn" data-crm-pipeline="lentes" aria-selected="false" onclick="crmSwitchPipeline('lentes')" style="display:none;"><i class="ph-bold ph-circle-half-tilt"></i> Lentes</button>
+                        </div>
+                    </div>
+                    <div id="crmProvadorActions" style="display:flex;gap:8px;flex-wrap:wrap;">
                         <button class="btn-download" id="waBulkBtn" onclick="openWaBulkModal()" title="Disparar template Meta pra todos os leads pendentes" style="display:none;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border-color:transparent;">
                             <i class="ph-bold ph-paper-plane-tilt"></i> Disparar pra todos
                         </button>
@@ -4033,11 +4069,11 @@
                                 style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;line-height:1;">&times;</button>
                         </div>
                         <span id="crmSearchCount" style="font-size:12px;color:var(--text-muted);"></span>
-                        <select id="crmRespFilter" onchange="crmFilterResp(this.value)" title="Filtrar por responsável"
+                        <select id="crmRespFilter" class="crm-provador-only" onchange="crmFilterResp(this.value)" title="Filtrar por responsável"
                             style="margin-left:auto;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text-main);font-size:13px;cursor:pointer;outline:none;">
                             <option value="">Todos os responsáveis</option>
                         </select>
-                        <button id="crmTeamPanelBtn" class="btn-download" onclick="toggleCrmTeamPanel()" title="Ver desempenho por responsável">
+                        <button id="crmTeamPanelBtn" class="btn-download crm-provador-only" onclick="toggleCrmTeamPanel()" title="Ver desempenho por responsável">
                             <i class="ph-bold ph-chart-bar"></i> Desempenho do time
                         </button>
                     </div>
@@ -6121,6 +6157,8 @@
                 if (data && data.length) {
                     const b = document.getElementById('tab-btn-lentes');
                     if (b) b.style.display = '';
+                    const crmBtn = document.getElementById('crmPipelineLentesBtn');
+                    if (crmBtn) crmBtn.style.display = '';
                 }
             } catch (e) { console.warn('[lentes] check:', e); }
         }
@@ -6142,6 +6180,9 @@
                 _pintaLentesPeriodo();
             }
             _pintaLentes();
+            if (typeof _crmPipelineMode !== 'undefined' && _crmPipelineMode === 'lentes') {
+                renderLentesCrmPipeline();
+            }
         }
 
         function _lentesMudaVisao(visao) {
@@ -6249,15 +6290,15 @@
             const resumo = document.getElementById('lentesResumoAcao');
             if (resumo) {
                 const prod = _lentesProducao();
-                const nProd = id => prod.filter(x => (x.etapaProd || 'a-fazer') === id).length;
+                const nProd = id => prod.filter(x => _lentesEtapaProducao(x) === id).length;
                 const atender = ses.filter(x => x.telefone && ['ajuda', 'carrinho'].includes(_lentesEtapa(x))).length;
                 const acao = (icone, cor, n, titulo, vazio) => '<div class="lentes-acao-card">'
                     + '<span class="lentes-acao-icone" style="background:' + cor + '18;color:' + cor + '"><i class="ph-bold ' + icone + '"></i></span>'
                     + '<div><b>' + (n ? n + ' ' + titulo : vazio) + '</b><small>'
                     + (n ? 'aguardando ação' : 'nenhuma pendência') + '</small></div></div>';
-                resumo.innerHTML = acao('ph-package', '#f59e0b', nProd('a-fazer'), nProd('a-fazer') === 1 ? 'para fabricar' : 'para fabricar', 'Nada para fabricar')
+                resumo.innerHTML = acao('ph-file-text', '#f59e0b', nProd('receita-chegou'), nProd('receita-chegou') === 1 ? 'receita recebida' : 'receitas recebidas', 'Nenhuma receita nova')
+                    + acao('ph-check-circle', '#7c3aed', nProd('confirmar-receita'), nProd('confirmar-receita') === 1 ? 'receita para confirmar' : 'receitas para confirmar', 'Nada para confirmar')
                     + acao('ph-gear', '#3b82f6', nProd('fabricando'), 'em fabricação', 'Nada em fabricação')
-                    + acao('ph-check-square', '#7c3aed', nProd('pronto'), nProd('pronto') === 1 ? 'pronto para entregar' : 'prontos para entregar', 'Nenhum pronto')
                     + acao('ph-whatsapp-logo', '#25d366', atender, atender === 1 ? 'cliente prioritário' : 'clientes prioritários', 'Atendimento em dia');
             }
 
@@ -6428,15 +6469,21 @@
         }
 
         const _LENTES_PROD = [
-            { id: 'a-fazer',    rot: 'Fazer',          cor: '#f59e0b', icone: 'ph-package',
-              acao: 'Mandar fabricar', prox: 'fabricando' },
-            { id: 'fabricando', rot: 'Em fabricação',  cor: '#3b82f6', icone: 'ph-gear',
-              acao: 'Marcar pronto',   prox: 'pronto' },
-            { id: 'pronto',     rot: 'Pronto',         cor: '#7c3aed', icone: 'ph-check-square',
-              acao: 'Marcar entregue', prox: 'entregue' },
-            { id: 'entregue',   rot: 'Entregue',       cor: '#10b981', icone: 'ph-hand-heart',
+            { id: 'receita-chegou',   rot: 'Chegou receita',              cor: '#f59e0b', icone: 'ph-file-text',
+              acao: 'Confirmar receita',       prox: 'confirmar-receita' },
+            { id: 'confirmar-receita', rot: 'Confirmar dados da receita', cor: '#7c3aed', icone: 'ph-check-circle',
+              acao: 'Enviar para fabricação', prox: 'fabricando' },
+            { id: 'fabricando',       rot: 'Em fabricação',               cor: '#3b82f6', icone: 'ph-gear',
+              acao: 'Marcar como enviado',    prox: 'enviado' },
+            { id: 'enviado',          rot: 'Enviado',                      cor: '#10b981', icone: 'ph-paper-plane-tilt',
               acao: null, prox: null }
         ];
+
+        /* Mantém pedidos já existentes no lugar mais próximo do novo processo. */
+        function _lentesEtapaProducao(v) {
+            const etapa = (v && v.etapaProd) || 'receita-chegou';
+            return ({ 'a-fazer': 'receita-chegou', pronto: 'fabricando', entregue: 'enviado' })[etapa] || etapa;
+        }
 
         /* Pedidos pagos que ainda precisam virar oculos. Ignora o filtro de
            periodo: trabalho pendente nao expira. */
@@ -6445,7 +6492,7 @@
             _lentesCasaVendas(todas, 0);
             const limite = Date.now() - 30 * 86400000;
             return todas.filter(v => v.venda &&
-                (v.etapaProd !== 'entregue' || v.venda.ms >= limite));
+                (_lentesEtapaProducao(v) !== 'enviado' || v.venda.ms >= limite));
         }
 
         let _lentesMostraEntregues = false;
@@ -6455,26 +6502,26 @@
             if (!el) return;
             const itens = _lentesProducao();
             const sub = document.getElementById('lentesProdSub');
-            const aFazer = itens.filter(v => !v.etapaProd || v.etapaProd === 'a-fazer').length;
+            const aFazer = itens.filter(v => _lentesEtapaProducao(v) === 'receita-chegou').length;
             if (sub) sub.innerHTML = aFazer
-                ? '<b>' + aFazer + '</b> ' + (aFazer === 1 ? 'pedido precisa começar' : 'pedidos precisam começar')
-                : 'Todos os pedidos já foram encaminhados.';
+                ? '<b>' + aFazer + '</b> ' + (aFazer === 1 ? 'receita nova para conferir' : 'receitas novas para conferir')
+                : 'Nenhuma receita nova aguardando conferência.';
 
-            const qtd = id => itens.filter(v => (v.etapaProd || 'a-fazer') === id).length;
+            const qtd = id => itens.filter(v => _lentesEtapaProducao(v) === id).length;
             const etapas = '<div class="lentes-prod-etapas">' + _LENTES_PROD.map(e =>
                 '<div class="lentes-prod-etapa" style="--etapa-cor:' + e.cor + '"><b>' + qtd(e.id)
                 + '</b><span>' + e.rot + '</span></div>').join('') + '</div>';
-            const ordem = { 'a-fazer': 0, fabricando: 1, pronto: 2, entregue: 3 };
-            const visiveis = itens.filter(v => _lentesMostraEntregues || v.etapaProd !== 'entregue')
-                .sort((a, b) => (ordem[a.etapaProd || 'a-fazer'] - ordem[b.etapaProd || 'a-fazer']) || a.venda.ms - b.venda.ms);
-            const entregues = qtd('entregue');
+            const ordem = { 'receita-chegou': 0, 'confirmar-receita': 1, fabricando: 2, enviado: 3 };
+            const visiveis = itens.filter(v => _lentesMostraEntregues || _lentesEtapaProducao(v) !== 'enviado')
+                .sort((a, b) => (ordem[_lentesEtapaProducao(a)] - ordem[_lentesEtapaProducao(b)]) || a.venda.ms - b.venda.ms);
+            const entregues = qtd('enviado');
             el.innerHTML = etapas
                 + '<div class="lentes-fila">' + (visiveis.length
                     ? visiveis.map(_lentesLinhaProducao).join('')
                     : '<div class="lentes-vazio-foco"><i class="ph-bold ph-check-circle"></i>Nenhum pedido pendente.</div>')
                 + '</div>'
                 + (entregues ? '<div class="lentes-lista-rodape"><button type="button" class="lentes-link-btn" data-lentes-entregues>'
-                    + (_lentesMostraEntregues ? 'Ocultar entregues' : 'Ver ' + entregues + (entregues === 1 ? ' entregue' : ' entregues'))
+                    + (_lentesMostraEntregues ? 'Ocultar enviados' : 'Ver ' + entregues + (entregues === 1 ? ' enviado' : ' enviados'))
                     + '</button></div>' : '');
 
             el.querySelectorAll('[data-arq]').forEach(b => b.onclick = () => _lentesAbreReceita(b));
@@ -6485,14 +6532,14 @@
         }
 
         function _lentesLinhaProducao(v) {
-            const etapa = _LENTES_PROD.find(e => e.id === (v.etapaProd || 'a-fazer')) || _LENTES_PROD[0];
+            const etapa = _LENTES_PROD.find(e => e.id === _lentesEtapaProducao(v)) || _LENTES_PROD[0];
             const nome = (v.venda.nome || '').split(' ')[0];
             const dias = Math.floor((Date.now() - v.venda.ms) / 864e5);
             const idade = dias === 0 ? 'hoje' : dias === 1 ? 'ontem' : 'há ' + dias + ' dias';
             let h = '<div class="lentes-pedido-linha">'
                 + '<div><div class="lentes-pedido-id"><strong>#' + _lesc(v.venda.numero || v.venda.id) + '</strong>'
                 + '<span class="lentes-status" style="--status-cor:' + etapa.cor + '"><i class="ph-bold ' + etapa.icone + '"></i>' + etapa.rot + '</span></div>'
-                + '<span class="lentes-pedido-tempo' + (dias >= 3 && etapa.id !== 'entregue' ? ' atrasado' : '') + '">' + idade + '</span></div>'
+                + '<span class="lentes-pedido-tempo' + (dias >= 3 && etapa.id !== 'enviado' ? ' atrasado' : '') + '">' + idade + '</span></div>'
                 + '<div class="lentes-pedido-cliente"><b>' + _lesc(nome || 'Cliente') + '</b><span>' + _lesc(v.produto || 'Armação não identificada') + '</span></div>'
                 + '<div class="lentes-pedido-lente"><b>' + _lesc(v.lente || 'Lente não identificada') + '</b><span>'
                 + (v.grau ? _lentesGrauTexto(v.grau) : (v.arq ? 'Grau disponível na receita' : 'Confirmar grau com o cliente')) + '</span></div>';
@@ -6509,28 +6556,79 @@
             return h + '</div>';
         }
 
-        /* Grava a etapa como mais uma linha do funil, pelo mesmo webhook do
-           widget - sem tabela nova e sem precisar dar escrita pro lojista. */
-        async function _lentesMoveProducao(btn, sid, etapa) {
-            const antes = btn.innerHTML;
-            btn.disabled = true; btn.textContent = 'salvando…';
+        async function _lentesAvisaEnviado(item) {
+            if (!item || !item.telefone) throw new Error('Este pedido está sem WhatsApp cadastrado.');
+            const primeiroNome = String((item.venda && item.venda.nome) || 'cliente').trim().split(/\s+/)[0] || 'cliente';
+            const pedido = String((item.venda && (item.venda.numero || item.venda.id)) || '').trim() || 'confirmado';
+            const res = await fetch(WA_SEND_URL, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: (typeof crmScopeEmail === 'function' ? crmScopeEmail() : activeUser.email),
+                    to: item.telefone,
+                    template: 'pedido_lentes_enviado', language: 'pt_BR',
+                    params: [primeiroNome, pedido], source: 'lentes_producao', source_id: item.sid
+                })
+            });
+            const out = await res.json().catch(() => ({}));
+            if (!res.ok || !out.ok) throw new Error(out.error || (out.body && out.body.error && out.body.error.message) || 'falha no envio');
+            return out;
+        }
+
+        /* Grava a etapa pelo mesmo webhook do widget. CRM e página Lentes leem
+           a mesma marcação, então qualquer movimento aparece nos dois lugares. */
+        async function _lentesSalvaEtapa(sid, etapa) {
+            const item = _lentesProducao().find(v => v.sid === sid);
+            if (!item) throw new Error('Pedido de lentes não encontrado.');
+            if (_lentesEtapaProducao(item) === etapa) return false;
+            const detalhe = { etapa: etapa, por: 'painel' };
+            if (item && item.venda) {
+                detalhe.pedido = item.venda.numero || item.venda.id || null;
+                detalhe.cliente = item.venda.nome || null;
+            }
+            let clienteAvisado = false;
             try {
+                // O pedido só entra em Enviado depois que a Meta confirma o disparo.
+                // Assim não exibimos no painel que o cliente foi avisado quando houve falha.
+                if (etapa === 'enviado') {
+                    await _lentesAvisaEnviado(item);
+                    clienteAvisado = true;
+                    detalhe.whatsapp = 'enviado';
+                }
                 const r = await fetch('https://n8n.segredosdodrop.com/webhook/pl-lentes-step', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         session_id: sid, origin: 'https://' + (activeUser.origem || ''),
-                        step: 'producao', detail: { etapa: etapa, por: 'painel' }
+                        telefone: item && item.telefone || null,
+                        produto: item && item.produto || null,
+                        step: 'producao', detail: detalhe
                     })
                 });
                 if (!r.ok) throw new Error('http ' + r.status);
                 // reflete local pra nao esperar o proximo carregamento
-                _lentesLinhas.push({ session_id: sid, telefone: null, step: 'producao',
-                    detail: { etapa: etapa }, produto: null, created_at: new Date().toISOString() });
+                _lentesLinhas.push({ session_id: sid, telefone: item && item.telefone || null, step: 'producao',
+                    detail: detalhe, produto: item && item.produto || null, created_at: new Date().toISOString() });
                 _pintaProducao();
+                if (typeof _crmPipelineMode !== 'undefined' && _crmPipelineMode === 'lentes') renderLentesCrmPipeline();
+
+                if (etapa === 'enviado') {
+                    crmToast('Pedido marcado como enviado e cliente avisado no WhatsApp.');
+                }
+                return true;
             } catch (e) {
                 console.error('[lentes] producao:', e);
+                if (clienteAvisado) e.message = 'O cliente foi avisado, mas não consegui salvar a etapa. Tente novamente.';
+                throw e;
+            }
+        }
+
+        async function _lentesMoveProducao(btn, sid, etapa) {
+            const antes = btn.innerHTML;
+            btn.disabled = true; btn.textContent = 'salvando…';
+            try {
+                await _lentesSalvaEtapa(sid, etapa);
+            } catch (e) {
                 btn.disabled = false; btn.innerHTML = antes;
-                alert('Não consegui salvar. Tente de novo.');
+                alert(e.message || 'Não consegui salvar. Tente de novo.');
             }
         }
 
@@ -6951,8 +7049,11 @@
             plSetMoeda();
             _lentesCarregado = false;
             _lentesLinhas = [];
+            if (typeof crmResetPipelineSelector === 'function') crmResetPipelineSelector();
             var _bl = document.getElementById('tab-btn-lentes');
             if (_bl) _bl.style.display = 'none';
+            var _bcl = document.getElementById('crmPipelineLentesBtn');
+            if (_bcl) _bcl.style.display = 'none';
             checkAbaLentes();
             if (window._fatMensalChart) { window._fatMensalChart.destroy(); window._fatMensalChart = null; }
             loadData();
@@ -19202,7 +19303,169 @@
             }
         }
 
+        let _crmPipelineMode = 'provador';
+
+        function crmResetPipelineSelector() {
+            _crmPipelineMode = 'provador';
+            document.querySelectorAll('[data-crm-pipeline]').forEach(btn => {
+                const on = btn.dataset.crmPipeline === 'provador';
+                btn.classList.toggle('on', on); btn.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            const sub = document.getElementById('crmPipelineSubtitle');
+            if (sub) sub.textContent = 'funil de leads do provador';
+            const actions = document.getElementById('crmProvadorActions');
+            if (actions) actions.style.display = 'flex';
+            document.querySelectorAll('.crm-provador-only').forEach(el => { el.style.display = ''; });
+            const search = document.getElementById('crmSearchInput');
+            if (search) { search.value = ''; search.placeholder = 'Buscar por telefone ou nome…'; }
+            _crmSearchTerm = '';
+        }
+
+        function crmSwitchPipeline(mode) {
+            _crmPipelineMode = mode === 'lentes' ? 'lentes' : 'provador';
+            document.querySelectorAll('[data-crm-pipeline]').forEach(btn => {
+                const on = btn.dataset.crmPipeline === _crmPipelineMode;
+                btn.classList.toggle('on', on);
+                btn.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            const lentes = _crmPipelineMode === 'lentes';
+            const sub = document.getElementById('crmPipelineSubtitle');
+            if (sub) sub.textContent = lentes ? 'pedidos do fluxo de lentes' : 'funil de leads do provador';
+            const actions = document.getElementById('crmProvadorActions');
+            if (actions) actions.style.display = lentes ? 'none' : 'flex';
+            document.querySelectorAll('.crm-provador-only').forEach(el => { el.style.display = lentes ? 'none' : ''; });
+            const team = document.getElementById('crmTeamPanel');
+            if (team && lentes) team.style.display = 'none';
+            const cenarios = document.getElementById('cenariosRecupSection');
+            if (cenarios) cenarios.style.display = lentes ? 'none' : '';
+            const search = document.getElementById('crmSearchInput');
+            if (search) search.placeholder = lentes ? 'Buscar por cliente, pedido, telefone ou produto…' : 'Buscar por telefone ou nome…';
+            _crmSearchTerm = '';
+            if (search) search.value = '';
+            const clear = document.getElementById('crmSearchClear');
+            if (clear) clear.style.display = 'none';
+
+            if (lentes) {
+                const content = document.getElementById('crmContent');
+                const empty = document.getElementById('crmEmptyState');
+                if (content) content.style.display = 'block';
+                if (empty) empty.style.display = 'none';
+                if (!_lentesCarregado) {
+                    const board = document.getElementById('crmBoard');
+                    if (board) board.innerHTML = '<div class="disp-empty">Carregando pedidos de lentes…</div>';
+                    loadLentes().catch(e => {
+                        console.error('[CRM lentes]', e);
+                        if (board) board.innerHTML = '<div class="disp-empty">Não foi possível carregar os pedidos de lentes.</div>';
+                    });
+                } else renderLentesCrmPipeline();
+            } else if (crmLeadMapCache) {
+                renderCrmBoard();
+                try { renderCenariosRecuperacao(); } catch(e) {}
+            } else {
+                crmLoaded = true;
+                loadCRM().catch(() => { crmLoaded = false; });
+            }
+        }
+
+        function renderLentesCrmPipeline() {
+            if (_crmPipelineMode !== 'lentes') return;
+            const board = document.getElementById('crmBoard');
+            if (!board) return;
+            const q = _crmSearchTerm;
+            const itens = _lentesProducao().filter(v => {
+                if (!q) return true;
+                const texto = [v.telefone, v.produto, v.lente, v.venda && v.venda.nome,
+                    v.venda && v.venda.numero, v.venda && v.venda.id].filter(Boolean).join(' ').toLowerCase();
+                const qDigits = q.replace(/\D/g, '');
+                return texto.includes(q) || (!!qDigits && texto.replace(/\D/g, '').includes(qDigits));
+            });
+            const buckets = {};
+            _LENTES_PROD.forEach(e => { buckets[e.id] = []; });
+            itens.forEach(v => (buckets[_lentesEtapaProducao(v)] || buckets['receita-chegou']).push(v));
+            Object.values(buckets).forEach(arr => arr.sort((a, b) => a.venda.ms - b.venda.ms));
+            const count = document.getElementById('crmSearchCount');
+            if (count) count.textContent = q ? itens.length + ' resultado' + (itens.length === 1 ? '' : 's') : itens.length + ' pedido' + (itens.length === 1 ? '' : 's');
+
+            board.textContent = '';
+            board.style.gridTemplateColumns = 'repeat(4, minmax(280px, 1fr))';
+            _LENTES_PROD.forEach(etapa => {
+                const col = document.createElement('div');
+                col.className = 'crm-col'; col.dataset.key = etapa.id; col.style.setProperty('--col-accent', etapa.cor);
+                col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('crm-col-dragover'); });
+                col.addEventListener('dragleave', () => col.classList.remove('crm-col-dragover'));
+                col.addEventListener('drop', async e => {
+                    e.preventDefault(); col.classList.remove('crm-col-dragover');
+                    const sid = e.dataTransfer.getData('text/plain');
+                    if (!sid) return;
+                    try { await _lentesSalvaEtapa(sid, etapa.id); }
+                    catch (err) { crmToast(err.message || 'Não foi possível mover o pedido. Tente novamente.', true); }
+                });
+
+                const head = document.createElement('div'); head.className = 'crm-col-header';
+                const title = document.createElement('div'); title.className = 'crm-col-title';
+                title.innerHTML = '<i class="ph-bold ' + etapa.icone + '"></i><span>' + etapa.rot + '</span>';
+                const total = document.createElement('span'); total.className = 'crm-col-count'; total.textContent = buckets[etapa.id].length;
+                head.append(title, total);
+                const body = document.createElement('div'); body.className = 'crm-col-body';
+                if (!buckets[etapa.id].length) {
+                    const empty = document.createElement('div'); empty.className = 'crm-col-empty'; empty.textContent = 'Arraste pedidos para cá';
+                    body.appendChild(empty);
+                }
+                buckets[etapa.id].forEach(item => {
+                    const card = document.createElement('div'); card.className = 'crm-card'; card.draggable = true;
+                    card.style.setProperty('--col-accent', etapa.cor);
+                    card.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', item.sid); card.classList.add('crm-card-dragging'); });
+                    card.addEventListener('dragend', () => card.classList.remove('crm-card-dragging'));
+                    const nome = (item.venda.nome || 'Cliente').trim();
+                    const numero = item.venda.numero || item.venda.id || '—';
+                    const dias = Math.max(0, Math.floor((Date.now() - item.venda.ms) / 864e5));
+                    card.innerHTML = '<div class="crm-card-name"><i class="ph-bold ph-user-circle"></i><span>' + _lesc(nome) + '</span></div>'
+                        + '<div class="crm-card-meta"><span><i class="ph-bold ph-receipt"></i> Pedido #' + _lesc(numero) + '</span>'
+                        + '<span><i class="ph-bold ph-clock"></i> ' + (dias === 0 ? 'hoje' : dias === 1 ? 'ontem' : 'há ' + dias + ' dias') + '</span></div>'
+                        + '<div class="crm-lentes-card-detail"><b>' + _lesc(item.produto || 'Armação não identificada') + '</b><span>' + _lesc(item.lente || 'Lente não identificada') + '</span></div>';
+                    const actions = document.createElement('div'); actions.className = 'crm-lentes-card-actions';
+                    if (item.arq) {
+                        const rec = document.createElement('button'); rec.type = 'button'; rec.className = 'lentes-ver'; rec.dataset.arq = item.arq; rec.textContent = 'Receita';
+                        rec.onclick = () => _lentesAbreReceita(rec); actions.appendChild(rec);
+                    }
+                    if (item.telefone) {
+                        const num = String(item.telefone).replace(/\D/g, '');
+                        const wa = document.createElement('a'); wa.className = 'crm-card-wpp'; wa.target = '_blank'; wa.rel = 'noopener';
+                        wa.href = 'https://wa.me/' + (num.length > 11 ? num : '55' + num); wa.innerHTML = '<i class="ph-bold ph-whatsapp-logo"></i> WhatsApp';
+                        actions.appendChild(wa);
+                    }
+                    if (actions.children.length) card.appendChild(actions);
+                    if (etapa.prox) {
+                        const next = document.createElement('button'); next.type = 'button'; next.className = 'crm-lentes-next';
+                        next.innerHTML = etapa.acao + ' <i class="ph-bold ph-arrow-right"></i>';
+                        next.onclick = async () => {
+                            const old = next.innerHTML; next.disabled = true; next.textContent = 'Salvando…';
+                            try { await _lentesSalvaEtapa(item.sid, etapa.prox); }
+                            catch (err) { next.disabled = false; next.innerHTML = old; crmToast(err.message || 'Não foi possível avançar o pedido.', true); }
+                        };
+                        card.appendChild(next);
+                    }
+                    body.appendChild(card);
+                });
+                col.append(head, body); board.appendChild(col);
+            });
+        }
+
+        function exportLentesCrmCSV() {
+            const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+            const rows = [['Pedido','Cliente','WhatsApp','Etapa','Armação','Lente','Data do pedido'].map(esc).join(';')];
+            _lentesProducao().forEach(v => {
+                const etapa = _LENTES_PROD.find(e => e.id === _lentesEtapaProducao(v));
+                rows.push([v.venda.numero || v.venda.id, v.venda.nome, v.telefone, etapa && etapa.rot,
+                    v.produto, v.lente, new Date(v.venda.ms).toLocaleString('pt-BR')].map(esc).join(';'));
+            });
+            const blob = new Blob(['﻿' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url;
+            a.download = 'provoulevou_crm_lentes_' + new Date().toISOString().slice(0, 10) + '.csv'; a.click(); URL.revokeObjectURL(url);
+        }
+
         function exportCrmCSV() {
+            if (_crmPipelineMode === 'lentes') return exportLentesCrmCSV();
             if (!crmLeadMapCache) {
                 crmToast('Carregue o CRM primeiro antes de exportar.', true);
                 return;
@@ -19248,7 +19511,8 @@
             _crmSearchTerm = (term || '').trim().toLowerCase();
             const clr = document.getElementById('crmSearchClear');
             if (clr) clr.style.display = _crmSearchTerm ? 'block' : 'none';
-            renderCrmBoard();
+            if (_crmPipelineMode === 'lentes') renderLentesCrmPipeline();
+            else renderCrmBoard();
         }
 
         // ===== Modal Gerenciar Time =====
@@ -19423,6 +19687,10 @@
         }
 
         function renderCrmBoard() {
+            if (typeof _crmPipelineMode !== 'undefined' && _crmPipelineMode === 'lentes') {
+                renderLentesCrmPipeline();
+                return;
+            }
             if (!crmLeadMapCache) return;
             const leadMap = crmLeadMapCache;
             const phoneList = Object.keys(leadMap);
