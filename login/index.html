@@ -15704,12 +15704,12 @@
         // Mesmos valores usados em PLAN_LIMITS_LOJISTA — pra calcular preço/foto a partir do plano
         const PACKS_PLAN_VALUES = {
             'Starter': 97, 'Inicial': 197, 'Médio': 397, 'Premium': 797,
-            'Essencial': 97, 'Crescimento': 147, 'Acelerador': 347, 'Performance': 547, 'Escala': 997,
+            'Essencial': 97, 'Crescimento': 147, 'Acelerador': 347, 'Performance': 547, 'Expansão': 749, 'Escala': 997,
             'Ultra Power': 2200
         };
         const PACKS_PLAN_LIMITS_REF = {
             'Starter': 50, 'Inicial': 100, 'Médio': 500, 'Premium': 1200,
-            'Essencial': 50, 'Crescimento': 100, 'Acelerador': 300, 'Performance': 500, 'Escala': 1200,
+            'Essencial': 50, 'Crescimento': 100, 'Acelerador': 300, 'Performance': 500, 'Expansão': 800, 'Escala': 1200,
             'Ultra Power': 3000 // R$ 2.200 / 3.000 fotos = R$ 0,73/foto base, R$ 0,95 com markup
         };
         // Próximo plano na escada de upgrade pra cada plano atual.
@@ -15719,13 +15719,14 @@
             // Legado → Novo (volume equivalente ou maior)
             'Starter':     'Crescimento', // 50 → 100
             'Inicial':     'Acelerador',  // 100 → 300
-            'Médio':       'Escala',      // 500 → 1200 (Performance tem mesmo volume; pula pra Escala)
+            'Médio':       'Expansão',    // 500 → 800 (Performance tem mesmo volume; pula pra Expansão)
             'Premium':     'Ultra Power', // 1200 → 3000
             // Novo → Novo
             'Essencial':   'Crescimento',
             'Crescimento': 'Acelerador',
             'Acelerador':  'Performance',
-            'Performance': 'Escala',
+            'Performance': 'Expansão',
+            'Expansão':    'Escala',
             'Escala':      'Ultra Power',
             'Ultra Power': null
         };
@@ -17170,7 +17171,7 @@
         // como referência mensal e cobram excedente no fechamento.
         const PLAN_LIMITS_LOJISTA = {
             'Starter': 50, 'Inicial': 100, 'Médio': 500, 'Premium': 1200,
-            'Essencial': 50, 'Crescimento': 100, 'Acelerador': 300, 'Performance': 500, 'Escala': 1200,
+            'Essencial': 50, 'Crescimento': 100, 'Acelerador': 300, 'Performance': 500, 'Expansão': 800, 'Escala': 1200,
             'Ultra Power': 3000
         };
         const UNLIMITED_REF_LIMIT = 3000;
