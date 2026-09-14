@@ -20,7 +20,7 @@ begin
     (slug,display_name,logo_url,whatsapp,owner_email,plan,is_active,primary_color,tema,limite_diario,store_api_key)
   values (v_slug,'Optica Millena',null,v_phone,v_email,'basic',true,'#24323D',
     '{"bg":"#F7F8F7","card":"#FFFFFF","brand":"#24323D","cta":"#24323D","onCta":"#FFFFFF"}'::jsonb,
-    5,v_key);
+    3,v_key);
   insert into public.provou_levou_stores
     (name,domain,email,company,phone,plan,status,active,api_key_hash,api_key_active,platform,categoria,store_id)
   values ('Optica Millena',v_domain,v_email,'Optica Millena',v_phone,'basic','Teste Gratuito',true,
