@@ -2085,11 +2085,18 @@
 
     .solutions-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 14px;
       text-align: left;
-      max-width: 1180px;
+      max-width: 1500px;
       margin: 0 auto;
+    }
+
+    @media (max-width: 1280px) {
+      .solutions-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        max-width: 900px;
+      }
     }
 
     .sol-card {
@@ -2225,6 +2232,49 @@
 
     .sol-enterprise-wrap .sol-card {
       flex: 1;
+    }
+
+    .sol-card-custom {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        "label label"
+        "title price"
+        "title limit"
+        "features button";
+      column-gap: 32px;
+      align-items: center;
+      padding: 32px 40px;
+    }
+    .sol-card-custom .sol-card-label { grid-area: label; margin-bottom: 12px; }
+    .sol-card-custom .sol-card-title-wrap { grid-area: title; min-height: 0; margin-bottom: 18px; }
+    .sol-card-custom .sol-card-title,
+    .sol-card-custom .sol-card-subtitle { font-size: clamp(1.65rem, 2.5vw, 2.2rem); }
+    .sol-card-custom .sol-card-price { grid-area: price; font-size: 1.7rem; margin-bottom: 0; }
+    .sol-card-custom .sol-card-limit { grid-area: limit; margin-bottom: 0; }
+    .sol-card-custom .sol-card-btn { grid-area: button; margin-bottom: 0; }
+    .sol-card-custom .sol-card-divider { display: none; }
+    .sol-card-custom .sol-card-features {
+      grid-area: features;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 24px;
+    }
+
+    @media (min-width: 1281px) {
+      .solutions-grid > .sol-card:not(.sol-card-custom),
+      .solutions-grid > .sol-enterprise-wrap .sol-card {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+      .solutions-grid > .sol-card:not(.sol-card-custom) .sol-card-btn,
+      .solutions-grid > .sol-enterprise-wrap .sol-card-btn {
+        width: 100%;
+        padding-left: 8px;
+        padding-right: 8px;
+        font-size: 13px;
+      }
     }
 
     .sol-enterprise-tag {
@@ -3879,6 +3929,18 @@
       .sol-enterprise-wrap {
         margin: 0
       }
+
+      .sol-card-custom {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 28px 22px;
+      }
+      .sol-card-custom .sol-card-title-wrap { margin-bottom: 18px; }
+      .sol-card-custom .sol-card-price { margin-bottom: 4px; }
+      .sol-card-custom .sol-card-limit { margin-bottom: 18px; }
+      .sol-card-custom .sol-card-btn { margin-bottom: 18px; }
+      .sol-card-custom .sol-card-features { display: block; }
 
       /* ─── Pricing ─── */
       .pricing-section {
@@ -5907,13 +5969,13 @@
             <li>Suporte dedicado</li>
           </ul>
         </div>
-        <div class="sol-card rv d5">
+        <div class="sol-card sol-card-custom rv d5">
           <div class="sol-card-label">Custom</div>
           <div class="sol-card-title-wrap">
             <div class="sol-card-title">Precisa de mais?</div>
             <div class="sol-card-subtitle">Volume e recursos sob medida.</div>
           </div>
-          <div class="sol-card-price" style="font-size:1.3rem;letter-spacing:-0.5px;">Entre em contato</div>
+          <div class="sol-card-price">Entre em contato</div>
           <div class="sol-card-limit">Volume personalizado</div>
           <a href="https://wa.me/5511938034714?text=Ol&aacute;! Tenho interesse no Provador Virtual." class="sol-card-btn"
             target="_blank" data-fb-event="Contact" data-fb-label="Plano Custom">Falar com especialista</a>
