@@ -117,16 +117,16 @@
       try {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 18000);
-        let r;
+        let r, data;
         try {
           r = await fetch(url, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body), signal: controller.signal
           });
+          data = await r.json();
         } finally {
           clearTimeout(timer);
         }
-        const data = await r.json().catch(() => null);
         if (r.ok && data && data.ok) return data;
         const e = new Error('HTTP ' + r.status);
         e.retryable = r.status === 408 || r.status === 429 || r.status >= 500;
@@ -1810,6 +1810,7 @@
   });
   $('#btn-add-product').addEventListener('click', async () => {
     const btn = $('#btn-add-product');
+    if (btn.disabled) return;
     const name = $('#admin-name').value.trim();
     const priceRaw = $('#admin-price').value.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
     const price = priceRaw ? parseFloat(priceRaw) : null;
@@ -1851,7 +1852,7 @@
         if (trocouFoto) {
           btn.textContent = adminFotosB64.length > 1
             ? 'Enviando ' + adminFotosB64.length + ' fotos…' : 'Enviando foto…';
-          await Promise.all(adminFotosB64.map(async (foto, i) => {
+          for (const [i, foto] of adminFotosB64.entries()) {
             await postJsonComRetry(WH_ADD_IMAGE, {
               // position 1-based: o n8n faz `position || 1` e trataria o 0 como
               // ausente, jogando a 1a e a 2a foto na mesma posicao — e a capa
@@ -1861,7 +1862,7 @@
               mime: 'image/jpeg', image_b64: foto, position: i + 1,
               variant_name: (variacoes[i] && variacoes[i].variant_name) || null
             });
-          }));
+          }
         }
         btn.textContent = 'Salvando…';
         await postJsonComRetry(WH_EDIT_PRODUCT, {
@@ -1874,10 +1875,14 @@
           image_variants: trocouFoto ? [] : variacoes.filter(x => x.id),
           remove_image_ids: trocouFoto ? (editando.imgIds || []) : []
         });
-        await loadCatalog();
-        renderAdmin(); renderCatalog();
         saiEdicao();
         toast('Produto atualizado ✓');
+        try {
+          await loadCatalog();
+          renderAdmin(); renderCatalog();
+        } catch (erroLista) {
+          toast('Produto salvo. Não consegui atualizar a lista; recarregue o catálogo.');
+        }
       } catch (e) {
         console.warn('[Provou Catálogo] erro ao editar:', e);
         toast('Não consegui salvar. Tente de novo.');
@@ -1892,6 +1897,7 @@
     // aqui até o servidor responder, e o botão diz em que passo está.
     const txt = btn.textContent;
     btn.disabled = true; btn.textContent = 'Enviando foto…';
+    let produtoCriado = false;
     try {
       const variacoes = variacoesDigitadas();
       const requestId = adminUploadRequestId || (adminUploadRequestId = novoRequestId());
@@ -1909,6 +1915,7 @@
 
       const pid = data.product && data.product.id;
       if (!pid) throw new Error('Servidor não devolveu o produto');
+      produtoCriado = true;
 
       // A foto principal já tornou o produto publicável. Atualiza a tela agora,
       // sem esperar uma segunda consulta ao banco nem as fotos adicionais.
@@ -1924,18 +1931,18 @@
       catalog = [novo].concat(catalog.filter(p => p.id !== pid));
       save(); renderAdmin(); renderCatalog();
 
-      // Cópias locais: o formulário pode ser limpo enquanto as fotos restantes
-      // continuam em segundo plano com seus IDs seguros contra duplicação.
+      // Confirma todas as fotos antes de limpar. Repetir usa os mesmos IDs.
       const fotosRestantes = adminFotosB64.slice(1);
       const variacoesRestantes = variacoes.slice(1);
-      const enviaRestantes = Promise.allSettled(fotosRestantes.map(async (foto, offset) => {
+      for (const [offset, foto] of fotosRestantes.entries()) {
         const i = offset + 1;
+        btn.textContent = 'Enviando foto ' + (i + 1) + ' de ' + (fotosRestantes.length + 1) + '…';
         await postJsonComRetry(WH_ADD_IMAGE, {
           store_slug: STORE_SLUG, product_id: pid, request_id: requestId + '-' + i,
-          mime: 'image/jpeg', image_b64: foto, position: i,
+          mime: 'image/jpeg', image_b64: foto, position: i + 1,
           variant_name: (variacoesRestantes[offset] && variacoesRestantes[offset].variant_name) || null
         });
-      }));
+      }
       $('#admin-name').value = ''; $('#admin-price').value = ''; $('#admin-original-price').value = '';
       $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
       $('#admin-interest-type').value = 'none'; $('#admin-interest-rate').value = '';
@@ -1951,17 +1958,15 @@
       toast(name + ' publicado ✓');
 
       // Sincroniza IDs e URLs das imagens sem bloquear o próximo cadastro.
-      enviaRestantes.then(resultados => {
-        const falhas = resultados.filter(x => x.status === 'rejected').length;
-        loadCatalog().then(() => { renderAdmin(); renderCatalog(); }).catch(e =>
-          console.warn('[Provou Catálogo] atualização em segundo plano falhou:', e));
-        if (falhas) toast('Produto publicado; ' + falhas + ' foto(s) não foram enviadas');
-      });
+      loadCatalog().then(() => { renderAdmin(); renderCatalog(); }).catch(e =>
+        console.warn('[Provou Catálogo] atualização em segundo plano falhou:', e));
     } catch (err) {
       // nada entrou na lista, então não há o que desfazer: os campos e a foto
       // continuam preenchidos pra ele só tentar de novo
       console.warn('[Provou Catálogo] erro ao adicionar produto:', err);
-      toast('Não consegui enviar. Tente de novo.');
+      toast(produtoCriado
+        ? 'Produto salvo, mas faltou enviar uma foto. Toque novamente para concluir.'
+        : 'Não consegui confirmar o envio. Tente novamente; seus dados foram mantidos.');
     } finally {
       btn.disabled = false; btn.textContent = txt;
     }
