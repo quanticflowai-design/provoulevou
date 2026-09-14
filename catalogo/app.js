@@ -1004,8 +1004,12 @@
       cima.addEventListener('click', () => mover(-1));
       baixo.addEventListener('click', () => mover(1));
       const excluir = document.createElement('button');
-      excluir.type = 'button'; excluir.className = 'cat-order-delete'; excluir.textContent = 'Excluir';
+      excluir.type = 'button'; excluir.className = 'cat-order-delete';
+      const lixeira = $('#tpl-lixeira');
+      if (lixeira) excluir.appendChild(lixeira.content.cloneNode(true));
+      else excluir.textContent = '✕';
       excluir.setAttribute('aria-label', 'Excluir categoria ' + categoria);
+      excluir.title = 'Excluir categoria ' + categoria;
       excluir.addEventListener('click', () => removerCategoria(categoria, excluir));
       linha.append(nome, cima, baixo, excluir);
       lista.appendChild(linha);
