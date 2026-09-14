@@ -938,6 +938,7 @@
     adminCategoriasSelecionadas = normalizaCategorias(adminCategoriasSelecionadas.concat(nome));
     campo.value = '';
     renderAdminCategorias();
+    renderOrdemCategorias();
   }
 
   {
@@ -949,11 +950,40 @@
     });
   }
 
+  async function removerCategoria(categoria, botao) {
+    if (!ehDono()) return;
+    if (!confirm('Excluir a categoria “' + categoria + '”? Os produtos serão mantidos.')) return;
+    botao.disabled = true;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20000);
+    try {
+      const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_remove_category', {
+        method: 'POST', signal: controller.signal,
+        headers: { apikey: SB_ANON, Authorization: 'Bearer ' + sessao.token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_slug: STORE_SLUG, p_category: categoria })
+      });
+      const data = await r.json();
+      if (!r.ok || !data.ok) throw new Error('Falha ao excluir');
+      const manter = c => String(c).trim().toLowerCase() !== categoria.trim().toLowerCase();
+      catalog.forEach(p => {
+        p.cats = (p.cats && p.cats.length ? p.cats : [p.cat]).filter(manter).filter(Boolean);
+        p.cat = p.cats[0] || '';
+      });
+      storeRow.categorias_ordem = (storeRow.categorias_ordem || []).filter(manter);
+      adminCategoriasSelecionadas = adminCategoriasSelecionadas.filter(manter);
+      if (!manter(catFiltro)) catFiltro = '';
+      save(); renderCatalog(); renderAdminCategorias(); renderOrdemCategorias();
+      toast('Categoria excluída. Os produtos foram mantidos.');
+    } catch (e) {
+      toast('Não consegui confirmar a exclusão. Tente novamente.');
+    } finally { clearTimeout(timer); botao.disabled = false; }
+  }
+
   function renderOrdemCategorias() {
     const box = $('#cat-order'), lista = $('#cat-order-lista');
     if (!box || !lista) return;
-    const cats = categoriasDaLoja();
-    box.hidden = cats.length < 2;
+    const cats = normalizaCategorias(categoriasDaLoja().concat(adminCategoriasSelecionadas));
+    box.hidden = cats.length === 0;
     lista.textContent = '';
     cats.forEach((categoria, indice) => {
       const linha = document.createElement('div');
@@ -973,7 +1003,11 @@
       };
       cima.addEventListener('click', () => mover(-1));
       baixo.addEventListener('click', () => mover(1));
-      linha.append(nome, cima, baixo);
+      const excluir = document.createElement('button');
+      excluir.type = 'button'; excluir.className = 'cat-order-delete'; excluir.textContent = 'Excluir';
+      excluir.setAttribute('aria-label', 'Excluir categoria ' + categoria);
+      excluir.addEventListener('click', () => removerCategoria(categoria, excluir));
+      linha.append(nome, cima, baixo, excluir);
       lista.appendChild(linha);
     });
   }
