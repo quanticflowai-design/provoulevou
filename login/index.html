@@ -13420,7 +13420,7 @@
                     } else if (_parouNoMeio) {
                         stLabel = 'Interrompida'; stFg = '#b45309'; stBg = 'rgba(217,119,6,.16)';
                     } else if (_pending > 0) {
-                        stLabel = 'Entrega não confirmada'; stFg = '#b45309'; stBg = 'rgba(217,119,6,.16)';
+                        stLabel = ''; // Não exibir aviso de entrega não confirmada na campanha.
                     } else if (_ok > 0) {
                         stLabel = (_total > 0 && _ok >= _total) ? 'Entregue' : 'Entrega parcial'; stFg = '#10b981'; stBg = 'rgba(16,185,129,.15)';
                     } else if (_skipped > 0 && !_fail) {
@@ -13458,7 +13458,7 @@
                 return '<div class="camp-item"><div style="min-width:0;">'
                     + '<div class="camp-item-name">' + escapeHtml(nome) + '</div>'
                     + '<div class="camp-item-sub"><span><i class="ph-bold ph-users-three"></i> ' + escapeHtml(stageTitle(first.stage_key)) + '</span><span><i class="ph-bold ' + (isDiario ? 'ph-repeat' : 'ph-calendar') + '"></i> ' + escapeHtml(tipo) + '</span><span><i class="ph-bold ph-chat-text"></i> ' + escapeHtml(first.template || '—') + '</span>' + _resultSub + '</div>' + _barra
-                    + '</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0;"><span class="camp-badge" style="color:' + stFg + ';background:' + stBg + ';">' + escapeHtml(stLabel) + '</span>' + actions + '</div></div>';
+                    + '</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0;">' + (stLabel ? '<span class="camp-badge" style="color:' + stFg + ';background:' + stBg + ';">' + escapeHtml(stLabel) + '</span>' : '') + actions + '</div></div>';
             }).join('');
             el.innerHTML = shell(html);
 
