@@ -13350,26 +13350,34 @@
             const _ranIds = [];
             items.forEach(g => { if (g.some(r => r.executed_at || ['falhou', 'concluido', 'enviando'].includes(r.status))) g.forEach(r => _ranIds.push(r.id)); });
             const _sendAgg = {};
+            const _countCampaignDelivery = r => {
+                const a = _sendAgg[r.source_id] = _sendAgg[r.source_id] || { ok: 0, fail: 0, pending: 0, skipped: 0 };
+                const status = String(r.status || '').toLowerCase();
+                if (status === 'delivered' || status === 'read') a.ok++;
+                else if (status === 'failed') a.fail++;
+                else if (status === 'sent') a.pending++;
+                else a.skipped++;
+            };
             if (_ranIds.length) {
                 try {
                     // Paginava o send_log em SERIE (1 pagina por vez) so pra contar por campanha.
                     // O cache compartilhado ja tem essas linhas na memoria; so quando ele nao
                     // cobre (campanha antiga fora das 10 mil) cai pra busca direcionada.
                     const _idSet = new Set(_ranIds.map(String));
+                    invalidateSendLogCache(); // Entregas chegam depois do aceite; não reutilizar status antigos.
                     const _cached = await getSendLogShared();
                     let _cobre = false;
                     (_cached || []).forEach(r => {
                         if (!r.source_id || !_idSet.has(String(r.source_id))) return;
                         _cobre = true;
-                        const a = _sendAgg[r.source_id] = _sendAgg[r.source_id] || { ok: 0, fail: 0 };
-                        if (r.status === 'failed') a.fail++; else a.ok++;
+                        _countCampaignDelivery(r);
                     });
                     if (!_cobre) {
                         const _pgs = await Promise.all([0, 1, 2, 3].map(i => supabaseClient
                             .from('whatsapp_send_log').select('source_id,status')
                             .in('source_id', _ranIds).range(i * 1000, i * 1000 + 999)
                             .then(r => (r && r.data) || [])));
-                        _pgs.flat().forEach(r => { const a = _sendAgg[r.source_id] = _sendAgg[r.source_id] || { ok: 0, fail: 0 }; if (r.status === 'failed') a.fail++; else a.ok++; });
+                        _pgs.flat().forEach(_countCampaignDelivery);
                     }
                 } catch (e) { console.warn('[camp] agregação de envios:', e); }
             }
@@ -13391,7 +13399,9 @@
                 const _ran = g.some(r => r.executed_at || ['falhou', 'concluido', 'enviando'].includes(r.status));
                 const _ok = ids.reduce((s, id) => s + ((_sendAgg[id] || {}).ok || 0), 0);
                 const _fail = ids.reduce((s, id) => s + ((_sendAgg[id] || {}).fail || 0), 0);
-                const _proc = _ok + _fail;
+                const _pending = ids.reduce((s, id) => s + ((_sendAgg[id] || {}).pending || 0), 0);
+                const _skipped = ids.reduce((s, id) => s + ((_sendAgg[id] || {}).skipped || 0), 0);
+                const _proc = _ok + _fail + _pending + _skipped;
                 // quantos leads a campanha tem no total (a fila fica em payloads)
                 const _total = g.reduce((s, r) => s + (r.total || (r.payloads || []).length || 0), 0);
                 // "Andando" NAO se deduz de enviados < total: o executor so retoma campanha
@@ -13409,23 +13419,29 @@
                         stLabel = 'Enviando…'; stFg = '#2563eb'; stBg = 'rgba(37,99,235,.14)';
                     } else if (_parouNoMeio) {
                         stLabel = 'Interrompida'; stFg = '#b45309'; stBg = 'rgba(217,119,6,.16)';
+                    } else if (_pending > 0) {
+                        stLabel = 'Entrega não confirmada'; stFg = '#b45309'; stBg = 'rgba(217,119,6,.16)';
                     } else if (_ok > 0) {
-                        stLabel = 'Concluída'; stFg = '#10b981'; stBg = 'rgba(16,185,129,.15)';
+                        stLabel = (_total > 0 && _ok >= _total) ? 'Entregue' : 'Entrega parcial'; stFg = '#10b981'; stBg = 'rgba(16,185,129,.15)';
+                    } else if (_skipped > 0 && !_fail) {
+                        stLabel = 'Sem entregas'; stFg = '#6b7280'; stBg = 'rgba(127,127,127,.15)';
                     } else {
                         stLabel = 'Falhou'; stFg = '#dc2626'; stBg = 'rgba(220,38,38,.15)';
                     }
                 }
 
                 if (_andando) _algumaAndando = true;
-                var _pct = (_total > 0) ? Math.min(100, Math.round((_proc / _total) * 100)) : 0;
+                var _pct = (_total > 0) ? Math.min(100, Math.round((_ok / _total) * 100)) : 0;
                 const _resultSub = (_ran && _proc > 0)
-                    ? ('<span><i class="ph-bold ph-paper-plane-tilt" style="color:#10b981;"></i> ' + _ok + ' enviados'
+                    ? ('<span><i class="ph-bold ph-checks" style="color:#10b981;"></i> ' + _ok + ' entregues'
+                        + (_pending ? ' · ' + _pending + ' sem confirmação de entrega' : '')
+                        + (_skipped ? ' · ' + _skipped + ' não enviados/outros' : '')
                         + (_fail ? ' · <span style="color:#dc2626;">' + _fail + ' falharam</span>' : '')
                         + (_total > 0 ? ' <span style="opacity:.65;">de ' + _total.toLocaleString('pt-BR') + '</span>' : '')
                         + '</span>')
                     : '';
                 const _barra = (_ran && _total > 0)
-                    ? ('<div class="camp-prog' + (_andando ? ' andando' : '') + '" title="' + _proc + ' de ' + _total + '">'
+                    ? ('<div class="camp-prog' + (_andando ? ' andando' : '') + '" title="' + _ok + ' entregues de ' + _total + '">'
                         + '<div class="camp-prog-track"><span style="width:' + _pct + '%;"></span></div>'
                         + '<span class="camp-prog-num">' + _pct + '%</span>'
                         + (_andando ? '<span class="camp-prog-nota">restam ' + Math.max(0, _total - _proc).toLocaleString('pt-BR') + '</span>'
