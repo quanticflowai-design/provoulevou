@@ -9162,7 +9162,7 @@
                     // a coluna e escondia que o lead so tinha sido contatado. msg-1 tambem entra
                     // na trava anti-repeticao, entao o proximo disparo nao o pega de novo.
                     if (typeof setCrmLeadOverride === 'function') {
-                        try { setCrmLeadOverride(normalize(phone), 'msg-1'); } catch (e) {}
+                        // Movimentação automática somente no retorno delivered/read da Meta.
                     }
                     fb.className = 'wa-feedback success';
                     fb.innerHTML = '<strong>Enviado!</strong> Meta Message ID: <code style="background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px;">' + (result.meta_message_id || '—') + '</code><br><span style="font-size:11px;color:var(--text-muted);">Verifique o WhatsApp do destinatário e a aba Disparos pra status.</span>';
@@ -14311,7 +14311,7 @@
                     // a coluna e escondia que o lead so tinha sido contatado. msg-1 tambem entra
                     // na trava anti-repeticao, entao o proximo disparo nao o pega de novo.
                     if (typeof setCrmLeadOverride === 'function') {
-                        try { setCrmLeadOverride(normalize(phone), 'msg-1'); } catch (e) {}
+                        // Movimentação automática somente no retorno delivered/read da Meta.
                         setTimeout(() => { try { renderCrmBoard(); } catch (e) {} }, 1500);
                     }
                 } else {
@@ -18619,23 +18619,9 @@
         }
 
         async function markCrmMessage1(phones) {
-            const keys = [...new Set((phones || []).map(normalize).filter(Boolean))];
-            if (!keys.length || !supabaseClient || !activeUser) return 0;
-            const ov = getCrmOverrides();
-            keys.forEach(phone => { ov[phone] = 'msg-1'; });
-            _crmOverridesMem = ov;
-            try { localStorage.setItem(crmOverridesKey(), JSON.stringify(ov)); } catch(e) {}
-            const updatedAt = new Date().toISOString();
-            const rows = keys.map(phone => ({
-                lojista_email: crmScopeEmail(),
-                telefone: phone,
-                column_key: 'msg-1',
-                updated_at: updatedAt
-            }));
-            const { error } = await supabaseClient.from('crm_lead_overrides')
-                .upsert(rows, { onConflict: 'lojista_email,telefone' });
-            if (error) throw error;
-            return keys.length;
+            // Mantido para compatibilidade: reservar/enviar não muda a etapa do CRM.
+            // O webhook de entrega é o único responsável pela movimentação automática.
+            return 0;
         }
 
         // ============================================================
