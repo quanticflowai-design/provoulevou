@@ -1733,32 +1733,92 @@
   }
   $('#admin-interest-type').addEventListener('change', atualizaCampoJuros);
 
-  function renderAdminVariacoes(fotos) {
-    const box = $('#admin-variacoes');
-    const lista = $('#admin-variacoes-lista');
-    if (!box || !lista) return;
-    lista.textContent = '';
-    box.hidden = !fotos.length;
-    fotos.forEach((foto, i) => {
-      const linha = document.createElement('label');
-      linha.className = 'admin-variacao';
-      const img = document.createElement('img');
-      img.alt = '';
-      img.src = foto.url;
-      const campo = document.createElement('input');
-      campo.type = 'text';
-      campo.maxLength = 50;
-      campo.placeholder = 'Cor ou variação (ex.: Preto)';
-      campo.value = foto.variantName || '';
-      campo.dataset.imageId = foto.id || '';
-      campo.dataset.index = String(i);
-      linha.append(img, campo);
-      lista.appendChild(linha);
-    });
+  let adminFotoOcupada = false;
+  function sincronizaFotos() {
+    adminFotosB64 = adminFotosPreview.map(f => f.b64 || '');
+    adminPhotoB64 = adminFotosB64[0] || '';
+    adminPhoto = (adminFotosPreview[0] || {}).url || '';
+    const prev = $('#admin-up-preview');
+    prev.src = adminPhoto; prev.hidden = !adminPhoto;
+    $('#admin-up-empty').style.display = adminPhoto ? 'none' : '';
+    const conta = $('#admin-up-conta');
+    conta.textContent = adminFotosPreview.length + ' fotos';
+    conta.hidden = adminFotosPreview.length < 2;
   }
 
+  async function escolheFotoVariante(foto, file) {
+    if (!file || adminFotoOcupada || $('#btn-add-product').disabled) return;
+    adminFotoOcupada = true;
+    const btn = $('#btn-add-product'), texto = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Otimizando foto…';
+    try {
+      const b64 = await compressImage(file);
+      if (!b64) throw new Error('Imagem inválida');
+      foto.b64 = b64;
+      foto.url = 'data:image/jpeg;base64,' + b64;
+      delete foto.id;
+      adminUploadRequestId = novoRequestId();
+      sincronizaFotos();
+      renderAdminVariacoes(adminFotosPreview);
+    } catch (e) {
+      toast('Não consegui ler a foto. Escolha outra imagem.');
+    } finally {
+      adminFotoOcupada = false;
+      btn.disabled = false; btn.textContent = texto;
+    }
+  }
+
+  function renderAdminVariacoes(fotos) {
+    adminFotosPreview = fotos;
+    const lista = $('#admin-variacoes-lista');
+    lista.textContent = '';
+    fotos.forEach((foto, i) => {
+      const linha = document.createElement('div');
+      linha.className = 'admin-variacao';
+      const seletor = document.createElement('label');
+      seletor.className = 'admin-variante-foto';
+      const img = document.createElement('img');
+      img.alt = 'Foto da variante ' + (i + 1);
+      if (foto.url) img.src = foto.url;
+      img.hidden = !foto.url;
+      const legenda = document.createElement('span');
+      legenda.textContent = foto.url ? 'Trocar foto' : 'Adicionar foto';
+      const arquivo = document.createElement('input');
+      arquivo.type = 'file'; arquivo.accept = 'image/*'; arquivo.hidden = true;
+      arquivo.addEventListener('change', () => escolheFotoVariante(foto, arquivo.files[0]));
+      seletor.append(img, legenda, arquivo);
+      const campo = document.createElement('input');
+      campo.type = 'text'; campo.maxLength = 50;
+      campo.placeholder = 'Nome da variante (ex.: Preto)';
+      campo.setAttribute('aria-label', 'Nome da variante ' + (i + 1));
+      campo.value = foto.variantName || '';
+      campo.dataset.imageId = foto.id || '';
+      campo.addEventListener('input', () => { foto.variantName = campo.value; });
+      const remover = document.createElement('button');
+      remover.type = 'button'; remover.className = 'admin-variante-remover';
+      remover.setAttribute('aria-label', 'Remover variante ' + (i + 1));
+      remover.textContent = '×';
+      remover.addEventListener('click', () => {
+        if (adminFotoOcupada || $('#btn-add-product').disabled) return;
+        adminFotosPreview.splice(i, 1);
+        adminUploadRequestId = novoRequestId();
+        sincronizaFotos(); renderAdminVariacoes(adminFotosPreview);
+      });
+      linha.append(seletor, campo, remover); lista.appendChild(linha);
+    });
+    $('#btn-add-variant').disabled = fotos.length >= MAX_FOTOS_PRODUTO;
+  }
+
+  $('#btn-add-variant').addEventListener('click', () => {
+    if (adminFotoOcupada || $('#btn-add-product').disabled) return;
+    if (adminFotosPreview.length >= MAX_FOTOS_PRODUTO) return;
+    adminFotosPreview.push({ url: '', variantName: '' });
+    renderAdminVariacoes(adminFotosPreview);
+    $('#admin-variacoes-lista').lastElementChild.querySelector('input[type="text"]').focus();
+  });
+
   function variacoesDigitadas() {
-    return $$('#admin-variacoes-lista input').map(campo => ({
+    return $$('#admin-variacoes-lista input[type="text"]').map(campo => ({
       id: campo.dataset.imageId || null,
       variant_name: campo.value.trim().slice(0, 50)
     }));
@@ -1819,32 +1879,17 @@
     if (c) c.addEventListener('click', saiEdicao);
   }
   $('#admin-photo').addEventListener('change', async e => {
-    const files = Array.from(e.target.files || []).slice(0, MAX_FOTOS_PRODUTO);
-    if (!files.length) return;
-    const btn = $('#btn-add-product');
-    const txt0 = btn.textContent;
-    btn.disabled = true; btn.textContent = 'Otimizando fotos…';
-    const lidas = [];
-    for (let i = 0; i < files.length; i++) {
-      btn.textContent = 'Otimizando foto ' + (i + 1) + ' de ' + files.length + '…';
-      const b64 = await compressImage(files[i]);
-      if (b64) lidas.push(b64);
-      await espera(0); // devolve a tela ao navegador entre fotos grandes
+    if (adminFotoOcupada || $('#btn-add-product').disabled) return;
+    const livres = MAX_FOTOS_PRODUTO - adminFotosPreview.length;
+    const files = Array.from(e.target.files || []).slice(0, livres);
+    if (!files.length) { toast('Limite de ' + MAX_FOTOS_PRODUTO + ' fotos por produto'); return; }
+    for (const file of files) {
+      const foto = { url: '', variantName: '' };
+      adminFotosPreview.push(foto);
+      renderAdminVariacoes(adminFotosPreview);
+      await escolheFotoVariante(foto, file);
     }
-    btn.disabled = false; btn.textContent = txt0;
-    if (!lidas.length) { toast('Não consegui ler essas imagens'); return; }
-    adminFotosB64 = lidas;
-    adminUploadRequestId = novoRequestId();
-    adminFotosPreview = lidas.map(b64 => ({ url: 'data:image/jpeg;base64,' + b64, variantName: '' }));
-    renderAdminVariacoes(adminFotosPreview);
-    adminPhotoB64 = lidas[0];
-    adminPhoto = 'data:image/jpeg;base64,' + lidas[0];
-    const prev = $('#admin-up-preview'); prev.src = adminPhoto; prev.hidden = false;
-    $('#admin-up-empty').style.display = 'none';
-    const conta = $('#admin-up-conta');
-    if (conta) { conta.textContent = lidas.length + ' foto' + (lidas.length > 1 ? 's' : ''); conta.hidden = lidas.length < 2; }
-    if ((e.target.files || []).length > lidas.length)
-      toast('Usei as ' + lidas.length + ' primeiras fotos');
+    e.target.value = '';
   });
   $('#btn-add-product').addEventListener('click', async () => {
     const btn = $('#btn-add-product');
@@ -1874,7 +1919,7 @@
       toast('Escolha em quantas vezes será o parcelamento'); return;
     }
     // no cadastro a foto é obrigatória; na edição, só se o lojista escolher outra
-    if (!editando && !adminPhotoB64) { toast('Envie a foto do produto'); return; }
+    if (!adminFotosPreview.length || adminFotosPreview.some(f => !f.url)) { toast('Adicione uma foto para cada variante'); return; }
     if (!storeRow) { toast('Loja não encontrada — recarregue a página'); return; }
 
     if (editando) {
@@ -1884,20 +1929,21 @@
         // Sobe as fotos novas ANTES de mandar apagar as velhas. Se o upload
         // falhar no meio, o produto continua com as fotos antigas em vez de
         // ficar sem nenhuma.
-        const trocouFoto = adminFotosB64.length > 0;
+        const trocouFoto = adminFotosPreview.some(f => f.b64);
         const variacoes = variacoesDigitadas();
         const uploadBaseId = adminUploadRequestId || (adminUploadRequestId = novoRequestId());
         if (trocouFoto) {
           btn.textContent = adminFotosB64.length > 1
             ? 'Enviando ' + adminFotosB64.length + ' fotos…' : 'Enviando foto…';
-          for (const [i, foto] of adminFotosB64.entries()) {
+          for (const [i, foto] of adminFotosPreview.entries()) {
+            if (!foto.b64) continue;
             await postJsonComRetry(WH_ADD_IMAGE, {
               // position 1-based: o n8n faz `position || 1` e trataria o 0 como
               // ausente, jogando a 1a e a 2a foto na mesma posicao — e a capa
               // sai justamente da menor posicao
               store_slug: STORE_SLUG, product_id: editando.id,
               request_id: uploadBaseId + '-' + i,
-              mime: 'image/jpeg', image_b64: foto, position: i + 1,
+              mime: 'image/jpeg', image_b64: foto.b64, position: i + 1,
               variant_name: (variacoes[i] && variacoes[i].variant_name) || null
             });
           }
@@ -1910,8 +1956,8 @@
           parcelas,
           categoria_vitrine: categorias[0] || null,
           categorias_vitrine: categorias.length ? categorias : null,
-          image_variants: trocouFoto ? [] : variacoes.filter(x => x.id),
-          remove_image_ids: trocouFoto ? (editando.imgIds || []) : []
+          image_variants: variacoes.filter(x => x.id),
+          remove_image_ids: (editando.imgIds || []).filter(id => !adminFotosPreview.some(f => f.id === id))
         });
         saiEdicao();
         toast('Produto atualizado ✓');
