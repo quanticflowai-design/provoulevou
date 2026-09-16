@@ -2203,6 +2203,12 @@
   // Loja de catalogo nao tem carrinho: quem quer comprar fala com o lojista, ja
   // com o modelo provado no texto. So cai no checkout se a loja nao tiver WhatsApp.
   const LOJAS_COMPRA_WHATSAPP = {
+    oticasprimemagrini: [
+      { rotulo: 'Alkatraz', telefone: '5519992937315' },
+      { rotulo: 'Magrini', telefone: '5519982970010' },
+      { rotulo: 'Outlet Araras', telefone: '5519993308200' },
+      { rotulo: 'Outlet Cordeiro', telefone: '5519997094282' }
+    ],
     oticakadima: [
       { rotulo: 'Loja Várzea Paulista' },
       { rotulo: 'Campo Limpo Paulista', telefone: '5511942329445' }
@@ -2225,6 +2231,18 @@
       secundario.dataset.telefone = '';
       secundario.hidden = true;
     }
+    const container = principal.parentElement;
+    container.querySelectorAll('[data-unidade-extra]').forEach(el => el.remove());
+    lojas.slice(2).forEach(loja => {
+      const botao = principal.cloneNode(true);
+      botao.removeAttribute('id');
+      botao.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+      botao.dataset.unidadeExtra = 'true';
+      botao.dataset.telefone = loja.telefone;
+      botao.querySelector('span').textContent = 'Comprar — ' + loja.rotulo;
+      botao.addEventListener('click', () => comprarNoWhatsapp(loja.telefone));
+      container.appendChild(botao);
+    });
   }
 
   function comprarNoWhatsapp(telefone) {
