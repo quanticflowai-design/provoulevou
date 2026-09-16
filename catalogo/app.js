@@ -493,14 +493,20 @@
       '&is_active=eq.true&select=*,pl_catalog_product_images(id,url,is_primary,position,variant_name)' +
       '&order=position.asc,created_at.desc');
     carregou = true;
-    catalog = (rows || []).map(r => {
+    catalog = mapCatalogRows(rows);
+    save();
+    return catalog;
+  }
+
+  function mapCatalogRows(rows) {
+    return (rows || []).map(r => {
       const imgs = (r.pl_catalog_product_images || [])
         .slice().sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.position || 0) - (b.position || 0));
       const urls = imgs.map(x => x.url).filter(Boolean);
       const cats = normalizaCategorias(Array.isArray(r.categorias_vitrine) && r.categorias_vitrine.length
         ? r.categorias_vitrine : [r.categoria_vitrine]);
       return {
-        id: r.id, name: r.name, price: r.price == null ? null : Number(r.price),
+        id: r.id, active: r.is_active !== false, featured: !!r.is_featured, name: r.name, price: r.price == null ? null : Number(r.price),
         originalPrice: r.original_price == null ? null : Number(r.original_price), img: urls[0] || '',
         imgs: urls,                       // a galeria e as referências da prova saem daqui
         imgIds: imgs.map(x => x.id).filter(Boolean),   // quais apagar quando trocar a foto
@@ -513,8 +519,6 @@
         categoria: categoriaDe(r)
       };
     });
-    save();
-    return catalog;
   }
 
   let cargaInicial = null;   // promessa da 1a carga: o login espera por ela
@@ -663,7 +667,7 @@
     const visiveis = catalog.filter(p =>
       (!catFiltro || produtoTemCategoria(p, catFiltro)) &&
       (!termo || textoBusca(p.name).includes(termo))
-    );
+    ).sort((a, b) => Number(b.featured) - Number(a.featured));
     visiveis.forEach(p => {
       // DOM seguro: nome do produto vem do lojista, nunca concatenar em HTML.
       const card = document.createElement('div');
@@ -681,6 +685,9 @@
       precos.appendChild(preco);
       const btn = document.createElement('button');
       btn.type = 'button'; btn.className = 'pc-try'; btn.textContent = 'Provar virtualmente';
+      if (p.featured) {
+        const selo = document.createElement('span'); selo.className = 'product-badge'; selo.textContent = 'Destaque'; body.appendChild(selo);
+      }
       body.append(nome, precos, btn);
       card.append(thumb, body);
       bindImg(thumb, p.img, p.name);
@@ -1650,13 +1657,39 @@
 
   // ─────────── Admin (lojista) ───────────
   let adminPhoto = '';
-  function renderAdmin() {
+  let adminCatalog = [];
+  const selecionados = new Set();
+  let adminLoading = 0;
+  async function catalogManage(action, data = {}) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 25000);
+    try {
+      const response = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_manage', {
+        method: 'POST', headers: { apikey: SB_ANON, Authorization: 'Bearer ' + (sessao && sessao.token),
+          'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_store_id: storeRow.id, p_action: action, p_data: data }), signal: controller.signal
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Não foi possível salvar');
+      return result;
+    } finally { clearTimeout(timer); }
+  }
+  async function renderAdmin() {
+    if (!ehDono()) return;
+    const carga = ++adminLoading;
+    try {
+      const rows = await catalogManage('list');
+      if (carga !== adminLoading || !ehDono()) return;
+      adminCatalog = mapCatalogRows(rows);
+    } catch (e) { toast('Não consegui carregar os produtos do painel. Tente abrir novamente.'); return; }
+    for (const id of selecionados) if (!adminCatalog.some(p => p.id === id)) selecionados.delete(id);
+
     renderTema();
     renderAdminCategorias();
     renderOrdemCategorias();
-    $('#admin-count').textContent = catalog.length + ' produto' + (catalog.length === 1 ? '' : 's') + ' no catálogo';
+    $('#admin-count').textContent = adminCatalog.length + ' produtos · ' + adminCatalog.filter(p => !p.active).length + ' rascunhos';
     const list = $('#admin-list'); list.innerHTML = '';
-    catalog.forEach(p => {
+    adminCatalog.forEach(p => {
       const item = document.createElement('div');
       item.className = 'admin-item';
       item.dataset.pid = p.id;
@@ -1694,11 +1727,36 @@
       const tpl = $('#tpl-lixeira');
       if (tpl) del.appendChild(tpl.content.cloneNode(true));
       else del.textContent = '✕';   // guard: HTML em cache sem o template
-      item.append(foto, nome, preco, editar, copiar, del);
+      const selecionar = document.createElement('input');
+      selecionar.type = 'checkbox'; selecionar.className = 'ai-select'; selecionar.checked = selecionados.has(p.id);
+      selecionar.setAttribute('aria-label', 'Selecionar ' + p.name);
+      selecionar.addEventListener('change', () => { selecionar.checked ? selecionados.add(p.id) : selecionados.delete(p.id); atualizaSelecao(); });
+      if (!p.active || p.featured) {
+        const badge = document.createElement('small'); badge.className = 'ai-status';
+        badge.textContent = !p.active ? 'Rascunho' : 'Destaque'; nome.appendChild(badge);
+      }
+      const duplicar = document.createElement('button');
+      duplicar.type = 'button'; duplicar.className = 'ai-duplicate'; duplicar.textContent = 'Duplicar';
+      duplicar.addEventListener('click', async () => {
+        if (adminFotoOcupada || $('#btn-add-product').disabled) return;
+        duplicar.disabled = true;
+        try {
+          const result = await catalogManage('duplicate', { id: p.id, request_id: duplicar.dataset.requestId || (duplicar.dataset.requestId = novoRequestId()) });
+          await renderAdmin();
+          const copia = adminCatalog.find(x => x.id === result.id);
+          if (copia) entraEdicao(copia);
+          toast('Cópia salva como rascunho. Revise e publique quando quiser.');
+        } catch (e) { toast(e.message); } finally { duplicar.disabled = false; }
+      });
+      const acoes = document.createElement('div'); acoes.className = 'ai-actions';
+      copiar.hidden = !p.active;
+      acoes.append(editar, duplicar, copiar, del);
+      item.append(selecionar, foto, nome, preco, acoes);
       bindImg(foto, p.img, p.name);
       del.addEventListener('click', () => { del.disabled = true; removeProduct(p.id); });
       list.appendChild(item);
     });
+    atualizaSelecao();
   }
   async function removeProduct(id) {
     const antes = catalog.slice();
@@ -1755,6 +1813,7 @@
       const b64 = await compressImage(file);
       if (!b64) throw new Error('Imagem inválida');
       foto.b64 = b64;
+      delete foto.uploadId;
       foto.url = 'data:image/jpeg;base64,' + b64;
       delete foto.id;
       adminUploadRequestId = novoRequestId();
@@ -1804,7 +1863,23 @@
         adminUploadRequestId = novoRequestId();
         sincronizaFotos(); renderAdminVariacoes(adminFotosPreview);
       });
-      linha.append(seletor, campo, remover); lista.appendChild(linha);
+      const ordem = document.createElement('div'); ordem.className = 'variant-order';
+      const mover = (destino) => {
+        if (adminFotoOcupada || $('#btn-add-product').disabled) return;
+        const [movida] = adminFotosPreview.splice(i, 1); adminFotosPreview.splice(destino, 0, movida);
+        sincronizaFotos(); renderAdminVariacoes(adminFotosPreview);
+      };
+      const capa = document.createElement('button'); capa.type = 'button';
+      capa.textContent = i === 0 ? 'Capa' : 'Usar como capa'; capa.disabled = i === 0;
+      capa.addEventListener('click', () => mover(0));
+      const subir = document.createElement('button'); subir.type = 'button'; subir.textContent = '↑';
+      subir.setAttribute('aria-label','Mover foto para cima'); subir.disabled = i === 0;
+      subir.addEventListener('click', () => mover(i-1));
+      const descer = document.createElement('button'); descer.type = 'button'; descer.textContent = '↓';
+      descer.setAttribute('aria-label','Mover foto para baixo'); descer.disabled = i === fotos.length-1;
+      descer.addEventListener('click', () => mover(i+1));
+      ordem.append(capa,subir,descer);
+      linha.append(seletor, campo, remover, ordem); lista.appendChild(linha);
     });
     $('#btn-add-variant').disabled = fotos.length >= MAX_FOTOS_PRODUTO;
   }
@@ -1827,7 +1902,10 @@
   // Editar reaproveita o formulário de cadastro em vez de abrir outra tela: é o
   // mesmo par nome+preço, e o lojista já sabe onde ficam os campos.
   function entraEdicao(p) {
+    if (adminFotoOcupada || $('#btn-add-product').disabled) return;
+    stagedProductId = null;
     editando = p;
+    $('#admin-featured').checked = !!p.featured;
     adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = []; adminFotosPreview = [];
     adminUploadRequestId = '';
     const fi = $('#admin-photo'); if (fi) fi.value = '';
@@ -1847,9 +1925,9 @@
     $('#admin-categoria').value = '';
     renderAdminCategorias();
     const prev = $('#admin-up-preview');
-    if (p.img) { prev.src = p.img; prev.hidden = false; $('#admin-up-empty').style.display = 'none'; }
+    prev.src = p.img || ''; prev.hidden = !p.img; $('#admin-up-empty').style.display = p.img ? 'none' : '';
     renderAdminVariacoes((p.imageMeta || []).map(x => ({ id: x.id, url: x.url, variantName: x.variantName })));
-    $('#btn-add-product').textContent = 'Salvar alterações';
+    $('#btn-add-product').textContent = p.active === false ? 'Publicar produto' : 'Salvar alterações';
     $('#btn-cancel-edit').hidden = false;
     $('#admin-name').focus();
     $('#admin-name').scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -1857,7 +1935,8 @@
   }
 
   function saiEdicao() {
-    editando = null;
+    editando = null; stagedProductId = null;
+    $('#admin-featured').checked = false;
     $('#admin-name').value = ''; $('#admin-price').value = ''; $('#admin-original-price').value = '';
     $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
     $('#admin-interest-type').value = 'none'; $('#admin-interest-rate').value = '';
@@ -1876,7 +1955,7 @@
   }
   {
     const c = $('#btn-cancel-edit');
-    if (c) c.addEventListener('click', saiEdicao);
+    if (c) c.addEventListener('click', () => { if (!adminFotoOcupada && !$('#btn-add-product').disabled) saiEdicao(); });
   }
   $('#admin-photo').addEventListener('change', async e => {
     if (adminFotoOcupada || $('#btn-add-product').disabled) return;
@@ -1891,169 +1970,115 @@
     }
     e.target.value = '';
   });
-  $('#btn-add-product').addEventListener('click', async () => {
+  let stagedProductId = null;
+  function valorDigitado(id) {
+    const raw = $(id).value.trim();
+    if (!raw) return null;
+    return Number(raw.replace(/\./g, '').replace(',', '.'));
+  }
+  async function salvarProduto(publicar) {
     const btn = $('#btn-add-product');
-    if (btn.disabled) return;
+    if (btn.disabled || adminFotoOcupada || !ehDono()) return;
     const name = $('#admin-name').value.trim();
-    const priceRaw = $('#admin-price').value.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
-    const price = priceRaw ? parseFloat(priceRaw) : null;
-    const originalPriceRaw = $('#admin-original-price').value.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
-    const originalPrice = originalPriceRaw ? parseFloat(originalPriceRaw) : null;
-    const interestRateRaw = $('#admin-interest-rate').value.replace(',', '.').replace(/[^\d.]/g, '');
-    const interestRate = $('#admin-interest-type').value === 'interest' ? parseFloat(interestRateRaw) : null;
+    const price = valorDigitado('#admin-price'), originalPrice = valorDigitado('#admin-original-price');
+    const interestRate = $('#admin-interest-type').value === 'interest' ? Number($('#admin-interest-rate').value.replace(',', '.')) : null;
     const parcelas = Number($('#admin-parcelas').value) || null;
-    // Se a categoria nova ainda estiver digitada, inclui antes de salvar.
     if ($('#admin-categoria').value.trim()) adicionaCategoriaDigitada();
     const categorias = normalizaCategorias(adminCategoriasSelecionadas);
-    if (!name) { toast('Dê um nome ao produto'); return; }
-    if (!numeroPositivo(price) && !numeroPositivo(originalPrice)) { toast('Informe o preço original ou o promocional'); return; }
-    if (price !== null && !numeroPositivo(price)) { toast('Informe um preço promocional válido'); return; }
-    if (originalPrice !== null && !numeroPositivo(originalPrice)) { toast('Informe um preço original válido'); return; }
-    if (price !== null && originalPrice !== null && originalPrice <= price) {
-      toast('O preço original deve ser maior que o promocional'); return;
+    if ([price,originalPrice].some(v => v !== null && (!Number.isFinite(v) || v <= 0))) { toast('Informe preços válidos'); return; }
+    if (price !== null && originalPrice !== null && originalPrice <= price) { toast('O preço original deve ser maior que o promocional'); return; }
+    if ($('#admin-interest-type').value === 'interest' && (!(interestRate > 0 && interestRate <= 20) || parcelas < 2)) { toast('Confira os juros e o parcelamento'); return; }
+    if (publicar && (!name || !(price || originalPrice) || !adminFotosPreview.length || adminFotosPreview.some(f => !f.url))) {
+      toast('Para publicar, informe nome, preço e uma foto para cada variante'); return;
     }
-    if ($('#admin-interest-type').value === 'interest' && (!interestRate || interestRate <= 0 || interestRate > 20)) {
-      toast('Informe os juros por parcela entre 0,01% e 20%'); return;
-    }
-    if ($('#admin-interest-type').value === 'interest' && (!parcelas || parcelas < 2)) {
-      toast('Escolha em quantas vezes será o parcelamento'); return;
-    }
-    // no cadastro a foto é obrigatória; na edição, só se o lojista escolher outra
-    if (!adminFotosPreview.length || adminFotosPreview.some(f => !f.url)) { toast('Adicione uma foto para cada variante'); return; }
-    if (!storeRow) { toast('Loja não encontrada — recarregue a página'); return; }
-
-    if (editando) {
-      const txt0 = btn.textContent;
-      btn.disabled = true; btn.textContent = 'Salvando…';
-      try {
-        // Sobe as fotos novas ANTES de mandar apagar as velhas. Se o upload
-        // falhar no meio, o produto continua com as fotos antigas em vez de
-        // ficar sem nenhuma.
-        const trocouFoto = adminFotosPreview.some(f => f.b64);
-        const variacoes = variacoesDigitadas();
-        const uploadBaseId = adminUploadRequestId || (adminUploadRequestId = novoRequestId());
-        if (trocouFoto) {
-          btn.textContent = adminFotosB64.length > 1
-            ? 'Enviando ' + adminFotosB64.length + ' fotos…' : 'Enviando foto…';
-          for (const [i, foto] of adminFotosPreview.entries()) {
-            if (!foto.b64) continue;
-            await postJsonComRetry(WH_ADD_IMAGE, {
-              // position 1-based: o n8n faz `position || 1` e trataria o 0 como
-              // ausente, jogando a 1a e a 2a foto na mesma posicao — e a capa
-              // sai justamente da menor posicao
-              store_slug: STORE_SLUG, product_id: editando.id,
-              request_id: uploadBaseId + '-' + i,
-              mime: 'image/jpeg', image_b64: foto.b64, position: i + 1,
-              variant_name: (variacoes[i] && variacoes[i].variant_name) || null
-            });
-          }
-        }
-        btn.textContent = 'Salvando…';
-        await postJsonComRetry(WH_EDIT_PRODUCT, {
-          product_id: editando.id, name, price, original_price: originalPrice,
-          installment_interest_rate: interestRate,
-          description: $('#admin-desc').value.trim() || null,
-          parcelas,
-          categoria_vitrine: categorias[0] || null,
-          categorias_vitrine: categorias.length ? categorias : null,
-          image_variants: variacoes.filter(x => x.id),
-          remove_image_ids: (editando.imgIds || []).filter(id => !adminFotosPreview.some(f => f.id === id))
-        });
-        saiEdicao();
-        toast('Produto atualizado ✓');
-        try {
-          await loadCatalog();
-          renderAdmin(); renderCatalog();
-        } catch (erroLista) {
-          toast('Produto salvo. Não consegui atualizar a lista; recarregue o catálogo.');
-        }
-      } catch (e) {
-        console.warn('[Provou Catálogo] erro ao editar:', e);
-        toast('Não consegui salvar. Tente de novo.');
-      } finally {
-        btn.disabled = false; btn.textContent = editando ? txt0 : 'Adicionar ao catálogo';
-      }
-      return;
-    }
-
-    // Espera a confirmação de propósito: produto que "aparece" sem ter subido
-    // dá ao lojista a certeza errada de que o catálogo está publicado. Ele fica
-    // aqui até o servidor responder, e o botão diz em que passo está.
-    const txt = btn.textContent;
-    btn.disabled = true; btn.textContent = 'Enviando foto…';
-    let produtoCriado = false;
+    if (!publicar && adminFotosPreview.some(f => !f.url && f.variantName)) { toast('Adicione a foto da variante ou remova a opção vazia antes de salvar'); return; }
+    const fotos = adminFotosPreview.filter(f => f.url);
+    const fields = { name, price, original_price:originalPrice, description:$('#admin-desc').value.trim(),
+      parcelas, installment_interest_rate:interestRate, categories:categorias,
+      is_featured:$('#admin-featured').checked, is_active:publicar };
+    const label = btn.textContent;
+    const locked = $$('.admin-fields input, .admin-fields textarea, .admin-fields select, .admin-fields button, #admin-photo');
+    const disabledBefore = locked.map(x => x.disabled);
+    locked.forEach(x => x.disabled = true);
+    btn.textContent = 'Salvando…';
+    let saved = false;
     try {
-      const variacoes = variacoesDigitadas();
-      const requestId = adminUploadRequestId || (adminUploadRequestId = novoRequestId());
-      const data = await postJsonComRetry(WH_ADD_PRODUCT, {
-        store_slug: STORE_SLUG, name, price, original_price: originalPrice,
-        installment_interest_rate: interestRate,
-        request_id: requestId, descricao_e_parcelas: 1,
-        description: $('#admin-desc').value.trim() || null,
-        parcelas,
-        categoria_vitrine: categorias[0] || null,
-        categorias_vitrine: categorias.length ? categorias : null,
-        mime: 'image/jpeg', image_b64: adminPhotoB64,
-        variant_name: (variacoes[0] && variacoes[0].variant_name) || null
-      });
-
-      const pid = data.product && data.product.id;
-      if (!pid) throw new Error('Servidor não devolveu o produto');
-      produtoCriado = true;
-
-      // A foto principal já tornou o produto publicável. Atualiza a tela agora,
-      // sem esperar uma segunda consulta ao banco nem as fotos adicionais.
-      // Isso elimina a sensação de travamento depois que o servidor já concluiu.
-      const capa = data.image_url || adminPhoto;
-      const novo = {
-        id: pid, name, price, originalPrice, img: capa, imgs: [capa], imgIds: [],
-        imageMeta: [{ id: null, url: capa, variantName: (variacoes[0] && variacoes[0].variant_name) || '' }],
-        desc: $('#admin-desc').value.trim(), cat: categorias[0] || '', cats: categorias,
-        parcelas: parcelas || 0, installmentInterestRate: interestRate || 0,
-        categoria: 'oculos'
-      };
-      catalog = [novo].concat(catalog.filter(p => p.id !== pid));
-      save(); renderAdmin(); renderCatalog();
-
-      // Confirma todas as fotos antes de limpar. Repetir usa os mesmos IDs.
-      const fotosRestantes = adminFotosB64.slice(1);
-      const variacoesRestantes = variacoes.slice(1);
-      for (const [offset, foto] of fotosRestantes.entries()) {
-        const i = offset + 1;
-        btn.textContent = 'Enviando foto ' + (i + 1) + ' de ' + (fotosRestantes.length + 1) + '…';
-        await postJsonComRetry(WH_ADD_IMAGE, {
-          store_slug: STORE_SLUG, product_id: pid, request_id: requestId + '-' + i,
-          mime: 'image/jpeg', image_b64: foto, position: i + 1,
-          variant_name: (variacoesRestantes[offset] && variacoesRestantes[offset].variant_name) || null
-        });
+      if (!editando && !stagedProductId) {
+        const staged = await catalogManage('stage', { name, request_id:adminUploadRequestId || (adminUploadRequestId=novoRequestId()) });
+        stagedProductId = staged.id;
       }
-      $('#admin-name').value = ''; $('#admin-price').value = ''; $('#admin-original-price').value = '';
-      $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
-      $('#admin-interest-type').value = 'none'; $('#admin-interest-rate').value = '';
-      atualizaCampoJuros();
-      $('#admin-categoria').value = '';
-      adminCategoriasSelecionadas = [];
-      renderAdminCategorias();
-      adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = []; adminFotosPreview = [];
-      adminUploadRequestId = '';
-      renderAdminVariacoes([]);
-      $('#admin-up-preview').hidden = true; $('#admin-up-empty').style.display = ''; $('#admin-photo').value = '';
-      const cc = $('#admin-up-conta'); if (cc) cc.hidden = true;
-      toast(name + ' publicado ✓');
-
-      // Sincroniza IDs e URLs das imagens sem bloquear o próximo cadastro.
-      loadCatalog().then(() => { renderAdmin(); renderCatalog(); }).catch(e =>
-        console.warn('[Provou Catálogo] atualização em segundo plano falhou:', e));
-    } catch (err) {
-      // nada entrou na lista, então não há o que desfazer: os campos e a foto
-      // continuam preenchidos pra ele só tentar de novo
-      console.warn('[Provou Catálogo] erro ao adicionar produto:', err);
-      toast(produtoCriado
-        ? 'Produto salvo, mas faltou enviar uma foto. Toque novamente para concluir.'
-        : 'Não consegui confirmar o envio. Tente novamente; seus dados foram mantidos.');
+      const pid = editando ? editando.id : stagedProductId;
+      // Stable IDs per photo survive reordering, retries and interrupted uploads.
+      for (const [i, foto] of fotos.entries()) {
+        if (!foto.b64) continue;
+        btn.textContent = 'Enviando foto ' + (i+1) + ' de ' + fotos.length + '…';
+        foto.uploadId = foto.uploadId || novoRequestId();
+        await postJsonComRetry(WH_ADD_IMAGE, { store_slug:STORE_SLUG, product_id:pid,
+          request_id:foto.uploadId, mime:'image/jpeg', image_b64:foto.b64, position:i+1,
+          variant_name:foto.variantName || null });
+      }
+      const rows = await catalogManage('list');
+      const stored = rows.find(p => p.id === pid);
+      const images = fotos.map(f => {
+        const image = f.b64 ? stored.pl_catalog_product_images.find(x => x.client_request_id === f.uploadId) :
+          stored.pl_catalog_product_images.find(x => x.id === f.id);
+        if (!image) throw new Error('Uma foto ainda não foi confirmada. Tente salvar novamente.');
+        return { id:image.id, variant_name:f.variantName || '' };
+      });
+      await catalogManage('save', { ...fields, id:pid, images });
+      saved = true;
+      saiEdicao();
+      toast(publicar ? 'Produto publicado ✓' : 'Rascunho salvo ✓');
+      await loadCatalog(); renderCatalog(); await renderAdmin();
+    } catch(e) {
+      toast(saved ? 'Produto salvo. Reabra o painel para atualizar a lista.' : (e.name === 'AbortError' ? 'Envio demorou. Seus dados foram mantidos; tente novamente.' : e.message));
     } finally {
-      btn.disabled = false; btn.textContent = txt;
+      locked.forEach((x,i) => x.disabled = disabledBefore[i]);
+      btn.disabled = false; btn.textContent = saved ? 'Adicionar ao catálogo' : label;
     }
+  }
+  $('#btn-add-product').addEventListener('click', () => salvarProduto(true));
+  $('#btn-save-draft').addEventListener('click', () => salvarProduto(false));
+
+  function atualizaSelecao() {
+    $('#bulk-count').textContent = selecionados.size + ' selecionados';
+    $('#bulk-open').disabled = !selecionados.size;
+    $('#bulk-all').checked = !!adminCatalog.length && selecionados.size === adminCatalog.length;
+  }
+  $('#bulk-all').addEventListener('change', e => {
+    selecionados.clear(); if(e.target.checked) adminCatalog.forEach(p => selecionados.add(p.id));
+    $$('.ai-select').forEach(x => x.checked=e.target.checked); atualizaSelecao();
+  });
+  $('#bulk-open').addEventListener('click', () => $('#bulk-editor').hidden = !$('#bulk-editor').hidden);
+  $('#bulk-apply').addEventListener('click', async () => {
+    const changes = { ids:Array.from(selecionados) }, resumo=[];
+    for (const [id,key,label] of [['#bulk-original','original_price','Preço original'],['#bulk-price','price','Preço promocional']]) {
+      const value = valorDigitado(id);
+      if (value !== null) {
+        if (!Number.isFinite(value) || value<=0) { toast('Informe preços válidos'); return; }
+        changes[key]=value; resumo.push(label+': '+brl(value));
+      }
+    }
+    if ($('#bulk-clear-price').checked) { changes.price=null; resumo.push('Remover preço promocional'); }
+    for (const [id,key,label] of [['#bulk-status','is_active','Publicação'],['#bulk-featured','is_featured','Destaque']]) {
+      if ($(id).value !== '') { changes[key]=$(id).value==='true'; resumo.push(label+': '+$(id).selectedOptions[0].textContent); }
+    }
+    if ($('#bulk-change-categories').checked) {
+      changes.categories=normalizaCategorias($('#bulk-categories').value.split(','));
+      resumo.push('Substituir categorias por: '+(changes.categories.join(', ')||'nenhuma'));
+    }
+    if (!resumo.length || !changes.ids.length) { toast('Selecione produtos e ao menos uma alteração'); return; }
+    if (!confirm('Aplicar a '+changes.ids.length+' produtos?\n\n'+resumo.join('\n'))) return;
+    const btn=$('#bulk-apply'); btn.disabled=true;
+    try {
+      await catalogManage('bulk',changes);
+      if (editando && changes.ids.includes(editando.id)) saiEdicao();
+      selecionados.clear(); $('#bulk-editor').hidden=true;
+      $('#bulk-editor').querySelectorAll('input').forEach(x=>{ if(x.type==='checkbox') x.checked=false; else x.value=''; });
+      $('#bulk-editor').querySelectorAll('select').forEach(x=>x.value='');
+      toast('Alterações aplicadas ✓');
+      await loadCatalog(); renderCatalog(); await renderAdmin();
+    } catch(e) { toast(e.message); } finally { btn.disabled=false; }
   });
 
   // ─────────── Navegação (botões fixos) ───────────
@@ -2121,6 +2146,7 @@
   // autentica ninguem, so le a sessao que o painel deixou no localStorage.
 
   function sair() {
+    adminCatalog = []; selecionados.clear(); $('#admin-list').textContent = '';
     sessao = null;
     sessaoValidada = false;
     try { localStorage.removeItem(SESSAO); } catch (e) {}

@@ -733,3 +733,27 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 #btn-add-variant { margin-top:10px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); cursor:pointer; }
 #btn-add-variant:disabled { opacity:.5; cursor:default; }
 .admin-variacoes > .admin-variantes-ajuda { font-weight:400; line-height:1.5; }
+
+.admin-variacao { flex-wrap:wrap; }
+.variant-order { width:100%; display:flex; gap:6px; justify-content:flex-end; }
+.variant-order button { padding:6px 10px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--ink); cursor:pointer; }
+.variant-order button:disabled { opacity:.55; cursor:default; }
+.admin-check { display:flex; align-items:center; gap:8px; font-size:13px; }
+.admin-check input[type=checkbox], .ai-select { width:18px; height:18px; flex:none; accent-color:var(--brand); }
+.ai-status { display:block; font-size:11px; color:var(--ink-2); margin-top:4px; }
+.ai-actions { display:flex; align-items:center; gap:6px; }
+.ai-duplicate { padding:9px; border:0; border-radius:10px; background:var(--brand-soft); color:var(--brand); cursor:pointer; }
+.bulk-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:14px 0; font-size:13px; }
+.bulk-toolbar .btn-outline { padding:8px 12px; }
+.bulk-editor { border:1px solid var(--line); background:var(--card); padding:16px; border-radius:12px; margin-bottom:16px; }
+.bulk-editor:not([hidden]) { display:grid; gap:12px; }
+.bulk-editor label:not(.admin-check) { display:grid; gap:6px; }
+.bulk-editor input:not([type=checkbox]), .bulk-editor select { width:100%; min-width:0; padding:10px; background:var(--bg); color:var(--ink); border:1px solid var(--line); border-radius:8px; }
+.product-badge { display:inline-block; width:fit-content; padding:3px 8px; border-radius:20px; font-size:11px; background:var(--brand-soft); color:var(--brand); margin-bottom:6px; }
+@media(max-width:600px) {
+ .admin-item { flex-wrap:wrap; gap:8px; }
+ .admin-item .ai-name { min-width:100px; overflow-wrap:anywhere; }
+ .ai-actions { width:100%; justify-content:flex-end; }
+}
+
+.ai-actions .ai-link[hidden] { display:none; }

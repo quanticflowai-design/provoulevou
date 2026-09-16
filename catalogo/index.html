@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=105">
+  <link rel="stylesheet" href="styles.css?v=106">
 </head>
 <body>
   <div id="app">
@@ -383,6 +383,8 @@
               <input type="text" id="admin-interest-rate" inputmode="decimal" placeholder="Ex.: 2,5">
             </label>
             <textarea id="admin-desc" rows="2" placeholder="Descrição (opcional): material, medidas, cor…"></textarea>
+            <label class="admin-check"><input type="checkbox" id="admin-featured"> Destacar no catálogo (aparece primeiro)</label>
+            <button type="button" class="btn-outline" id="btn-save-draft">Salvar como rascunho</button>
             <button class="btn-primary" id="btn-add-product">Adicionar ao catálogo</button>
             <button class="btn-outline" id="btn-cancel-edit" hidden>Cancelar edição</button>
           </div>
@@ -433,6 +435,22 @@
         </div>
 
         <p class="admin-count" id="admin-count"></p>
+        <div class="bulk-toolbar">
+          <label><input type="checkbox" id="bulk-all"> Selecionar todos</label>
+          <span id="bulk-count">0 selecionados</span>
+          <button type="button" class="btn-outline" id="bulk-open" disabled>Editar em lote</button>
+        </div>
+        <div id="bulk-editor" class="bulk-editor" hidden>
+          <p>Somente os campos alterados serão aplicados aos produtos selecionados.</p>
+          <label>Preço original<input id="bulk-original" inputmode="decimal" placeholder="Manter atual"></label>
+          <label>Preço promocional<input id="bulk-price" inputmode="decimal" placeholder="Manter atual"></label>
+          <label class="admin-check"><input type="checkbox" id="bulk-clear-price"> Remover preço promocional</label>
+          <label>Publicação<select id="bulk-status"><option value="">Manter atual</option><option value="true">Publicado</option><option value="false">Rascunho</option></select></label>
+          <label>Destaque<select id="bulk-featured"><option value="">Manter atual</option><option value="true">Destacar</option><option value="false">Remover destaque</option></select></label>
+          <label class="admin-check"><input type="checkbox" id="bulk-change-categories"> Substituir categorias</label>
+          <input id="bulk-categories" aria-label="Categorias para aplicar em lote" placeholder="Categorias separadas por vírgula">
+          <button type="button" class="btn-primary" id="bulk-apply">Revisar e aplicar</button>
+        </div>
         <div class="admin-list" id="admin-list"></div>
       </div>
     </section>
@@ -460,6 +478,6 @@
   </template>
   <div id="toast"></div>
 
-  <script src="app.js?v=110"></script>
+  <script src="app.js?v=111"></script>
 </body>
 </html>
