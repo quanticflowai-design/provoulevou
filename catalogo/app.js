@@ -1695,7 +1695,7 @@
       item.dataset.pid = p.id;
       const foto = document.createElement('img'); foto.alt = '';
       const nome = document.createElement('span'); nome.className = 'ai-name'; nome.textContent = p.name;
-      const preco = document.createElement('span'); preco.className = 'ai-price'; preco.textContent = brl(precoProduto(p));
+      const preco = document.createElement('span'); preco.className = 'ai-price'; preco.textContent = numeroPositivo(precoProduto(p)) ? brl(precoProduto(p)) : 'Sem preço';
       const editar = document.createElement('button');
       editar.type = 'button'; editar.className = 'ai-edit';
       editar.title = 'Editar produto';
@@ -2035,6 +2035,7 @@
     } finally {
       locked.forEach((x,i) => x.disabled = disabledBefore[i]);
       btn.disabled = false; btn.textContent = saved ? 'Adicionar ao catálogo' : label;
+      $('#btn-add-variant').disabled = adminFotosPreview.length >= MAX_FOTOS_PRODUTO;
     }
   }
   $('#btn-add-product').addEventListener('click', () => salvarProduto(true));
