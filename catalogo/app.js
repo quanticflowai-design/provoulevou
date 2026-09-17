@@ -511,7 +511,7 @@
         imgs: urls,                       // a galeria e as referências da prova saem daqui
         imgIds: imgs.map(x => x.id).filter(Boolean),   // quais apagar quando trocar a foto
         imageMeta: imgs.map(x => ({ id: x.id, url: x.url, variantName: (x.variant_name || '').trim() })),
-        desc: r.description || '',
+        desc: r.description || '', unit: r.unit_name || '',
         cat: cats[0] || '',                 // compatibilidade com caches e links antigos
         cats: cats,                         // o produto pode aparecer em varias categorias
         parcelas: Number(r.parcelas) || 0,
@@ -688,7 +688,12 @@
       if (p.featured) {
         const selo = document.createElement('span'); selo.className = 'product-badge'; selo.textContent = 'Destaque'; body.appendChild(selo);
       }
-      body.append(nome, precos, btn);
+      body.append(nome);
+      if (p.unit) {
+        const unidade = document.createElement('span'); unidade.className = 'product-unit';
+        unidade.textContent = 'Unidade: ' + p.unit; body.appendChild(unidade);
+      }
+      body.append(precos, btn);
       card.append(thumb, body);
       bindImg(thumb, p.img, p.name);
       // Botão leva DIRETO pra prova (menos um passo pro cliente).
@@ -945,6 +950,7 @@
     adminCategoriasSelecionadas = normalizaCategorias(adminCategoriasSelecionadas.concat(nome));
     campo.value = '';
     renderAdminCategorias();
+    renderUnidadesCadastro();
     renderOrdemCategorias();
   }
 
@@ -1049,6 +1055,7 @@
   // Atualiza as categorias disponíveis no cadastro e a área de ordenação.
   function renderSugestoesCategoria() {
     renderAdminCategorias();
+    renderUnidadesCadastro();
     renderOrdemCategorias();
   }
 
@@ -1130,6 +1137,8 @@
                                   (juros ? ' com ' + String(juros).replace('.', ',') + '% de juros por parcela' : ' sem juros')
                                 : (par === 1 ? 'à vista' : '');
     $('#p-desc').textContent = p.desc || '';
+    $('#p-unit').textContent = p.unit ? 'Unidade: ' + p.unit : '';
+    $('#p-unit').hidden = !p.unit;
     montaMiniaturas(p);
     show('product');
     // troca a URL sem recarregar, pra quem chegou pelo catálogo poder copiar da
@@ -1686,6 +1695,7 @@
 
     renderTema();
     renderAdminCategorias();
+    renderUnidadesCadastro();
     renderOrdemCategorias();
     $('#admin-count').textContent = adminCatalog.length + ' produtos · ' + adminCatalog.filter(p => !p.active).length + ' rascunhos';
     const list = $('#admin-list'); list.innerHTML = '';
@@ -1901,6 +1911,18 @@
 
   // Editar reaproveita o formulário de cadastro em vez de abrir outra tela: é o
   // mesmo par nome+preço, e o lojista já sabe onde ficam os campos.
+  function renderUnidadesCadastro() {
+    const lista = $('#admin-unit-options');
+    lista.replaceChildren();
+    const nomes = catalog.concat(adminCatalog).map(p => p.unit).filter(Boolean);
+    if (typeof LOJAS_COMPRA_WHATSAPP !== 'undefined') {
+      (LOJAS_COMPRA_WHATSAPP[STORE_SLUG] || []).forEach(loja => nomes.push(loja.rotulo));
+    }
+    [...new Set(nomes)].sort((a,b) => a.localeCompare(b, 'pt-BR')).forEach(nome => {
+      const option = document.createElement('option'); option.value = nome; lista.appendChild(option);
+    });
+  }
+
   function entraEdicao(p) {
     if (adminFotoOcupada || $('#btn-add-product').disabled) return;
     stagedProductId = null;
@@ -1916,6 +1938,7 @@
       ? Number(p.originalPrice).toFixed(2).replace('.', ',')
       : (numeroPositivo(p.price) ? Number(p.price).toFixed(2).replace('.', ',') : '');
     $('#admin-desc').value = p.desc || '';
+    $('#admin-unit').value = p.unit || '';
     $('#admin-parcelas').value = p.parcelas ? String(p.parcelas) : '';
     $('#admin-interest-type').value = p.installmentInterestRate > 0 ? 'interest' : 'none';
     $('#admin-interest-rate').value = p.installmentInterestRate > 0
@@ -1924,6 +1947,7 @@
     adminCategoriasSelecionadas = normalizaCategorias(p.cats && p.cats.length ? p.cats : [p.cat]);
     $('#admin-categoria').value = '';
     renderAdminCategorias();
+    renderUnidadesCadastro();
     const prev = $('#admin-up-preview');
     prev.src = p.img || ''; prev.hidden = !p.img; $('#admin-up-empty').style.display = p.img ? 'none' : '';
     renderAdminVariacoes((p.imageMeta || []).map(x => ({ id: x.id, url: x.url, variantName: x.variantName })));
@@ -1939,11 +1963,13 @@
     $('#admin-featured').checked = false;
     $('#admin-name').value = ''; $('#admin-price').value = ''; $('#admin-original-price').value = '';
     $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
+    $('#admin-unit').value = '';
     $('#admin-interest-type').value = 'none'; $('#admin-interest-rate').value = '';
     atualizaCampoJuros();
     $('#admin-categoria').value = '';
     adminCategoriasSelecionadas = [];
     renderAdminCategorias();
+    renderUnidadesCadastro();
     adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = []; adminFotosPreview = [];
     adminUploadRequestId = '';
     renderAdminVariacoes([]);
@@ -1993,7 +2019,7 @@
     }
     if (!publicar && adminFotosPreview.some(f => !f.url && f.variantName)) { toast('Adicione a foto da variante ou remova a opção vazia antes de salvar'); return; }
     const fotos = adminFotosPreview.filter(f => f.url);
-    const fields = { name, price, original_price:originalPrice, description:$('#admin-desc').value.trim(),
+    const fields = { name, price, original_price:originalPrice, description:$('#admin-desc').value.trim(), unit_name:$('#admin-unit').value.trim(),
       parcelas, installment_interest_rate:interestRate, categories:categorias,
       is_featured:$('#admin-featured').checked, is_active:publicar };
     const label = btn.textContent;
@@ -2254,7 +2280,8 @@
     const txt = 'Oi! Provei o ' + nomeProdutoAtual() +
       (current && numeroPositivo(precoProduto(current)) ? ' (' + brl(precoProduto(current)) + ')' : '') +
       ' no provador virtual da ' + STORE.name + ' e quero comprar' +
-      (unidade ? ' na unidade ' + unidade.rotulo : '') + '.';
+      (unidade ? ' na unidade ' + unidade.rotulo : '') + '.' +
+      (current && current.unit ? ' Unidade do produto: ' + current.unit + '.' : '');
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
   }
   $('#btn-buy').addEventListener('click', e => comprarNoWhatsapp(e.currentTarget.dataset.telefone));

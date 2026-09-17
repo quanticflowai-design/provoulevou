@@ -18,7 +18,7 @@ window.precoProduto=p=>p.price||p.originalPrice;window.brl=x=>'R$ '+x;window.bin
 window.linkProduto=()=>'';window.compressImage=async()=> 'ZmFrZQ==';
 window.save=window.renderCatalog=()=>{};window.loadCatalog=async()=>{};
 window.adicionaCategoriaDigitada=()=>{};
-window.mapCatalogRows=rows=>rows.map(p=>({id:p.id,name:p.name,active:p.is_active,featured:p.is_featured,price:p.price,originalPrice:p.original_price,desc:p.description,
+window.mapCatalogRows=rows=>rows.map(p=>({id:p.id,name:p.name,active:p.is_active,featured:p.is_featured,price:p.price,originalPrice:p.original_price,desc:p.description,unit:p.unit_name,
 cats:p.categories||[],parcelas:p.parcelas,installmentInterestRate:p.installment_interest_rate,
 img:(p.pl_catalog_product_images[0]||{}).url,imgIds:p.pl_catalog_product_images.map(i=>i.id),
 imageMeta:p.pl_catalog_product_images.map(i=>({id:i.id,url:i.url,variantName:i.variant_name}))}));
@@ -51,16 +51,21 @@ await page.locator('#admin-variacoes-lista input[type=file]').last().setInputFil
 await page.waitForTimeout(80);
 }
 await page.locator('.variant-order').nth(1).locator('button').first().dispatchEvent('click');
-await page.evaluate(()=>{$('#admin-name').value='Armação';$('#admin-original-price').value='99,90';$('#admin-featured').checked=true;});
+await page.evaluate(()=>{$('#admin-name').value='Armação';$('#admin-unit').value='Centro';$('#admin-original-price').value='99,90';$('#admin-featured').checked=true;});
 await page.evaluate(()=>qa.save(true));
 assert.equal(await page.evaluate(()=>rows[0].is_active),true);
 assert.equal(await page.evaluate(()=>rows[0].pl_catalog_product_images[0].variant_name),'Azul');
 assert.equal(await page.evaluate(()=>rows[0].is_featured),true);
+assert.equal(await page.evaluate(()=>rows[0].unit_name),'Centro');
 await page.locator('.ai-duplicate').first().dispatchEvent('click');await page.waitForTimeout(100);
 assert.equal(await page.evaluate(()=>rows.length),2);
 assert.equal(await page.evaluate(()=>rows[1].is_active),false);
 assert.equal(await page.locator('#admin-name').inputValue(),'Armação (cópia)');
 assert.equal(await page.locator('.admin-variacao').count(),2);
+assert.equal(await page.locator('#admin-unit').inputValue(),'Centro');
+await page.locator('#admin-unit').fill('Shopping');
+await page.evaluate(()=>qa.save(false));
+assert.equal(await page.evaluate(()=>rows[1].unit_name),'Shopping');
 // Batch requires explicit review; only checked field is sent.
 await page.locator('#bulk-all').dispatchEvent('click');
 await page.evaluate(()=>{$('#bulk-all').checked=true;$('#bulk-all').dispatchEvent(new Event('change'));$('#bulk-featured').value='false'});

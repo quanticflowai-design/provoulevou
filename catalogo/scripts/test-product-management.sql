@@ -20,11 +20,12 @@ BEGIN
  END;
  INSERT INTO pl_catalog_product_images(product_id,url,position,is_primary,variant_name) VALUES(pid,'https://example.invalid/one.jpg',1,true,'Preto') RETURNING id INTO img1;
  INSERT INTO pl_catalog_product_images(product_id,url,position,is_primary,variant_name) VALUES(pid,'https://example.invalid/two.jpg',2,false,'Azul') RETURNING id INTO img2;
- result=pl_catalog_manage(sid,'save',jsonb_build_object('id',pid,'name','QA','original_price',100,'is_active',true,'is_featured',true,
+ result=pl_catalog_manage(sid,'save',jsonb_build_object('id',pid,'name','QA','unit_name','Centro','original_price',100,'is_active',true,'is_featured',true,
    'images',jsonb_build_array(jsonb_build_object('id',img2,'variant_name','Azul'),jsonb_build_object('id',img1,'variant_name','Preto'))));
  IF NOT(SELECT is_primary AND position=1 FROM pl_catalog_product_images WHERE id=img2) THEN RAISE EXCEPTION 'Cover order failed'; END IF;
  copyid=(pl_catalog_manage(sid,'duplicate',jsonb_build_object('id',pid,'request_id','qa-duplicate'))->>'id')::uuid;
  IF (SELECT is_active FROM pl_catalog_products WHERE id=copyid) OR (SELECT count(*) FROM pl_catalog_product_images WHERE product_id=copyid)<>2 THEN RAISE EXCEPTION 'Clone failed'; END IF;
+ IF (SELECT unit_name FROM pl_catalog_products WHERE id=copyid) IS DISTINCT FROM 'Centro' THEN RAISE EXCEPTION 'Unit clone failed'; END IF;
  PERFORM pl_catalog_manage(sid,'bulk',jsonb_build_object('ids',jsonb_build_array(pid,copyid),'original_price',120,'is_featured',false));
  IF (SELECT count(*) FROM pl_catalog_products WHERE id IN(pid,copyid) AND original_price=120 AND NOT is_featured)<>2 THEN RAISE EXCEPTION 'Bulk failed'; END IF;
  BEGIN
