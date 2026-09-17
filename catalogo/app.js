@@ -2249,9 +2249,12 @@
     const tel = String(telefone || (storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
     if (!tel) { openCheckout(); return; }
     const num = tel.length <= 11 ? '55' + tel : tel;
+    const unidade = STORE_SLUG === 'oticasprimemagrini'
+      ? LOJAS_COMPRA_WHATSAPP.oticasprimemagrini.find(loja => loja.telefone === num) : null;
     const txt = 'Oi! Provei o ' + nomeProdutoAtual() +
       (current && numeroPositivo(precoProduto(current)) ? ' (' + brl(precoProduto(current)) + ')' : '') +
-      ' no provador virtual da ' + STORE.name + ' e quero comprar.';
+      ' no provador virtual da ' + STORE.name + ' e quero comprar' +
+      (unidade ? ' na unidade ' + unidade.rotulo : '') + '.';
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
   }
   $('#btn-buy').addEventListener('click', e => comprarNoWhatsapp(e.currentTarget.dataset.telefone));
