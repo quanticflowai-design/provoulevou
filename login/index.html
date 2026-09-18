@@ -4079,6 +4079,9 @@
                             style="margin-left:auto;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text-main);font-size:13px;cursor:pointer;outline:none;">
                             <option value="">Todos os responsáveis</option>
                         </select>
+                        <button id="crmBulkMoveBtn" class="btn-download crm-provador-only" onclick="openCrmBulkMoveModal()" title="Mover vários leads de uma etapa para outra">
+                            <i class="ph-bold ph-arrows-left-right"></i> Mover em massa
+                        </button>
                         <button id="crmTeamPanelBtn" class="btn-download crm-provador-only" onclick="toggleCrmTeamPanel()" title="Ver desempenho por responsável">
                             <i class="ph-bold ph-chart-bar"></i> Desempenho do time
                         </button>
@@ -6014,6 +6017,28 @@
                     <div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:18px;">
                         <button onclick="closeCrmTeamModal()" style="background:transparent;border:1px solid #d1d5db;color:#555;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">Cancelar</button>
                         <button onclick="saveCrmTeam()" style="background:#7c3aed;border:0;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Salvar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Mover em massa (CRM) -->
+            <div id="crmBulkMoveModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+                <div style="background:#ffffff;color:#111;border:1px solid #e5e7eb;border-radius:14px;max-width:460px;width:100%;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                        <h3 style="margin:0;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;">
+                            <i class="ph-bold ph-arrows-left-right" style="color:#7c3aed;"></i> Mover leads em massa
+                        </h3>
+                        <button onclick="closeCrmBulkMoveModal()" style="background:transparent;border:0;color:#888;cursor:pointer;font-size:20px;line-height:1;padding:4px;">&times;</button>
+                    </div>
+                    <p style="font-size:13px;color:#555;margin:0 0 16px;">Move todos os leads de uma etapa para outra de uma vez. Se um filtro de responsável estiver ativo, move só os desse responsável.</p>
+                    <label style="display:block;font-size:12px;font-weight:600;color:#666;margin-bottom:5px;">Da etapa</label>
+                    <select id="crmBulkFrom" onchange="crmBulkMoveUpdateCount()" style="width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;color:#111;background:#fff;margin-bottom:14px;"></select>
+                    <label style="display:block;font-size:12px;font-weight:600;color:#666;margin-bottom:5px;">Para a etapa</label>
+                    <select id="crmBulkTo" style="width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;color:#111;background:#fff;margin-bottom:16px;"></select>
+                    <div id="crmBulkMoveCount" style="font-size:13px;color:#7c3aed;font-weight:600;margin-bottom:16px;"></div>
+                    <div style="display:flex;gap:10px;justify-content:flex-end;">
+                        <button onclick="closeCrmBulkMoveModal()" style="background:transparent;border:1px solid #d1d5db;color:#555;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;">Cancelar</button>
+                        <button id="crmBulkMoveApplyBtn" onclick="crmBulkMoveApply()" style="background:#7c3aed;border:0;color:#fff;padding:9px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Mover</button>
                     </div>
                 </div>
             </div>
@@ -20006,6 +20031,89 @@
             _crmRespFilter = val || '';
             renderCrmBoard();
         }
+
+        // ===== Mover leads em massa (De etapa -> Para etapa) =====
+        // Telefones cuja etapa ATUAL (mesma regra do board) é stageKey, respeitando o
+        // filtro de responsável ativo. Compradores ficam presos em Convertido pela regra
+        // do board, então não são "arrastáveis" pra fora dela.
+        function _crmPhonesInStage(stageKey) {
+            if (!crmLeadMapCache || !stageKey) return [];
+            const config = getCrmConfig(); const ov = getCrmOverrides(); const resp = getCrmResp();
+            const out = [];
+            for (const ph in crmLeadMapCache) {
+                const d = crmLeadMapCache[ph];
+                if (_crmRespFilter) {
+                    const who = resp[ph] || '';
+                    if (_crmRespFilter === '__none__') { if (who) continue; }
+                    else if (who !== _crmRespFilter) continue;
+                }
+                if (waLeadStageKey(ph, d, config, ov) === stageKey) out.push(ph);
+            }
+            return out;
+        }
+        function _crmColTitle(key) {
+            const c = (getCrmConfig().columns || []).find(x => x.key === key);
+            return c ? c.title : key;
+        }
+        function openCrmBulkMoveModal() {
+            const cfg = getCrmConfig();
+            const cols = cfg.columns || [];
+            const opt = cols.map(c => '<option value="' + escapeHtml(c.key) + '">' + escapeHtml(c.title) + '</option>').join('');
+            const from = document.getElementById('crmBulkFrom');
+            const to = document.getElementById('crmBulkTo');
+            if (from) from.innerHTML = opt;
+            if (to) to.innerHTML = opt;
+            // padrão: De = 1ª coluna, Para = 2ª (etapas diferentes)
+            if (to && cols.length > 1) to.value = cols[1].key;
+            crmBulkMoveUpdateCount();
+            const m = document.getElementById('crmBulkMoveModal');
+            if (m) { if (m.parentElement !== document.body) document.body.appendChild(m); m.style.display = 'flex'; }
+        }
+        function closeCrmBulkMoveModal() {
+            const m = document.getElementById('crmBulkMoveModal'); if (m) m.style.display = 'none';
+        }
+        function crmBulkMoveUpdateCount() {
+            const from = (document.getElementById('crmBulkFrom') || {}).value || '';
+            const n = _crmPhonesInStage(from).length;
+            const el = document.getElementById('crmBulkMoveCount');
+            if (el) el.textContent = n === 1 ? '1 lead nesta etapa' : (n + ' leads nesta etapa');
+            const btn = document.getElementById('crmBulkMoveApplyBtn');
+            if (btn) { btn.disabled = n === 0; btn.style.opacity = n === 0 ? '.5' : '1'; }
+        }
+        async function crmBulkMoveApply() {
+            const from = (document.getElementById('crmBulkFrom') || {}).value || '';
+            const to = (document.getElementById('crmBulkTo') || {}).value || '';
+            if (!from || !to) return;
+            if (from === to) { try { crmToast('Escolha etapas diferentes.', true); } catch (e) {} return; }
+            const phones = _crmPhonesInStage(from);
+            if (!phones.length) { try { crmToast('Nenhum lead nessa etapa.', true); } catch (e) {} return; }
+            if (!confirm('Mover ' + phones.length + ' lead(s) de "' + _crmColTitle(from) + '" para "' + _crmColTitle(to) + '"?')) return;
+            const btn = document.getElementById('crmBulkMoveApplyBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Movendo…'; }
+            // 1) local (instantâneo) + 2) grava no banco em lotes
+            const ov = getCrmOverrides();
+            phones.forEach(ph => { ov[ph] = to; });
+            setCrmOverrides(ov);
+            renderCrmBoard();
+            const email = crmScopeEmail();
+            const nowIso = new Date().toISOString();
+            const rows = phones.map(ph => ({ lojista_email: email, telefone: ph, column_key: to, updated_at: nowIso }));
+            let erro = null;
+            for (let i = 0; i < rows.length; i += 500) {
+                try {
+                    const { error } = await supabaseClient.from('crm_lead_overrides')
+                        .upsert(rows.slice(i, i + 500), { onConflict: 'lojista_email,telefone' });
+                    if (error) erro = error;
+                } catch (e) { erro = e; }
+            }
+            if (btn) { btn.disabled = false; btn.textContent = 'Mover'; }
+            closeCrmBulkMoveModal();
+            try {
+                if (erro) crmToast('Movi na tela, mas houve erro ao salvar: ' + (erro.message || erro), true);
+                else crmToast(phones.length + ' lead(s) movidos para "' + _crmColTitle(to) + '".', false);
+            } catch (e) {}
+        }
+
         function toggleCrmTeamPanel() {
             const p = document.getElementById('crmTeamPanel');
             if (!p) return;
