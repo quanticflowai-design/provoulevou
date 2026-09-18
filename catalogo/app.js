@@ -1546,6 +1546,9 @@
       fd.append('phone_raw', $('#phone-input').value);
       fd.append('product_name', nomeProdutoAtual());
       fd.append('product_type', cat);
+      // Unidade/loja do produto (só quem cadastra por unidade usa, ex.: Magrini):
+      // vai pro disparo do grupo pra equipe saber de qual loja é o produto provado.
+      if (current && current.unit) fd.append('product_unit', current.unit);
       fd.append('api_key', chave);
       // Sem isto toda prova de catálogo grava origin 'https://provoulevou.com.br',
       // igual pra todas as lojas — impossível saber de quem cobrar depois.
