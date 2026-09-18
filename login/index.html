@@ -19454,6 +19454,46 @@
                     } catch (e) { console.warn('[crm] carrinho abandonado falhou:', e); }
                 }
 
+                // === Carrinho abandonado SHOPIFY (tabela abandoned_checkouts_shopify) ===
+                // Lojas Shopify (ex.: Cand) gravam os carrinhos numa tabela SEPARADA — a de
+                // Nuvemshop acima casa pela origem na URL, mas a URL do Shopify é *.myshopify.com
+                // (não contém a origem real), então aqui filtramos pela coluna `origem` que a
+                // automação [<Loja>] Carrinhos Abandonados Shopify preenche. Mesma regra do bloco
+                // acima: casa por telefone → grava o link no lead; não casa → lead novo (0 provas).
+                if (user.origem) {
+                    try {
+                        const nowBRs = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+                        const monthStartS = nowBRs.getFullYear() + '-' + String(nowBRs.getMonth() + 1).padStart(2, '0') + '-01T00:00:00-03:00';
+                        const chkS = [];
+                        let csFrom = 0; const csPage = 1000;
+                        while (true) {
+                            const { data: cbs } = await supabaseClient
+                                .from('abandoned_checkouts_shopify')
+                                .select('contact_phone,contact_name,abandoned_checkout_url,created_at,updated_at')
+                                .ilike('origem', '%' + user.origem + '%')
+                                .is('completed_at', null)
+                                .is('recovered_at', null)
+                                .gte('created_at', monthStartS)
+                                .order('updated_at', { ascending: false })
+                                .range(csFrom, csFrom + csPage - 1);
+                            if (!cbs || cbs.length === 0) break;
+                            chkS.push(...cbs);
+                            if (cbs.length < csPage) break;
+                            csFrom += csPage;
+                        }
+                        chkS.forEach(c => {
+                            if (!c.abandoned_checkout_url) return;
+                            const rawPh = c.contact_phone;
+                            const ph = normalize(rawPh);
+                            if (!ph) return;
+                            if (!leadMap[ph]) {
+                                leadMap[ph] = { provaCount: 0, uniqueDates: new Set(), lastDate: (c.created_at || '').slice(0, 10), firstDate: '', lastProduct: '', lastProductUrl: '', checkoutUrl: '', rawPhone: rawPh || ph, bought: false, jaCliente: false, clicked: false, name: (c.contact_name || '').split(' ')[0] || '' };
+                            }
+                            if (!leadMap[ph].checkoutUrl) leadMap[ph].checkoutUrl = c.abandoned_checkout_url;
+                        });
+                    } catch (e) { console.warn('[crm] carrinho abandonado shopify falhou:', e); }
+                }
+
                 // === Leads importados manualmente (planilha) ===
                 // Injeta como lead novo (0 provas). A coluna de destino já está gravada em
                 // crm_lead_overrides, então o board os coloca na etapa escolhida. Se depois
