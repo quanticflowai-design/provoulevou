@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=109">
+  <link rel="stylesheet" href="styles.css?v=110">
 </head>
 <body>
   <div id="app">
@@ -400,6 +400,15 @@
         <div class="tema-box" id="tema-box">
           <h3 class="tema-tit">Aparencia do catalogo</h3>
           <p class="tema-sub">Escolha as cores da sua loja. A previa muda enquanto voce mexe.</p>
+          <div class="tema-logo">
+            <span class="tema-logo-label">Logo da loja</span>
+            <div class="tema-logo-linha">
+              <img id="tema-logo-preview" class="tema-logo-img" alt="" hidden>
+              <span id="tema-logo-vazio" class="tema-logo-vazio">Sem logo</span>
+              <button type="button" class="btn-outline" id="btn-trocar-logo">Trocar logo</button>
+            </div>
+            <input type="file" id="input-logo" accept="image/*" hidden>
+          </div>
           <div class="tema-campos">
             <label class="tema-campo"><span>Fundo da pagina</span>
               <span class="tema-cor-controles"><input type="color" id="tema-bg">

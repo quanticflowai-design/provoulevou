@@ -31,6 +31,7 @@
   const WH_DEL_PRODUCT = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-product-delete';
   const WH_EDIT_PRODUCT = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-product-update';
   const WH_ADD_IMAGE = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-product-image';
+  const WH_LOGO = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-logo';
   const WH_THEME = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-theme';
   const MAX_FOTOS_PRODUTO = 5;   // teto: além disso o cadastro fica lento e o ganho some
   // slug da loja: ?loja=<slug> na URL (cada lojista tem o seu link)
@@ -770,7 +771,59 @@
       if (el && hex) el.value = hex;
       if (codigo && hex) codigo.value = hex;
     });
+    renderLogoPreview();
     avisaContraste();
+  }
+
+  // Mostra o logo atual da loja no painel (ou "Sem logo").
+  function renderLogoPreview() {
+    const prev = $('#tema-logo-preview'), vazio = $('#tema-logo-vazio');
+    const url = storeRow && storeRow.logo_url;
+    if (prev) {
+      if (url) { prev.src = url; prev.hidden = false; if (vazio) vazio.hidden = true; }
+      else { prev.hidden = true; if (vazio) vazio.hidden = false; }
+    }
+  }
+
+  // Troca do logo: sobe a imagem pro Storage (webhook) e atualiza logo_url da
+  // loja. Vale na hora, sem deploy — é o único jeito do lojista trocar sozinho.
+  {
+    const btn = $('#btn-trocar-logo'), inp = $('#input-logo');
+    if (btn && inp) {
+      btn.addEventListener('click', () => inp.click());
+      inp.addEventListener('change', async e => {
+        const file = (e.target.files || [])[0];
+        if (!file) return;
+        const txt = btn.textContent;
+        btn.disabled = true; btn.textContent = 'Enviando…';
+        try {
+          const b64 = await compressImage(file);
+          if (!b64) throw new Error('imagem inválida');
+          const r = await fetch(WH_LOGO, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ store_slug: STORE_SLUG, mime: 'image/jpeg', image_b64: b64 })
+          });
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          const d = await r.json();
+          const url = (d && d.logo_url) ? d.logo_url + '?t=' + Date.now() : null;
+          if (url && storeRow) storeRow.logo_url = url;
+          // atualiza a prévia e o logo do cabeçalho na hora
+          renderLogoPreview();
+          const lg = $('#brand-logo'), nomeTxt = $('#brand-name');
+          if (lg && url) {
+            lg.onerror = function () { lg.onerror = null; lg.hidden = true; if (nomeTxt) nomeTxt.hidden = false; };
+            lg.onload = function () { lg.hidden = false; if (nomeTxt) nomeTxt.hidden = true; };
+            lg.src = url;
+          }
+          toast('Logo atualizado ✓');
+        } catch (err) {
+          console.warn('[Provou Catálogo] erro ao trocar logo:', err);
+          toast('Não consegui trocar o logo. Tente de novo.');
+        } finally {
+          btn.disabled = false; btn.textContent = txt; inp.value = '';
+        }
+      });
+    }
   }
 
   // Aviso, não bloqueio: a decisão é do lojista. Mas texto claro em botão claro
