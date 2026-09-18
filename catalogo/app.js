@@ -566,7 +566,11 @@
           const sc = Math.min(1, MAX_UPLOAD_PX / Math.max(w, h));
           const c = document.createElement('canvas');
           c.width = Math.round(w * sc); c.height = Math.round(h * sc);
-          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          const ctx = c.getContext('2d');
+          // PNG com fundo transparente vira PRETO ao exportar JPEG — pinta branco antes.
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, c.width, c.height);
+          ctx.drawImage(img, 0, 0, c.width, c.height);
           c.toBlob(blob => {
             if (!blob) { resolve(null); return; }
             const reader = new FileReader();
