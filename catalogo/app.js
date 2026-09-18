@@ -525,6 +525,8 @@
         imgIds: imgs.map(x => x.id).filter(Boolean),   // quais apagar quando trocar a foto
         imageMeta: imgs.map(x => ({ id: x.id, url: x.url, variantName: (x.variant_name || '').trim() })),
         desc: r.description || '', unit: r.unit_name || '',
+        position: Number(r.position) || 0,  // ordem definida pelo lojista (setas ↑↓)
+        createdAt: r.created_at || '',
         cat: cats[0] || '',                 // compatibilidade com caches e links antigos
         cats: cats,                         // o produto pode aparecer em varias categorias
         parcelas: Number(r.parcelas) || 0,
@@ -677,10 +679,15 @@
     const grid = $('#catalog-grid');
     grid.innerHTML = '';
     const termo = textoBusca(buscaProduto);
+    // Link de unidade (?loja=alkatraz / ?u=): só os óculos daquela unidade.
+    // Produto sem unidade aparece em todas (produto "geral" da loja).
+    const fixa = unidadeFixa();
+    const slugFixa = fixa ? slugUnidade(fixa.rotulo) : null;
     const visiveis = catalog.filter(p =>
       (!catFiltro || produtoTemCategoria(p, catFiltro)) &&
-      (!termo || textoBusca(p.name).includes(termo))
-    ).sort((a, b) => Number(b.featured) - Number(a.featured));
+      (!termo || textoBusca(p.name).includes(termo)) &&
+      (!slugFixa || !p.unit || slugUnidade(p.unit) === slugFixa)
+    ).sort((a, b) => Number(b.featured) - Number(a.featured) || (a.position - b.position));
     visiveis.forEach(p => {
       // DOM seguro: nome do produto vem do lojista, nunca concatenar em HTML.
       const card = document.createElement('div');
@@ -1800,8 +1807,10 @@
     renderUnidadesCadastro();
     renderOrdemCategorias();
     $('#admin-count').textContent = adminCatalog.length + ' produtos · ' + adminCatalog.filter(p => !p.active).length + ' rascunhos';
+    // Mostra na mesma ordem da vitrine (posição definida pelas setas ↑↓); sem posição = mais novo primeiro.
+    adminCatalog.sort((a, b) => (a.position - b.position) || (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
     const list = $('#admin-list'); list.innerHTML = '';
-    adminCatalog.forEach(p => {
+    adminCatalog.forEach((p, indice) => {
       const item = document.createElement('div');
       item.className = 'admin-item';
       item.dataset.pid = p.id;
@@ -1860,15 +1869,49 @@
           toast('Cópia salva como rascunho. Revise e publique quando quiser.');
         } catch (e) { toast(e.message); } finally { duplicar.disabled = false; }
       });
+      const ordem = document.createElement('div'); ordem.className = 'ai-order';
+      const subir = document.createElement('button');
+      subir.type = 'button'; subir.className = 'ai-order-btn'; subir.textContent = '↑';
+      subir.title = 'Subir na vitrine'; subir.setAttribute('aria-label', 'Subir ' + p.name);
+      subir.disabled = indice === 0;
+      const descer = document.createElement('button');
+      descer.type = 'button'; descer.className = 'ai-order-btn'; descer.textContent = '↓';
+      descer.title = 'Descer na vitrine'; descer.setAttribute('aria-label', 'Descer ' + p.name);
+      descer.disabled = indice === adminCatalog.length - 1;
+      subir.addEventListener('click', () => moveProduct(indice, -1));
+      descer.addEventListener('click', () => moveProduct(indice, 1));
+      ordem.append(subir, descer);
       const acoes = document.createElement('div'); acoes.className = 'ai-actions';
       copiar.hidden = !p.active;
       acoes.append(editar, duplicar, copiar, del);
-      item.append(selecionar, foto, nome, preco, acoes);
+      item.append(selecionar, ordem, foto, nome, preco, acoes);
       bindImg(foto, p.img, p.name);
       del.addEventListener('click', () => { del.disabled = true; removeProduct(p.id); });
       list.appendChild(item);
     });
     atualizaSelecao();
+  }
+  let reordenando = false;
+  async function moveProduct(indice, dir) {
+    if (reordenando) return;
+    const alvo = indice + dir;
+    if (alvo < 0 || alvo >= adminCatalog.length) return;
+    reordenando = true;
+    document.querySelectorAll('.ai-order-btn').forEach(b => b.disabled = true);
+    const ordenados = adminCatalog.slice();
+    const tmp = ordenados[indice]; ordenados[indice] = ordenados[alvo]; ordenados[alvo] = tmp;
+    try {
+      await catalogManage('reorder', { ids: ordenados.map(p => p.id) });
+      ordenados.forEach((p, i) => { p.position = i + 1; });   // reflete já, sem recarregar
+      const porId = {}; ordenados.forEach(p => porId[p.id] = p.position);
+      catalog.forEach(p => { if (porId[p.id] != null) p.position = porId[p.id]; });
+      save();
+      renderAdmin(); renderCatalog();
+      toast('Ordem salva ✓');
+    } catch (e) {
+      toast(e.message || 'Não consegui salvar a ordem. Tente de novo.');
+      renderAdmin();
+    } finally { reordenando = false; }
   }
   async function removeProduct(id) {
     const antes = catalog.slice();
