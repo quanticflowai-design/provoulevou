@@ -4074,7 +4074,7 @@
                             <button id="crmSearchClear" onclick="crmSearch('');document.getElementById('crmSearchInput').value='';document.getElementById('crmSearchInput').focus();" title="Limpar"
                                 style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;line-height:1;">&times;</button>
                         </div>
-                        <span id="crmSearchCount" style="font-size:12px;color:var(--text-muted);"></span>
+                        <span id="crmSearchCount" style="font-size:12px;color:var(--text-muted);white-space:nowrap;flex-shrink:0;"></span>
                         <select id="crmRespFilter" class="crm-provador-only" onchange="crmFilterResp(this.value)" title="Filtrar por responsável"
                             style="margin-left:auto;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text-main);font-size:13px;cursor:pointer;outline:none;">
                             <option value="">Todos os responsáveis</option>
@@ -19744,7 +19744,8 @@
 
         function _lentesCrmSessoesVisiveis(sessoes) {
             const origem = String((activeUser && activeUser.origem) || '').toLowerCase();
-            if (!origem.includes('korosoculos.com.br')) return sessoes;
+            // Koros e Maxilook: esconde do CRM de lentes quem está SEM WhatsApp (não dá pra acionar).
+            if (!origem.includes('korosoculos.com.br') && !origem.includes('oticamaxilook.com.br')) return sessoes;
             return sessoes.filter(v => String(v.telefone || '').replace(/\D/g, '').length > 0);
         }
 
