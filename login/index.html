@@ -12437,16 +12437,16 @@
                 .filter(([, lead]) => !lead.bought && !lead.jaCliente)
                 .filter(([phone, lead]) => {
                     const st = waLeadStageKey(phone, lead, config, overrides);
-                    // Nunca dispara pra quem está em Convertido/Perdido — mesmo em "todas as etapas".
-                    // Assim, mover um lead pra Convertido (ex.: comprou com outro telefone) o tira
-                    // do disparo de forma confiável, independente do modo escolhido.
-                    if (st === 'convertido' || st === 'perdido') return false;
                     if (!stageKey || stageKey === 'all') {
-                        // "Todas as etapas": não inclui quem JÁ FOI CONTATADO (recebeu msg / respondeu /
+                        // "Todas as etapas": exclui Convertido/Perdido (mover pra lá tira o lead do
+                        // disparo de forma confiável) e quem JÁ FOI CONTATADO (recebeu msg / respondeu /
                         // em negociação). A etapa do CRM é a fonte da verdade da trava anti-repetição.
-                        // Pra re-mirar esses leads, escolha a etapa específica (ex.: "Mensagem 1") de propósito.
+                        // Pra re-mirar esses leads, escolha a etapa específica de propósito.
+                        if (st === 'convertido' || st === 'perdido') return false;
                         return st !== 'msg-1' && st !== 'msg-2' && st !== 'msg-3' && st !== 'em-contato' && st !== 'negociando';
                     }
+                    // Etapa escolhida de propósito (inclui Perdido): puxa os leads DAQUELA etapa.
+                    // Compradores já saíram no filtro !bought && !jaCliente acima.
                     return st === stageKey;
                 })
                 .map(([phone, lead]) => ({
