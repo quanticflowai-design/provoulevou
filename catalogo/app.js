@@ -728,6 +728,7 @@
     renderFiltros();
     renderSugestoesCategoria();
     renderLinksCategoria();
+    renderLinksUnidade();
   }
 
   {
@@ -964,6 +965,38 @@
         }
       });
       item.append(nome, qtd, btn);
+      lista.appendChild(item);
+    });
+  }
+
+  // Links por unidade (loja física). Só aparece pra loja que tem unidades.
+  function renderLinksUnidade() {
+    const box = $('#unidade-links'), lista = $('#unidade-links-lista');
+    if (!box || !lista) return;
+    const unidades = unidadesDaLoja();
+    box.hidden = unidades.length === 0;
+    lista.textContent = '';
+    unidades.forEach(u => {
+      const item = document.createElement('div'); item.className = 'cat-link-item';
+      const nome = document.createElement('span'); nome.className = 'cat-link-nome'; nome.textContent = u.rotulo;
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'cat-link-btn';
+      btn.title = 'Copiar link de ' + u.rotulo;
+      btn.setAttribute('aria-label', 'Copiar link da unidade ' + u.rotulo);
+      const tpl = $('#tpl-link');
+      if (tpl) btn.appendChild(tpl.content.cloneNode(true)); else btn.textContent = '🔗';
+      btn.addEventListener('click', async () => {
+        const url = linkUnidade(u);
+        try { await navigator.clipboard.writeText(url); toast('Link copiado ✓'); }
+        catch (e) {
+          const i = document.createElement('input');
+          i.value = url; document.body.appendChild(i); i.select();
+          try { document.execCommand('copy'); toast('Link copiado ✓'); }
+          catch (_) { toast('Copie: ' + url); }
+          i.remove();
+        }
+      });
+      item.append(nome, btn);
       lista.appendChild(item);
     });
   }
@@ -2298,11 +2331,32 @@
     ]
   };
 
+  // Link por unidade: cada loja física compartilha o seu, e nele só aparece o
+  // botão de compra dela. Sem o ?u= vale o comportamento antigo (todos os
+  // botões), pra não quebrar link já divulgado.
+  function slugUnidade(rotulo) {
+    return String(rotulo || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+  function unidadesDaLoja() { return LOJAS_COMPRA_WHATSAPP[STORE_SLUG] || []; }
+  function linkUnidade(u) {
+    return location.origin + location.pathname +
+      '?loja=' + encodeURIComponent(STORE_SLUG) + '&u=' + slugUnidade(u.rotulo);
+  }
+  function unidadeFixa() {
+    const p = new URLSearchParams(location.search).get('u');
+    if (!p) return null;
+    const alvo = slugUnidade(p);
+    return unidadesDaLoja().find(u => slugUnidade(u.rotulo) === alvo) || null;
+  }
+
   function configuraBotoesCompra() {
     const principal = $('#btn-buy'), secundario = $('#btn-buy-secondary');
     const labelPrincipal = $('#btn-buy-label'), labelSecundario = $('#btn-buy-secondary-label');
     if (!principal || !secundario) return;
-    const lojas = LOJAS_COMPRA_WHATSAPP[STORE_SLUG] || [];
+    // ?u= trava numa unidade só; sem ele, mostra todas (fallback)
+    const fixa = unidadeFixa();
+    const lojas = fixa ? [fixa] : (LOJAS_COMPRA_WHATSAPP[STORE_SLUG] || []);
     principal.dataset.telefone = lojas[0] && lojas[0].telefone || '';
     if (labelPrincipal) labelPrincipal.textContent = lojas.length
       ? 'Comprar — ' + lojas[0].rotulo : 'Comprar no WhatsApp';
