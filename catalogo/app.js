@@ -35,7 +35,19 @@
   const WH_THEME = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-theme';
   const MAX_FOTOS_PRODUTO = 5;   // teto: além disso o cadastro fica lento e o ganho some
   // slug da loja: ?loja=<slug> na URL (cada lojista tem o seu link)
-  const STORE_SLUG = (new URLSearchParams(location.search).get('loja') || 'lojateste').trim();
+  // Alias por unidade: ?loja=alkatraz abre a Magrini já travada na Alkatraz —
+  // link limpo, sem "oticasprimemagrini" nem &u=. Os links antigos
+  // (?loja=oticasprimemagrini&u=alkatraz) continuam valendo.
+  const UNIDADE_ALIAS = {
+    alkatraz:          { loja: 'oticasprimemagrini', rotulo: 'Alkatraz' },
+    magrini:           { loja: 'oticasprimemagrini', rotulo: 'Magrini' },
+    'outlet-araras':   { loja: 'oticasprimemagrini', rotulo: 'Outlet Araras' },
+    'outlet-cordeiro': { loja: 'oticasprimemagrini', rotulo: 'Outlet Cordeiro' }
+  };
+  const _lojaParam = (new URLSearchParams(location.search).get('loja') || 'lojateste').trim();
+  const _alias = UNIDADE_ALIAS[_lojaParam.toLowerCase()];
+  const STORE_SLUG = _alias ? _alias.loja : _lojaParam;
+  const UNIDADE_FIXA_ALIAS = _alias ? _alias.rotulo : null;
   // Gancho de CSS por loja: o app é um só, então ajuste que vale pra UMA loja
   // (e não pro tema claro/escuro inteiro) precisa de um seletor pra se prender.
   document.documentElement.classList.add('loja-' + STORE_SLUG.replace(/[^a-z0-9-]/gi, ''));
@@ -2340,10 +2352,12 @@
   }
   function unidadesDaLoja() { return LOJAS_COMPRA_WHATSAPP[STORE_SLUG] || []; }
   function linkUnidade(u) {
-    return location.origin + location.pathname +
-      '?loja=' + encodeURIComponent(STORE_SLUG) + '&u=' + slugUnidade(u.rotulo);
+    // Link limpo: ?loja=<slug-da-unidade> (o alias resolve pra loja + unidade).
+    return location.origin + location.pathname + '?loja=' + slugUnidade(u.rotulo);
   }
   function unidadeFixa() {
+    // 1º o alias do ?loja= (link limpo); depois o ?u= (link antigo, compatível).
+    if (UNIDADE_FIXA_ALIAS) return unidadesDaLoja().find(u => u.rotulo === UNIDADE_FIXA_ALIAS) || null;
     const p = new URLSearchParams(location.search).get('u');
     if (!p) return null;
     const alvo = slugUnidade(p);
