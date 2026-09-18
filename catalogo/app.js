@@ -1239,6 +1239,7 @@
   function categoriaDe(row) {
     const t = ((row && row.name) || '') + ' ' + ((row && row.description) || '');
     if (RE_OCULOS.test(t)) return 'oculos';
+    if (STORE_SLUG === 'prevedelloacessorios') return 'roupa';
     const c = String(row && row.categoria || '').toLowerCase().trim();
     if (c === 'oculos' || c === 'óculos') return 'oculos';
     if (c === 'roupa' && LOJAS_ROUPA.indexOf(STORE_SLUG) === -1) return 'oculos';
