@@ -4069,7 +4069,7 @@
                     <div style="margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                         <div style="position:relative;flex:1;min-width:240px;max-width:420px;">
                             <i class="ph-bold ph-magnifying-glass" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:16px;"></i>
-                            <input type="text" id="crmSearchInput" placeholder="Buscar por telefone ou nome…" oninput="crmSearch(this.value)" autocomplete="off"
+                            <input type="text" id="crmSearchInput" placeholder="Buscar por telefone, nome ou produto provado…" oninput="crmSearch(this.value)" autocomplete="off"
                                 style="width:100%;padding:11px 36px 11px 38px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text-main);font-size:14px;outline:none;">
                             <button id="crmSearchClear" onclick="crmSearch('');document.getElementById('crmSearchInput').value='';document.getElementById('crmSearchInput').focus();" title="Limpar"
                                 style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;line-height:1;">&times;</button>
@@ -12781,6 +12781,7 @@
             }
 
             let sent = 0, failed = 0;
+            const failedCrmPhones = [];
             const total = sendTargets.length;
             const update = () => {
                 document.getElementById('waBulkSent').textContent = sent;
@@ -12832,8 +12833,14 @@
                             name: lead.name,
                             meta_message_id: result.meta_message_id
                         });
-                    } else failed++;
-                } catch (e) { failed++; }
+                    } else {
+                        failed++;
+                        failedCrmPhones.push(lead.crmPhone || lead.phone);
+                    }
+                } catch (e) {
+                    failed++;
+                    failedCrmPhones.push(lead.crmPhone || lead.phone);
+                }
                 update();
             };
 
@@ -12851,6 +12858,17 @@
             }
             await Promise.all(workers);
 
+            // A reserva antes do envio evita duplicidade. Se a API rejeitar o envio,
+            // libera o lead para ele voltar à etapa automática correta.
+            let releasedFailures = 0;
+            if (failedCrmPhones.length) {
+                try {
+                    releasedFailures = await releaseFailedCrmMessage1(failedCrmPhones);
+                } catch (e) {
+                    console.warn('[disparos] não foi possível liberar falhas de Mensagem 1:', e);
+                }
+            }
+
             const movedMsg = markedMessage1
                 ? ' · ' + markedMessage1 + ' lead' + (markedMessage1 > 1 ? 's' : '') + ' reservado' + (markedMessage1 > 1 ? 's' : '') + ' em "Mensagem 1"'
                 : '';
@@ -12862,7 +12880,8 @@
                 note.style.cssText = 'margin-top:10px;font-size:12.5px;font-weight:600;color:#10b981;';
                 const skipMsg = skipNoLink.length ? ' · ' + skipNoLink.length + ' pulado' + (skipNoLink.length !== 1 ? 's' : '') + ' (sem link do produto salvo)' : '';
                 const boughtMsg = boughtSkipped ? ' · ' + boughtSkipped + ' pulado' + (boughtSkipped !== 1 ? 's' : '') + ' (já compraram)' : '';
-                note.innerHTML = '<i class="ph-bold ph-check-circle"></i> Disparo concluído: ' + sent + ' enviado' + (sent !== 1 ? 's' : '') + (failed ? ' · ' + failed + ' falha' + (failed !== 1 ? 's' : '') : '') + skipMsg + boughtMsg + movedMsg;
+                const releasedMsg = releasedFailures ? ' · ' + releasedFailures + ' falha' + (releasedFailures !== 1 ? 's' : '') + ' devolvida' + (releasedFailures !== 1 ? 's' : '') + ' ao CRM' : '';
+                note.innerHTML = '<i class="ph-bold ph-check-circle"></i> Disparo concluído: ' + sent + ' enviado' + (sent !== 1 ? 's' : '') + (failed ? ' · ' + failed + ' falha' + (failed !== 1 ? 's' : '') : '') + releasedMsg + skipMsg + boughtMsg + movedMsg;
                 fbEl.appendChild(note);
             }
             // Atualiza CRM + recarrega a aba Disparos (KPIs, histórico, gráficos)
@@ -18624,6 +18643,27 @@
             return 0;
         }
 
+        async function releaseFailedCrmMessage1(phones) {
+            const keys = [...new Set((phones || []).map(normalize).filter(Boolean))];
+            if (!keys.length || !supabaseClient || !activeUser) return 0;
+            const email = crmScopeEmail();
+            for (let i = 0; i < keys.length; i += 100) {
+                const { error } = await supabaseClient.from('crm_lead_overrides')
+                    .delete()
+                    .eq('lojista_email', email)
+                    .eq('column_key', 'msg-1')
+                    .in('telefone', keys.slice(i, i + 100));
+                if (error) throw error;
+            }
+            const ov = getCrmOverrides();
+            keys.forEach(phone => {
+                if (ov[phone] === 'msg-1') delete ov[phone];
+            });
+            _crmOverridesMem = ov;
+            try { localStorage.setItem(crmOverridesKey(), JSON.stringify(ov)); } catch(e) {}
+            return keys.length;
+        }
+
         // ============================================================
         // ===== Importar Leads (planilha CSV/XLSX → CRM) =============
         // ============================================================
@@ -20074,6 +20114,7 @@
                     if (phd.includes(qDigits) || rawd.includes(qDigits)) return true;
                 }
                 if ((d.name || '').toLowerCase().includes(q)) return true;
+                if ((d.lastProduct || '').toLowerCase().includes(q)) return true;   // busca pelo produto provado
                 return false;
             };
 
