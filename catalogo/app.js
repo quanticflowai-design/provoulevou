@@ -399,7 +399,11 @@
                 brand: '#FDC40D', dark: '#C99C0A', soft: 'rgba(253,196,13,.14)', on: '#000000',
                 cta: '#FDC40D', ctaDark: '#C99C0A', onCta: '#000000' },
     conceito: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EFE3E3',
-                brand: '#BE1D2C', dark: '#9E1622', soft: 'rgba(190,29,44,.10)', on: '#ffffff' }
+                brand: '#BE1D2C', dark: '#9E1622', soft: 'rgba(190,29,44,.10)', on: '#ffffff' },
+    won: { bg: '#FEF200', card: '#FFFFFF', line: '#E7DA3E',
+           brand: '#1A1A1A', dark: '#000000', soft: 'rgba(0,0,0,.06)', on: '#FFFFFF' },
+    charmeprime: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E3E6EF',
+                   brand: '#002464', dark: '#001A4A', soft: 'rgba(0,36,100,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
