@@ -397,7 +397,9 @@
     // Evita que os botões pisquem em roxo enquanto o tema salvo está carregando.
     oticaesm: { bg: '#000000', card: '#000000', line: 'rgba(253,196,13,.28)',
                 brand: '#FDC40D', dark: '#C99C0A', soft: 'rgba(253,196,13,.14)', on: '#000000',
-                cta: '#FDC40D', ctaDark: '#C99C0A', onCta: '#000000' }
+                cta: '#FDC40D', ctaDark: '#C99C0A', onCta: '#000000' },
+    conceito: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EFE3E3',
+                brand: '#BE1D2C', dark: '#9E1622', soft: 'rgba(190,29,44,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
