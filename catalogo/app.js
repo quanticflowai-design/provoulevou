@@ -405,7 +405,10 @@
     charmeprime: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E3E6EF',
                    brand: '#002464', dark: '#001A4A', soft: 'rgba(0,36,100,.10)', on: '#ffffff' },
     prevedelloacessorios: { bg: '#CFEAF7', card: '#FFFFFF', line: '#BBDDEC',
-                   brand: '#0E6E7E', dark: '#0A5461', soft: 'rgba(14,110,126,.10)', on: '#ffffff' }
+                   brand: '#0E6E7E', dark: '#0A5461', soft: 'rgba(14,110,126,.10)', on: '#ffffff' },
+    // Ver Livre Óculos: logo prata/branco sobre preto -> tema escuro (base dafflon).
+    verlivre: { bg: '#000000', card: '#101010', line: '#2A2A2A',
+                brand: '#FFFFFF', dark: '#D9D9D9', soft: 'rgba(255,255,255,.12)', on: '#000000' }
   };
 
   // ─────────── Tema ───────────
