@@ -1356,7 +1356,7 @@
   function categoriaDe(row) {
     const t = ((row && row.name) || '') + ' ' + ((row && row.description) || '');
     if (RE_OCULOS.test(t)) return 'oculos';
-    if (STORE_SLUG === 'prevedelloacessorios') return 'roupa';
+    if (STORE_SLUG === 'prevedelloacessorios') return 'oculos'; // joias: usa o gerador de óculos (prompt) c/ bloco de joia por título
     const c = String(row && row.categoria || '').toLowerCase().trim();
     if (c === 'oculos' || c === 'óculos') return 'oculos';
     if (c === 'roupa' && LOJAS_ROUPA.indexOf(STORE_SLUG) === -1) return 'oculos';
