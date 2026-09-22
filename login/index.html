@@ -19530,14 +19530,18 @@
                     });
                 } catch (e) { console.warn('[crm] importados falhou:', e); }
 
-                // === Pagamentos pendentes da Koros ===
+                // === Pagamentos pendentes (Koros, Santi, ...) ===
                 // Pedidos gerados na Nuvemshop com payment_status=pending entram no CRM mesmo
                 // quando a pessoa nunca usou o provador. Na prática, são principalmente PIX
                 // gerados e ainda não pagos. O pedido pago continua tendo prioridade e leva o
                 // cliente para Convertido quando ele também pertence às origens normais do CRM.
-                const isKorosCrm = String(user.origem || '').toLowerCase().indexOf('korosoculos.com.br') !== -1
-                    || user.tabela_pedidos === 'koros_orders';
-                if (isKorosCrm) {
+                // Lojas habilitadas pra esse bloco (origem OU tabela de pedidos):
+                const PAG_PENDENTE_ORIGENS = ['korosoculos.com.br', 'santieyewear.com.br'];
+                const PAG_PENDENTE_TABELAS = ['koros_orders', 'santi_orders'];
+                const _origLc = String(user.origem || '').toLowerCase();
+                const isPendingPaymentCrm = PAG_PENDENTE_ORIGENS.some(o => _origLc.indexOf(o) !== -1)
+                    || PAG_PENDENTE_TABELAS.indexOf(user.tabela_pedidos) !== -1;
+                if (isPendingPaymentCrm) {
                     try {
                         const pendingOrders = [];
                         let poFrom = 0; const poPage = 1000;
