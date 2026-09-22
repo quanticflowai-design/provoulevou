@@ -403,7 +403,9 @@
     won: { bg: '#FEF200', card: '#FFFFFF', line: '#E7DA3E',
            brand: '#1A1A1A', dark: '#000000', soft: 'rgba(0,0,0,.06)', on: '#FFFFFF' },
     charmeprime: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E3E6EF',
-                   brand: '#002464', dark: '#001A4A', soft: 'rgba(0,36,100,.10)', on: '#ffffff' }
+                   brand: '#002464', dark: '#001A4A', soft: 'rgba(0,36,100,.10)', on: '#ffffff' },
+    prevedelloacessorios: { bg: '#CFEAF7', card: '#FFFFFF', line: '#BBDDEC',
+                   brand: '#0E6E7E', dark: '#0A5461', soft: 'rgba(14,110,126,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
