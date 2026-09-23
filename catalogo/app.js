@@ -727,7 +727,11 @@
     // Link de unidade (?loja=alkatraz / ?u=): só os óculos daquela unidade.
     // Produto sem unidade aparece em todas (produto "geral" da loja).
     const fixa = unidadeFixa();
-    const slugFixa = fixa ? slugUnidade(fixa.rotulo) : null;
+    let slugFixa = fixa ? slugUnidade(fixa.rotulo) : null;
+    // Só filtra se algum produto usa MESMO essa unidade. Na Charme Prime o link
+    // é "Charme Prime"/"Órbita" mas o cadastro diz "Matriz" — filtrar escondia
+    // 7 de 10 produtos dos dois links.
+    if (slugFixa && !catalog.some(p => p.unit && slugUnidade(p.unit) === slugFixa)) slugFixa = null;
     const visiveis = catalog.filter(p =>
       (!catFiltro || produtoTemCategoria(p, catFiltro)) &&
       (!termo || textoBusca(p.name).includes(termo)) &&
@@ -1978,7 +1982,10 @@
       acoes.append(editar, duplicar, copiar, del);
       item.append(selecionar, ordem, foto, nome, preco, acoes);
       bindImg(foto, p.img, p.name);
-      del.addEventListener('click', () => { del.disabled = true; removeProduct(p.id); });
+      del.addEventListener('click', () => {
+        if (!confirm('Apagar "' + p.name + '" do catálogo? Isso não dá pra desfazer.')) return;
+        del.disabled = true; removeProduct(p.id);
+      });
       list.appendChild(item);
     });
     atualizaSelecao();
@@ -2011,11 +2018,10 @@
     if (linha) linha.classList.add('enviando');   // some só quando o servidor confirmar
     toast('Removendo…');
     try {
-      const r = await fetch(WH_DEL_PRODUCT, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ store_slug: STORE_SLUG, product_id: id })
-      });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+      // Apaga de verdade (fotos saem junto; provas ficam e seguem contando pra
+      // loja). O webhook antigo só desativava: o produto voltava como rascunho
+      // na lista e o lojista achava que o botão não funcionava.
+      await catalogManage('delete', { id });
       catalog = catalog.filter(p => p.id !== id); save();
       renderAdmin(); renderCatalog();
       toast('Produto removido ✓');
