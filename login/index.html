@@ -19274,6 +19274,73 @@
         }
 
         // ===== Modal de detalhes do lead (clique no card do CRM) =====
+        // Layout: cabeçalho (nome, telefone, status/etapa) + números rápidos + detalhes +
+        // tags de campanha/automação (clicáveis = filtram o CRM) + histórico de disparos
+        // (carregado sob demanda do whatsapp_send_log, casando pelos últimos 8 dígitos).
+        function _clmInjectCss() {
+            if (document.getElementById('crmLeadModalCss')) return;
+            const st = document.createElement('style');
+            st.id = 'crmLeadModalCss';
+            st.textContent = [
+                '#crmLeadModal{position:fixed;inset:0;background:rgba(10,8,20,.55);backdrop-filter:blur(6px);z-index:9997;align-items:center;justify-content:center;padding:20px;}',
+                '.clm{background:var(--card-bg);border:1px solid var(--border);border-radius:18px;width:100%;max-width:580px;max-height:min(88vh,860px);display:flex;flex-direction:column;box-shadow:0 30px 80px -20px rgba(0,0,0,.55);overflow:hidden;color:var(--text-main);}',
+                '.clm-head{padding:20px 22px 16px;display:flex;gap:14px;align-items:flex-start;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(124,58,237,.07),transparent);}',
+                '.clm-av{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;display:grid;place-items:center;font-weight:800;font-size:17px;flex-shrink:0;letter-spacing:.02em;}',
+                '.clm-id{min-width:0;flex:1;}',
+                '.clm-name{font-weight:700;font-size:17px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+                '.clm-phone{font-size:12.5px;color:var(--text-muted);font-variant-numeric:tabular-nums;margin-top:2px;}',
+                '.clm-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;}',
+                '.clm-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;display:inline-flex;align-items:center;gap:4px;}',
+                '.clm-x{background:transparent;border:none;color:var(--text-muted);font-size:22px;cursor:pointer;line-height:1;padding:4px 6px;border-radius:8px;}',
+                '.clm-x:hover{background:rgba(127,127,127,.12);color:var(--text-main);}',
+                '.clm-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);}',
+                '.clm-stat{background:var(--card-bg);padding:12px 16px;}',
+                '.clm-stat:first-child{padding-left:22px;}',
+                '.clm-stat b{display:block;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;}',
+                '.clm-stat span{font-size:11.5px;color:var(--text-muted);}',
+                '.clm-body{overflow-y:auto;padding:2px 22px 8px;flex:1;}',
+                '.clm-sec{padding:16px 0 8px;}',
+                '.clm-sec + .clm-sec{border-top:1px solid var(--border);}',
+                '.clm-sec h4{margin:0 0 11px;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);display:flex;align-items:center;justify-content:space-between;gap:8px;}',
+                '.clm-sum{font-size:11.5px;font-weight:600;text-transform:none;letter-spacing:0;}',
+                '.clm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;}',
+                '.clm-f{min-width:0;}',
+                '.clm-f.full{grid-column:1/-1;}',
+                '.clm-f label{display:block;font-size:11.5px;color:var(--text-muted);margin-bottom:3px;}',
+                '.clm-f .v{font-size:13.5px;font-weight:600;overflow-wrap:anywhere;}',
+                '.clm-f a{color:#7c3aed;text-decoration:none;}',
+                '.clm-f a:hover{text-decoration:underline;}',
+                '.clm-f select{font-weight:600;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:6px 8px;background:var(--card-bg);color:var(--text-main);cursor:pointer;width:100%;}',
+                '.clm-tags{display:flex;flex-wrap:wrap;gap:6px;}',
+                '.clm-tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:99px;cursor:pointer;border:1px solid;font-family:inherit;max-width:100%;}',
+                '.clm-tag span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+                '.clm-tag.camp{color:#7c3aed;background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.25);}',
+                '.clm-tag.auto{color:#0891b2;background:rgba(8,145,178,.08);border-color:rgba(8,145,178,.25);}',
+                '.clm-tag:hover{filter:brightness(1.12);}',
+                '.clm-empty{font-size:13px;color:var(--text-muted);padding:2px 0 6px;}',
+                '.clm-ev{display:grid;grid-template-columns:32px 1fr auto;gap:11px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--border);}',
+                '.clm-ev:last-child{border-bottom:none;}',
+                '.clm-ev-ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:15px;}',
+                '.clm-ev-ic.camp{background:rgba(124,58,237,.1);color:#7c3aed;}',
+                '.clm-ev-ic.auto{background:rgba(8,145,178,.1);color:#0891b2;}',
+                '.clm-ev-ic.other{background:rgba(127,127,127,.12);color:var(--text-muted);}',
+                '.clm-ev-t{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+                '.clm-ev-s{font-size:11.5px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}',
+                '.clm-ev-r{text-align:right;}',
+                '.clm-ev-d{font-size:11.5px;color:var(--text-muted);margin-top:4px;font-variant-numeric:tabular-nums;white-space:nowrap;}',
+                '.clm-pill{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap;}',
+                '.clm-pill.read{color:#2563eb;background:rgba(37,99,235,.1);}',
+                '.clm-pill.delivered{color:#059669;background:rgba(5,150,105,.1);}',
+                '.clm-pill.sent{color:var(--text-muted);background:rgba(127,127,127,.12);}',
+                '.clm-pill.failed{color:#dc2626;background:rgba(220,38,38,.1);cursor:help;}',
+                '.clm-foot{padding:14px 22px 18px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;}',
+                '.clm-btn{flex:1;min-width:150px;text-align:center;border-radius:11px;padding:11px;font-weight:700;font-size:13px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;}',
+                '.clm-btn.sec{background:rgba(124,58,237,.08);color:#7c3aed;border:1px solid rgba(124,58,237,.25);}',
+                '.clm-btn.wa{background:#25D366;color:#fff;}',
+                '@media (max-width:520px){#crmLeadModal{padding:10px;}.clm-grid{grid-template-columns:1fr}.clm-stat{padding:10px 12px}.clm-stat:first-child{padding-left:16px}.clm-stat b{font-size:16px}.clm-head{padding:16px}.clm-body{padding:2px 16px 8px}.clm-foot{padding:12px 16px 16px}}'
+            ].join('\n');
+            document.head.appendChild(st);
+        }
         function crmFmtDate(d) {
             if (!d) return '—';
             const p = String(d).slice(0, 10).split('-');
@@ -19288,73 +19355,154 @@
             const map = { cold: 'Provou e não comprou', multiplas: 'Provou + de 1 vez', reengajou: 'Re-engajou', voltou: 'Voltou outro dia', convertido: 'Convertido' };
             return map[colKey] || '—';
         }
+        const _CLM_SRC = { campanha: 'Campanha', recorrente: 'Campanha diária', massa: 'Disparo em massa', automacao: 'Automação', individual: 'Mensagem individual' };
+        const _CLM_ST = { read: 'Lido', delivered: 'Entregue', sent: 'Enviado', failed: 'Falhou' };
+        function _clmFmtDT(iso) {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            if (isNaN(d.getTime())) return String(iso).slice(0, 16);
+            return d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+        }
+        let _clmReqId = 0;
         function openCrmLeadModal(lead, colKey) {
+            _clmInjectCss();
             let ov = document.getElementById('crmLeadModal');
             if (!ov) {
                 ov = document.createElement('div');
                 ov.id = 'crmLeadModal';
-                ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:9997;display:flex;align-items:center;justify-content:center;padding:20px;';
                 ov.addEventListener('click', (e) => { if (e.target === ov) ov.style.display = 'none'; });
+                document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && ov.style.display !== 'none') ov.style.display = 'none'; });
                 document.body.appendChild(ov);
             }
             const phoneDigits = String(lead.rawPhone || lead.phone || '').replace(/\D/g, '');
-            const phoneFmt = phoneDigits ? ('+' + phoneDigits) : '—';
+            const phoneFmt = phoneDigits ? ((typeof _fmtTelBR === 'function') ? _fmtTelBR(phoneDigits) : ('+' + phoneDigits)) : 'Sem WhatsApp';
             const url = lead.lastProductUrl || '';
             const hasUrl = url && /^https?:\/\//.test(url);
             const wpp = crmWppLink(lead.rawPhone || lead.phone, lead.lastProduct);
-            const canSend = _waConfigCache && _waConfigCache.status === 'connected' && _waConfigCache.default_template;
-            const boughtBadge = lead.bought
-                ? '<span style="background:rgba(16,185,129,.12);color:#10b981;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;"><i class="ph-bold ph-check-circle"></i> Convertido</span>'
-                : (lead.pendingPayment
-                    ? '<span style="background:rgba(245,158,11,.12);color:#d97706;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;"><i class="ph-bold ph-hourglass-medium"></i> Pagamento pendente</span>'
-                : (lead.jaCliente
-                    ? '<span style="background:rgba(217,119,6,.12);color:#d97706;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;"><i class="ph-bold ph-warning"></i> Já é cliente (comprou antes da prova)</span>'
-                    : '<span style="background:rgba(124,58,237,.1);color:#7c3aed;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;">Não comprou</span>'));
+            const nm = String(lead.name || '').trim();
+            const initials = nm ? nm.split(/\s+/).slice(0, 2).map(w => w.charAt(0)).join('').toUpperCase() : '';
 
-            const row = (label, val) => '<div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text-muted);">' + label + '</span><span style="font-weight:600;text-align:right;">' + val + '</span></div>';
+            const badge = (txt, color, bg, icon) => '<span class="clm-badge" style="color:' + color + ';background:' + bg + ';"><i class="ph-bold ' + icon + '"></i> ' + txt + '</span>';
+            const statusB = lead.bought ? badge('Convertido', '#059669', 'rgba(16,185,129,.12)', 'ph-check-circle')
+                : lead.pendingPayment ? badge('Pagamento pendente', '#d97706', 'rgba(245,158,11,.12)', 'ph-hourglass-medium')
+                : lead.jaCliente ? badge('Já é cliente', '#d97706', 'rgba(217,119,6,.12)', 'ph-warning')
+                : badge('Não comprou', '#7c3aed', 'rgba(124,58,237,.1)', 'ph-circle');
+            const stageB = badge(escapeHtml(crmStageTitle(colKey)), 'var(--text-main)', 'rgba(127,127,127,.12)', 'ph-kanban');
 
-            const produtoLinkHtml = lead.lastProduct
+            const f = (label, html, full) => '<div class="clm-f' + (full ? ' full' : '') + '"><label>' + label + '</label><div class="v">' + html + '</div></div>';
+            const produtoHtml = lead.lastProduct
                 ? (hasUrl
-                    ? '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" style="color:#7c3aed;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;word-break:break-all;text-align:right;">' + escapeHtml(lead.lastProduct) + ' <i class="ph-bold ph-arrow-square-out"></i></a>'
-                    : escapeHtml(lead.lastProduct) + ' <span style="color:var(--text-muted);font-size:11px;">(sem link salvo)</span>')
+                    ? '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' + escapeHtml(lead.lastProduct) + ' <i class="ph-bold ph-arrow-square-out"></i></a>'
+                    : escapeHtml(lead.lastProduct) + ' <span style="color:var(--text-muted);font-weight:500;font-size:12px;">(sem link salvo)</span>')
                 : '—';
 
-            // Seletor de responsável no modal
             const _mResp = getCrmResp()[lead.phone] || '';
             const _mTeam = getCrmTeam().slice();
             if (_mResp && !_mTeam.includes(_mResp)) _mTeam.push(_mResp);
-            const respSelectHtml = '<select onchange="crmModalSetResp(this,\'' + String(lead.phone).replace(/[^0-9]/g,'') + '\')" style="font-weight:600;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:5px 8px;background:var(--card-bg);color:var(--text-main);cursor:pointer;max-width:200px;">'
+            const respSelectHtml = '<select onchange="crmModalSetResp(this,\'' + String(lead.phone).replace(/[^0-9]/g, '') + '\')">'
                 + '<option value="">— sem responsável —</option>'
                 + _mTeam.map(n => '<option value="' + escapeHtml(n) + '"' + (n === _mResp ? ' selected' : '') + '>' + escapeHtml(n) + '</option>').join('')
                 + '</select>';
 
-            ov.innerHTML = '<div style="background:var(--card-bg);border:1px solid var(--border-strong,var(--border));border-radius:16px;max-width:440px;width:100%;box-shadow:0 24px 60px -12px rgba(0,0,0,.5);overflow:hidden;">'
-                + '<div style="padding:20px 22px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">'
-                +   '<div style="display:flex;align-items:center;gap:11px;min-width:0;">'
-                +     '<div style="width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,#7c3aed,#a78bfa);display:grid;place-items:center;color:#fff;font-size:20px;flex-shrink:0;"><i class="ph-bold ph-user"></i></div>'
-                +     '<div style="min-width:0;"><div style="font-weight:700;font-size:16px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(lead.name || phoneFmt) + '</div>'
-                +     '<div style="font-size:12px;color:var(--text-muted);font-family:ui-monospace,monospace;">' + escapeHtml(phoneFmt) + '</div></div>'
-                +   '</div>'
-                +   '<button onclick="document.getElementById(\'crmLeadModal\').style.display=\'none\'" style="background:transparent;border:none;color:var(--text-muted);font-size:24px;cursor:pointer;line-height:1;padding:0;">&times;</button>'
+            const details = f('Responsável', respSelectHtml)
+                + f('Etapa atual', escapeHtml(crmStageTitle(colKey)))
+                + f(lead.pendingPayment && !lead.provaCount ? 'Produto do pedido' : 'Produto provado', produtoHtml, true)
+                + (lead.provaCount ? f('Primeira prova', crmFmtDate(lead.firstDate)) + f('Última prova', crmFmtDate(lead.lastDate)) : '')
+                + (lead.pendingPayment ? f('Pagamento gerado', crmFmtDate(lead.pendingPaymentDate)) + f('Forma de pagamento', escapeHtml(String(lead.pendingPaymentMethod || 'Não informada').toUpperCase())) + f('Valor pendente', _brl(lead.pendingPaymentAmount || 0)) : '');
+
+            const tagEntries = _crmCampaignTags[lead.phone] ? Object.entries(_crmCampaignTags[lead.phone]) : [];
+            const tagsHtml = tagEntries.length
+                ? '<div class="clm-tags">' + tagEntries.map(([sid, t]) => {
+                    const isAuto = t.origem === 'Automação';
+                    return '<button type="button" class="clm-tag ' + (isAuto ? 'auto' : 'camp') + '" title="' + escapeHtml(t.origem) + ' — clique pra filtrar o CRM por ela" onclick="crmModalFilterTag(\'' + String(sid).replace(/[^a-zA-Z0-9-]/g, '') + '\')">'
+                        + '<i class="ph-bold ' + (isAuto ? 'ph-robot' : 'ph-megaphone') + '"></i><span>' + escapeHtml(t.nome || t.origem) + '</span></button>';
+                }).join('') + '</div>'
+                : '<div class="clm-empty">Este lead ainda não recebeu nenhuma campanha ou automação.</div>';
+
+            ov.innerHTML = '<div class="clm" role="dialog" aria-modal="true" aria-label="Detalhes do lead">'
+                + '<div class="clm-head">'
+                +   '<div class="clm-av">' + (initials ? escapeHtml(initials) : '<i class="ph-bold ph-user"></i>') + '</div>'
+                +   '<div class="clm-id"><div class="clm-name">' + escapeHtml(nm || phoneFmt) + '</div>'
+                +     '<div class="clm-phone">' + escapeHtml(phoneFmt) + '</div>'
+                +     '<div class="clm-badges">' + statusB + stageB + '</div></div>'
+                +   '<button class="clm-x" aria-label="Fechar" onclick="document.getElementById(\'crmLeadModal\').style.display=\'none\'">&times;</button>'
                 + '</div>'
-                + '<div style="padding:8px 22px 4px;">'
-                +   row('Etapa', escapeHtml(crmStageTitle(colKey)))
-                +   row('Status', boughtBadge)
-                +   row('Provas', '<i class="ph-bold ph-eye" style="color:var(--text-muted);"></i> ' + (lead.provaCount || 0))
-                +   (lead.provaCount ? row('Primeira prova', crmFmtDate(lead.firstDate)) : '')
-                +   (lead.provaCount ? row('Última prova', crmFmtDate(lead.lastDate)) : '')
-                +   row(lead.pendingPayment && !lead.provaCount ? 'Produto do pedido' : 'Produto provado', produtoLinkHtml)
-                +   (lead.pendingPayment ? row('Pagamento gerado', crmFmtDate(lead.pendingPaymentDate)) : '')
-                +   (lead.pendingPayment ? row('Forma de pagamento', escapeHtml(String(lead.pendingPaymentMethod || 'Não informada').toUpperCase())) : '')
-                +   (lead.pendingPayment ? row('Valor pendente', _brl(lead.pendingPaymentAmount || 0)) : '')
-                +   '<div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;font-size:13px;align-items:center;"><span style="color:var(--text-muted);">Responsável</span>' + respSelectHtml + '</div>'
+                + '<div class="clm-stats">'
+                +   '<div class="clm-stat"><b>' + (lead.provaCount || 0) + '</b><span>Provas</span></div>'
+                +   '<div class="clm-stat"><b id="clmStatSends">…</b><span>Disparos recebidos</span></div>'
+                +   '<div class="clm-stat"><b id="clmStatLast">…</b><span>Último disparo</span></div>'
                 + '</div>'
-                + '<div style="padding:16px 22px 20px;display:flex;gap:10px;flex-wrap:wrap;">'
-                +   (hasUrl ? '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" style="flex:1;min-width:150px;text-align:center;background:rgba(124,58,237,.1);color:#7c3aed;border:1px solid rgba(124,58,237,.25);border-radius:10px;padding:11px;font-weight:600;font-size:13px;text-decoration:none;"><i class="ph-bold ph-link"></i> Página do produto</a>' : '')
-                +   (wpp ? '<a href="' + wpp + '" target="_blank" rel="noopener" style="flex:1;min-width:150px;text-align:center;background:#25D366;color:#fff;border-radius:10px;padding:11px;font-weight:600;font-size:13px;text-decoration:none;"><i class="ph-bold ph-whatsapp-logo"></i> Abrir no WhatsApp</a>' : '')
+                + '<div class="clm-body">'
+                +   '<div class="clm-sec"><h4>Detalhes</h4><div class="clm-grid">' + details + '</div></div>'
+                +   '<div class="clm-sec"><h4>Campanhas e automações</h4>' + tagsHtml + '</div>'
+                +   '<div class="clm-sec"><h4>Histórico de disparos <span id="clmHistSum" class="clm-sum"></span></h4><div id="clmHistory"><div class="clm-empty">Carregando histórico…</div></div></div>'
                 + '</div>'
+                + ((hasUrl || wpp) ? ('<div class="clm-foot">'
+                +   (hasUrl ? '<a class="clm-btn sec" href="' + escapeHtml(url) + '" target="_blank" rel="noopener"><i class="ph-bold ph-link"></i> Página do produto</a>' : '')
+                +   (wpp ? '<a class="clm-btn wa" href="' + wpp + '" target="_blank" rel="noopener"><i class="ph-bold ph-whatsapp-logo"></i> Abrir no WhatsApp</a>' : '')
+                + '</div>') : '')
                 + '</div>';
             ov.style.display = 'flex';
+            crmLoadLeadHistory(lead, ++_clmReqId);
+        }
+        async function crmLoadLeadHistory(lead, reqId) {
+            const box = document.getElementById('clmHistory');
+            if (!box) return;
+            const last8 = String(lead.rawPhone || lead.phone || '').replace(/\D/g, '').slice(-8);
+            if (last8.length < 8) {
+                box.innerHTML = '<div class="clm-empty">Lead sem WhatsApp — nenhum disparo possível.</div>';
+                _clmSetStats(0, null);
+                return;
+            }
+            let rows = [];
+            try {
+                const emails = (typeof crmScopeEmails === 'function') ? crmScopeEmails() : [activeUser.email];
+                const { data, error } = await supabaseClient.from('whatsapp_send_log')
+                    .select('sent_at,status,template_name,source,source_id,error_message')
+                    .in('email', emails)
+                    .ilike('lead_phone', '%' + last8)
+                    .order('sent_at', { ascending: false })
+                    .limit(300);
+                if (error) throw error;
+                rows = data || [];
+            } catch (e) {
+                if (reqId !== _clmReqId) return;
+                box.innerHTML = '<div class="clm-empty">Não consegui carregar o histórico agora. Tente abrir de novo.</div>';
+                _clmSetStats('—', null);
+                return;
+            }
+            if (reqId !== _clmReqId) return;   // usuário já abriu outro lead
+            const ok = rows.filter(r => r.status !== 'failed');
+            const nRead = rows.filter(r => r.status === 'read').length;
+            const nFail = rows.length - ok.length;
+            _clmSetStats(ok.length, ok[0] ? ok[0].sent_at : null);
+            const sum = document.getElementById('clmHistSum');
+            if (sum) sum.textContent = rows.length
+                ? (ok.length + ' recebido' + (ok.length === 1 ? '' : 's') + ' · ' + nRead + ' lido' + (nRead === 1 ? '' : 's') + (nFail ? ' · ' + nFail + (nFail === 1 ? ' falhou' : ' falharam') : ''))
+                : '';
+            if (!rows.length) { box.innerHTML = '<div class="clm-empty">Nenhum disparo enviado pra este lead ainda.</div>'; return; }
+            box.innerHTML = rows.map(r => {
+                const info = _crmSourceNames[r.source_id] || null;
+                const kind = r.source === 'automacao' ? 'auto' : (['campanha', 'recorrente', 'massa'].includes(r.source) ? 'camp' : 'other');
+                const icon = kind === 'auto' ? 'ph-robot' : (kind === 'camp' ? 'ph-megaphone' : 'ph-paper-plane-tilt');
+                const title = (info && info.nome) || r.template_name || 'Disparo';
+                const sub = (_CLM_SRC[r.source] || 'Disparo') + (r.template_name && r.template_name !== title ? ' · ' + r.template_name : '');
+                const st = _CLM_ST[r.status] ? r.status : 'sent';
+                const pillTitle = (st === 'failed' && r.error_message) ? ' title="' + escapeHtml(r.error_message) + '"' : '';
+                return '<div class="clm-ev"><div class="clm-ev-ic ' + kind + '"><i class="ph-bold ' + icon + '"></i></div>'
+                    + '<div style="min-width:0;"><div class="clm-ev-t">' + escapeHtml(title) + '</div><div class="clm-ev-s">' + escapeHtml(sub) + '</div></div>'
+                    + '<div class="clm-ev-r"><span class="clm-pill ' + st + '"' + pillTitle + '>' + _CLM_ST[st] + '</span><div class="clm-ev-d">' + escapeHtml(_clmFmtDT(r.sent_at)) + '</div></div></div>';
+            }).join('');
+        }
+        function _clmSetStats(n, lastIso) {
+            const a = document.getElementById('clmStatSends'); if (a) a.textContent = n;
+            const b = document.getElementById('clmStatLast'); if (b) b.textContent = lastIso ? _clmFmtDT(lastIso).split(',')[0] : '—';
+        }
+        function crmModalFilterTag(sid) {
+            _crmCampFilter = sid || '';
+            const sel = document.getElementById('crmCampFilter'); if (sel) sel.value = _crmCampFilter;
+            const ov = document.getElementById('crmLeadModal'); if (ov) ov.style.display = 'none';
+            renderCrmBoard();
         }
         function crmModalSetResp(sel, phone) {
             setCrmLeadResp(phone, sel.value);
@@ -19367,6 +19515,7 @@
         // source_id) cruzado com os nomes em disparos_agendados (campanha) e flows (automação).
         // Sem tabela nova, retroativo. Chave por normalize(telefone) pra casar com lead.phone.
         let _crmCampaignTags = {};
+        let _crmSourceNames = {};   // source_id -> {nome, origem} (campanha/automação)
         async function loadCrmCampaignTags() {
             _crmCampaignTags = {};
             try {
@@ -19378,6 +19527,7 @@
                         (data || []).forEach(r => { if (r.id) nameById[r.id] = { nome: r.nome || '', origem: origem }; });
                     } catch (e) { /* tabela pode não existir — segue */ }
                 }
+                _crmSourceNames = nameById;
                 const rows = [];
                 let from = 0; const page = 1000;
                 while (true) {
