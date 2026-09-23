@@ -42,7 +42,9 @@
     alkatraz:          { loja: 'oticasprimemagrini', rotulo: 'Alkatraz' },
     magrini:           { loja: 'oticasprimemagrini', rotulo: 'Magrini' },
     'outlet-araras':   { loja: 'oticasprimemagrini', rotulo: 'Outlet Araras' },
-    'outlet-cordeiro': { loja: 'oticasprimemagrini', rotulo: 'Outlet Cordeiro' }
+    'outlet-cordeiro': { loja: 'oticasprimemagrini', rotulo: 'Outlet Cordeiro' },
+    charmeprime:       { loja: 'charmeprime', rotulo: 'Charme Prime' },
+    orbita:            { loja: 'charmeprime', rotulo: 'Órbita' }
   };
   const _lojaParam = (new URLSearchParams(location.search).get('loja') || 'lojateste').trim();
   const _alias = UNIDADE_ALIAS[_lojaParam.toLowerCase()];
@@ -2398,6 +2400,10 @@
     oticakadima: [
       { rotulo: 'Loja Várzea Paulista' },
       { rotulo: 'Campo Limpo Paulista', telefone: '5511942329445' }
+    ],
+    charmeprime: [
+      { rotulo: 'Charme Prime', telefone: '5593992282999' },
+      { rotulo: 'Órbita', telefone: '5593992282999' }
     ]
   };
 
