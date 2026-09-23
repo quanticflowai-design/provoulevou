@@ -13561,7 +13561,7 @@
         // ---- Wizard ----
         function campWizardOpen(audience) {
             _campInjectCSS();
-            CAMP.step = 0; CAMP.nome = ''; CAMP.pipeline = 'provador'; CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.tplMode = 'novo'; CAMP.tplName = ''; CAMP.tplLang = 'pt_BR'; CAMP.tplPending = false; CAMP.sched = 'diario'; CAMP.dia = ''; CAMP.hora1 = ''; CAMP.hora2 = ''; CAMP.targetCount = null; CAMP.limit = null;
+            CAMP.step = 0; CAMP.nome = ''; CAMP.pipeline = 'provador'; CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.tplMode = 'novo'; CAMP.tplName = ''; CAMP.tplLang = 'pt_BR'; CAMP.tplPending = false; CAMP.sched = 'diario'; CAMP.dia = ''; CAMP.hora1 = ''; CAMP.hora2 = ''; CAMP.targetCount = null; CAMP.limit = null; CAMP.moveToStage = 'msg-1';
             CAMP.publicoTipo = 'crm'; CAMP.segId = ''; CAMP.audience = null;
             // Aberto a partir de uma Segmentação (segCriarCampanha passa {id, nome, regras}).
             if (audience && audience.regras) {
@@ -13647,6 +13647,7 @@
                     + '<label class="camp-opt ' + (CAMP.sched === 'dia' ? 'sel' : '') + '"><input type="radio" name="campSched" ' + (CAMP.sched === 'dia' ? 'checked' : '') + ' onchange="campSetSched(\'dia\')"><div><b>Dia específico</b><br><span>Envia uma vez, na data e hora escolhidas.</span>'
                     + (CAMP.sched === 'dia' ? ('<div style="margin-top:9px;"><input type="datetime-local" class="camp-inp" style="width:auto;" value="' + escapeHtml(CAMP.dia) + '" oninput="CAMP.dia=this.value"></div>') : '')
                     + '</div></label>'
+                    + campMoveToStageHTML()
                     + '<div id="campMsg" class="camp-msg"></div>';
             }
             const backBtn = CAMP.step > 0 ? '<button class="camp-btn" onclick="campWizardNav(-1)"><i class="ph-bold ph-arrow-left"></i> Voltar</button>' : '<button class="camp-btn" onclick="campWizardClose()">Cancelar</button>';
@@ -13665,6 +13666,27 @@
                 + '</div>';
         }
         function campSetLimit(v) { const n = parseInt(v, 10); CAMP.limit = (!isNaN(n) && n > 0) ? n : null; }
+        // Seletor "Mover leads para etapa (após o disparo)". Padrão msg-1. Grava em
+        // CAMP.moveToStage; o webhook [PL] WA — Inbound lê move_to_stage da campanha ao
+        // confirmar a ENTREGA e move o lead pra essa etapa (fallback msg-1).
+        function campMoveToStageHTML() {
+            const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+            const cols = (cfg.columns || []).filter(c => (c.key || c.id) && (c.key || c.id) !== 'convertido');
+            const cur = CAMP.moveToStage || 'msg-1';
+            let opts = cols.map(c => {
+                const k = c.key || c.id;
+                let t = c.title || c.rot || k;
+                if (k === 'msg-1') t += ' (padrão)';
+                return '<option value="' + escapeHtml(k) + '"' + (k === cur ? ' selected' : '') + '>' + escapeHtml(t) + '</option>';
+            }).join('');
+            // Garante a opção padrão mesmo se a config não tiver msg-1 listada.
+            if (cols.every(c => (c.key || c.id) !== 'msg-1')) {
+                opts = '<option value="msg-1"' + (cur === 'msg-1' ? ' selected' : '') + '>Mensagem 1 (padrão)</option>' + opts;
+            }
+            return '<label class="camp-lbl" style="margin-top:16px;" for="campMoveStage"><i class="ph-bold ph-kanban"></i> Mover leads para (após o disparo)</label>'
+                + '<select id="campMoveStage" class="camp-sel" onchange="CAMP.moveToStage=this.value">' + opts + '</select>'
+                + '<div class="camp-msg" style="color:var(--text-muted);margin-top:6px;font-size:12px;">Quando a mensagem é entregue, o lead vai pra esta etapa. Se não escolher, vai pra "Mensagem 1".</div>';
+        }
         function campRevealLimit() {
             const cnt = CAMP.audience ? ((CAMP.audience.targets || []).length) : CAMP.targetCount;
             const wrap = document.getElementById('campLimitWrap');
@@ -13849,7 +13871,7 @@
                         lojista_email: activeUser.email, nome: CAMP.nome.trim(), scheduled_at: scheduled_at,
                         template: CAMP.tplName, language: tplLang, payloads: payloads, total: payloads.length,
                         stage_key: CAMP.audience ? '__segmento__' : waPipelineStageKey(CAMP.pipeline, CAMP.stage),
-                        move_to_stage: 'msg-1', status: status
+                        move_to_stage: (CAMP.moveToStage || 'msg-1'), status: status
                     });
                     if (error) throw error;
                 } else {
@@ -13857,6 +13879,7 @@
                         const { error } = await campSafeInsert({
                             lojista_email: activeUser.email, nome: CAMP.nome.trim(), scheduled_at: new Date().toISOString(),
                             recurrence: 'diario', recur_time: tm, stage_key: waPipelineStageKey(CAMP.pipeline, CAMP.stage), max_per_run: (CAMP.limit && CAMP.limit > 0) ? CAMP.limit : 100,
+                            move_to_stage: (CAMP.moveToStage || 'msg-1'),
                             template: CAMP.tplName, language: tplLang, placeholders: placeholders,
                             active: aprovado, status: status, total: 0
                         });
