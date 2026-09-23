@@ -169,7 +169,11 @@
   // ─────────── Carga do backend ───────────
   async function sbGet(path) {
     let erro;
-    for (let tentativa = 1; tentativa <= 2; tentativa++) {
+    // 4 tentativas: o gateway do Supabase dá 504 intermitente sob carga. Com só
+    // 2, a vitrine desistia e ficava no cache velho do aparelho — produto novo
+    // "não aparecia" (Charme Prime, 23/09).
+    const TENTATIVAS = 4;
+    for (let tentativa = 1; tentativa <= TENTATIVAS; tentativa++) {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 12000);
       try {
@@ -181,8 +185,8 @@
         return await r.json();
       } catch (e) {
         erro = e;
-        if (tentativa === 2 || e.retryable === false) break;
-        await espera(500);
+        if (tentativa === TENTATIVAS || e.retryable === false) break;
+        await espera(800 * tentativa);
       } finally { clearTimeout(timer); }
     }
     throw erro || new Error('Falha ao carregar');
@@ -586,7 +590,9 @@
 
   let cargaInicial = null;   // promessa da 1a carga: o login espera por ela
 
+  let ultimaCarga = 0, novasTentativas = 0, timerNovaTentativa = null;
   async function refreshFromServer() {
+    clearTimeout(timerNovaTentativa);
     try {
       await loadStore();
       if (!storeRow) return;
@@ -594,11 +600,55 @@
       renderStore(); renderCatalog();
       aplicaPermissoes();   // owner_email so chega com a loja carregada
       atualizaLimite();     // o whatsapp da loja (CTA do limite) so chega agora
+      ultimaCarga = Date.now(); novasTentativas = 0;
     } catch (e) {
       console.warn('[Provou Catálogo] falha ao carregar do servidor:', e);
-      toast('Não consegui carregar o catálogo');
+      // Sem isto a tela ficava no cache do aparelho (sem os produtos novos) até
+      // alguém recarregar na mão. Agora insiste sozinho, em silêncio.
+      if (novasTentativas === 0) toast('Conexão lenta — atualizando o catálogo…');
+      if (novasTentativas < 8) {
+        novasTentativas++;
+        timerNovaTentativa = setTimeout(refreshFromServer, 10000 + novasTentativas * 5000);
+      }
     }
   }
+
+  // Tela "segura" pra atualizar/recarregar: vitrine ou página do produto. No meio
+  // de uma prova, pagamento ou do formulário do painel, nunca.
+  function telaTranquila() {
+    const s = document.querySelector('.screen.active');
+    return !s || s.dataset.screen === 'catalog' || s.dataset.screen === 'product';
+  }
+
+  // Versão nova do site publicada? O nginx não manda Cache-Control, então o
+  // navegador pode segurar o index.html antigo (com o app.js antigo) por horas.
+  // Compara o ?v= da página aberta com o do servidor e recarrega uma vez.
+  const linkCssAberto = document.querySelector('link[href*="styles.css?v="]');
+  const VERSAO_ABERTA = ((linkCssAberto && linkCssAberto.getAttribute('href')) || '').replace(/.*[?&]v=(\d+).*/, '$1');
+  async function checaVersaoNova() {
+    if (!/^\d+$/.test(VERSAO_ABERTA) || !telaTranquila()) return;
+    try {
+      const r = await fetch(location.pathname + '?_=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return;
+      const v = ((await r.text()).match(/styles\.css\?v=(\d+)/) || [])[1];
+      let jaTentou = null;
+      try { jaTentou = sessionStorage.getItem('pl_cat_versao_recarregada'); } catch (e) {}
+      if (v && v !== VERSAO_ABERTA && jaTentou !== v) {
+        try { sessionStorage.setItem('pl_cat_versao_recarregada', v); } catch (e) {}
+        location.reload();
+      }
+    } catch (e) {}
+  }
+
+  // Celular reabre a aba antiga (ou volta do WhatsApp) com a lista de horas
+  // atrás: ao voltar pra aba, busca de novo se a última carga for velha.
+  function aoVoltarPraAba() {
+    if (document.visibilityState !== 'visible' || !telaTranquila()) return;
+    checaVersaoNova();
+    if (Date.now() - ultimaCarga > 60000) refreshFromServer();
+  }
+  document.addEventListener('visibilitychange', aoVoltarPraAba);
+  window.addEventListener('pageshow', ev => { if (ev.persisted) aoVoltarPraAba(); });
 
   // Reduz a foto antes de subir: celular manda 4MB+, o catálogo não precisa disso.
   function compressImage(file) {
@@ -2787,6 +2837,7 @@
   renderStore();
   renderCatalog();          // pinta na hora com o cache
   cargaInicial = refreshFromServer();   // e busca o catálogo real do Supabase
+  setTimeout(checaVersaoNova, 4000);    // página velha em cache? recarrega na versão nova
   if (location.hash === '#gen') demoLoadingLoop();
   // Volta do painel unico: /catalogo/painel/ manda pra ca com #admin depois de
   // autenticar. Se a sessao nao servir pra esta loja, devolve pro painel em vez
