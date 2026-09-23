@@ -6034,9 +6034,11 @@
                         </h3>
                         <button onclick="closeCrmBulkMoveModal()" style="background:transparent;border:0;color:#888;cursor:pointer;font-size:20px;line-height:1;padding:4px;">&times;</button>
                     </div>
-                    <p style="font-size:13px;color:#555;margin:0 0 16px;">Move todos os leads de uma etapa para outra de uma vez. Se um filtro de responsável estiver ativo, move só os desse responsável.</p>
+                    <p style="font-size:13px;color:#555;margin:0 0 16px;">Move todos os leads de uma etapa para outra de uma vez. Dá pra filtrar por tag de campanha/automação. Se um filtro de responsável estiver ativo, move só os desse responsável.</p>
                     <label style="display:block;font-size:12px;font-weight:600;color:#666;margin-bottom:5px;">Da etapa</label>
                     <select id="crmBulkFrom" onchange="crmBulkMoveUpdateCount()" style="width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;color:#111;background:#fff;margin-bottom:14px;"></select>
+                    <label style="display:block;font-size:12px;font-weight:600;color:#666;margin-bottom:5px;">Com a tag <span style="font-weight:400;color:#999;">(opcional)</span></label>
+                    <select id="crmBulkTag" onchange="crmBulkMoveUpdateCount()" style="width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;color:#111;background:#fff;margin-bottom:14px;"></select>
                     <label style="display:block;font-size:12px;font-weight:600;color:#666;margin-bottom:5px;">Para a etapa</label>
                     <select id="crmBulkTo" style="width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;color:#111;background:#fff;margin-bottom:16px;"></select>
                     <div id="crmBulkMoveCount" style="font-size:13px;color:#7c3aed;font-weight:600;margin-bottom:16px;"></div>
@@ -20332,7 +20334,9 @@
         // Telefones cuja etapa ATUAL (mesma regra do board) é stageKey, respeitando o
         // filtro de responsável ativo. Compradores ficam presos em Convertido pela regra
         // do board, então não são "arrastáveis" pra fora dela.
-        function _crmPhonesInStage(stageKey) {
+        // stageKey '__any__' = todas as etapas. tagKey: '' (sem filtro), '__none__' (sem nenhuma
+        // tag) ou um source_id (campanha/automação — mesmas tags do card/filtro do CRM).
+        function _crmPhonesInStage(stageKey, tagKey) {
             if (!crmLeadMapCache || !stageKey) return [];
             const config = getCrmConfig(); const ov = getCrmOverrides(); const resp = getCrmResp();
             const out = [];
@@ -20343,13 +20347,26 @@
                     if (_crmRespFilter === '__none__') { if (who) continue; }
                     else if (who !== _crmRespFilter) continue;
                 }
-                if (waLeadStageKey(ph, d, config, ov) === stageKey) out.push(ph);
+                if (tagKey) {
+                    const tset = _crmCampaignTags[ph];
+                    const has = !!(tset && Object.keys(tset).length);
+                    if (tagKey === '__none__') { if (has) continue; }
+                    else if (!tset || !tset[tagKey]) continue;
+                }
+                if (stageKey === '__any__' || waLeadStageKey(ph, d, config, ov) === stageKey) out.push(ph);
             }
             return out;
         }
         function _crmColTitle(key) {
+            if (key === '__any__') return 'Todas as etapas';
             const c = (getCrmConfig().columns || []).find(x => x.key === key);
             return c ? c.title : key;
+        }
+        function _crmBulkTagLabel(tagKey) {
+            if (!tagKey) return '';
+            if (tagKey === '__none__') return 'sem nenhuma tag';
+            const t = crmAllCampaignTags().find(x => x.key === tagKey);
+            return t ? ('a tag "' + t.label + '"') : 'a tag escolhida';
         }
         function openCrmBulkMoveModal() {
             const cfg = getCrmConfig();
@@ -20357,9 +20374,19 @@
             const opt = cols.map(c => '<option value="' + escapeHtml(c.key) + '">' + escapeHtml(c.title) + '</option>').join('');
             const from = document.getElementById('crmBulkFrom');
             const to = document.getElementById('crmBulkTo');
-            if (from) from.innerHTML = opt;
+            const tag = document.getElementById('crmBulkTag');
+            if (from) from.innerHTML = '<option value="__any__">Todas as etapas</option>' + opt;
             if (to) to.innerHTML = opt;
+            if (tag) {
+                const tags = crmAllCampaignTags();
+                tag.innerHTML = '<option value="">Qualquer lead (sem filtro de tag)</option>'
+                    + '<option value="__none__">Sem nenhuma tag (nunca recebeu disparo)</option>'
+                    + tags.map(t => '<option value="' + escapeHtml(t.key) + '">' + escapeHtml(t.label) + '</option>').join('');
+                // Se o CRM já está filtrado por uma tag, ela já vem selecionada.
+                tag.value = (_crmCampFilter && tags.some(t => t.key === _crmCampFilter)) ? _crmCampFilter : '';
+            }
             // padrão: De = 1ª coluna, Para = 2ª (etapas diferentes)
+            if (from && cols.length) from.value = cols[0].key;
             if (to && cols.length > 1) to.value = cols[1].key;
             crmBulkMoveUpdateCount();
             const m = document.getElementById('crmBulkMoveModal');
@@ -20368,22 +20395,37 @@
         function closeCrmBulkMoveModal() {
             const m = document.getElementById('crmBulkMoveModal'); if (m) m.style.display = 'none';
         }
+        function _crmBulkSel() {
+            return {
+                from: (document.getElementById('crmBulkFrom') || {}).value || '',
+                to: (document.getElementById('crmBulkTo') || {}).value || '',
+                tag: (document.getElementById('crmBulkTag') || {}).value || ''
+            };
+        }
+        // Leads que de fato mudariam de etapa (quem já está no destino não conta).
+        function _crmBulkTargets(s) {
+            const cfg = getCrmConfig(), ov = getCrmOverrides();
+            return _crmPhonesInStage(s.from, s.tag).filter(ph => waLeadStageKey(ph, crmLeadMapCache[ph], cfg, ov) !== s.to);
+        }
         function crmBulkMoveUpdateCount() {
-            const from = (document.getElementById('crmBulkFrom') || {}).value || '';
-            const n = _crmPhonesInStage(from).length;
+            const s = _crmBulkSel();
+            const n = _crmBulkTargets(s).length;
             const el = document.getElementById('crmBulkMoveCount');
-            if (el) el.textContent = n === 1 ? '1 lead nesta etapa' : (n + ' leads nesta etapa');
+            const onde = s.from === '__any__' ? '' : ' nesta etapa';
+            const tg = s.tag ? (' com ' + _crmBulkTagLabel(s.tag)) : '';
+            if (el) el.textContent = (n === 1 ? '1 lead' : (n + ' leads')) + onde + tg;
             const btn = document.getElementById('crmBulkMoveApplyBtn');
             if (btn) { btn.disabled = n === 0; btn.style.opacity = n === 0 ? '.5' : '1'; }
         }
         async function crmBulkMoveApply() {
-            const from = (document.getElementById('crmBulkFrom') || {}).value || '';
-            const to = (document.getElementById('crmBulkTo') || {}).value || '';
+            const s = _crmBulkSel();
+            const from = s.from, to = s.to, tagKey = s.tag;
             if (!from || !to) return;
             if (from === to) { try { crmToast('Escolha etapas diferentes.', true); } catch (e) {} return; }
-            const phones = _crmPhonesInStage(from);
-            if (!phones.length) { try { crmToast('Nenhum lead nessa etapa.', true); } catch (e) {} return; }
-            if (!confirm('Mover ' + phones.length + ' lead(s) de "' + _crmColTitle(from) + '" para "' + _crmColTitle(to) + '"?')) return;
+            const phones = _crmBulkTargets(s);
+            if (!phones.length) { try { crmToast('Nenhum lead pra mover com esses filtros.', true); } catch (e) {} return; }
+            const tg = tagKey ? (' com ' + _crmBulkTagLabel(tagKey)) : '';
+            if (!confirm('Mover ' + phones.length + ' lead(s) de "' + _crmColTitle(from) + '"' + tg + ' para "' + _crmColTitle(to) + '"?')) return;
             const btn = document.getElementById('crmBulkMoveApplyBtn');
             if (btn) { btn.disabled = true; btn.textContent = 'Movendo…'; }
             // 1) local (instantâneo) + 2) grava no banco em lotes
