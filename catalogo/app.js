@@ -474,8 +474,15 @@
     };
   }
 
+  // Tamanho do logo salvo pelo lojista (tema.logoEscala). Fora da faixa = padrão.
+  function escalaLogoSalva() {
+    const v = Number(storeRow && storeRow.tema && storeRow.tema.logoEscala);
+    return v >= 0.5 && v <= 2.5 ? v : 1;
+  }
+
   function aplicaTema(cor) {
     const el = document.documentElement;
+    el.style.setProperty('--logo-escala', String(escalaLogoSalva()));
     const ac0 = temaEfetivo();
     // Quem manda no tema é o FUNDO, não a cor da marca. O vermelho da Valter é
     // escuro, mas o catálogo dela é branco — sem isto entrava o tema escuro e,
@@ -865,6 +872,52 @@
       if (url) { prev.src = url; prev.hidden = false; if (vazio) vazio.hidden = true; }
       else { prev.hidden = true; if (vazio) vazio.hidden = false; }
     }
+    // prévia do topo (celular e computador) + controle no tamanho salvo
+    const bloco = $('#tema-logo-tamanho');
+    if (bloco) bloco.hidden = !url;
+    ['#tema-logo-previa-cel', '#tema-logo-previa-pc'].forEach(s => { const im = $(s); if (im && url) im.src = url; });
+    const rng = $('#tema-logo-escala');
+    if (rng) { rng.value = String(Math.round(escalaLogoSalva() * 100)); previaLogoEscala(); }
+  }
+
+  // Mexe só na prévia (variável local da caixa), nunca no topo real do catálogo.
+  function previaLogoEscala() {
+    const rng = $('#tema-logo-escala'), val = $('#tema-logo-escala-valor'), box = $('#tema-logo-previas');
+    if (!rng) return;
+    if (val) val.textContent = rng.value + '%';
+    if (box) box.style.setProperty('--logo-escala', String(Number(rng.value) / 100));
+  }
+  {
+    const rng = $('#tema-logo-escala');
+    if (rng) rng.addEventListener('input', previaLogoEscala);
+    const bv = $('#btn-logo-escala-voltar');
+    if (bv) bv.addEventListener('click', () => {
+      if (rng) rng.value = String(Math.round(escalaLogoSalva() * 100));
+      previaLogoEscala();
+    });
+    const bs = $('#btn-logo-escala-salvar');
+    if (bs && rng) bs.addEventListener('click', async () => {
+      const txt = bs.textContent;
+      bs.disabled = true; bs.textContent = 'Salvando…';
+      try {
+        // Guarda o que já estava no tema (cores) e só troca o tamanho.
+        const escala = Math.min(2.5, Math.max(0.5, Number(rng.value) / 100));
+        const tema = Object.assign({}, (storeRow && storeRow.tema) || {}, { logoEscala: escala });
+        const r = await fetch(WH_THEME, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ store_slug: STORE_SLUG, tema })
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        if (storeRow) storeRow.tema = tema;
+        aplicaTema(storeRow && storeRow.primary_color);
+        toast('Tamanho do logo salvo ✓');
+      } catch (e) {
+        console.warn('[Provou Catálogo] erro ao salvar tamanho do logo:', e);
+        toast('Não consegui salvar. Tente de novo.');
+      } finally {
+        bs.disabled = false; bs.textContent = txt;
+      }
+    });
   }
 
   // Troca do logo: sobe a imagem pro Storage (webhook) e atualiza logo_url da
@@ -977,6 +1030,9 @@
       bs.disabled = true; bs.textContent = 'Salvando…';
       try {
         const tema = temaDosCampos();
+        // as cores não levam o tamanho do logo: sem isto, salvar cor zerava o tamanho
+        const esc = storeRow && storeRow.tema && storeRow.tema.logoEscala;
+        if (esc) tema.logoEscala = esc;
         const r = await fetch(WH_THEME, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ store_slug: STORE_SLUG, tema })
@@ -1016,7 +1072,37 @@
     });
   }
 
+  // Link principal da loja (aba Links): sempre existe, então a aba nunca abre vazia.
+  function renderLinkGeral() {
+    const lista = $('#link-geral-lista');
+    if (!lista) return;
+    lista.textContent = '';
+    const url = location.origin + location.pathname + '?loja=' + encodeURIComponent(STORE_SLUG);
+    const item = document.createElement('div'); item.className = 'cat-link-item';
+    const nome = document.createElement('span'); nome.className = 'cat-link-nome'; nome.textContent = url.replace(/^https?:\/\//, '');
+    const qtd = document.createElement('span'); qtd.className = 'cat-link-qtd';
+    qtd.textContent = catalog.length + (catalog.length === 1 ? ' produto' : ' produtos');
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'cat-link-btn';
+    btn.title = 'Copiar link do catálogo'; btn.setAttribute('aria-label', 'Copiar link do catálogo');
+    const tpl = $('#tpl-link');
+    if (tpl) btn.appendChild(tpl.content.cloneNode(true)); else btn.textContent = '🔗';
+    btn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(url); toast('Link copiado ✓'); }
+      catch (e) {
+        const i = document.createElement('input');
+        i.value = url; document.body.appendChild(i); i.select();
+        try { document.execCommand('copy'); toast('Link copiado ✓'); }
+        catch (_) { toast('Copie: ' + url); }
+        i.remove();
+      }
+    });
+    item.append(nome, qtd, btn);
+    lista.appendChild(item);
+  }
+
   function renderLinksCategoria() {
+    renderLinkGeral();
     const box = $('#cat-links'), lista = $('#cat-links-lista');
     if (!box || !lista) return;
     const cats = categoriasDaLoja();
@@ -1884,6 +1970,35 @@
       return result;
     } finally { clearTimeout(timer); }
   }
+  // ─────────── Menu do painel (abas) ───────────
+  // Cada .admin-aba é um bloco; o menu mostra um de cada vez. Guard: HTML em
+  // cache sem as abas não tem .admin-aba e aí tudo continua visível como antes.
+  function mostraAba(nome) {
+    const abas = $$('.admin-aba');
+    if (!abas.length) return;
+    if (!abas.some(a => a.dataset.aba === nome)) nome = 'produtos';
+    abas.forEach(a => { a.hidden = a.dataset.aba !== nome; });
+    $$('.admin-menu-btn').forEach(b => {
+      const on = b.dataset.aba === nome;
+      b.classList.toggle('ativo', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    atualizaVaziosAbas();
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+  }
+  function atualizaVaziosAbas() {
+    const co = $('#cat-order'), cv = $('#categorias-vazio');
+    if (cv) cv.hidden = !co || !co.hidden;
+  }
+  $$('.admin-menu-btn').forEach(b => b.addEventListener('click', () => mostraAba(b.dataset.aba)));
+  {
+    const bn = $('#btn-aba-novo');
+    if (bn) bn.addEventListener('click', () => {
+      if (editando && !adminFotoOcupada && !$('#btn-add-product').disabled) saiEdicao();
+      mostraAba('cadastrar');
+    });
+  }
+
   async function renderAdmin() {
     if (!ehDono()) return;
     const carga = ++adminLoading;
@@ -1898,6 +2013,7 @@
     renderAdminCategorias();
     renderUnidadesCadastro();
     renderOrdemCategorias();
+    atualizaVaziosAbas();
     $('#admin-count').textContent = adminCatalog.length + ' produtos · ' + adminCatalog.filter(p => !p.active).length + ' rascunhos';
     // Mostra na mesma ordem da vitrine (posição definida pelas setas ↑↓); sem posição = mais novo primeiro.
     adminCatalog.sort((a, b) => (a.position - b.position) || (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
@@ -2199,6 +2315,7 @@
     renderAdminVariacoes((p.imageMeta || []).map(x => ({ id: x.id, url: x.url, variantName: x.variantName })));
     $('#btn-add-product').textContent = p.active === false ? 'Publicar produto' : 'Salvar alterações';
     $('#btn-cancel-edit').hidden = false;
+    mostraAba('cadastrar');
     $('#admin-name').focus();
     $('#admin-name').scrollIntoView({ block: 'center', behavior: 'smooth' });
     toast('Editando ' + p.name);
@@ -2228,7 +2345,7 @@
   }
   {
     const c = $('#btn-cancel-edit');
-    if (c) c.addEventListener('click', () => { if (!adminFotoOcupada && !$('#btn-add-product').disabled) saiEdicao(); });
+    if (c) c.addEventListener('click', () => { if (!adminFotoOcupada && !$('#btn-add-product').disabled) { saiEdicao(); mostraAba('produtos'); } });
   }
 
   // ─────────── Kit no cadastro ───────────
@@ -2357,6 +2474,7 @@
       saiEdicao();
       toast(publicar ? 'Produto publicado ✓' : 'Rascunho salvo ✓');
       await loadCatalog(); renderCatalog(); await renderAdmin();
+      mostraAba('produtos');   // mostra o produto recém-salvo na lista
     } catch(e) {
       toast(saved ? 'Produto salvo. Reabra o painel para atualizar a lista.' : (e.name === 'AbortError' ? 'Envio demorou. Seus dados foram mantidos; tente novamente.' : e.message));
     } finally {
@@ -2487,12 +2605,12 @@
 
   $('#btn-admin').addEventListener('click', () => {
     if (!ehDono()) { location.href = 'painel/'; return; }
-    renderAdmin(); show('admin');
+    renderAdmin(); show('admin'); mostraAba('produtos');
   });
   // guard: se o HTML em cache for antigo, não derruba o resto do app
   const btnNovo = $('#btn-new-product');
   if (btnNovo) btnNovo.addEventListener('click', () => {
-    renderAdmin(); show('admin');
+    renderAdmin(); show('admin'); mostraAba('cadastrar');
     setTimeout(() => { const el = $('#admin-uploader'); if (el) el.focus(); }, 120);
   });
   $('#btn-try').addEventListener('click', () => { resetUploader(); show('tryon'); });
@@ -2675,7 +2793,7 @@
   // de mostrar um catalogo publico sem explicacao.
   else if (location.hash === '#admin' || location.hash === '#login') {
     Promise.all([cargaInicial || Promise.resolve(), sessaoPronta]).then(() => {
-      if (ehDono()) { renderAdmin(); show('admin'); }
+      if (ehDono()) { renderAdmin(); show('admin'); mostraAba('produtos'); }
       else location.href = 'painel/';
     });
   }

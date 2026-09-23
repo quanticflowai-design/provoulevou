@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=131">
+  <link rel="stylesheet" href="styles.css?v=132">
 </head>
 <body>
   <div id="app">
@@ -334,6 +334,17 @@
         </div>
         <p class="muted">Adicione as fotos dos seus produtos. Elas aparecem no seu link para os clientes provarem.</p>
 
+        <!-- Menu do painel: antes era tudo numa página só e o lojista rolava
+             muito pra achar cada coisa. Cada botão mostra um bloco (data-aba). -->
+        <nav class="admin-menu" id="admin-menu" role="tablist" aria-label="Seções do painel">
+          <button type="button" class="admin-menu-btn" data-aba="produtos" role="tab">Produtos</button>
+          <button type="button" class="admin-menu-btn" data-aba="cadastrar" role="tab">Cadastrar</button>
+          <button type="button" class="admin-menu-btn" data-aba="aparencia" role="tab">Aparência</button>
+          <button type="button" class="admin-menu-btn" data-aba="categorias" role="tab">Categorias</button>
+          <button type="button" class="admin-menu-btn" data-aba="links" role="tab">Links</button>
+        </nav>
+
+        <div class="admin-aba" data-aba="cadastrar" role="tabpanel" hidden>
         <div class="admin-add">
           <!-- multiple: o cliente decide melhor com 2-3 ângulos, e o gerador
                acerta mais a armação recebendo mais de uma referência. -->
@@ -409,7 +420,9 @@
             <button class="btn-outline" id="btn-cancel-edit" hidden>Cancelar edição</button>
           </div>
         </div>
+        </div>
 
+        <div class="admin-aba" data-aba="aparencia" role="tabpanel" hidden>
         <!-- Aparencia: o lojista escolhe as cores do proprio catalogo. O que
              ele salva vira a coluna `tema` da loja e passa por cima do padrao
              que existe no codigo. -->
@@ -424,6 +437,26 @@
               <button type="button" class="btn-outline" id="btn-trocar-logo">Trocar logo</button>
             </div>
             <input type="file" id="input-logo" accept="image/*" hidden>
+            <!-- Tamanho do logo: a prévia muda na hora, o catálogo só muda ao salvar. -->
+            <div class="tema-logo-tamanho" id="tema-logo-tamanho">
+              <label class="tema-logo-tamanho-tit" for="tema-logo-escala">Tamanho do logo: <b id="tema-logo-escala-valor">100%</b></label>
+              <input type="range" id="tema-logo-escala" min="50" max="250" step="5" value="100">
+              <p class="tema-sub">Prévia — é assim que o topo do catálogo vai ficar:</p>
+              <div class="tema-logo-previas" id="tema-logo-previas">
+                <div class="tema-logo-previa tema-logo-previa-cel">
+                  <span class="tema-logo-previa-rotulo">Celular</span>
+                  <div class="tema-logo-previa-topo"><img id="tema-logo-previa-cel" alt=""><span class="tema-logo-previa-engrenagem" aria-hidden="true">⚙</span></div>
+                </div>
+                <div class="tema-logo-previa tema-logo-previa-pc">
+                  <span class="tema-logo-previa-rotulo">Computador</span>
+                  <div class="tema-logo-previa-topo"><img id="tema-logo-previa-pc" alt=""><span class="tema-logo-previa-engrenagem" aria-hidden="true">⚙</span></div>
+                </div>
+              </div>
+              <div class="tema-acoes">
+                <button type="button" class="btn-primary" id="btn-logo-escala-salvar">Salvar tamanho do logo</button>
+                <button type="button" class="btn-outline" id="btn-logo-escala-voltar">Voltar ao salvo</button>
+              </div>
+            </div>
           </div>
           <div class="tema-campos">
             <label class="tema-campo"><span>Fundo da pagina</span>
@@ -448,7 +481,15 @@
             <button class="btn-outline" id="btn-tema-reset">Restaurar padrao</button>
           </div>
         </div>
+        </div>
 
+        <div class="admin-aba" data-aba="links" role="tabpanel" hidden>
+        <!-- Link principal: sempre existe, então a aba nunca abre vazia. -->
+        <div class="cat-links" id="link-geral">
+          <h3 class="cat-links-tit">Link do seu catálogo</h3>
+          <p class="cat-order-sub">Mande este para os clientes. Todos os produtos aparecem nele.</p>
+          <div class="cat-links-lista" id="link-geral-lista"></div>
+        </div>
         <!-- Um link por categoria, pro lojista mandar "so os femininos" pra
              quem pediu isso. So aparece quando existe categoria. -->
         <div class="cat-links" id="cat-links" hidden>
@@ -463,14 +504,20 @@
           <p class="cat-order-sub">Cada unidade compartilha o seu link. Nele só aparece o botão dela.</p>
           <div class="cat-links-lista" id="unidade-links-lista"></div>
         </div>
+        </div>
 
+        <div class="admin-aba" data-aba="categorias" role="tabpanel" hidden>
+        <p class="admin-aba-vazia" id="categorias-vazio" hidden>Você ainda não tem categorias. Crie na aba <b>Cadastrar</b>, no campo "Categorias do produto" (ex.: Feminino, Masculino, Solar).</p>
         <div class="cat-order" id="cat-order" hidden>
           <h3 class="cat-links-tit">Gerenciar categorias</h3>
           <p class="cat-order-sub">Use as setas para definir como elas aparecem para o cliente.</p>
           <div class="cat-order-lista" id="cat-order-lista"></div>
           <button type="button" class="btn-primary" id="btn-save-cat-order">Salvar ordem</button>
         </div>
+        </div>
 
+        <div class="admin-aba" data-aba="produtos" role="tabpanel">
+        <button type="button" class="btn-primary admin-aba-novo" id="btn-aba-novo">+ Cadastrar produto</button>
         <p class="admin-count" id="admin-count"></p>
         <div class="bulk-toolbar">
           <label><input type="checkbox" id="bulk-all"> Selecionar todos</label>
@@ -489,6 +536,7 @@
           <button type="button" class="btn-primary" id="bulk-apply">Revisar e aplicar</button>
         </div>
         <div class="admin-list" id="admin-list"></div>
+        </div>
       </div>
     </section>
   </div>
@@ -515,6 +563,6 @@
   </template>
   <div id="toast"></div>
 
-  <script src="app.js?v=131"></script>
+  <script src="app.js?v=132"></script>
 </body>
 </html>
