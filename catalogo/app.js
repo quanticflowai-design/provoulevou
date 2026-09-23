@@ -521,9 +521,34 @@
       '&is_active=eq.true&select=*,pl_catalog_product_images(id,url,is_primary,position,variant_name)' +
       '&order=position.asc,created_at.desc');
     carregou = true;
-    catalog = mapCatalogRows(rows);
+    catalog = resolveKits(mapCatalogRows(rows), true);
     save();
     return catalog;
+  }
+
+  // ─────────── Kits ───────────
+  function ehKit(p) { return !!(p && p.kit && p.kit.length); }
+  // Peças que ainda existem na lista (peça apagada ou em rascunho some sozinha).
+  function itensDoKit(p, lista) {
+    return (p && p.kit || []).map(id => (lista || catalog).find(x => x.id === id)).filter(Boolean);
+  }
+  function somaDoKit(p, lista) {
+    return itensDoKit(p, lista).reduce((t, i) => t + (numeroPositivo(precoProduto(i)) ? precoProduto(i) : 0), 0);
+  }
+  // Kit sem foto própria usa a das peças. Na vitrine (mostrarDesconto), se o
+  // lojista não pôs promoção, mostra "DE soma das peças POR preço do kit".
+  // No painel NÃO mexe no preço, senão o formulário de edição abre errado.
+  function resolveKits(lista, mostrarDesconto) {
+    lista.forEach(p => {
+      if (!ehKit(p)) return;
+      const itens = itensDoKit(p, lista);
+      if (!p.img && itens.length) { p.img = itens[0].img; p.imgs = itens.map(i => i.img).filter(Boolean); }
+      if (mostrarDesconto && !temOferta(p)) {
+        const soma = somaDoKit(p, lista), preco = precoProduto(p);
+        if (numeroPositivo(preco) && soma > preco) { p.price = preco; p.originalPrice = soma; }
+      }
+    });
+    return lista;
   }
 
   function mapCatalogRows(rows) {
@@ -541,6 +566,7 @@
         imageMeta: imgs.map(x => ({ id: x.id, url: x.url, variantName: (x.variant_name || '').trim() })),
         desc: r.description || '', unit: r.unit_name || '',
         position: Number(r.position) || 0,  // ordem definida pelo lojista (setas ↑↓)
+        kit: Array.isArray(r.kit_itens) ? r.kit_itens : [],   // kit = ids das peças; vazio = produto normal
         createdAt: r.created_at || '',
         cat: cats[0] || '',                 // compatibilidade com caches e links antigos
         cats: cats,                         // o produto pode aparecer em varias categorias
@@ -727,6 +753,13 @@
       if (p.featured) {
         const selo = document.createElement('span'); selo.className = 'product-badge'; selo.textContent = 'Destaque'; body.appendChild(selo);
       }
+      const kitItens = ehKit(p) ? itensDoKit(p) : [];
+      if (ehKit(p)) {
+        // Kit não vai direto pra prova (são várias peças): o botão abre o kit.
+        const seloKit = document.createElement('span'); seloKit.className = 'product-badge kit-badge';
+        seloKit.textContent = 'Kit · ' + kitItens.length + ' peças'; body.appendChild(seloKit);
+        btn.textContent = 'Ver o kit';
+      }
       body.append(nome);
       if (p.unit) {
         const unidade = document.createElement('span'); unidade.className = 'product-unit';
@@ -744,7 +777,7 @@
       // Botão leva DIRETO pra prova (menos um passo pro cliente).
       card.querySelector('.pc-try').addEventListener('click', ev => {
         ev.stopPropagation();
-        startTryOn(p);
+        if (ehKit(p)) openProduct(p); else startTryOn(p);
       });
       // Resto do card abre a página do produto (detalhe e compra).
       card.addEventListener('click', () => openProduct(p));
@@ -1249,6 +1282,34 @@
     return cat ? base + '&cat=' + encodeURIComponent(cat) : base;
   }
 
+  // Página do kit: esconde o "Provar" do kit (o gerador prova 1 peça por vez)
+  // e lista as peças, cada uma com o próprio "Provar". DOM seguro: nomes vêm
+  // do lojista, nunca concatenar em HTML.
+  function renderKitDoProduto(p) {
+    const box = $('#p-kit'), lista = $('#p-kit-lista');
+    if (!box || !lista) return;
+    lista.innerHTML = '';
+    const itens = ehKit(p) ? itensDoKit(p) : [];
+    $('#btn-try').hidden = ehKit(p);
+    box.hidden = !itens.length;
+    itens.forEach(item => {
+      const linha = document.createElement('div'); linha.className = 'p-kit-item';
+      const foto = document.createElement('img'); foto.alt = '';
+      const info = document.createElement('div'); info.className = 'p-kit-info';
+      const nome = document.createElement('span'); nome.className = 'p-kit-nome'; nome.textContent = item.name;
+      const preco = document.createElement('span'); preco.className = 'p-kit-preco';
+      preco.textContent = numeroPositivo(precoProduto(item)) ? brl(precoProduto(item)) : '';
+      info.append(nome, preco);
+      const provar = document.createElement('button');
+      provar.type = 'button'; provar.className = 'p-kit-provar'; provar.textContent = 'Provar';
+      provar.addEventListener('click', ev => { ev.stopPropagation(); startTryOn(item); });
+      linha.addEventListener('click', () => openProduct(item));
+      linha.append(foto, info, provar);
+      bindImg(foto, item.img, item.name);
+      lista.appendChild(linha);
+    });
+  }
+
   function openProduct(p, semHistorico) {
     current = p;
     fotoSel = 0;   // produto novo, galeria volta pra primeira foto
@@ -1270,6 +1331,7 @@
     $('#p-unit').textContent = p.unit ? 'Unidade: ' + p.unit : '';
     $('#p-unit').hidden = !p.unit;
     $('#btn-buy-direct').hidden = !LOJAS_COMPRA_DIRETA.has(STORE_SLUG);
+    renderKitDoProduto(p);
     montaMiniaturas(p);
     show('product');
     // troca a URL sem recarregar, pra quem chegou pelo catálogo poder copiar da
@@ -1824,7 +1886,7 @@
     try {
       const rows = await catalogManage('list');
       if (carga !== adminLoading || !ehDono()) return;
-      adminCatalog = mapCatalogRows(rows);
+      adminCatalog = resolveKits(mapCatalogRows(rows), false);
     } catch (e) { toast('Não consegui carregar os produtos do painel. Tente abrir novamente.'); return; }
     for (const id of selecionados) if (!adminCatalog.some(p => p.id === id)) selecionados.delete(id);
 
@@ -1881,6 +1943,10 @@
       if (!p.active || p.featured) {
         const badge = document.createElement('small'); badge.className = 'ai-status';
         badge.textContent = !p.active ? 'Rascunho' : 'Destaque'; nome.appendChild(badge);
+      }
+      if (ehKit(p)) {
+        const badgeKit = document.createElement('small'); badgeKit.className = 'ai-status';
+        badgeKit.textContent = 'Kit · ' + p.kit.length + ' peças'; nome.appendChild(badgeKit);
       }
       const duplicar = document.createElement('button');
       duplicar.type = 'button'; duplicar.className = 'ai-duplicate'; duplicar.textContent = 'Duplicar';
@@ -2110,6 +2176,9 @@
       : (numeroPositivo(p.price) ? Number(p.price).toFixed(2).replace('.', ',') : '');
     $('#admin-desc').value = p.desc || '';
     $('#admin-unit').value = p.unit || '';
+    $('#admin-is-kit').checked = ehKit(p);
+    adminKitSel = ehKit(p) ? p.kit.slice() : [];
+    renderAdminKit();
     $('#admin-parcelas').value = p.parcelas ? String(p.parcelas) : '';
     $('#admin-interest-type').value = p.installmentInterestRate > 0 ? 'interest' : 'none';
     $('#admin-interest-rate').value = p.installmentInterestRate > 0
@@ -2135,6 +2204,7 @@
     $('#admin-name').value = ''; $('#admin-price').value = ''; $('#admin-original-price').value = '';
     $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
     $('#admin-unit').value = '';
+    $('#admin-is-kit').checked = false; adminKitSel = []; renderAdminKit();
     $('#admin-interest-type').value = 'none'; $('#admin-interest-rate').value = '';
     atualizaCampoJuros();
     $('#admin-categoria').value = '';
@@ -2154,6 +2224,55 @@
     const c = $('#btn-cancel-edit');
     if (c) c.addEventListener('click', () => { if (!adminFotoOcupada && !$('#btn-add-product').disabled) saiEdicao(); });
   }
+
+  // ─────────── Kit no cadastro ───────────
+  var adminKitSel = [];   // ids das peças, na ordem em que o lojista marcou (var: entraEdicao/saiEdicao podem rodar antes desta linha)
+  function renderAdminKit() {
+    const ligado = $('#admin-is-kit').checked;
+    $('#admin-kit-box').hidden = !ligado;
+    const lista = $('#admin-kit-lista');
+    lista.innerHTML = '';
+    if (!ligado) return;
+    // Peças possíveis: produtos normais (kit dentro de kit não vale), menos o próprio.
+    const opcoes = adminCatalog.filter(p => !ehKit(p) && (!editando || p.id !== editando.id));
+    adminKitSel = adminKitSel.filter(id => opcoes.some(p => p.id === id));
+    if (!opcoes.length) {
+      const vazio = document.createElement('p'); vazio.className = 'admin-kit-ajuda';
+      vazio.textContent = 'Cadastre pelo menos 2 produtos antes de montar um kit.';
+      lista.appendChild(vazio);
+    }
+    opcoes.forEach(p => {
+      const linha = document.createElement('label'); linha.className = 'admin-kit-item';
+      const marca = document.createElement('input'); marca.type = 'checkbox';
+      marca.checked = adminKitSel.includes(p.id);
+      marca.addEventListener('change', () => {
+        if (marca.checked) {
+          if (adminKitSel.length >= 10) { marca.checked = false; toast('O kit pode ter no máximo 10 produtos'); return; }
+          adminKitSel.push(p.id);
+        } else adminKitSel = adminKitSel.filter(id => id !== p.id);
+        atualizaSomaKit();
+      });
+      const foto = document.createElement('img'); foto.alt = '';
+      const nome = document.createElement('span'); nome.className = 'admin-kit-nome'; nome.textContent = p.name;
+      const preco = document.createElement('span'); preco.className = 'admin-kit-preco';
+      preco.textContent = numeroPositivo(precoProduto(p)) ? brl(precoProduto(p)) : 'Sem preço';
+      linha.append(marca, foto, nome, preco);
+      bindImg(foto, p.img, p.name);
+      lista.appendChild(linha);
+    });
+    atualizaSomaKit();
+  }
+  function atualizaSomaKit() {
+    const el = $('#admin-kit-soma');
+    if (!el) return;
+    const n = adminKitSel.length;
+    const soma = adminKitSel.reduce((t, id) => {
+      const p = adminCatalog.find(x => x.id === id);
+      return t + (p && numeroPositivo(precoProduto(p)) ? precoProduto(p) : 0);
+    }, 0);
+    el.textContent = n ? n + (n === 1 ? ' peça' : ' peças') + ' · soma separadas: ' + brl(soma) : 'Nenhuma peça marcada ainda.';
+  }
+  $('#admin-is-kit').addEventListener('change', renderAdminKit);
   $('#admin-photo').addEventListener('change', async e => {
     if (adminFotoOcupada || $('#btn-add-product').disabled) return;
     const livres = MAX_FOTOS_PRODUTO - adminFotosPreview.length;
@@ -2185,14 +2304,19 @@
     if ([price,originalPrice].some(v => v !== null && (!Number.isFinite(v) || v <= 0))) { toast('Informe preços válidos'); return; }
     if (price !== null && originalPrice !== null && originalPrice <= price) { toast('O preço original deve ser maior que o promocional'); return; }
     if ($('#admin-interest-type').value === 'interest' && (!(interestRate > 0 && interestRate <= 20) || parcelas < 2)) { toast('Confira os juros e o parcelamento'); return; }
-    if (publicar && (!name || !(price || originalPrice) || !adminFotosPreview.length || adminFotosPreview.some(f => !f.url))) {
-      toast('Para publicar, informe nome, preço e uma foto para cada variante'); return;
+    const kitLigado = $('#admin-is-kit').checked;
+    if (kitLigado && adminKitSel.length < 2) { toast('Marque pelo menos 2 produtos para montar o kit'); return; }
+    // Kit pode ir sem foto própria (a vitrine usa a das peças); produto normal não.
+    const faltaFoto = !adminFotosPreview.length && !kitLigado;
+    if (publicar && (!name || !(price || originalPrice) || faltaFoto || adminFotosPreview.some(f => !f.url))) {
+      toast(kitLigado ? 'Para publicar o kit, informe nome e preço' : 'Para publicar, informe nome, preço e uma foto para cada variante'); return;
     }
     if (!publicar && adminFotosPreview.some(f => !f.url && f.variantName)) { toast('Adicione a foto da variante ou remova a opção vazia antes de salvar'); return; }
     const fotos = adminFotosPreview.filter(f => f.url);
     const fields = { name, price, original_price:originalPrice, description:$('#admin-desc').value.trim(), unit_name:$('#admin-unit').value.trim(),
       parcelas, installment_interest_rate:interestRate, categories:categorias,
-      is_featured:$('#admin-featured').checked, is_active:publicar };
+      is_featured:$('#admin-featured').checked, is_active:publicar,
+      kit_itens: kitLigado ? adminKitSel.slice() : [] };
     const label = btn.textContent;
     const locked = $$('.admin-fields input, .admin-fields textarea, .admin-fields select, .admin-fields button, #admin-photo');
     const disabledBefore = locked.map(x => x.disabled);

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=127">
+  <link rel="stylesheet" href="styles.css?v=128">
 </head>
 <body>
   <div id="app">
@@ -79,6 +79,11 @@
           <!-- Exceção por loja (LOJAS_COMPRA_DIRETA no app.js): quem pediu compra
                sem provar ganha este botão. As demais seguem só com a prova. -->
           <button class="btn-outline big" id="btn-buy-direct" hidden>Comprar no WhatsApp</button>
+          <!-- Kit: o cliente prova peça por peça (o gerador trabalha com 1 produto). -->
+          <div class="p-kit" id="p-kit" hidden>
+            <p class="p-kit-titulo">Peças deste kit — prove cada uma:</p>
+            <div class="p-kit-lista" id="p-kit-lista"></div>
+          </div>
           <p class="product-unit" id="p-unit" hidden></p>
           <p class="p-desc" id="p-desc"></p>
         </div>
@@ -391,6 +396,14 @@
             <datalist id="admin-unit-options"></datalist>
             <textarea id="admin-desc" rows="2" placeholder="Descrição (opcional): material, medidas, cor…"></textarea>
             <label class="admin-check"><input type="checkbox" id="admin-featured"> Destacar no catálogo (aparece primeiro)</label>
+            <!-- Kit: um produto que junta outros. O preço é o que o lojista digitar;
+                 a vitrine mostra "de (soma das peças) por (preço do kit)". -->
+            <label class="admin-check"><input type="checkbox" id="admin-is-kit"> Este produto é um <b>kit</b> (junta outros produtos)</label>
+            <div class="admin-kit" id="admin-kit-box" hidden>
+              <p class="admin-kit-ajuda">Marque as peças do kit (de 2 a 10). O preço do kit é o que você digitou acima. A foto do kit é opcional — sem foto, usamos a das peças.</p>
+              <div class="admin-kit-lista" id="admin-kit-lista"></div>
+              <p class="admin-kit-soma" id="admin-kit-soma"></p>
+            </div>
             <button type="button" class="btn-outline" id="btn-save-draft">Salvar como rascunho</button>
             <button class="btn-primary" id="btn-add-product">Adicionar ao catálogo</button>
             <button class="btn-outline" id="btn-cancel-edit" hidden>Cancelar edição</button>
@@ -502,6 +515,6 @@
   </template>
   <div id="toast"></div>
 
-  <script src="app.js?v=127"></script>
+  <script src="app.js?v=128"></script>
 </body>
 </html>
