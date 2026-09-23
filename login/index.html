@@ -4079,6 +4079,10 @@
                             style="margin-left:auto;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text-main);font-size:13px;cursor:pointer;outline:none;">
                             <option value="">Todos os responsáveis</option>
                         </select>
+                        <select id="crmCampFilter" class="crm-provador-only" onchange="crmFilterCamp(this.value)" title="Filtrar por campanha/automação recebida"
+                            style="padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text-main);font-size:13px;cursor:pointer;outline:none;">
+                            <option value="">Todas as campanhas</option>
+                        </select>
                         <button id="crmBulkMoveBtn" class="btn-download crm-provador-only" onclick="openCrmBulkMoveModal()" title="Mover vários leads de uma etapa para outra">
                             <i class="ph-bold ph-arrows-left-right"></i> Mover em massa
                         </button>
@@ -18513,6 +18517,7 @@
         let _crmRespMem      = null;   // { telefone: 'Nome do responsável' }
         let _crmTeamMem      = null;   // ['Ana', 'Bruno', ...] (time comercial do lojista)
         let _crmRespFilter   = '';     // filtro ativo por responsável ('' = todos)
+        let _crmCampFilter   = '';     // filtro ativo por campanha/automação (source_id; '' = todas)
 
         async function loadCrmRemoteState() {
             // Descobre TODOS os logins desta loja antes de qualquer leitura — as chaves
@@ -19358,6 +19363,62 @@
             if (tp && tp.style.display && tp.style.display !== 'none') renderCrmTeamPanel();
         }
 
+        // Tags de campanha/automação por lead: derivadas do whatsapp_send_log (source +
+        // source_id) cruzado com os nomes em disparos_agendados (campanha) e flows (automação).
+        // Sem tabela nova, retroativo. Chave por normalize(telefone) pra casar com lead.phone.
+        let _crmCampaignTags = {};
+        async function loadCrmCampaignTags() {
+            _crmCampaignTags = {};
+            try {
+                const emails = (typeof crmScopeEmails === 'function') ? crmScopeEmails() : [activeUser.email];
+                const nameById = {};
+                for (const [tbl, origem] of [['disparos_agendados', 'Campanha'], ['flows', 'Automação']]) {
+                    try {
+                        const { data } = await supabaseClient.from(tbl).select('id,nome').in('lojista_email', emails);
+                        (data || []).forEach(r => { if (r.id) nameById[r.id] = { nome: r.nome || '', origem: origem }; });
+                    } catch (e) { /* tabela pode não existir — segue */ }
+                }
+                const rows = [];
+                let from = 0; const page = 1000;
+                while (true) {
+                    const { data: batch } = await supabaseClient
+                        .from('whatsapp_send_log')
+                        .select('lead_phone,source,source_id')
+                        .in('email', emails)
+                        .in('status', ['sent', 'delivered', 'read'])
+                        .in('source', ['campanha', 'recorrente', 'massa', 'automacao'])
+                        .order('sent_at', { ascending: false })
+                        .range(from, from + page - 1);
+                    if (!batch || batch.length === 0) break;
+                    rows.push(...batch);
+                    if (batch.length < page) break;
+                    from += page;
+                }
+                rows.forEach(r => {
+                    const ph = normalize(r.lead_phone); if (!ph || !r.source_id) return;
+                    const info = nameById[r.source_id];
+                    const isAuto = r.source === 'automacao';
+                    const origem = info ? info.origem : (isAuto ? 'Automação' : 'Campanha');
+                    const nome = (info && info.nome) ? info.nome : origem;
+                    if (!_crmCampaignTags[ph]) _crmCampaignTags[ph] = {};
+                    _crmCampaignTags[ph][r.source_id] = { origem, nome };
+                });
+            } catch (e) { console.warn('[crm] tags de campanha:', e); }
+        }
+        // Lista única de tags (pro filtro): {key: source_id, label: "Origem: nome"}
+        function crmAllCampaignTags() {
+            const seen = {}, out = [];
+            Object.keys(_crmCampaignTags).forEach(ph => {
+                Object.keys(_crmCampaignTags[ph]).forEach(sid => {
+                    if (seen[sid]) return; seen[sid] = 1;
+                    const t = _crmCampaignTags[ph][sid];
+                    out.push({ key: sid, origem: t.origem, nome: t.nome, label: t.origem + ': ' + (t.nome || '—') });
+                });
+            });
+            out.sort((a, b) => a.label.localeCompare(b.label));
+            return out;
+        }
+
         async function loadCRM(silent) {
             const loader = document.getElementById('crmLoader');
             const content = document.getElementById('crmContent');
@@ -19373,6 +19434,7 @@
 
             try {
                 await loadCrmRemoteState();
+                await loadCrmCampaignTags();
                 const user = activeUser;
                 const fPhone = user.campo_telefone_pedido || 'customer_phone';
                 const fStatus = user.campo_status_pedido || 'payment_status';
@@ -20100,6 +20162,21 @@
             _crmRespFilter = val || '';
             renderCrmBoard();
         }
+        // Preenche o filtro de campanha/automação (toolbar) com as tags existentes.
+        function populateCrmCampControls() {
+            const sel = document.getElementById('crmCampFilter');
+            if (!sel) return;
+            const tags = (typeof crmAllCampaignTags === 'function') ? crmAllCampaignTags() : [];
+            const cur = _crmCampFilter;
+            sel.innerHTML = '<option value="">Todas as campanhas</option>'
+                + tags.map(t => '<option value="' + escapeHtml(t.key) + '">' + escapeHtml(t.label) + '</option>').join('');
+            sel.value = cur || '';
+            sel.style.display = tags.length ? '' : 'none';
+        }
+        function crmFilterCamp(val) {
+            _crmCampFilter = val || '';
+            renderCrmBoard();
+        }
 
         // ===== Mover leads em massa (De etapa -> Para etapa) =====
         // Telefones cuja etapa ATUAL (mesma regra do board) é stageKey, respeitando o
@@ -20309,6 +20386,11 @@
                     if (_crmRespFilter === '__none__') { if (who) return; }
                     else if (who !== _crmRespFilter) return;
                 }
+                // Filtro por campanha/automação recebida (tag)
+                if (_crmCampFilter) {
+                    const tset = _crmCampaignTags[ph];
+                    if (!tset || !tset[_crmCampFilter]) return;
+                }
                 matchCount++;
                 let targetKey;
                 // Regra: quem COMPROU vai SEMPRE pra Convertido — mesmo que tenha sido movido à
@@ -20442,6 +20524,27 @@
                             card.appendChild(cliBadge);
                         }
 
+                        // Tags de campanha/automação recebidas (derivado do log de envio).
+                        const _leadTags = _crmCampaignTags[lead.phone] ? Object.values(_crmCampaignTags[lead.phone]) : [];
+                        if (_leadTags.length) {
+                            const tagsWrap = document.createElement('div');
+                            tagsWrap.style.cssText = 'margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;';
+                            _leadTags.slice(0, 5).forEach(t => {
+                                const isAuto = t.origem === 'Automação';
+                                const b = document.createElement('span');
+                                b.style.cssText = 'display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:99px;max-width:100%;'
+                                    + (isAuto ? 'color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);'
+                                              : 'color:#7c3aed;background:rgba(124,58,237,.10);border:1px solid rgba(124,58,237,.22);');
+                                b.title = t.origem + ': ' + (t.nome || '');
+                                const ic = document.createElement('i'); ic.className = 'ph-bold ' + (isAuto ? 'ph-robot' : 'ph-megaphone');
+                                const tx = document.createElement('span'); tx.textContent = t.nome || t.origem;
+                                tx.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;';
+                                b.append(ic, tx);
+                                tagsWrap.appendChild(b);
+                            });
+                            card.appendChild(tagsWrap);
+                        }
+
                         // Seletor de responsável (atribuição rápida ao time comercial)
                         const curResp = resp[lead.phone] || '';
                         const respWrap = document.createElement('div');
@@ -20541,6 +20644,7 @@
             });
 
             try { populateCrmRespControls(); } catch(e) {}
+            try { populateCrmCampControls(); } catch(e) {}
             const _tp = document.getElementById('crmTeamPanel');
             if (_tp && _tp.style.display && _tp.style.display !== 'none') { try { renderCrmTeamPanel(); } catch(e) {} }
         }
