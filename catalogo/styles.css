@@ -218,6 +218,17 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 }
 .prod-card .pc-try:hover { background: var(--cta-dark, var(--brand-dark)); }
 .prod-card .pc-try:active { transform: scale(.97); }
+/* "Comprar" direto na vitrine: só lojas em LOJAS_COMPRA_DIRETA. Contorno, pra
+   não brigar com o "Provar" (que continua sendo a ação principal). */
+.prod-card .pc-buy {
+  width: 100%; margin-top: 6px; padding: 10px 8px;
+  background: transparent; color: var(--cta, var(--brand));
+  border: 1.5px solid var(--cta, var(--brand)); border-radius: 11px;
+  font: 700 13px 'Hanken Grotesk', sans-serif; cursor: pointer;
+  transition: background .18s, transform .12s;
+}
+.prod-card .pc-buy:hover { background: var(--brand-soft); }
+.prod-card .pc-buy:active { transform: scale(.97); }
 
 /* ─── Produto ─── */
 .product-photo { width: 100%; aspect-ratio: auto; border-radius: var(--radius); overflow: hidden; background: transparent; box-shadow: var(--shadow-sm); }

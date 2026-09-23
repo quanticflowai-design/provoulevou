@@ -46,6 +46,8 @@
     charmeprime:       { loja: 'charmeprime', rotulo: 'Charme Prime' },
     orbita:            { loja: 'charmeprime', rotulo: 'Órbita' }
   };
+  // Lojas com botão "Comprar" direto na vitrine e na página do produto (sem provar).
+  const LOJAS_COMPRA_DIRETA = new Set(['prevedelloacessorios']);
   const _lojaParam = (new URLSearchParams(location.search).get('loja') || 'lojateste').trim();
   const _alias = UNIDADE_ALIAS[_lojaParam.toLowerCase()];
   const STORE_SLUG = _alias ? _alias.loja : _lojaParam;
@@ -731,6 +733,12 @@
         unidade.textContent = 'Unidade: ' + p.unit; body.appendChild(unidade);
       }
       body.append(precos, btn);
+      if (LOJAS_COMPRA_DIRETA.has(STORE_SLUG)) {
+        const comprar = document.createElement('button');
+        comprar.type = 'button'; comprar.className = 'pc-buy'; comprar.textContent = 'Comprar';
+        comprar.addEventListener('click', ev => { ev.stopPropagation(); comprarDireto(p); });
+        body.append(comprar);
+      }
       card.append(thumb, body);
       bindImg(thumb, p.img, p.name);
       // Botão leva DIRETO pra prova (menos um passo pro cliente).
@@ -1261,6 +1269,7 @@
     $('#p-desc').textContent = p.desc || '';
     $('#p-unit').textContent = p.unit ? 'Unidade: ' + p.unit : '';
     $('#p-unit').hidden = !p.unit;
+    $('#btn-buy-direct').hidden = !LOJAS_COMPRA_DIRETA.has(STORE_SLUG);
     montaMiniaturas(p);
     show('product');
     // troca a URL sem recarregar, pra quem chegou pelo catálogo poder copiar da
@@ -2473,6 +2482,20 @@
       (current && current.unit ? ' Unidade do produto: ' + current.unit + '.' : '');
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
   }
+  // Compra SEM provar: as demais lojas só compram depois da prova (vira lead).
+  // Aqui entra quem pediu botão de compra na vitrine e na página do produto.
+  function comprarDireto(p, nome) {
+    const fixa = unidadeFixa();
+    const lojas = fixa ? [fixa] : (LOJAS_COMPRA_WHATSAPP[STORE_SLUG] || []);
+    const tel = String((lojas[0] && lojas[0].telefone) || (storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
+    if (!tel) { toast('Esta loja ainda não tem WhatsApp cadastrado.'); return; }
+    const num = tel.length <= 11 ? '55' + tel : tel;
+    const txt = 'Oi! Vi o ' + (nome || p.name) +
+      (numeroPositivo(precoProduto(p)) ? ' (' + brl(precoProduto(p)) + ')' : '') +
+      ' no catálogo da ' + STORE.name + ' e quero comprar.';
+    window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
+  }
+  $('#btn-buy-direct').addEventListener('click', () => { if (current) comprarDireto(current, nomeProdutoAtual()); });
   $('#btn-buy').addEventListener('click', e => comprarNoWhatsapp(e.currentTarget.dataset.telefone));
   $('#btn-buy-secondary').addEventListener('click', e => comprarNoWhatsapp(e.currentTarget.dataset.telefone));
   // Limite atingido: a conversa com a loja é a única saída hoje, então o texto
