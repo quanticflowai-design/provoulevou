@@ -43,6 +43,10 @@
     magrini:           { loja: 'oticasprimemagrini', rotulo: 'Magrini' },
     'outlet-araras':   { loja: 'oticasprimemagrini', rotulo: 'Outlet Araras' },
     'outlet-cordeiro': { loja: 'oticasprimemagrini', rotulo: 'Outlet Cordeiro' },
+    // Links pessoais (sem rotulo = catálogo inteiro, todas as unidades)
+    'magrini-antonio': { loja: 'oticasprimemagrini', rotulo: null },
+    'magrini-luciana': { loja: 'oticasprimemagrini', rotulo: null },
+    'magrini-isaias':  { loja: 'oticasprimemagrini', rotulo: null },
     charmeprime:       { loja: 'charmeprime', rotulo: 'Charme Prime' },
     orbita:            { loja: 'charmeprime', rotulo: 'Órbita' }
   };
