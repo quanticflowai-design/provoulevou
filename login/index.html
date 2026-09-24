@@ -12438,15 +12438,6 @@
                 lastDate: new Date(s.fim || s.inicio || Date.now()).toISOString(),
                 lensSessionId: s.sid
             }));
-            const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-            const { data: recent } = await supabaseClient.from('whatsapp_send_log')
-                .select('lead_phone').in('email', plScopeEmails()).in('status', ['sent', 'delivered', 'read'])
-                .gte('sent_at', since).limit(10000);
-            const blocked = new Set((recent || []).map(r => String(r.lead_phone || '').replace(/\D/g, '')));
-            targets = targets.filter(t => {
-                const local = t.phone.startsWith('55') ? t.phone.slice(2) : t.phone;
-                return !blocked.has(t.phone) && !blocked.has(local) && !blocked.has('55' + local);
-            });
             targets.sort((a, b) => (b.lastDate || '').localeCompare(a.lastDate || ''));
             if (limit && Number(limit) > 0) targets = targets.slice(0, Number(limit));
             return targets;
@@ -12493,22 +12484,8 @@
 
             if (naoCompraram.length === 0) return [];
 
-            // Filtra os que receberam disparo nos últimos 7 dias via Supabase
-            const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-            const { data: recent } = await supabaseClient
-                .from('whatsapp_send_log')
-                .select('lead_phone')
-                .in('email', plScopeEmails())
-                .in('status', ['sent', 'delivered', 'read'])
-                .gte('sent_at', since)
-                .limit(10000);
-            const blocked = new Set((recent || []).map(r => String(r.lead_phone).replace(/\D/g, '')));
-
-            let eligible = naoCompraram.filter(l => {
-                let ph = l.phone;
-                if (ph.length === 10 || ph.length === 11) ph = '55' + ph;
-                return !blocked.has(l.phone) && !blocked.has(ph);
-            });
+            // Sem trava de 7 dias (removida a pedido, 23/09): a etapa do CRM é quem decide.
+            let eligible = naoCompraram;
 
             // Prioriza leads mais recentes quando há limite
             eligible.sort((a, b) => (b.lastDate || '').localeCompare(a.lastDate || ''));
