@@ -13443,7 +13443,13 @@
 
             // agrupa por nome (fallback: id) — junta as 2 linhas de "diário 2 horários"
             const groups = {};
-            rows.forEach(r => { const k = (r.nome && r.nome.trim()) ? ('n:' + r.nome.trim().toLowerCase()) : ('id:' + r.id); (groups[k] = groups[k] || []).push(r); });
+            // Só as recorrentes (diário) se juntam: campanhas pontuais com o MESMO nome são
+            // envios diferentes e viravam 1 card só — e o excluir desse card apagava todas.
+            rows.forEach(r => {
+                const nm = (r.nome && r.nome.trim()) ? r.nome.trim().toLowerCase() : '';
+                const k = (nm && r.recurrence === 'diario') ? ('n:' + nm) : ('id:' + r.id);
+                (groups[k] = groups[k] || []).push(r);
+            });
             const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
             const stageTitle = k => waPipelineStageTitle(k) || '—';
             const items = Object.values(groups);
