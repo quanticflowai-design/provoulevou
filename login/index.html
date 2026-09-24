@@ -10103,10 +10103,11 @@
 
         async function automToggleAtivo(flowId, checked) {
             try {
-                const { error } = await supabaseClient.from('flows')
+                const { data, error } = await supabaseClient.from('flows')
                     .update({ ativo: !!checked })
-                    .eq('id', flowId).eq('lojista_email', activeUser.email);
+                    .eq('id', flowId).in('lojista_email', plScopeEmails()).select('id');
                 if (error) throw error;
+                if (!data || !data.length) throw new Error('sem permissão para alterar esta automação.');
                 const f = AUTOM.flows.find(x => String(x.id) === String(flowId));
                 if (f) f.ativo = !!checked;
             } catch (e) {
@@ -10115,16 +10116,80 @@
             }
         }
 
+        // Confirmação dentro do painel (no lugar do confirm() do navegador).
+        // plConfirm({ title, text, okLabel, danger }) -> Promise<boolean>
+        function plConfirm(opts) {
+            opts = opts || {};
+            if (!document.getElementById('plConfirmCSS')) {
+                const st = document.createElement('style');
+                st.id = 'plConfirmCSS';
+                st.textContent = ''
+                  + '.pl-cf-back{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(15,15,20,.45);backdrop-filter:blur(3px);animation:plCfIn .15s ease-out}'
+                  + '.pl-cf-box{width:100%;max-width:420px;background:var(--card-bg,#fff);color:var(--text-main,#111);border:1px solid var(--border,#e5e5e5);border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.25);padding:22px 22px 18px;animation:plCfPop .18s ease-out}'
+                  + '.pl-cf-ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px;background:rgba(220,38,38,.1);color:#dc2626}'
+                  + '.pl-cf-ic.info{background:rgba(99,102,241,.1);color:var(--primary,#6366f1)}'
+                  + '.pl-cf-title{font-size:16px;font-weight:700;margin:0 0 6px}'
+                  + '.pl-cf-text{font-size:13.5px;line-height:1.5;color:var(--text-muted,#666);margin:0 0 18px}'
+                  + '.pl-cf-acts{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}'
+                  + '.pl-cf-btn{border:1px solid var(--border,#e5e5e5);background:transparent;color:var(--text-main,#111);border-radius:10px;padding:9px 16px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}'
+                  + '.pl-cf-btn:hover{background:rgba(127,127,127,.08)}'
+                  + '.pl-cf-btn.ok{background:var(--primary,#6366f1);border-color:transparent;color:#fff}'
+                  + '.pl-cf-btn.ok.danger{background:#dc2626}'
+                  + '.pl-cf-btn.ok:hover{filter:brightness(1.08)}'
+                  + '@keyframes plCfIn{from{opacity:0}to{opacity:1}}@keyframes plCfPop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}';
+                document.head.appendChild(st);
+            }
+            return new Promise(resolve => {
+                const back = document.createElement('div');
+                back.className = 'pl-cf-back';
+                const box = document.createElement('div');
+                box.className = 'pl-cf-box';
+                box.setAttribute('role', 'dialog');
+                box.setAttribute('aria-modal', 'true');
+                const ic = document.createElement('div');
+                ic.className = 'pl-cf-ic' + (opts.danger ? '' : ' info');
+                const ii = document.createElement('i');
+                ii.className = 'ph-bold ' + (opts.danger ? 'ph-trash' : 'ph-question');
+                ic.appendChild(ii);
+                const h = document.createElement('h3'); h.className = 'pl-cf-title'; h.textContent = opts.title || 'Confirmar';
+                const p = document.createElement('p'); p.className = 'pl-cf-text'; p.textContent = opts.text || '';
+                const acts = document.createElement('div'); acts.className = 'pl-cf-acts';
+                const no = document.createElement('button'); no.className = 'pl-cf-btn'; no.textContent = opts.cancelLabel || 'Cancelar';
+                const ok = document.createElement('button'); ok.className = 'pl-cf-btn ok' + (opts.danger ? ' danger' : ''); ok.textContent = opts.okLabel || 'Confirmar';
+                acts.appendChild(no); acts.appendChild(ok);
+                box.appendChild(ic); box.appendChild(h); box.appendChild(p); box.appendChild(acts);
+                back.appendChild(box);
+                const done = v => { document.removeEventListener('keydown', onKey); back.remove(); resolve(v); };
+                const onKey = e => { if (e.key === 'Escape') done(false); else if (e.key === 'Enter') done(true); };
+                no.onclick = () => done(false);
+                ok.onclick = () => done(true);
+                back.addEventListener('click', e => { if (e.target === back) done(false); });
+                document.addEventListener('keydown', onKey);
+                document.body.appendChild(back);
+                setTimeout(() => { try { ok.focus(); } catch (_) {} }, 30);
+            });
+        }
+
         async function automDeleteFlow(flowId) {
             const f = AUTOM.flows.find(x => String(x.id) === String(flowId));
-            if (!confirm('Excluir o fluxo "' + ((f && f.nome) || 'sem nome') + '"? Os inscritos e o histórico deste fluxo também serão removidos.')) return;
+            const ok = await plConfirm({
+                title: 'Excluir automação?',
+                text: '"' + ((f && f.nome) || 'Fluxo sem nome') + '" será apagada, junto com os inscritos e o histórico dela. Não dá pra desfazer.',
+                okLabel: 'Excluir', danger: true
+            });
+            if (!ok) return;
             try {
-                const { error } = await supabaseClient.from('flows')
-                    .delete().eq('id', flowId).eq('lojista_email', activeUser.email);
+                // A automação pode ter sido criada pelo OUTRO login da mesma loja: filtra pelo
+                // grupo inteiro e confere se apagou mesmo (RLS bloqueando = 0 linhas, sem erro).
+                const { data, error } = await supabaseClient.from('flows')
+                    .delete().eq('id', flowId).in('lojista_email', plScopeEmails()).select('id');
                 if (error) throw error;
+                if (!data || !data.length) throw new Error('sem permissão para apagar esta automação.');
+                try { crmToast('Automação excluída.', false); } catch (_) {}
                 automLoadFlows();
             } catch (e) {
-                alert('Não foi possível excluir: ' + (e && e.message ? e.message : e));
+                try { crmToast('Não foi possível excluir: ' + (e && e.message ? e.message : e), true); }
+                catch (_) { alert('Não foi possível excluir: ' + (e && e.message ? e.message : e)); }
             }
         }
 
