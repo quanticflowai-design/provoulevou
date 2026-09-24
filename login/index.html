@@ -10259,6 +10259,7 @@
                     editor.import(flow.definicao);
                     // Localiza o nó Gatilho pelo data.tipo.
                     automFindTriggerNode();
+                    automRefreshAllNodeSubs();
                 } catch (e) {
                     console.error('[Automações] falha ao importar definição, recriando gatilho', e);
                     automAddTriggerNode();
@@ -10521,9 +10522,27 @@
                 if (!node) return;
                 const newData = Object.assign({}, node.data, patch);
                 AUTOM.editor.updateNodeDataFromId(nodeId, newData);
-                const el = document.querySelector('#node-' + nodeId + ' [data-nodesub]');
-                if (el) el.innerHTML = automNodeSummary(newData);
+                automSyncNodeSub(nodeId, newData);
             } catch (e) { console.error('[Automações] updateNodeData', e); }
+        }
+        // Atualiza o resumo na tela E no html guardado pelo Drawflow — senão o fluxo
+        // salvo volta mostrando o texto da criação (ex.: Espera "15 minutos").
+        function automSyncNodeSub(nodeId, d) {
+            if (!d || !['espera', 'enviar', 'mover_crm'].includes(d.tipo)) return;
+            const sub = automNodeSummary(d);
+            const el = document.querySelector('#node-' + nodeId + ' [data-nodesub]');
+            if (el) el.innerHTML = sub;
+            try {
+                const n = AUTOM.editor.drawflow.drawflow[AUTOM.editor.module || 'Home'].data[nodeId];
+                if (n) n.html = automNodeCard(d.tipo, sub);
+            } catch (e) {}
+        }
+        // Fluxos salvos antes do fix trazem html velho: recalcula a partir do data.
+        function automRefreshAllNodeSubs() {
+            try {
+                const data = AUTOM.editor.export().drawflow.Home.data;
+                Object.keys(data).forEach(k => automSyncNodeSub(data[k].id, data[k].data));
+            } catch (e) {}
         }
 
         // ---------- PAINEL DE CONFIG (direita) ----------
