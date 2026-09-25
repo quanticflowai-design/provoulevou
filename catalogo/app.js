@@ -429,7 +429,17 @@
                 brand: '#B39A1F', dark: '#8F7B18', soft: 'rgba(179,154,31,.14)', on: '#111111' },
     // Cooperagri: logo verde sobre cinza claro -> fundo = cinza do logo; verde fechado p/ contraste (5:1).
     cooperagri: { bg: '#F7F7F7', card: '#FFFFFF', line: '#DDEBDF',
-                brand: '#17802F', dark: '#116024', soft: 'rgba(23,128,47,.10)', on: '#ffffff' }
+                brand: '#17802F', dark: '#116024', soft: 'rgba(23,128,47,.10)', on: '#ffffff' },
+    // Ótica Future: logo amarelo/preto sobre transparente -> fundo branco; preço preto, botão amarelo c/ texto preto (12,5:1).
+    oticafuture: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EFE7C2',
+                brand: '#111111', dark: '#000000', soft: 'rgba(253,205,0,.16)', on: '#ffffff',
+                cta: '#FDCD00', ctaDark: '#E0B600', onCta: '#111111' },
+    // Ótica Santa Lúcia: logo quadrado laranja chapado -> fundo = laranja do logo; botão laranja fechado (6,2:1).
+    oticasantalucia: { bg: '#FF4000', card: '#FFFFFF', line: '#FFD0BF',
+                brand: '#B53100', dark: '#8F2700', soft: 'rgba(181,49,0,.10)', on: '#ffffff' },
+    // LuÓtica Niterói: logo dourado sobre preto -> tema escuro; texto preto no dourado.
+    luoticaniteroi: { bg: '#000000', card: '#111111', line: 'rgba(219,171,55,.28)',
+                brand: '#DBAB37', dark: '#B58C2A', soft: 'rgba(219,171,55,.14)', on: '#111111' }
   };
 
   // ─────────── Tema ───────────
