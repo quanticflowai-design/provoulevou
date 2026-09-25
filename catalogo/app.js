@@ -420,7 +420,16 @@
                    brand: '#0E6E7E', dark: '#0A5461', soft: 'rgba(14,110,126,.10)', on: '#ffffff' },
     // Ver Livre Óculos: logo prata/branco sobre preto -> tema escuro (base dafflon).
     verlivre: { bg: '#000000', card: '#101010', line: '#2A2A2A',
-                brand: '#FFFFFF', dark: '#D9D9D9', soft: 'rgba(255,255,255,.12)', on: '#000000' }
+                brand: '#FFFFFF', dark: '#D9D9D9', soft: 'rgba(255,255,255,.12)', on: '#000000' },
+    // Ótica Nova Visão: logo branco sobre laranja chapado -> fundo = laranja do logo; botão laranja fechado (4,5:1).
+    oticanovavisao: { bg: '#FC6903', card: '#FFFFFF', line: '#FFD2B3',
+                brand: '#C2560E', dark: '#9E450A', soft: 'rgba(194,86,14,.10)', on: '#ffffff' },
+    // Óticas Lampião: logo dourado sobre preto -> tema escuro; texto preto no dourado (6,8:1).
+    oticaslampiao: { bg: '#0F1313', card: '#181C1C', line: 'rgba(179,154,31,.28)',
+                brand: '#B39A1F', dark: '#8F7B18', soft: 'rgba(179,154,31,.14)', on: '#111111' },
+    // Cooperagri: logo verde sobre cinza claro -> fundo = cinza do logo; verde fechado p/ contraste (5:1).
+    cooperagri: { bg: '#F7F7F7', card: '#FFFFFF', line: '#DDEBDF',
+                brand: '#17802F', dark: '#116024', soft: 'rgba(23,128,47,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
