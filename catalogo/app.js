@@ -1898,6 +1898,7 @@
     precoOriginal.hidden = !precoOriginal.textContent;
     $('#result-price').textContent = precoAtualTxt(current);
     $('#result-price').classList.toggle('offer', temOferta(current));
+    $('#btn-lentes').hidden = !lojaTemLentes();
     show('result');
   }
 
@@ -2819,6 +2820,186 @@
   $('#btn-buy-direct').addEventListener('click', () => { if (current) comprarDireto(current, nomeProdutoAtual()); });
   $('#btn-buy').addEventListener('click', e => comprarNoWhatsapp(e.currentTarget.dataset.telefone));
   $('#btn-buy-secondary').addEventListener('click', e => comprarNoWhatsapp(e.currentTarget.dataset.telefone));
+
+  // ─────────── Escolher lentes (lojas com grade em lentes.js — hoje só a Magrini) ───────────
+  // A loja do catálogo não tem carrinho: o fluxo termina no WhatsApp da unidade,
+  // com armação + lente + receita no texto. A ótica confere o grau antes de montar.
+  const WH_LER_RECEITA = 'https://n8n.segredosdodrop.com/webhook/pl-ler-receita';
+  const lz = { passo: 'trat', trat: null, receita: null, lente: null, multifocal: false, lidoIA: null };
+  function lojaTemLentes() { return !!(window.PLLentes && (window.PLLentes.LENTES_POR_LOJA[STORE_SLUG] || []).length); }
+  function lzEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  function lzGrau(v) { const n = Number(v) || 0; return (n > 0 ? '+' : '') + n.toFixed(2).replace('.', ','); }
+  function lzTratNome(id) { const t = window.PLLentes.TRATAMENTOS.find(x => x.id === id); return t ? t.nome : ''; }
+  function lzPreco(l) { return l && numeroPositivo(l.preco) ? brl(l.preco) : ''; }
+  function lzOpcoes(de, ate, passo, marcado) {
+    let h = '<option value="">—</option>';
+    const n = Math.round((ate - de) / passo);
+    for (let i = 0; i <= n; i++) {
+      const v = de + i * passo;
+      h += '<option value="' + v.toFixed(2) + '"' + (marcado != null && Math.abs(Number(marcado) - v) < 1e-6 ? ' selected' : '') + '>' + lzGrau(v) + '</option>';
+    }
+    return h;
+  }
+  function lzEixos(marcado) {
+    let h = '<option value="">—</option>';
+    for (let v = 0; v <= 180; v++) h += '<option value="' + v + '"' + (marcado != null && Number(marcado) === v ? ' selected' : '') + '>' + v + '°</option>';
+    return h;
+  }
+  function lzResumoReceita(r) {
+    if (!r) return '';
+    const olho = (e, c, x) => lzGrau(e) + (Number(c) ? ' ' + lzGrau(c) + (x != null && x !== '' ? ' ' + x + '°' : '') : '');
+    return 'OD ' + olho(r.odEsf, r.odCil, r.odEixo) + ' | OE ' + olho(r.oeEsf, r.oeCil, r.oeEixo);
+  }
+  function lzNomeLente() {
+    if (lz.multifocal) return 'Multifocal (sob medida)';
+    if (lz.lente) return lz.lente.nome;
+    if (!lz.trat) return '';
+    return lzTratNome(lz.trat) + (lz.receita ? ' (sob medida — meu grau não tem pronta)' : '');
+  }
+
+  function lzAbrir() {
+    Object.assign(lz, { passo: 'trat', trat: null, lente: null, multifocal: false, lidoIA: null });
+    lzRender(); show('lentes');
+  }
+  function lzIr(passo) { lz.passo = passo; lzRender(); document.getElementById('app').scrollTop = 0; window.scrollTo(0, 0); }
+
+  function lzRender() {
+    const box = $('#lz');
+    const armacao = '<div class="lz-armacao"><img src="' + lzEsc(fotoAtual() || (current && current.img) || '') + '" alt="">' +
+      '<div><b>' + lzEsc(nomeProdutoAtual()) + '</b>' +
+      (current && numeroPositivo(precoProduto(current)) ? '<span>' + brl(precoProduto(current)) + '</span>' : '') + '</div></div>';
+    const soArmacao = '<button class="lz-link" data-lz="so-armacao">Prefiro comprar só a armação</button>';
+    let h = '';
+    if (lz.passo === 'trat') {
+      h = armacao + '<h2 class="lz-titulo">Que lente você quer?</h2><div class="lz-opcoes">' +
+        window.PLLentes.TRATAMENTOS.map(t => '<button class="lz-opcao" data-lz-trat="' + t.id + '"><b>' + lzEsc(t.nome) + '</b><small>' + lzEsc(t.desc) + '</small></button>').join('') +
+        '<button class="lz-opcao" data-lz="multifocal"><b>Multifocal (longe e perto)</b><small>Feita sob medida pela ótica.</small></button>' +
+        '</div>' + soArmacao;
+    } else if (lz.passo === 'receita') {
+      h = '<h2 class="lz-titulo">Agora a sua receita</h2><p class="lz-sub">Com ela a gente mostra só as lentes que servem no seu grau.</p>' +
+        '<div class="lz-opcoes">' +
+        '<label class="lz-opcao"><input type="file" id="lz-arquivo" accept="image/*,application/pdf" hidden><b>📷 Enviar foto da receita</b><small>A gente lê e preenche pra você conferir.</small></label>' +
+        '<button class="lz-opcao" data-lz="digitar"><b>✍️ Digitar a receita</b><small>Esférico, cilíndrico e eixo de cada olho.</small></button>' +
+        '<button class="lz-opcao" data-lz="sem-receita"><b>Não tenho a receita agora</b><small>Você manda depois, direto pra ótica.</small></button>' +
+        '</div><p class="lz-status" id="lz-status" hidden></p>' + soArmacao;
+    } else if (lz.passo === 'form') {
+      const r = lz.receita || {};
+      const linha = (olho, rot) => '<div class="lz-olho"><b>' + rot + '</b><div class="lz-campos">' +
+        '<label>Esférico<select data-lz-r="' + olho + 'Esf">' + lzOpcoes(-15, 8, 0.25, r[olho + 'Esf']) + '</select></label>' +
+        '<label>Cilíndrico<select data-lz-r="' + olho + 'Cil">' + lzOpcoes(-6, 6, 0.25, r[olho + 'Cil'] != null ? r[olho + 'Cil'] : 0) + '</select></label>' +
+        '<label>Eixo<select data-lz-r="' + olho + 'Eixo">' + lzEixos(r[olho + 'Eixo']) + '</select></label></div></div>';
+      h = '<h2 class="lz-titulo">' + (lz.lidoIA ? 'Confira sua receita' : 'Digite sua receita') + '</h2>' +
+        (lz.lidoIA ? '<p class="lz-aviso">' + (lz.lidoIA === 'baixa'
+          ? '⚠️ A imagem ficou difícil de ler. <b>Confira cada número com atenção.</b>'
+          : '✨ Preenchemos com o que lemos na sua receita. <b>Confira e corrija se precisar.</b>') + '</p>' : '') +
+        linha('od', 'Olho direito (OD)') + linha('oe', 'Olho esquerdo (OE)') +
+        '<p class="lz-status" id="lz-status" hidden></p>' +
+        '<button class="btn-primary big" data-lz="ver-lentes">Ver lentes pro meu grau</button>' + soArmacao;
+    } else if (lz.passo === 'lista') {
+      const lista = window.PLLentes.lentesQueServem(STORE_SLUG, lz.trat, lz.receita);
+      if (!lz.lente || !lista.some(l => l.id === lz.lente.id)) lz.lente = lista[0] || null;
+      if (!lista.length) {
+        const outras = window.PLLentes.tratamentosQueServem(STORE_SLUG, lz.receita);
+        h = '<h2 class="lz-titulo">Sua lente sai sob medida</h2>' +
+          '<p class="lz-sub">A lente ' + lzEsc(lzTratNome(lz.trat)) + ' pronta não chega no seu grau (' + lzEsc(lzResumoReceita(lz.receita)) +
+          '). A ótica faz sob medida e te passa o valor no WhatsApp.</p>' +
+          (outras.length ? '<p class="lz-sub">Pro seu grau tem pronta:</p><div class="lz-opcoes">' +
+            outras.map(id => '<button class="lz-opcao" data-lz-trat2="' + id + '"><b>' + lzEsc(lzTratNome(id)) + '</b></button>').join('') + '</div>' : '') +
+          '<button class="btn-primary big" data-lz="fim">Continuar com a ótica</button>';
+      } else {
+        h = '<h2 class="lz-titulo">Lentes que servem no seu grau</h2>' +
+          '<p class="lz-sub">' + lzEsc(lzTratNome(lz.trat)) + ' · ' + lzEsc(lzResumoReceita(lz.receita)) + '</p><div class="lz-opcoes">' +
+          lista.map((l, i) => '<button class="lz-opcao lz-lente' + (lz.lente && lz.lente.id === l.id ? ' sel' : '') + '" data-lz-lente="' + l.id + '">' +
+            (i === 0 ? '<em>Indicada</em>' : '') + '<b>' + lzEsc(l.nome) + '</b>' +
+            '<small>Índice ' + lzEsc(l.indice) + (/^1\.(67|74)/.test(l.indice) ? ' · mais fina, boa pra grau alto' : /Poli/.test(l.indice) ? ' · mais resistente a impacto' : '') + '</small>' +
+            (lzPreco(l) ? '<span class="lz-preco">' + lzPreco(l) + '</span>' : '') + '</button>').join('') +
+          '</div><p class="lz-disclaimer">Indicação pelo que você informou. <b>A ótica confere a receita</b> antes de montar.</p>' +
+          '<button class="btn-primary big" data-lz="fim">Continuar com essa lente</button>';
+      }
+      h += soArmacao;
+    } else if (lz.passo === 'fim') {
+      const fixa = unidadeFixa();
+      const lojas = (fixa ? [fixa] : unidadesDaLoja()).filter(u => u.telefone);
+      h = '<h2 class="lz-titulo">Tudo certo!</h2>' + armacao +
+        '<div class="lz-resumo"><p><span>Lente</span><b>' + lzEsc(lzNomeLente()) + (lzPreco(lz.lente) ? ' · ' + lzPreco(lz.lente) : '') + '</b></p>' +
+        '<p><span>Receita</span><b>' + (lz.receita ? lzEsc(lzResumoReceita(lz.receita)) : 'vou enviar pra ótica') + '</b></p></div>' +
+        '<p class="lz-sub">' + (lzPreco(lz.lente) ? 'Finalize com a ótica no WhatsApp.' : 'A ótica te passa o valor da lente e finaliza com você no WhatsApp.') + '</p>' +
+        '<div class="result-buy-actions">' + (lojas.length ? lojas.map(u =>
+          '<button class="btn-primary big" data-lz-comprar="' + lzEsc(u.telefone) + '">Comprar — ' + lzEsc(u.rotulo) + '</button>').join('')
+          : '<button class="btn-primary big" data-lz-comprar="">Comprar no WhatsApp</button>') + '</div>';
+    }
+    box.innerHTML = h;
+    const arq = $('#lz-arquivo');
+    if (arq) arq.addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) lzLerReceita(f); });
+  }
+
+  function lzStatus(msg) { const el = $('#lz-status'); if (el) { el.innerHTML = msg; el.hidden = !msg; } }
+  function lzLerCampos() {
+    const g = k => { const el = document.querySelector('[data-lz-r="' + k + '"]'); return el && el.value !== '' ? Number(el.value) : null; };
+    const r = { odEsf: g('odEsf'), odCil: g('odCil') || 0, odEixo: g('odEixo'), oeEsf: g('oeEsf'), oeCil: g('oeCil') || 0, oeEixo: g('oeEixo') };
+    if (r.odEsf === null || r.oeEsf === null) return { falta: 'Preencha o esférico dos dois olhos (se não tiver grau, escolha +0,00).' };
+    if ((r.odCil && r.odEixo === null) || (r.oeCil && r.oeEixo === null)) return { falta: 'Tem cilíndrico: preencha o eixo desse olho.' };
+    return { receita: r };
+  }
+  function lzArredonda(v, passo) { return v == null || v === '' || !Number.isFinite(Number(v)) ? null : Math.round(Number(v) / passo) * passo; }
+  async function lzLerReceita(file) {
+    lzStatus('Lendo sua receita…');
+    try {
+      const b64 = await new Promise((ok, err) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.onerror = err; fr.readAsDataURL(file); });
+      const resp = await fetch(WH_LER_RECEITA, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: b64, mime: file.type || 'image/png' }) });
+      const r = await resp.json();
+      if (!r || !r.ok || !r.dados) {
+        lzStatus((r && r.erro === 'nao_e_receita' ? 'Não identifiquei uma receita nessa imagem.' : 'Não consegui ler sua receita.') + ' Tente outra foto ou <a href="#" data-lz="digitar">digite os dados</a>.');
+        return;
+      }
+      const d = r.dados;
+      lz.receita = { odEsf: lzArredonda(d.odEsf, 0.25), odCil: lzArredonda(d.odCil, 0.25) || 0, odEixo: lzArredonda(d.odEixo, 1),
+                     oeEsf: lzArredonda(d.oeEsf, 0.25), oeCil: lzArredonda(d.oeCil, 0.25) || 0, oeEixo: lzArredonda(d.oeEixo, 1) };
+      lz.lidoIA = d.confianca === 'baixa' ? 'baixa' : 'ok';
+      lzIr('form');   // o lido SEMPRE cai nos campos: receita é manuscrita, a IA erra número
+    } catch (e) {
+      lzStatus('A leitura falhou — pode ser a conexão. Tente de novo ou <a href="#" data-lz="digitar">digite os dados</a>.');
+    }
+  }
+
+  function lzComprar(telefone) {
+    const tel = String(telefone || (storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
+    if (!tel) { toast('Esta loja ainda não tem WhatsApp cadastrado.'); return; }
+    const num = tel.length <= 11 ? '55' + tel : tel;
+    const unidade = unidadesDaLoja().find(u => u.telefone === num);
+    const linhas = ['Oi! Provei o ' + nomeProdutoAtual() +
+      (current && numeroPositivo(precoProduto(current)) ? ' (' + brl(precoProduto(current)) + ')' : '') +
+      ' no provador virtual da ' + STORE.name + ' e quero comprar com lente' + (unidade ? ' na unidade ' + unidade.rotulo : '') + '.',
+      '', '*Lente:* ' + lzNomeLente() + (lzPreco(lz.lente) ? ' (' + lzPreco(lz.lente) + ')' : ''),
+      '*Receita:* ' + (lz.receita ? lzResumoReceita(lz.receita) : 'vou enviar aqui')];
+    window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(linhas.join('\n')), '_blank');
+  }
+
+  $('#btn-lentes').addEventListener('click', lzAbrir);
+  $('#lz-voltar').addEventListener('click', () => {
+    const volta = { receita: 'trat', form: 'receita', lista: 'form', fim: lz.multifocal ? 'trat' : (lz.receita ? 'lista' : 'receita') }[lz.passo];
+    if (!volta) show('result'); else lzIr(volta);
+  });
+  $('#lz').addEventListener('click', e => {
+    const t = e.target.closest('[data-lz],[data-lz-trat],[data-lz-trat2],[data-lz-lente],[data-lz-comprar]');
+    if (!t) return;
+    if (t.tagName === 'A') e.preventDefault();
+    const a = t.dataset.lz;
+    if (t.dataset.lzTrat) { lz.trat = t.dataset.lzTrat; lz.multifocal = false; lz.lente = null; lzIr('receita'); return; }
+    if (t.dataset.lzTrat2) { lz.trat = t.dataset.lzTrat2; lz.lente = null; lzIr('lista'); return; }
+    if (t.dataset.lzLente) { lz.lente = window.PLLentes.LENTES_POR_LOJA[STORE_SLUG].find(l => l.id === t.dataset.lzLente) || null; lzRender(); return; }
+    if (t.dataset.lzComprar !== undefined) { lzComprar(t.dataset.lzComprar); return; }
+    if (a === 'so-armacao') { show('result'); return; }
+    if (a === 'multifocal') { lz.multifocal = true; lz.trat = null; lz.lente = null; lz.receita = null; lzIr('fim'); return; }
+    if (a === 'digitar') { lz.lidoIA = null; lzIr('form'); return; }
+    if (a === 'sem-receita') { lz.receita = null; lz.lente = null; lzIr('fim'); return; }
+    if (a === 'ver-lentes') {
+      const r = lzLerCampos();
+      if (r.falta) { lzStatus(r.falta); return; }
+      lz.receita = r.receita; lz.lente = null; lzIr('lista'); return;
+    }
+    if (a === 'fim') { lzIr('fim'); return; }
+  });
   // Limite atingido: a conversa com a loja é a única saída hoje, então o texto
   // já vai pronto — sem isso o cliente sai da página e não volta.
   {
