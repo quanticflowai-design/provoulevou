@@ -2830,7 +2830,17 @@
   function lzEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
   function lzGrau(v) { const n = Number(v) || 0; return (n > 0 ? '+' : '') + n.toFixed(2).replace('.', ','); }
   function lzTratNome(id) { const t = window.PLLentes.TRATAMENTOS.find(x => x.id === id); return t ? t.nome : ''; }
-  function lzPreco(l) { return l && numeroPositivo(l.preco) ? brl(l.preco) : ''; }
+  // Preço vem do PRODUTO de lente cadastrado no catálogo (ex.: "Lente Monofocal 1.56"):
+  // o lojista muda no painel e o fluxo acompanha. Casa pelo índice no nome.
+  function lzProduto(l) {
+    if (!l) return null;
+    const idx = String(l.indice).slice(0, 4);
+    const ok = p => p.active && /lente/i.test(p.name) && p.name.includes(idx) && numeroPositivo(precoProduto(p));
+    return (catalog || []).find(ok) || null;
+  }
+  function lzValor(l) { const p = lzProduto(l); return p ? precoProduto(p) : (l && numeroPositivo(l.preco) ? Number(l.preco) : 0); }
+  function lzPreco(l) { const v = lzValor(l); return v ? brl(v) : ''; }
+  function lzPrecoDe(l) { const p = lzProduto(l); return p && temOferta(p) ? brl(p.originalPrice) : ''; }
   function lzOpcoes(de, ate, passo, marcado) {
     let h = '<option value="">—</option>';
     const n = Math.round((ate - de) / passo);
@@ -2912,7 +2922,8 @@
           lista.map((l, i) => '<button class="lz-opcao lz-lente' + (lz.lente && lz.lente.id === l.id ? ' sel' : '') + '" data-lz-lente="' + l.id + '">' +
             (i === 0 ? '<em>Indicada</em>' : '') + '<b>' + lzEsc(l.nome) + '</b>' +
             '<small>Índice ' + lzEsc(l.indice) + (/^1\.(67|74)/.test(l.indice) ? ' · mais fina, boa pra grau alto' : /Poli/.test(l.indice) ? ' · mais resistente a impacto' : '') + '</small>' +
-            (lzPreco(l) ? '<span class="lz-preco">' + lzPreco(l) + '</span>' : '') + '</button>').join('') +
+            (lzPreco(l) ? '<span class="lz-preco">' + (lzPrecoDe(l) ? '<s>' + lzPrecoDe(l) + '</s> ' : '') + lzPreco(l) + '</span>'
+              : '<small>Valor com a ótica</small>') + '</button>').join('') +
           '</div><p class="lz-disclaimer">Indicação pelo que você informou. <b>A ótica confere a receita</b> antes de montar.</p>' +
           '<button class="btn-primary big" data-lz="fim">Continuar com essa lente</button>';
       }
@@ -2922,7 +2933,9 @@
       const lojas = (fixa ? [fixa] : unidadesDaLoja()).filter(u => u.telefone);
       h = '<h2 class="lz-titulo">Tudo certo!</h2>' + armacao +
         '<div class="lz-resumo"><p><span>Lente</span><b>' + lzEsc(lzNomeLente()) + (lzPreco(lz.lente) ? ' · ' + lzPreco(lz.lente) : '') + '</b></p>' +
-        '<p><span>Receita</span><b>' + (lz.receita ? lzEsc(lzResumoReceita(lz.receita)) : 'vou enviar pra ótica') + '</b></p></div>' +
+        '<p><span>Receita</span><b>' + (lz.receita ? lzEsc(lzResumoReceita(lz.receita)) : 'vou enviar pra ótica') + '</b></p>' +
+        (lzValor(lz.lente) && current && numeroPositivo(precoProduto(current))
+          ? '<p class="lz-total"><span>Total armação + lente</span><b>' + brl(precoProduto(current) + lzValor(lz.lente)) + '</b></p>' : '') + '</div>' +
         '<p class="lz-sub">' + (lzPreco(lz.lente) ? 'Finalize com a ótica no WhatsApp.' : 'A ótica te passa o valor da lente e finaliza com você no WhatsApp.') + '</p>' +
         '<div class="result-buy-actions">' + (lojas.length ? lojas.map(u =>
           '<button class="btn-primary big" data-lz-comprar="' + lzEsc(u.telefone) + '">Comprar — ' + lzEsc(u.rotulo) + '</button>').join('')
@@ -2972,6 +2985,8 @@
       ' no provador virtual da ' + STORE.name + ' e quero comprar com lente' + (unidade ? ' na unidade ' + unidade.rotulo : '') + '.',
       '', '*Lente:* ' + lzNomeLente() + (lzPreco(lz.lente) ? ' (' + lzPreco(lz.lente) + ')' : ''),
       '*Receita:* ' + (lz.receita ? lzResumoReceita(lz.receita) : 'vou enviar aqui')];
+    if (lzValor(lz.lente) && current && numeroPositivo(precoProduto(current)))
+      linhas.push('*Total:* ' + brl(precoProduto(current) + lzValor(lz.lente)));
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(linhas.join('\n')), '_blank');
   }
 
