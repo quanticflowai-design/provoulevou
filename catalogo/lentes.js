@@ -57,8 +57,15 @@
   ].forEach(([id, trat, resto]) => MAGRINI.push({ id, trat, indice: '1.67', nome: 'Haytek 1.67 Asférica ' + resto, faixas: G167 }));
   MAGRINI.push({ id: 'h174-fa-verde', trat: 'blue', indice: '1.74', nome: 'Haytek 1.74 Asférica Filtro Azul com Antirreflexo Super-hidrofóbico (reflexo verde)',
     faixas: [f(-10.25, -13, 0, -2), f(-13.25, -15, 0, 0), f(-6.25, -10, 0, -3), f(-1, -6, 0, -3)] });
-  // preço: null = a ótica passa o valor na conversa. Preencher quando a loja mandar.
-  MAGRINI.forEach(l => { if (l.preco === undefined) l.preco = null; });
+  // preço: null = usa o produto de lente cadastrado no catálogo (ex.: "Lente Monofocal 1.56").
+  // Aqui só o que muda por tratamento ou não tem produto (tabela da Magrini, 29/09/2026):
+  // fotossensível (fotocromática, sozinha ou com luz azul) custa mais; a 1.61 não está na vitrine.
+  const PRECO_FOTO = { '1.56': 250, '1.59 Poli': 320, '1.67': 520 };
+  MAGRINI.forEach(l => {
+    if (l.preco === undefined) l.preco = null;
+    if (/foto/.test(l.trat) && PRECO_FOTO[l.indice]) l.preco = PRECO_FOTO[l.indice];
+    if (l.indice === '1.61') l.preco = 390;
+  });
 
   const LENTES_POR_LOJA = { oticasprimemagrini: MAGRINI };
   const ORDEM_INDICE = { '1.56': 1, '1.59 Poli': 2, '1.61': 3, '1.67': 4, '1.74': 5 };

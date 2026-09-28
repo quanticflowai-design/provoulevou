@@ -2830,17 +2830,18 @@
   function lzEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
   function lzGrau(v) { const n = Number(v) || 0; return (n > 0 ? '+' : '') + n.toFixed(2).replace('.', ','); }
   function lzTratNome(id) { const t = window.PLLentes.TRATAMENTOS.find(x => x.id === id); return t ? t.nome : ''; }
-  // Preço vem do PRODUTO de lente cadastrado no catálogo (ex.: "Lente Monofocal 1.56"):
-  // o lojista muda no painel e o fluxo acompanha. Casa pelo índice no nome.
+  // Preço: se a lente tem preço próprio em lentes.js (tratamento que muda o valor, como
+  // fotossensível, ou índice sem produto na vitrine), vale ele. Senão vem do PRODUTO de lente
+  // cadastrado no catálogo (ex.: "Lente Monofocal 1.56"): o lojista muda no painel e o fluxo acompanha. Casa pelo índice no nome.
   function lzProduto(l) {
     if (!l) return null;
     const idx = String(l.indice).slice(0, 4);
     const ok = p => p.active && /lente/i.test(p.name) && p.name.includes(idx) && numeroPositivo(precoProduto(p));
     return (catalog || []).find(ok) || null;
   }
-  function lzValor(l) { const p = lzProduto(l); return p ? precoProduto(p) : (l && numeroPositivo(l.preco) ? Number(l.preco) : 0); }
+  function lzValor(l) { if (l && numeroPositivo(l.preco)) return Number(l.preco); const p = lzProduto(l); return p ? precoProduto(p) : 0; }
   function lzPreco(l) { const v = lzValor(l); return v ? brl(v) : ''; }
-  function lzPrecoDe(l) { const p = lzProduto(l); return p && temOferta(p) ? brl(p.originalPrice) : ''; }
+  function lzPrecoDe(l) { if (l && numeroPositivo(l.preco)) return ''; const p = lzProduto(l); return p && temOferta(p) ? brl(p.originalPrice) : ''; }
   function lzOpcoes(de, ate, passo, marcado) {
     let h = '<option value="">—</option>';
     const n = Math.round((ate - de) / passo);
