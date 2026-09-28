@@ -674,7 +674,71 @@
   window.addEventListener('pageshow', ev => { if (ev.persisted) aoVoltarPraAba(); });
 
   // Reduz a foto antes de subir: celular manda 4MB+, o catálogo não precisa disso.
-  function compressImage(file) {
+  // Três tentativas, porque foto que o navegador não abre falhava ANTES de sair
+  // do aparelho ("Não consegui ler a foto") e nem chegava no servidor — a Clay &
+  // Ali passou 2 semanas sem cadastrar nada assim:
+  //   1) abrir normal;  2) HEIC (padrão do iPhone; Chrome/Android/Windows não
+  //   abrem) → converte pra JPG;  3) createImageBitmap (alguns celulares falham
+  //   no <img> com foto muito grande).
+  async function compressImage(file) {
+    if (!file) return null;
+    const direto = await comprimeViaImg(file);
+    if (direto) return direto;
+    let fonte = file;
+    if (ehHeic(file)) {
+      try { fonte = await heicParaJpeg(file); }
+      catch (e) { console.warn('[Provou Catálogo] não converti o HEIC:', e); }
+      const convertida = fonte !== file ? await comprimeViaImg(fonte) : null;
+      if (convertida) return convertida;
+    }
+    return comprimeViaBitmap(fonte);
+  }
+
+  function ehHeic(file) {
+    return /hei[cf]/i.test(file.type || '') || /\.hei[cf]$/i.test(file.name || '');
+  }
+  let heicLib = null;
+  function carregaHeic() {
+    if (window.heic2any) return Promise.resolve();
+    if (!heicLib) heicLib = new Promise((ok, falha) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+      s.onload = ok;
+      s.onerror = () => { heicLib = null; falha(new Error('heic2any não carregou')); };
+      document.head.appendChild(s);
+    });
+    return heicLib;
+  }
+  async function heicParaJpeg(file) {
+    await carregaHeic();
+    const out = await window.heic2any({ blob: file, toType: 'image/jpeg', quality: 0.92 });
+    return Array.isArray(out) ? out[0] : out;
+  }
+
+  // Redimensiona pro MAX_UPLOAD_PX e exporta JPEG (base64 sem o cabeçalho).
+  function exportaJpeg(fonte, w, h) {
+    return new Promise(resolve => {
+      try {
+        if (!w || !h) { resolve(null); return; }
+        const sc = Math.min(1, MAX_UPLOAD_PX / Math.max(w, h));
+        const c = document.createElement('canvas');
+        c.width = Math.round(w * sc); c.height = Math.round(h * sc);
+        const ctx = c.getContext('2d');
+        // PNG com fundo transparente vira PRETO ao exportar JPEG — pinta branco antes.
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(fonte, 0, 0, c.width, c.height);
+        c.toBlob(blob => {
+          if (!blob) { resolve(null); return; }
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || '').split(',')[1] || null);
+          reader.onerror = () => resolve(null);
+          reader.readAsDataURL(blob);
+        }, 'image/jpeg', JPEG_QUALITY);
+      } catch (e) { resolve(null); }
+    });
+  }
+  function comprimeViaImg(file) {
     return new Promise(resolve => {
       try {
         const img = new Image();
@@ -682,28 +746,21 @@
         const u = URL.createObjectURL(file);
         img.onload = function () {
           URL.revokeObjectURL(u);
-          const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
-          if (!w || !h) { resolve(null); return; }
-          const sc = Math.min(1, MAX_UPLOAD_PX / Math.max(w, h));
-          const c = document.createElement('canvas');
-          c.width = Math.round(w * sc); c.height = Math.round(h * sc);
-          const ctx = c.getContext('2d');
-          // PNG com fundo transparente vira PRETO ao exportar JPEG — pinta branco antes.
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, c.width, c.height);
-          ctx.drawImage(img, 0, 0, c.width, c.height);
-          c.toBlob(blob => {
-            if (!blob) { resolve(null); return; }
-            const reader = new FileReader();
-            reader.onload = () => resolve(String(reader.result || '').split(',')[1] || null);
-            reader.onerror = () => resolve(null);
-            reader.readAsDataURL(blob);
-          }, 'image/jpeg', JPEG_QUALITY);
+          exportaJpeg(img, img.naturalWidth || img.width, img.naturalHeight || img.height).then(resolve);
         };
         img.onerror = function () { URL.revokeObjectURL(u); resolve(null); };
         img.src = u;
       } catch (e) { resolve(null); }
     });
+  }
+  async function comprimeViaBitmap(file) {
+    if (!window.createImageBitmap) return null;
+    try {
+      const bmp = await createImageBitmap(file);
+      const r = await exportaJpeg(bmp, bmp.width, bmp.height);
+      if (bmp.close) bmp.close();
+      return r;
+    } catch (e) { return null; }
   }
 
   // fallback SVG quando a imagem externa falha
@@ -2263,7 +2320,9 @@
       sincronizaFotos();
       renderAdminVariacoes(adminFotosPreview);
     } catch (e) {
-      toast('Não consegui ler a foto. Escolha outra imagem.');
+      console.warn('[Provou Catálogo] foto não abriu:', file && file.name, file && file.type, file && file.size);
+      toast('Não consegui ler essa foto' + (file && file.type ? ' (' + file.type + ')' : '') +
+            '. Tente outra, ou tire um print dela e envie o print.');
     } finally {
       adminFotoOcupada = false;
       btn.disabled = false; btn.textContent = texto;
