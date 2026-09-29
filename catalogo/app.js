@@ -445,7 +445,10 @@
                 brand: '#C0161C', dark: '#8E0F14', soft: 'rgba(192,22,28,.08)', on: '#ffffff' },
     // logo em degradê ciano→azul: fundo branco e o azul do fim do degradê como marca
     oticaprimavera: { bg: '#FFFFFF', card: '#FFFFFF', line: '#DCEAF6',
-                brand: '#0A4FA8', dark: '#083D82', soft: 'rgba(10,79,168,.08)', on: '#ffffff' }
+                brand: '#0A4FA8', dark: '#083D82', soft: 'rgba(10,79,168,.08)', on: '#ffffff' },
+    // logo preta em fundo branco: tema claro, marca preta com texto branco
+    dbotica: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E7E7E7',
+                brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.06)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
