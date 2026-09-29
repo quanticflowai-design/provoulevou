@@ -439,7 +439,13 @@
                 brand: '#B53100', dark: '#8F2700', soft: 'rgba(181,49,0,.10)', on: '#ffffff' },
     // LuÓtica Niterói: logo dourado sobre preto -> tema escuro; texto preto no dourado.
     luoticaniteroi: { bg: '#000000', card: '#111111', line: 'rgba(219,171,55,.28)',
-                brand: '#DBAB37', dark: '#B58C2A', soft: 'rgba(219,171,55,.14)', on: '#111111' }
+                brand: '#DBAB37', dark: '#B58C2A', soft: 'rgba(219,171,55,.14)', on: '#111111' },
+    // logo com fundo #F7F7F7 (cinza claríssimo): bg igual pra não virar retângulo
+    oticaredlux: { bg: '#F7F7F7', card: '#FFFFFF', line: '#ECE3DA',
+                brand: '#C0161C', dark: '#8E0F14', soft: 'rgba(192,22,28,.08)', on: '#ffffff' },
+    // logo em degradê ciano→azul: fundo branco e o azul do fim do degradê como marca
+    oticaprimavera: { bg: '#FFFFFF', card: '#FFFFFF', line: '#DCEAF6',
+                brand: '#0A4FA8', dark: '#083D82', soft: 'rgba(10,79,168,.08)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
