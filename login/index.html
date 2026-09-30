@@ -18814,7 +18814,7 @@
             ['alex.rodrigues@programmoda.com.br', 'projeto@agencia2bdigital.com.br', 'zafirakc@gmail.com'],
             ['contato@korosoculos.com.br',        'julliana.negocios@gmail.com'],
             ['ossglassessuporte@gmail.com',       'rafaellaschmdtlopes@gmail.com'],
-            ['lucas.candelaria@usecand.com.br',   'joao.candelaria@usecand.com.br']
+            ['lucas.candelaria@usecand.com.br',   'joao.candelaria@usecand.com.br', 'hello@kauesantosbr.com']
         ];
         let _crmScopeEmails = null;
         async function resolveCrmScope() {
@@ -24620,6 +24620,11 @@
 
       /* Conversas: sem título/subtítulo no topo (o elemento fica, o JS ainda escreve o total de não lidas nele) */
       #dispChatCard .chat-a-pagehead { display: none !important; }
+
+      /* Mais provados / Vendas por produto: mostra 5 e o resto rola dentro do painel */
+      #rankingSection .ranking-list, #vendasProdutoSection .ranking-list, .a-prod-grid .ranking-list { max-height: 332px !important; overflow-y: auto !important; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #d9d0ee transparent; padding-right: 4px; }
+      .a-prod-grid .ranking-list::-webkit-scrollbar { width: 6px; }
+      .a-prod-grid .ranking-list::-webkit-scrollbar-thumb { background: #d9d0ee; border-radius: 99px; }
     </style>
 
 
