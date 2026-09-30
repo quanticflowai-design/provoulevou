@@ -495,7 +495,7 @@
         .q-result-prodname { font-family: var(--font-body); font-size: 20px; font-weight: 700; color: var(--c-ink); line-height: 1.25; margin-bottom: 6px; }
         .q-result-prodprice { font-family: var(--font-display); font-size: 28px; letter-spacing: .5px; font-weight: 700; color: var(--c-ink); line-height: 1; }
         .q-result-installment { font-family: var(--font-body); font-size: 12px; color: var(--c-muted); margin-top: 4px; letter-spacing: .2px; }
-        .q-scarcity { margin-top: 12px; font-family: var(--font-body); font-size: 13px; font-weight: 700; color: var(--c-danger, #dc2626); letter-spacing: 1.5px; text-transform: uppercase; display: flex; align-items: center; justify-content: flex-start; gap: 6px; }
+        .q-scarcity { display: none !important; /* escassez removida 30/09 (Lucas) */ margin-top: 12px; font-family: var(--font-body); font-size: 13px; font-weight: 700; color: var(--c-danger, #dc2626); letter-spacing: 1.5px; text-transform: uppercase; display: flex; align-items: center; justify-content: flex-start; gap: 6px; }
         .q-scarcity i { font-size: 15px; }
         .q-seals { display: flex; justify-content: flex-start; gap: 30px; margin: 8px 0; padding: 12px 0; border-top: 1px solid var(--c-line); border-bottom: 1px solid var(--c-line); }
         .q-seal { display: flex; align-items: center; gap: 9px; }
