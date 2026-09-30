@@ -20233,9 +20233,10 @@
                 // cliente para Convertido quando ele também pertence às origens normais do CRM.
                 // Lojas habilitadas pra esse bloco (origem OU tabela de pedidos):
                 // Todas as lojas (30/09/2026). Status de "aguardando pagamento" de cada plataforma:
-                // Nuvemshop/Shopify = pending; Tray = AGUARDANDO PAGAMENTO; LI/Bagy = variações.
+                // Nuvemshop/Shopify/Bagy/Woo = pending; Tray/LI/Mozaik = Aguardando pagamento; VTEX = payment-pending; Woo = on-hold.
                 const PAG_PENDENTE_STATUS = ['pending', 'Pending', 'PENDING', 'waiting_payment', 'awaiting_payment', 'pending_payment',
-                    'AGUARDANDO PAGAMENTO', 'Aguardando pagamento', 'Aguardando Pagamento', 'aguardando_pagamento'];
+                    'AGUARDANDO PAGAMENTO', 'Aguardando pagamento', 'Aguardando Pagamento', 'aguardando_pagamento',
+                    'payment-pending', 'on-hold'];   // VTEX (Programmoda) e WooCommerce (Mitani/Ronaldo)
                 const _pendDesde = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10) + 'T00:00:00-03:00';
                 const isPendingPaymentCrm = !!(user.tabela_pedidos && fStatus);
                 if (isPendingPaymentCrm) {
