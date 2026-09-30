@@ -8098,8 +8098,8 @@
             pedidos.slice(0, 10).forEach(x => {
                 const antes = primeira ? _clpAntes(x.ts, primeira) : false;
                 const tag = !primeira ? '<span class="chat-lp-tag neutro">Não usou o provador</span>'
-                    : antes ? '<span class="chat-lp-tag ok"><i class="ph-bold ph-check"></i> Provou antes de comprar</span>'
-                            : '<span class="chat-lp-tag antes">Comprou antes de provar</span>';
+                    : antes ? '<span class="chat-lp-tag ok"><i class="ph-bold ph-sparkle"></i> Venda via provador</span>'
+                            : '<span class="chat-lp-tag antes">Venda direta</span>';
                 h += '<div class="chat-lp-order"><div class="chat-lp-orow"><span>' + escapeHtml(_clpDate(x.ts)) + '</span><b>' + escapeHtml(_clpMoney(x.total)) + '</b></div>'
                     + (x.prod ? '<div class="chat-lp-name">' + escapeHtml(x.prod) + '</div>' : '') + tag + '</div>';
             });
@@ -9705,7 +9705,18 @@
                     }
                     fb.className = 'wa-feedback success';
                     fb.innerHTML = '<strong>Enviado pra Meta!</strong> Status inicial: ' + (result.body.status || 'PENDING') + '. Aguarde aprovação.';
-                    setTimeout(() => { closeCreateTemplateModal(); waLoadTemplates(); }, 1800);
+                    // Criado de dentro do assistente de campanha: a campanha passa a usar ESTE modelo.
+                    // Antes o nome não voltava pro assistente e ele travava em "Crie o template novo antes de continuar".
+                    try {
+                        if (typeof CAMP !== 'undefined' && CAMP.tplPending) {
+                            CAMP.tplMode = 'novo'; CAMP.tplName = name; CAMP.tplLang = (typeof lang !== 'undefined' && lang) ? lang : (CAMP.tplLang || 'pt_BR');
+                        }
+                    } catch (e) {}
+                    setTimeout(async () => {
+                        closeCreateTemplateModal();
+                        try { await waLoadTemplates(); } catch (e) {}
+                        try { if (typeof CAMP !== 'undefined' && CAMP.tplPending && typeof campWizardRender === 'function') campWizardRender(); } catch (e) {}
+                    }, 1800);
                 } else {
                     fb.className = 'wa-feedback error';
                     fb.innerHTML = '<strong>Falha:</strong> ' + (result.body?.error?.message || result.error || 'erro desconhecido');
@@ -18840,6 +18851,7 @@
             { key: 'cold',           title: 'Provou e não comprou',              icon: 'ph-user',         auto: true,  rule: 'cold' },
             { key: 'clicou-comprar', title: 'Clicaram em comprar e não compraram', icon: 'ph-cursor-click', auto: true,  rule: 'clicou' },
             { key: 'carrinho-abandonado', title: 'Carrinho abandonado',          icon: 'ph-shopping-cart', auto: true, rule: 'carrinho' },
+            { key: 'pagamento-pendente', title: 'Pagamento pendente',            icon: 'ph-hourglass-medium', auto: true, rule: 'pagamento-pendente' },
             { key: 'msg-1', title: 'Mensagem 1', icon: 'ph-number-circle-one',   auto: false },
             { key: 'msg-2', title: 'Mensagem 2', icon: 'ph-number-circle-two',   auto: false },
             { key: 'msg-3', title: 'Mensagem 3', icon: 'ph-number-circle-three', auto: false },
@@ -18868,6 +18880,11 @@
             if (!cols.some(c => c.key === 'carrinho-abandonado')) {
                 const clicouIdx = cols.findIndex(c => c.key === 'clicou-comprar');
                 cols.splice(clicouIdx < 0 ? 0 : clicouIdx + 1, 0, { key: 'carrinho-abandonado', title: 'Carrinho abandonado', icon: 'ph-shopping-cart', auto: true, rule: 'carrinho' });
+                changed = true;
+            }
+            if (!cols.some(c => c.key === 'pagamento-pendente' || (c.auto && c.rule === 'pagamento-pendente'))) {
+                const carIdx = cols.findIndex(c => c.key === 'carrinho-abandonado');
+                cols.splice(carIdx < 0 ? 0 : carIdx + 1, 0, { key: 'pagamento-pendente', title: 'Pagamento pendente', icon: 'ph-hourglass-medium', auto: true, rule: 'pagamento-pendente' });
                 changed = true;
             }
             if (!cols.some(c => c.key === 'convertido')) { cols.push({ key: 'convertido', title: 'Convertido', icon: 'ph-check-circle', auto: true, rule: 'convertido' }); changed = true; }
@@ -20215,22 +20232,26 @@
                 // gerados e ainda não pagos. O pedido pago continua tendo prioridade e leva o
                 // cliente para Convertido quando ele também pertence às origens normais do CRM.
                 // Lojas habilitadas pra esse bloco (origem OU tabela de pedidos):
-                const PAG_PENDENTE_ORIGENS = ['korosoculos.com.br', 'santieyewear.com.br'];
-                const PAG_PENDENTE_TABELAS = ['koros_orders', 'santi_orders'];
-                const _origLc = String(user.origem || '').toLowerCase();
-                const isPendingPaymentCrm = PAG_PENDENTE_ORIGENS.some(o => _origLc.indexOf(o) !== -1)
-                    || PAG_PENDENTE_TABELAS.indexOf(user.tabela_pedidos) !== -1;
+                // Todas as lojas (30/09/2026). Status de "aguardando pagamento" de cada plataforma:
+                // Nuvemshop/Shopify = pending; Tray = AGUARDANDO PAGAMENTO; LI/Bagy = variações.
+                const PAG_PENDENTE_STATUS = ['pending', 'Pending', 'PENDING', 'waiting_payment', 'awaiting_payment', 'pending_payment',
+                    'AGUARDANDO PAGAMENTO', 'Aguardando pagamento', 'Aguardando Pagamento', 'aguardando_pagamento'];
+                const _pendDesde = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10) + 'T00:00:00-03:00';
+                const isPendingPaymentCrm = !!(user.tabela_pedidos && fStatus);
                 if (isPendingPaymentCrm) {
                     try {
                         const pendingOrders = [];
+                        // nem toda tabela de pedidos tem a coluna channel — filtrar nela sem existir dava erro e sumia a etapa
+                        const _pendTemCanal = user.canal_provador ? await tabelaTemCampo(user.tabela_pedidos, 'channel') : false;
                         let poFrom = 0; const poPage = 1000;
                         while (true) {
                             let pq = supabaseClient.from(user.tabela_pedidos).select('*')
-                                .eq(fStatus, 'pending')
+                                .in(fStatus, PAG_PENDENTE_STATUS)
+                                .gte(fDataPedido, _pendDesde)
                                 .order(fDataPedido, { ascending: false })
                                 .order(orderPkCrm, { ascending: false })
                                 .range(poFrom, poFrom + poPage - 1);
-                            if (user.canal_provador) pq = pq.eq('channel', user.canal_provador);
+                            if (user.canal_provador && _pendTemCanal) pq = pq.eq('channel', user.canal_provador);
                             const { data: pb, error: pErr } = await pq;
                             if (pErr) throw pErr;
                             if (!pb || pb.length === 0) break;
@@ -20265,7 +20286,7 @@
                             if (!lead.name && o[fNome]) lead.name = String(o[fNome]).trim();
                             if (!lead.rawPhone) lead.rawPhone = rawPhone;
                         });
-                    } catch (e) { console.warn('[crm] pagamentos pendentes Koros falhou:', e); }
+                    } catch (e) { console.warn('[crm] pagamentos pendentes falhou:', e); }
                 }
 
                 const phoneList = Object.keys(leadMap);
@@ -25099,6 +25120,45 @@
             if (novos) agenda();
         }
 
+
+        // ---- plano B: foto pelo NOME no catálogo da loja (pl_produto_catalogo) ----
+        // Pedido guarda só o nome do produto; produto comprado que ninguém provou não tem link.
+        var catNome = {}, catFeito = {};
+        function candidatosNome(nome) {
+            var partes = String(nome || '').split(/\s*,\s+/).filter(Boolean);
+            partes.sort(function (a, b) { return (/^par de lentes|^lente/i.test(a) ? 1 : 0) - (/^par de lentes|^lente/i.test(b) ? 1 : 0); });
+            if (partes.length > 1) partes.push(nome);
+            var out = [];
+            partes.forEach(function (x) {
+                [x, x.replace(/\s*\([^)]*\)\s*$/, ''), x.replace(/\s+-\s+[^-]+$/, '')].forEach(function (y) { var k = nk(y); if (k && out.indexOf(k) < 0) out.push(k); });
+            });
+            return out;
+        }
+        function porCatalogo(lista) {
+            if (!lista.length || typeof activeUser === 'undefined' || !activeUser || !activeUser.origem) return Promise.resolve();
+            var origem = String(activeUser.origem).toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+            var porNome = {}, chaves = [];
+            lista.forEach(function (e) {
+                var nome = e.getAttribute('data-pl-nome');
+                if (!nome || catNome[nome] || catFeito[origem + '|' + nome]) return;
+                catFeito[origem + '|' + nome] = 1;
+                porNome[nome] = candidatosNome(nome);
+                porNome[nome].forEach(function (k) { if (chaves.indexOf(k) < 0) chaves.push(k); });
+            });
+            if (!chaves.length) return Promise.resolve();
+            var achou = {}, lotes = [];
+            for (var i = 0; i < chaves.length && i < 300; i += 25) lotes.push(chaves.slice(i, i + 25));
+            return Promise.all(lotes.map(function (l) {
+                return supabaseClient.from('pl_produto_catalogo').select('nome_norm,imagem').eq('origem', origem).in('nome_norm', l)
+                    .then(function (r) { (r.data || []).forEach(function (x) { if (x.imagem) achou[x.nome_norm] = x.imagem; }); }).catch(function () {});
+            })).then(function () {
+                Object.keys(porNome).forEach(function (nome) {
+                    var k = porNome[nome].filter(function (c) { return achou[c]; })[0];
+                    if (k) catNome[nome] = achou[k];
+                });
+            });
+        }
+
         // ---- busca e aplica as fotos ----
         var timer = null;
         function agenda() { clearTimeout(timer); timer = setTimeout(aplica, 300); }
@@ -25125,8 +25185,10 @@
                             .catch(function () {});
                     }));
                 }).then(function () {
+                    return porCatalogo(els.filter(function (e) { var k = e.getAttribute('data-pl-foto'); return !(k && cache[k]); }));
+                }).then(function () {
                     els.forEach(function (e) {
-                        var img = cache[e.getAttribute('data-pl-foto')];
+                        var img = cache[e.getAttribute('data-pl-foto')] || catNome[e.getAttribute('data-pl-nome')];
                         if (img && /^https?:\/\//i.test(img)) {
                             e.style.backgroundImage = 'url("' + String(img).replace(/["\\\n\r]/g, '') + '")';
                             e.classList.add('has-img');
