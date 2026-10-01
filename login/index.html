@@ -3797,6 +3797,8 @@
                     </div>
                 </div>
 
+                <div id="rfmSection" class="a-tcard" style="display:none"></div>
+
                 <div id="recompraSection" class="a-tcard">
                     <div class="a-tcard-head">
                         <h2 class="a-tcard-title">Taxa de Recompra</h2>
@@ -14296,7 +14298,7 @@
                     const { error } = await campSafeInsert({
                         lojista_email: activeUser.email, nome: CAMP.nome.trim(), scheduled_at: scheduled_at,
                         template: CAMP.tplName, language: tplLang, payloads: payloads, total: payloads.length,
-                        stage_key: CAMP.audience ? '__segmento__' : waPipelineStageKey(CAMP.pipeline, CAMP.stage),
+                        stage_key: CAMP.audience ? (CAMP.audience.rfm ? '__rfm__' : '__segmento__') : waPipelineStageKey(CAMP.pipeline, CAMP.stage),
                         move_to_stage: (CAMP.moveToStage || 'msg-1'), status: status
                     });
                     if (error) throw error;
@@ -17295,6 +17297,193 @@
             return map;
         }
 
+        /* ===================== MATRIZ RFM (aba Clientes) =====================
+           Quem comprou: há quanto tempo (R), quantas vezes (F) e quanto gastou (M).
+           Fonte: os mesmos pedidos pagos do painel (allOrdersCache via segBuildAgg).
+           Mapa de blocos: tamanho = nº de clientes ou valor; clique abre a lista e
+           o "Criar campanha" (stage_key __rfm__: o disparador NÃO pula comprador).
+        ==================================================================== */
+        const RFM_SEG = {
+            campeoes: ['Campeões', '#16a34a', 'Compram sempre e há pouco tempo. Mostre lançamentos.'],
+            fieis: ['Fiéis', '#0d9488', 'Voltaram a comprar. Um mimo vira campeão.'],
+            novos: ['Novos', '#2563eb', 'Primeira compra recente. Peça avaliação e sugira o 2º produto.'],
+            promissores: ['Promissores', '#7c3aed', 'Compraram 1 vez no trimestre. Um lembrete leva à 2ª compra.'],
+            risco: ['Em risco', '#d97706', 'Compraram mais de uma vez e estão sumindo. Cupom de volta.'],
+            naoperder: ['Não pode perder', '#dc2626', 'Compravam muito e sumiram há 6+ meses. Prioridade.'],
+            hibernando: ['Hibernando', '#9ca3af', 'Uma compra antiga. Reative com novidade ou promoção.'],
+            perdidos: ['Perdidos', '#6b7280', 'Sem comprar há mais de 6 meses. Reativação forte.']
+        };
+        const RFM_ORDEM = ['campeoes', 'fieis', 'novos', 'promissores', 'risco', 'naoperder', 'hibernando', 'perdidos'];
+        let _rfmModo = 'todos', _rfmMedida = 'c', _rfmGrupos = null, _rfmPedidos = null, _rfmCarregando = false;
+        // Histórico COMPLETO de pedidos pagos (o allOrdersCache só tem desde a 1ª prova da loja,
+        // e a matriz é de todos os clientes). Só as colunas que a conta usa, paginado.
+        async function _rfmCarregaPedidos() {
+            const t = activeUser && activeUser.tabela_pedidos; if (!t) return [];
+            const fPhone = activeUser.campo_telefone_pedido || 'customer_phone', fTotal = activeUser.campo_total_pedido || 'total';
+            const fData = activeUser.campo_data_pedido || 'created_at', fStatus = activeUser.campo_status_pedido || 'payment_status';
+            const fNome = activeUser.campo_nome_pedido, pagos = (activeUser.valores_status_pago && activeUser.valores_status_pago.length) ? activeUser.valores_status_pago : ['paid'];
+            const cols = [fPhone, fTotal, fData].concat(fNome ? [fNome] : []).join(',');
+            const out = []; let from = 0;
+            while (from < 200000) {
+                const { data, error } = await supabaseClient.from(t).select(cols).in(fStatus, pagos).order(fData, { ascending: true }).range(from, from + 999);
+                if (error || !data || !data.length) break;
+                out.push(...data); if (data.length < 1000) break; from += 1000;
+            }
+            const m = new Map();
+            out.forEach(o => {
+                const key = normalize(o[fPhone]); if (!key) return;
+                const ts = String(o[fData] || '');
+                let b = m.get(key);
+                if (!b) { b = { name: '', phone: normalizeFull(o[fPhone]), spent: 0, count: 0, lastTs: '' }; m.set(key, b); }
+                b.count++; b.spent += parseFloat(o[fTotal]) || 0;
+                if (ts > b.lastTs) b.lastTs = ts;
+                if (fNome && o[fNome] && !b.name) b.name = String(o[fNome]);
+            });
+            return m;
+        }
+        function _rfmSegmento(dias, n) {
+            const r = dias <= 30 ? 0 : (dias <= 90 ? 1 : (dias <= 180 ? 2 : 3)), f = n >= 3 ? 2 : (n === 2 ? 1 : 0);
+            return [['novos', 'fieis', 'campeoes'], ['promissores', 'fieis', 'campeoes'], ['hibernando', 'risco', 'risco'], ['perdidos', 'perdidos', 'naoperder']][r][f];
+        }
+        function _rfmCalcula() {
+            const buyers = _rfmPedidos || segBuildAgg(), now = Date.now(), g = {};
+            const provou = new Set((allGensShared || []).map(x => generationCustomerKey(x)).filter(Boolean));
+            RFM_ORDEM.forEach(k => g[k] = { c: 0, v: 0, lista: [] });
+            buyers.forEach((b, key) => {
+                if (_rfmModo === 'prov' && !provou.has(key)) return;
+                const ms = b.lastTs ? new Date(b.lastTs).getTime() : 0; if (!ms) return;
+                const s = _rfmSegmento((now - ms) / 86400000, b.count);
+                g[s].c++; g[s].v += b.spent; g[s].lista.push(b);
+            });
+            return g;
+        }
+        function _rfmTreemap(itens, x, y, w, h, out) {
+            if (!itens.length) return;
+            if (itens.length === 1) { out.push([itens[0], x, y, w, h]); return; }
+            const tot = itens.reduce((a, i) => a + i.v, 0); let acc = 0, k = 0;
+            while (k < itens.length - 1 && acc + itens[k].v < tot / 2) { acc += itens[k].v; k++; }
+            if (k === 0) { acc = itens[0].v; k = 1; }
+            const fr = acc / tot, a = itens.slice(0, k), b = itens.slice(k);
+            if (w >= h) { _rfmTreemap(a, x, y, w * fr, h, out); _rfmTreemap(b, x + w * fr, y, w * (1 - fr), h, out); }
+            else { _rfmTreemap(a, x, y, w, h * fr, out); _rfmTreemap(b, x, y + h * fr, w, h * (1 - fr), out); }
+        }
+        function _rfmEl(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+        function _rfmBrl(v) { return 'R$ ' + Math.round(v || 0).toLocaleString('pt-BR'); }
+        function loadRfm() {
+            const box = document.getElementById('rfmSection'); if (!box) return;
+            _rfmInjectCSS();
+            // 1ª vez: mostra o que já tem e busca o histórico completo por trás
+            if (!_rfmPedidos && !_rfmCarregando) {
+                _rfmCarregando = true;
+                _rfmCarregaPedidos().then(m => { if (m && m.size) { _rfmPedidos = m; loadRfm(); } })
+                    .catch(e => console.warn('[rfm] histórico', e)).finally(() => { _rfmCarregando = false; });
+            }
+            const g = _rfmGrupos = _rfmCalcula();
+            const total = RFM_ORDEM.reduce((a, k) => a + g[k].c, 0);
+            box.textContent = '';
+            if (!total && _rfmModo === 'todos') { box.style.display = 'none'; return; }
+            box.style.display = '';
+            const head = _rfmEl('div', 'a-tcard-head rfm-head');
+            const tit = _rfmEl('div');
+            tit.appendChild(_rfmEl('h2', 'a-tcard-title', 'Matriz RFM'));
+            tit.appendChild(_rfmEl('span', 'a-tag', total.toLocaleString('pt-BR') + ' clientes · quando comprou, quantas vezes e quanto gastou'));
+            head.appendChild(tit);
+            const ctr = _rfmEl('div', 'rfm-ctrls');
+            [[['todos', 'Todos os clientes'], ['prov', 'Só quem provou']], [['c', 'Tamanho = clientes'], ['v', 'Tamanho = valor']]].forEach((par, gi) => {
+                const seg = _rfmEl('div', 'rfm-seg');
+                par.forEach(([val, rot]) => {
+                    const b = _rfmEl('button', (gi === 0 ? _rfmModo : _rfmMedida) === val ? 'on' : '', rot); b.type = 'button';
+                    b.onclick = () => { if (gi === 0) _rfmModo = val; else _rfmMedida = val; loadRfm(); };
+                    seg.appendChild(b);
+                });
+                ctr.appendChild(seg);
+            });
+            head.appendChild(ctr); box.appendChild(head);
+            if (!total) { box.appendChild(_rfmEl('p', 'rfm-vazio', 'Nenhum cliente que provou comprou ainda.')); return; }
+            const itens = RFM_ORDEM.filter(k => g[k].c).map(k => ({ k, v: _rfmMedida === 'c' ? g[k].c : Math.max(1, g[k].v) })).sort((a, b) => b.v - a.v);
+            const out = []; _rfmTreemap(itens, 0, 0, 100, 100, out);
+            const mapa = _rfmEl('div', 'rfm-mapa');
+            out.forEach(([o, x, y, w, h]) => {
+                const bl = _rfmEl('button', 'rfm-bloco'); bl.type = 'button';
+                bl.style.cssText = 'left:' + x + '%;top:' + y + '%;width:' + w + '%;height:' + h + '%;background:' + RFM_SEG[o.k][1];
+                bl.appendChild(_rfmEl('b', '', RFM_SEG[o.k][0]));
+                bl.appendChild(_rfmEl('span', '', g[o.k].c.toLocaleString('pt-BR') + ' clientes · ' + _rfmBrl(g[o.k].v)));
+                bl.title = RFM_SEG[o.k][2];
+                bl.onclick = () => rfmAbre(o.k);
+                mapa.appendChild(bl);
+            });
+            box.appendChild(mapa);
+            box.appendChild(_rfmEl('p', 'rfm-nota', 'Considera todos os pedidos pagos da loja. Clique num grupo pra ver os clientes e criar uma campanha.'));
+        }
+        function rfmAbre(k) {
+            const g = _rfmGrupos && _rfmGrupos[k]; if (!g) return;
+            rfmFecha();
+            const ov = _rfmEl('div', 'dd-detail-overlay'); ov.id = 'rfmModal';
+            ov.addEventListener('click', e => { if (e.target === ov) rfmFecha(); });
+            const md = _rfmEl('div', 'rfm-modal');
+            const top = _rfmEl('div', 'rfm-mtop');
+            const t = _rfmEl('div');
+            const nm = _rfmEl('div', 'rfm-mnome', RFM_SEG[k][0]); nm.style.color = RFM_SEG[k][1]; t.appendChild(nm);
+            t.appendChild(_rfmEl('div', 'rfm-msub', g.c.toLocaleString('pt-BR') + ' clientes · ' + _rfmBrl(g.v) + ' gastos'));
+            t.appendChild(_rfmEl('p', 'rfm-mdica', RFM_SEG[k][2]));
+            top.appendChild(t);
+            const x = _rfmEl('button', 'rfm-x', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Fechar'); x.onclick = rfmFecha; top.appendChild(x);
+            md.appendChild(top);
+            const lista = _rfmEl('div', 'rfm-lista'), now = Date.now();
+            g.lista.slice().sort((a, b) => b.spent - a.spent).slice(0, 300).forEach(b => {
+                const row = _rfmEl('div', 'rfm-row');
+                const c1 = _rfmEl('div'); c1.appendChild(_rfmEl('b', '', b.name || 'Cliente')); c1.appendChild(_rfmEl('small', '', b.phone ? ('+' + (String(b.phone).startsWith('55') ? b.phone : '55' + b.phone)) : '—'));
+                row.appendChild(c1);
+                row.appendChild(_rfmEl('span', '', b.count + (b.count === 1 ? ' compra' : ' compras')));
+                row.appendChild(_rfmEl('span', '', b.lastTs ? ('há ' + Math.max(0, Math.round((now - new Date(b.lastTs).getTime()) / 86400000)) + ' dias') : '—'));
+                row.appendChild(_rfmEl('b', 'rfm-val', _rfmBrl(b.spent)));
+                lista.appendChild(row);
+            });
+            if (g.lista.length > 300) lista.appendChild(_rfmEl('p', 'rfm-nota', '… e mais ' + (g.lista.length - 300).toLocaleString('pt-BR') + ' clientes (a campanha vai pra todos).'));
+            md.appendChild(lista);
+            const pe = _rfmEl('div', 'rfm-mfoot');
+            const bc = _rfmEl('button', 'camp-btn primary', 'Criar campanha pra este grupo'); bc.type = 'button';
+            bc.onclick = () => rfmCampanha(k);
+            pe.appendChild(bc); md.appendChild(pe);
+            ov.appendChild(md); document.body.appendChild(ov);
+            document.addEventListener('keydown', _rfmEsc);
+        }
+        function _rfmEsc(e) { if (e.key === 'Escape') rfmFecha(); }
+        function rfmFecha() { const o = document.getElementById('rfmModal'); if (o) o.remove(); document.removeEventListener('keydown', _rfmEsc); }
+        function rfmCampanha(k) {
+            const g = _rfmGrupos && _rfmGrupos[k]; if (!g) return;
+            const targets = g.lista.filter(b => b.phone && String(b.phone).length >= 10).map(b => ({ name: b.name || '', phone: b.phone, product: '' }));
+            if (!targets.length) { if (typeof crmToast === 'function') crmToast('Nenhum cliente com WhatsApp neste grupo.', true); return; }
+            rfmFecha();
+            showTab('disparos');
+            setTimeout(() => {
+                try { dispSwitchSub('disparar'); } catch (e) {}
+                setTimeout(() => { try { campWizardOpen({ name: 'RFM · ' + RFM_SEG[k][0], targets, rfm: true }); } catch (e) { console.warn('[rfm] campanha', e); } }, 150);
+            }, 120);
+        }
+        function _rfmInjectCSS() {
+            if (document.getElementById('rfmCSS')) return;
+            const s = document.createElement('style'); s.id = 'rfmCSS';
+            s.textContent = '#rfmSection .rfm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}'
+                + '#rfmSection .rfm-ctrls{display:flex;gap:8px;flex-wrap:wrap}'
+                + '.rfm-seg{display:inline-flex;background:rgba(124,58,237,.07);border-radius:10px;padding:3px}'
+                + '.rfm-seg button{border:0;background:transparent;font:inherit;font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:8px;color:var(--text-muted);cursor:pointer}'
+                + '.rfm-seg button.on{background:var(--card-bg,#fff);color:var(--text-main);box-shadow:0 1px 3px rgba(0,0,0,.1)}'
+                + '.rfm-mapa{position:relative;height:380px;border-radius:12px;overflow:hidden;margin-top:14px}'
+                + '.rfm-bloco{position:absolute;padding:10px 12px;color:#fff;border:2px solid var(--card-bg,#fff);border-radius:10px;cursor:pointer;text-align:left;font:inherit;overflow:hidden;display:flex;flex-direction:column;gap:2px;transition:filter .15s}'
+                + '.rfm-bloco:hover{filter:brightness(1.08)}.rfm-bloco b{font-size:14.5px}.rfm-bloco span{font-size:12px;opacity:.92}'
+                + '.rfm-nota{color:var(--text-muted);font-size:12px;margin:10px 0 0}.rfm-vazio{color:var(--text-muted);font-size:13px;padding:20px 0}'
+                + '.rfm-modal{background:var(--card-bg,#fff);border-radius:16px;width:min(620px,96vw);max-height:86vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.35)}'
+                + '.rfm-mtop{display:flex;justify-content:space-between;gap:12px;padding:18px 20px 10px}.rfm-mnome{font-size:19px;font-weight:800}'
+                + '.rfm-msub{font-size:12.5px;color:var(--text-muted);margin-top:2px}.rfm-mdica{font-size:12.5px;color:var(--text-main);margin:8px 0 0}'
+                + '.rfm-x{border:0;background:rgba(127,127,127,.1);width:34px;height:34px;border-radius:9px;font-size:20px;cursor:pointer;color:var(--text-main);flex:0 0 auto}'
+                + '.rfm-lista{overflow:auto;padding:0 20px}.rfm-row{display:grid;grid-template-columns:minmax(0,1.6fr) 90px 90px 100px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:12.5px;color:var(--text-main)}'
+                + '.rfm-row small{display:block;color:var(--text-muted);font-size:11px}.rfm-row b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rfm-val{text-align:right;color:#16a34a}'
+                + '.rfm-mfoot{padding:14px 20px;display:flex;justify-content:flex-end;border-top:1px solid var(--border)}'
+                + '@media(max-width:700px){.rfm-mapa{height:300px}.rfm-row{grid-template-columns:1fr 1fr}.rfm-val{text-align:left}}';
+            document.head.appendChild(s);
+        }
+
         function loadRecompra() {
             const container = document.getElementById('recompraCards');
             if (!container) return;
@@ -18261,6 +18450,8 @@
                 await loadSharedData();
                 loadVisaoGeral();
                 loadRecompra();
+                _rfmPedidos = null;
+                try { loadRfm(); } catch (e) { console.warn('[rfm]', e); }
                 loadConsumoPlano();
                 loadProvasExtras();
                 loadVendasPorProduto();
