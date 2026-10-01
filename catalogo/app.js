@@ -816,12 +816,12 @@
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
 
-  // 20 é o teto POR PRODUTO. A loja inteira junta as categorias de todos os
-  // produtos, então usa um teto bem maior (a Charme Prime passou de 30 e a
-  // categoria nova sumia sem aviso).
-  const MAX_CATS_LOJA = 200;
+  // Sem limite de quantidade de categorias (por produto e por loja), a pedido
+  // do Lucas em 01/10/2026. O teto antigo de 20 sumia com a categoria nova sem
+  // aviso. MAX_CATS_LOJA ficou só pra não mexer nas chamadas.
+  const MAX_CATS_LOJA = Infinity;
   function normalizaCategorias(valores, limite) {
-    const max = limite || 20;
+    const max = limite || Infinity;
     const saida = [];
     (Array.isArray(valores) ? valores : []).forEach(valor => {
       const nome = String(valor || '').trim().replace(/\s+/g, ' ').slice(0, 50);
