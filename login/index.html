@@ -17917,7 +17917,7 @@
                 if (activeUser.email) {
                     const r1 = await supabaseClient
                         .from('provou_levou_stores')
-                        .select('plan, status, last_payment, implementation_date, plano_personalizado, valor_personalizado, limite_personalizado, domain')
+                        .select('plan, status, last_payment, implementation_date, plano_personalizado, valor_personalizado, limite_personalizado, domain, fotos_extras')
                         .in('email', plScopeEmails())
                         .maybeSingle();
                     if (!r1.error && r1.data) store = r1.data;
@@ -17926,7 +17926,7 @@
                     const targetDom = normalizeStoreDomain(activeUser.origem);
                     const r2 = await supabaseClient
                         .from('provou_levou_stores')
-                        .select('plan, status, last_payment, implementation_date, plano_personalizado, valor_personalizado, limite_personalizado, domain');
+                        .select('plan, status, last_payment, implementation_date, plano_personalizado, valor_personalizado, limite_personalizado, domain, fotos_extras');
                     if (!r2.error && r2.data) {
                         store = r2.data.find(s => normalizeStoreDomain(s.domain) === targetDom) || null;
                     }
@@ -17950,6 +17950,18 @@
                     .gte('created_at', cutoff);
                 if (cErr) { console.warn('[consumo] erro provas:', cErr.message); card.style.display = 'none'; return; }
                 const usadas = count || 0;
+                // Provas pagas por PIX (prova extra avulsa) não entram no excedente — mesma régua do fechamento.
+                let usadasPix = 0;
+                try {
+                    const rPix = await supabaseClient
+                        .from('geracoes_provou_levou')
+                        .select('id', { count: 'exact', head: true })
+                        .ilike('origin', '%' + origem + '%')
+                        .gte('created_at', cutoff)
+                        .not('pix_payment_id', 'is', null);
+                    if (!rPix.error) usadasPix = rPix.count || 0;
+                } catch (_) {}
+                const creditoFotos = parseInt(store.fotos_extras, 10) || 0;
 
                 const planLabel = store.plano_personalizado || store.plan || '—';
                 const isPersonalizado = !!store.plano_personalizado;
@@ -17958,10 +17970,13 @@
                 // Personalizado COM limite definido (ex.: 18.000) usa esse limite REAL — não é "ilimitado".
                 // Só cai no UNLIMITED_REF_LIMIT (3.000) quando é personalizado sem limite informado.
                 const isUnlimited = baseLimit === Infinity || (isPersonalizado && !(custLimit > 0));
-                const limite = (isPersonalizado && custLimit > 0) ? custLimit : (isUnlimited ? UNLIMITED_REF_LIMIT : (baseLimit || 0));
-                const pct = limite > 0 ? (usadas / limite) * 100 : 0;
-                const restantes = Math.max(0, limite - usadas);
-                const excedente = Math.max(0, usadas - limite);
+                // Franquia = plano + créditos (fotos_extras); provas pagas por PIX não consomem franquia.
+                // Mesma conta do fechamento/painel de gestão (valorPrevisto).
+                const limite = ((isPersonalizado && custLimit > 0) ? custLimit : (isUnlimited ? UNLIMITED_REF_LIMIT : (baseLimit || 0))) + creditoFotos;
+                const usadasCobraveis = Math.max(0, usadas - usadasPix);
+                const pct = limite > 0 ? (usadasCobraveis / limite) * 100 : 0;
+                const restantes = Math.max(0, limite - usadasCobraveis);
+                const excedente = Math.max(0, usadasCobraveis - limite);
 
                 card.classList.remove('warn', 'danger', 'unlimited');
 
@@ -18125,9 +18140,12 @@
                             document.getElementById('mpRenova').textContent = 'Ciclo —';
                         }
 
-                        // Próx fatura = plano valor (se houver) + excedente × 1
+                        // Próx fatura = mensalidade + excedente × (valor do plano ÷ franquia) — MESMA régua do fechamento
+                        // e do painel de gestão (prova extra custa o mesmo que dentro do plano; NÃO é R$ 1 fixo).
                         if (planValor > 0) {
-                            const proxFatura = planValor + (excedente * 1);
+                            const franquiaPlano = limite - creditoFotos;
+                            const precoProva = (!isUnlimited && franquiaPlano > 0) ? planValor / franquiaPlano : 0;
+                            const proxFatura = Math.round((planValor + excedente * precoProva) * 100) / 100;
                             document.getElementById('mpProxFatura').textContent = fmtBRL(proxFatura);
                         } else {
                             document.getElementById('mpProxFatura').textContent = isTeste ? 'Teste grátis' : '—';
