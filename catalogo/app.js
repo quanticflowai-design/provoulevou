@@ -1317,7 +1317,10 @@
   function renderAdminCategorias() {
     const box = $('#admin-categorias-opcoes');
     if (!box) return;
-    const disponiveis = normalizaCategorias(categoriasDaLoja(true).concat(adminCategoriasSelecionadas), MAX_CATS_LOJA);
+    const todas = normalizaCategorias(categoriasDaLoja(true).concat(adminCategoriasSelecionadas), MAX_CATS_LOJA);
+    const ehSel = c => adminCategoriasSelecionadas.some(s => s.localeCompare(c, 'pt-BR', { sensitivity: 'base' }) === 0);
+    // marcadas primeiro: com 30+ categorias a recém-criada sumia lá no fim da lista
+    const disponiveis = todas.filter(ehSel).concat(todas.filter(c => !ehSel(c)));
     box.textContent = '';
     if (!disponiveis.length) {
       const vazio = document.createElement('span');
@@ -1351,6 +1354,7 @@
     renderAdminCategorias();
     renderUnidadesCadastro();
     renderOrdemCategorias();
+    toast('Categoria “' + nome + '” adicionada a este produto ✓ Salve o produto para gravar.');
   }
 
   {
@@ -1461,21 +1465,24 @@
       toast('A categoria “' + nome + '” já existe.'); return;
     }
     const ordem = normalizaCategorias(atuais.concat(nome), MAX_CATS_LOJA);
-    if (btn) btn.disabled = true;
+    const anterior = storeRow ? storeRow.categorias_ordem : null;
+    // aparece na hora; a gravação segue em segundo plano (o webhook leva alguns segundos)
+    if (storeRow) storeRow.categorias_ordem = ordem;
+    campo.value = '';
+    renderAdminCategorias(); renderOrdemCategorias();
+    toast('Categoria “' + nome + '” criada ✓ Agora é só marcar ela nos produtos.');
     try {
       const r = await fetch(WH_THEME, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ store_slug: STORE_SLUG, categorias_ordem: ordem })
       });
       if (!r.ok) throw new Error('HTTP ' + r.status);
-      if (storeRow) storeRow.categorias_ordem = ordem;
-      campo.value = '';
-      renderAdminCategorias(); renderOrdemCategorias();
-      toast('Categoria “' + nome + '” criada ✓ Agora é só marcar ela nos produtos.');
     } catch (e) {
       console.warn('[Provou Catálogo] erro ao criar categoria:', e);
-      toast('Não consegui criar a categoria. Tente de novo.');
-    } finally { if (btn) btn.disabled = false; }
+      if (storeRow) storeRow.categorias_ordem = anterior;
+      renderAdminCategorias(); renderOrdemCategorias();
+      toast('Não consegui salvar a categoria “' + nome + '”. Tente de novo.');
+    }
   }
   {
     const btn = $('#btn-cat-nova'), campo = $('#cat-nova');

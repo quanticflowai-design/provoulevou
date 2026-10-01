@@ -431,8 +431,12 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
   padding: 6px 10px; cursor: pointer; font: 600 12px 'Hanken Grotesk', sans-serif; }
 .admin-cat-chip.sel { background: var(--brand); border-color: var(--brand); color: var(--brand-on, #fff); }
 .admin-categoria-nova { display: flex; gap: 7px; }
-.admin-categoria-nova input { flex: 1; min-width: 0; background: var(--card); color: var(--ink); }
-.admin-categoria-nova .btn-outline { width: auto; margin: 0; padding: 8px 11px; font-size: 12px; }
+.admin-categoria-nova input { flex: 1; min-width: 0; height: 42px; padding: 0 14px; box-sizing: border-box;
+  background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 10px;
+  font: inherit; font-size: 14px; outline: none; transition: border-color .15s, box-shadow .15s; }
+.admin-categoria-nova input::placeholder { color: var(--ink-2); opacity: .7; }
+.admin-categoria-nova input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft, rgba(0,0,0,.08)); }
+.admin-categoria-nova .btn-outline, .admin-categoria-nova .btn-primary { width: auto; margin: 0; height: 42px; padding: 0 16px; font-size: 13px; border-radius: 10px; white-space: nowrap; }
 .admin-fields { flex: 1; display: flex; flex-direction: column; gap: 9px; }
 .admin-fields input { border: 1.5px solid var(--line); border-radius: 10px; padding: 11px; font-size: 14px; font-family: 'Hanken Grotesk', sans-serif; }
 .admin-fields input:focus, .admin-fields select:focus, .admin-fields textarea:focus { outline: none; border-color: var(--brand); }
