@@ -816,12 +816,17 @@
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
 
-  function normalizaCategorias(valores) {
+  // 20 é o teto POR PRODUTO. A loja inteira junta as categorias de todos os
+  // produtos, então usa um teto bem maior (a Charme Prime passou de 30 e a
+  // categoria nova sumia sem aviso).
+  const MAX_CATS_LOJA = 200;
+  function normalizaCategorias(valores, limite) {
+    const max = limite || 20;
     const saida = [];
     (Array.isArray(valores) ? valores : []).forEach(valor => {
       const nome = String(valor || '').trim().replace(/\s+/g, ' ').slice(0, 50);
       if (!nome || saida.some(x => x.localeCompare(nome, 'pt-BR', { sensitivity: 'base' }) === 0)) return;
-      if (saida.length < 20) saida.push(nome);
+      if (saida.length < max) saida.push(nome);
     });
     return saida;
   }
@@ -831,13 +836,15 @@
     return cats.some(c => String(c).localeCompare(categoria, 'pt-BR', { sensitivity: 'base' }) === 0);
   }
 
-  function categoriasDaLoja() {
-    const vistas = normalizaCategorias(catalog.flatMap(p => p.cats && p.cats.length ? p.cats : [p.cat]));
-    const salvas = normalizaCategorias(storeRow && storeRow.categorias_ordem);
+  function categoriasDaLoja(comVazias) {
+    const vistas = normalizaCategorias(catalog.flatMap(p => p.cats && p.cats.length ? p.cats : [p.cat]), MAX_CATS_LOJA);
+    const salvas = normalizaCategorias(storeRow && storeRow.categorias_ordem, MAX_CATS_LOJA);
     const ordenadas = [];
     salvas.forEach(nome => {
       const real = vistas.find(c => c.localeCompare(nome, 'pt-BR', { sensitivity: 'base' }) === 0);
       if (real && ordenadas.indexOf(real) === -1) ordenadas.push(real);
+      // criada no painel e ainda sem produto: só o lojista vê
+      else if (!real && comVazias && ordenadas.indexOf(nome) === -1) ordenadas.push(nome);
     });
     vistas.filter(c => ordenadas.indexOf(c) === -1)
       .sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(c => ordenadas.push(c));
@@ -1310,7 +1317,7 @@
   function renderAdminCategorias() {
     const box = $('#admin-categorias-opcoes');
     if (!box) return;
-    const disponiveis = normalizaCategorias(categoriasDaLoja().concat(adminCategoriasSelecionadas));
+    const disponiveis = normalizaCategorias(categoriasDaLoja(true).concat(adminCategoriasSelecionadas), MAX_CATS_LOJA);
     box.textContent = '';
     if (!disponiveis.length) {
       const vazio = document.createElement('span');
@@ -1387,9 +1394,10 @@
   function renderOrdemCategorias() {
     const box = $('#cat-order'), lista = $('#cat-order-lista');
     if (!box || !lista) return;
-    const cats = normalizaCategorias(categoriasDaLoja().concat(adminCategoriasSelecionadas));
-    box.hidden = cats.length === 0;
+    const cats = normalizaCategorias(categoriasDaLoja(true).concat(adminCategoriasSelecionadas), MAX_CATS_LOJA);
+    box.hidden = false;
     lista.textContent = '';
+    const vz = $('#categorias-vazio'); if (vz) vz.hidden = cats.length > 0;
     cats.forEach((categoria, indice) => {
       const linha = document.createElement('div');
       linha.className = 'cat-order-item';
@@ -1427,7 +1435,7 @@
       const texto = salvar.textContent;
       salvar.disabled = true; salvar.textContent = 'Salvando…';
       try {
-        const ordem = categoriasDaLoja();
+        const ordem = categoriasDaLoja(true);
         const r = await fetch(WH_THEME, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ store_slug: STORE_SLUG, categorias_ordem: ordem })
@@ -1442,6 +1450,37 @@
         salvar.disabled = false; salvar.textContent = texto;
       }
     });
+  }
+
+  async function criaCategoriaNaAba() {
+    const campo = $('#cat-nova'), btn = $('#btn-cat-nova');
+    const nome = String(campo && campo.value || '').trim().replace(/\s+/g, ' ').slice(0, 50);
+    if (!nome) { if (campo) campo.focus(); return; }
+    const atuais = categoriasDaLoja(true);
+    if (atuais.some(c => c.localeCompare(nome, 'pt-BR', { sensitivity: 'base' }) === 0)) {
+      toast('A categoria “' + nome + '” já existe.'); return;
+    }
+    const ordem = normalizaCategorias(atuais.concat(nome), MAX_CATS_LOJA);
+    if (btn) btn.disabled = true;
+    try {
+      const r = await fetch(WH_THEME, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ store_slug: STORE_SLUG, categorias_ordem: ordem })
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      if (storeRow) storeRow.categorias_ordem = ordem;
+      campo.value = '';
+      renderAdminCategorias(); renderOrdemCategorias();
+      toast('Categoria “' + nome + '” criada ✓ Agora é só marcar ela nos produtos.');
+    } catch (e) {
+      console.warn('[Provou Catálogo] erro ao criar categoria:', e);
+      toast('Não consegui criar a categoria. Tente de novo.');
+    } finally { if (btn) btn.disabled = false; }
+  }
+  {
+    const btn = $('#btn-cat-nova'), campo = $('#cat-nova');
+    if (btn) btn.addEventListener('click', criaCategoriaNaAba);
+    if (campo) campo.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); criaCategoriaNaAba(); } });
   }
 
   // Atualiza as categorias disponíveis no cadastro e a área de ordenação.
@@ -2127,8 +2166,8 @@
     try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
   }
   function atualizaVaziosAbas() {
-    const co = $('#cat-order'), cv = $('#categorias-vazio');
-    if (cv) cv.hidden = !co || !co.hidden;
+    const cv = $('#categorias-vazio');
+    if (cv) cv.hidden = categoriasDaLoja(true).length > 0;
   }
   $$('.admin-menu-btn').forEach(b => b.addEventListener('click', () => mostraAba(b.dataset.aba)));
   {
