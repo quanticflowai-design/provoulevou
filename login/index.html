@@ -11962,6 +11962,58 @@
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'campanhas-disparos.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1500);
         }
 
+        // ---- "Todas as campanhas": lista à esquerda + painel da campanha à direita (01/10/2026) ----
+        let _ddCampSel = null;
+        function _ddCampPainelHTML(list) {
+            if (!list.length) return '<div class="dd-empty"><p>Nenhuma campanha neste filtro.</p></div>';
+            const RATE = DISPARO_RATE_BRL;
+            const pc = v => (Number(v) || 0).toFixed(1).replace('.', ',') + '%';
+            const phoneFmt = p => { const n = String(p || '').replace(/\D/g, ''); return n ? ('+' + (n.startsWith('55') ? n : '55' + n)) : '—'; };
+            const tag = c => '<span class="pd-tag ' + (c.tipo === 'Automação' ? 'auto' : (c.tipo === 'Manual' ? 'manual' : '')) + '">' + _esc(c.tipo) + '</span>';
+            const dt = c => c.dateMs ? new Date(c.dateMs).toLocaleDateString('pt-BR') : '—';
+            const ret = c => c.rec.valor > 0 ? '<span class="pd-money">' + _brl(c.rec.valor) + '</span>' : '<span class="pd-zero">' + _brl(0) + '</span>';
+            const js = c => _esc(c.cid).replace(/'/g, '&#39;');
+            const sel = list.find(c => c.cid === _ddCampSel) || list[0];
+            _ddCampSel = sel.cid;
+            const s = sel.stats, b = Math.max(1, s.disparadas);
+            const custo = (s.entregues || 0) * RATE;
+            const roi = custo > 0 && sel.rec.valor > 0 ? (sel.rec.valor / custo).toFixed(1).replace('.', ',') + '×' : '—';
+            const linha = (lbl, v, cor) => '<div class="pd-fr"><div class="r"><span>' + lbl + '</span><b>' + _int(v) + '</b></div><div class="pd-bar"><i style="width:' + Math.min(100, v / b * 100).toFixed(1) + '%;background:' + cor + '"></i></div></div>';
+            const lista = list.map(c => '<div class="pd-li' + (c.cid === sel.cid ? ' sel' : '') + '" role="button" tabindex="0" onclick="ddCampSelecionar(\'' + js(c) + '\')" onkeydown="if(event.key===\'Enter\')ddCampSelecionar(\'' + js(c) + '\')">'
+                + '<div style="min-width:0"><div>' + tag(c) + '</div><div class="pd-name">' + _esc(c.nome) + '</div><div class="pd-muted">' + _esc(c.estado) + ' · ' + dt(c) + '</div></div>'
+                + '<div style="text-align:right;white-space:nowrap">' + ret(c) + '<div class="pd-muted">' + _int(c.stats.entregues) + ' entregues</div></div></div>').join('');
+            const buyers = sel.compradores.length ? sel.compradores.map(x => '<div class="pd-buyer"><div><b>' + _esc(x.nome || 'Cliente sem nome') + '</b><small>' + _esc(phoneFmt(x.telefone)) + '</small></div>'
+                + '<div><small>Pedidos</small><b>' + _int(x.pedidos) + '</b></div>'
+                + '<div><small>Produto</small><b title="' + _esc((x.produtos || []).join(' · ')) + '">' + _esc((x.produtos || []).join(' · ') || '—') + '</b></div>'
+                + '<div><small>Última compra</small><b>' + (x.ultimaCompra ? new Date(x.ultimaCompra).toLocaleDateString('pt-BR') : '—') + '</b></div>'
+                + '<div><small>Recuperado</small><b class="pd-money">' + _brl(x.valor) + '</b></div></div>').join('')
+                : '<div class="pd-muted" style="padding:8px 0"><i class="ph-bold ph-shopping-bag-open"></i> Nenhuma compra atribuída a esta campanha no período.</div>';
+            const painel = '<div class="pd-panel"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div>' + tag(sel) + '<div class="pd-name" style="font-size:18px;margin-top:6px">' + _esc(sel.nome) + '</div>'
+                + '<div class="pd-muted">' + _esc(sel.estado) + ' · ' + dt(sel) + (sel.publico != null ? ' · público ' + _int(sel.publico) : '') + '</div></div>'
+                + '<button class="pd-btn" onclick="dispShowCampaignDetails(\'' + js(sel) + '\')"><i class="ph-bold ph-chat-text"></i> Mensagem</button></div>'
+                + '<div class="pd-kpis"><div><span class="pd-muted">Retorno</span><b class="' + (sel.rec.valor > 0 ? 'pd-money' : '') + '">' + _brl(sel.rec.valor) + '</b></div><div><span class="pd-muted">Pedidos</span><b>' + _int(sel.rec.pedidos) + '</b></div><div><span class="pd-muted">ROI · custo ' + _brl(custo) + '</span><b>' + roi + '</b></div></div>'
+                + linha('Disparadas', s.disparadas, '#c4b5fd') + linha('Entregues · ' + pc(sel.taxaEntrega), s.entregues, '#a78bfa') + linha('Lidas', s.lidas || 0, '#8b5cf6')
+                + linha('Falharam · ' + pc(s.disparadas ? (s.falhas || 0) / s.disparadas * 100 : 0), s.falhas || 0, '#ef4444')
+                + linha('Respostas · ' + pc(sel.taxaResposta), sel.respondidas, '#7c3aed') + linha('Compraram · ' + pc(sel.taxaConversao), sel.clientesRec, '#16a34a')
+                + '<div class="pd-detail">'
+                + '<div class="dd-a-cmsg" data-dd-msg="' + _esc(sel.cid) + '"><div class="dd-a-cmsg-h">Mensagem enviada</div><div class="dd-detail-loading"><i class="ph-bold ph-spinner"></i> Carregando mensagem…</div></div>'
+                + '<div style="margin-top:12px"><div class="pd-name" style="font-size:13px;margin-bottom:4px"><i class="ph-bold ph-users-three"></i> Clientes que compraram após esta campanha · ' + _int(sel.compradores.length) + '</div>' + buyers + '</div></div></div>';
+            return '<div class="pd-split"><div class="pd-scroll">' + lista + '</div>' + painel + '</div>';
+        }
+        function _ddCampPainelMsg(root) {
+            (root || document).querySelectorAll('.pd-wrap [data-dd-msg]').forEach(el => { try { _ddCarregaMensagem(el.getAttribute('data-dd-msg')); } catch (e) {} });
+        }
+        // Troca a campanha do painel sem redesenhar o dashboard inteiro (gráfico etc.).
+        function ddCampSelecionar(cid) {
+            _ddCampSel = cid;
+            const box = document.querySelector('#dispDashView .pd-wrap');
+            if (!box || !_dispDashLastData) return;
+            const sc = box.querySelector('.pd-scroll'), top = sc ? sc.scrollTop : 0;
+            box.innerHTML = _ddCampPainelHTML(_dispCampaignFilteredRows(_dispDashLastData));
+            const sc2 = box.querySelector('.pd-scroll'); if (sc2) sc2.scrollTop = top;
+            _ddCampPainelMsg(box);
+        }
+
         // Design A: coloca o cartão 'Velocidade de compra' ao lado do gráfico do dashboard.
         // Antes de cada re-render ele volta pro lugar original, senão o innerHTML o destruiria.
         function _ddSetView(view, html) {
@@ -11969,6 +12021,7 @@
             const home = document.getElementById('dispSubDashboard');
             if (sc && home && view.contains(sc)) home.insertBefore(sc, home.children[1] || null);
             view.innerHTML = html;
+            _ddCampPainelMsg(view);
             const slot = view.querySelector('#ddSpeedSlot');
             if (sc && slot) slot.appendChild(sc);
         }
@@ -12092,7 +12145,7 @@
                 + '    <button class="' + (_dispCampFilter === 'returned' ? 'on' : '') + '" onclick="dispDashCampaignFilter(\'returned\')">Com retorno <b>' + _int(returnedCount) + '</b></button>'
                 + '    <button class="' + (_dispCampFilter === 'no_return' ? 'on' : '') + '" onclick="dispDashCampaignFilter(\'no_return\')">Sem retorno <b>' + _int(noReturnCount) + '</b></button>'
                 + '  </div>'
-                + '  <div class="dd-campaign-table-wrap"><table class="dd-campaign-table"><thead><tr><th>Campanha</th>' + sortTh('audience','Público') + sortTh('sent','Disparadas') + sortTh('delivered','Entregues') + sortTh('replies','Respostas') + sortTh('converted','Convertidos') + sortTh('revenue','Retorno') + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+                + '  <div class="pd-wrap">' + _ddCampPainelHTML(list) + '</div>'
                 + '  <div class="dd-campaign-note"><i class="ph-bold ph-info"></i><span><b>Disparadas</b> foram aceitas pela Meta. <b>Entregues</b> têm confirmação no WhatsApp. O retorno usa a venda paga em até 30 dias e atribui à última campanha entregue antes da compra.</span></div>'
                 + '  </div>'
                 + '</div>';
@@ -24022,6 +24075,36 @@
       @media (max-width: 640px) { #campListCard .camp-a-shell { padding: 20px 18px 6px; } }
 
       /* Campanhas · Mensagens modelo em grade de cartões */
+      /* "Todas as campanhas" (Disparos > Dashboard): lista + painel da campanha (01/10/2026) */
+      .pd-wrap .pd-muted{color:var(--text-muted);font-size:12px}
+      .pd-wrap .pd-money{font-weight:800;color:#16a34a}
+      .pd-wrap .pd-zero{color:var(--text-muted);font-weight:700}
+      .pd-wrap .pd-tag{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(124,58,237,.10);color:#6d28d9;margin-right:6px}
+      .pd-wrap .pd-tag.auto{background:rgba(6,182,212,.12);color:#0e7490}
+      .pd-wrap .pd-tag.manual{background:rgba(127,127,127,.14);color:var(--text-muted)}
+      .pd-wrap .pd-name{font-weight:700;font-size:13.5px;color:var(--text-main);margin-top:4px}
+      .pd-wrap .pd-bar{height:8px;border-radius:99px;background:rgba(127,127,127,.15);overflow:hidden}
+      .pd-wrap .pd-bar i{display:block;height:100%;border-radius:99px}
+      .pd-wrap .pd-btn{border:1px solid var(--border-strong,rgba(127,127,127,.25));background:transparent;color:var(--text-main);font:inherit;font-size:12px;font-weight:600;padding:6px 11px;border-radius:9px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
+      .pd-wrap .pd-btn:hover{border-color:#7c3aed;color:#7c3aed}
+      .pd-wrap .pd-split{display:grid;grid-template-columns:minmax(260px,.9fr) minmax(0,1.6fr);gap:16px;margin-top:6px}
+      .pd-wrap .pd-scroll{max-height:720px;overflow:auto;padding-right:4px}
+      .pd-wrap .pd-li{border:1px solid var(--border-strong,rgba(127,127,127,.18));border-radius:11px;padding:11px 13px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center}
+      .pd-wrap .pd-li:hover{border-color:#a78bfa}
+      .pd-wrap .pd-li.sel{border:2px solid #7c3aed;padding:10px 12px;background:rgba(124,58,237,.05)}
+      .pd-wrap .pd-li:focus-visible{outline:2px solid #7c3aed;outline-offset:2px}
+      .pd-wrap .pd-panel{border:1px solid var(--border-strong,rgba(127,127,127,.18));border-radius:14px;padding:18px;align-self:start;position:sticky;top:10px}
+      .pd-wrap .pd-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+      .pd-wrap .pd-kpis div{background:rgba(127,127,127,.06);border-radius:10px;padding:10px 12px}
+      .pd-wrap .pd-kpis b{display:block;font-size:18px;color:var(--text-main)}
+      .pd-wrap .pd-fr{margin-bottom:9px}
+      .pd-wrap .pd-fr .r{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;color:var(--text-main)}
+      .pd-wrap .pd-detail{margin-top:22px;padding:14px;border-radius:12px;background:rgba(127,127,127,.04);border:1px dashed var(--border-strong,rgba(127,127,127,.2))}
+      .pd-wrap .pd-buyer{display:grid;grid-template-columns:minmax(0,1.3fr) 60px minmax(0,1.6fr) 90px 100px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+      .pd-wrap .pd-buyer:last-child{border-bottom:0}
+      .pd-wrap .pd-buyer small{display:block;font-size:10.5px;color:var(--text-muted)}
+      .pd-wrap .pd-buyer b{color:var(--text-main);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+      @media (max-width: 900px){ .pd-wrap .pd-split{grid-template-columns:1fr} .pd-wrap .pd-panel{position:static} .pd-wrap .pd-scroll{max-height:none} .pd-wrap .pd-buyer{grid-template-columns:1fr 1fr} }
       #campTplHost #dispTemplatesContent { padding: 26px 30px 28px !important; }
       body:not(.dark-mode) #campTplHost #dispTemplatesContent { background: #fff !important; border: 1px solid var(--a-line) !important; border-radius: 14px !important; box-shadow: none !important; }
       #campTplHost .wa-tpl-head { padding: 0 0 18px; border-bottom: none; align-items: center !important; }
