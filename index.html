@@ -420,7 +420,6 @@
     /* Hero + Showcase blur entry animation */
     .blur-entry {
       opacity: 0;
-      filter: blur(12px);
       transform: translateY(16px);
       animation: blurFadeIn 1.5s cubic-bezier(.22, 1, .36, 1) forwards;
     }
@@ -452,13 +451,11 @@
     @keyframes blurFadeIn {
       0% {
         opacity: 0;
-        filter: blur(12px);
         transform: translateY(16px);
       }
 
       100% {
         opacity: 1;
-        filter: blur(0px);
         transform: translateY(0);
       }
     }
@@ -4557,9 +4554,9 @@
     @keyframes hv-desliza { from { transform:translate3d(0,0,0); } to { transform:translate3d(calc(-50% - 8px),0,0); } }
 
     .hv-card { position:relative; flex:0 0 auto; width:186px; aspect-ratio:9/16; border-radius:18px; overflow:hidden; background:#0d0b16; box-shadow:0 18px 44px rgba(24,12,54,0.22), 0 0 0 1px rgba(124,58,237,0.14);
-      opacity:0; transform:translateY(26px) scale(0.94); filter:blur(6px);
-      transition:opacity .9s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1), filter .9s cubic-bezier(.22,1,.36,1); }
-    .hv-faixa.entrou .hv-card { opacity:1; transform:none; filter:none; }
+      opacity:0; transform:translateY(26px) scale(0.94);
+      transition:opacity .9s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1); }
+    .hv-faixa.entrou .hv-card { opacity:1; transform:none; }
     .hv-card video { width:100%; height:100%; object-fit:cover; display:block; }
     .hv-card::after { content:''; position:absolute; inset:auto 0 0 0; height:38%; background:linear-gradient(to top, rgba(10,6,24,0.45), transparent); pointer-events:none; }
 
@@ -4632,7 +4629,12 @@
         c.style.transitionDelay = Math.min(i, 5) * 90 + 'ms';
       });
 
-      function acorda() { ligado = true; faixa.classList.add('entrou'); emCena.forEach(toca); }
+      function acorda() {
+        ligado = true; faixa.classList.add('entrou');
+        // pré-carrega todos de uma vez (antes baixava só ao entrar no card -> trocava poster por vídeo e travava)
+        videos.forEach(function (el) { if (!el.src) { el.preload = 'auto'; el.src = el.dataset.src; el.load(); } });
+        emCena.forEach(toca);
+      }
       function dorme() { ligado = false; videos.forEach(function (el) { el.pause(); }); }
 
       if ('IntersectionObserver' in window) {
