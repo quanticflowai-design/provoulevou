@@ -448,7 +448,10 @@
                 brand: '#0A4FA8', dark: '#083D82', soft: 'rgba(10,79,168,.08)', on: '#ffffff' },
     // logo preta em fundo branco: tema claro, marca preta com texto branco
     dbotica: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E7E7E7',
-                brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.06)', on: '#ffffff' }
+                brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.06)', on: '#ffffff' },
+    // logo creme sobre caramelo: fundo = caramelo da logo, cartões creme, marca marrom
+    oticaglow: { bg: '#D59046', card: '#FFF6EA', line: 'rgba(107,63,23,.18)',
+                brand: '#6B3F17', dark: '#4E2D0F', soft: 'rgba(107,63,23,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
