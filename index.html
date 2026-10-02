@@ -418,6 +418,7 @@
     }
 
     /* Hero + Showcase blur entry animation */
+    html:not(.fontes-ok) .blur-entry { animation-play-state: paused; }
     .blur-entry {
       opacity: 0;
       transform: translateY(16px);
@@ -3022,7 +3023,7 @@
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: gradient-shift 6s ease infinite;
+      animation: gradient-shift 6s ease 2.4s infinite;
     }
 
     @keyframes gradient-shift {
@@ -4334,6 +4335,11 @@
     .cta-secao.escura span { color:rgba(255,255,255,0.45); }
     @media (prefers-reduced-motion: reduce) { .cta-secao a { transition:none; } }
   </style>
+  <script>
+    // Hero: só anima depois da fonte carregar (antes trocava a fonte no meio da animação = "travadinha")
+    (function () { var d = document.documentElement, ok = function () { d.classList.add('fontes-ok'); };
+      setTimeout(ok, 1200); try { document.fonts && document.fonts.load('1em HelveticaNow').then(ok, ok); } catch (e) { ok(); } })();
+  </script>
 </head>
 
 <body>
@@ -4632,7 +4638,7 @@
       function acorda() {
         ligado = true; faixa.classList.add('entrou');
         // pré-carrega todos de uma vez (antes baixava só ao entrar no card -> trocava poster por vídeo e travava)
-        videos.forEach(function (el) { if (!el.src) { el.preload = 'auto'; el.src = el.dataset.src; el.load(); } });
+        setTimeout(function () { videos.forEach(function (el) { if (!el.src) { el.preload = 'auto'; el.src = el.dataset.src; el.load(); } }); }, 2000);
         emCena.forEach(toca);
       }
       function dorme() { ligado = false; videos.forEach(function (el) { el.pause(); }); }

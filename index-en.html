@@ -244,6 +244,7 @@
     }
 
     /* Hero + Showcase blur entry animation */
+    html:not(.fontes-ok) .blur-entry { animation-play-state: paused; }
     .blur-entry {
       opacity: 0;
       transform: translateY(16px);
@@ -2648,7 +2649,7 @@
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: gradient-shift 6s ease infinite;
+      animation: gradient-shift 6s ease 2.4s infinite;
     }
 
     @keyframes gradient-shift {
@@ -3841,6 +3842,11 @@
       .case-card { width: 220px; padding: 24px 20px; }
     }
   </style>
+  <script>
+    // Hero: só anima depois da fonte carregar (antes trocava a fonte no meio da animação = "travadinha")
+    (function () { var d = document.documentElement, ok = function () { d.classList.add('fontes-ok'); };
+      setTimeout(ok, 1200); try { document.fonts && document.fonts.load('1em HelveticaNow').then(ok, ok); } catch (e) { ok(); } })();
+  </script>
 </head>
 
 <body>
