@@ -13989,7 +13989,7 @@
         // ---- Wizard ----
         function campWizardOpen(audience) {
             _campInjectCSS();
-            CAMP.step = 0; CAMP.nome = ''; CAMP.pipeline = 'provador'; CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.tplMode = 'novo'; CAMP.tplName = ''; CAMP.tplLang = 'pt_BR'; CAMP.tplPending = false; CAMP.sched = 'diario'; CAMP.dia = ''; CAMP.hora1 = ''; CAMP.hora2 = ''; CAMP.targetCount = null; CAMP.limit = null; CAMP.moveToStage = 'msg-1';
+            CAMP.step = 0; CAMP.nome = ''; CAMP.pipeline = 'provador'; CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.periodoDe = ''; CAMP.periodoAte = ''; CAMP._stageTargets = null; CAMP.tplMode = 'novo'; CAMP.tplName = ''; CAMP.tplLang = 'pt_BR'; CAMP.tplPending = false; CAMP.sched = 'diario'; CAMP.dia = ''; CAMP.hora1 = ''; CAMP.hora2 = ''; CAMP.targetCount = null; CAMP.limit = null; CAMP.moveToStage = 'msg-1';
             CAMP.publicoTipo = 'crm'; CAMP.segId = ''; CAMP.audience = null;
             // Aberto a partir de uma Segmentação (segCriarCampanha passa {id, nome, regras}).
             if (audience && audience.regras) {
@@ -14048,7 +14048,8 @@
                         + '<option value="lentes"' + (CAMP.pipeline === 'lentes' ? ' selected' : '') + '>Fluxo de lentes</option></select>') : '';
                     inner = pipe + '<label class="camp-lbl" for="campStage">Público (etapa do CRM) <span style="color:#dc2626;">*</span></label>'
                         + '<select id="campStage" class="camp-sel" onchange="campOnStage(this.value)"><option value="">Selecione…</option>' + opts + '</select>'
-                        + '<div id="campStageCount" class="camp-msg" style="color:var(--text-muted);">' + (CAMP.targetCount != null && !CAMP.audience ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa') : '') + '</div>'
+                        + '<div id="campStageCount" class="camp-msg" style="color:var(--text-muted);">' + (CAMP.targetCount != null && !CAMP.audience ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa' + campPeriodoSufixo()) : '') + '</div>'
+                        + campPeriodoFieldHTML()
                         + campLimitFieldHTML();
                 }
                 body = '<h3 class="camp-h">Para quem?</h3><p class="camp-p">Envie pra uma etapa do CRM ou pra um público que você criou em Segmentações.</p>' + toggle + inner;
@@ -14094,6 +14095,49 @@
                 + '</div>';
         }
         function campSetLimit(v) { const n = parseInt(v, 10); CAMP.limit = (!isNaN(n) && n > 0) ? n : null; }
+        // ── Filtro de PERÍODO (data da ÚLTIMA prova do lead) — 02/10/2026 ──
+        // Ex.: etapa "Provou e não comprou" + só quem provou até 25/09. Vale pro envio único
+        // (agora / dia marcado); a campanha diária pega os leads novos de cada dia.
+        function _campDia(s) { return String(s || '').slice(0, 10); }
+        function campFiltraPeriodo(list) {
+            const de = CAMP.periodoDe || '', ate = CAMP.periodoAte || '';
+            if (!de && !ate) return list || [];
+            return (list || []).filter(l => { const d = _campDia(l.lastDate); if (!d) return false; return (!de || d >= de) && (!ate || d <= ate); });
+        }
+        function _campFmt(d) { return d ? d.split('-').reverse().join('/') : ''; }
+        function campPeriodoSufixo() {
+            const de = CAMP.periodoDe, ate = CAMP.periodoAte;
+            if (!de && !ate) return '';
+            return ' <span style="color:#7c3aed;">· provaram ' + (de && ate ? ('de ' + _campFmt(de) + ' a ' + _campFmt(ate)) : de ? ('a partir de ' + _campFmt(de)) : ('até ' + _campFmt(ate))) + '</span>';
+        }
+        function campPeriodoFieldHTML() {
+            const b = (n, lab) => '<button type="button" class="camp-btn" style="padding:6px 10px;font-size:12px;" onclick="campPeriodoAtalho(' + n + ')">' + lab + '</button>';
+            return '<div id="campPeriodoWrap" style="margin-top:14px;">'
+                + '<label class="camp-lbl">Período <span style="font-weight:400;color:var(--text-muted);">(data da última prova do lead · opcional)</span></label>'
+                + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
+                + '<span style="font-size:13px;color:var(--text-muted);">De</span><input id="campPerDe" type="date" class="camp-inp" style="width:auto;" value="' + escapeHtml(CAMP.periodoDe || '') + '" onchange="campSetPeriodo()">'
+                + '<span style="font-size:13px;color:var(--text-muted);">até</span><input id="campPerAte" type="date" class="camp-inp" style="width:auto;" value="' + escapeHtml(CAMP.periodoAte || '') + '" onchange="campSetPeriodo()">'
+                + '</div>'
+                + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">' + b(7, 'Últimos 7 dias') + b(15, 'Últimos 15 dias') + b(30, 'Últimos 30 dias') + b(0, 'Limpar') + '</div>'
+                + '<div class="camp-msg" style="color:var(--text-muted);margin-top:6px;"><i class="ph-bold ph-info"></i> Vale para envio único (agora ou dia marcado). Deixe vazio para todos da etapa.</div>'
+                + '</div>';
+        }
+        function campSetPeriodo() {
+            const de = (document.getElementById('campPerDe') || {}).value || '', ate = (document.getElementById('campPerAte') || {}).value || '';
+            CAMP.periodoDe = de; CAMP.periodoAte = (de && ate && ate < de) ? de : ate;
+            if (CAMP._stageTargets) CAMP.targetCount = campFiltraPeriodo(CAMP._stageTargets).length;
+            const b2 = document.getElementById('campStageCount');
+            if (b2 && CAMP.targetCount != null) b2.innerHTML = '<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa' + campPeriodoSufixo();
+            CAMP.limit = null; const li = document.getElementById('campLimit'); if (li) li.value = '';
+            try { campRevealLimit(); } catch (e) {}
+        }
+        function campPeriodoAtalho(n) {
+            const pad = x => String(x).padStart(2, '0'); const dt = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+            const de = document.getElementById('campPerDe'), ate = document.getElementById('campPerAte');
+            if (!n) { if (de) de.value = ''; if (ate) ate.value = ''; }
+            else { const hoje = new Date(); const ini = new Date(); ini.setDate(hoje.getDate() - (n - 1)); if (de) de.value = dt(ini); if (ate) ate.value = dt(hoje); }
+            campSetPeriodo();
+        }
         // Seletor "Mover leads para etapa (após o disparo)". Padrão msg-1. Grava em
         // CAMP.moveToStage; o webhook [PL] WA — Inbound lê move_to_stage da campanha ao
         // confirmar a ENTREGA e move o lead pra essa etapa (fallback msg-1).
@@ -14130,9 +14174,9 @@
             const c = CAMP.pipeline === 'lentes' ? _LENTES_CRM_ETAPAS.find(x => x.id === key) : (cfg.columns || []).find(x => x.key === key);
             CAMP.stageTitle = c ? (c.title || c.rot) : key;
             const box = document.getElementById('campStageCount'); if (box) box.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> contando…';
-            try { const t = await waGetBulkTargets(key, '', CAMP.pipeline); CAMP.targetCount = t.length; }
-            catch (e) { CAMP.targetCount = null; }
-            const b2 = document.getElementById('campStageCount'); if (b2) b2.innerHTML = CAMP.targetCount != null ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa') : '';
+            try { const t = await waGetBulkTargets(key, '', CAMP.pipeline); CAMP._stageTargets = t; CAMP.targetCount = campFiltraPeriodo(t).length; }
+            catch (e) { CAMP.targetCount = null; CAMP._stageTargets = null; }
+            const b2 = document.getElementById('campStageCount'); if (b2) b2.innerHTML = CAMP.targetCount != null ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa' + campPeriodoSufixo()) : '';
             campRevealLimit();
         }
         async function campSetPipeline(pipeline) {
@@ -14249,6 +14293,7 @@
             try {
                 if (CAMP.sched === 'dia' || CAMP.sched === 'agora') {
                     let targets = CAMP.audience ? CAMP.audience.targets : await waGetBulkTargets(CAMP.stage, '', CAMP.pipeline);
+                    if (!CAMP.audience) targets = campFiltraPeriodo(targets);   // filtro de período (data da última prova)
                     // Link de cada lead — MESMA lógica do disparo imediato (leadLinkOf vive no escopo do
                     // executeBulkSend e não existe aqui; antes o {{3}} saía sempre vazio → Meta #131008).
                     const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
