@@ -7244,7 +7244,7 @@
             invalidateSendLogCache();   // senao a loja nova mostraria disparos da anterior
             _crmConfigMem = null;
             _crmOverridesMem = null;
-            crmLeadMapCache = null;
+            crmLeadMapCache = null; _plPrecoProva = null;
             crmLoaded = false;
             leadsRecupLoaded = false;
             _fatChartOrdersCache = null;
@@ -8161,6 +8161,7 @@
                 + '<div><b>' + provas.length + '</b><span>' + (provas.length === 1 ? 'prova' : 'provas') + '</span></div>'
                 + '<div><b>' + pedidos.length + '</b><span>' + (pedidos.length === 1 ? 'compra' : 'compras') + '</span></div>'
                 + '<div><b>' + escapeHtml(_clpMoney(totalGasto)) + '</b><span>total gasto</span></div></div>';
+            h += '<div class="chat-lp-sec"><div class="chat-lp-title"><i class="ph-bold ph-coins"></i> Custo deste lead</div><div id="chatLpCusto" class="chat-lp-none">calculando…</div></div>';
 
             // compras
             h += '<div class="chat-lp-sec"><div class="chat-lp-title"><i class="ph-bold ph-shopping-bag"></i> Compras</div>';
@@ -8188,6 +8189,7 @@
 
             const load = box.querySelector('.chat-lp-loading');
             if (load) load.outerHTML = h;
+            plFillCustoLead('chatLpCusto', provas.length, phone).catch(() => {});
         }
 
         // ===== Mover lead de etapa DENTRO da conversa =====
@@ -18588,7 +18590,7 @@
             crmLoaded = false;
             _crmConfigMem = null;
             _crmOverridesMem = null;
-            crmLeadMapCache = null;
+            crmLeadMapCache = null; _plPrecoProva = null;
             try {
                 await loadSharedData();
                 loadVisaoGeral();
@@ -20237,6 +20239,57 @@
             return d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
         }
         let _clmReqId = 0;
+        // ── Custo do lead (04/10/2026) ──
+        // provas que ele fez × preço da prova no plano da loja (valor do plano ÷ franquia)
+        // + mensagens que CHEGARAM (delivered/read) × R$ 0,35 (preço estimado da Meta, marketing BR).
+        const PL_CUSTO_MSG = 0.35;
+        let _plPrecoProva = null;
+        async function plPrecoProvaLoja() {
+            if (_plPrecoProva != null) return _plPrecoProva;
+            let v = 0;
+            try {
+                const em = String((activeUser && activeUser.email) || '').toLowerCase();
+                if (PACKS_PRICE_OVERRIDE[em]) v = PACKS_PRICE_OVERRIDE[em];
+                else {
+                    const cols = 'plan, valor_personalizado, limite_personalizado, domain';
+                    const r1 = await supabaseClient.from('provou_levou_stores').select(cols).in('email', plScopeEmails()).limit(1).maybeSingle();
+                    let st = r1.error ? null : r1.data;
+                    if (!st && activeUser.origem) {
+                        const r2 = await supabaseClient.from('provou_levou_stores').select(cols);
+                        if (!r2.error && r2.data) { const tg = normalizeStoreDomain(activeUser.origem); st = r2.data.find(s => normalizeStoreDomain(s.domain) === tg) || null; }
+                    }
+                    if (st) {
+                        const val = Number(st.valor_personalizado) || PACKS_PLAN_VALUES[st.plan] || 0;
+                        const lim = Number(st.limite_personalizado) || PACKS_PLAN_LIMITS_REF[st.plan] || 0;
+                        v = (val && lim) ? val / lim : 0;
+                    }
+                }
+            } catch (e) {}
+            _plPrecoProva = v;
+            return v;
+        }
+        async function plFillCustoLead(elId, nProvas, phone) {
+            if (!document.getElementById(elId)) return;
+            let msgs = 0;
+            const last8 = String(phone || '').replace(/\D/g, '').slice(-8);
+            if (last8.length === 8) {
+                try {
+                    const { count } = await supabaseClient.from('whatsapp_send_log').select('id', { count: 'exact', head: true })
+                        .in('email', plScopeEmails()).ilike('lead_phone', '%' + last8).in('status', ['delivered', 'read']);
+                    msgs = count || 0;
+                } catch (e) {}
+            }
+            const pp = await plPrecoProvaLoja();
+            const el = document.getElementById(elId); if (!el) return;
+            const brl = x => x.toLocaleString('pt-BR', { style: 'currency', currency: PL_CUR });
+            const np = nProvas || 0, tot = np * pp + msgs * PL_CUSTO_MSG;
+            el.textContent = '';
+            const b = document.createElement('b'); b.style.cssText = 'font-size:15px;'; b.textContent = brl(tot);
+            const s = document.createElement('span'); s.style.cssText = 'display:block;font-size:11.5px;color:var(--text-muted);font-weight:500;margin-top:3px;line-height:1.4;';
+            s.textContent = np + (np === 1 ? ' prova' : ' provas') + ' × ' + (pp ? brl(pp) : 'R$ —') + ' + ' + msgs + (msgs === 1 ? ' mensagem' : ' mensagens') + ' × ' + brl(PL_CUSTO_MSG) + ' (mensagem: preço estimado da Meta)';
+            el.append(b, s);
+        }
+
         function openCrmLeadModal(lead, colKey) {
             _clmInjectCss();
             let ov = document.getElementById('crmLeadModal');
@@ -20277,7 +20330,8 @@
                 + _mTeam.map(n => '<option value="' + escapeHtml(n) + '"' + (n === _mResp ? ' selected' : '') + '>' + escapeHtml(n) + '</option>').join('')
                 + '</select>';
 
-            const details = f('Responsável', respSelectHtml)
+            const details = f('Custo deste lead', '<span id="clmCusto" style="color:var(--text-muted);font-weight:500;">calculando…</span>', true)
+                + f('Responsável', respSelectHtml)
                 + f('Etapa atual', escapeHtml(crmStageTitle(colKey)))
                 + f(lead.pendingPayment && !lead.provaCount ? 'Produto do pedido' : 'Produto provado', produtoHtml, true)
                 + (lead.provaCount ? f('Primeira prova', crmFmtDate(lead.firstDate)) + f('Última prova', crmFmtDate(lead.lastDate)) : '')
@@ -20318,6 +20372,7 @@
                 + '</div>';
             ov.style.display = 'flex';
             try { crmRenderLeadTarefas(lead); } catch (e) { console.warn('[crm] tarefas:', e); }
+            plFillCustoLead('clmCusto', lead.provaCount || 0, lead.rawPhone || lead.phone).catch(() => {});
             crmLoadLeadHistory(lead, ++_clmReqId);
         }
         async function crmLoadLeadHistory(lead, reqId) {
@@ -21295,7 +21350,7 @@
             const hi = document.createElement('i'); hi.className = 'ph-bold ph-arrows-clockwise'; hi.style.color = '#7c3aed'; h.appendChild(hi); h.appendChild(document.createTextNode(' Rodízio de leads'));
             const x = _rodEl('button', 'background:transparent;border:0;color:#666;cursor:pointer;font-size:20px;line-height:1;padding:4px;', '×'); x.onclick = closeCrmRodizioModal;
             head.appendChild(h); head.appendChild(x); box.appendChild(head);
-            box.appendChild(_rodEl('p', 'font-size:13px;color:#555;margin:0 0 16px;line-height:1.5;', 'Cada lead novo que entrar no CRM (prova, carrinho ou importado) vai para uma pessoa do time, em ordem: um para cada. Quem já tem responsável não muda de dono. Distribui a cada 5 minutos.'));
+            box.appendChild(_rodEl('p', 'font-size:13px;color:#555;margin:0 0 16px;line-height:1.5;', 'Cada lead novo que entrar no CRM (prova, carrinho ou importado) vai para uma pessoa do time, em ordem: um para cada. Quem já tem responsável não muda de dono. A distribuição é na hora em que o lead entra.'));
             if (!team.length) {
                 box.appendChild(_rodEl('div', 'background:#fef3c7;color:#92400e;border-radius:10px;padding:12px 14px;font-size:13px;', 'Cadastre o time primeiro em "Gerenciar time". Depois volte aqui para ligar o rodízio.'));
                 ov.appendChild(box); document.body.appendChild(ov); return;
