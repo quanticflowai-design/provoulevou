@@ -4079,6 +4079,12 @@
                         <button class="btn-download" onclick="openCrmTeamModal()" title="Cadastrar os responsáveis do time comercial">
                             <i class="ph-bold ph-users"></i> Gerenciar time
                         </button>
+                        <button id="crmRodizioBtn" class="btn-download crm-provador-only" onclick="openCrmRodizioModal()" title="Distribuir os leads novos entre o time, um para cada pessoa">
+                            <i class="ph-bold ph-arrows-clockwise"></i> Rodízio <span id="crmRodizioTag" style="display:none;margin-left:4px;font-size:10px;font-weight:800;background:#16a34a;color:#fff;border-radius:6px;padding:1px 6px;">LIGADO</span>
+                        </button>
+                        <button id="crmTarefasBtn" class="btn-download crm-provador-only" onclick="openCrmTarefasModal()" title="Tarefas agendadas nos leads">
+                            <i class="ph-bold ph-alarm"></i> Tarefas <span id="crmTarefasCount" style="display:none;margin-left:4px;font-size:10px;font-weight:800;background:#dc2626;color:#fff;border-radius:6px;padding:1px 6px;">0</span>
+                        </button>
                         <button id="crmTeamPanelBtn" class="btn-download crm-provador-only" onclick="toggleCrmTeamPanel()" title="Ver desempenho por responsável">
                             <i class="ph-bold ph-chart-bar"></i> Desempenho do time
                         </button>
@@ -6051,6 +6057,7 @@
                         </button>
                     </div>
                     <div id="crmTeamMsg" style="font-size:12px;color:#dc2626;margin-top:6px;min-height:16px;"></div>
+                    <div id="crmTeamLogins" style="margin-top:10px;border-top:1px solid #eee;padding-top:14px;"></div>
                     <div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:18px;">
                         <button onclick="closeCrmTeamModal()" style="background:transparent;border:1px solid #d1d5db;color:#555;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">Cancelar</button>
                         <button onclick="saveCrmTeam()" style="background:#7c3aed;border:0;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Salvar</button>
@@ -6176,6 +6183,7 @@
 
         function showTab(name) {
             if (isDisparosOnly() && name !== 'disparos') name = 'disparos';
+            if (isComercial() && name !== 'disparos') name = 'disparos';
             const pane = document.getElementById('tab-' + name);
             const btn = document.querySelector('.tab-btn[data-tab="' + name + '"]');
             if (!pane && !btn && name !== 'visao-geral') { return showTab('visao-geral'); }
@@ -7008,6 +7016,7 @@
 
         function restoreTab() {
             if (isDisparosOnly()) { showTab('disparos'); return; }
+            if (isComercial()) { showTab('disparos'); try { const s = localStorage.getItem('pl-disp-subtab'); dispSwitchSub(s === 'conversas' ? 'conversas' : 'crm'); } catch (e) { dispSwitchSub('crm'); } return; }
             let saved = (function(){ try { return localStorage.getItem('pl-active-tab'); } catch(e) { return null; } })();
             if (saved === 'crm') saved = 'disparos';   // CRM agora vive dentro de Disparos
             // F5 mantém o lojista na MESMA aba em que estava (a sub-aba de Disparos é restaurada
@@ -7057,6 +7066,13 @@
             return email && MASTER_EMAILS.indexOf(email.toLowerCase()) !== -1;
         }
 
+        // Login do COMERCIAL (04/10/2026): não é lojista — vem de crm_usuarios (email → loja + pessoa do time).
+        // Vê só CRM, Conversas e Tarefas, e só os leads DELE (ou sem dono). O ADM (login da loja) vê tudo.
+        // É só para o dia a dia: esconde na tela, não é trava de banco.
+        let _plComercial = null;   // { email, membro, lojista_email }
+        function isComercial() { return !!_plComercial; }
+        function plComercialVe(resp) { return !_plComercial || !resp || resp === _plComercial.membro; }
+
         // Logins restritos: só enxergam a aba Disparos.
         const DISPAROS_ONLY_EMAILS = ['olm@oculoslindamenina.com'];
         function isDisparosOnly() {
@@ -7098,8 +7114,17 @@
                 .select('*')
                 .eq('email', user.email)
                 .single();
-            if (error || !data) return null;
-            return data;
+            if (!error && data) { _plComercial = null; return data; }
+            // Login do comercial: acha a loja dele pelo crm_usuarios
+            try {
+                const { data: cu } = await supabaseClient.from('crm_usuarios')
+                    .select('email,lojista_email,membro,ativo').eq('email', String(user.email || '').toLowerCase()).maybeSingle();
+                if (cu && cu.ativo) {
+                    const loja = await fetchLojistaByEmail(cu.lojista_email);
+                    if (loja) { _plComercial = { email: cu.email, membro: cu.membro, lojista_email: cu.lojista_email }; return loja; }
+                }
+            } catch (e) {}
+            return null;
         }
 
         async function fetchLojistaByEmail(email) {
@@ -7417,6 +7442,31 @@
                     var b = document.querySelector('.tab-btn[data-tab="'+t+'"]');
                     if (b) b.style.display = 'none';
                 });
+            }
+            if (isComercial()) {
+                document.body.classList.add('pl-comercial');
+                ['visao-geral','clientes','provas','lentes','meu-plano'].forEach(function(t){
+                    var b = document.querySelector('.tab-btn[data-tab="'+t+'"]');
+                    if (b) b.style.display = 'none';
+                });
+                document.querySelectorAll('#dispSubnav button[data-sub]').forEach(function(b){
+                    if (b.dataset.sub !== 'crm' && b.dataset.sub !== 'conversas') b.style.display = 'none';
+                });
+                if (!document.getElementById('plComercialCss')) {
+                    var st = document.createElement('style'); st.id = 'plComercialCss';
+                    st.textContent = 'body.pl-comercial #crmProvadorActions > *:not(#crmTarefasBtn){display:none!important}'
+                        + 'body.pl-comercial #crmRespFilter,body.pl-comercial #crmBulkMoveBtn,body.pl-comercial #crmTeamPanel,body.pl-comercial #chatFilterRespSel{display:none!important}'
+                        + '.pl-comercial-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#7c3aed;background:rgba(124,58,237,.1);border-radius:999px;padding:5px 12px;margin-right:6px}';
+                    document.head.appendChild(st);
+                }
+                var nav = document.getElementById('dispSubnav');
+                if (nav && !document.getElementById('plComercialChip')) {
+                    var chip = document.createElement('span'); chip.id = 'plComercialChip'; chip.className = 'pl-comercial-chip';
+                    var ci = document.createElement('i'); ci.className = 'ph-bold ph-user-circle';
+                    chip.appendChild(ci); chip.appendChild(document.createTextNode(' ' + _plComercial.membro));
+                    nav.insertBefore(chip, nav.firstChild);
+                }
+                try { loadCrmRemoteState().then(function(){ try { chatRenderList(); } catch (e) {} }); } catch (e) {}
             }
             plSetMoeda();
             loadData();
@@ -7826,6 +7876,7 @@
                 return;
             }
             let convs = _chatFilterUnread ? _chatConvs.filter(c => (c.unread || 0) > 0 || c.phone === _chatActivePhone) : _chatConvs;
+            if (_plComercial) convs = _crmRespMem ? convs.filter(c => plComercialVe(chatLeadResp(c.phone))) : [];
             if (_chatFilterCat) convs = convs.filter(c => chatLeadCatKey(c.phone) === _chatFilterCat);
             if (_chatFilterResp) {
                 if (_chatFilterResp === '__none__') convs = convs.filter(c => !chatLeadResp(c.phone));
@@ -9912,6 +9963,7 @@
         function dispSwitchSub(name) {
             if (name === 'historico') name = 'dashboard'; // Histórico foi fundido no Dashboard
             if (name === 'templates') name = 'disparar';  // Mensagens modelo foi integrado em Campanhas
+            if (isComercial() && name !== 'crm' && name !== 'conversas') name = 'crm';
             document.querySelectorAll('#dispSubnav button[data-sub]').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
             const map = { dashboard: 'dispSubDashboard', crm: 'dispSubCrm', conversas: 'dispSubConversas', comercial: 'dispSubComercial', disparar: 'dispSubDisparar', segmentacoes: 'dispSubSegmentacoes', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao', automacoes: 'dispSubAutomacoes' };
             Object.entries(map).forEach(([k, id]) => {
@@ -20220,7 +20272,7 @@
             const _mResp = getCrmResp()[lead.phone] || '';
             const _mTeam = getCrmTeam().slice();
             if (_mResp && !_mTeam.includes(_mResp)) _mTeam.push(_mResp);
-            const respSelectHtml = '<select onchange="crmModalSetResp(this,\'' + String(lead.phone).replace(/[^0-9]/g, '') + '\')">'
+            const respSelectHtml = '<select' + (isComercial() ? ' disabled title="Só o administrador troca o responsável"' : '') + ' onchange="crmModalSetResp(this,\'' + String(lead.phone).replace(/[^0-9]/g, '') + '\')">'
                 + '<option value="">— sem responsável —</option>'
                 + _mTeam.map(n => '<option value="' + escapeHtml(n) + '"' + (n === _mResp ? ' selected' : '') + '>' + escapeHtml(n) + '</option>').join('')
                 + '</select>';
@@ -20255,6 +20307,7 @@
                 + '</div>'
                 + '<div class="clm-body">'
                 +   '<div class="clm-sec"><h4>Detalhes</h4><div class="clm-grid">' + details + '</div></div>'
+                +   '<div class="clm-sec"><h4>Tarefas</h4><div id="clmTarefas"></div></div>'
                 +   '<div class="clm-sec"><h4>Campanhas e automações</h4>' + tagsHtml + '</div>'
                 +   '<div class="clm-sec"><h4>Histórico de disparos <span id="clmHistSum" class="clm-sum"></span></h4><div id="clmHistory"><div class="clm-empty">Carregando histórico…</div></div></div>'
                 + '</div>'
@@ -20264,6 +20317,7 @@
                 + '</div>') : '')
                 + '</div>';
             ov.style.display = 'flex';
+            try { crmRenderLeadTarefas(lead); } catch (e) { console.warn('[crm] tarefas:', e); }
             crmLoadLeadHistory(lead, ++_clmReqId);
         }
         async function crmLoadLeadHistory(lead, reqId) {
@@ -20406,6 +20460,8 @@
             try {
                 await loadCrmRemoteState();
                 await loadCrmCampaignTags();
+                crmLoadRodizio().catch(() => {});
+                await crmLoadTarefas();
                 const user = activeUser;
                 const fPhone = user.campo_telefone_pedido || 'customer_phone';
                 const fStatus = user.campo_status_pedido || 'payment_status';
@@ -21062,6 +21118,92 @@
             const inp = document.getElementById('crmTeamNewInput'); if (inp) inp.value = '';
             const msg = document.getElementById('crmTeamMsg'); if (msg) msg.textContent = '';
             try { renderCrmTeamList(); } catch (e) { console.warn('[CRM] renderCrmTeamList:', e); }
+            try { renderCrmLogins(); } catch (e) { console.warn('[CRM] renderCrmLogins:', e); }
+        }
+        // ── Logins do comercial (04/10/2026) ──
+        // O ADM cria um login (e-mail + senha) para cada pessoa do time. Quem cria a conta é o
+        // webhook n8n pl-crm-usuario (Fxicr5hssuq5Dd86), que confere se quem chama é o ADM da loja.
+        const PL_CRM_USUARIO_URL = 'https://n8n.segredosdodrop.com/webhook/pl-crm-usuario';
+        let _crmLogins = [];
+        async function crmLoginsApi(body) {
+            const { data } = await supabaseClient.auth.getSession();
+            const token = data && data.session && data.session.access_token;
+            let j;
+            try {
+                const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 45000);
+                const r = await fetch(PL_CRM_USUARIO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, signal: ctl.signal,
+                    body: JSON.stringify(Object.assign({ token, lojista_email: crmScopeEmail() }, body)) });
+                clearTimeout(tm);
+                j = await r.json().catch(() => ({ ok: false, erro: 'Sem resposta do servidor.' }));
+            } catch (e) { j = { ok: false, erro: 'O servidor demorou para responder. Tente de novo em instantes.' }; }
+            if (j && Array.isArray(j.usuarios)) _crmLogins = j.usuarios;
+            return j || { ok: false };
+        }
+        async function renderCrmLogins(recarregar) {
+            const box = document.getElementById('crmTeamLogins'); if (!box) return;
+            if (isComercial()) { box.style.display = 'none'; return; }
+            const el = (tag, css, txt) => { const e = document.createElement(tag); if (css) e.style.cssText = css; if (txt != null) e.textContent = txt; return e; };
+            if (recarregar !== false) {
+                box.textContent = ''; box.appendChild(el('div', 'font-size:12px;color:#888;', 'Carregando logins…'));
+                try { await crmLoginsApi({ acao: 'listar' }); } catch (e) {}
+            }
+            box.textContent = '';
+            const tit = el('div', 'font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px;');
+            const ti = document.createElement('i'); ti.className = 'ph-bold ph-key'; ti.style.color = '#7c3aed'; tit.append(ti, document.createTextNode(' Login de cada pessoa'));
+            box.appendChild(tit);
+            box.appendChild(el('div', 'font-size:12px;color:#666;margin-bottom:10px;line-height:1.45;', 'Com login próprio, a pessoa vê só o CRM, as Conversas e as Tarefas dos leads dela. Você (administrador) continua vendo tudo.'));
+            const team = getCrmTeam();
+            if (!team.length) { box.appendChild(el('div', 'font-size:12px;color:#888;', 'Adicione as pessoas do time acima e salve.')); return; }
+            const msg = el('div', 'font-size:12px;min-height:14px;margin-top:6px;');
+            const avisa = (txt, ok) => { msg.textContent = txt || ''; msg.style.color = ok ? '#16a34a' : '#dc2626'; };
+            const inp = (type, ph) => { const i = document.createElement('input'); i.type = type; i.placeholder = ph; i.autocomplete = 'off'; i.style.cssText = 'flex:1;min-width:140px;border:1px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:12.5px;color:#111;background:#fff;'; return i; };
+            const btn = (txt, cor) => { const b = el('button', 'border:0;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;background:' + (cor || '#7c3aed') + ';color:#fff;', txt); b.type = 'button'; return b; };
+            team.forEach(n => {
+                const lg = _crmLogins.find(u => u.membro === n && u.ativo) || _crmLogins.find(u => u.membro === n);
+                const row = el('div', 'border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;margin-bottom:8px;');
+                const top = el('div', 'display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;');
+                const nome = el('div', 'font-size:13px;font-weight:700;', n);
+                top.appendChild(nome);
+                if (lg) {
+                    const st = el('span', 'font-size:12px;color:' + (lg.ativo ? '#16a34a' : '#9ca3af') + ';', (lg.ativo ? '● ' : '○ desativado · ') + lg.email);
+                    top.appendChild(st);
+                }
+                row.appendChild(top);
+                const acoes = el('div', 'display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;');
+                if (!lg) {
+                    const e1 = inp('email', 'e-mail de login'), s1 = inp('password', 'senha (mín. 8)');
+                    const b1 = btn('Criar login');
+                    b1.onclick = async () => {
+                        b1.disabled = true; b1.textContent = 'Criando…';
+                        const j = await crmLoginsApi({ acao: 'criar', membro: n, email: e1.value, senha: s1.value });
+                        if (j.ok) { avisa('Login criado para ' + n + '. Ela entra no mesmo endereço do painel com esse e-mail e senha.', true); renderCrmLogins(false); }
+                        else { avisa(j.erro || 'Não criou.'); b1.disabled = false; b1.textContent = 'Criar login'; }
+                    };
+                    acoes.append(e1, s1, b1);
+                } else {
+                    const s2 = inp('password', 'nova senha (mín. 8)');
+                    const b2 = btn(lg.ativo ? 'Trocar senha' : 'Reativar com esta senha', '#475569');
+                    b2.onclick = async () => {
+                        b2.disabled = true;
+                        const j = await crmLoginsApi({ acao: 'senha', email: lg.email, senha: s2.value });
+                        if (j.ok) { avisa('Senha atualizada para ' + n + '.', true); renderCrmLogins(false); } else { avisa(j.erro || 'Não atualizou.'); b2.disabled = false; }
+                    };
+                    acoes.append(s2, b2);
+                    if (lg.ativo) {
+                        const b3 = btn('Desativar', '#dc2626');
+                        b3.onclick = async () => {
+                            if (!confirm('Desativar o login de ' + n + '? Ela não consegue mais entrar.')) return;
+                            b3.disabled = true;
+                            const j = await crmLoginsApi({ acao: 'desativar', email: lg.email });
+                            if (j.ok) { avisa('Login de ' + n + ' desativado.', true); renderCrmLogins(false); } else { avisa(j.erro || 'Não desativou.'); b3.disabled = false; }
+                        };
+                        acoes.appendChild(b3);
+                    }
+                }
+                row.appendChild(acoes);
+                box.appendChild(row);
+            });
+            box.appendChild(msg);
         }
         function closeCrmTeamModal() {
             const m = document.getElementById('crmTeamModal');
@@ -21121,6 +21263,264 @@
             closeCrmTeamModal();
             populateCrmRespControls();
             renderCrmBoard();
+        }
+
+        // ── Rodízio de leads (04/10/2026) ──
+        // Liga/desliga e escolhe quem entra na fila. Quem distribui é o robô n8n
+        // "[PL] CRM — Rodízio de leads (5min)" (JClyzXEYBEzuNk3y): todo lead NOVO do CRM
+        // (prova, carrinho, importado) ganha um responsável, em ordem. Nunca troca o dono.
+        let _crmRodizio = null;
+        async function crmLoadRodizio() {
+            try {
+                const { data } = await supabaseClient.from('crm_rodizio').select('*').eq('lojista_email', crmScopeEmail()).maybeSingle();
+                _crmRodizio = data || null;
+            } catch (e) { _crmRodizio = null; }
+            const tag = document.getElementById('crmRodizioTag');
+            if (tag) tag.style.display = (_crmRodizio && _crmRodizio.ativo) ? '' : 'none';
+            return _crmRodizio;
+        }
+        function _rodEl(tag, css, txt) { const e = document.createElement(tag); if (css) e.style.cssText = css; if (txt != null) e.textContent = txt; return e; }
+        function closeCrmRodizioModal() { const m = document.getElementById('crmRodizioModal'); if (m) m.remove(); }
+        async function openCrmRodizioModal() {
+            closeCrmRodizioModal();
+            const r = await crmLoadRodizio();
+            const team = getCrmTeam();
+            const fila = (r && Array.isArray(r.membros) && r.membros.length) ? r.membros.filter(n => team.indexOf(n) !== -1) : team.slice();
+            const ov = _rodEl('div', 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;');
+            ov.id = 'crmRodizioModal';
+            ov.addEventListener('click', e => { if (e.target === ov) closeCrmRodizioModal(); });
+            const box = _rodEl('div', 'background:#ffffff;color:#111;border:1px solid #e5e7eb;border-radius:14px;max-width:520px;width:100%;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.4);max-height:85vh;overflow-y:auto;');
+            const head = _rodEl('div', 'display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;');
+            const h = _rodEl('h3', 'margin:0;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;');
+            const hi = document.createElement('i'); hi.className = 'ph-bold ph-arrows-clockwise'; hi.style.color = '#7c3aed'; h.appendChild(hi); h.appendChild(document.createTextNode(' Rodízio de leads'));
+            const x = _rodEl('button', 'background:transparent;border:0;color:#666;cursor:pointer;font-size:20px;line-height:1;padding:4px;', '×'); x.onclick = closeCrmRodizioModal;
+            head.appendChild(h); head.appendChild(x); box.appendChild(head);
+            box.appendChild(_rodEl('p', 'font-size:13px;color:#555;margin:0 0 16px;line-height:1.5;', 'Cada lead novo que entrar no CRM (prova, carrinho ou importado) vai para uma pessoa do time, em ordem: um para cada. Quem já tem responsável não muda de dono. Distribui a cada 5 minutos.'));
+            if (!team.length) {
+                box.appendChild(_rodEl('div', 'background:#fef3c7;color:#92400e;border-radius:10px;padding:12px 14px;font-size:13px;', 'Cadastre o time primeiro em "Gerenciar time". Depois volte aqui para ligar o rodízio.'));
+                ov.appendChild(box); document.body.appendChild(ov); return;
+            }
+            const lig = _rodEl('label', 'display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;cursor:pointer;background:#f5f3ff;border-radius:10px;padding:12px 14px;margin-bottom:14px;');
+            const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'crmRodAtivo'; cb.checked = !!(r && r.ativo); cb.style.cssText = 'width:18px;height:18px;accent-color:#7c3aed;';
+            lig.appendChild(cb); lig.appendChild(document.createTextNode('Rodízio ligado'));
+            box.appendChild(lig);
+            box.appendChild(_rodEl('div', 'font-size:12px;font-weight:700;color:#555;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;', 'Quem entra na fila'));
+            const lista = _rodEl('div', 'display:flex;flex-direction:column;gap:6px;margin-bottom:14px;');
+            team.forEach(n => {
+                const l = _rodEl('label', 'display:flex;align-items:center;gap:10px;font-size:14px;border:1px solid #e5e7eb;border-radius:8px;padding:9px 12px;cursor:pointer;');
+                const c = document.createElement('input'); c.type = 'checkbox'; c.value = n; c.className = 'crm-rod-membro'; c.checked = fila.indexOf(n) !== -1; c.style.cssText = 'width:16px;height:16px;accent-color:#7c3aed;';
+                l.appendChild(c); l.appendChild(document.createTextNode(n)); lista.appendChild(l);
+            });
+            box.appendChild(lista);
+            if (r && r.ativo) {
+                const info = _rodEl('div', 'font-size:12.5px;color:#555;background:#f9fafb;border-radius:10px;padding:10px 12px;line-height:1.6;margin-bottom:6px;');
+                const filaAtual = (r.membros || []);
+                info.appendChild(_rodEl('div', '', 'Próximo da vez: ' + (filaAtual.length ? filaAtual[(r.proximo || 0) % filaAtual.length] : '—')));
+                info.appendChild(_rodEl('div', '', 'Leads distribuídos até agora: ' + (r.atribuidos || 0).toLocaleString('pt-BR')));
+                if (r.ultimo_lead && r.ultimo_lead.responsavel) info.appendChild(_rodEl('div', '', 'Último: ' + (r.ultimo_lead.nome || r.ultimo_lead.telefone || 'lead') + ' → ' + r.ultimo_lead.responsavel));
+                box.appendChild(info);
+            }
+            const msg = _rodEl('div', 'font-size:12px;color:#dc2626;min-height:16px;margin-top:4px;'); box.appendChild(msg);
+            const pe = _rodEl('div', 'display:flex;gap:10px;justify-content:flex-end;margin-top:14px;');
+            const bc = _rodEl('button', 'background:transparent;border:1px solid #d1d5db;color:#555;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;', 'Cancelar'); bc.onclick = closeCrmRodizioModal;
+            const bs = _rodEl('button', 'background:#7c3aed;border:0;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;', 'Salvar');
+            bs.onclick = async () => {
+                const membros = Array.from(box.querySelectorAll('.crm-rod-membro')).filter(c => c.checked).map(c => c.value);
+                const ativo = cb.checked;
+                if (ativo && !membros.length) { msg.textContent = 'Marque pelo menos uma pessoa na fila.'; return; }
+                const mudouFila = !r || JSON.stringify(r.membros || []) !== JSON.stringify(membros);
+                const row = {
+                    lojista_email: crmScopeEmail(), emails: crmScopeEmails(), ativo, membros,
+                    // ligar agora = só leads que entrarem daqui pra frente
+                    desde: (ativo && !(r && r.ativo && r.desde)) ? new Date().toISOString() : (r ? r.desde : null),
+                    proximo: mudouFila ? 0 : ((r && r.proximo) || 0),
+                    updated_at: new Date().toISOString()
+                };
+                bs.disabled = true; bs.textContent = 'Salvando…';
+                const { error } = await supabaseClient.from('crm_rodizio').upsert(row, { onConflict: 'lojista_email' });
+                if (error) { msg.textContent = 'Não salvou: ' + error.message; bs.disabled = false; bs.textContent = 'Salvar'; return; }
+                await crmLoadRodizio();
+                closeCrmRodizioModal();
+                if (typeof crmToast === 'function') crmToast(ativo ? 'Rodízio ligado: os próximos leads já caem para o time.' : 'Rodízio desligado.');
+            };
+            pe.appendChild(bc); pe.appendChild(bs); box.appendChild(pe);
+            ov.appendChild(box); document.body.appendChild(ov);
+        }
+
+        // ── Tarefas nos leads (04/10/2026) ──
+        // Tabela crm_tarefas: uma linha por tarefa (lead, quando, anotação, responsável, feita).
+        // O CRM carrega as ABERTAS da loja; o card mostra o relógio, a ficha do lead agenda,
+        // e o botão "Tarefas" lista atrasadas / hoje / próximas.
+        let _crmTarefas = [];
+        function _tk9(p) { return String(p || '').replace(/\D/g, '').slice(-9); }
+        async function crmLoadTarefas() {
+            try {
+                const { data, error } = await supabaseClient.from('crm_tarefas').select('*')
+                    .in('lojista_email', crmScopeEmails()).eq('feita', false)
+                    .order('quando', { ascending: true }).limit(5000);
+                if (!error) _crmTarefas = data || [];
+            } catch (e) {}
+            crmUpdateTarefasBtn();
+            return _crmTarefas;
+        }
+        function crmTarefasDoLead(phone) { const k = _tk9(phone); return k ? _crmTarefas.filter(x => _tk9(x.telefone) === k) : []; }
+        function _tStatus(x) {
+            const now = new Date(), q = new Date(x.quando);
+            if (q < now) return 'atrasada';
+            return now.toDateString() === q.toDateString() ? 'hoje' : 'futura';
+        }
+        function _tFmt(iso) {
+            const d = new Date(iso);
+            return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+        const _T_COR = { atrasada: ['#dc2626', 'rgba(220,38,38,.1)', 'Atrasada'], hoje: ['#7c3aed', 'rgba(124,58,237,.1)', 'Hoje'], futura: ['#475569', 'rgba(100,116,139,.12)', ''] };
+        function crmUpdateTarefasBtn() {
+            const el = document.getElementById('crmTarefasCount'); if (!el) return;
+            const n = _crmTarefas.filter(x => _tStatus(x) !== 'futura' && plComercialVe(x.responsavel)).length;
+            el.textContent = n; el.style.display = n ? '' : 'none';
+        }
+        function _crmTarefaBadge(x, extra) {
+            const st = _tStatus(x), c = _T_COR[st];
+            const b = document.createElement('div');
+            b.style.cssText = 'margin-top:6px;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;color:' + c[0] + ';background:' + c[1] + ';';
+            const ic = document.createElement('i'); ic.className = 'ph-bold ph-alarm';
+            const tx = document.createElement('span'); tx.textContent = (c[2] ? c[2] + ' · ' : '') + _tFmt(x.quando) + (extra ? ' (+' + extra + ')' : '');
+            b.append(ic, tx);
+            return b;
+        }
+        async function crmTarefaFeita(id) {
+            const { error } = await supabaseClient.from('crm_tarefas').update({ feita: true, feita_em: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', id);
+            if (error) { if (typeof crmToast === 'function') crmToast('Não marcou: ' + error.message, true); return false; }
+            _crmTarefas = _crmTarefas.filter(x => x.id !== id);
+            crmUpdateTarefasBtn(); try { renderCrmBoard(); } catch (e) {}
+            return true;
+        }
+        async function crmTarefaApaga(id) {
+            if (!confirm('Apagar esta tarefa?')) return false;
+            const { error } = await supabaseClient.from('crm_tarefas').delete().eq('id', id);
+            if (error) { if (typeof crmToast === 'function') crmToast('Não apagou: ' + error.message, true); return false; }
+            _crmTarefas = _crmTarefas.filter(x => x.id !== id);
+            crmUpdateTarefasBtn(); try { renderCrmBoard(); } catch (e) {}
+            return true;
+        }
+        // Linha de tarefa (usada na ficha do lead e na lista geral)
+        function _crmTarefaRow(x, opts) {
+            opts = opts || {};
+            const st = _tStatus(x), c = _T_COR[st];
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border,#e5e7eb);border-left:3px solid ' + c[0] + ';border-radius:10px;padding:10px 12px;background:var(--card-bg,#fff);';
+            const ck = document.createElement('input'); ck.type = 'checkbox'; ck.title = 'Marcar como feita';
+            ck.style.cssText = 'width:17px;height:17px;margin-top:2px;accent-color:#16a34a;cursor:pointer;flex-shrink:0;';
+            ck.onchange = async () => { ck.disabled = true; if (await crmTarefaFeita(x.id)) { row.remove(); if (opts.onChange) opts.onChange(); } else { ck.checked = false; ck.disabled = false; } };
+            const mid = document.createElement('div'); mid.style.cssText = 'flex:1;min-width:0;';
+            const top = document.createElement('div'); top.style.cssText = 'font-size:12px;font-weight:700;color:' + c[0] + ';';
+            top.textContent = (c[2] ? c[2] + ' · ' : '') + _tFmt(x.quando) + (x.responsavel ? ' · ' + x.responsavel : '');
+            mid.appendChild(top);
+            if (opts.lead) {
+                const lb = document.createElement('button'); lb.type = 'button';
+                lb.style.cssText = 'background:none;border:0;padding:0;margin-top:2px;font:inherit;font-size:13.5px;font-weight:700;color:var(--text-main,#111);cursor:pointer;text-align:left;';
+                lb.textContent = (x.lead_nome || '') + (x.lead_nome ? ' · ' : '') + '+' + (String(x.telefone).startsWith('55') ? x.telefone : '55' + x.telefone);
+                lb.onclick = () => crmAbrirLeadDaTarefa(x);
+                mid.appendChild(lb);
+            }
+            const an = document.createElement('div'); an.style.cssText = 'font-size:13px;color:var(--text-main,#111);margin-top:3px;white-space:pre-wrap;word-break:break-word;';
+            an.textContent = x.anotacao || '(sem anotação)';
+            mid.appendChild(an);
+            const del = document.createElement('button'); del.type = 'button'; del.title = 'Apagar tarefa';
+            del.style.cssText = 'background:none;border:0;color:#9ca3af;cursor:pointer;font-size:16px;padding:2px;';
+            const di = document.createElement('i'); di.className = 'ph-bold ph-trash'; del.appendChild(di);
+            del.onclick = async () => { if (await crmTarefaApaga(x.id)) { row.remove(); if (opts.onChange) opts.onChange(); } };
+            row.append(ck, mid, del);
+            return row;
+        }
+        // Seção "Tarefas" dentro da ficha do lead
+        function crmRenderLeadTarefas(lead) {
+            const box = document.getElementById('clmTarefas'); if (!box) return;
+            box.textContent = '';
+            const lista = document.createElement('div'); lista.style.cssText = 'display:flex;flex-direction:column;gap:8px;margin-bottom:12px;';
+            const doLead = crmTarefasDoLead(lead.phone);
+            if (!doLead.length) { const e = document.createElement('div'); e.className = 'clm-empty'; e.textContent = 'Nenhuma tarefa agendada para este lead.'; lista.appendChild(e); }
+            doLead.forEach(x => lista.appendChild(_crmTarefaRow(x, { onChange: () => crmRenderLeadTarefas(lead) })));
+            box.appendChild(lista);
+            // formulário: dia, hora, anotação
+            const form = document.createElement('div'); form.style.cssText = 'display:flex;flex-direction:column;gap:8px;background:rgba(124,58,237,.05);border-radius:10px;padding:12px;';
+            const linha = document.createElement('div'); linha.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;';
+            const amanha = new Date(Date.now() + 86400000), pad = n => String(n).padStart(2, '0');
+            const dIn = document.createElement('input'); dIn.type = 'date'; dIn.value = amanha.getFullYear() + '-' + pad(amanha.getMonth() + 1) + '-' + pad(amanha.getDate());
+            const hIn = document.createElement('input'); hIn.type = 'time'; hIn.value = '10:00';
+            [dIn, hIn].forEach(i => { i.style.cssText = 'border:1px solid var(--border,#e5e7eb);border-radius:8px;padding:8px 10px;font-size:13px;background:var(--card-bg,#fff);color:var(--text-main,#111);'; linha.appendChild(i); });
+            const tx = document.createElement('textarea'); tx.rows = 2; tx.maxLength = 1000; tx.placeholder = 'Anotação. Ex.: ligar para oferecer a lente anti-blue, ela pediu desconto.';
+            tx.style.cssText = 'border:1px solid var(--border,#e5e7eb);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit;resize:vertical;background:var(--card-bg,#fff);color:var(--text-main,#111);';
+            const msg = document.createElement('div'); msg.style.cssText = 'font-size:12px;color:#dc2626;min-height:14px;';
+            const bt = document.createElement('button'); bt.type = 'button'; bt.className = 'clm-btn sec';
+            bt.style.cssText = 'align-self:flex-start;background:#7c3aed;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;';
+            bt.textContent = 'Agendar tarefa';
+            bt.onclick = async () => {
+                if (!dIn.value || !hIn.value) { msg.textContent = 'Escolha o dia e a hora.'; return; }
+                const quando = new Date(dIn.value + 'T' + hIn.value + ':00');   // hora local de quem agenda
+                if (isNaN(quando.getTime())) { msg.textContent = 'Data inválida.'; return; }
+                bt.disabled = true; bt.textContent = 'Agendando…'; msg.textContent = '';
+                const row = {
+                    lojista_email: crmScopeEmail(), telefone: String(lead.phone || ''), lead_nome: String(lead.name || '').trim() || null,
+                    anotacao: tx.value.trim(), quando: quando.toISOString(),
+                    responsavel: getCrmResp()[lead.phone] || (_plComercial ? _plComercial.membro : null),
+                    criado_por: (_plComercial ? _plComercial.email : (activeUser && activeUser.email)) || null
+                };
+                const { data, error } = await supabaseClient.from('crm_tarefas').insert(row).select().single();
+                if (error) { msg.textContent = 'Não agendou: ' + error.message; bt.disabled = false; bt.textContent = 'Agendar tarefa'; return; }
+                _crmTarefas.push(data); _crmTarefas.sort((a, b) => String(a.quando).localeCompare(String(b.quando)));
+                crmUpdateTarefasBtn(); try { renderCrmBoard(); } catch (e) {}
+                crmRenderLeadTarefas(lead);
+                if (typeof crmToast === 'function') crmToast('Tarefa agendada para ' + _tFmt(data.quando) + '.');
+            };
+            form.append(linha, tx, msg, bt);
+            box.appendChild(form);
+        }
+        function crmAbrirLeadDaTarefa(x) {
+            const map = crmLeadMapCache || {};
+            const k = _tk9(x.telefone);
+            const ph = Object.keys(map).find(p => _tk9(p) === k);
+            if (!ph) { if (typeof crmToast === 'function') crmToast('Lead não está no CRM agora (talvez fora do período).', true); return; }
+            let col = 'cold';
+            try { col = waLeadStageKey(ph, map[ph], getCrmConfig(), getCrmOverrides()); } catch (e) {}
+            closeCrmTarefasModal();
+            openCrmLeadModal({ phone: ph, ...map[ph] }, col);
+        }
+        function closeCrmTarefasModal() { const m = document.getElementById('crmTarefasModal'); if (m) m.remove(); }
+        function openCrmTarefasModal() {
+            closeCrmTarefasModal();
+            const ov = document.createElement('div'); ov.id = 'crmTarefasModal';
+            ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+            ov.addEventListener('click', e => { if (e.target === ov) closeCrmTarefasModal(); });
+            const box = document.createElement('div');
+            box.style.cssText = 'background:var(--card-bg,#fff);color:var(--text-main,#111);border:1px solid var(--border,#e5e7eb);border-radius:14px;max-width:620px;width:100%;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.4);max-height:86vh;display:flex;flex-direction:column;';
+            const head = document.createElement('div'); head.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;';
+            const h = document.createElement('h3'); h.style.cssText = 'margin:0;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;';
+            const hi = document.createElement('i'); hi.className = 'ph-bold ph-alarm'; hi.style.color = '#7c3aed'; h.append(hi, document.createTextNode(' Tarefas'));
+            const sel = document.createElement('select');
+            sel.style.cssText = 'margin-left:auto;padding:7px 10px;border:1px solid var(--border,#e5e7eb);border-radius:8px;font-size:13px;background:var(--card-bg,#fff);color:var(--text-main,#111);';
+            [['', 'Todo o time'], ['__none__', 'Sem responsável']].concat(getCrmTeam().map(n => [n, n])).forEach(([v, l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; sel.appendChild(o); });
+            const x = document.createElement('button'); x.style.cssText = 'background:transparent;border:0;color:#666;cursor:pointer;font-size:20px;line-height:1;padding:4px;'; x.textContent = '×'; x.onclick = closeCrmTarefasModal;
+            if (isComercial()) sel.style.display = 'none';
+            head.append(h, sel, x); box.appendChild(head);
+            const corpo = document.createElement('div'); corpo.style.cssText = 'overflow-y:auto;display:flex;flex-direction:column;gap:8px;';
+            box.appendChild(corpo);
+            const desenha = () => {
+                corpo.textContent = '';
+                const f = sel.value;
+                const lst = _crmTarefas.filter(t => plComercialVe(t.responsavel) && (!f || (f === '__none__' ? !t.responsavel : t.responsavel === f)));
+                if (!lst.length) { const e = document.createElement('div'); e.style.cssText = 'color:var(--text-muted,#666);font-size:13px;padding:18px 2px;'; e.textContent = 'Nenhuma tarefa aberta. Agende na ficha do lead (clique no card).'; corpo.appendChild(e); return; }
+                [['atrasada', 'Atrasadas'], ['hoje', 'Hoje'], ['futura', 'Próximas']].forEach(([k, titulo]) => {
+                    const g = lst.filter(t => _tStatus(t) === k); if (!g.length) return;
+                    const tt = document.createElement('div'); tt.style.cssText = 'font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-top:6px;color:' + _T_COR[k][0] + ';';
+                    tt.textContent = titulo + ' (' + g.length + ')'; corpo.appendChild(tt);
+                    g.forEach(t => corpo.appendChild(_crmTarefaRow(t, { lead: true, onChange: desenha })));
+                });
+            };
+            sel.onchange = desenha;
+            desenha();
+            ov.appendChild(box); document.body.appendChild(ov);
+            crmLoadTarefas().then(desenha).catch(() => {});
         }
 
         // Preenche o filtro de responsável (toolbar) com o time atual
@@ -21396,6 +21796,7 @@
             phoneList.forEach(ph => {
                 const d = leadMap[ph];
                 if (!matchesSearch(ph, d)) return;
+                if (_plComercial && !plComercialVe(resp[ph])) return;   // comercial: só os dele + sem dono
                 // Filtro por responsável
                 if (_crmRespFilter) {
                     const who = resp[ph] || '';
@@ -21558,6 +21959,10 @@
                             cliBadge.append(cliIc, cliTx);
                             card.appendChild(cliBadge);
                         }
+
+                        // Tarefa agendada (a mais próxima; atrasada em vermelho)
+                        const _tl = crmTarefasDoLead(lead.phone);
+                        if (_tl.length) card.appendChild(_crmTarefaBadge(_tl[0], _tl.length - 1));
 
                         // Tags de campanha/automação recebidas (derivado do log de envio).
                         const _leadTags = _crmCampaignTags[lead.phone] ? Object.values(_crmCampaignTags[lead.phone]) : [];
