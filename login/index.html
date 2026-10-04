@@ -17445,19 +17445,36 @@
             });
             head.appendChild(ctr); box.appendChild(head);
             if (!total) { box.appendChild(_rfmEl('p', 'rfm-vazio', 'Nenhum cliente que provou comprou ainda.')); return; }
-            const itens = RFM_ORDEM.filter(k => g[k].c).map(k => ({ k, v: _rfmMedida === 'c' ? g[k].c : Math.max(1, g[k].v) })).sort((a, b) => b.v - a.v);
-            const out = []; _rfmTreemap(itens, 0, 0, 100, 100, out);
-            const mapa = _rfmEl('div', 'rfm-mapa');
-            out.forEach(([o, x, y, w, h]) => {
-                const bl = _rfmEl('button', 'rfm-bloco'); bl.type = 'button';
-                bl.style.cssText = 'left:' + x + '%;top:' + y + '%;width:' + w + '%;height:' + h + '%;background:' + RFM_SEG[o.k][1];
-                bl.appendChild(_rfmEl('b', '', RFM_SEG[o.k][0]));
-                bl.appendChild(_rfmEl('span', '', g[o.k].c.toLocaleString('pt-BR') + ' clientes · ' + _rfmBrl(g[o.k].v)));
-                bl.title = RFM_SEG[o.k][2];
-                bl.onclick = () => rfmAbre(o.k);
-                mapa.appendChild(bl);
+            // ── Mapa de bolhas (04/10/2026): cada bolha é um grupo. Esquerda = comprou há pouco,
+            // alto = compra mais vezes, tamanho = clientes ou valor. Clique abre a lista + campanha.
+            const totV = RFM_ORDEM.reduce((a, k) => a + g[k].v, 0);
+            const kp = _rfmEl('div', 'rfm-kpis');
+            [[total.toLocaleString('pt-BR'), 'clientes que compraram'], [_rfmBrl(totV), 'faturamento desses clientes'],
+             [(g.campeoes.c + g.fieis.c).toLocaleString('pt-BR'), 'compram de novo (fiéis + campeões)'], [_rfmBrl(g.risco.v + g.naoperder.v), 'em risco de perder']]
+                .forEach(([n, l]) => { const d = _rfmEl('div', 'rfm-kpi'); d.appendChild(_rfmEl('b', '', n)); d.appendChild(_rfmEl('span', '', l)); kp.appendChild(d); });
+            box.appendChild(kp);
+            // ── Jornada (04/10/2026): em cima quem está CRESCENDO, embaixo quem está ESFRIANDO.
+            // Largura do bloco acompanha o tamanho do grupo (clientes ou valor). Clique abre lista + campanha.
+            const valDe = k => _rfmMedida === 'c' ? g[k].c : g[k].v;
+            const totMed = Math.max(1, RFM_ORDEM.reduce((a, k) => a + valDe(k), 0));
+            [['Crescendo', 'ph-trend-up', ['novos', 'promissores', 'fieis', 'campeoes']],
+             ['Esfriando', 'ph-snowflake', ['risco', 'naoperder', 'hibernando', 'perdidos']]].forEach(([nome, ico, ks]) => {
+                const lane = _rfmEl('div', 'rfm-lane');
+                const h = _rfmEl('div', 'rfm-lane-t'); const ic = _rfmEl('i', 'ph-bold ' + ico); h.appendChild(ic); h.appendChild(document.createTextNode(' ' + nome)); lane.appendChild(h);
+                const flow = _rfmEl('div', 'rfm-flow');
+                ks.forEach((k, i) => {
+                    if (i) flow.appendChild(_rfmEl('span', 'rfm-seta', '→'));
+                    const n = _rfmEl('button', 'rfm-node' + (g[k].c ? '' : ' vazio')); n.type = 'button';
+                    n.style.background = RFM_SEG[k][1]; n.style.flexGrow = String(0.6 + (valDe(k) / totMed) * 4);
+                    n.appendChild(_rfmEl('b', '', RFM_SEG[k][0]));
+                    n.appendChild(_rfmEl('strong', '', _rfmMedida === 'c' ? g[k].c.toLocaleString('pt-BR') : _rfmBrl(g[k].v)));
+                    n.appendChild(_rfmEl('span', '', _rfmMedida === 'c' ? _rfmBrl(g[k].v) : g[k].c.toLocaleString('pt-BR') + ' clientes'));
+                    n.title = RFM_SEG[k][2];
+                    if (g[k].c) n.onclick = () => rfmAbre(k); else n.disabled = true;
+                    flow.appendChild(n);
+                });
+                lane.appendChild(flow); box.appendChild(lane);
             });
-            box.appendChild(mapa);
             box.appendChild(_rfmEl('p', 'rfm-nota', 'Considera todos os pedidos pagos da loja. Clique num grupo pra ver os clientes e criar uma campanha.'));
         }
         function rfmAbre(k) {
@@ -17509,7 +17526,7 @@
         function _rfmInjectCSS() {
             if (document.getElementById('rfmCSS')) return;
             const s = document.createElement('style'); s.id = 'rfmCSS';
-            s.textContent = '#rfmSection .rfm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}'
+            s.textContent = '.rfm-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:4px 0 16px}.rfm-kpi{border:1px solid var(--border-color,rgba(127,127,140,.2));border-radius:14px;padding:14px 16px}.rfm-kpi b{display:block;font-size:19px}.rfm-kpi span{font-size:12px;color:var(--text-muted,#6b6880)}.rfm-lane{border:1px dashed var(--border-color,rgba(127,127,140,.3));border-radius:16px;padding:14px 16px 16px;margin-bottom:12px}.rfm-lane-t{font-size:13px;font-weight:700;margin-bottom:8px;color:var(--text-main,#16131f)}.rfm-flow{display:flex;align-items:stretch;gap:6px}.rfm-seta{display:flex;align-items:center;color:var(--text-muted,#6b6880);font-size:16px}.rfm-node{flex:1 1 0;min-width:0;border:0;border-radius:14px;padding:14px 16px;color:#fff;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px;transition:transform .12s,box-shadow .12s}.rfm-node:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.12)}.rfm-node.vazio{opacity:.35;cursor:default;transform:none;box-shadow:none}.rfm-node b{font-size:13px}.rfm-node strong{font-size:22px;line-height:1.1}.rfm-node span{font-size:12px;opacity:.9}@media(max-width:700px){.rfm-flow{flex-direction:column}.rfm-seta{justify-content:center;transform:rotate(90deg)}}@media(max-width:700px){.rfm-kpis{grid-template-columns:repeat(2,1fr)}}' + '#rfmSection .rfm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}'
                 + '#rfmSection .rfm-ctrls{display:flex;gap:8px;flex-wrap:wrap}'
                 + '.rfm-seg{display:inline-flex;background:rgba(124,58,237,.07);border-radius:10px;padding:3px}'
                 + '.rfm-seg button{border:0;background:transparent;font:inherit;font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:8px;color:var(--text-muted);cursor:pointer}'
@@ -24715,6 +24732,7 @@
       .a-tcard { background: #fff; border: 1px solid var(--a-line); border-radius: 14px; box-shadow: none; }
       body.dark-mode .a-tcard { background: var(--card-bg, #131318); border-color: rgba(255,255,255,.06); }
       #recompraSection.a-tcard { padding: 26px 30px 28px; margin-bottom: 24px; }
+      #rfmSection.a-tcard { padding: 26px 30px 28px; margin-bottom: 24px; }   /* mesmo respiro da Taxa de Recompra */
       .a-tcard-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; min-width: 0; }
       .table-header .a-tcard-head { margin-bottom: 0; }
       .dashboard-content .tab-pane h2.a-tcard-title,
@@ -24770,7 +24788,7 @@
       body:not(.dark-mode) #tab-clientes .recompra-card-total { background: #fff !important; border: 1px solid var(--a-line) !important; }
       body:not(.dark-mode) #tab-clientes .recompra-card-total h5, body:not(.dark-mode) #tab-clientes .recompra-card-total .sub { color: var(--a-muted) !important; }
       @media (max-width: 900px) { #tab-clientes .recompra-cards { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
-      @media (max-width: 520px) { #tab-clientes .recompra-cards { grid-template-columns: 1fr !important; } #recompraSection.a-tcard { padding: 20px 18px; } }
+      @media (max-width: 520px) { #tab-clientes .recompra-cards { grid-template-columns: 1fr !important; } #recompraSection.a-tcard, #rfmSection.a-tcard { padding: 20px 18px; } }
 
       /* Ranking: medalhas no top 3, números à direita */
       .a-rank-cell { width: 56px; }
