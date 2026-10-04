@@ -7700,7 +7700,24 @@
             const listEl = document.getElementById('chatList');
             if (!listEl) return;
             try {
-                // pega últimas 1000 msgs do lojista e agrupa por telefone (mais recente primeiro)
+                // 05/10/2026: lista vem do servidor — ÚLTIMA mensagem de CADA conversa (rpc pl_chat_conversas).
+                // Antes baixava só as últimas 1000 mensagens: campanha com 2.500+ envios empurrava conversas
+                // pra fora da lista (Menina Flor: clientes recuperadas sumiam das Conversas).
+                try {
+                    const { data: rc, error: re } = await supabaseClient.rpc('pl_chat_conversas', { p_emails: plScopeEmails(), p_limit: 5000 });
+                    if (!re && Array.isArray(rc)) {
+                        const mediaPrev = { image:'🖼️ Imagem', sticker:'🩹 Figurinha', video:'🎥 Vídeo', audio:'🎧 Áudio', document:'📎 Documento' };
+                        _chatConvs = rc.map(r => {
+                            const preview = (r.last_body && r.last_body.charAt(0) !== '[') ? r.last_body : (mediaPrev[r.last_type] || r.last_body || ('[' + (r.last_type || '') + ']'));
+                            return { phone: r.lead_phone, name: r.contact_name || '', lastBody: (r.last_dir === 'out' ? 'Você: ' : '') + preview, lastAt: r.last_at || '', unread: r.unread || 0, lastInAt: r.last_in_at || '' };
+                        });
+                        chatRenderList();
+                        chatSubscribeRealtime();
+                        if (!crmLeadMapCache && typeof loadCRM === 'function') { loadCRM().then(() => chatRenderList()).catch(() => {}); }
+                        return;
+                    }
+                } catch (e) { console.warn('[conversas] rpc indisponível, usando modo antigo', e); }
+                // Reserva: últimas 1000 msgs do lojista agrupadas por telefone (mais recente primeiro)
                 const { data, error } = await supabaseClient
                     .from('whatsapp_mensagens')
                     .select('lead_phone,direction,body,msg_type,template_name,wa_timestamp,contact_name,read_by_lojista,created_at')
