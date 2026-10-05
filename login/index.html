@@ -4063,34 +4063,44 @@
                             <button type="button" id="crmPipelineLentesBtn" data-crm-pipeline="lentes" aria-selected="false" onclick="crmSwitchPipeline('lentes')" style="display:none;"><i class="ph-bold ph-circle-half-tilt"></i> Lentes</button>
                         </div>
                     </div>
-                    <div id="crmProvadorActions" style="display:flex;gap:8px;flex-wrap:wrap;">
+        <style id="crmMenuCss">
+        .crm-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+        details.crm-menu{position:relative}
+        details.crm-menu>summary{list-style:none;cursor:pointer;user-select:none}
+        details.crm-menu>summary::-webkit-details-marker{display:none}
+        details.crm-menu .crm-menu-caret{font-size:12px;opacity:.6;transition:transform .15s}
+        details.crm-menu[open] .crm-menu-caret{transform:rotate(180deg)}
+        .crm-menu-pop{position:absolute;right:0;top:calc(100% + 6px);min-width:280px;background:var(--card-bg,#fff);border:1px solid var(--border,#e5e7eb);border-radius:14px;box-shadow:0 14px 36px rgba(0,0,0,.18);padding:6px;z-index:80;display:flex;flex-direction:column;gap:2px}
+        .crm-menu-pop button{display:flex;align-items:flex-start;gap:12px;width:100%;background:none;border:0;padding:10px 12px;border-radius:10px;font:inherit;font-size:14px;font-weight:600;color:var(--text-main,#111);cursor:pointer;text-align:left}
+        .crm-menu-pop button:hover,.crm-menu-pop button:focus-visible{background:rgba(124,58,237,.08);outline:none}
+        .crm-menu-pop button>i{font-size:18px;color:#7c3aed;margin-top:1px}
+        .crm-menu-pop button small{display:block;font-size:12px;font-weight:500;color:var(--text-muted,#6b7280);margin-top:2px}
+        #crmCampFilter{max-width:260px}
+        </style>
+                    <div id="crmProvadorActions" class="crm-acts">
                         <button class="btn-download" id="waBulkBtn" onclick="openWaBulkModal()" title="Disparar template Meta pra todos os leads pendentes" style="display:none;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border-color:transparent;">
                             <i class="ph-bold ph-paper-plane-tilt"></i> Disparar pra todos
-                        </button>
-                        <button class="btn-download" onclick="openCrmImportModal()" title="Importar leads de uma planilha (CSV ou Excel)">
-                            <i class="ph-bold ph-upload-simple"></i> Importar Leads
-                        </button>
-                        <button class="btn-download" onclick="exportCrmCSV()" title="Baixar CSV com todos os leads do CRM">
-                            <i class="ph-bold ph-download-simple"></i> CSV (todos os leads)
-                        </button>
-                        <button class="btn-download" onclick="openCrmMsgModal()" title="Editar a mensagem padrão enviada no WhatsApp">
-                            <i class="ph-bold ph-chat-circle-text"></i> Mensagem padrão
-                        </button>
-                        <button class="btn-download" onclick="openCrmTeamModal()" title="Cadastrar os responsáveis do time comercial">
-                            <i class="ph-bold ph-users"></i> Gerenciar time
-                        </button>
-                        <button id="crmRodizioBtn" class="btn-download crm-provador-only" onclick="openCrmRodizioModal()" title="Distribuir os leads novos entre o time, um para cada pessoa">
-                            <i class="ph-bold ph-arrows-clockwise"></i> Rodízio <span id="crmRodizioTag" style="display:none;margin-left:4px;font-size:10px;font-weight:800;background:#16a34a;color:#fff;border-radius:6px;padding:1px 6px;">LIGADO</span>
                         </button>
                         <button id="crmTarefasBtn" class="btn-download crm-provador-only" onclick="openCrmTarefasModal()" title="Tarefas agendadas nos leads">
                             <i class="ph-bold ph-alarm"></i> Tarefas <span id="crmTarefasCount" style="display:none;margin-left:4px;font-size:10px;font-weight:800;background:#dc2626;color:#fff;border-radius:6px;padding:1px 6px;">0</span>
                         </button>
-                        <button id="crmTeamPanelBtn" class="btn-download crm-provador-only" onclick="toggleCrmTeamPanel()" title="Ver desempenho por responsável">
-                            <i class="ph-bold ph-chart-bar"></i> Desempenho do time
-                        </button>
-                        <button class="btn-download" onclick="openCrmPipelineModal()" title="Criar, renomear e reordenar colunas do funil">
-                            <i class="ph-bold ph-sliders-horizontal"></i> Personalizar Funil
-                        </button>
+                        <details class="crm-menu crm-provador-only" id="crmMenuTime">
+                            <summary class="btn-download" title="Time comercial, rodízio e desempenho"><i class="ph-bold ph-users-three"></i> Time <i class="ph-bold ph-caret-down crm-menu-caret"></i></summary>
+                            <div class="crm-menu-pop" role="menu">
+                                <button type="button" role="menuitem" onclick="crmMenuGo(this, openCrmTeamModal)"><i class="ph-bold ph-users"></i><span>Gerenciar time e logins<small>quem atende e o acesso de cada um</small></span></button>
+                                <button type="button" role="menuitem" id="crmRodizioBtn" onclick="crmMenuGo(this, openCrmRodizioModal)"><i class="ph-bold ph-arrows-clockwise"></i><span>Rodízio de leads <b id="crmRodizioTag" style="display:none;margin-left:4px;font-size:10px;font-weight:800;background:#16a34a;color:#fff;border-radius:6px;padding:1px 6px;">LIGADO</b><small>distribui cada lead novo para o time</small></span></button>
+                                <button type="button" role="menuitem" id="crmTeamPanelBtn" onclick="crmMenuGo(this, toggleCrmTeamPanel)"><i class="ph-bold ph-chart-bar"></i><span>Desempenho do time<small>leads e vendas por pessoa</small></span></button>
+                            </div>
+                        </details>
+                        <details class="crm-menu" id="crmMenuMais">
+                            <summary class="btn-download" title="Importar, exportar e configurar o funil"><i class="ph-bold ph-dots-three-outline"></i> Mais <i class="ph-bold ph-caret-down crm-menu-caret"></i></summary>
+                            <div class="crm-menu-pop" role="menu">
+                                <button type="button" role="menuitem" onclick="crmMenuGo(this, openCrmImportModal)"><i class="ph-bold ph-upload-simple"></i><span>Importar leads<small>de uma planilha (CSV ou Excel)</small></span></button>
+                                <button type="button" role="menuitem" onclick="crmMenuGo(this, exportCrmCSV)"><i class="ph-bold ph-download-simple"></i><span>Baixar planilha (CSV)<small>todos os leads do CRM</small></span></button>
+                                <button type="button" role="menuitem" onclick="crmMenuGo(this, openCrmMsgModal)"><i class="ph-bold ph-chat-circle-text"></i><span>Mensagem padrão<small>texto do botão de WhatsApp</small></span></button>
+                                <button type="button" role="menuitem" onclick="crmMenuGo(this, openCrmPipelineModal)"><i class="ph-bold ph-sliders-horizontal"></i><span>Personalizar funil<small>criar, renomear e ordenar colunas</small></span></button>
+                            </div>
+                        </details>
                     </div>
                 </div>
 
@@ -4860,6 +4870,7 @@
                         </label>
                         <select id="chatFilterCatSel" onchange="chatSetCatFilter(this.value)" class="chat-a-filter-sel" aria-label="Categoria">
                             <option value="">Todas as categorias</option>
+                            <option value="voltou-dia">🔁 Voltou outro dia</option>
                             <option value="cold">🕶️ Provou, não comprou</option>
                             <option value="carrinho">🛒 Carrinho abandonado</option>
                             <option value="clicou">🔥 Clicou em comprar</option>
@@ -7016,7 +7027,7 @@
 
         function restoreTab() {
             if (isDisparosOnly()) { showTab('disparos'); return; }
-            if (isComercial()) { showTab('disparos'); try { const s = localStorage.getItem('pl-disp-subtab'); dispSwitchSub(s === 'conversas' ? 'conversas' : 'crm'); } catch (e) { dispSwitchSub('crm'); } return; }
+            if (isComercial()) { showTab('disparos'); try { const s = localStorage.getItem('pl-disp-subtab'); dispSwitchSub(isSoConversas() || s === 'conversas' ? 'conversas' : 'crm'); } catch (e) { dispSwitchSub(isSoConversas() ? 'conversas' : 'crm'); } return; }
             let saved = (function(){ try { return localStorage.getItem('pl-active-tab'); } catch(e) { return null; } })();
             if (saved === 'crm') saved = 'disparos';   // CRM agora vive dentro de Disparos
             // F5 mantém o lojista na MESMA aba em que estava (a sub-aba de Disparos é restaurada
@@ -7071,7 +7082,9 @@
         // É só para o dia a dia: esconde na tela, não é trava de banco.
         let _plComercial = null;   // { email, membro, lojista_email }
         function isComercial() { return !!_plComercial; }
-        function plComercialVe(resp) { return !_plComercial || !resp || resp === _plComercial.membro; }
+        // papel 'conversas' (05/10/2026): login que vê SÓ a tela de Conversas (todas as conversas da loja)
+        function isSoConversas() { return !!(_plComercial && _plComercial.papel === 'conversas'); }
+        function plComercialVe(resp) { return !_plComercial || isSoConversas() || !resp || resp === _plComercial.membro; }
 
         // Logins restritos: só enxergam a aba Disparos.
         const DISPAROS_ONLY_EMAILS = ['olm@oculoslindamenina.com'];
@@ -7118,10 +7131,10 @@
             // Login do comercial: acha a loja dele pelo crm_usuarios
             try {
                 const { data: cu } = await supabaseClient.from('crm_usuarios')
-                    .select('email,lojista_email,membro,ativo').eq('email', String(user.email || '').toLowerCase()).maybeSingle();
+                    .select('email,lojista_email,membro,papel,ativo').eq('email', String(user.email || '').toLowerCase()).maybeSingle();
                 if (cu && cu.ativo) {
                     const loja = await fetchLojistaByEmail(cu.lojista_email);
-                    if (loja) { _plComercial = { email: cu.email, membro: cu.membro, lojista_email: cu.lojista_email }; return loja; }
+                    if (loja) { _plComercial = { email: cu.email, membro: cu.membro, papel: cu.papel || 'comercial', lojista_email: cu.lojista_email }; return loja; }
                 }
             } catch (e) {}
             return null;
@@ -7244,7 +7257,7 @@
             invalidateSendLogCache();   // senao a loja nova mostraria disparos da anterior
             _crmConfigMem = null;
             _crmOverridesMem = null;
-            crmLeadMapCache = null; _plPrecoProva = null;
+            crmLeadMapCache = null; _plPrecoProva = null; _plLojaCache = null;
             crmLoaded = false;
             leadsRecupLoaded = false;
             _fatChartOrdersCache = null;
@@ -7450,7 +7463,8 @@
                     if (b) b.style.display = 'none';
                 });
                 document.querySelectorAll('#dispSubnav button[data-sub]').forEach(function(b){
-                    if (b.dataset.sub !== 'crm' && b.dataset.sub !== 'conversas') b.style.display = 'none';
+                    var pode = isSoConversas() ? ['conversas'] : ['crm', 'conversas'];
+                    if (pode.indexOf(b.dataset.sub) === -1) b.style.display = 'none';
                 });
                 if (!document.getElementById('plComercialCss')) {
                     var st = document.createElement('style'); st.id = 'plComercialCss';
@@ -7838,6 +7852,7 @@
                 convertido: { label: '✅ Comprou',             bg: 'rgba(16,185,129,.15)', fg: '#059669' },
                 carrinho:   { label: '🛒 Carrinho abandonado', bg: 'rgba(245,158,11,.15)', fg: '#b45309' },
                 clicou:     { label: '🔥 Clicou em comprar',   bg: 'rgba(239,68,68,.13)',  fg: '#dc2626' },
+                'voltou-dia': { label: '🔁 Voltou outro dia', bg: 'rgba(14,165,233,.13)', fg: '#0369a1' },
                 cold:       { label: '🕶️ Provou, não comprou', bg: 'rgba(124,58,237,.12)', fg: '#7c3aed' },
             };
             return M[crmClassify(d)] || null;
@@ -7876,7 +7891,7 @@
                 return;
             }
             let convs = _chatFilterUnread ? _chatConvs.filter(c => (c.unread || 0) > 0 || c.phone === _chatActivePhone) : _chatConvs;
-            if (_plComercial) convs = _crmRespMem ? convs.filter(c => plComercialVe(chatLeadResp(c.phone))) : [];
+            if (_plComercial && !isSoConversas()) convs = _crmRespMem ? convs.filter(c => plComercialVe(chatLeadResp(c.phone))) : [];
             if (_chatFilterCat) convs = convs.filter(c => chatLeadCatKey(c.phone) === _chatFilterCat);
             if (_chatFilterResp) {
                 if (_chatFilterResp === '__none__') convs = convs.filter(c => !chatLeadResp(c.phone));
@@ -8233,6 +8248,7 @@
         // ===== Atribuir RESPONSÁVEL ao lead DENTRO da conversa =====
         // <select> pra atribuir/trocar o responsável (time comercial) direto no cabeçalho da conversa.
         function chatRespSelectHtml(phone) {
+            if (typeof isComercial === 'function' && isComercial()) return '';   // logins do time não trocam responsável nem abrem o cadastro do time
             const team = (typeof getCrmTeam === 'function') ? (getCrmTeam() || []) : [];
             const cur = chatLeadResp(phone);
             const opts = team.map(m => '<option value="' + escapeHtml(m) + '"' + (m === cur ? ' selected' : '') + '>' + escapeHtml(m) + '</option>').join('');
@@ -8242,6 +8258,7 @@
         }
         // Grava o responsável (crm_lead_responsavel via setCrmLeadResp) e re-renderiza board + conversa.
         function chatAssignResp(resp) {
+            if (typeof isComercial === 'function' && isComercial()) return;
             if (resp === '__manage__') { try { openCrmTeamModal(); } catch (e) {} try { openConversa(_chatActivePhone); } catch (e) {} return; }
             if (!_chatActivePhone) return;
             const ph = normalize(_chatActivePhone);
@@ -9966,6 +9983,7 @@
             if (name === 'historico') name = 'dashboard'; // Histórico foi fundido no Dashboard
             if (name === 'templates') name = 'disparar';  // Mensagens modelo foi integrado em Campanhas
             if (isComercial() && name !== 'crm' && name !== 'conversas') name = 'crm';
+            if (isSoConversas()) name = 'conversas';
             document.querySelectorAll('#dispSubnav button[data-sub]').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
             const map = { dashboard: 'dispSubDashboard', crm: 'dispSubCrm', conversas: 'dispSubConversas', comercial: 'dispSubComercial', disparar: 'dispSubDisparar', segmentacoes: 'dispSubSegmentacoes', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao', automacoes: 'dispSubAutomacoes' };
             Object.entries(map).forEach(([k, id]) => {
@@ -17107,9 +17125,8 @@
         async function loadSharedData() {
             if (window.plVgResetPeriodo) window.plVgResetPeriodo();   // troca de loja: filtro da Visão Geral volta pra "Tudo"
             try {
-                const { data: _storeMeta } = await supabaseClient.from('provou_levou_stores')
-                    .select('platform').eq('email', activeUser.email).limit(1);
-                if (_storeMeta && _storeMeta[0] && _storeMeta[0].platform) activeUser._platform = _storeMeta[0].platform;
+                const _storeMeta = await plMinhaLoja();
+                if (_storeMeta && _storeMeta.platform) activeUser._platform = _storeMeta.platform;
             } catch (e) {}
             const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
             const fTotal = activeUser.campo_total_pedido || 'total';
@@ -18247,24 +18264,7 @@
             if (!card || !activeUser) { if (card) card.style.display = 'none'; return; }
             try {
                 // Tenta primeiro por email; se falhar, fallback por domínio normalizado
-                let store = null;
-                if (activeUser.email) {
-                    const r1 = await supabaseClient
-                        .from('provou_levou_stores')
-                        .select('plan, status, last_payment, implementation_date, plano_personalizado, valor_personalizado, limite_personalizado, domain, fotos_extras')
-                        .in('email', plScopeEmails())
-                        .maybeSingle();
-                    if (!r1.error && r1.data) store = r1.data;
-                }
-                if (!store && activeUser.origem) {
-                    const targetDom = normalizeStoreDomain(activeUser.origem);
-                    const r2 = await supabaseClient
-                        .from('provou_levou_stores')
-                        .select('plan, status, last_payment, implementation_date, plano_personalizado, valor_personalizado, limite_personalizado, domain, fotos_extras');
-                    if (!r2.error && r2.data) {
-                        store = r2.data.find(s => normalizeStoreDomain(s.domain) === targetDom) || null;
-                    }
-                }
+                const store = await plMinhaLoja();
                 if (!store) { card.style.display = 'none'; return; }
 
                 const isTeste = store.status === 'Teste Gratuito';
@@ -18590,7 +18590,7 @@
             crmLoaded = false;
             _crmConfigMem = null;
             _crmOverridesMem = null;
-            crmLeadMapCache = null; _plPrecoProva = null;
+            crmLeadMapCache = null; _plPrecoProva = null; _plLojaCache = null;
             try {
                 await loadSharedData();
                 loadVisaoGeral();
@@ -19263,6 +19263,7 @@
 
         const CRM_DEFAULT_COLUMNS = [
             { key: 'cold',           title: 'Provou e não comprou',              icon: 'ph-user',         auto: true,  rule: 'cold' },
+            { key: 'voltou-outro-dia', title: 'Voltou outro dia para provar',    icon: 'ph-calendar-check', auto: true, rule: 'voltou-dia' },
             { key: 'clicou-comprar', title: 'Clicaram em comprar e não compraram', icon: 'ph-cursor-click', auto: true,  rule: 'clicou' },
             { key: 'carrinho-abandonado', title: 'Carrinho abandonado',          icon: 'ph-shopping-cart', auto: true, rule: 'carrinho' },
             { key: 'pagamento-pendente', title: 'Pagamento pendente',            icon: 'ph-hourglass-medium', auto: true, rule: 'pagamento-pendente' },
@@ -19286,6 +19287,11 @@
             let cols = cfg.columns.filter(c => !(c.auto && deadRules.has(c.rule)));
             let changed = cols.length !== cfg.columns.length;
             if (!cols.some(c => c.key === 'cold')) { cols.unshift(CRM_DEFAULT_COLUMNS[0]); changed = true; }
+            if (!cols.some(c => c.key === 'voltou-outro-dia' || (c.auto && c.rule === 'voltou-dia'))) {
+                const coldIdx = cols.findIndex(c => c.key === 'cold');
+                cols.splice(coldIdx < 0 ? 0 : coldIdx + 1, 0, { key: 'voltou-outro-dia', title: 'Voltou outro dia para provar', icon: 'ph-calendar-check', auto: true, rule: 'voltou-dia' });
+                changed = true;
+            }
             if (!cols.some(c => c.key === 'clicou-comprar')) {
                 const coldIdx = cols.findIndex(c => c.key === 'cold');
                 cols.splice(coldIdx < 0 ? 0 : coldIdx + 1, 0, { key: 'clicou-comprar', title: 'Clicaram em comprar e não compraram', icon: 'ph-cursor-click', auto: true, rule: 'clicou' });
@@ -19917,6 +19923,8 @@
             if (d.pendingPayment) return 'pagamento-pendente';
             if (d.checkoutUrl) return 'carrinho';
             if (d.clicked) return 'clicou';
+            // Provou em 2+ dias diferentes e não comprou: converte 3-4x mais que quem provou 1 dia (Menina Flor, 04/10/2026)
+            if (d.uniqueDates && d.uniqueDates.size >= 2) return 'voltou-dia';
             return 'cold';
         }
 
@@ -20239,6 +20247,19 @@
             return d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
         }
         let _clmReqId = 0;
+        // ── Ficha da loja (04/10/2026) ──
+        // RPC pl_minha_loja: devolve SÓ a loja de quem está logado (sem tokens). Antes o painel lia
+        // provou_levou_stores inteira (e caía num "select de todas as lojas" pra casar pelo domínio).
+        let _plLojaCache = null;
+        async function plMinhaLoja() {
+            const em = String((activeUser && activeUser.email) || '').toLowerCase();
+            if (_plLojaCache && _plLojaCache.email === em) return _plLojaCache.row;
+            let row = null;
+            try { const { data, error } = await supabaseClient.rpc('pl_minha_loja', { p_email: em || null }); if (!error && data) row = data; } catch (e) {}
+            _plLojaCache = { email: em, row };
+            return row;
+        }
+
         // ── Custo do lead (04/10/2026) ──
         // provas que ele fez × preço da prova no plano da loja (valor do plano ÷ franquia)
         // + mensagens que CHEGARAM (delivered/read) × R$ 0,35 (preço estimado da Meta, marketing BR).
@@ -20251,13 +20272,7 @@
                 const em = String((activeUser && activeUser.email) || '').toLowerCase();
                 if (PACKS_PRICE_OVERRIDE[em]) v = PACKS_PRICE_OVERRIDE[em];
                 else {
-                    const cols = 'plan, valor_personalizado, limite_personalizado, domain';
-                    const r1 = await supabaseClient.from('provou_levou_stores').select(cols).in('email', plScopeEmails()).limit(1).maybeSingle();
-                    let st = r1.error ? null : r1.data;
-                    if (!st && activeUser.origem) {
-                        const r2 = await supabaseClient.from('provou_levou_stores').select(cols);
-                        if (!r2.error && r2.data) { const tg = normalizeStoreDomain(activeUser.origem); st = r2.data.find(s => normalizeStoreDomain(s.domain) === tg) || null; }
-                    }
+                    const st = await plMinhaLoja();
                     if (st) {
                         const val = Number(st.valor_personalizado) || PACKS_PLAN_VALUES[st.plan] || 0;
                         const lim = Number(st.limite_personalizado) || PACKS_PLAN_LIMITS_REF[st.plan] || 0;
@@ -21208,13 +21223,13 @@
             box.appendChild(tit);
             box.appendChild(el('div', 'font-size:12px;color:#666;margin-bottom:10px;line-height:1.45;', 'Com login próprio, a pessoa vê só o CRM, as Conversas e as Tarefas dos leads dela. Você (administrador) continua vendo tudo.'));
             const team = getCrmTeam();
-            if (!team.length) { box.appendChild(el('div', 'font-size:12px;color:#888;', 'Adicione as pessoas do time acima e salve.')); return; }
+            if (!team.length) box.appendChild(el('div', 'font-size:12px;color:#888;', 'Adicione as pessoas do time acima e salve.'));
             const msg = el('div', 'font-size:12px;min-height:14px;margin-top:6px;');
             const avisa = (txt, ok) => { msg.textContent = txt || ''; msg.style.color = ok ? '#16a34a' : '#dc2626'; };
             const inp = (type, ph) => { const i = document.createElement('input'); i.type = type; i.placeholder = ph; i.autocomplete = 'off'; i.style.cssText = 'flex:1;min-width:140px;border:1px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:12.5px;color:#111;background:#fff;'; return i; };
             const btn = (txt, cor) => { const b = el('button', 'border:0;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;background:' + (cor || '#7c3aed') + ';color:#fff;', txt); b.type = 'button'; return b; };
             team.forEach(n => {
-                const lg = _crmLogins.find(u => u.membro === n && u.ativo) || _crmLogins.find(u => u.membro === n);
+                const lg = _crmLogins.find(u => u.membro === n && u.ativo && u.papel !== 'conversas') || _crmLogins.find(u => u.membro === n && u.papel !== 'conversas');
                 const row = el('div', 'border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;margin-bottom:8px;');
                 const top = el('div', 'display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;');
                 const nome = el('div', 'font-size:13px;font-weight:700;', n);
@@ -21258,8 +21273,45 @@
                 row.appendChild(acoes);
                 box.appendChild(row);
             });
+            // ── Login SÓ para Conversas (vê todas as conversas e mais nada) ──
+            const conv = _crmLogins.filter(u => u.papel === 'conversas');
+            const sec = el('div', 'margin-top:16px;border-top:1px solid #eee;padding-top:14px;');
+            const st2 = el('div', 'font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px;');
+            const ci = document.createElement('i'); ci.className = 'ph-bold ph-chats-circle'; ci.style.color = '#7c3aed'; st2.append(ci, document.createTextNode(' Login só para Conversas'));
+            sec.appendChild(st2);
+            sec.appendChild(el('div', 'font-size:12px;color:#666;margin-bottom:10px;line-height:1.45;', 'A pessoa entra e vê apenas a tela de Conversas (todas as conversas da loja). Não vê CRM, campanhas, números nem configurações.'));
+            conv.forEach(u => {
+                const row = el('div', 'border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;margin-bottom:8px;');
+                row.appendChild(el('div', 'font-size:13px;font-weight:700;color:' + (u.ativo ? '#16a34a' : '#9ca3af') + ';', (u.ativo ? '● ' : '○ desativado · ') + u.email));
+                const ac = el('div', 'display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;');
+                const s3 = inp('password', 'nova senha (mín. 8)');
+                const b4 = btn(u.ativo ? 'Trocar senha' : 'Reativar com esta senha', '#475569');
+                b4.onclick = async () => { b4.disabled = true; const j = await crmLoginsApi({ acao: 'senha', email: u.email, senha: s3.value }); if (j.ok) { avisa('Senha atualizada para ' + u.email + '.', true); renderCrmLogins(false); } else { avisa(j.erro || 'Não atualizou.'); b4.disabled = false; } };
+                ac.append(s3, b4);
+                if (u.ativo) {
+                    const b5 = btn('Desativar', '#dc2626');
+                    b5.onclick = async () => { if (!confirm('Desativar o login ' + u.email + '?')) return; b5.disabled = true; const j = await crmLoginsApi({ acao: 'desativar', email: u.email }); if (j.ok) { avisa('Login desativado.', true); renderCrmLogins(false); } else { avisa(j.erro || 'Não desativou.'); b5.disabled = false; } };
+                    ac.appendChild(b5);
+                }
+                row.appendChild(ac); sec.appendChild(row);
+            });
+            const nova = el('div', 'display:flex;gap:6px;flex-wrap:wrap;');
+            const e9 = inp('email', 'e-mail de login'), s9 = inp('password', 'senha (mín. 8)');
+            const b9 = btn('Criar login só Conversas');
+            b9.onclick = async () => {
+                b9.disabled = true; b9.textContent = 'Criando…';
+                const j = await crmLoginsApi({ acao: 'criar', papel: 'conversas', membro: 'Conversas', email: e9.value, senha: s9.value });
+                if (j.ok) { avisa('Login criado. A pessoa entra no mesmo endereço do painel e vê só as Conversas.', true); renderCrmLogins(false); }
+                else { avisa(j.erro || 'Não criou.'); b9.disabled = false; b9.textContent = 'Criar login só Conversas'; }
+            };
+            nova.append(e9, s9, b9); sec.appendChild(nova);
+            box.appendChild(sec);
             box.appendChild(msg);
         }
+        // Menus "Time" e "Mais" do CRM: fecha ao escolher uma opção ou clicar fora
+        function crmMenuGo(btn, fn) { try { const d = btn.closest('details'); if (d) d.removeAttribute('open'); } catch (e) {} try { fn(); } catch (e) { console.warn('[crm menu]', e); } }
+        document.addEventListener('click', e => { document.querySelectorAll('details.crm-menu[open]').forEach(d => { if (!d.contains(e.target)) d.removeAttribute('open'); }); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('details.crm-menu[open]').forEach(d => d.removeAttribute('open')); });
         function closeCrmTeamModal() {
             const m = document.getElementById('crmTeamModal');
             if (m) m.style.display = 'none';
