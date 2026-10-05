@@ -196,12 +196,50 @@
     throw erro || new Error('Falha ao carregar');
   }
 
+  // ── Pixel da Meta por loja (05/10/2026) ──
+  // Só liga na loja com pl_catalog_stores.meta_pixel_id. Cada evento vai pelo pixel do
+  // navegador E pelo servidor (API de Conversões, webhook pl-catalog-capi) com o MESMO
+  // event_id — a Meta junta os dois. O token da loja fica só no servidor.
+  const WH_CAPI = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-capi';
+  let _pixelOn = false, _telPixel = '';
+  function pixelInit(id) {
+    id = String(id || '').replace(/\D/g, '');
+    if (!id || _pixelOn) return;
+    /* eslint-disable */
+    !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = []; t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+    /* eslint-enable */
+    try { window.fbq('init', id); } catch (e) { return; }
+    _pixelOn = true;
+    pixelEvento('PageView');
+  }
+  function _pxCookie(n) { const m = document.cookie.match(new RegExp('(?:^|; )' + n + '=([^;]*)')); return m ? decodeURIComponent(m[1]) : ''; }
+  function pixelEvento(nome, dados) {
+    if (!_pixelOn) return;
+    const eid = nome + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    try { window.fbq('track', nome, dados || {}, { eventID: eid }); } catch (e) {}
+    try {
+      const fbclid = new URLSearchParams(location.search).get('fbclid');
+      const body = JSON.stringify({
+        slug: STORE_SLUG, event_name: nome, event_id: eid, event_source_url: location.href,
+        phone: _telPixel, fbp: _pxCookie('_fbp'), fbc: _pxCookie('_fbc') || (fbclid ? 'fb.1.' + Date.now() + '.' + fbclid : ''),
+        user_agent: navigator.userAgent, custom_data: dados || {}
+      });
+      if (navigator.sendBeacon) navigator.sendBeacon(WH_CAPI, new Blob([body], { type: 'text/plain' }));
+      else fetch(WH_CAPI, { method: 'POST', body, keepalive: true }).catch(() => {});
+    } catch (e) {}
+  }
+  function _pxProduto(p) {
+    if (!p) return {};
+    const v = Number(precoProduto(p)) || 0;
+    return Object.assign({ content_name: p.name || '', content_ids: [String(p.id || '')], content_type: 'product' }, v > 0 ? { value: v, currency: 'BRL' } : {});
+  }
+
   async function loadStore() {
     // store_api_key entra no select: e ela que autentica a loja nos geradores.
     // Fica exposta no browser, igual a api_key dos widgets das outras lojas — o
     // gerador so aceita se o Origin bater com o domain registrado.
     const rows = await sbGet('pl_catalog_stores?slug=eq.' + encodeURIComponent(STORE_SLUG) +
-      '&is_active=eq.true&select=id,slug,display_name,logo_url,whatsapp,bio,primary_color,tema,is_active,store_api_key,owner_email,categorias_ordem&limit=1');
+      '&is_active=eq.true&select=id,slug,display_name,logo_url,whatsapp,bio,primary_color,tema,is_active,store_api_key,owner_email,categorias_ordem,meta_pixel_id&limit=1');
     storeRow = (rows && rows[0]) || null;
     if (!storeRow) {
       document.title = 'Catálogo indisponível';
@@ -210,6 +248,7 @@
     }
     if (storeRow) {
       STORE.name = storeRow.display_name || STORE.name;
+      pixelInit(storeRow.meta_pixel_id);
       aplicaTema(storeRow.primary_color);
       // O logo nasce escondido e sem src (ver index.html): só entra em cena o da
       // loja de verdade. Sem logo cadastrado, mostra o nome em texto — melhor que
@@ -1590,6 +1629,7 @@
 
   function openProduct(p, semHistorico) {
     current = p;
+    pixelEvento('ViewContent', _pxProduto(p));
     fotoSel = 0;   // produto novo, galeria volta pra primeira foto
     bindImg($('#p-img'), p.img, p.name);
     $('#p-name').textContent = p.name;
@@ -1938,6 +1978,8 @@
   }
 
   async function geraProva(tel, chave) {
+    _telPixel = String(tel || '');
+    pixelEvento('Lead', _pxProduto(current));
     show('loading');
     const bar = $('#progress-bar');
     let i = 0; bar.style.width = '8%';
@@ -2911,6 +2953,7 @@
   function comprarNoWhatsapp(telefone) {
     const tel = String(telefone || (storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
     if (!tel) { openCheckout(); return; }
+    pixelEvento('InitiateCheckout', _pxProduto(current));
     const num = tel.length <= 11 ? '55' + tel : tel;
     const unidade = STORE_SLUG === 'oticasprimemagrini'
       ? LOJAS_COMPRA_WHATSAPP.oticasprimemagrini.find(loja => loja.telefone === num) : null;
@@ -2928,6 +2971,7 @@
     const lojas = fixa ? [fixa] : (LOJAS_COMPRA_WHATSAPP[STORE_SLUG] || []);
     const tel = String((lojas[0] && lojas[0].telefone) || (storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
     if (!tel) { toast('Esta loja ainda não tem WhatsApp cadastrado.'); return; }
+    pixelEvento('InitiateCheckout', _pxProduto(p));
     const num = tel.length <= 11 ? '55' + tel : tel;
     const txt = 'Oi! Vi o ' + (nome || p.name) +
       (numeroPositivo(precoProduto(p)) ? ' (' + brl(precoProduto(p)) + ')' : '') +
