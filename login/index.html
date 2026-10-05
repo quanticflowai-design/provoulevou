@@ -7113,6 +7113,24 @@
                 await populateMasterSwitcher(allLj);
                 let savedEmail = null;
                 try { savedEmail = localStorage.getItem('pl-master-active-lojista'); } catch(e) {}
+                // "Ver como" um login do time (05/10/2026): abre a loja com as MESMAS travas desse login
+                let viewAs = null;
+                try { viewAs = localStorage.getItem('pl-master-view-as'); } catch (e) {}
+                if (viewAs) {
+                    try {
+                        const { data: cu } = await supabaseClient.from('crm_usuarios').select('email,lojista_email,membro,papel,ativo').eq('email', viewAs).maybeSingle();
+                        if (cu) {
+                            const lojaVA = await fetchLojistaByEmail(cu.lojista_email);
+                            if (lojaVA) {
+                                _plComercial = { email: cu.email, membro: cu.membro, papel: cu.papel || 'comercial', lojista_email: cu.lojista_email, viewAs: true };
+                                _masterSelectedName = (lojaVA.nome_loja || cu.lojista_email) + ' · ' + cu.email;
+                                updateMasterLabel();
+                                return lojaVA;
+                            }
+                        }
+                    } catch (e) {}
+                    try { localStorage.removeItem('pl-master-view-as'); } catch (e) {}
+                }
                 const chosen = (savedEmail && allLj.find(l => l.email === savedEmail)) || allLj[0];
                 if (chosen) {
                     _masterSelectedName = chosen.nome_loja || (chosen.origem || '').replace(/^https?:\/\/(www\.)?/, '').split('/')[0] || chosen.email;
@@ -7200,12 +7218,47 @@
                 item.onmouseleave = () => item.style.background = 'transparent';
                 item.onclick = () => {
                     document.getElementById('masterMenu').style.display = 'none';
+                    if (_plComercial && _plComercial.viewAs) {   // estava "vendo como": volta pra visão de master
+                        try { localStorage.removeItem('pl-master-view-as'); localStorage.setItem('pl-master-active-lojista', l.email); } catch (e) {}
+                        location.reload(); return;
+                    }
                     _masterSelectedName = name;
                     updateMasterLabel();
                     switchToLojista(l.email);
                 };
                 list.appendChild(item);
             });
+            // Logins do time (comercial / só Conversas): entrar "como" eles pra ver o que eles veem
+            try {
+                const { data: logins } = await supabaseClient.from('crm_usuarios').select('email,lojista_email,membro,papel,ativo').eq('ativo', true).order('lojista_email');
+                if (logins && logins.length) {
+                    const hd = document.createElement('div');
+                    hd.style.cssText = 'font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.6;padding:10px 10px 4px;';
+                    hd.textContent = 'Logins do time (ver como)';
+                    hd.dataset.search = 'logins do time ver como';
+                    list.appendChild(hd);
+                    logins.forEach(u => {
+                        const lj = allLj.find(x => String(x.email).toLowerCase() === String(u.lojista_email).toLowerCase());
+                        const lojaNome = lj ? (lj.nome_loja || lj.email) : u.lojista_email;
+                        const papelTxt = u.papel === 'conversas' ? 'só Conversas' : ('comercial · ' + u.membro);
+                        const it = document.createElement('button');
+                        it.type = 'button';
+                        it.dataset.email = u.email;
+                        it.dataset.search = (lojaNome + ' ' + u.email + ' ' + papelTxt).toLowerCase();
+                        it.style.cssText = 'display:block;width:100%;text-align:left;background:transparent;border:none;color:var(--text-main);padding:8px 10px;border-radius:7px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;';
+                        const a1 = document.createElement('span'); a1.style.cssText = 'display:block;'; a1.textContent = '👁 ' + masterMaskName(lojaNome) + ' · ' + papelTxt;
+                        const a2 = document.createElement('span'); a2.style.cssText = 'display:block;font-weight:400;font-size:11px;opacity:0.65;'; a2.textContent = _masterHideName ? '•••••••' : u.email;
+                        it.append(a1, a2);
+                        it.onmouseenter = () => it.style.background = 'rgba(124,58,237,0.12)';
+                        it.onmouseleave = () => it.style.background = 'transparent';
+                        it.onclick = () => {
+                            try { localStorage.setItem('pl-master-view-as', u.email); } catch (e) {}
+                            location.reload();
+                        };
+                        list.appendChild(it);
+                    });
+                }
+            } catch (e) { console.warn('[master] logins do time:', e); }
             wrap.style.display = 'inline-flex';
             updateMasterLabel();
         }
@@ -7470,15 +7523,24 @@
                     var st = document.createElement('style'); st.id = 'plComercialCss';
                     st.textContent = 'body.pl-comercial #crmProvadorActions > *:not(#crmTarefasBtn){display:none!important}'
                         + 'body.pl-comercial #crmRespFilter,body.pl-comercial #crmBulkMoveBtn,body.pl-comercial #crmTeamPanel,body.pl-comercial #chatFilterRespSel{display:none!important}'
-                        + '.pl-comercial-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#7c3aed;background:rgba(124,58,237,.1);border-radius:999px;padding:5px 12px;margin-right:6px}';
+                        + '.pl-comercial-chip{display:flex;align-items:center;gap:6px;width:fit-content;font-size:12.5px;font-weight:700;color:#7c3aed;background:rgba(124,58,237,.1);border-radius:999px;padding:6px 14px;margin:0 0 14px 4px}';
                     document.head.appendChild(st);
+                }
+                if (_plComercial.viewAs && !document.getElementById('plViewAsBar')) {
+                    var bar = document.createElement('div'); bar.id = 'plViewAsBar';
+                    bar.style.cssText = 'position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:99999;background:#16131f;color:#fff;border-radius:999px;padding:10px 12px 10px 18px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:12px;box-shadow:0 10px 30px rgba(0,0,0,.3);';
+                    var bt = document.createElement('span'); bt.textContent = '👁 Vendo como ' + _plComercial.email + (isSoConversas() ? ' (só Conversas)' : ' (comercial · ' + _plComercial.membro + ')');
+                    var sair = document.createElement('button'); sair.type = 'button'; sair.textContent = 'Sair';
+                    sair.style.cssText = 'background:#7c3aed;color:#fff;border:0;border-radius:999px;padding:6px 14px;font-weight:700;cursor:pointer;';
+                    sair.onclick = function () { try { localStorage.removeItem('pl-master-view-as'); localStorage.setItem('pl-master-active-lojista', _plComercial.lojista_email); } catch (e) {} location.reload(); };
+                    bar.append(bt, sair); document.body.appendChild(bar);
                 }
                 var nav = document.getElementById('dispSubnav');
                 if (nav && !document.getElementById('plComercialChip')) {
                     var chip = document.createElement('span'); chip.id = 'plComercialChip'; chip.className = 'pl-comercial-chip';
                     var ci = document.createElement('i'); ci.className = 'ph-bold ph-user-circle';
                     chip.appendChild(ci); chip.appendChild(document.createTextNode(' ' + _plComercial.membro));
-                    nav.insertBefore(chip, nav.firstChild);
+                    nav.insertBefore(chip, nav.firstChild);   // acima da caixa do menu, com respiro embaixo (margin 14px)
                 }
                 try { loadCrmRemoteState().then(function(){ try { chatRenderList(); } catch (e) {} }); } catch (e) {}
             }
