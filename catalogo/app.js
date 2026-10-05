@@ -213,8 +213,23 @@
     pixelEvento('PageView');
   }
   function _pxCookie(n) { const m = document.cookie.match(new RegExp('(?:^|; )' + n + '=([^;]*)')); return m ? decodeURIComponent(m[1]) : ''; }
+  // Eventos que só contam 1x por cliente por dia (05/10/2026, pedido do Lucas: a Rever via
+  // 5 InitiateCheckout de uma pessoa só). "Cliente" = este navegador; vale pro pixel E pra CAPI.
+  const PX_1X_DIA = { InitiateCheckout: 1 };
+  const _pxMem = {};
+  function _pxJaHoje(nome) {
+    const hoje = new Date().toLocaleDateString('sv-SE');   // AAAA-MM-DD no fuso do cliente
+    const k = 'pl_px1d_' + STORE_SLUG + '_' + nome;
+    let ultimo = _pxMem[k];
+    try { ultimo = localStorage.getItem(k) || ultimo; } catch (e) {}
+    if (ultimo === hoje) return true;
+    _pxMem[k] = hoje;
+    try { localStorage.setItem(k, hoje); } catch (e) {}
+    return false;
+  }
   function pixelEvento(nome, dados) {
     if (!_pixelOn) return;
+    if (PX_1X_DIA[nome] && _pxJaHoje(nome)) return;
     const eid = nome + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
     try { window.fbq('track', nome, dados || {}, { eventID: eid }); } catch (e) {}
     try {
