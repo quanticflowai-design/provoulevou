@@ -21593,8 +21593,9 @@
                 mid.appendChild(lb);
             }
             const an = document.createElement('div'); an.style.cssText = 'font-size:13px;color:var(--text-main,#111);margin-top:3px;white-space:pre-wrap;word-break:break-word;';
-            an.textContent = x.anotacao || '(sem anotação)';
+            an.textContent = x.anotacao || (x.msg_tipo ? '' : '(sem anotação)');
             mid.appendChild(an);
+            const envL = _crmTarefaEnvioLinha(x); if (envL) mid.appendChild(envL);
             const del = document.createElement('button'); del.type = 'button'; del.title = 'Apagar tarefa';
             del.style.cssText = 'background:none;border:0;color:#9ca3af;cursor:pointer;font-size:16px;padding:2px;';
             const di = document.createElement('i'); di.className = 'ph-bold ph-trash'; del.appendChild(di);
@@ -21620,6 +21621,7 @@
             [dIn, hIn].forEach(i => { i.style.cssText = 'border:1px solid var(--border,#e5e7eb);border-radius:8px;padding:8px 10px;font-size:13px;background:var(--card-bg,#fff);color:var(--text-main,#111);'; linha.appendChild(i); });
             const tx = document.createElement('textarea'); tx.rows = 2; tx.maxLength = 1000; tx.placeholder = 'Anotação. Ex.: ligar para oferecer a lente anti-blue, ela pediu desconto.';
             tx.style.cssText = 'border:1px solid var(--border,#e5e7eb);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit;resize:vertical;background:var(--card-bg,#fff);color:var(--text-main,#111);';
+            const env = _crmTarefaEnvioForm(lead);
             const msg = document.createElement('div'); msg.style.cssText = 'font-size:12px;color:#dc2626;min-height:14px;';
             const bt = document.createElement('button'); bt.type = 'button'; bt.className = 'clm-btn sec';
             bt.style.cssText = 'align-self:flex-start;background:#7c3aed;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;';
@@ -21628,6 +21630,9 @@
                 if (!dIn.value || !hIn.value) { msg.textContent = 'Escolha o dia e a hora.'; return; }
                 const quando = new Date(dIn.value + 'T' + hIn.value + ':00');   // hora local de quem agenda
                 if (isNaN(quando.getTime())) { msg.textContent = 'Data inválida.'; return; }
+                const envio = env.valor();
+                if (envio && envio.erro) { msg.textContent = envio.erro; return; }
+                if (envio && quando.getTime() < Date.now() - 60000) { msg.textContent = 'Para enviar mensagem, escolha um horário no futuro.'; return; }
                 bt.disabled = true; bt.textContent = 'Agendando…'; msg.textContent = '';
                 const row = {
                     lojista_email: crmScopeEmail(), telefone: String(lead.phone || ''), lead_nome: String(lead.name || '').trim() || null,
@@ -21635,6 +21640,7 @@
                     responsavel: getCrmResp()[lead.phone] || (_plComercial ? _plComercial.membro : null),
                     criado_por: (_plComercial ? _plComercial.email : (activeUser && activeUser.email)) || null
                 };
+                if (envio) Object.assign(row, envio.campos, { envio_status: 'agendado' });
                 const { data, error } = await supabaseClient.from('crm_tarefas').insert(row).select().single();
                 if (error) { msg.textContent = 'Não agendou: ' + error.message; bt.disabled = false; bt.textContent = 'Agendar tarefa'; return; }
                 _crmTarefas.push(data); _crmTarefas.sort((a, b) => String(a.quando).localeCompare(String(b.quando)));
@@ -21642,8 +21648,104 @@
                 crmRenderLeadTarefas(lead);
                 if (typeof crmToast === 'function') crmToast('Tarefa agendada para ' + _tFmt(data.quando) + '.');
             };
-            form.append(linha, tx, msg, bt);
+            form.append(linha, tx, env.el, msg, bt);
             box.appendChild(form);
+        }
+        // Mensagem agendada na tarefa (05/10/2026): o robô do n8n "[PL] CRM — Mensagens agendadas"
+        // (UAcYuM6RZnh74C2k) roda a cada minuto e envia as vencidas pelo pl-wa-sendtext (texto) ou
+        // pl-wa-send (modelo). Texto livre só chega com a janela de 24h aberta (regra da Meta).
+        function _crmTarefaEnvioForm(lead) {
+            const css = 'border:1px solid var(--border,#e5e7eb);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit;background:var(--card-bg,#fff);color:var(--text-main,#111);';
+            const el = document.createElement('div'); el.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+            const lb = document.createElement('label'); lb.style.cssText = 'display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer;';
+            const ck = document.createElement('input'); ck.type = 'checkbox'; ck.style.cssText = 'width:16px;height:16px;accent-color:#25D366;';
+            const ic = document.createElement('i'); ic.className = 'ph-bold ph-whatsapp-logo'; ic.style.color = '#25D366';
+            lb.append(ck, ic, document.createTextNode('Enviar mensagem no WhatsApp neste horário'));
+            const pn = document.createElement('div'); pn.style.cssText = 'display:none;flex-direction:column;gap:8px;padding-left:24px;';
+            const tipo = document.createElement('select'); tipo.style.cssText = css;
+            [['texto', 'Texto livre'], ['modelo', 'Mensagem modelo (aprovada pela Meta)']].forEach(([v, l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; tipo.appendChild(o); });
+            const txt = document.createElement('textarea'); txt.rows = 3; txt.maxLength = 1000; txt.style.cssText = css + 'resize:vertical;';
+            const primeiro = String(lead.name || '').trim().split(/\s+/)[0] || '';
+            txt.placeholder = 'Ex.: Oi' + (primeiro ? ' ' + primeiro : '') + '! Passando para saber se ficou alguma dúvida sobre o óculos que você provou 😊';
+            const aviso = document.createElement('div'); aviso.style.cssText = 'font-size:11.5px;color:var(--text-muted,#666);line-height:1.4;';
+            const tplSel = document.createElement('select'); tplSel.style.cssText = css;
+            const vars = document.createElement('div'); vars.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+            let tpls = [];
+            const corpo = t => ((t.components || []).find(c => c.type === 'BODY') || {}).text || '';
+            const nVars = t => { const m = corpo(t).match(/\{\{\s*(\d+)\s*\}\}/g) || []; return m.reduce((a, x) => Math.max(a, +x.replace(/\D/g, '')), 0); };
+            // Fora: modelo que pede texto no cabeçalho ou link no botão (o robô só preenche o corpo)
+            const servem = t => (t.status || '').toUpperCase() === 'APPROVED' && !(t.components || []).some(c =>
+                (c.type === 'HEADER' && c.format === 'TEXT' && /\{\{/.test(c.text || '')) ||
+                (c.type === 'BUTTONS' && (c.buttons || []).some(b => /\{\{/.test(b.url || '') || b.type === 'COPY_CODE')));
+            const desenhaVars = () => {
+                vars.textContent = '';
+                const t = tpls.find(x => x.name === tplSel.value); if (!t) return;
+                const pv = document.createElement('div'); pv.style.cssText = 'font-size:12px;white-space:pre-wrap;background:rgba(37,211,102,.08);border-radius:8px;padding:8px 10px;';
+                pv.textContent = corpo(t); vars.appendChild(pv);
+                for (let i = 1; i <= nVars(t); i++) {
+                    const inp = document.createElement('input'); inp.type = 'text'; inp.dataset.v = i; inp.style.cssText = css;
+                    inp.placeholder = 'Valor do {{' + i + '}}'; if (i === 1) inp.value = primeiro;
+                    vars.appendChild(inp);
+                }
+            };
+            tplSel.onchange = desenhaVars;
+            const carregaTpls = async () => {
+                tplSel.innerHTML = '<option value="">Carregando modelos…</option>';
+                try {
+                    let data = _waTemplatesCache;
+                    if (!data || !data.length) {
+                        const res = await fetch(WA_TPL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: activeUser.email, action: 'list' }) });
+                        const r = await res.json();
+                        data = await keepPLTemplates((r.body && r.body.data) || []);
+                        _waTemplatesCache = data;
+                    }
+                    tpls = (data || []).filter(servem);
+                } catch (e) { tpls = []; }
+                tplSel.textContent = '';
+                if (!tpls.length) { const o = document.createElement('option'); o.value = ''; o.textContent = 'Nenhum modelo aprovado disponível'; tplSel.appendChild(o); }
+                else { const o0 = document.createElement('option'); o0.value = ''; o0.textContent = 'Escolha o modelo…'; tplSel.appendChild(o0); tpls.forEach(t => { const o = document.createElement('option'); o.value = t.name; o.textContent = t.name; tplSel.appendChild(o); }); }
+                desenhaVars();
+            };
+            const troca = () => {
+                const m = tipo.value === 'modelo';
+                txt.style.display = m ? 'none' : ''; tplSel.style.display = m ? '' : 'none'; vars.style.display = m ? 'flex' : 'none';
+                aviso.textContent = m ? 'Mensagem modelo sempre chega, mesmo se o cliente não falou com a loja.'
+                    : 'Atenção: texto livre só chega se o cliente mandou mensagem para a loja nas 24h antes do envio (regra do WhatsApp). Se não, o envio falha e a tarefa avisa. Na dúvida, use mensagem modelo.';
+                if (m && !tpls.length) carregaTpls();
+            };
+            tipo.onchange = troca;
+            ck.onchange = () => { pn.style.display = ck.checked ? 'flex' : 'none'; if (ck.checked) troca(); };
+            pn.append(tipo, txt, tplSel, vars, aviso);
+            el.append(lb, pn);
+            return {
+                el,
+                valor() {
+                    if (!ck.checked) return null;
+                    if (tipo.value === 'texto') {
+                        const t = txt.value.trim();
+                        if (!t) return { erro: 'Escreva a mensagem que vai ser enviada.' };
+                        return { campos: { msg_tipo: 'texto', msg_texto: t } };
+                    }
+                    const t = tpls.find(x => x.name === tplSel.value);
+                    if (!t) return { erro: 'Escolha a mensagem modelo.' };
+                    const ps = Array.from(vars.querySelectorAll('input[data-v]')).map(i => i.value.trim());
+                    if (ps.some(p => !p)) return { erro: 'Preencha todos os campos da mensagem modelo.' };
+                    return { campos: { msg_tipo: 'modelo', msg_template: t.name, msg_lang: t.language || 'pt_BR', msg_params: ps } };
+                }
+            };
+        }
+        function _crmTarefaEnvioLinha(x) {
+            if (!x.msg_tipo) return null;
+            const st = x.envio_status || 'agendado';
+            const cor = { agendado: '#16a34a', enviando: '#16a34a', enviado: '#16a34a', falhou: '#dc2626', cancelado: '#9ca3af' }[st] || '#16a34a';
+            const rot = { agendado: 'WhatsApp agendado', enviando: 'Enviando WhatsApp…', enviado: 'WhatsApp enviado', falhou: 'WhatsApp não foi enviado', cancelado: 'Envio cancelado' }[st] || st;
+            const d = document.createElement('div'); d.style.cssText = 'margin-top:5px;font-size:12px;color:' + cor + ';display:flex;gap:5px;align-items:flex-start;';
+            const ic = document.createElement('i'); ic.className = 'ph-bold ph-whatsapp-logo'; ic.style.marginTop = '2px';
+            const tx = document.createElement('span'); tx.style.cssText = 'white-space:pre-wrap;word-break:break-word;';
+            const conteudo = x.msg_tipo === 'modelo' ? 'modelo "' + (x.msg_template || '') + '"' : '"' + String(x.msg_texto || '').slice(0, 140) + (String(x.msg_texto || '').length > 140 ? '…' : '') + '"';
+            tx.textContent = rot + ': ' + conteudo + (st === 'falhou' && x.envio_erro ? '\nMotivo: ' + x.envio_erro : '');
+            d.append(ic, tx);
+            return d;
         }
         function crmAbrirLeadDaTarefa(x) {
             const map = crmLeadMapCache || {};
