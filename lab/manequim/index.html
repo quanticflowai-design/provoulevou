@@ -19,6 +19,7 @@
 .tam.on{border:2px solid #111}
 .btn-comprar{width:100%;height:56px;background:#111;color:#fff;border:0;font:inherit;font-weight:900;font-size:16px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
 .btn-tam{width:100%;margin-top:12px;height:56px;border:1px solid #111;background:#fff;font:inherit;font-size:15px;cursor:pointer;display:flex;gap:10px;align-items:center;justify-content:center}
+.acoes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}.acoes .btn-tam{margin-top:0;height:auto;min-height:62px;padding:10px 12px;justify-content:flex-start;text-align:left;font-size:14px}.acoes .btn-tam .ic{font-size:20px;flex:0 0 auto}.acoes .btn-tam b{display:block;font-size:14px;line-height:1.2}.acoes .btn-tam small{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}@media(max-width:380px){.acoes{grid-template-columns:1fr}}
 .btn-tam small{display:block;color:var(--muted);font-size:12px}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:14px;z-index:20}
 .ov.on{display:flex}
@@ -67,13 +68,17 @@
     <div class="preco">R$ 199,90 <span class="mut" style="font-weight:400">no pix</span></div>
     <div class="mut">ou 3x de R$ 66,63 sem juros</div>
     <div class="tams" id="tams"></div>
+    <!-- Dois fluxos separados: o manequim só recomenda tamanho; o provador só veste a peça na foto -->
+    <div class="acoes">
+      <button class="btn-tam" onclick="abre()"><span class="ic">📏</span><span><b>Descobrir meu tamanho</b><small>Pelas suas medidas</small></span></button>
+      <button class="btn-tam" onclick="abreProv()"><span class="ic">✨</span><span><b>Provador virtual</b><small>Veja a peça em você</small></span></button>
+    </div>
     <button class="btn-comprar">Comprar</button>
-    <button class="btn-tam" onclick="abre()"><span style="font-size:20px">📏</span><span style="text-align:left"><b>Qual é o meu tamanho?</b><small>Descubra em 1 minuto e veja a peça em você</small></span></button>
   </div>
 </div>
 
 <div class="ov" id="ov"><div class="md">
-  <div class="top"><div class="st on" id="s1"><b>1</b>Medidas</div><span class="sep"></span><div class="st" id="s2"><b>2</b>Sua foto</div><span class="sep"></span><div class="st" id="s3"><b>3</b>Resultado</div></div>
+  <div class="top"><div class="st on" id="s1"><b>1</b>Medidas</div><span class="sep"></span><div class="st" id="s2"><b>2</b>Seu tamanho</div></div>
   <button class="x" onclick="fecha()" aria-label="Fechar">×</button>
 
   <div id="p1">
@@ -82,21 +87,26 @@
       <h3>Monte o seu corpo</h3>
       <p>Arraste até o manequim parecer com você, ou digite as medidas se tiver fita métrica. Para este vestido, valem <b>busto, cintura e quadril</b>.</p>
       <div id="regs"></div>
-      <button class="go" onclick="passo(2)">Descobrir meu tamanho</button>
+      <button class="go" onclick="passo(2)">Ver meu tamanho</button>
     </div>
   </div>
 
-  <div id="p2" style="display:none" class="corpo">
+  <div id="p2" style="display:none" class="corpo"><div class="res" id="res"></div></div>
+</div></div>
+
+<!-- Provador virtual: fluxo próprio, sem medidas -->
+<div class="ov" id="ovp"><div class="md">
+  <div class="top"><div class="st on" id="q1"><b>1</b>Sua foto</div><span class="sep"></span><div class="st" id="q2"><b>2</b>Resultado</div></div>
+  <button class="x" onclick="fechaProv()" aria-label="Fechar">×</button>
+  <div id="pp1" class="corpo">
     <h3>Envie sua foto</h3>
     <p>De frente, corpo inteiro, com boa luz. A gente veste o vestido em você.</p>
     <label class="up" id="up"><input type="file" accept="image/*" hidden onchange="foto(this)"><span>📷<br>Toque para enviar uma foto</span></label>
-    <button class="go" onclick="passo(3)">Ver resultado</button>
-    <p style="text-align:center;margin-top:10px"><a href="#" onclick="passo(3);return false" style="color:#111">Pular e ver só o tamanho</a></p>
+    <button class="go" onclick="passoProv(2)">Ver a peça em mim</button>
   </div>
-
-  <div id="p3" style="display:none" class="corpo"><div class="res" id="res"></div></div>
+  <div id="pp2" style="display:none" class="corpo"><div class="res" id="resp"></div></div>
 </div></div>
-<div class="bar2">Prévia local · nada é gravado nem enviado</div>
+<div class="bar2">Prévia de teste · nada é gravado nem enviado</div>
 
 <script>
 // Tabela padrão (moda feminina BR, cm). Na versão real vem da tabela da página do produto quando existir.
@@ -203,8 +213,19 @@ function fit() { const el = document.getElementById('cena'); renderer.setSize(el
 function abre() { document.getElementById('ov').classList.add('on'); passo(1); regs(); document.getElementById('selo').textContent = recomenda().nome; setTimeout(inicia3D, 30); }
 function fecha() { document.getElementById('ov').classList.remove('on'); }
 function passo(n) {
-  [1, 2, 3].forEach(i => { document.getElementById('p' + i).style.display = i === n ? '' : 'none'; document.getElementById('s' + i).classList.toggle('on', i <= n); });
-  if (n === 3) resultado();
+  [1, 2].forEach(i => { document.getElementById('p' + i).style.display = i === n ? '' : 'none'; document.getElementById('s' + i).classList.toggle('on', i <= n); });
+  if (n === 2) resultado();
+}
+// ---------- provador virtual (separado do manequim) ----------
+function abreProv() { document.getElementById('ovp').classList.add('on'); passoProv(1); }
+function fechaProv() { document.getElementById('ovp').classList.remove('on'); }
+function passoProv(n) {
+  if (n === 2 && !fotoURL) { alert('Envie uma foto primeiro.'); return; }
+  [1, 2].forEach(i => { document.getElementById('pp' + i).style.display = i === n ? '' : 'none'; document.getElementById('q' + i).classList.toggle('on', i <= n); });
+  if (n === 2) document.getElementById('resp').innerHTML =
+    '<div class="foto" style="background-image:url(' + fotoURL + ')"><span>Aqui aparece a prova do vestido em você</span></div>'
+    + '<button class="go" onclick="fechaProv()">Comprar</button>'
+    + '<p style="text-align:center;margin-top:6px"><a href="#" onclick="passoProv(1);return false" style="color:#111">Trocar a foto</a></p>';
 }
 function foto(inp) { const f = inp.files[0]; if (!f) return; fotoURL = URL.createObjectURL(f); document.getElementById('up').innerHTML = '<img src="' + fotoURL + '">'; }
 function resultado() {
@@ -212,8 +233,7 @@ function resultado() {
   const det = Object.keys(MED).map((k, n) => '<div class="linha"><span>' + nomes[k] + ' ' + MED[k].v + ' cm</span><b>' + (r.idx[n] >= TABELA.length ? 'acima do GG' : TABELA[r.idx[n]].t) + '</b></div>').join('');
   const prox = r.i + 1 < TABELA.length ? TABELA[r.i + 1].t : '';
   document.getElementById('res').innerHTML =
-    '<div class="foto" style="background-image:' + (fotoURL ? 'url(' + fotoURL + ')' : 'linear-gradient(#ddd,#bbb)') + '"><span>Aqui aparece a prova do vestido em você</span></div>'
-    + '<div class="tamres"><div class="big">' + r.nome + '</div><div><b>Seu tamanho: ' + r.nome + '</b><p>Escolhido pela medida maior, pra não ficar apertado em nenhum ponto.</p></div></div>'
+    '<div class="tamres"><div class="big">' + r.nome + '</div><div><b>Seu tamanho: ' + r.nome + '</b><p>Escolhido pela medida maior, pra não ficar apertado em nenhum ponto.</p></div></div>'
     + (r.perto && prox ? '<div class="aviso">Você está no limite entre <b>' + r.nome + '</b> e <b>' + prox + '</b>. Se gosta mais soltinho, vá de ' + prox + '.</div>' : '')
     + (r.i >= TABELA.length ? '<div class="aviso">Suas medidas passam do maior tamanho desta peça.</div>' : '')
     + '<div>' + det + '</div>'
