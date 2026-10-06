@@ -4116,15 +4116,15 @@
                                 style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;line-height:1;">&times;</button>
                         </div>
                         <span id="crmSearchCount" style="font-size:12px;color:var(--text-muted);white-space:nowrap;flex-shrink:0;"></span>
-                        <select id="crmRespFilter" class="crm-provador-only" onchange="crmFilterResp(this.value)" title="Filtrar por responsável"
+                        <select id="crmRespFilter" onchange="crmFilterResp(this.value)" title="Filtrar por responsável"
                             style="margin-left:auto;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text-main);font-size:13px;cursor:pointer;outline:none;">
                             <option value="">Todos os responsáveis</option>
                         </select>
-                        <select id="crmCampFilter" class="crm-provador-only" onchange="crmFilterCamp(this.value)" title="Filtrar por campanha/automação recebida"
+                        <select id="crmCampFilter" onchange="crmFilterCamp(this.value)" title="Filtrar por campanha/automação recebida"
                             style="padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text-main);font-size:13px;cursor:pointer;outline:none;">
                             <option value="">Todas as campanhas</option>
                         </select>
-                        <button id="crmBulkMoveBtn" class="btn-download crm-provador-only" onclick="openCrmBulkMoveModal()" title="Mover vários leads de uma etapa para outra">
+                        <button id="crmBulkMoveBtn" class="btn-download" onclick="openCrmBulkMoveModal()" title="Mover vários leads de uma etapa para outra">
                             <i class="ph-bold ph-arrows-left-right"></i> Mover em massa
                         </button>
                     </div>
@@ -10124,6 +10124,7 @@
              - Enviar:    { tipo:'enviar',    template:'<nome>', language:'pt_BR',
                             params:[<chave|literal>, ...], button:<chave|literal|null> }
              - Mover CRM: { tipo:'mover_crm', estagio:'<column key>' }
+               (ou estagio:'lentes:<id da etapa>' = etapa do CRM de lentes, ver _LENTES_CRM_ETAPAS)
            O Gatilho NÃO é passo (é metadado `flows.gatilho`). Janela e saídas
            também não são passos (são `janela_envio` / `exits`).
            ===================================================================== */
@@ -10952,6 +10953,11 @@
             return n === 1 ? 'dia' : 'dias';
         }
         function automStageTitle(key) {
+            // Etapa do CRM de lentes: estagio 'lentes:<id>' (o motor grava via pl-lentes-step).
+            if (typeof key === 'string' && key.indexOf('lentes:') === 0) {
+                const e = _LENTES_CRM_ETAPAS.find(x => x.id === key.slice(7));
+                return 'CRM de lentes · ' + (e ? e.rot : key.slice(7));
+            }
             try {
                 const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
                 const c = (cfg.columns || []).find(x => x.key === key);
@@ -11159,11 +11165,21 @@
         function automRenderConfigMover(nodeId, d, body) {
             let cols = [];
             try { cols = ((typeof getCrmConfig === 'function' ? getCrmConfig() : {}).columns) || []; } catch (e) {}
+            // Lojas com CRM de lentes (mesma regra do botão "Lentes" do CRM) também escolhem uma
+            // etapa de lentes. Grava 'lentes:<id>'; "Compra confirmada" fica de fora (vem do pedido).
+            const _lentesStage = _hasLentesPipeline || String(d.estagio || '').indexOf('lentes:') === 0;
+            const _provOpts = cols.map(c => '<option value="' + escapeHtml(c.key) + '"' + (c.key === d.estagio ? ' selected' : '') + '>' + escapeHtml(c.title) + '</option>').join('');
+            const _stageOpts = !_lentesStage ? _provOpts
+                : '<optgroup label="CRM do provador">' + _provOpts + '</optgroup>'
+                + '<optgroup label="CRM de lentes">' + _LENTES_CRM_ETAPAS.filter(e => e.id !== 'comprou').map(e => {
+                    const v = 'lentes:' + e.id;
+                    return '<option value="' + escapeHtml(v) + '"' + (v === d.estagio ? ' selected' : '') + '>' + escapeHtml(e.grupo + ' · ' + e.rot) + '</option>';
+                }).join('') + '</optgroup>';
             body.innerHTML = ''
               + '<div class="autom-cfg-title"><i class="ph-bold ph-kanban"></i> Mover etapa no CRM</div>'
               + '<label class="autom-cfg-label">Etapa de destino</label>'
               + '<select id="automCfgStage" class="autom-input"><option value="">— escolher —</option>'
-              +   cols.map(c => '<option value="' + escapeHtml(c.key) + '"' + (c.key === d.estagio ? ' selected' : '') + '>' + escapeHtml(c.title) + '</option>').join('')
+              +   _stageOpts
               + '</select>';
             document.getElementById('automCfgStage').addEventListener('change', (ev) => {
                 automUpdateNodeData(nodeId, { estagio: ev.target.value });
@@ -20318,6 +20334,11 @@
             return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : d;
         }
         function crmStageTitle(colKey) {
+            // Lead do CRM de lentes: a etapa vem como 'lentes:<id da etapa>'.
+            if (typeof colKey === 'string' && colKey.indexOf('lentes:') === 0) {
+                const e = _LENTES_CRM_ETAPAS.find(x => x.id === colKey.slice(7));
+                return e ? e.rot : '—';
+            }
             try {
                 const cfg = getCrmConfig();
                 const c = (cfg.columns || []).find(x => x.key === colKey);
@@ -20444,10 +20465,14 @@
                     : escapeHtml(lead.lastProduct) + ' <span style="color:var(--text-muted);font-weight:500;font-size:12px;">(sem link salvo)</span>')
                 : '—';
 
-            const _mResp = getCrmResp()[lead.phone] || '';
+            // Lead sem telefone (jornada de lentes sem WhatsApp): sem responsável/tarefa.
+            // (Só vale pro CRM de lentes: no provador a chave pode ser e-mail, ex.: Velaro.)
+            const _lz = lead.lentes || null;   // jornada do CRM de lentes (quando vem de lá)
+            const _hasPh = !_lz || String(lead.phone || '').replace(/\D/g, '').length > 0;
+            const _mResp = _hasPh ? (getCrmResp()[lead.phone] || '') : '';
             const _mTeam = getCrmTeam().slice();
             if (_mResp && !_mTeam.includes(_mResp)) _mTeam.push(_mResp);
-            const respSelectHtml = '<select' + (isComercial() ? ' disabled title="Só o administrador troca o responsável"' : '') + ' onchange="crmModalSetResp(this,\'' + String(lead.phone).replace(/[^0-9]/g, '') + '\')">'
+            const respSelectHtml = !_hasPh ? '<span style="color:var(--text-muted);font-weight:500;">Sem WhatsApp — não dá pra atribuir</span>' : '<select' + (isComercial() ? ' disabled title="Só o administrador troca o responsável"' : '') + ' onchange="crmModalSetResp(this,\'' + String(lead.phone).replace(/[^0-9]/g, '') + '\')">'
                 + '<option value="">— sem responsável —</option>'
                 + _mTeam.map(n => '<option value="' + escapeHtml(n) + '"' + (n === _mResp ? ' selected' : '') + '>' + escapeHtml(n) + '</option>').join('')
                 + '</select>';
@@ -20455,7 +20480,15 @@
             const details = f('Custo deste lead', '<span id="clmCusto" style="color:var(--text-muted);font-weight:500;">calculando…</span>', true)
                 + f('Responsável', respSelectHtml)
                 + f('Etapa atual', escapeHtml(crmStageTitle(colKey)))
-                + f(lead.pendingPayment && !lead.provaCount ? 'Produto do pedido' : 'Produto provado', produtoHtml, true)
+                + f(_lz ? 'Armação' : (lead.pendingPayment && !lead.provaCount ? 'Produto do pedido' : 'Produto provado'), produtoHtml, true)
+                + (_lz ? (f('Lente', escapeHtml(_lz.lente || 'Ainda não definida'), true)
+                    + f('Visão', escapeHtml((_LENTES_VISAO[_lz.visao] || _lz.visao) || '—'))
+                    + f('Tratamento', escapeHtml((_LENTES_TRAT[_lz.trat] || _lz.trat) || '—'))
+                    + f('Receita', _lz.arq
+                        ? '<button type="button" class="lentes-ver" data-arq="' + escapeHtml(_lz.arq) + '" onclick="_lentesAbreReceita(this)"><i class="ph-bold ph-file-text"></i> Ver receita</button>'
+                        : '<span style="color:var(--text-muted);font-weight:500;">Não enviada</span>')
+                    + f('Entrou no fluxo', escapeHtml(_clmFmtDT(new Date(_lz.inicio).toISOString())))
+                    + (_lz.venda ? f('Pedido', escapeHtml('#' + (_lz.venda.numero || _lz.venda.id || '—') + ' · ' + _brl(_lz.venda.total || 0))) : '')) : '')
                 + (lead.provaCount ? f('Primeira prova', crmFmtDate(lead.firstDate)) + f('Última prova', crmFmtDate(lead.lastDate)) : '')
                 + (lead.pendingPayment ? f('Pagamento gerado', crmFmtDate(lead.pendingPaymentDate)) + f('Forma de pagamento', escapeHtml(String(lead.pendingPaymentMethod || 'Não informada').toUpperCase())) + f('Valor pendente', _brl(lead.pendingPaymentAmount || 0)) : '');
 
@@ -20494,7 +20527,13 @@
                 + '</div>') : '')
                 + '</div>';
             ov.style.display = 'flex';
-            try { crmRenderLeadTarefas(lead); } catch (e) { console.warn('[crm] tarefas:', e); }
+            try {
+                if (_hasPh) crmRenderLeadTarefas(lead);
+                else {
+                    const tb = document.getElementById('clmTarefas');
+                    if (tb) { const e = document.createElement('div'); e.className = 'clm-empty'; e.textContent = 'Lead sem WhatsApp — não dá pra agendar tarefa.'; tb.appendChild(e); }
+                }
+            } catch (e) { console.warn('[crm] tarefas:', e); }
             plFillCustoLead('clmCusto', lead.provaCount || 0, lead.rawPhone || lead.phone).catch(() => {});
             crmLoadLeadHistory(lead, ++_clmReqId);
         }
@@ -21053,9 +21092,17 @@
             return ordem.find(id => p[id]) || 'abriu';
         }
 
-        async function _lentesSalvaEtapaCrm(sid, etapa) {
+        // opts.item: jornada já resolvida (mover em massa — evita recalcular as sessões a cada lead).
+        // opts.silent: não redesenha nem mostra aviso (o chamador faz isso uma vez no fim).
+        async function _lentesSalvaEtapaCrm(sid, etapa, opts) {
+            opts = opts || {};
             if (!_LENTES_CRM_ETAPAS.some(e => e.id === etapa)) throw new Error('Etapa de destino inválida.');
-            const item = _lentesCrmSessoesVisiveis(_lentesSessoes(true)).find(v => v.sid === sid);
+            let item = opts.item || null;
+            if (!item) {
+                const todas = _lentesCrmSessoesVisiveis(_lentesSessoes(true));
+                _lentesCasaVendas(todas, 0);   // a venda define a etapa "Compra confirmada"
+                item = todas.find(v => v.sid === sid);
+            }
             if (!item) throw new Error('Lead de lentes não encontrado.');
             if (_lentesEtapaCrm(item) === etapa) return false;
 
@@ -21077,8 +21124,10 @@
 
             _lentesLinhas.push({ session_id: sid, telefone: item.telefone || null,
                 step: 'crm_lentes_etapa', detail: detalhe, produto: item.produto || null, created_at: agora });
-            renderLentesCrmPipeline();
-            crmToast('Lead movido para ' + (_LENTES_CRM_ETAPAS.find(e => e.id === etapa).rot) + '.');
+            if (!opts.silent) {
+                renderLentesCrmPipeline();
+                crmToast('Lead movido para ' + (_LENTES_CRM_ETAPAS.find(e => e.id === etapa).rot) + '.');
+            }
             return true;
         }
 
@@ -21098,14 +21147,111 @@
             return e ? e.rot : '';
         }
 
+        // ── CRM de lentes com os mesmos recursos do CRM do provador (06/10/2026) ──
+        // Responsável, tarefas, tags de campanha e custo são guardados POR TELEFONE, com a mesma
+        // chave do CRM do provador (normalize = últimos 9 dígitos). Então o responsável/tarefa de
+        // um cliente é o mesmo nos dois quadros. Jornada sem WhatsApp não tem chave: esses
+        // recursos ficam desligados nela.
+        function _lentesLeadKey(v) {
+            return v && v.telefone ? (normalize(v.telefone) || '') : '';
+        }
+        // Jornadas que este login pode ver (comercial: só as dele + sem dono), já com a venda casada.
+        function _lentesCrmItens() {
+            const todas = _lentesCrmSessoesVisiveis(_lentesSessoes(true));
+            _lentesCasaVendas(todas, 0);
+            if (!_plComercial) return todas;
+            const resp = getCrmResp();
+            return todas.filter(v => plComercialVe(resp[_lentesLeadKey(v)]));
+        }
+        // Filtros da barra (responsável + campanha), iguais aos do CRM do provador.
+        function _lentesPassaFiltros(v, resp, tagKey) {
+            const key = _lentesLeadKey(v);
+            if (_crmRespFilter) {
+                const who = key ? (resp[key] || '') : '';
+                if (_crmRespFilter === '__none__') { if (who) return false; }
+                else if (who !== _crmRespFilter) return false;
+            }
+            const tk = tagKey === undefined ? _crmCampFilter : tagKey;
+            if (tk) {
+                const tset = key ? _crmCampaignTags[key] : null;
+                const has = !!(tset && Object.keys(tset).length);
+                if (tk === '__none__') { if (has) return false; }
+                else if (!tset || !tset[tk]) return false;
+            }
+            return true;
+        }
+        // Monta um lead no formato do CRM do provador pra reaproveitar a ficha (openCrmLeadModal).
+        function _lentesCrmLead(item) {
+            const key = _lentesLeadKey(item);
+            const base = (key && crmLeadMapCache && crmLeadMapCache[key]) || {};
+            return Object.assign({}, base, {
+                phone: key,
+                rawPhone: item.telefone || base.rawPhone || '',
+                name: (item.venda && item.venda.nome) || base.name || '',
+                lastProduct: item.produto || base.lastProduct || '',
+                lastProductUrl: item.produtoUrl || base.lastProductUrl || '',
+                provaCount: base.provaCount || 0,
+                bought: !!item.venda,
+                pendingPayment: false,
+                lentes: item
+            });
+        }
+        function _lentesAbreLeadModal(item) {
+            openCrmLeadModal(_lentesCrmLead(item), 'lentes:' + _lentesEtapaCrm(item));
+        }
+        function _lentesCardTags(key) {
+            const tags = (key && _crmCampaignTags[key]) ? Object.values(_crmCampaignTags[key]) : [];
+            if (!tags.length) return null;
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;';
+            tags.slice(0, 5).forEach(t => {
+                const isAuto = t.origem === 'Automação';
+                const b = document.createElement('span');
+                b.style.cssText = 'display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:99px;max-width:100%;'
+                    + (isAuto ? 'color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);'
+                              : 'color:#7c3aed;background:rgba(124,58,237,.10);border:1px solid rgba(124,58,237,.22);');
+                b.title = t.origem + ': ' + (t.nome || '');
+                const ic = document.createElement('i'); ic.className = 'ph-bold ' + (isAuto ? 'ph-robot' : 'ph-megaphone');
+                const tx = document.createElement('span'); tx.textContent = t.nome || t.origem;
+                tx.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;';
+                b.append(ic, tx);
+                wrap.appendChild(b);
+            });
+            return wrap;
+        }
+        function _lentesCardResp(key, resp, team) {
+            const curResp = resp[key] || '';
+            const wrap = document.createElement('div'); wrap.className = 'crm-card-resp-wrap';
+            const dot = document.createElement('span'); dot.className = 'crm-card-resp-dot';
+            dot.style.background = curResp ? crmRespColor(curResp) : 'transparent';
+            const sel = document.createElement('select');
+            sel.className = 'crm-card-resp' + (curResp ? ' has-resp' : '');
+            const teamPlus = team.slice();
+            if (curResp && !teamPlus.includes(curResp)) teamPlus.push(curResp);
+            [['', '+ Responsável']].concat(teamPlus.map(n => [n, n])).forEach(([v, l]) => {
+                const o = document.createElement('option'); o.value = v; o.textContent = l;
+                if (v === curResp) o.selected = true;
+                sel.appendChild(o);
+            });
+            sel.addEventListener('click', e => e.stopPropagation());
+            sel.addEventListener('change', e => {
+                e.stopPropagation();
+                setCrmLeadResp(key, sel.value);
+                renderLentesCrmPipeline();
+            });
+            wrap.append(dot, sel);
+            return wrap;
+        }
+
         function renderLentesCrmPipeline() {
             if (_crmPipelineMode !== 'lentes') return;
             const board = document.getElementById('crmBoard');
             if (!board) return;
             const q = _crmSearchTerm;
-            const todas = _lentesCrmSessoesVisiveis(_lentesSessoes(true));
-            _lentesCasaVendas(todas, 0);
-            const itens = todas.filter(v => {
+            const resp = getCrmResp();
+            const team = getCrmTeam();
+            const itens = _lentesCrmItens().filter(v => {
+                if (!_lentesPassaFiltros(v, resp)) return false;
                 if (!q) return true;
                 const texto = [v.telefone, v.produto, v.lente, v.venda && v.venda.nome,
                     v.venda && v.venda.numero, v.venda && v.venda.id].filter(Boolean).join(' ').toLowerCase();
@@ -21122,6 +21268,8 @@
             board.textContent = '';
             board.style.gridTemplateColumns = 'repeat(' + _LENTES_CRM_ETAPAS.length + ', minmax(270px, 1fr))';
             const crmLentesCols = _LENTES_CRM_ETAPAS.map(e => ({ key: e.id }));
+            const icone = (cls) => { const i = document.createElement('i'); i.className = 'ph-bold ' + cls; return i; };
+            const metaSpan = (cls, txt) => { const s = document.createElement('span'); s.append(icone(cls), document.createTextNode(' ' + txt)); return s; };
             _LENTES_CRM_ETAPAS.forEach(etapa => {
                 const etapaCrmCor = crmStageColor(etapa.id, crmLentesCols);
                 const col = document.createElement('div');
@@ -21145,8 +21293,11 @@
                 const head = document.createElement('div'); head.className = 'crm-col-header';
                 const title = document.createElement('div'); title.className = 'crm-col-title';
                 title.title = etapa.grupo;
-                title.innerHTML = '<i class="ph-bold ' + etapa.icone + '"></i><span class="crm-lens-stage-copy"><small>'
-                    + etapa.grupo + '</small><span>' + etapa.rot + '</span></span>';
+                const copy = document.createElement('span'); copy.className = 'crm-lens-stage-copy';
+                const sm = document.createElement('small'); sm.textContent = etapa.grupo;
+                const rt = document.createElement('span'); rt.textContent = etapa.rot;
+                copy.append(sm, rt);
+                title.append(icone(etapa.icone), copy);
                 const total = document.createElement('span'); total.className = 'crm-col-count'; total.textContent = buckets[etapa.id].length;
                 head.append(title, total);
                 const body = document.createElement('div'); body.className = 'crm-col-body';
@@ -21156,10 +21307,17 @@
                     body.appendChild(empty);
                 }
                 buckets[etapa.id].slice(0, 200).forEach(item => {
+                    const key = _lentesLeadKey(item);
                     const card = document.createElement('div'); card.className = 'crm-card'; card.draggable = true;
                     card.style.setProperty('--col-accent', etapaCrmCor);
+                    card.style.cursor = 'pointer';
+                    // Clique no card abre a ficha do lead (igual ao CRM do provador); botões/links/seletor não.
+                    card.addEventListener('click', e => {
+                        if (e.target.closest('a, button, select')) return;
+                        _lentesAbreLeadModal(item);
+                    });
                     card.addEventListener('dragstart', e => {
-                        if (e.target.closest('a,button')) { e.preventDefault(); return; }
+                        if (e.target.closest && e.target.closest('a,button,select')) { e.preventDefault(); return; }
                         e.dataTransfer.effectAllowed = 'move';
                         e.dataTransfer.setData('text/plain', item.sid);
                         card.classList.add('crm-card-dragging');
@@ -21172,17 +21330,33 @@
                     const numero = item.venda && (item.venda.numero || item.venda.id);
                     const dataBase = (item.venda && item.venda.ms) || item.fim || item.inicio;
                     const dias = Math.max(0, Math.floor((Date.now() - dataBase) / 864e5));
-                    card.innerHTML = '<div class="crm-card-name"><i class="ph-bold ph-user-circle"></i><span>' + _lesc(nome) + '</span></div>'
-                        + '<div class="crm-card-meta">' + (numero ? '<span><i class="ph-bold ph-receipt"></i> Pedido #' + _lesc(numero) + '</span>' : '<span><i class="ph-bold ph-path"></i> Jornada de lentes</span>')
-                        + '<span><i class="ph-bold ph-clock"></i> ' + (dias === 0 ? 'hoje' : dias === 1 ? 'ontem' : 'há ' + dias + ' dias') + '</span></div>'
-                        + '<div class="crm-lentes-card-detail"><b>' + _lesc(item.produto || 'Armação não identificada') + '</b><span>' + _lesc(item.lente || 'Lente ainda não definida') + '</span></div>';
+
+                    const nm = document.createElement('div'); nm.className = 'crm-card-name';
+                    const nmTx = document.createElement('span'); nmTx.textContent = nome;
+                    nm.append(icone('ph-user-circle'), nmTx);
+                    const meta = document.createElement('div'); meta.className = 'crm-card-meta';
+                    meta.append(numero ? metaSpan('ph-receipt', 'Pedido #' + numero) : metaSpan('ph-path', 'Jornada de lentes'),
+                        metaSpan('ph-clock', dias === 0 ? 'hoje' : dias === 1 ? 'ontem' : 'há ' + dias + ' dias'));
+                    const det = document.createElement('div'); det.className = 'crm-lentes-card-detail';
+                    const detB = document.createElement('b'); detB.textContent = item.produto || 'Armação não identificada';
+                    const detS = document.createElement('span'); detS.textContent = item.lente || 'Lente ainda não definida';
+                    det.append(detB, detS);
+                    card.append(nm, meta, det);
                     if (etapa.id === 'saiu') {
                         const antes = _lentesUltimaEtapaAntesDeSair(item);
                         if (antes) {
                             const saiu = document.createElement('div'); saiu.className = 'crm-card-meta';
-                            saiu.innerHTML = '<span><i class="ph-bold ph-arrow-bend-up-left"></i> Antes de sair: ' + _lesc(antes) + '</span>';
+                            saiu.appendChild(metaSpan('ph-arrow-bend-up-left', 'Antes de sair: ' + antes));
                             card.appendChild(saiu);
                         }
+                    }
+                    if (key) {
+                        // Tarefa agendada (a mais próxima; atrasada em vermelho)
+                        const _tl = crmTarefasDoLead(key);
+                        if (_tl.length) card.appendChild(_crmTarefaBadge(_tl[0], _tl.length - 1));
+                        const tg = _lentesCardTags(key);
+                        if (tg) card.appendChild(tg);
+                        card.appendChild(_lentesCardResp(key, resp, team));
                     }
                     const actions = document.createElement('div'); actions.className = 'crm-lentes-card-actions';
                     if (item.arq) {
@@ -21192,17 +21366,19 @@
                     if (item.telefone) {
                         const num = String(item.telefone).replace(/\D/g, '');
                         const wa = document.createElement('a'); wa.className = 'crm-card-wpp'; wa.target = '_blank'; wa.rel = 'noopener';
-                        wa.href = 'https://wa.me/' + (num.length > 11 ? num : '55' + num); wa.innerHTML = '<i class="ph-bold ph-whatsapp-logo"></i> WhatsApp';
+                        wa.href = 'https://wa.me/' + (num.length > 11 ? num : '55' + num);
+                        wa.append(icone('ph-whatsapp-logo'), document.createTextNode(' WhatsApp'));
                         actions.appendChild(wa);
                     }
                     if (actions.children.length) card.appendChild(actions);
                     if (etapa.prox) {
                         const next = document.createElement('button'); next.type = 'button'; next.className = 'crm-lentes-next';
-                        next.innerHTML = etapa.acao + ' <i class="ph-bold ph-arrow-right"></i>';
+                        const montaNext = () => { next.textContent = ''; next.append(document.createTextNode(etapa.acao + ' '), icone('ph-arrow-right')); };
+                        montaNext();
                         next.onclick = async () => {
-                            const old = next.innerHTML; next.disabled = true; next.textContent = 'Salvando…';
+                            next.disabled = true; next.textContent = 'Salvando…';
                             try { await _lentesSalvaEtapa(item.sid, etapa.prox); }
-                            catch (err) { next.disabled = false; next.innerHTML = old; crmToast(err.message || 'Não foi possível avançar o pedido.', true); }
+                            catch (err) { next.disabled = false; montaNext(); crmToast(err.message || 'Não foi possível avançar o pedido.', true); }
                         };
                         card.appendChild(next);
                     }
@@ -21215,18 +21391,89 @@
                 }
                 col.append(head, body); board.appendChild(col);
             });
+            try { populateCrmRespControls(); } catch (e) {}
+            try { populateCrmCampControls(); } catch (e) {}
+        }
+
+        // ===== Mover em massa no CRM de lentes =====
+        // Mesmo modal do provador; aqui as etapas são as do CRM de lentes e cada jornada é
+        // gravada pelo webhook pl-lentes-step (step crm_lentes_etapa), 4 por vez.
+        function _lentesBulkTargets(s) {
+            const resp = getCrmResp();
+            return _lentesCrmItens().filter(v => {
+                if (!_lentesPassaFiltros(v, resp, s.tag)) return false;
+                const et = _lentesEtapaCrm(v);
+                if (s.from !== '__any__' && et !== s.from) return false;
+                return et !== s.to;
+            });
+        }
+        function _lentesBulkTitle(id) {
+            if (id === '__any__') return 'Todas as etapas';
+            const e = _LENTES_CRM_ETAPAS.find(x => x.id === id);
+            return e ? e.rot : id;
+        }
+        function _lentesOpenBulkMove() {
+            const fill = (sel, pares) => {
+                if (!sel) return;
+                sel.textContent = '';
+                pares.forEach(([v, l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; sel.appendChild(o); });
+            };
+            const etapas = _LENTES_CRM_ETAPAS.map(e => [e.id, e.grupo + ' · ' + e.rot]);
+            const from = document.getElementById('crmBulkFrom');
+            const to = document.getElementById('crmBulkTo');
+            const tag = document.getElementById('crmBulkTag');
+            fill(from, [['__any__', 'Todas as etapas']].concat(etapas));
+            fill(to, etapas);
+            if (tag) {
+                const tags = crmAllCampaignTags();
+                fill(tag, [['', 'Qualquer lead (sem filtro de tag)'], ['__none__', 'Sem nenhuma tag (nunca recebeu disparo)']]
+                    .concat(tags.map(t => [t.key, t.label])));
+                tag.value = (_crmCampFilter && tags.some(t => t.key === _crmCampFilter)) ? _crmCampFilter : '';
+            }
+            if (from) from.value = _LENTES_CRM_ETAPAS[0].id;
+            if (to) to.value = _LENTES_CRM_ETAPAS[1].id;
+            crmBulkMoveUpdateCount();
+            const m = document.getElementById('crmBulkMoveModal');
+            if (m) { if (m.parentElement !== document.body) document.body.appendChild(m); m.style.display = 'flex'; }
+        }
+        async function _lentesBulkApply(s) {
+            if (!s.from || !s.to) return;
+            if (s.from === s.to) { try { crmToast('Escolha etapas diferentes.', true); } catch (e) {} return; }
+            const alvos = _lentesBulkTargets(s);
+            if (!alvos.length) { try { crmToast('Nenhum lead pra mover com esses filtros.', true); } catch (e) {} return; }
+            const tg = s.tag ? (' com ' + _crmBulkTagLabel(s.tag)) : '';
+            if (!confirm('Mover ' + alvos.length + ' jornada(s) de "' + _lentesBulkTitle(s.from) + '"' + tg + ' para "' + _lentesBulkTitle(s.to) + '"?')) return;
+            const btn = document.getElementById('crmBulkMoveApplyBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Movendo…'; }
+            let ok = 0, falhas = 0, i = 0;
+            const worker = async () => {
+                while (i < alvos.length) {
+                    const v = alvos[i++];
+                    try { if (await _lentesSalvaEtapaCrm(v.sid, s.to, { item: v, silent: true })) ok++; }
+                    catch (e) { falhas++; console.warn('[CRM lentes] mover em massa:', e); }
+                    if (btn) btn.textContent = 'Movendo… ' + (ok + falhas) + '/' + alvos.length;
+                }
+            };
+            await Promise.all([worker(), worker(), worker(), worker()]);
+            if (btn) { btn.disabled = false; btn.textContent = 'Mover'; }
+            closeCrmBulkMoveModal();
+            renderLentesCrmPipeline();
+            try {
+                if (falhas) crmToast(ok + ' jornada(s) movidas; ' + falhas + ' falharam. Tente de novo.', true);
+                else crmToast(ok + ' jornada(s) movidas para "' + _lentesBulkTitle(s.to) + '".', false);
+            } catch (e) {}
         }
 
         function exportLentesCrmCSV() {
             const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-            const rows = [['Pedido','Cliente','WhatsApp','Etapa atual','Etapas rastreadas','Armação','Visão','Tratamento','Lente','Última atividade'].map(esc).join(';')];
-            const todas = _lentesCrmSessoesVisiveis(_lentesSessoes(true));
-            _lentesCasaVendas(todas, 0);
+            const rows = [['Pedido','Cliente','WhatsApp','Etapa atual','Etapas rastreadas','Armação','Visão','Tratamento','Lente','Responsável','Última atividade'].map(esc).join(';')];
+            const todas = _lentesCrmItens();
+            const resp = getCrmResp();
             todas.forEach(v => {
                 const etapa = _LENTES_CRM_ETAPAS.find(e => e.id === _lentesEtapaCrm(v));
                 rows.push([v.venda && (v.venda.numero || v.venda.id), v.venda && v.venda.nome, v.telefone,
                     etapa && etapa.rot, Object.keys(v.passos || {}).join(' > '), v.produto,
-                    _LENTES_VISAO[v.visao] || v.visao, _LENTES_TRAT[v.trat] || v.trat, v.lente,
+                    _LENTES_VISAO[v.visao] || v.visao, _LENTES_TRAT[v.trat] || v.trat, v.lente, resp[_lentesLeadKey(v)] || '',
                     new Date(v.fim || v.inicio).toLocaleString('pt-BR')].map(esc).join(';'));
             });
             const blob = new Blob(['﻿' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
@@ -21910,6 +22157,7 @@
             return t ? ('a tag "' + t.label + '"') : 'a tag escolhida';
         }
         function openCrmBulkMoveModal() {
+            if (_crmPipelineMode === 'lentes') return _lentesOpenBulkMove();
             const cfg = getCrmConfig();
             const cols = cfg.columns || [];
             const opt = cols.map(c => '<option value="' + escapeHtml(c.key) + '">' + escapeHtml(c.title) + '</option>').join('');
@@ -21950,7 +22198,7 @@
         }
         function crmBulkMoveUpdateCount() {
             const s = _crmBulkSel();
-            const n = _crmBulkTargets(s).length;
+            const n = _crmPipelineMode === 'lentes' ? _lentesBulkTargets(s).length : _crmBulkTargets(s).length;
             const el = document.getElementById('crmBulkMoveCount');
             const onde = s.from === '__any__' ? '' : ' nesta etapa';
             const tg = s.tag ? (' com ' + _crmBulkTagLabel(s.tag)) : '';
@@ -21960,6 +22208,7 @@
         }
         async function crmBulkMoveApply() {
             const s = _crmBulkSel();
+            if (_crmPipelineMode === 'lentes') return _lentesBulkApply(s);
             const from = s.from, to = s.to, tagKey = s.tag;
             if (!from || !to) return;
             if (from === to) { try { crmToast('Escolha etapas diferentes.', true); } catch (e) {} return; }
