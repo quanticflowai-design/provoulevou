@@ -38,7 +38,7 @@
 .reg .h b{font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 .reg .cm{display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:8px;padding:2px 8px}
 .reg .cm input{width:44px;border:0;font:inherit;font-weight:700;font-size:14px;text-align:right;outline:none}
-.reg input[type=range]{width:100%;accent-color:#111}
+.reg input[type=range]{width:100%;accent-color:#111;height:28px;margin:6px 0;cursor:pointer;touch-action:pan-y}.reg input[type=range]::-webkit-slider-thumb{width:26px;height:26px}.reg input[type=range]::-moz-range-thumb{width:24px;height:24px}
 .faixas{display:flex;justify-content:space-between;font-size:11px;color:#aaa;font-weight:700;margin-top:2px}
 .faixas span.on{color:#111}
 .go{width:100%;height:52px;background:#111;color:#fff;border:0;border-radius:10px;font:inherit;font-weight:900;font-size:15px;cursor:pointer}
@@ -124,16 +124,21 @@ function recomenda() {
 function regs() {
   document.getElementById('regs').innerHTML = Object.keys(MED).map(k => {
     const m = MED[k], t = tamDe(k, m.v);
-    return '<div class="reg"><div class="h"><b>' + m.nome + '</b><span class="cm"><input type="number" min="' + m.min + '" max="' + m.max + '" value="' + m.v + '" oninput="muda(\'' + k + '\',this.value,1)"> cm</span></div>'
-      + '<input type="range" min="' + m.min + '" max="' + m.max + '" value="' + m.v + '" oninput="muda(\'' + k + '\',this.value)">'
+    return '<div class="reg"><div class="h"><b>' + m.nome + '</b><span class="cm"><input type="number" data-num="' + k + '" min="' + m.min + '" max="' + m.max + '" value="' + m.v + '" oninput="muda(\'' + k + '\',this.value,1)"> cm</span></div>'
+      + '<input type="range" data-reg="' + k + '" step="1" min="' + m.min + '" max="' + m.max + '" value="' + m.v + '" oninput="muda(\'' + k + '\',this.value)">'
       + '<div class="faixas">' + TABELA.map((x, j) => '<span class="' + (j === t ? 'on' : '') + '">' + x.t + '</span>').join('') + '</div></div>';
   }).join('');
 }
+// Não redesenha as réguas enquanto a pessoa arrasta (isso matava o gesto): só sincroniza
+// o número/a régua irmã e as faixas; o corpo 3D recalcula no máximo 1x por quadro.
+let quadroPendente = 0;
 function muda(k, v, digitado) {
   v = Math.max(MED[k].min, Math.min(MED[k].max, +v || MED[k].min)); MED[k].v = v;
-  if (digitado) { const r = document.querySelector('.reg:nth-child(' + (Object.keys(MED).indexOf(k) + 1) + ') input[type=range]'); if (r) r.value = v; atualizaFaixas(); }
-  else regs();
-  document.getElementById('selo').textContent = recomenda().nome; reconstroi();
+  const irma = document.querySelector(digitado ? '[data-reg="' + k + '"]' : '[data-num="' + k + '"]');
+  if (irma && document.activeElement !== irma) irma.value = v;
+  atualizaFaixas();
+  document.getElementById('selo').textContent = recomenda().nome;
+  if (!quadroPendente) quadroPendente = requestAnimationFrame(() => { quadroPendente = 0; reconstroi(); });
 }
 function atualizaFaixas() { Object.keys(MED).forEach((k, n) => { const t = tamDe(k, MED[k].v); document.querySelectorAll('.reg')[n].querySelectorAll('.faixas span').forEach((s, j) => s.classList.toggle('on', j === t)); }); }
 
