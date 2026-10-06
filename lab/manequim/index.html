@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prévia · Qual é o meu tamanho</title>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<style>
+:root{--ink:#111;--muted:#7a7a7a;--line:#e6e6e6;--bg:#fff;--acc:#111}
+*{box-sizing:border-box}body{margin:0;font-family:Lato,system-ui,sans-serif;color:var(--ink);background:#f6f4f2}
+.loja{max-width:1100px;margin:0 auto;padding:28px 18px;display:grid;grid-template-columns:1fr 1fr;gap:36px}
+.loja img{width:100%;border-radius:4px}
+.loja h1{font-size:22px;font-weight:700;letter-spacing:.02em;margin:0 0 10px}
+.preco{font-size:24px;font-weight:900;margin:8px 0}.mut{color:var(--muted);font-size:13px}
+.tams{display:flex;gap:8px;margin:16px 0}.tam{width:46px;height:40px;border:1px solid #ccc;display:grid;place-items:center;font-weight:700;cursor:pointer;background:#fff}
+.tam.on{border:2px solid #111}
+.btn-comprar{width:100%;height:56px;background:#111;color:#fff;border:0;font:inherit;font-weight:900;font-size:16px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.btn-tam{width:100%;margin-top:12px;height:56px;border:1px solid #111;background:#fff;font:inherit;font-size:15px;cursor:pointer;display:flex;gap:10px;align-items:center;justify-content:center}
+.btn-tam small{display:block;color:var(--muted);font-size:12px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:14px;z-index:20}
+.ov.on{display:flex}
+.md{background:#fff;width:min(460px,100%);max-height:94vh;overflow-y:auto;overflow-x:hidden;border-radius:16px;position:relative}
+.top{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 44px;border-bottom:1px solid var(--line);font-size:12.5px;font-weight:700;color:#aaa}
+.top .st{display:flex;gap:6px;align-items:center}.top .st b{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#eee;color:#888;font-size:11px}
+.top .st.on{color:#111}.top .st.on b{background:#111;color:#fff}.top .sep{width:18px;height:1px;background:#ddd}
+.x{position:absolute;right:12px;top:10px;border:0;background:transparent;font-size:22px;cursor:pointer;color:#666}
+.cena{height:360px;background:radial-gradient(ellipse at 50% 35%,#f4f1ec,#ddd6cd);position:relative;cursor:grab}
+.cena canvas{display:block}
+.dica{position:absolute;left:12px;bottom:10px;font-size:11.5px;color:#6b645c;background:rgba(255,255,255,.7);padding:4px 9px;border-radius:99px}
+.selo{position:absolute;right:12px;top:12px;background:#111;color:#fff;font-weight:900;font-size:13px;padding:6px 12px;border-radius:99px}
+.corpo{padding:16px 18px 18px}
+.corpo h3{margin:0 0 4px;font-size:16px}.corpo p{margin:0 0 14px;color:var(--muted);font-size:12.5px;line-height:1.5}
+.reg{margin-bottom:16px}
+.reg .h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.reg .h b{font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.reg .cm{display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:8px;padding:2px 8px}
+.reg .cm input{width:44px;border:0;font:inherit;font-weight:700;font-size:14px;text-align:right;outline:none}
+.reg input[type=range]{width:100%;accent-color:#111}
+.faixas{display:flex;justify-content:space-between;font-size:11px;color:#aaa;font-weight:700;margin-top:2px}
+.faixas span.on{color:#111}
+.go{width:100%;height:52px;background:#111;color:#fff;border:0;border-radius:10px;font:inherit;font-weight:900;font-size:15px;cursor:pointer}
+.up{border:2px dashed #ccc;border-radius:12px;height:260px;display:grid;place-items:center;text-align:center;color:var(--muted);cursor:pointer;margin-bottom:14px;overflow:hidden}
+.up img{width:100%;height:100%;object-fit:cover}
+.res{display:grid;grid-template-columns:1fr;gap:12px}
+.res .foto{height:300px;border-radius:12px;background:#eee center/cover;display:grid;place-items:end center;padding:10px;color:#fff;font-size:12px;position:relative}
+.res .foto span{background:rgba(0,0,0,.55);padding:5px 10px;border-radius:99px}
+.tamres{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;gap:14px;align-items:center}
+.tamres .big{width:64px;height:64px;border-radius:12px;background:#111;color:#fff;font-weight:900;font-size:26px;display:grid;place-items:center;flex:0 0 auto}
+.tamres b{font-size:15px}.tamres p{margin:3px 0 0;font-size:12.5px;color:var(--muted)}
+.linha{display:flex;justify-content:space-between;font-size:12.5px;padding:6px 0;border-bottom:1px solid var(--line)}
+.linha:last-child{border:0}
+.aviso{background:#fff7e6;color:#7a5200;border-radius:10px;padding:10px 12px;font-size:12.5px}
+.bar2{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);background:#15121f;color:#d8d4e8;font-size:12px;padding:8px 14px;border-radius:12px;z-index:30}
+@media(max-width:760px){.loja{grid-template-columns:1fr}.cena{height:320px}}
+</style>
+</head>
+<body>
+<div class="loja">
+  <img src="https://images.tcdn.com.br/img/img_prod/713055/vestido_rachel_xadrez_marrom_1_20260909162445_71053d24a992.jpg" alt="Vestido Rachel Xadrez Marrom">
+  <div>
+    <div class="mut">LAÇO DE LUXO · prévia de teste</div>
+    <h1>VESTIDO RACHEL XADREZ MARROM</h1>
+    <div class="mut"><s>R$ 229,90</s></div>
+    <div class="preco">R$ 199,90 <span class="mut" style="font-weight:400">no pix</span></div>
+    <div class="mut">ou 3x de R$ 66,63 sem juros</div>
+    <div class="tams" id="tams"></div>
+    <button class="btn-comprar">Comprar</button>
+    <button class="btn-tam" onclick="abre()"><span style="font-size:20px">📏</span><span style="text-align:left"><b>Qual é o meu tamanho?</b><small>Descubra em 1 minuto e veja a peça em você</small></span></button>
+  </div>
+</div>
+
+<div class="ov" id="ov"><div class="md">
+  <div class="top"><div class="st on" id="s1"><b>1</b>Medidas</div><span class="sep"></span><div class="st" id="s2"><b>2</b>Sua foto</div><span class="sep"></span><div class="st" id="s3"><b>3</b>Resultado</div></div>
+  <button class="x" onclick="fecha()" aria-label="Fechar">×</button>
+
+  <div id="p1">
+    <div class="cena" id="cena"><span class="dica">↻ Arraste para girar</span><span class="selo" id="selo">M</span></div>
+    <div class="corpo">
+      <h3>Monte o seu corpo</h3>
+      <p>Arraste até o manequim parecer com você, ou digite as medidas se tiver fita métrica. Para este vestido, valem <b>busto, cintura e quadril</b>.</p>
+      <div id="regs"></div>
+      <button class="go" onclick="passo(2)">Descobrir meu tamanho</button>
+    </div>
+  </div>
+
+  <div id="p2" style="display:none" class="corpo">
+    <h3>Envie sua foto</h3>
+    <p>De frente, corpo inteiro, com boa luz. A gente veste o vestido em você.</p>
+    <label class="up" id="up"><input type="file" accept="image/*" hidden onchange="foto(this)"><span>📷<br>Toque para enviar uma foto</span></label>
+    <button class="go" onclick="passo(3)">Ver resultado</button>
+    <p style="text-align:center;margin-top:10px"><a href="#" onclick="passo(3);return false" style="color:#111">Pular e ver só o tamanho</a></p>
+  </div>
+
+  <div id="p3" style="display:none" class="corpo"><div class="res" id="res"></div></div>
+</div></div>
+<div class="bar2">Prévia local · nada é gravado nem enviado</div>
+
+<script>
+// Tabela padrão (moda feminina BR, cm). Na versão real vem da tabela da página do produto quando existir.
+const TABELA = [
+  { t: 'PP', busto: [80, 84], cintura: [62, 66], quadril: [88, 92] },
+  { t: 'P',  busto: [84, 88], cintura: [66, 70], quadril: [92, 96] },
+  { t: 'M',  busto: [88, 94], cintura: [70, 76], quadril: [96, 102] },
+  { t: 'G',  busto: [94, 100], cintura: [76, 82], quadril: [102, 108] },
+  { t: 'GG', busto: [100, 108], cintura: [82, 90], quadril: [108, 116] }
+];
+const MED = { busto: { nome: 'Busto', min: 76, max: 136, v: 89 }, cintura: { nome: 'Cintura', min: 60, max: 126, v: 70 }, quadril: { nome: 'Quadril', min: 86, max: 142, v: 98 } };
+let fotoURL = '';
+document.getElementById('tams').innerHTML = TABELA.map(x => '<div class="tam" data-t="' + x.t + '">' + x.t + '</div>').join('');
+
+function tamDe(campo, v) {
+  for (let i = 0; i < TABELA.length; i++) if (v <= TABELA[i][campo][1]) return i;
+  return TABELA.length; // acima do maior
+}
+function recomenda() {
+  const idx = Object.keys(MED).map(k => tamDe(k, MED[k].v));
+  const i = Math.max.apply(null, idx); // veste pela medida maior
+  const perto = Object.keys(MED).some(k => { const t = TABELA[Math.min(i, TABELA.length - 1)][k]; return MED[k].v >= t[1] - 1 && i < TABELA.length - 1; });
+  return { i, nome: i >= TABELA.length ? 'GG+' : TABELA[i].t, idx, perto };
+}
+function regs() {
+  document.getElementById('regs').innerHTML = Object.keys(MED).map(k => {
+    const m = MED[k], t = tamDe(k, m.v);
+    return '<div class="reg"><div class="h"><b>' + m.nome + '</b><span class="cm"><input type="number" min="' + m.min + '" max="' + m.max + '" value="' + m.v + '" oninput="muda(\'' + k + '\',this.value,1)"> cm</span></div>'
+      + '<input type="range" min="' + m.min + '" max="' + m.max + '" value="' + m.v + '" oninput="muda(\'' + k + '\',this.value)">'
+      + '<div class="faixas">' + TABELA.map((x, j) => '<span class="' + (j === t ? 'on' : '') + '">' + x.t + '</span>').join('') + '</div></div>';
+  }).join('');
+}
+function muda(k, v, digitado) {
+  v = Math.max(MED[k].min, Math.min(MED[k].max, +v || MED[k].min)); MED[k].v = v;
+  if (digitado) { const r = document.querySelector('.reg:nth-child(' + (Object.keys(MED).indexOf(k) + 1) + ') input[type=range]'); if (r) r.value = v; atualizaFaixas(); }
+  else regs();
+  document.getElementById('selo').textContent = recomenda().nome; reconstroi();
+}
+function atualizaFaixas() { Object.keys(MED).forEach((k, n) => { const t = tamDe(k, MED[k].v); document.querySelectorAll('.reg')[n].querySelectorAll('.faixas span').forEach((s, j) => s.classList.toggle('on', j === t)); }); }
+
+// ---------- manequim 3D: corpo feminino MakeHuman (CC0) com ajustes de busto/cintura/quadril/peso ----------
+let renderer, scene, camera, controls, corpoMesh, CORPO = null, BASEPOS = null;
+const b64f = s => new Float32Array(Uint8Array.from(atob(s), c => c.charCodeAt(0)).buffer);
+const b64u = s => new Uint16Array(Uint8Array.from(atob(s), c => c.charCodeAt(0)).buffer);
+async function carregaCorpo() {
+  if (CORPO) return CORPO;
+  const j = await (await fetch('manequim-corpo.json')).json();
+  const m = {}; for (const k in j.morphs) m[k] = { i: b64u(j.morphs[k].i), d: b64f(j.morphs[k].d) };
+  CORPO = { pos: b64f(j.pos), idx: b64u(j.idx), calib: j.calib, m };
+  return CORPO;
+}
+// Medidas (cm) -> pesos dos ajustes. Primeiro o "peso" geral pela média; o resto, ajuste por região.
+function pesos() {
+  const c = CORPO.calib, w = {}, ks = ['busto', 'cintura', 'quadril'];
+  const delta = k => MED[k].v - c[k].base;
+  const media = ks.reduce((s, k) => s + delta(k) / (delta(k) >= 0 ? c[k].pesoMais : -c[k].pesoMenos), 0) / 3;
+  const p = Math.max(-1, Math.min(1.5, media * .6));
+  if (p >= 0) w.pesoMais = p; else w.pesoMenos = -p;
+  ks.forEach(k => {
+    const resto = delta(k) - (p >= 0 ? p * c[k].pesoMais : -p * c[k].pesoMenos);
+    if (resto >= 0) w[k + 'Mais'] = Math.min(2.2, resto / c[k].mais);
+    else w[k + 'Menos'] = Math.min(1.6, resto / c[k].menos);
+  });
+  if (delta('busto') > 0) w.sobMais = (w.bustoMais || 0) * .35; else if (w.bustoMenos) w.sobMenos = Math.min(1.5, -delta('busto') / 6);
+  const q = (w.quadrilMais || 0) - (w.quadrilMenos || 0); if (q > 0) w.coxaMais = q * .6; else w.coxaMenos = -q * .6;
+  return w;
+}
+function reconstroi() {
+  if (!corpoMesh || !CORPO) return;
+  const at = corpoMesh.geometry.attributes.position, a = at.array; a.set(CORPO.pos);
+  const w = pesos();
+  for (const k in w) { const mm = CORPO.m[k], f = w[k]; if (!mm || !f) continue;
+    for (let n = 0; n < mm.i.length; n++) { const v = mm.i[n] * 3; a[v] += mm.d[n * 3] * f; a[v + 1] += mm.d[n * 3 + 1] * f; a[v + 2] += mm.d[n * 3 + 2] * f; } }
+  at.needsUpdate = true; corpoMesh.geometry.computeVertexNormals();
+}
+async function inicia3D() {
+  const el = document.getElementById('cena'); if (renderer) { fit(); return; }
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+  renderer.outputEncoding = THREE.sRGBEncoding; el.prepend(renderer.domElement);
+  scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(28, 1, .1, 20); camera.position.set(0, .92, 3.05);
+  scene.add(new THREE.HemisphereLight(0xfff6ee, 0x8a7a6c, .55));
+  const d = new THREE.DirectionalLight(0xffffff, .75); d.position.set(1.8, 2.2, 2.6); scene.add(d);
+  const d2 = new THREE.DirectionalLight(0xfff1e6, .35); d2.position.set(-2.5, 1.5, -2); scene.add(d2);
+  const chao = new THREE.Mesh(new THREE.CircleGeometry(.36, 48), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .08 })); chao.rotation.x = -Math.PI / 2; chao.position.y = .002; scene.add(chao);
+  controls = new THREE.OrbitControls(camera, renderer.domElement); controls.target.set(0, .85, 0); controls.enablePan = false; controls.enableZoom = false;
+  controls.minPolarAngle = controls.maxPolarAngle = Math.PI / 2 - .04; controls.autoRotate = true; controls.autoRotateSpeed = 1.1;
+  renderer.domElement.addEventListener('pointerdown', () => controls.autoRotate = false);
+  fit(); (function loop() { requestAnimationFrame(loop); controls.update(); renderer.render(scene, camera); })();
+  addEventListener('resize', fit);
+  await carregaCorpo();
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(CORPO.pos), 3)); g.setIndex(new THREE.BufferAttribute(CORPO.idx, 1));
+  corpoMesh = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xcfb8a3, roughness: .62, metalness: 0 }));
+  scene.add(corpoMesh); reconstroi();
+}
+function fit() { const el = document.getElementById('cena'); renderer.setSize(el.clientWidth, el.clientHeight); camera.aspect = el.clientWidth / el.clientHeight; camera.updateProjectionMatrix(); }
+
+// ---------- fluxo ----------
+function abre() { document.getElementById('ov').classList.add('on'); passo(1); regs(); document.getElementById('selo').textContent = recomenda().nome; setTimeout(inicia3D, 30); }
+function fecha() { document.getElementById('ov').classList.remove('on'); }
+function passo(n) {
+  [1, 2, 3].forEach(i => { document.getElementById('p' + i).style.display = i === n ? '' : 'none'; document.getElementById('s' + i).classList.toggle('on', i <= n); });
+  if (n === 3) resultado();
+}
+function foto(inp) { const f = inp.files[0]; if (!f) return; fotoURL = URL.createObjectURL(f); document.getElementById('up').innerHTML = '<img src="' + fotoURL + '">'; }
+function resultado() {
+  const r = recomenda(), nomes = { busto: 'Busto', cintura: 'Cintura', quadril: 'Quadril' };
+  const det = Object.keys(MED).map((k, n) => '<div class="linha"><span>' + nomes[k] + ' ' + MED[k].v + ' cm</span><b>' + (r.idx[n] >= TABELA.length ? 'acima do GG' : TABELA[r.idx[n]].t) + '</b></div>').join('');
+  const prox = r.i + 1 < TABELA.length ? TABELA[r.i + 1].t : '';
+  document.getElementById('res').innerHTML =
+    '<div class="foto" style="background-image:' + (fotoURL ? 'url(' + fotoURL + ')' : 'linear-gradient(#ddd,#bbb)') + '"><span>Aqui aparece a prova do vestido em você</span></div>'
+    + '<div class="tamres"><div class="big">' + r.nome + '</div><div><b>Seu tamanho: ' + r.nome + '</b><p>Escolhido pela medida maior, pra não ficar apertado em nenhum ponto.</p></div></div>'
+    + (r.perto && prox ? '<div class="aviso">Você está no limite entre <b>' + r.nome + '</b> e <b>' + prox + '</b>. Se gosta mais soltinho, vá de ' + prox + '.</div>' : '')
+    + (r.i >= TABELA.length ? '<div class="aviso">Suas medidas passam do maior tamanho desta peça.</div>' : '')
+    + '<div>' + det + '</div>'
+    + '<button class="go" onclick="escolhe(\'' + r.nome + '\')">Comprar no tamanho ' + r.nome + '</button>'
+    + '<p style="text-align:center;margin-top:6px"><a href="#" onclick="passo(1);return false" style="color:#111">Ajustar medidas</a></p>';
+}
+function escolhe(t) { document.querySelectorAll('.tam').forEach(e => e.classList.toggle('on', e.dataset.t === t)); fecha(); }
+</script>
+</body>
+</html>
