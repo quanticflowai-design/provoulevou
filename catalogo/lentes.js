@@ -11,7 +11,7 @@
   // tratamentos que a cliente escolhe
   const TRATAMENTOS = [
     { id: 'antirreflexo', nome: 'Antirreflexo', desc: 'Menos reflexo e brilho. O básico bem feito.' },
-    { id: 'blue', nome: 'Filtro de luz azul', desc: 'Pra quem passa o dia no celular e no computador.' },
+    { id: 'blue', nome: 'Antirreflexo + filtro de luz azul', desc: 'Menos reflexo e proteção contra a luz das telas (celular e computador).' },
     { id: 'foto', nome: 'Fotossensível', desc: 'Escurece no sol e clareia dentro de casa.' },
     { id: 'foto_blue', nome: 'Fotossensível + luz azul', desc: 'Escurece no sol e filtra a luz das telas.' },
     { id: 'basica', nome: 'Básica antirrisco', desc: 'Sem antirreflexo. Pode ser tingida (lente colorida).' }
