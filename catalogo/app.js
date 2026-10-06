@@ -668,6 +668,7 @@
         imgIds: imgs.map(x => x.id).filter(Boolean),   // quais apagar quando trocar a foto
         imageMeta: imgs.map(x => ({ id: x.id, url: x.url, variantName: (x.variant_name || '').trim() })),
         desc: r.description || '', unit: r.unit_name || '',
+        estoque: r.estoque == null ? null : Number(r.estoque),   // null = loja não controla
         position: Number(r.position) || 0,  // ordem definida pelo lojista (setas ↑↓)
         kit: Array.isArray(r.kit_itens) ? r.kit_itens : [],   // kit = ids das peças; vazio = produto normal
         createdAt: r.created_at || '',
@@ -2219,6 +2220,94 @@
       return result;
     } finally { clearTimeout(timer); }
   }
+
+  // ─────────── Aba Estoque ───────────
+  // Quantidade por produto (coluna estoque). Vazio = a loja não controla aquele item.
+  // Edita vários de uma vez e salva só o que mudou (ação 'estoque' do pl_catalog_manage).
+  let estoqueFiltro = 'todos', estoqueBusca = '';
+  const estoqueAlterado = new Map();
+  const ESTOQUE_BAIXO = 2;
+  function situacaoEstoque(v) {
+    if (v === null || v === undefined || v === '') return 'sem';
+    const n = Number(v);
+    return n <= 0 ? 'esgotado' : n <= ESTOQUE_BAIXO ? 'baixo' : 'ok';
+  }
+  function valorEstoque(p) { return estoqueAlterado.has(p.id) ? estoqueAlterado.get(p.id) : (p.estoque == null ? '' : String(p.estoque)); }
+  function renderEstoque() {
+    const box = $('#estoque-lista'); if (!box) return;
+    const itens = (adminCatalog || []).filter(p => !ehKit(p));
+    const cont = { todos: itens.length, esgotado: 0, baixo: 0, sem: 0, ok: 0 };
+    itens.forEach(p => { cont[situacaoEstoque(valorEstoque(p))]++; });
+    const total = itens.reduce((s, p) => s + (Number(valorEstoque(p)) || 0), 0);
+    $('#estoque-resumo').innerHTML =
+      '<span><b>' + total + '</b> unidades</span><span class="esgotado"><b>' + cont.esgotado + '</b> esgotados</span>' +
+      '<span class="baixo"><b>' + cont.baixo + '</b> acabando</span><span><b>' + cont.sem + '</b> sem controle</span>';
+    $$('.estoque-filtro').forEach(b => {
+      const k = b.dataset.filtro; b.classList.toggle('sel', k === estoqueFiltro);
+      const n = b.querySelector('i'); if (n) n.textContent = cont[k] != null ? cont[k] : '';
+    });
+    const busca = textoBusca(estoqueBusca);
+    const mostrar = itens.filter(p => (estoqueFiltro === 'todos' || situacaoEstoque(valorEstoque(p)) === estoqueFiltro) &&
+      (!busca || textoBusca(p.name).includes(busca)));
+    box.innerHTML = '';
+    if (!mostrar.length) {
+      box.innerHTML = '<p class="estoque-vazio">' + (itens.length ? 'Nenhum produto nesse filtro.' : 'Cadastre produtos para controlar o estoque.') + '</p>';
+    }
+    mostrar.forEach(p => {
+      const linha = document.createElement('div');
+      const sit = situacaoEstoque(valorEstoque(p));
+      linha.className = 'estoque-item ' + sit + (estoqueAlterado.has(p.id) ? ' mudou' : '');
+      const img = document.createElement('img'); bindImg(img, p.img, p.name); img.alt = '';
+      const info = document.createElement('div'); info.className = 'estoque-info';
+      const nome = document.createElement('b'); nome.textContent = p.name;
+      const tag = document.createElement('small');
+      tag.textContent = { esgotado: 'Esgotado', baixo: 'Acabando', ok: 'Em estoque', sem: 'Sem controle' }[sit] + (p.active ? '' : ' · rascunho');
+      info.append(nome, tag);
+      const ctl = document.createElement('div'); ctl.className = 'estoque-ctl';
+      const menos = document.createElement('button'); menos.type = 'button'; menos.textContent = '−'; menos.setAttribute('aria-label', 'Diminuir');
+      const campo = document.createElement('input'); campo.type = 'number'; campo.min = '0'; campo.max = '999999'; campo.step = '1';
+      campo.inputMode = 'numeric'; campo.placeholder = '—'; campo.value = valorEstoque(p); campo.setAttribute('aria-label', 'Estoque de ' + p.name);
+      const mais = document.createElement('button'); mais.type = 'button'; mais.textContent = '+'; mais.setAttribute('aria-label', 'Aumentar');
+      const muda = v => {
+        const orig = p.estoque == null ? '' : String(p.estoque);
+        if (v === orig) estoqueAlterado.delete(p.id); else estoqueAlterado.set(p.id, v);
+        atualizaBotaoEstoque();
+      };
+      campo.addEventListener('change', () => {
+        const v = campo.value.trim(); const ok = v === '' || /^\d{1,6}$/.test(v);
+        if (!ok) { toast('Use um número inteiro (0 ou mais) ou deixe vazio.'); campo.value = valorEstoque(p); return; }
+        muda(v); renderEstoque();
+      });
+      menos.addEventListener('click', () => { const n = Math.max(0, (Number(valorEstoque(p)) || 0) - 1); muda(String(n)); renderEstoque(); });
+      mais.addEventListener('click', () => { const n = Math.min(999999, (Number(valorEstoque(p)) || 0) + 1); muda(String(n)); renderEstoque(); });
+      ctl.append(menos, campo, mais);
+      linha.append(img, info, ctl);
+      box.appendChild(linha);
+    });
+    atualizaBotaoEstoque();
+  }
+  function atualizaBotaoEstoque() {
+    const b = $('#estoque-salvar'); if (!b) return;
+    const n = estoqueAlterado.size;
+    b.disabled = !n; b.textContent = n ? 'Salvar estoque (' + n + ')' : 'Salvar estoque';
+  }
+  {
+    const b = $('#estoque-salvar');
+    if (b) b.addEventListener('click', async () => {
+      if (!estoqueAlterado.size) return;
+      const itens = [...estoqueAlterado].map(([id, v]) => ({ id, estoque: v }));
+      b.disabled = true; b.textContent = 'Salvando…';
+      try {
+        await catalogManage('estoque', { itens });
+        itens.forEach(({ id, estoque }) => { const p = adminCatalog.find(x => x.id === id); if (p) p.estoque = estoque === '' ? null : Number(estoque); });
+        estoqueAlterado.clear(); toast('Estoque salvo ✓'); renderEstoque();
+      } catch (e) { toast('Não consegui salvar o estoque: ' + (e.message || 'tente de novo')); atualizaBotaoEstoque(); }
+    });
+    $$('.estoque-filtro').forEach(f => f.addEventListener('click', () => { estoqueFiltro = f.dataset.filtro; renderEstoque(); }));
+    const busca = $('#estoque-busca');
+    if (busca) busca.addEventListener('input', () => { estoqueBusca = busca.value; renderEstoque(); });
+  }
+
   // ─────────── Menu do painel (abas) ───────────
   // Cada .admin-aba é um bloco; o menu mostra um de cada vez. Guard: HTML em
   // cache sem as abas não tem .admin-aba e aí tudo continua visível como antes.
@@ -2263,6 +2352,7 @@
     renderUnidadesCadastro();
     renderOrdemCategorias();
     atualizaVaziosAbas();
+    renderEstoque();
     $('#admin-count').textContent = adminCatalog.length + ' produtos · ' + adminCatalog.filter(p => !p.active).length + ' rascunhos';
     // Mostra na mesma ordem da vitrine (posição definida pelas setas ↑↓); sem posição = mais novo primeiro.
     adminCatalog.sort((a, b) => (a.position - b.position) || (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
@@ -2549,6 +2639,7 @@
       : (numeroPositivo(p.price) ? Number(p.price).toFixed(2).replace('.', ',') : '');
     $('#admin-desc').value = p.desc || '';
     $('#admin-unit').value = p.unit || '';
+    $('#admin-estoque').value = p.estoque == null ? '' : String(p.estoque);
     $('#admin-is-kit').checked = ehKit(p);
     adminKitSel = ehKit(p) ? p.kit.slice() : [];
     renderAdminKit();
@@ -2578,6 +2669,7 @@
     $('#admin-name').value = ''; $('#admin-price').value = ''; $('#admin-original-price').value = '';
     $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
     $('#admin-unit').value = '';
+    $('#admin-estoque').value = '';
     $('#admin-is-kit').checked = false; adminKitSel = []; renderAdminKit();
     $('#admin-interest-type').value = 'none'; $('#admin-interest-rate').value = '';
     atualizaCampoJuros();
@@ -2687,7 +2779,9 @@
     }
     if (!publicar && adminFotosPreview.some(f => !f.url && f.variantName)) { toast('Adicione a foto da variante ou remova a opção vazia antes de salvar'); return; }
     const fotos = adminFotosPreview.filter(f => f.url);
-    const fields = { name, price, original_price:originalPrice, description:$('#admin-desc').value.trim(), unit_name:$('#admin-unit').value.trim(),
+    const estoqueTxt = $('#admin-estoque').value.trim();
+    if (estoqueTxt && !/^\d{1,6}$/.test(estoqueTxt)) { toast('Estoque: use um número inteiro (0 ou mais) ou deixe vazio'); return; }
+    const fields = { estoque: estoqueTxt, name, price, original_price:originalPrice, description:$('#admin-desc').value.trim(), unit_name:$('#admin-unit').value.trim(),
       parcelas, installment_interest_rate:interestRate, categories:categorias,
       is_featured:$('#admin-featured').checked, is_active:publicar,
       kit_itens: kitLigado ? adminKitSel.slice() : [] };

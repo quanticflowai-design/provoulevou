@@ -347,6 +347,7 @@
           <button type="button" class="admin-menu-btn" data-aba="produtos" role="tab">Produtos</button>
           <button type="button" class="admin-menu-btn" data-aba="cadastrar" role="tab">Cadastrar</button>
           <button type="button" class="admin-menu-btn" data-aba="aparencia" role="tab">Aparência</button>
+          <button type="button" class="admin-menu-btn" data-aba="estoque" role="tab">Estoque</button>
           <button type="button" class="admin-menu-btn" data-aba="categorias" role="tab">Categorias</button>
           <button type="button" class="admin-menu-btn" data-aba="links" role="tab">Links</button>
         </nav>
@@ -412,6 +413,8 @@
             <label class="admin-unit-label" for="admin-unit">Unidade da ótica (opcional)</label>
             <input id="admin-unit" type="text" maxlength="100" list="admin-unit-options" placeholder="Ex.: Centro, Shopping ou Alkatraz">
             <datalist id="admin-unit-options"></datalist>
+            <label class="admin-unit-label" for="admin-estoque">Quantidade em estoque (opcional)</label>
+            <input id="admin-estoque" type="number" min="0" max="999999" step="1" inputmode="numeric" placeholder="Ex.: 10 — deixe vazio se não controla estoque">
             <textarea id="admin-desc" rows="2" placeholder="Descrição (opcional): material, medidas, cor…"></textarea>
             <label class="admin-check"><input type="checkbox" id="admin-featured"> Destacar no catálogo (aparece primeiro)</label>
             <!-- Kit: um produto que junta outros. O preço é o que o lojista digitar;
@@ -513,6 +516,20 @@
         </div>
         </div>
 
+        <div class="admin-aba" data-aba="estoque" role="tabpanel" hidden>
+          <h3 class="admin-sub">Estoque</h3>
+          <p class="admin-hint">Quantas unidades você tem de cada produto. Deixe vazio nos que você não controla.</p>
+          <div class="estoque-resumo" id="estoque-resumo"></div>
+          <div class="estoque-filtros">
+            <button type="button" class="estoque-filtro sel" data-filtro="todos">Todos <i></i></button>
+            <button type="button" class="estoque-filtro" data-filtro="esgotado">Esgotados <i></i></button>
+            <button type="button" class="estoque-filtro" data-filtro="baixo">Acabando <i></i></button>
+            <button type="button" class="estoque-filtro" data-filtro="sem">Sem controle <i></i></button>
+          </div>
+          <input type="search" id="estoque-busca" class="estoque-busca" placeholder="Buscar produto">
+          <div class="estoque-lista" id="estoque-lista"></div>
+          <button type="button" class="btn-primary big estoque-salvar" id="estoque-salvar" disabled>Salvar estoque</button>
+        </div>
         <div class="admin-aba" data-aba="categorias" role="tabpanel" hidden>
         <div class="cat-order" id="cat-order" hidden>
           <h3 class="cat-links-tit">Gerenciar categorias</h3>
@@ -576,6 +593,6 @@
   <div id="toast"></div>
 
   <script src="lentes.js?v=142"></script>
-  <script src="app.js?v=149"></script>
+  <script src="app.js?v=150"></script>
 </body>
 </html>
