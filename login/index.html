@@ -8176,6 +8176,24 @@
         // ou "Comprou antes de provar", comparando com a PRIMEIRA prova do cliente.
         let _chatLeadTok = 0;
         function _clpMoney(v) { return (Number(v) || 0).toLocaleString((typeof PL_LOC !== 'undefined' ? PL_LOC : 'pt-BR'), { style: 'currency', currency: (typeof PL_CUR !== 'undefined' ? PL_CUR : 'BRL') }); }
+        // Rastreio do pedido: usa o link salvo pela loja; troca placeholder {COD...} pelo código;
+        // código dos Correios sem link vira link de rastreio.
+        function plRastreio(o) {
+            const code = String((o && o.shipping_tracking_number) || '').trim();
+            if (!code) return null;
+            let url = String((o && o.shipping_tracking_url) || '').trim();
+            if (url && /\{[^}]*\}/.test(url)) url = url.replace(/\{[^}]*\}/g, encodeURIComponent(code));
+            if (!/^https?:\/\//i.test(url)) url = '';
+            if (/^[A-Z]{2}\d{9}[A-Z]{2}$/.test(code) && (!url || url.indexOf(code) === -1)) url = 'https://melhorrastreio.com.br/rastreio/' + code;
+            return { code, url };
+        }
+        function plRastreioHtml(r) {
+            if (!r) return '';
+            const c = escapeHtml(r.code);
+            return '<div class="pl-rastreio" style="margin-top:5px;font-size:12px;display:flex;align-items:center;gap:5px;color:var(--text-muted,#666);"><i class="ph-bold ph-truck"></i> Rastreio: '
+                + (r.url ? '<a href="' + escapeHtml(r.url) + '" target="_blank" rel="noopener" style="font-weight:700;color:var(--primary,#7c3aed);">' + c + ' <i class="ph-bold ph-arrow-square-out"></i></a>' : '<b style="color:var(--text-main,#111);">' + c + '</b>')
+                + '</div>';
+        }
         function _clpDate(ts) {
             if (!ts) return '';
             const s = String(ts);
@@ -8233,7 +8251,7 @@
             const fProd = activeUser.campo_produto_pedido, fTot = activeUser.campo_total_pedido || 'total';
             const pedidos = (typeof allOrdersCache !== 'undefined' && allOrdersCache ? allOrdersCache : [])
                 .filter(o => last8.length === 8 && orderPhoneKeys(o).some(k => String(k).slice(-8) === last8))
-                .map(o => ({ ts: timestampAtribuicaoPedido(o, activeUser), total: parseFloat(o[fTot]) || 0, prod: fProd ? String(o[fProd] || '').trim() : '' }))
+                .map(o => ({ ts: timestampAtribuicaoPedido(o, activeUser), total: parseFloat(o[fTot]) || 0, prod: fProd ? String(o[fProd] || '').trim() : '', rastreio: plRastreio(o) }))
                 .sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
             const totalGasto = pedidos.reduce((s, x) => s + x.total, 0);
 
@@ -8254,7 +8272,7 @@
                     : antes ? '<span class="chat-lp-tag ok"><i class="ph-bold ph-sparkle"></i> Venda via provador</span>'
                             : '<span class="chat-lp-tag antes">Venda direta</span>';
                 h += '<div class="chat-lp-order"><div class="chat-lp-orow"><span>' + escapeHtml(_clpDate(x.ts)) + '</span><b>' + escapeHtml(_clpMoney(x.total)) + '</b></div>'
-                    + (x.prod ? '<div class="chat-lp-name">' + escapeHtml(x.prod) + '</div>' : '') + tag + '</div>';
+                    + (x.prod ? '<div class="chat-lp-name">' + escapeHtml(x.prod) + '</div>' : '') + tag + plRastreioHtml(x.rastreio) + '</div>';
             });
             h += '</div>';
 
@@ -17206,6 +17224,9 @@
             const _temPaidAt = await tabelaTemCampo(activeUser.tabela_pedidos, 'paid_at');
             const _orderFields = [fPhone, fTotal, fStatus, 'created_at', fDataPedido, fNome, fProduto].filter(Boolean);
             if (_temPaidAt) _orderFields.push('paid_at');
+            // Rastreio (06/10/2026): mostrado nas compras do lead (CRM e Conversas) quando a loja tem
+            const _temRastreio = await tabelaTemCampo(activeUser.tabela_pedidos, 'shipping_tracking_number');
+            if (_temRastreio) _orderFields.push('shipping_tracking_number', 'shipping_tracking_url');
             if (isVelaroStore()) _orderFields.push('customer_email');
             const selectFields = comStatus([...new Set(_orderFields)].join(', '), _temStatusPedidos);
 
@@ -20372,6 +20393,25 @@
             el.append(b, s);
         }
 
+        // Compras do lead (mesmo cache de pedidos pagos do painel) com o rastreio de cada uma.
+        function _crmComprasHtml(lead) {
+            try {
+                const last8 = String(lead.rawPhone || lead.phone || '').replace(/\D/g, '').slice(-8);
+                const cache = (typeof allOrdersCache !== 'undefined' && allOrdersCache) ? allOrdersCache : [];
+                if (last8.length < 8 || !cache.length) return '';
+                const fProd = activeUser.campo_produto_pedido, fTot = activeUser.campo_total_pedido || 'total';
+                const peds = cache.filter(o => orderPhoneKeys(o).some(k => String(k).slice(-8) === last8))
+                    .map(o => ({ ts: timestampAtribuicaoPedido(o, activeUser), total: parseFloat(o[fTot]) || 0, prod: fProd ? String(o[fProd] || '').trim() : '', rastreio: plRastreio(o) }))
+                    .sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
+                if (!peds.length) return '';
+                const linhas = peds.slice(0, 8).map(x => '<div style="border:1px solid var(--border,#e5e7eb);border-radius:10px;padding:9px 12px;">'
+                    + '<div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;"><span style="color:var(--text-muted,#666);">' + escapeHtml(_clpDate(x.ts)) + '</span><b>' + escapeHtml(_clpMoney(x.total)) + '</b></div>'
+                    + (x.prod ? '<div style="font-size:13px;margin-top:2px;">' + escapeHtml(x.prod) + '</div>' : '')
+                    + (x.rastreio ? plRastreioHtml(x.rastreio) : '<div style="margin-top:5px;font-size:12px;color:var(--text-muted,#999);"><i class="ph-bold ph-truck"></i> Sem código de rastreio</div>')
+                    + '</div>').join('');
+                return '<div class="clm-sec"><h4>Compras (' + peds.length + ')</h4><div style="display:flex;flex-direction:column;gap:8px;">' + linhas + '</div></div>';
+            } catch (e) { return ''; }
+        }
         function openCrmLeadModal(lead, colKey) {
             _clmInjectCss();
             let ov = document.getElementById('crmLeadModal');
@@ -20443,6 +20483,7 @@
                 + '</div>'
                 + '<div class="clm-body">'
                 +   '<div class="clm-sec"><h4>Detalhes</h4><div class="clm-grid">' + details + '</div></div>'
+                +   _crmComprasHtml(lead)
                 +   '<div class="clm-sec"><h4>Tarefas</h4><div id="clmTarefas"></div></div>'
                 +   '<div class="clm-sec"><h4>Campanhas e automações</h4>' + tagsHtml + '</div>'
                 +   '<div class="clm-sec"><h4>Histórico de disparos <span id="clmHistSum" class="clm-sum"></span></h4><div id="clmHistory"><div class="clm-empty">Carregando histórico…</div></div></div>'
