@@ -505,7 +505,10 @@
                 brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.06)', on: '#ffffff' },
     // logo creme sobre caramelo: fundo = caramelo da logo, cartões creme, marca marrom
     oticaglow: { bg: '#D59046', card: '#FFF6EA', line: 'rgba(107,63,23,.18)',
-                brand: '#6B3F17', dark: '#4E2D0F', soft: 'rgba(107,63,23,.10)', on: '#ffffff' }
+                brand: '#6B3F17', dark: '#4E2D0F', soft: 'rgba(107,63,23,.10)', on: '#ffffff' },
+    // logo dourada em fundo verde-escuro: tema escuro no verde da logo, dourado na marca com texto preto
+    viplineoculos: { bg: '#053C25', card: '#0A4A2F', line: 'rgba(212,175,90,.28)',
+                brand: '#D4AF5A', dark: '#B8933F', soft: 'rgba(212,175,90,.14)', on: '#111111' }
   };
 
   // ─────────── Tema ───────────
