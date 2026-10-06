@@ -22090,10 +22090,10 @@
             const hi = document.createElement('i'); hi.className = 'ph-bold ph-arrows-clockwise'; hi.style.color = '#7c3aed'; h.appendChild(hi); h.appendChild(document.createTextNode(' Rodízio de leads'));
             const x = _rodEl('button', 'background:transparent;border:0;color:#666;cursor:pointer;font-size:20px;line-height:1;padding:4px;', '×'); x.onclick = closeCrmRodizioModal;
             head.appendChild(h); head.appendChild(x); box.appendChild(head);
-            box.appendChild(_rodEl('p', 'font-size:13px;color:#555;margin:0 0 16px;line-height:1.5;', 'Cada lead novo que entrar no CRM (prova, carrinho ou importado) vai para uma pessoa do time, em ordem: um para cada. Quem já tem responsável não muda de dono. A distribuição é na hora em que o lead entra.'));
+            box.appendChild(_rodEl('p', 'font-size:13px;color:#555;margin:0 0 16px;line-height:1.5;', 'Cada lead novo que entrar no CRM (prova, carrinho, importado ou fluxo de lentes) vai para uma pessoa do time, em ordem: um para cada. Quem já tem responsável não muda de dono. A distribuição é na hora em que o lead entra.'));
             if (_crmPipelineMode === 'lentes') {
                 box.appendChild(_rodEl('div', 'font-size:12.5px;color:#5b21b6;background:#f5f3ff;border-radius:10px;padding:10px 12px;margin:-6px 0 16px;line-height:1.5;',
-                    'O rodízio é um só para a loja. No CRM de lentes o responsável é o mesmo do cliente no CRM do provador (é por WhatsApp): quem provou e depois entrou no fluxo de lentes já chega com o dono que o rodízio deu.'));
+                    'O rodízio é um só para a loja. No CRM de lentes o responsável é o mesmo do cliente no CRM do provador (é por WhatsApp): quem provou e depois entrou no fluxo de lentes já chega com o dono que o rodízio deu, e quem entrou direto no fluxo de lentes (sem provar) também ganha um dono assim que deixa o WhatsApp.'));
             }
             if (!team.length) {
                 box.appendChild(_rodEl('div', 'background:#fef3c7;color:#92400e;border-radius:10px;padding:12px 14px;font-size:13px;', 'Cadastre o time primeiro em "Gerenciar time". Depois volte aqui para ligar o rodízio.'));
