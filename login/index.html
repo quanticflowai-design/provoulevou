@@ -20434,7 +20434,8 @@
                 '.clm-prods{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;}',
                 '.clm-prod{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text-main);text-decoration:none;}',
                 'a.clm-prod:hover{border-color:#7c3aed;background:rgba(124,58,237,.05);}',
-                '.clm-prod-nm{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+                '.clm-prod-nm{flex:1;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+                '.clm-prod .pl-thumb{width:44px;height:44px;border-radius:9px;margin:0;}',
                 '.clm-prod-nm i{color:#7c3aed;font-size:12px;}',
                 '.clm-prod-meta{font-size:11.5px;color:var(--text-muted);white-space:nowrap;flex:0 0 auto;}',
                 '.clm-tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:99px;cursor:pointer;border:1px solid;font-family:inherit;max-width:100%;}',
@@ -20618,7 +20619,8 @@
             const details = f('Custo deste lead', '<span id="clmCusto" style="color:var(--text-muted);font-weight:500;">calculando…</span>', true)
                 + f('Responsável', respSelectHtml)
                 + f('Etapa atual', escapeHtml(crmStageTitle(colKey)))
-                + f(_lz ? 'Armação' : (lead.pendingPayment && !lead.provaCount ? 'Produto do pedido' : 'Produto provado'), produtoHtml, true)
+                // Produto provado já aparece na seção "Produtos provados" (lista completa) — não repete aqui.
+                + ((!_lz && lead.provaCount && Object.keys(lead.provados || {}).length) ? '' : f(_lz ? 'Armação' : (lead.pendingPayment && !lead.provaCount ? 'Produto do pedido' : 'Produto provado'), produtoHtml, true))
                 + (_lz ? (f('Lente', escapeHtml(_lz.lente || 'Ainda não definida'), true)
                     + f('Visão', escapeHtml((_LENTES_VISAO[_lz.visao] || _lz.visao) || '—'))
                     + f('Tratamento', escapeHtml((_LENTES_TRAT[_lz.trat] || _lz.trat) || '—'))
@@ -26899,10 +26901,10 @@
                     td.append(thumb(nome), txt); novos++;
                 });
             });
-            document.querySelectorAll('.ranking-product, .chat-lp-name').forEach(function (el) {
+            document.querySelectorAll('.ranking-product, .chat-lp-name, .clm-prod-nm').forEach(function (el) {
                 if (el.querySelector('.pl-thumb') || el.previousElementSibling && el.previousElementSibling.classList.contains('pl-thumb')) return;
                 var nome = el.textContent.trim(); if (!nome) return;
-                if (el.classList.contains('ranking-product')) el.parentNode.insertBefore(thumb(nome), el);
+                if (el.classList.contains('ranking-product') || el.classList.contains('clm-prod-nm')) el.parentNode.insertBefore(thumb(nome), el);
                 else el.insertBefore(thumb(nome), el.firstChild);
                 novos++;
             });
