@@ -4144,7 +4144,7 @@
                     <div class="chart-header">
                         <h2><i class="ph-bold ph-user-circle-plus" style="color:#10b981;"></i> Cenários de recuperação</h2>
                     </div>
-                    <p class="pl-subtitle">Quanto pode entrar mexendo nos leads que já provaram — CAC zero</p>
+                    <p class="pl-subtitle" id="cenariosRecupSub">Quanto pode entrar mexendo nos leads que já provaram — CAC zero</p>
                     <div class="pl-scenarios-grid">
                         <div>
                             <div class="pl-highlight">
@@ -4152,7 +4152,7 @@
                                 <div class="pl-highlight-value" id="cenarioLeadsCount">—</div>
                                 <div class="pl-highlight-note" id="cenarioPotencialBruto"></div>
                             </div>
-                            <p style="font-size:12px;color:var(--text-muted);margin-top:14px;line-height:1.6">
+                            <p id="cenariosRecupNota" style="font-size:12px;color:var(--text-muted);margin-top:14px;line-height:1.6">
                                 Esses clientes já conheceram seu produto no provador. WhatsApp segmentado tipicamente converte 10-15%.
                             </p>
                         </div>
@@ -5958,11 +5958,11 @@
                 <div style="background:#ffffff;color:#111;border:1px solid #e5e7eb;border-radius:14px;max-width:620px;width:100%;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.4);max-height:85vh;display:flex;flex-direction:column;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
                         <h3 style="margin:0;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;">
-                            <i class="ph-bold ph-sliders-horizontal" style="color:#7c3aed;"></i> Personalizar Funil
+                            <i class="ph-bold ph-sliders-horizontal" style="color:#7c3aed;"></i> <span id="crmPipelineModalTitle">Personalizar Funil</span>
                         </h3>
                         <button onclick="closeCrmPipelineModal()" style="background:transparent;border:0;color:#666;cursor:pointer;font-size:20px;line-height:1;padding:4px;">×</button>
                     </div>
-                    <p style="font-size:13px;color:#555;margin:0 0 14px;">
+                    <p id="crmPipelineModalDesc" style="font-size:13px;color:#555;margin:0 0 14px;">
                         Renomeie, reordene, adicione ou remova colunas. As 5 colunas automáticas (com 🤖) classificam os leads sozinhas — só podem ser renomeadas/reordenadas. Colunas que você criar recebem leads apenas via arrastar e soltar.
                     </p>
                     <div id="crmPipelineList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px;"></div>
@@ -5989,7 +5989,7 @@
                 <div style="background:#ffffff;color:#111;border:1px solid #e5e7eb;border-radius:14px;max-width:600px;width:100%;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.4);max-height:88vh;display:flex;flex-direction:column;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
                         <h3 style="margin:0;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;">
-                            <i class="ph-bold ph-upload-simple" style="color:#7c3aed;"></i> Importar Leads
+                            <i class="ph-bold ph-upload-simple" style="color:#7c3aed;"></i> <span id="crmImpTitle">Importar Leads</span>
                         </h3>
                         <button onclick="closeCrmImportModal()" style="background:transparent;border:0;color:#666;cursor:pointer;font-size:20px;line-height:1;padding:4px;">×</button>
                     </div>
@@ -6105,12 +6105,12 @@
                 <div style="background:#ffffff;color:#111;border:1px solid #e5e7eb;border-radius:14px;max-width:520px;width:100%;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
                         <h3 style="margin:0;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;">
-                            <i class="ph-bold ph-chat-circle-text" style="color:#25D366;"></i> Mensagem padrão WhatsApp
+                            <i class="ph-bold ph-chat-circle-text" style="color:#25D366;"></i> <span id="crmMsgTitle">Mensagem padrão WhatsApp</span>
                         </h3>
                         <button onclick="closeCrmMsgModal()" style="background:transparent;border:0;color:var(--text-muted);cursor:pointer;font-size:20px;line-height:1;padding:4px;">×</button>
                     </div>
                     <p style="font-size:13px;color:#555;margin:0 0 10px;">
-                        Esse texto é pré-preenchido ao clicar em "Abrir no WhatsApp". Use <code style="background:rgba(139,92,246,0.12);padding:1px 6px;border-radius:4px;color:#7c3aed;">{produto}</code> pra inserir o nome do item que o cliente provou.
+                        Esse texto é pré-preenchido ao clicar em "Abrir no WhatsApp". Use <code style="background:rgba(139,92,246,0.12);padding:1px 6px;border-radius:4px;color:#7c3aed;">{produto}</code> pra inserir o nome d<span id="crmMsgHelpItem">o item que o cliente provou</span>.
                     </p>
                     <textarea id="crmMsgTextarea" rows="5" style="width:100%;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:13.5px;color:#111;resize:vertical;font-family:inherit;"></textarea>
                     <div style="font-size:11.5px;color:#666;margin-top:6px;">Obrigatório incluir <code style="background:rgba(139,92,246,0.12);padding:1px 5px;border-radius:4px;color:#7c3aed;">{produto}</code> — se faltar, será adicionado automaticamente.</div>
@@ -6282,6 +6282,8 @@
                     if (b) b.style.display = '';
                     const crmBtn = document.getElementById('crmPipelineLentesBtn');
                     if (crmBtn) crmBtn.style.display = '';
+                    // colunas personalizadas do CRM de lentes (usadas também nas automações/campanhas)
+                    loadCrmLentesConfig().catch(() => {});
                 }
             } catch (e) { console.warn('[lentes] check:', e); }
         }
@@ -6333,12 +6335,16 @@
         }
 
         /* Uma SESSAO = uma pessoa usando o fluxo. Junta os passos dela. */
-        function _lentesSessoes(semCorte) {
+        // comImportados: inclui os leads que o lojista importou por planilha no CRM de lentes
+        // (session_id 'pl-imp-…'). Eles NÃO são jornadas reais do fluxo, então ficam fora dos
+        // indicadores da aba Lentes e da produção; só o CRM (e disparos por etapa) os enxergam.
+        function _lentesSessoes(semCorte, comImportados) {
             const corte = semCorte ? 0 : _lentesCutoff();
             const ses = {};
             _lentesLinhas.forEach(r => {
                 const ms = new Date(r.created_at).getTime();
                 if (!ms || (corte && ms < corte)) return;
+                if (!comImportados && String(r.session_id || '').indexOf('pl-imp-') === 0) return;
                 const k = r.session_id || ('sem-' + r.created_at);
                 const s = ses[k] || (ses[k] = {
                     sid: k, inicio: ms, fim: ms, passos: {}, telefone: null, produto: null,
@@ -6351,6 +6357,8 @@
                 if (r.telefone && !s.telefone) s.telefone = r.telefone;
                 if (r.produto && !s.produto) s.produto = r.produto;
                 const d = r.detail || {};
+                if (d.nome && !s.nome) s.nome = String(d.nome);
+                if (String(k).indexOf('pl-imp-') === 0) s.importado = true;
                 if (!s.produtoUrl && (d.produto_url || d.product_url || d.url)) s.produtoUrl = d.produto_url || d.product_url || d.url;
                 if (d.visao) s.visao = d.visao;
                 if (d.trat) s.trat = d.trat;
@@ -7315,6 +7323,7 @@
             invalidateSendLogCache();   // senao a loja nova mostraria disparos da anterior
             _crmConfigMem = null;
             _crmOverridesMem = null;
+            if (typeof _crmLentesConfigMem !== 'undefined') _crmLentesConfigMem = null;
             crmLeadMapCache = null; _plPrecoProva = null; _plLojaCache = null;
             crmLoaded = false;
             leadsRecupLoaded = false;
@@ -10295,7 +10304,7 @@
             const etEl = document.getElementById('automGatilhoEtapa'); if (!etEl) return;
             const pipeline = (document.getElementById('automGatilhoPipeline') || {}).value || 'provador';
             let cols = [];
-            if (pipeline === 'lentes') cols = _LENTES_CRM_ETAPAS.map(e => ({ key: e.id, title: e.rot }));
+            if (pipeline === 'lentes') cols = _lentesCrmEtapas().map(e => ({ key: e.id, title: e.rot }));
             else { try { cols = (typeof getCrmConfig === 'function' && (getCrmConfig().columns || [])) || []; } catch (e) {} }
             etEl.innerHTML = '<option value="">— escolha a etapa —</option>'
                 + cols.map(c => '<option value="' + escapeHtml(c.key) + '">' + escapeHtml(c.title || c.key) + '</option>').join('');
@@ -10955,7 +10964,7 @@
         function automStageTitle(key) {
             // Etapa do CRM de lentes: estagio 'lentes:<id>' (o motor grava via pl-lentes-step).
             if (typeof key === 'string' && key.indexOf('lentes:') === 0) {
-                const e = _LENTES_CRM_ETAPAS.find(x => x.id === key.slice(7));
+                const e = _lentesCrmEtapas().find(x => x.id === key.slice(7));
                 return 'CRM de lentes · ' + (e ? e.rot : key.slice(7));
             }
             try {
@@ -11171,7 +11180,7 @@
             const _provOpts = cols.map(c => '<option value="' + escapeHtml(c.key) + '"' + (c.key === d.estagio ? ' selected' : '') + '>' + escapeHtml(c.title) + '</option>').join('');
             const _stageOpts = !_lentesStage ? _provOpts
                 : '<optgroup label="CRM do provador">' + _provOpts + '</optgroup>'
-                + '<optgroup label="CRM de lentes">' + _LENTES_CRM_ETAPAS.filter(e => e.id !== 'comprou').map(e => {
+                + '<optgroup label="CRM de lentes">' + _lentesCrmEtapas().filter(e => e.id !== 'comprou').map(e => {
                     const v = 'lentes:' + e.id;
                     return '<option value="' + escapeHtml(v) + '"' + (v === d.estagio ? ' selected' : '') + '>' + escapeHtml(e.grupo + ' · ' + e.rot) + '</option>';
                 }).join('') + '</optgroup>';
@@ -13009,7 +13018,7 @@
         function waPipelineStageTitle(encoded) {
             const parsed = waDecodePipelineStage(encoded);
             if (parsed.pipeline === 'lentes') {
-                const etapa = (typeof _LENTES_CRM_ETAPAS !== 'undefined' ? _LENTES_CRM_ETAPAS : []).find(e => e.id === parsed.stage);
+                const etapa = (typeof _lentesCrmEtapas === 'function' ? _lentesCrmEtapas() : []).find(e => e.id === parsed.stage);
                 return etapa ? ('Lentes · ' + etapa.rot) : (parsed.stage || 'Fluxo de lentes');
             }
             const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
@@ -13019,7 +13028,7 @@
 
         async function waEnsureLensPipelineData() {
             if (!_lentesCarregado && typeof loadLentes === 'function') await loadLentes();
-            return _lentesCrmSessoesVisiveis(_lentesSessoes(true));
+            return _lentesSessoesCrm();
         }
 
         async function waGetLensTargets(stageKey, limit) {
@@ -13153,9 +13162,16 @@
 
         // Mantido por compatibilidade: rola até o painel inline em vez de abrir modal
         function openWaBulkModal() {
+            const _deLentes = typeof _crmPipelineMode !== 'undefined' && _crmPipelineMode === 'lentes' && _hasLentesPipeline;
             if (typeof showTab === 'function') showTab('disparos');
             if (typeof dispSwitchSub === 'function') dispSwitchSub('disparar');
             setTimeout(() => {
+                // Veio do CRM de lentes: o público já sai do pipeline de lentes
+                const pipeSel = document.getElementById('waBulkPipelineSelect');
+                if (_deLentes && pipeSel && pipeSel.value !== 'lentes') {
+                    pipeSel.value = 'lentes';
+                    try { waBulkOnPipelineChange('lentes'); } catch (e) {}
+                }
                 const card = document.getElementById('dispBulkCard');
                 if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 120);
@@ -13170,11 +13186,11 @@
             if (pipeWrap) pipeWrap.style.display = _hasLentesPipeline ? 'block' : 'none';
             const pipeline = _hasLentesPipeline && pipeSel ? pipeSel.value : 'provador';
             if (pipeline === 'lentes') {
-                const sessions = _lentesCrmSessoesVisiveis(_lentesSessoes(true));
+                const sessions = _lentesSessoesCrm();
                 const counts = {}, total = sessions.filter(s => _lentesEtapaCrm(s) !== 'comprou').length;
                 sessions.forEach(s => { const k = _lentesEtapaCrm(s); counts[k] = (counts[k] || 0) + 1; });
                 sel.innerHTML = ['<option value="all">Todas as etapas — não compraram (' + total + ')</option>']
-                    .concat(_LENTES_CRM_ETAPAS.filter(e => e.id !== 'comprou').map(e => '<option value="' + escapeHtml(e.id) + '">' + escapeHtml(e.rot) + ' (' + (counts[e.id] || 0) + ')</option>')).join('');
+                    .concat(_lentesCrmEtapas().filter(e => e.id !== 'comprou').map(e => '<option value="' + escapeHtml(e.id) + '">' + escapeHtml(e.rot) + ' (' + (counts[e.id] || 0) + ')</option>')).join('');
                 waBulkPopulateMoveTo();
                 return;
             }
@@ -14229,7 +14245,7 @@
                 } else {
                     const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
                     const etapas = CAMP.pipeline === 'lentes'
-                        ? _LENTES_CRM_ETAPAS.filter(e => e.id !== 'comprou').map(e => ({ key: e.id, title: e.rot }))
+                        ? _lentesCrmEtapas().filter(e => e.id !== 'comprou').map(e => ({ key: e.id, title: e.rot }))
                         : (cfg.columns || []).filter(c => c.key !== 'convertido');
                     const opts = etapas.map(c => '<option value="' + escapeHtml(c.key || c.id) + '"' + ((c.key || c.id) === CAMP.stage ? ' selected' : '') + '>' + escapeHtml(c.title || c.rot) + '</option>').join('');
                     const pipe = _hasLentesPipeline ? ('<label class="camp-lbl" for="campPipeline">Pipeline do CRM</label>'
@@ -14361,7 +14377,7 @@
             CAMP.limit = null; // nova etapa → recomeça a quantidade
             const inp0 = document.getElementById('campLimit'); if (inp0) inp0.value = '';
             const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
-            const c = CAMP.pipeline === 'lentes' ? _LENTES_CRM_ETAPAS.find(x => x.id === key) : (cfg.columns || []).find(x => x.key === key);
+            const c = CAMP.pipeline === 'lentes' ? _lentesCrmEtapas().find(x => x.id === key) : (cfg.columns || []).find(x => x.key === key);
             CAMP.stageTitle = c ? (c.title || c.rot) : key;
             const box = document.getElementById('campStageCount'); if (box) box.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> contando…';
             try { const t = await waGetBulkTargets(key, '', CAMP.pipeline); CAMP._stageTargets = t; CAMP.targetCount = campFiltraPeriodo(t).length; }
@@ -14935,7 +14951,7 @@
             const pipeline = _hasLentesPipeline && pipeSel ? pipeSel.value : 'provador';
             if (pipeline === 'lentes') {
                 waEnsureLensPipelineData().then(() => {
-                    sel.innerHTML = _LENTES_CRM_ETAPAS.filter(e => e.id !== 'comprou')
+                    sel.innerHTML = _lentesCrmEtapas().filter(e => e.id !== 'comprou')
                         .map(e => '<option value="' + escapeHtml(e.id) + '">' + escapeHtml(e.rot) + '</option>').join('');
                 });
                 return;
@@ -17127,6 +17143,8 @@
         }
 
         function renderCenariosRecuperacao() {
+            if (typeof _crmPipelineMode !== 'undefined' && _crmPipelineMode === 'lentes') { try { renderCenariosLentes(); } catch (e) {} return; }
+            try { _crmCenariosTextos(false); } catch (e) {}
             const section = document.getElementById('cenariosRecupSection');
             if (!section || !generationPhones || !allOrdersCache) return;
             const fPhone = activeUser.campo_telefone_pedido || 'customer_phone';
@@ -18694,6 +18712,7 @@
             crmLoaded = false;
             _crmConfigMem = null;
             _crmOverridesMem = null;
+            if (typeof _crmLentesConfigMem !== 'undefined') _crmLentesConfigMem = null;
             crmLeadMapCache = null; _plPrecoProva = null; _plLojaCache = null;
             try {
                 await loadSharedData();
@@ -19605,6 +19624,8 @@
             try { localStorage.setItem(crmOverridesKey(), JSON.stringify(_crmOverridesMem)); } catch(e) {}
             try { localStorage.setItem(crmRespKey(),      JSON.stringify(_crmRespMem)); } catch(e) {}
             try { localStorage.setItem(crmTeamKey(),      JSON.stringify(_crmTeamMem)); } catch(e) {}
+            // Colunas do CRM de lentes (linha separada 'lentes:<email>' em crm_pipeline_config)
+            if (_hasLentesPipeline) { try { await loadCrmLentesConfig(); } catch (e) { console.warn('[CRM lentes] config:', e); } }
         }
 
         function getCrmConfig() {
@@ -19720,8 +19741,12 @@
             });
         }
 
+        let _crmImportMode = 'provador';   // quadro que recebe a importação (provador | lentes)
         function openCrmImportModal() {
             _crmImport = null;
+            _crmImportMode = _crmPipelineMode === 'lentes' ? 'lentes' : 'provador';
+            const _it = document.getElementById('crmImpTitle');
+            if (_it) _it.textContent = _crmImportMode === 'lentes' ? 'Importar Leads — CRM de lentes' : 'Importar Leads';
             const m = document.getElementById('crmImportModal');
             if (!m) return;
             // O modal fica dentro de uma aba (tab-pane) que pode estar display:none.
@@ -19804,12 +19829,24 @@
                 '<option value="' + i + '"' + (i === nameGuess ? ' selected' : '') + '>' + escapeHtml(h) + '</option>').join('');
 
             // Coluna de destino no CRM (todas menos Convertido — não faz sentido importar como convertido)
+            const stageSel = document.getElementById('crmImpColStage');
+            if (_crmImportMode === 'lentes') {
+                // CRM de lentes: qualquer etapa menos "Compra confirmada"; padrão = 1ª coluna criada pelo lojista
+                const etapas = _lentesImportStages();
+                const def = (etapas.find(e => e.custom) || etapas[0] || {}).id || '';
+                stageSel.textContent = '';
+                etapas.forEach(e => {
+                    const o = document.createElement('option'); o.value = e.id; o.textContent = e.grupo + ' · ' + e.rot;
+                    if (e.id === def) o.selected = true;
+                    stageSel.appendChild(o);
+                });
+            } else {
             const cfg = getCrmConfig();
             const cols = (cfg.columns || []).filter(c => c.key !== 'convertido' && c.key !== 'perdido');
-            const stageSel = document.getElementById('crmImpColStage');
             const defStage = cols.find(c => c.key === 'em-contato') ? 'em-contato' : (cols[0] ? cols[0].key : '');
             stageSel.innerHTML = cols.map(c =>
                 '<option value="' + escapeHtml(c.key) + '"' + (c.key === defStage ? ' selected' : '') + '>' + escapeHtml(c.title) + '</option>').join('');
+            }
 
             document.getElementById('crmImpFileInfo').textContent =
                 fileName + ' · ' + rows.length.toLocaleString('pt-BR') + ' linha' + (rows.length > 1 ? 's' : '') + ' · ' + headers.length + ' colunas';
@@ -19859,7 +19896,10 @@
             const stageKey = document.getElementById('crmImpColStage').value;
             if (!stageKey) { msg.textContent = 'Escolha a coluna do CRM onde os leads vão entrar.'; return; }
 
-            const base = crmLeadMapCache || {};   // provas + carrinhos + pedidos + já importados
+            const _lz = _crmImportMode === 'lentes';
+            // provador: provas + carrinhos + pedidos + já importados | lentes: quem já tem jornada no CRM de lentes
+            const base = _lz ? null : (crmLeadMapCache || {});
+            const baseLentes = _lz ? _lentesImportBase() : null;
             const seen = new Set();
             const news = [];
             let invalidos = 0, jaBase = 0, dupArquivo = 0;
@@ -19871,7 +19911,7 @@
                 const ph = normalize(rawPh);             // chave de match do CRM (últimos 9 dígitos)
                 if (seen.has(ph)) { dupArquivo++; return; }
                 seen.add(ph);
-                if (base[ph]) { jaBase++; return; }       // já está no CRM (provou / carrinho / cliente / importado antes)
+                if (_lz ? baseLentes.has(ph) : base[ph]) { jaBase++; return; }   // já está no CRM (provou / carrinho / cliente / importado antes)
                 const nm = (ni >= 0 && r[ni] != null) ? String(r[ni]).trim().split(/\s+/)[0] : '';
                 news.push({ phone: ph, rawPhone: rawPh, name: nm });
             });
@@ -19880,25 +19920,39 @@
             _crmImport.stageKey = stageKey;
 
             const cfg = getCrmConfig();
-            const stageTitle = ((cfg.columns || []).find(c => c.key === stageKey) || {}).title || stageKey;
+            const stageTitle = _lz ? _lentesEtapaRot(stageKey) : (((cfg.columns || []).find(c => c.key === stageKey) || {}).title || stageKey);
             const total = _crmImport.rows.length;
+            // CRM de lentes grava lead a lead pelo webhook: limita o tamanho de cada importação.
+            let cortados = 0;
+            if (_lz && news.length > LENTES_IMPORT_MAX) { cortados = news.length - LENTES_IMPORT_MAX; news.length = LENTES_IMPORT_MAX; }
 
-            const row = (ic, cor, txt, n) => '<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#333;">' +
-                '<i class="ph-bold ' + ic + '" style="color:' + cor + ';"></i><span style="flex:1;">' + txt + '</span>' +
-                '<strong>' + n.toLocaleString('pt-BR') + '</strong></div>';
-
-            document.getElementById('crmImpSummary').innerHTML =
-                '<div style="font-size:14px;font-weight:700;color:#111;margin-bottom:4px;">Resumo da importação</div>' +
-                '<div style="display:flex;flex-direction:column;gap:7px;background:#f7f6f4;border-radius:10px;padding:14px;">' +
-                    row('ph-list-checks', '#666', 'Linhas na planilha', total) +
-                    row('ph-user-plus', '#059669', '<strong>Leads novos a importar</strong>', news.length) +
-                    row('ph-users-three', '#d97706', 'Ignorados — já estão na base', jaBase) +
-                    row('ph-copy', '#d97706', 'Ignorados — repetidos no arquivo', dupArquivo) +
-                    row('ph-warning', '#dc2626', 'Ignorados — telefone inválido', invalidos) +
-                '</div>' +
-                '<div style="font-size:12.5px;color:#555;margin-top:10px;">Os ' + news.length.toLocaleString('pt-BR') +
-                    ' leads novos vão entrar na coluna <strong>' + escapeHtml(stageTitle) + '</strong>. ' +
-                    'Quem já está na base (provou, tem carrinho, já é cliente ou já foi importado) foi removido pra não duplicar nem disparar de novo.</div>';
+            // Resumo montado com createElement (o nome da coluna vem do banco)
+            const sumEl = document.getElementById('crmImpSummary');
+            sumEl.textContent = '';
+            const mk = (tag, css, txt) => { const e = document.createElement(tag); if (css) e.style.cssText = css; if (txt != null) e.textContent = txt; return e; };
+            const row = (ic, cor, txt, n, forte) => {
+                const r = mk('div', 'display:flex;align-items:center;gap:8px;font-size:13px;color:#333;');
+                const i = document.createElement('i'); i.className = 'ph-bold ' + ic; i.style.color = cor;
+                const t = mk(forte ? 'strong' : 'span', 'flex:1;', txt);
+                r.append(i, t, mk('strong', '', n.toLocaleString('pt-BR')));
+                return r;
+            };
+            sumEl.appendChild(mk('div', 'font-size:14px;font-weight:700;color:#111;margin-bottom:4px;', 'Resumo da importação'));
+            const box = mk('div', 'display:flex;flex-direction:column;gap:7px;background:#f7f6f4;border-radius:10px;padding:14px;');
+            box.append(row('ph-list-checks', '#666', 'Linhas na planilha', total),
+                row('ph-user-plus', '#059669', 'Leads novos a importar', news.length, true),
+                row('ph-users-three', '#d97706', 'Ignorados — já estão na base', jaBase),
+                row('ph-copy', '#d97706', 'Ignorados — repetidos no arquivo', dupArquivo),
+                row('ph-warning', '#dc2626', 'Ignorados — telefone inválido', invalidos));
+            if (cortados) box.appendChild(row('ph-scissors', '#dc2626', 'Ficam pra próxima importação (máx. ' + LENTES_IMPORT_MAX.toLocaleString('pt-BR') + ' por vez)', cortados));
+            sumEl.appendChild(box);
+            const nota = mk('div', 'font-size:12.5px;color:#555;margin-top:10px;');
+            nota.append(document.createTextNode('Os ' + news.length.toLocaleString('pt-BR') + ' leads novos vão entrar na coluna '),
+                mk('strong', '', stageTitle),
+                document.createTextNode(_lz
+                    ? (' do CRM de lentes. Quem já tem jornada no CRM de lentes foi removido pra não duplicar. Os importados não contam nos números da aba Lentes.')
+                    : ('. Quem já está na base (provou, tem carrinho, já é cliente ou já foi importado) foi removido pra não duplicar nem disparar de novo.')));
+            sumEl.appendChild(nota);
 
             document.getElementById('crmImpStep2').style.display = 'none';
             document.getElementById('crmImpStep3').style.display = 'flex';
@@ -19916,6 +19970,20 @@
             if (!_crmImport || !_crmImport.newLeads || !_crmImport.newLeads.length) return;
             const msg = document.getElementById('crmImpMsg');
             const btn = document.getElementById('crmImpConfirmBtn');
+            if (_crmImportMode === 'lentes') {
+                btn.disabled = true; btn.style.opacity = '.6';
+                msg.style.color = '#555'; msg.textContent = 'Importando…';
+                const r = await _lentesImportConfirm(_crmImport.newLeads, _crmImport.stageKey, _crmImport.fileName);
+                if (!r.ok) {
+                    btn.disabled = false; btn.style.opacity = '1';
+                    msg.style.color = '#dc2626'; msg.textContent = 'Erro ao importar: nenhum lead foi gravado. Tente de novo.';
+                    return;
+                }
+                closeCrmImportModal();
+                renderLentesCrmPipeline();
+                crmToast(r.ok.toLocaleString('pt-BR') + ' leads importados no CRM de lentes' + (r.falhas ? ('; ' + r.falhas + ' falharam (importe de novo: quem já entrou é ignorado).') : '.'), !!r.falhas);
+                return;
+            }
             const email = crmScopeEmail();
             const stageKey = _crmImport.stageKey;
             const news = _crmImport.newLeads;
@@ -20046,29 +20114,40 @@
 
         const CRM_MSG_DEFAULT = 'Oi! Vi que você experimentou {produto} no nosso provador virtual. Posso te ajudar a fechar essa compra? Tenho uma condição especial pra você.';
 
-        function crmMsgStorageKey() {
-            return 'pl-crm-msg-template-' + ((activeUser && activeUser.email) || 'default');
+        // CRM de lentes tem a SUA mensagem padrão (o {produto} lá é a armação escolhida no fluxo).
+        const CRM_MSG_LENTES_DEFAULT = 'Oi! Vi que você estava escolhendo as lentes para {produto} no nosso site. Posso te ajudar a finalizar o seu óculos? Tenho uma condição especial pra você.';
+        let _crmMsgMode = 'provador';   // qual mensagem o modal está editando
+        function _crmMsgModo(mode) { return mode === 'lentes' ? 'lentes' : 'provador'; }
+        function crmMsgDefault(mode) { return _crmMsgModo(mode) === 'lentes' ? CRM_MSG_LENTES_DEFAULT : CRM_MSG_DEFAULT; }
+        function crmMsgStorageKey(mode) {
+            return (_crmMsgModo(mode) === 'lentes' ? 'pl-crm-lentes-msg-template-' : 'pl-crm-msg-template-') + ((activeUser && activeUser.email) || 'default');
         }
-        function getCrmMsgTemplate() {
+        function getCrmMsgTemplate(mode) {
+            const def = crmMsgDefault(mode);
             try {
-                const saved = localStorage.getItem(crmMsgStorageKey());
-                return saved && saved.trim() ? saved : CRM_MSG_DEFAULT;
-            } catch(e) { return CRM_MSG_DEFAULT; }
+                const saved = localStorage.getItem(crmMsgStorageKey(mode));
+                return saved && saved.trim() ? saved : def;
+            } catch(e) { return def; }
         }
-        function setCrmMsgTemplate(text) {
-            try { localStorage.setItem(crmMsgStorageKey(), text); } catch(e) {}
+        function setCrmMsgTemplate(text, mode) {
+            try { localStorage.setItem(crmMsgStorageKey(mode), text); } catch(e) {}
         }
-        function buildCrmMsg(produto) {
-            let tpl = getCrmMsgTemplate();
+        function buildCrmMsg(produto, mode) {
+            let tpl = getCrmMsgTemplate(mode);
             if (tpl.indexOf('{produto}') === -1) tpl = tpl.trim() + ' ' + (produto || 'o item');
             const safeProd = produto || 'o item que você provou';
             return tpl.replace(/\{produto\}/g, safeProd);
         }
 
         function openCrmMsgModal() {
+            _crmMsgMode = _crmMsgModo(_crmPipelineMode);
             const modal = document.getElementById('crmMsgModal');
             const ta = document.getElementById('crmMsgTextarea');
-            if (ta) ta.value = getCrmMsgTemplate();
+            if (ta) ta.value = getCrmMsgTemplate(_crmMsgMode);
+            const ajuda = document.getElementById('crmMsgHelpItem');
+            if (ajuda) ajuda.textContent = _crmMsgMode === 'lentes' ? 'a armação que o cliente escolheu no fluxo de lentes' : 'o item que o cliente provou';
+            const tit = document.getElementById('crmMsgTitle');
+            if (tit) tit.textContent = _crmMsgMode === 'lentes' ? 'Mensagem padrão WhatsApp — CRM de lentes' : 'Mensagem padrão WhatsApp';
             if (modal) {
                 if (modal.parentElement !== document.body) document.body.appendChild(modal);
                 modal.style.display = 'flex';
@@ -20082,10 +20161,11 @@
             const ta = document.getElementById('crmMsgTextarea');
             if (!ta) return;
             let v = ta.value.trim();
-            if (!v) v = CRM_MSG_DEFAULT;
+            if (!v) v = crmMsgDefault(_crmMsgMode);
             if (v.indexOf('{produto}') === -1) v = v + ' {produto}';
-            setCrmMsgTemplate(v);
+            setCrmMsgTemplate(v, _crmMsgMode);
             closeCrmMsgModal();
+            if (_crmMsgMode === 'lentes') { try { renderLentesCrmPipeline(); } catch (e) {} return; }
             if (typeof loadCRM === 'function' && crmLoaded) {
                 crmLoaded = false;
                 loadCRM().catch(() => { crmLoaded = false; });
@@ -20094,7 +20174,7 @@
         }
         function resetCrmMsgTemplate() {
             const ta = document.getElementById('crmMsgTextarea');
-            if (ta) ta.value = CRM_MSG_DEFAULT;
+            if (ta) ta.value = crmMsgDefault(_crmMsgMode);
         }
 
         // ============== Modal Personalizar Funil ==============
@@ -20116,9 +20196,18 @@
             t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2800);
         }
 
+        let _crmPipelineDraftMode = 'provador';   // qual quadro o modal está editando
+        const _CRM_PIPE_DESC_PROVADOR = 'Renomeie, reordene, adicione ou remova colunas. As 5 colunas automáticas (com 🤖) classificam os leads sozinhas — só podem ser renomeadas/reordenadas. Colunas que você criar recebem leads apenas via arrastar e soltar.';
+        const _CRM_PIPE_DESC_LENTES = 'CRM de lentes: renomeie, reordene, adicione ou remova colunas. As etapas do fluxo de lentes (AUTO) classificam as jornadas sozinhas — só podem ser renomeadas/reordenadas. Colunas que você criar recebem leads ao arrastar, no "Mover em massa" e nas automações ("Mover no CRM"). Estas colunas não mexem nas do CRM do provador.';
         function openCrmPipelineModal() {
-            _crmPipelineDraft = JSON.parse(JSON.stringify(getCrmConfig())); // deep clone
+            _crmPipelineDraftMode = _crmPipelineMode === 'lentes' ? 'lentes' : 'provador';
+            const _lz = _crmPipelineDraftMode === 'lentes';
+            _crmPipelineDraft = JSON.parse(JSON.stringify(_lz ? getCrmLentesConfig() : getCrmConfig())); // deep clone
             _crmColPendingDelete = -1;
+            const _t = document.getElementById('crmPipelineModalTitle');
+            if (_t) _t.textContent = _lz ? 'Personalizar funil — CRM de lentes' : 'Personalizar Funil';
+            const _d = document.getElementById('crmPipelineModalDesc');
+            if (_d) _d.textContent = _lz ? _CRM_PIPE_DESC_LENTES : _CRM_PIPE_DESC_PROVADOR;
             renderCrmPipelineList();
             const inp = document.getElementById('crmNewColInput'); if (inp) inp.value = '';
             const m = document.getElementById('crmPipelineModal');
@@ -20151,7 +20240,9 @@
                     const badge = document.createElement('span');
                     badge.className = 'crm-pipe-badge';
                     badge.textContent = 'AUTO';
-                    badge.title = 'Coluna automática — classifica leads pelas regras do provador';
+                    badge.title = _crmPipelineDraftMode === 'lentes'
+                        ? 'Etapa do fluxo de lentes — classifica as jornadas sozinha (só renomeia/reordena)'
+                        : 'Coluna automática — classifica leads pelas regras do provador';
                     row.appendChild(badge);
                 }
 
@@ -20214,6 +20305,7 @@
         }
         function saveCrmPipeline() {
             _crmPipelineDraft.columns.forEach(c => { if (!c.title || !c.title.trim()) c.title = 'Sem nome'; });
+            if (_crmPipelineDraftMode === 'lentes') return _lentesSalvaPipeline(_crmPipelineDraft);
             setCrmConfig(_crmPipelineDraft);
             // Remove overrides apontando pra colunas que não existem mais
             const validKeys = new Set(_crmPipelineDraft.columns.map(c => c.key));
@@ -20248,15 +20340,15 @@
             _crmResetPending = false;
             restore();
             _crmColPendingDelete = -1;
-            _crmPipelineDraft = { columns: CRM_DEFAULT_COLUMNS.slice() };
+            _crmPipelineDraft = { columns: _crmPipelineDraftMode === 'lentes' ? _lentesDefaultCols() : CRM_DEFAULT_COLUMNS.slice() };
             renderCrmPipelineList();
         }
 
-        function crmWppLink(rawPhone, produto) {
+        function crmWppLink(rawPhone, produto, mode) {
             const digits = String(rawPhone || '').replace(/\D/g, '');
             if (!digits) return '';
-            const num = digits.startsWith('55') ? digits : '55' + digits;
-            const msg = buildCrmMsg(produto);
+            const num = digits.startsWith('55') && digits.length > 11 ? digits : '55' + digits;
+            const msg = buildCrmMsg(produto, mode);
             return 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg);
         }
 
@@ -20336,7 +20428,7 @@
         function crmStageTitle(colKey) {
             // Lead do CRM de lentes: a etapa vem como 'lentes:<id da etapa>'.
             if (typeof colKey === 'string' && colKey.indexOf('lentes:') === 0) {
-                const e = _LENTES_CRM_ETAPAS.find(x => x.id === colKey.slice(7));
+                const e = _lentesCrmEtapas().find(x => x.id === colKey.slice(7));
                 return e ? e.rot : '—';
             }
             try {
@@ -20447,7 +20539,7 @@
             const phoneFmt = phoneDigits ? ((typeof _fmtTelBR === 'function') ? _fmtTelBR(phoneDigits) : ('+' + phoneDigits)) : 'Sem WhatsApp';
             const url = lead.lastProductUrl || '';
             const hasUrl = url && /^https?:\/\//.test(url);
-            const wpp = crmWppLink(lead.rawPhone || lead.phone, lead.lastProduct);
+            const wpp = crmWppLink(lead.rawPhone || lead.phone, lead.lastProduct, lead.lentes ? 'lentes' : 'provador');
             const nm = String(lead.name || '').trim();
             const initials = nm ? nm.split(/\s+/).slice(0, 2).map(w => w.charAt(0)).join('').toUpperCase() : '';
 
@@ -21027,13 +21119,14 @@
             const lentes = _crmPipelineMode === 'lentes';
             const sub = document.getElementById('crmPipelineSubtitle');
             if (sub) sub.textContent = lentes ? 'jornada completa do fluxo de lentes' : 'funil de leads do provador';
+            // Os dois quadros têm a mesma barra (Tarefas, Time, Mais, disparo); cada botão
+            // sabe em qual quadro está (_crmPipelineMode).
             const actions = document.getElementById('crmProvadorActions');
-            if (actions) actions.style.display = lentes ? 'none' : 'flex';
-            document.querySelectorAll('.crm-provador-only').forEach(el => { el.style.display = lentes ? 'none' : ''; });
-            const team = document.getElementById('crmTeamPanel');
-            if (team && lentes) team.style.display = 'none';
+            if (actions) actions.style.display = 'flex';
+            document.querySelectorAll('.crm-provador-only').forEach(el => { el.style.display = ''; });
             const cenarios = document.getElementById('cenariosRecupSection');
-            if (cenarios) cenarios.style.display = lentes ? 'none' : '';
+            if (cenarios) cenarios.style.display = 'none';   // cada quadro redesenha o seu
+            _crmCenariosTextos(lentes);
             const search = document.getElementById('crmSearchInput');
             if (search) search.placeholder = lentes ? 'Buscar por cliente, pedido, telefone ou produto…' : 'Buscar por telefone ou nome…';
             _crmSearchTerm = '';
@@ -21046,6 +21139,9 @@
                 const empty = document.getElementById('crmEmptyState');
                 if (content) content.style.display = 'block';
                 if (empty) empty.style.display = 'none';
+                // Time, responsáveis, tarefas e tags vêm do carregamento do CRM: garante que rodou.
+                if (!crmLeadMapCache && !crmLoaded) { crmLoaded = true; loadCRM(true).catch(() => { crmLoaded = false; }); }
+                if (!_crmLentesConfigMem) loadCrmLentesConfig().then(() => renderLentesCrmPipeline()).catch(() => {});
                 if (!_lentesCarregado) {
                     const board = document.getElementById('crmBoard');
                     if (board) board.innerHTML = '<div class="disp-empty">Carregando jornadas de lentes…</div>';
@@ -21057,10 +21153,56 @@
             } else if (crmLeadMapCache) {
                 renderCrmBoard();
                 try { renderCenariosRecuperacao(); } catch(e) {}
+                const _tp = document.getElementById('crmTeamPanel');
+                if (_tp && _tp.style.display && _tp.style.display !== 'none') { try { renderCrmTeamPanel(); } catch (e) {} }
             } else {
                 crmLoaded = true;
                 loadCRM().catch(() => { crmLoaded = false; });
             }
+        }
+
+        // ===== Cenários de recuperação no CRM de lentes =====
+        // Mesma seção do provador: jornadas com WhatsApp que não compraram × ticket médio das
+        // vendas de lentes casadas com o fluxo (se ainda não houver venda, usa o preço médio
+        // das lentes recomendadas).
+        function _crmCenariosTextos(lentes) {
+            const sub = document.getElementById('cenariosRecupSub');
+            if (sub) sub.textContent = lentes ? 'Quanto pode entrar retomando as jornadas de lentes que pararam no meio — CAC zero'
+                                              : 'Quanto pode entrar mexendo nos leads que já provaram — CAC zero';
+            const nota = document.getElementById('cenariosRecupNota');
+            if (nota) nota.textContent = lentes ? 'Esses clientes já escolheram a armação e começaram a montar as lentes no seu site. WhatsApp segmentado tipicamente converte 10-15%.'
+                                                : 'Esses clientes já conheceram seu produto no provador. WhatsApp segmentado tipicamente converte 10-15%.';
+        }
+        function renderCenariosLentes() {
+            const section = document.getElementById('cenariosRecupSection');
+            if (!section || _crmPipelineMode !== 'lentes' || !_lentesCarregado) return;
+            _crmCenariosTextos(true);
+            const itens = _lentesCrmItens();
+            const comVenda = itens.filter(v => v.venda && Number(v.venda.total) > 0);
+            const precos = itens.filter(v => Number(v.preco) > 0);
+            const ticket = comVenda.length ? comVenda.reduce((a, v) => a + Number(v.venda.total), 0) / comVenda.length
+                         : precos.length ? precos.reduce((a, v) => a + Number(v.preco), 0) / precos.length : 0;
+            const telefones = new Set();
+            itens.forEach(v => { if (_lentesEtapaCrm(v) !== 'comprou' && !v.venda) { const k = _lentesLeadKey(v); if (k) telefones.add(k); } });
+            const leads = telefones.size;
+            if (!leads || !ticket) { section.style.display = 'none'; return; }
+            section.style.display = 'block';
+            const brl = v => v.toLocaleString(PL_LOC, { style: 'currency', currency: PL_CUR });
+            const potencial = leads * ticket;
+            document.getElementById('cenarioLeadsCount').textContent = leads.toLocaleString('pt-BR') + ' clientes';
+            const pb = document.getElementById('cenarioPotencialBruto');
+            pb.textContent = '';
+            const forte = document.createElement('strong'); forte.style.color = 'var(--primary-hi, #a855f7)'; forte.textContent = brl(potencial);
+            pb.append(document.createTextNode('× ticket de lentes (' + brl(ticket) + (comVenda.length ? '' : ', preço médio recomendado') + ') = '), forte, document.createTextNode(' em potencial bruto'));
+            const tb = document.getElementById('cenariosTableBody');
+            tb.textContent = '';
+            [['Conservador', 5, 'muted'], ['Realista', 10, 'primary'], ['Otimista', 15, 'success'], ['Ambicioso', 20, 'warning']].forEach(([lab, taxa, cls]) => {
+                const tr = document.createElement('tr');
+                const td1 = document.createElement('td'); td1.textContent = lab;
+                const td2 = document.createElement('td'); const tag = document.createElement('span'); tag.className = 'pl-tag ' + cls; tag.textContent = taxa + '%'; td2.appendChild(tag);
+                const td3 = document.createElement('td'); const st = document.createElement('strong'); st.textContent = brl(potencial * taxa / 100); td3.appendChild(st);
+                tr.append(td1, td2, td3); tb.appendChild(tr);
+            });
         }
 
         const _LENTES_CRM_ETAPAS = [
@@ -21079,8 +21221,110 @@
             { id: 'comprou', rot: 'Compra confirmada', cor: '#10b981', icone: 'ph-check-circle', grupo: 'Pedido' }
         ];
 
-        function _lentesEtapaCrm(v) {
-            if (v.etapaCrm && _LENTES_CRM_ETAPAS.some(e => e.id === v.etapaCrm)) return v.etapaCrm;
+        // ── Colunas do CRM de lentes (personalizáveis, 06/10/2026) ──
+        // Mesmo mecanismo do CRM do provador (tabela crm_pipeline_config + backup no localStorage),
+        // mas numa linha SEPARADA: lojista_email = 'lentes:<e-mail canônico da loja>'. Assim as
+        // colunas do provador e as de lentes nunca se misturam. As etapas fixas do fluxo (acima)
+        // sempre existem (só renomeia/reordena); as colunas criadas pelo lojista têm key 'custom-…'
+        // e recebem leads só por arrastar/mover (grava crm_lentes_etapa com detail.etapa = key).
+        let _crmLentesConfigMem = null;
+        let _lentesEtapasMemo = { cfg: null, list: null };
+        function crmLentesConfigKey() { return 'pl-crm-lentes-config-' + crmScopeEmail(); }
+        function crmLentesRowEmail(email) { return 'lentes:' + String(email || '').toLowerCase(); }
+        function _lentesDefaultCols() {
+            return _LENTES_CRM_ETAPAS.map(e => ({ key: e.id, title: e.rot, icon: e.icone, auto: true }));
+        }
+        // Garante as etapas fixas (na posição padrão se faltarem) e descarta lixo.
+        function _lentesNormalizaCfg(cfg) {
+            const fixos = {}; _LENTES_CRM_ETAPAS.forEach((e, i) => { fixos[e.id] = i; });
+            const vistos = new Set(), cols = [];
+            ((cfg && Array.isArray(cfg.columns)) ? cfg.columns : []).forEach(c => {
+                if (!c || !c.key || vistos.has(c.key)) return;
+                if (fixos[c.key] != null) {
+                    const base = _LENTES_CRM_ETAPAS[fixos[c.key]];
+                    cols.push({ key: c.key, title: String(c.title || '').trim() || base.rot, icon: base.icone, auto: true });
+                } else if (String(c.key).indexOf('custom-') === 0) {
+                    cols.push({ key: String(c.key), title: String(c.title || '').trim() || 'Sem nome', icon: c.icon || 'ph-flag', auto: false });
+                } else return;
+                vistos.add(c.key);
+            });
+            _LENTES_CRM_ETAPAS.forEach((e, i) => {
+                if (vistos.has(e.id)) return;
+                // entra logo depois da etapa fixa anterior que já está na lista
+                let pos = 0;
+                for (let j = i - 1; j >= 0; j--) {
+                    const k = cols.findIndex(c => c.key === _LENTES_CRM_ETAPAS[j].id);
+                    if (k >= 0) { pos = k + 1; break; }
+                }
+                cols.splice(pos, 0, { key: e.id, title: e.rot, icon: e.icone, auto: true });
+                vistos.add(e.id);
+            });
+            return { columns: cols };
+        }
+        function getCrmLentesConfig() {
+            if (_crmLentesConfigMem) return _crmLentesConfigMem;
+            try {
+                const raw = localStorage.getItem(crmLentesConfigKey());
+                if (raw) {
+                    const c = JSON.parse(raw);
+                    if (c && Array.isArray(c.columns) && c.columns.length) return (_crmLentesConfigMem = _lentesNormalizaCfg(c));
+                }
+            } catch (e) {}
+            return _lentesCfgPadrao || (_lentesCfgPadrao = { columns: _lentesDefaultCols() });
+        }
+        let _lentesCfgPadrao = null;   // objeto estável (o memo de _lentesCrmEtapas compara por referência)
+        function setCrmLentesConfig(cfg) {
+            _crmLentesConfigMem = _lentesNormalizaCfg(cfg);
+            try { localStorage.setItem(crmLentesConfigKey(), JSON.stringify(_crmLentesConfigMem)); } catch (e) {}
+            if (!supabaseClient) return;
+            supabaseClient.from('crm_pipeline_config').upsert({
+                lojista_email: crmLentesRowEmail(crmScopeEmail()),
+                columns: _crmLentesConfigMem.columns,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'lojista_email' }).then(({ error }) => {
+                if (error) console.warn('[CRM lentes] colunas não sincronizadas:', error.message);
+            });
+        }
+        // Lê a config de lentes da loja (todos os logins do grupo; vale a do canônico).
+        async function loadCrmLentesConfig() {
+            try { await resolveCrmScope(); } catch (e) {}
+            let cfg = null;
+            try {
+                const raw = localStorage.getItem(crmLentesConfigKey());
+                if (raw) { const c = JSON.parse(raw); if (c && Array.isArray(c.columns) && c.columns.length) cfg = c; }
+            } catch (e) {}
+            try {
+                const emails = crmScopeEmails().map(crmLentesRowEmail);
+                const { data, error } = await supabaseClient.from('crm_pipeline_config')
+                    .select('lojista_email,columns').in('lojista_email', emails);
+                if (!error && Array.isArray(data) && data.length) {
+                    const pick = data.find(r => r.lojista_email === crmLentesRowEmail(crmScopeEmail()) && Array.isArray(r.columns) && r.columns.length)
+                              || data.find(r => Array.isArray(r.columns) && r.columns.length);
+                    if (pick) cfg = { columns: pick.columns };
+                }
+            } catch (e) { /* sem rede: fica com o backup local */ }
+            _crmLentesConfigMem = _lentesNormalizaCfg(cfg || { columns: _lentesDefaultCols() });
+            try { localStorage.setItem(crmLentesConfigKey(), JSON.stringify(_crmLentesConfigMem)); } catch (e) {}
+            return _crmLentesConfigMem;
+        }
+        // Etapas EFETIVAS do CRM de lentes, na ordem do lojista:
+        // { id, rot, cor, icone, grupo, custom }. Use sempre isto (não _LENTES_CRM_ETAPAS) pra listar.
+        function _lentesCrmEtapas() {
+            const cfg = getCrmLentesConfig();
+            if (_lentesEtapasMemo.cfg === cfg && _lentesEtapasMemo.list) return _lentesEtapasMemo.list;
+            const list = (cfg.columns || []).map(c => {
+                const base = _LENTES_CRM_ETAPAS.find(e => e.id === c.key);
+                if (base) return Object.assign({}, base, { rot: c.title || base.rot, custom: false });
+                return { id: c.key, rot: c.title || 'Sem nome', cor: '#7c3aed', icone: c.icon || 'ph-flag', grupo: 'Personalizada', custom: true };
+            });
+            _lentesEtapasMemo = { cfg, list };
+            return list;
+        }
+        function _lentesEtapaInfo(id) { return _lentesCrmEtapas().find(e => e.id === id) || null; }
+        function _lentesEtapaRot(id) { const e = _lentesEtapaInfo(id); return e ? e.rot : (id || '—'); }
+
+        // Etapa automática (pelos passos reais da jornada), ignorando a etapa manual do CRM.
+        function _lentesEtapaAuto(v) {
             if (v.venda) return 'comprou';
             const p = v.passos || {};
             if (p.so_armacao) return 'so_armacao';
@@ -21091,20 +21335,31 @@
                 'tratamento', 'visao', 'telefone', 'pediu_telefone', 'abriu'];
             return ordem.find(id => p[id]) || 'abriu';
         }
+        // Etapa atual no CRM: a manual (se a coluna ainda existe) vence a automática.
+        // Coluna personalizada apagada → o lead volta pra etapa automática.
+        function _lentesEtapaCrm(v) {
+            if (v.etapaCrm && _lentesEtapaInfo(v.etapaCrm)) return v.etapaCrm;
+            return _lentesEtapaAuto(v);
+        }
+        // Sessões que entram no CRM de lentes (inclui os leads importados por planilha).
+        function _lentesSessoesCrm() {
+            return _lentesCrmSessoesVisiveis(_lentesSessoes(true, true));
+        }
 
         // opts.item: jornada já resolvida (mover em massa — evita recalcular as sessões a cada lead).
         // opts.silent: não redesenha nem mostra aviso (o chamador faz isso uma vez no fim).
+        // opts.force: grava mesmo que a etapa calculada já seja essa (limpeza de coluna apagada).
         async function _lentesSalvaEtapaCrm(sid, etapa, opts) {
             opts = opts || {};
-            if (!_LENTES_CRM_ETAPAS.some(e => e.id === etapa)) throw new Error('Etapa de destino inválida.');
+            if (!_lentesEtapaInfo(etapa)) throw new Error('Etapa de destino inválida.');
             let item = opts.item || null;
             if (!item) {
-                const todas = _lentesCrmSessoesVisiveis(_lentesSessoes(true));
+                const todas = _lentesSessoesCrm();
                 _lentesCasaVendas(todas, 0);   // a venda define a etapa "Compra confirmada"
                 item = todas.find(v => v.sid === sid);
             }
             if (!item) throw new Error('Lead de lentes não encontrado.');
-            if (_lentesEtapaCrm(item) === etapa) return false;
+            if (!opts.force && _lentesEtapaCrm(item) === etapa) return false;
 
             const detalhe = { etapa: etapa, por: 'painel' };
             if (item.venda) {
@@ -21124,9 +21379,11 @@
 
             _lentesLinhas.push({ session_id: sid, telefone: item.telefone || null,
                 step: 'crm_lentes_etapa', detail: detalhe, produto: item.produto || null, created_at: agora });
+            // atualiza a sessão em memória também (o mover em massa reaproveita o mesmo objeto)
+            item.etapaCrm = etapa; item.etapaCrmMs = new Date(agora).getTime();
             if (!opts.silent) {
                 renderLentesCrmPipeline();
-                crmToast('Lead movido para ' + (_LENTES_CRM_ETAPAS.find(e => e.id === etapa).rot) + '.');
+                crmToast('Lead movido para ' + _lentesEtapaRot(etapa) + '.');
             }
             return true;
         }
@@ -21143,7 +21400,7 @@
             const ordem = ['carrinho', 'recomendou', 'receita_lida',
                 'receita_metodo', 'tratamento', 'visao', 'telefone', 'pediu_telefone', 'abriu'];
             const id = ordem.includes(v.ultimoAntesSair) ? v.ultimoAntesSair : ordem.find(x => p[x]);
-            const e = _LENTES_CRM_ETAPAS.find(x => x.id === id);
+            const e = _lentesEtapaInfo(id);
             return e ? e.rot : '';
         }
 
@@ -21157,7 +21414,7 @@
         }
         // Jornadas que este login pode ver (comercial: só as dele + sem dono), já com a venda casada.
         function _lentesCrmItens() {
-            const todas = _lentesCrmSessoesVisiveis(_lentesSessoes(true));
+            const todas = _lentesSessoesCrm();
             _lentesCasaVendas(todas, 0);
             if (!_plComercial) return todas;
             const resp = getCrmResp();
@@ -21187,7 +21444,7 @@
             return Object.assign({}, base, {
                 phone: key,
                 rawPhone: item.telefone || base.rawPhone || '',
-                name: (item.venda && item.venda.nome) || base.name || '',
+                name: (item.venda && item.venda.nome) || item.nome || base.name || '',
                 lastProduct: item.produto || base.lastProduct || '',
                 lastProductUrl: item.produtoUrl || base.lastProductUrl || '',
                 provaCount: base.provaCount || 0,
@@ -21253,24 +21510,25 @@
             const itens = _lentesCrmItens().filter(v => {
                 if (!_lentesPassaFiltros(v, resp)) return false;
                 if (!q) return true;
-                const texto = [v.telefone, v.produto, v.lente, v.venda && v.venda.nome,
+                const texto = [v.telefone, v.produto, v.lente, v.nome, v.venda && v.venda.nome,
                     v.venda && v.venda.numero, v.venda && v.venda.id].filter(Boolean).join(' ').toLowerCase();
                 const qDigits = q.replace(/\D/g, '');
                 return texto.includes(q) || (!!qDigits && texto.replace(/\D/g, '').includes(qDigits));
             });
+            const etapasCrm = _lentesCrmEtapas();
             const buckets = {};
-            _LENTES_CRM_ETAPAS.forEach(e => { buckets[e.id] = []; });
+            etapasCrm.forEach(e => { buckets[e.id] = []; });
             itens.forEach(v => (buckets[_lentesEtapaCrm(v)] || buckets.abriu).push(v));
             Object.values(buckets).forEach(arr => arr.sort((a, b) => (b.fim || 0) - (a.fim || 0)));
             const count = document.getElementById('crmSearchCount');
             if (count) count.textContent = q ? itens.length + ' resultado' + (itens.length === 1 ? '' : 's') : itens.length + ' jornada' + (itens.length === 1 ? '' : 's');
 
             board.textContent = '';
-            board.style.gridTemplateColumns = 'repeat(' + _LENTES_CRM_ETAPAS.length + ', minmax(270px, 1fr))';
-            const crmLentesCols = _LENTES_CRM_ETAPAS.map(e => ({ key: e.id }));
+            board.style.gridTemplateColumns = 'repeat(' + etapasCrm.length + ', minmax(270px, 1fr))';
+            const crmLentesCols = etapasCrm.map(e => ({ key: e.id }));
             const icone = (cls) => { const i = document.createElement('i'); i.className = 'ph-bold ' + cls; return i; };
             const metaSpan = (cls, txt) => { const s = document.createElement('span'); s.append(icone(cls), document.createTextNode(' ' + txt)); return s; };
-            _LENTES_CRM_ETAPAS.forEach(etapa => {
+            etapasCrm.forEach(etapa => {
                 const etapaCrmCor = crmStageColor(etapa.id, crmLentesCols);
                 const col = document.createElement('div');
                 col.className = 'crm-col'; col.dataset.key = etapa.id; col.style.setProperty('--col-accent', etapaCrmCor);
@@ -21303,7 +21561,7 @@
                 const body = document.createElement('div'); body.className = 'crm-col-body';
                 if (!buckets[etapa.id].length) {
                     const empty = document.createElement('div'); empty.className = 'crm-col-empty';
-                    empty.textContent = 'Arraste leads para cá';
+                    empty.textContent = etapa.custom ? 'Arraste cards pra cá' : 'Arraste leads para cá';
                     body.appendChild(empty);
                 }
                 buckets[etapa.id].slice(0, 200).forEach(item => {
@@ -21326,7 +21584,7 @@
                         card.classList.remove('crm-card-dragging');
                         board.querySelectorAll('.crm-col-dragover').forEach(c => c.classList.remove('crm-col-dragover'));
                     });
-                    const nome = String((item.venda && item.venda.nome) || (item.telefone ? _fmtTelBR(item.telefone) : 'Cliente sem WhatsApp')).trim();
+                    const nome = String((item.venda && item.venda.nome) || item.nome || (item.telefone ? _fmtTelBR(item.telefone) : 'Cliente sem WhatsApp')).trim();
                     const numero = item.venda && (item.venda.numero || item.venda.id);
                     const dataBase = (item.venda && item.venda.ms) || item.fim || item.inicio;
                     const dias = Math.max(0, Math.floor((Date.now() - dataBase) / 864e5));
@@ -21335,7 +21593,7 @@
                     const nmTx = document.createElement('span'); nmTx.textContent = nome;
                     nm.append(icone('ph-user-circle'), nmTx);
                     const meta = document.createElement('div'); meta.className = 'crm-card-meta';
-                    meta.append(numero ? metaSpan('ph-receipt', 'Pedido #' + numero) : metaSpan('ph-path', 'Jornada de lentes'),
+                    meta.append(numero ? metaSpan('ph-receipt', 'Pedido #' + numero) : (item.importado ? metaSpan('ph-upload-simple', 'Importado') : metaSpan('ph-path', 'Jornada de lentes')),
                         metaSpan('ph-clock', dias === 0 ? 'hoje' : dias === 1 ? 'ontem' : 'há ' + dias + ' dias'));
                     const det = document.createElement('div'); det.className = 'crm-lentes-card-detail';
                     const detB = document.createElement('b'); detB.textContent = item.produto || 'Armação não identificada';
@@ -21364,9 +21622,9 @@
                         rec.onclick = () => _lentesAbreReceita(rec); actions.appendChild(rec);
                     }
                     if (item.telefone) {
-                        const num = String(item.telefone).replace(/\D/g, '');
                         const wa = document.createElement('a'); wa.className = 'crm-card-wpp'; wa.target = '_blank'; wa.rel = 'noopener';
-                        wa.href = 'https://wa.me/' + (num.length > 11 ? num : '55' + num);
+                        // Mensagem padrão do CRM de lentes (Mais → Mensagem padrão), com a armação no {produto}
+                        wa.href = crmWppLink(item.telefone, item.produto, 'lentes');
                         wa.append(icone('ph-whatsapp-logo'), document.createTextNode(' WhatsApp'));
                         actions.appendChild(wa);
                     }
@@ -21393,6 +21651,81 @@
             });
             try { populateCrmRespControls(); } catch (e) {}
             try { populateCrmCampControls(); } catch (e) {}
+            const _tp = document.getElementById('crmTeamPanel');
+            if (_tp && _tp.style.display && _tp.style.display !== 'none') { try { renderCrmTeamPanel(); } catch (e) {} }
+            try { renderCenariosLentes(); } catch (e) {}
+        }
+
+        // ===== Personalizar funil do CRM de lentes (salvar) =====
+        // Coluna personalizada apagada: os leads que estavam nela voltam pra etapa automática.
+        // Pra o painel e os robôs do n8n (que leem a última crm_lentes_etapa) concordarem, grava
+        // essa etapa automática como nova crm_lentes_etapa (senão o servidor continuaria vendo
+        // o lead na coluna apagada e nenhum disparo por etapa o pegaria).
+        async function _lentesSalvaPipeline(draft) {
+            const antes = new Set(getCrmLentesConfig().columns.filter(c => !c.auto).map(c => c.key));
+            setCrmLentesConfig(draft);
+            closeCrmPipelineModal();
+            const agora = new Set(getCrmLentesConfig().columns.map(c => c.key));
+            const removidas = new Set([...antes].filter(k => !agora.has(k)));
+            renderLentesCrmPipeline();
+            if (!removidas.size || !_lentesCarregado) { crmToast('Funil do CRM de lentes salvo.'); return; }
+            const todas = _lentesSessoesCrm();
+            _lentesCasaVendas(todas, 0);
+            const orfas = todas.filter(v => v.etapaCrm && removidas.has(v.etapaCrm));
+            if (!orfas.length) { crmToast('Funil do CRM de lentes salvo.'); return; }
+            let ok = 0, falhas = 0, i = 0;
+            const worker = async () => {
+                while (i < orfas.length) {
+                    const v = orfas[i++];
+                    try { await _lentesSalvaEtapaCrm(v.sid, _lentesEtapaAuto(v), { item: v, silent: true, force: true }); ok++; }
+                    catch (e) { falhas++; console.warn('[CRM lentes] coluna apagada:', e); }
+                }
+            };
+            await Promise.all([worker(), worker(), worker(), worker()]);
+            renderLentesCrmPipeline();
+            crmToast(falhas ? ('Funil salvo. ' + ok + ' lead(s) voltaram pra etapa automática; ' + falhas + ' falharam.')
+                            : ('Funil salvo. ' + ok + ' lead(s) da coluna apagada voltaram pra etapa automática.'), !!falhas);
+        }
+
+        // ===== Importar leads no CRM de lentes =====
+        // Mesmo modal do provador. Cada lead novo vira uma "jornada" sintética no lentes_funnel
+        // (session_id 'pl-imp-…', passo crm_lentes_etapa com a coluna escolhida e o nome), gravada
+        // pelo webhook pl-lentes-step. Essas jornadas ficam FORA dos indicadores da aba Lentes.
+        const LENTES_IMPORT_MAX = 2000;
+        function _lentesImportStages() {
+            return _lentesCrmEtapas().filter(e => e.id !== 'comprou');
+        }
+        function _lentesImportBase() {
+            const base = new Set();
+            _lentesSessoesCrm().forEach(v => { const k = _lentesLeadKey(v); if (k) base.add(k); });
+            return base;
+        }
+        async function _lentesImportConfirm(news, stageKey, fileName) {
+            const lote = 'pl-imp-' + Date.now().toString(36);
+            const origin = 'https://' + (activeUser.origem || '');
+            const agora = new Date().toISOString();
+            let ok = 0, falhas = 0, i = 0;
+            const msg = document.getElementById('crmImpMsg');
+            const worker = async () => {
+                while (i < news.length) {
+                    const idx = i++; const l = news[idx];
+                    const sid = lote + '-' + idx;
+                    const tel = normalizeFull(l.rawPhone || l.phone);
+                    const detail = { etapa: stageKey, por: 'importacao', nome: l.name || null, arquivo: fileName || null };
+                    try {
+                        const r = await fetch('https://n8n.segredosdodrop.com/webhook/pl-lentes-step', {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ session_id: sid, origin, telefone: tel, produto: null, step: 'crm_lentes_etapa', detail })
+                        });
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        _lentesLinhas.push({ session_id: sid, telefone: tel, step: 'crm_lentes_etapa', detail, produto: null, created_at: agora });
+                        ok++;
+                    } catch (e) { falhas++; console.warn('[CRM lentes] importar:', e); }
+                    if (msg) msg.textContent = 'Importando… ' + (ok + falhas) + '/' + news.length;
+                }
+            };
+            await Promise.all([worker(), worker(), worker(), worker()]);
+            return { ok, falhas };
         }
 
         // ===== Mover em massa no CRM de lentes =====
@@ -21409,8 +21742,7 @@
         }
         function _lentesBulkTitle(id) {
             if (id === '__any__') return 'Todas as etapas';
-            const e = _LENTES_CRM_ETAPAS.find(x => x.id === id);
-            return e ? e.rot : id;
+            return _lentesEtapaRot(id);
         }
         function _lentesOpenBulkMove() {
             const fill = (sel, pares) => {
@@ -21418,7 +21750,8 @@
                 sel.textContent = '';
                 pares.forEach(([v, l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; sel.appendChild(o); });
             };
-            const etapas = _LENTES_CRM_ETAPAS.map(e => [e.id, e.grupo + ' · ' + e.rot]);
+            const etapasCrm = _lentesCrmEtapas();
+            const etapas = etapasCrm.map(e => [e.id, e.grupo + ' · ' + e.rot]);
             const from = document.getElementById('crmBulkFrom');
             const to = document.getElementById('crmBulkTo');
             const tag = document.getElementById('crmBulkTag');
@@ -21430,8 +21763,8 @@
                     .concat(tags.map(t => [t.key, t.label])));
                 tag.value = (_crmCampFilter && tags.some(t => t.key === _crmCampFilter)) ? _crmCampFilter : '';
             }
-            if (from) from.value = _LENTES_CRM_ETAPAS[0].id;
-            if (to) to.value = _LENTES_CRM_ETAPAS[1].id;
+            if (from && etapasCrm[0]) from.value = etapasCrm[0].id;
+            if (to && etapasCrm[1]) to.value = etapasCrm[1].id;
             crmBulkMoveUpdateCount();
             const m = document.getElementById('crmBulkMoveModal');
             if (m) { if (m.parentElement !== document.body) document.body.appendChild(m); m.style.display = 'flex'; }
@@ -21470,7 +21803,7 @@
             const todas = _lentesCrmItens();
             const resp = getCrmResp();
             todas.forEach(v => {
-                const etapa = _LENTES_CRM_ETAPAS.find(e => e.id === _lentesEtapaCrm(v));
+                const etapa = _lentesEtapaInfo(_lentesEtapaCrm(v));
                 rows.push([v.venda && (v.venda.numero || v.venda.id), v.venda && v.venda.nome, v.telefone,
                     etapa && etapa.rot, Object.keys(v.passos || {}).join(' > '), v.produto,
                     _LENTES_VISAO[v.visao] || v.visao, _LENTES_TRAT[v.trat] || v.trat, v.lente, resp[_lentesLeadKey(v)] || '',
@@ -21758,6 +22091,10 @@
             const x = _rodEl('button', 'background:transparent;border:0;color:#666;cursor:pointer;font-size:20px;line-height:1;padding:4px;', '×'); x.onclick = closeCrmRodizioModal;
             head.appendChild(h); head.appendChild(x); box.appendChild(head);
             box.appendChild(_rodEl('p', 'font-size:13px;color:#555;margin:0 0 16px;line-height:1.5;', 'Cada lead novo que entrar no CRM (prova, carrinho ou importado) vai para uma pessoa do time, em ordem: um para cada. Quem já tem responsável não muda de dono. A distribuição é na hora em que o lead entra.'));
+            if (_crmPipelineMode === 'lentes') {
+                box.appendChild(_rodEl('div', 'font-size:12.5px;color:#5b21b6;background:#f5f3ff;border-radius:10px;padding:10px 12px;margin:-6px 0 16px;line-height:1.5;',
+                    'O rodízio é um só para a loja. No CRM de lentes o responsável é o mesmo do cliente no CRM do provador (é por WhatsApp): quem provou e depois entrou no fluxo de lentes já chega com o dono que o rodízio deu.'));
+            }
             if (!team.length) {
                 box.appendChild(_rodEl('div', 'background:#fef3c7;color:#92400e;border-radius:10px;padding:12px 14px;font-size:13px;', 'Cadastre o time primeiro em "Gerenciar time". Depois volte aqui para ligar o rodízio.'));
                 ov.appendChild(box); document.body.appendChild(ov); return;
@@ -22043,6 +22380,11 @@
         function crmAbrirLeadDaTarefa(x) {
             const map = crmLeadMapCache || {};
             const k = _tk9(x.telefone);
+            // No CRM de lentes abre a ficha da jornada de lentes mais recente desse telefone.
+            if (_crmPipelineMode === 'lentes' && _lentesCarregado) {
+                const jor = _lentesCrmItens().filter(v => _tk9(v.telefone) === k).sort((a, b) => (b.fim || 0) - (a.fim || 0))[0];
+                if (jor) { closeCrmTarefasModal(); _lentesAbreLeadModal(jor); return; }
+            }
             const ph = Object.keys(map).find(p => _tk9(p) === k);
             if (!ph) { if (typeof crmToast === 'function') crmToast('Lead não está no CRM agora (talvez fora do período).', true); return; }
             let col = 'cold';
@@ -22260,11 +22602,13 @@
         }
 
         // ===== Painel de desempenho por responsável (gráficos) =====
+        // Vale pros dois quadros: no CRM de lentes conta as jornadas (por telefone, mesmo
+        // responsável do provador) nas etapas/colunas do CRM de lentes.
         function renderCrmTeamPanel() {
             const panel = document.getElementById('crmTeamPanel');
-            if (!panel || !crmLeadMapCache) return;
-            const config = getCrmConfig();
-            const overrides = getCrmOverrides();
+            if (!panel) return;
+            const lentes = _crmPipelineMode === 'lentes';
+            if (!lentes && !crmLeadMapCache) return;
             const resp = getCrmResp();
             const team = getCrmTeam();
             const NONE = 'Sem responsável';
@@ -22272,58 +22616,72 @@
             const agg = {};   // nome -> { total, stages:{} }
             const ensure = (n) => { if (!agg[n]) agg[n] = { total: 0, stages: {} }; return agg[n]; };
             team.forEach(n => ensure(n));
-            Object.entries(crmLeadMapCache).forEach(([ph, lead]) => {
-                const who = resp[ph] || NONE;
-                const a = ensure(who);
-                a.total++;
-                const sk = waLeadStageKey(ph, lead, config, overrides);
-                a.stages[sk] = (a.stages[sk] || 0) + 1;
-            });
+            let cols;
+            const conta = (who, sk) => { const a = ensure(who || NONE); a.total++; a.stages[sk] = (a.stages[sk] || 0) + 1; };
+            if (lentes) {
+                cols = _lentesCrmEtapas().map(e => ({ key: e.id, title: e.rot }));
+                if (_lentesCarregado) _lentesCrmItens().forEach(v => { const k = _lentesLeadKey(v); conta(k ? resp[k] : '', _lentesEtapaCrm(v)); });
+            } else {
+                const config = getCrmConfig();
+                const overrides = getCrmOverrides();
+                cols = config.columns;
+                Object.entries(crmLeadMapCache).forEach(([ph, lead]) => conta(resp[ph], waLeadStageKey(ph, lead, config, overrides)));
+            }
 
             const names = Object.keys(agg).filter(n => agg[n].total > 0 || team.includes(n));
             names.sort((x, y) => (x === NONE) - (y === NONE) || agg[y].total - agg[x].total);
 
+            const mk = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+            const ic = (cls) => { const i = document.createElement('i'); i.className = 'ph-bold ' + cls; return i; };
+            const dot = (cls, color) => { const d = mk('span', cls); d.style.background = color; return d; };
+            panel.textContent = '';
             if (!team.length && names.every(n => n === NONE)) {
-                panel.innerHTML = '<div class="crm-team-empty"><i class="ph-bold ph-users-three"></i> Cadastre seu time em <strong>Gerenciar time</strong> e atribua os leads (no card ou no detalhe) pra ver o desempenho de cada responsável.</div>';
+                const e = mk('div', 'crm-team-empty');
+                e.append(ic('ph-users-three'), document.createTextNode(' Cadastre seu time em '), mk('strong', '', 'Gerenciar time'),
+                    document.createTextNode(' e atribua os leads (no card ou no detalhe) pra ver o desempenho de cada responsável.'));
+                panel.appendChild(e);
                 return;
             }
 
             const maxTotal = Math.max(1, ...names.map(n => agg[n].total));
-            const cols = config.columns;
-
-            let h = '<div class="crm-team-grid">';
+            const grid = mk('div', 'crm-team-grid');
             // Gráfico 1: total por responsável
-            h += '<div class="crm-team-card"><div class="crm-team-card-title"><i class="ph-bold ph-chart-bar"></i> Leads por responsável</div><div class="crm-team-bars">';
+            const c1 = mk('div', 'crm-team-card');
+            const t1 = mk('div', 'crm-team-card-title'); t1.append(ic('ph-chart-bar'), document.createTextNode(lentes ? ' Jornadas de lentes por responsável' : ' Leads por responsável'));
+            const bars = mk('div', 'crm-team-bars');
             names.forEach(n => {
                 const a = agg[n];
-                const pct = Math.round(a.total / maxTotal * 100);
                 const color = n === NONE ? '#94a3b8' : crmRespColor(n);
-                h += '<div class="crm-tb-row"><div class="crm-tb-label" title="' + escapeHtml(n) + '"><span class="crm-tb-dot" style="background:' + color + '"></span>' + escapeHtml(n) + '</div>'
-                  + '<div class="crm-tb-track"><div class="crm-tb-fill" style="width:' + pct + '%;background:' + color + '"></div></div>'
-                  + '<div class="crm-tb-val">' + a.total + '</div></div>';
+                const r = mk('div', 'crm-tb-row');
+                const lb = mk('div', 'crm-tb-label'); lb.title = n; lb.append(dot('crm-tb-dot', color), document.createTextNode(n));
+                const tr = mk('div', 'crm-tb-track'); const fill = mk('div', 'crm-tb-fill');
+                fill.style.width = Math.round(a.total / maxTotal * 100) + '%'; fill.style.background = color; tr.appendChild(fill);
+                r.append(lb, tr, mk('div', 'crm-tb-val', String(a.total)));
+                bars.appendChild(r);
             });
-            h += '</div></div>';
-
+            c1.append(t1, bars);
             // Gráfico 2: nome do responsável + etapas abaixo, com total por etapa
-            h += '<div class="crm-team-card"><div class="crm-team-card-title"><i class="ph-bold ph-funnel"></i> Leads por etapa, por responsável</div>';
-            h += '<div class="crm-resp-stages">';
+            const c2 = mk('div', 'crm-team-card');
+            const t2 = mk('div', 'crm-team-card-title'); t2.append(ic('ph-funnel'), document.createTextNode(' Leads por etapa, por responsável'));
+            const rsWrap = mk('div', 'crm-resp-stages');
             names.forEach(n => {
                 const a = agg[n];
                 const color = n === NONE ? '#94a3b8' : crmRespColor(n);
-                h += '<div class="crm-rs-block">';
-                h += '<div class="crm-rs-name"><span class="crm-tb-dot" style="background:' + color + '"></span>' + escapeHtml(n) + '<span class="crm-rs-total">' + a.total + '</span></div>';
-                h += '<div class="crm-rs-stages">';
+                const blk = mk('div', 'crm-rs-block');
+                const nm = mk('div', 'crm-rs-name'); nm.append(dot('crm-tb-dot', color), document.createTextNode(n), mk('span', 'crm-rs-total', String(a.total)));
+                const st = mk('div', 'crm-rs-stages');
                 cols.forEach(c => {
                     const v = a.stages[c.key] || 0;
-                    h += '<div class="crm-rs-stage' + (v ? '' : ' zero') + '">'
-                       + '<span class="crm-sl-dot" style="background:' + crmStageColor(c.key, cols) + '"></span>'
-                       + '<span class="crm-rs-stage-name">' + escapeHtml(c.title) + '</span>'
-                       + '<span class="crm-rs-stage-count">' + v + '</span></div>';
+                    const it = mk('div', 'crm-rs-stage' + (v ? '' : ' zero'));
+                    it.append(dot('crm-sl-dot', crmStageColor(c.key, cols)), mk('span', 'crm-rs-stage-name', c.title), mk('span', 'crm-rs-stage-count', String(v)));
+                    st.appendChild(it);
                 });
-                h += '</div></div>';
+                blk.append(nm, st);
+                rsWrap.appendChild(blk);
             });
-            h += '</div></div></div>';
-            panel.innerHTML = h;
+            c2.append(t2, rsWrap);
+            grid.append(c1, c2);
+            panel.appendChild(grid);
         }
 
         function renderCrmBoard() {
