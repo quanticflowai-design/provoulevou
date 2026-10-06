@@ -14583,6 +14583,15 @@
             { id: 'p_inativo', nome: 'Sem comprar há 60+ dias', desc: 'Já compraram, mas não voltam há mais de 60 dias.', icon: 'ph-clock-countdown', regras: { tipo: 'dias_sem_comprar', op: '>=', valor: 60 } }
         ];
 
+        function _segNorm(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim(); }
+
+        // Produtos já provados na loja (mais provados primeiro) — sugestões do construtor.
+        function segProdutosProvados() {
+            const cont = {};
+            (allGensShared || []).forEach(g => { const p = String(g.produtos || '').trim(); if (p) cont[p] = (cont[p] || 0) + 1; });
+            return Object.keys(cont).sort((a, b) => cont[b] - cont[a]);
+        }
+
         function _segCmp(a, op, v) { v = Number(v); if (op === '>=') return a >= v; if (op === '<=') return a <= v; if (op === '==') return Math.round(a) === v; if (op === '>') return a > v; if (op === '<') return a < v; return false; }
 
         // Agrega compradores (a partir de allOrdersCache, que já vem SÓ com pedidos pagos).
@@ -14635,6 +14644,22 @@
                 (allGensShared || []).forEach(g => {
                     const key = generationCustomerKey(g); if (!key || seen.has(key) || buyers.has(key)) return;
                     if (segJaContatado(key)) return;   // já recebeu disparo → fora da lista
+                    seen.add(key);
+                    const send = normalizeFull(g.telefone_cliente);
+                    if (send && send.length >= 10) out.push({ name: '', phone: send, product: g.produtos || '' });
+                });
+                return out;
+            }
+            if (regras.tipo === 'provou_produto') {
+                // Quem provou um produto específico — casa por trecho do nome, sem acento/caixa.
+                const termo = _segNorm(regras.produto); if (!termo) return out;
+                const excluiCompradores = regras.excluir_compradores !== false;
+                const buyers = excluiCompradores ? segBuildAgg() : null; const seen = new Set();
+                (allGensShared || []).forEach(g => {
+                    if (_segNorm(g.produtos).indexOf(termo) === -1) return;
+                    const key = generationCustomerKey(g); if (!key || seen.has(key)) return;
+                    if (buyers && buyers.has(key)) return;
+                    if (segJaContatado(key)) return;
                     seen.add(key);
                     const send = normalizeFull(g.telefone_cliente);
                     if (send && send.length >= 10) out.push({ name: '', phone: send, product: g.produtos || '' });
@@ -14698,6 +14723,7 @@
             const v = Number(r.valor);
             const vTxt = isFinite(v) ? v.toLocaleString('pt-BR') : '';
             if (r.tipo === 'provou_nao_comprou') return 'Provou e não comprou';
+            if (r.tipo === 'provou_produto') return 'Provou "' + (r.produto || '') + '"' + (r.excluir_compradores !== false ? ' e não comprou' : '');
             if (r.tipo === 'gasto_total') return 'Gasto total ' + opTxt + ' ' + PL_SYM + vTxt;
             if (r.tipo === 'num_compras') return 'Número de compras ' + opTxt + ' ' + vTxt;
             if (r.tipo === 'dias_sem_comprar') return 'Dias sem comprar ' + opTxt + ' ' + vTxt;
@@ -14766,7 +14792,10 @@
             } catch (e) { window._segCustom = []; }
         }
 
-        function segBuilderTipo(t) { const p = document.getElementById('segRuleParams'); if (p) p.style.display = (t === 'provou_nao_comprou') ? 'none' : 'flex'; }
+        function segBuilderTipo(t) {
+            const p = document.getElementById('segRuleParams'); if (p) p.style.display = (t === 'provou_nao_comprou' || t === 'provou_produto') ? 'none' : 'flex';
+            const q = document.getElementById('segProdParams'); if (q) q.style.display = (t === 'provou_produto') ? 'block' : 'none';
+        }
 
         function segOpenBuilder(existing) {
             _segInjectCSS();
@@ -14782,7 +14811,14 @@
                 + '<option value="num_compras">Número de compras</option>'
                 + '<option value="dias_sem_comprar">Dias sem comprar</option>'
                 + '<option value="provou_nao_comprou">Provou e não comprou</option>'
+                + '<option value="provou_produto">Provou um produto específico</option>'
                 + '</select>'
+                + '<div id="segProdParams" style="display:none;margin-top:8px;">'
+                + '<input id="segProduto" class="camp-inp" list="segProdList" placeholder="Digite ou escolha o produto" value="' + escapeHtml(R.produto || '') + '">'
+                + '<datalist id="segProdList">' + segProdutosProvados().map(p => '<option value="' + escapeHtml(p) + '"></option>').join('') + '</datalist>'
+                + '<label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;color:var(--text-main);cursor:pointer;">'
+                + '<input id="segExcluiComp" type="checkbox"' + (R.excluir_compradores === false ? '' : ' checked') + '> Só quem ainda não comprou</label>'
+                + '</div>'
                 + '<div id="segRuleParams" style="display:flex;gap:8px;margin-top:8px;">'
                 + '<select id="segOp" class="camp-sel" style="flex:0 0 150px;"><option value=">=">maior ou igual</option><option value="<=">menor ou igual</option><option value="==">igual a</option></select>'
                 + '<input id="segVal" class="camp-inp" type="number" style="flex:1;" value="' + (R.valor != null ? R.valor : '') + '">'
@@ -14802,7 +14838,11 @@
             if (!nome) { crmToast && crmToast('Dê um nome ao público.', true); return; }
             const tipo = document.getElementById('segTipo').value;
             const regras = { tipo };
-            if (tipo !== 'provou_nao_comprou') { regras.op = document.getElementById('segOp').value; regras.valor = Number(document.getElementById('segVal').value || 0); }
+            if (tipo === 'provou_produto') {
+                regras.produto = (document.getElementById('segProduto').value || '').trim();
+                if (!regras.produto) { crmToast && crmToast('Escolha o produto.', true); return; }
+                regras.excluir_compradores = document.getElementById('segExcluiComp').checked;
+            } else if (tipo !== 'provou_nao_comprou') { regras.op = document.getElementById('segOp').value; regras.valor = Number(document.getElementById('segVal').value || 0); }
             const row = { lojista_email: activeUser.email, nome: nome, descricao: (document.getElementById('segDesc').value || '').trim(), regras: regras };
             try {
                 let r;
@@ -20391,6 +20431,12 @@
                 '.clm-f a:hover{text-decoration:underline;}',
                 '.clm-f select{font-weight:600;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:6px 8px;background:var(--card-bg);color:var(--text-main);cursor:pointer;width:100%;}',
                 '.clm-tags{display:flex;flex-wrap:wrap;gap:6px;}',
+                '.clm-prods{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;}',
+                '.clm-prod{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text-main);text-decoration:none;}',
+                'a.clm-prod:hover{border-color:#7c3aed;background:rgba(124,58,237,.05);}',
+                '.clm-prod-nm{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+                '.clm-prod-nm i{color:#7c3aed;font-size:12px;}',
+                '.clm-prod-meta{font-size:11.5px;color:var(--text-muted);white-space:nowrap;flex:0 0 auto;}',
                 '.clm-tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:99px;cursor:pointer;border:1px solid;font-family:inherit;max-width:100%;}',
                 '.clm-tag span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
                 '.clm-tag.camp{color:#7c3aed;background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.25);}',
@@ -20584,6 +20630,18 @@
                 + (lead.provaCount ? f('Primeira prova', crmFmtDate(lead.firstDate)) + f('Última prova', crmFmtDate(lead.lastDate)) : '')
                 + (lead.pendingPayment ? f('Pagamento gerado', crmFmtDate(lead.pendingPaymentDate)) + f('Forma de pagamento', escapeHtml(String(lead.pendingPaymentMethod || 'Não informada').toUpperCase())) + f('Valor pendente', _brl(lead.pendingPaymentAmount || 0)) : '');
 
+            // Produtos provados (mais recente primeiro), com link e quantas vezes provou cada um.
+            const provados = Object.values(lead.provados || {}).sort((a, b) => String(b.ultima).localeCompare(String(a.ultima)));
+            const provadosHtml = provados.length
+                ? '<div class="clm-prods">' + provados.map(p => {
+                    const nomeH = escapeHtml(p.nome);
+                    const meta = '<span class="clm-prod-meta">' + (p.vezes > 1 ? p.vezes + 'x · ' : '') + crmFmtDate(String(p.ultima).slice(0, 10)) + '</span>';
+                    return /^https?:\/\//.test(p.url)
+                        ? '<a class="clm-prod" href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener"><span class="clm-prod-nm">' + nomeH + ' <i class="ph-bold ph-arrow-square-out"></i></span>' + meta + '</a>'
+                        : '<div class="clm-prod"><span class="clm-prod-nm">' + nomeH + '</span>' + meta + '</div>';
+                }).join('') + '</div>'
+                : '<div class="clm-empty">Este lead ainda não provou nenhum produto.</div>';
+
             const tagEntries = _crmCampaignTags[lead.phone] ? Object.entries(_crmCampaignTags[lead.phone]) : [];
             const tagsHtml = tagEntries.length
                 ? '<div class="clm-tags">' + tagEntries.map(([sid, t]) => {
@@ -20609,6 +20667,7 @@
                 + '<div class="clm-body">'
                 +   '<div class="clm-sec"><h4>Detalhes</h4><div class="clm-grid">' + details + '</div></div>'
                 +   _crmComprasHtml(lead)
+                +   (lead.provaCount ? '<div class="clm-sec"><h4>Produtos provados <span class="clm-sum">' + provados.length + (provados.length === 1 ? ' produto' : ' produtos') + '</span></h4>' + provadosHtml + '</div>' : '')
                 +   '<div class="clm-sec"><h4>Tarefas</h4><div id="clmTarefas"></div></div>'
                 +   '<div class="clm-sec"><h4>Campanhas e automações</h4>' + tagsHtml + '</div>'
                 +   '<div class="clm-sec"><h4>Histórico de disparos <span id="clmHistSum" class="clm-sum"></span></h4><div id="clmHistory"><div class="clm-empty">Carregando histórico…</div></div></div>'
@@ -20829,6 +20888,15 @@
                     const provaProduct = (s.produtos || '').split(',')[0].trim();
                     if (provaProduct) leadMap[ph].lastProduct = provaProduct;
                     if (s.produto_url) leadMap[ph].lastProductUrl = s.produto_url;
+                    // Todos os produtos que o lead provou (não só o último) — modal do lead.
+                    const nomeProva = String(s.produtos || '').trim();
+                    if (nomeProva) {
+                        const pv = leadMap[ph].provados || (leadMap[ph].provados = {});
+                        const it = pv[nomeProva] || (pv[nomeProva] = { nome: nomeProva, url: '', vezes: 0, ultima: '' });
+                        it.vezes++;
+                        if (s.produto_url) it.url = s.produto_url;
+                        if (ts > it.ultima) it.ultima = ts;
+                    }
                     if (ts && (!provaMinTs[ph] || ts < provaMinTs[ph])) provaMinTs[ph] = ts;
                 });
 
