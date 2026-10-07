@@ -1714,15 +1714,26 @@
   function recebeFoto(e) {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      userPhoto = reader.result;
+    const mostra = (dataUrl) => {
+      userPhoto = dataUrl;
       const prev = $('#uploader-preview');
       prev.src = userPhoto; prev.hidden = false;
       $('#uploader-empty').style.display = 'none';
       atualizaBotaoProvar();   // só libera com foto, WhatsApp e aceite
     };
-    reader.readAsDataURL(file);
+    // A selfie do celular vinha crua (1,5–3,5 MB) e levava 25–30s só de upload no
+    // 4G, além de deixar o Vertex mais lento. Reduz pra 1024px/JPEG como o cadastro
+    // de produto; se a compressão falhar, manda a original como antes.
+    compressImage(file).then(b64 => {
+      if (b64) { mostra('data:image/jpeg;base64,' + b64); return; }
+      const reader = new FileReader();
+      reader.onload = () => mostra(reader.result);
+      reader.readAsDataURL(file);
+    }).catch(() => {
+      const reader = new FileReader();
+      reader.onload = () => mostra(reader.result);
+      reader.readAsDataURL(file);
+    });
   }
   $('#photo-input').addEventListener('change', recebeFoto);
   {
