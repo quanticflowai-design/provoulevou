@@ -508,7 +508,16 @@
                 brand: '#6B3F17', dark: '#4E2D0F', soft: 'rgba(107,63,23,.10)', on: '#ffffff' },
     // logo dourada em fundo verde-escuro: tema escuro no verde da logo, dourado na marca com texto preto
     viplineoculos: { bg: '#053C25', card: '#0A4A2F', line: 'rgba(212,175,90,.28)',
-                brand: '#D4AF5A', dark: '#B8933F', soft: 'rgba(212,175,90,.14)', on: '#111111' }
+                brand: '#D4AF5A', dark: '#B8933F', soft: 'rgba(212,175,90,.14)', on: '#111111' },
+    // logo dourada em cartão preto: tema escuro, dourado na marca com texto preto (8,9:1)
+    oticawakanda: { bg: '#161616', card: '#1F1F1F', line: 'rgba(201,164,92,.26)',
+                brand: '#C9A45C', dark: '#B08C46', soft: 'rgba(201,164,92,.13)', on: '#111111' },
+    // logo creme sobre bege: fundo = bege da logo, cartões creme, marrom no botão (6,2:1 com branco)
+    oticaanaclara: { bg: '#BE9A7A', card: '#FBF6F0', line: 'rgba(122,90,64,.20)',
+                brand: '#7A5A40', dark: '#5E4430', soft: 'rgba(122,90,64,.10)', on: '#ffffff' },
+    // logo redondo vermelho (PNG transparente): fundo branco, vermelho da logo no botão (5,6:1)
+    fabricadeoculos: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F1DAD7',
+                brand: '#C62A1E', dark: '#A32217', soft: 'rgba(198,42,30,.08)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
