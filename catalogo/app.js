@@ -539,7 +539,10 @@
                 brand: '#8E6A22', dark: '#70531A', soft: 'rgba(142,106,34,.09)', on: '#ffffff' },
     // Keyper Óculos: letra vermelha em fundo branco -> tema claro; vermelho do logo com texto branco (~5,9:1).
     keyperoculos: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F2DEDC',
-                brand: '#B42B22', dark: '#8E211A', soft: 'rgba(180,43,34,.08)', on: '#ffffff' }
+                brand: '#B42B22', dark: '#8E211A', soft: 'rgba(180,43,34,.08)', on: '#ffffff' },
+    // Óticas Ferri — marinho + dourado (logo com fundo marinho chapado)
+    oticasferri: { bg: '#01132B', card: '#0A1F3F', line: '#1C3358',
+                brand: '#C9A063', dark: '#A8834A', soft: 'rgba(201,160,99,.14)', on: '#111111' }
   };
 
   // ─────────── Tema ───────────
