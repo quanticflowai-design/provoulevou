@@ -18,12 +18,12 @@
        envio do formulário (POST /auth/v1/verify -> sessão -> PUT /auth/v1/user).
        Não depende do redirect do GoTrue (API_EXTERNAL_URL do self-hosted é localhost). -->
   <div id="app">
-    <section class="screen active" data-screen="login">
+    <section class="screen active" id="screen-login" data-screen="login">
       <div class="login-box">
         <img class="login-logo" src="../logo.png" alt="Provou Catálogo">
         <h2>Criar nova senha</h2>
         <p class="muted" id="ns-intro">Escolha a senha que você vai usar para entrar no painel do seu catálogo.</p>
-        <form id="ns-form" autocomplete="on">
+        <form id="login-form" autocomplete="on">
           <label for="ns-pass">Nova senha</label>
           <input type="password" id="ns-pass" autocomplete="new-password" placeholder="mínimo 8 caracteres" minlength="8" required>
           <label for="ns-pass2">Repita a nova senha</label>
@@ -49,12 +49,12 @@
     const erro = msg => { const e = $('#ns-error'); e.textContent = msg; e.hidden = !msg; };
 
     if (!token) {
-      $('#ns-form').hidden = true;
+      $('#login-form').hidden = true;
       $('#ns-intro').textContent = 'Este link está incompleto. Peça um novo link à Provou Levou pelo WhatsApp.';
       return;
     }
 
-    $('#ns-form').addEventListener('submit', async ev => {
+    $('#login-form').addEventListener('submit', async ev => {
       ev.preventDefault();
       const p1 = $('#ns-pass').value, p2 = $('#ns-pass2').value;
       if (p1.length < 8) return erro('A senha precisa ter pelo menos 8 caracteres.');
@@ -80,7 +80,7 @@
           throw new Error((j && (j.msg || j.error_description)) || 'Não consegui salvar a senha. Tente de novo.');
         }
         history.replaceState(null, '', location.pathname);   // tira o código da barra de endereço
-        $('#ns-form').hidden = true; $('#ns-intro').hidden = true; $('#ns-ok').hidden = false;
+        $('#login-form').hidden = true; $('#ns-intro').hidden = true; $('#ns-ok').hidden = false;
       } catch (e) {
         erro(e.message || 'Não consegui salvar a senha. Tente de novo.');
         btn.disabled = false; btn.textContent = 'Salvar nova senha';
