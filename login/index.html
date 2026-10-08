@@ -2389,6 +2389,11 @@
             .tab-btn { padding: 9px 10px; font-size: 12px; gap: 4px; }
         }
     </style>
+<style>
+  /* Central de Lentes: observação que o cliente escreveu ao comprar (08/10/2026) */
+  .lentes-obs { font-size: 12px; line-height: 1.4; color: var(--text-main); background: rgba(124,58,237,.07);
+                border-radius: 8px; padding: 6px 9px; margin-top: 7px; white-space: pre-wrap; word-break: break-word; }
+</style>
 </head>
 
 <body class="booting">
@@ -6364,6 +6369,7 @@
                 if (d.trat) s.trat = d.trat;
                 if (r.step === 'receita_lida') { s.leu = !!d.ok; s.confianca = d.confianca || null; if (d.arq) s.arq = d.arq; }
                 if (d.grau) s.grau = d.grau;
+                if (d.obs) s.obs = String(d.obs).slice(0, 300);   // observação que o cliente escreveu ao comprar
                 if (r.step === 'recomendou' && d.lente) { s.lente = d.lente; s.preco = Number(d.preco) || 0; }
                 if ((r.step === 'alternativa' || r.step === 'trocou_lente') && d.lente) {
                     s.lente = d.lente; s.preco = Number(d.preco) || s.preco;
@@ -6720,7 +6726,8 @@
                         + '<div class="crm-card-meta"><span><i class="ph-bold ph-receipt"></i> Pedido #' + _lesc(numero) + '</span>'
                         + '<span><i class="ph-bold ph-clock"></i> ' + (dias === 0 ? 'hoje' : dias === 1 ? 'ontem' : 'há ' + dias + ' dias') + '</span></div>'
                         + '<div class="crm-lentes-card-detail"><b>' + _lesc(item.produto || 'Armação não identificada') + '</b><span>'
-                        + _lesc(item.lente || 'Lente não identificada') + '</span></div>';
+                        + _lesc(item.lente || 'Lente não identificada') + '</span></div>'
+                        + (item.obs ? '<div class="lentes-obs">📝 ' + _lesc(item.obs) + '</div>' : '');
 
                     const actions = document.createElement('div'); actions.className = 'crm-lentes-card-actions';
                     if (item.arq) {
@@ -6762,7 +6769,8 @@
                 + '<span class="lentes-pedido-tempo' + (dias >= 3 && etapa.id !== 'enviado' ? ' atrasado' : '') + '">' + idade + '</span></div>'
                 + '<div class="lentes-pedido-cliente"><b>' + _lesc(nome || 'Cliente') + '</b><span>' + _lesc(v.produto || 'Armação não identificada') + '</span></div>'
                 + '<div class="lentes-pedido-lente"><b>' + _lesc(v.lente || 'Lente não identificada') + '</b><span>'
-                + (v.grau ? _lentesGrauTexto(v.grau) : (v.arq ? 'Grau disponível na receita' : 'Confirmar grau com o cliente')) + '</span></div>';
+                + (v.grau ? _lentesGrauTexto(v.grau) : (v.arq ? 'Grau disponível na receita' : 'Confirmar grau com o cliente')) + '</span></div>'
+                + (v.obs ? '<div class="lentes-obs">📝 ' + _lesc(v.obs) + '</div>' : '');
             const bts = [];
             if (v.arq) bts.push('<button type="button" class="lentes-ver" data-arq="' + _lesc(v.arq) + '">Receita</button>');
             if (v.telefone) {
@@ -21670,6 +21678,10 @@
                     const detS = document.createElement('span'); detS.textContent = item.lente || 'Lente ainda não definida';
                     det.append(detB, detS);
                     card.append(nm, meta, det);
+                    if (item.obs) {
+                        const obs = document.createElement('div'); obs.className = 'lentes-obs';
+                        obs.textContent = '📝 ' + item.obs; card.appendChild(obs);
+                    }
                     if (etapa.id === 'saiu') {
                         const antes = _lentesUltimaEtapaAntesDeSair(item);
                         if (antes) {
