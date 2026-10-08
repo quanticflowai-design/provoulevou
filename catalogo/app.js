@@ -517,7 +517,17 @@
                 brand: '#7A5A40', dark: '#5E4430', soft: 'rgba(122,90,64,.10)', on: '#ffffff' },
     // logo redondo vermelho (PNG transparente): fundo branco, vermelho da logo no botão (5,6:1)
     fabricadeoculos: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F1DAD7',
-                brand: '#C62A1E', dark: '#A32217', soft: 'rgba(198,42,30,.08)', on: '#ffffff' }
+                brand: '#C62A1E', dark: '#A32217', soft: 'rgba(198,42,30,.08)', on: '#ffffff' },
+    // Ótica One Vision: logo redondo marinho sobre preto -> tema escuro; azul do "VISION" com texto preto (7,5:1).
+    oticaonevision: { bg: '#000000', card: '#0B1220', line: 'rgba(74,144,245,.24)',
+                brand: '#4A90F5', dark: '#2F7DF0', soft: 'rgba(74,144,245,.14)', on: '#000000' },
+    // Óticas Leo: logo dourado + óculos vermelho sobre preto -> tema escuro; dourado com texto preto.
+    oticasleo: { bg: '#000000', card: '#111111', line: 'rgba(201,165,90,.26)',
+                brand: '#C9A55A', dark: '#A8863F', soft: 'rgba(201,165,90,.14)', on: '#111111' },
+    // Rica's Ellegance: logo creme sobre vinho. Vinho do logo (#782B3F) tem luminância 68 e cairia no tema
+    // claro (texto escuro no vinho) -> fundo levemente mais escuro (59) e logo recolorido no mesmo tom.
+    ricasellegance: { bg: '#6B2437', card: '#7A2E43', line: 'rgba(243,225,215,.22)',
+                brand: '#F3E1D7', dark: '#E6CDBF', soft: 'rgba(243,225,215,.12)', on: '#6B2437' }
   };
 
   // ─────────── Tema ───────────
