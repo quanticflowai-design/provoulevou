@@ -542,7 +542,10 @@
                 brand: '#B42B22', dark: '#8E211A', soft: 'rgba(180,43,34,.08)', on: '#ffffff' },
     // Óticas Ferri — marinho + dourado (logo com fundo marinho chapado)
     oticasferri: { bg: '#01132B', card: '#0A1F3F', line: '#1C3358',
-                brand: '#C9A063', dark: '#A8834A', soft: 'rgba(201,160,99,.14)', on: '#111111' }
+                brand: '#C9A063', dark: '#A8834A', soft: 'rgba(201,160,99,.14)', on: '#111111' },
+    // Ótica Lis — laranja chapado do logo (#FF7F26) como fundo, cartões brancos
+    oticalis: { bg: '#FF7F26', card: '#FFFFFF', line: '#FFD3B0',
+                brand: '#C2410C', dark: '#9A3412', soft: 'rgba(194,65,12,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
