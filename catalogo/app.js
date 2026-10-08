@@ -536,7 +536,10 @@
                 brand: '#9A6B2F', dark: '#7C5524', soft: 'rgba(154,107,47,.10)', on: '#ffffff' },
     // Ópticas Essenza: logo dourado em fundo branco -> tema claro; dourado fechado p/ texto branco (~4,8:1).
     opticasessenza: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EFE3C8',
-                brand: '#8E6A22', dark: '#70531A', soft: 'rgba(142,106,34,.09)', on: '#ffffff' }
+                brand: '#8E6A22', dark: '#70531A', soft: 'rgba(142,106,34,.09)', on: '#ffffff' },
+    // Keyper Óculos: letra vermelha em fundo branco -> tema claro; vermelho do logo com texto branco (~5,9:1).
+    keyperoculos: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F2DEDC',
+                brand: '#B42B22', dark: '#8E211A', soft: 'rgba(180,43,34,.08)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
