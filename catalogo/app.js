@@ -527,7 +527,16 @@
     // Rica's Ellegance: logo creme sobre vinho. Vinho do logo (#782B3F) tem luminância 68 e cairia no tema
     // claro (texto escuro no vinho) -> fundo levemente mais escuro (59) e logo recolorido no mesmo tom.
     ricasellegance: { bg: '#6B2437', card: '#7A2E43', line: 'rgba(243,225,215,.22)',
-                brand: '#F3E1D7', dark: '#E6CDBF', soft: 'rgba(243,225,215,.12)', on: '#6B2437' }
+                brand: '#F3E1D7', dark: '#E6CDBF', soft: 'rgba(243,225,215,.12)', on: '#6B2437' },
+    // Visofox Ótica: raposa coral em fundo branco -> tema claro; coral fechado p/ texto branco no botão (~5:1).
+    oticavisofox: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F6DED8',
+                brand: '#C2412F', dark: '#9E3424', soft: 'rgba(194,65,47,.08)', on: '#ffffff' },
+    // Marbela Armações: logo = foto da placa (branco/dourado, creme e rosé na marca) -> fundo creme, dourado-amarronzado.
+    marbelaarmacoes: { bg: '#F7EFE6', card: '#FFFFFF', line: '#EADBC8',
+                brand: '#9A6B2F', dark: '#7C5524', soft: 'rgba(154,107,47,.10)', on: '#ffffff' },
+    // Ópticas Essenza: logo dourado em fundo branco -> tema claro; dourado fechado p/ texto branco (~4,8:1).
+    opticasessenza: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EFE3C8',
+                brand: '#8E6A22', dark: '#70531A', soft: 'rgba(142,106,34,.09)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
