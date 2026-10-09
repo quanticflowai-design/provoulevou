@@ -2368,6 +2368,56 @@
     if (busca) busca.addEventListener('input', () => { estoqueBusca = busca.value; renderEstoque(); });
   }
 
+  // ─────────── Aba Bloqueios ───────────
+  function foneBonito(t) {
+    t = String(t || '');
+    return t.length === 11 ? '(' + t.slice(0, 2) + ') ' + t.slice(2, 7) + '-' + t.slice(7)
+         : t.length === 10 ? '(' + t.slice(0, 2) + ') ' + t.slice(2, 6) + '-' + t.slice(6) : t;
+  }
+  async function bloqueios(acao, tel) {
+    const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_bloqueios', {
+      method: 'POST', headers: { apikey: SB_ANON, Authorization: 'Bearer ' + (sessao && sessao.token),
+        'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_store_id: storeRow.id, p_acao: acao, p_telefone: tel || null })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.message || 'Não foi possível salvar');
+    renderBloqueios(d);
+  }
+  function renderBloqueios(lista) {
+    const box = $('#bloq-lista'), vazio = $('#bloq-vazio');
+    if (!box) return;
+    box.innerHTML = '';
+    if (vazio) vazio.hidden = (lista || []).length > 0;
+    (lista || []).forEach(b => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line, #e5e5e5);border-radius:10px;';
+      const txt = document.createElement('span');
+      txt.textContent = foneBonito(b.telefone) + ' · desde ' + new Date(b.desde).toLocaleDateString('pt-BR');
+      const bt = document.createElement('button');
+      bt.type = 'button'; bt.className = 'btn-outline'; bt.textContent = 'Desbloquear';
+      bt.addEventListener('click', async () => {
+        if (!confirm('Desbloquear ' + foneBonito(b.telefone) + '?')) return;
+        try { await bloqueios('desbloquear', b.telefone); toast('Cliente desbloqueado ✓'); }
+        catch (e) { toast('Não consegui desbloquear. Tente de novo.'); }
+      });
+      row.appendChild(txt); row.appendChild(bt); box.appendChild(row);
+    });
+  }
+  {
+    const bb = $('#btn-bloquear');
+    if (bb) bb.addEventListener('click', async () => {
+      const inp = $('#bloq-tel');
+      const tel = String(inp.value || '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
+      if (tel.length < 10) { toast('Digite o WhatsApp com DDD.'); return; }
+      if (!confirm('Bloquear ' + foneBonito(tel) + ' no seu catálogo?')) return;
+      bb.disabled = true;
+      try { await bloqueios('bloquear', tel); inp.value = ''; toast('Cliente bloqueado ✓'); }
+      catch (e) { toast('Não consegui bloquear. Tente de novo.'); }
+      finally { bb.disabled = false; }
+    });
+  }
+
   // ─────────── Menu do painel (abas) ───────────
   // Cada .admin-aba é um bloco; o menu mostra um de cada vez. Guard: HTML em
   // cache sem as abas não tem .admin-aba e aí tudo continua visível como antes.
@@ -2382,6 +2432,7 @@
       b.setAttribute('aria-selected', on ? 'true' : 'false');
     });
     atualizaVaziosAbas();
+    if (nome === 'bloqueios' && storeRow && sessao) bloqueios('listar').catch(() => {});
     try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
   }
   function atualizaVaziosAbas() {
