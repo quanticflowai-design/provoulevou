@@ -545,7 +545,19 @@
                 brand: '#C9A063', dark: '#A8834A', soft: 'rgba(201,160,99,.14)', on: '#111111' },
     // Ótica Lis — logo laranja chapado vira selo sobre fundo creme (laranja no fundo todo deixava o texto cinza ilegível)
     oticalis: { bg: '#FFF7F0', card: '#FFFFFF', line: '#FFE0C7',
-                brand: '#C2410C', dark: '#9A3412', soft: 'rgba(194,65,12,.10)', on: '#ffffff' }
+                brand: '#C2410C', dark: '#9A3412', soft: 'rgba(194,65,12,.10)', on: '#ffffff' },
+    // Baratão dos Óculos — logo azul chapado vira selo sobre fundo azul bem claro (azul no fundo todo deixaria texto ilegível); azul do logo fechado p/ texto branco
+    barataodosoculos: { bg: '#F4F7FE', card: '#FFFFFF', line: '#D6E0F8',
+                brand: '#2A52C9', dark: '#1F3FA0', soft: 'rgba(42,82,201,.10)', on: '#ffffff' },
+    // Óticas EyeGo — fundo creme do próprio logo; vinho do 'Eye' na marca com texto branco
+    oticaseyego: { bg: '#F3DECD', card: '#FFFFFF', line: '#E6CBB6',
+                brand: '#622425', dark: '#4A1A1B', soft: 'rgba(98,36,37,.10)', on: '#ffffff' },
+    // Mary Ocularia — logo azul/laranja em fundo branco -> tema claro; azul do lettering com texto branco
+    maryocularia: { bg: '#FFFFFF', card: '#FFFFFF', line: '#D6E3EF',
+                brand: '#004884', dark: '#003563', soft: 'rgba(0,72,132,.08)', on: '#ffffff' },
+    // Casa du Óculos — logo vermelho chapado vira selo sobre fundo claro rosado; vermelho do logo com texto branco
+    casaduoculos: { bg: '#FFF6F6', card: '#FFFFFF', line: '#F6D4D6',
+                brand: '#C8040F', dark: '#9E030C', soft: 'rgba(200,4,15,.09)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
