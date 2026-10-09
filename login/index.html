@@ -4055,18 +4055,19 @@
                 </details>
                 </div>
                 <!-- Configurar fluxo (09/10/2026): a própria loja edita lentes, preços, textos e opções do
-                     fluxo de lentes. Só aparece pra loja que tem linha em lentes_fluxo_config. -->
+                     fluxo de lentes, em acordeão na ordem do fluxo. Só aparece pra loja que tem linha em
+                     lentes_fluxo_config. -->
                 <div id="lentesViewConfig" style="display:none;">
                     <div class="lcfg-barra" id="lcfgBarra">
-                        <div>
+                        <div class="lcfg-barra-txt">
                             <span class="lentes-eyebrow">FLUXO DE LENTES</span>
-                            <h3 style="margin:2px 0 0;">Configurar fluxo</h3>
-                            <small id="lcfgStatus">Carregando…</small>
+                            <h3>Configurar fluxo</h3>
+                            <span class="lcfg-status" id="lcfgStatus">Carregando…</span>
                         </div>
                         <div class="lcfg-barra-acoes">
-                            <a class="btn-outline" id="lcfgPrevia" href="#" target="_blank" rel="noopener" style="display:none;"><i class="ph-bold ph-eye"></i> Ver prévia</a>
-                            <button type="button" class="btn-outline" id="lcfgDesfazer" disabled><i class="ph-bold ph-arrow-counter-clockwise"></i> Desfazer</button>
-                            <button type="button" class="disp-btn" id="lcfgSalvar" disabled><i class="ph-bold ph-floppy-disk"></i> Salvar alterações</button>
+                            <a class="lcfg-btn" id="lcfgPrevia" href="#" target="_blank" rel="noopener" style="display:none;"><i class="ph-bold ph-eye"></i> Ver prévia</a>
+                            <button type="button" class="lcfg-btn" id="lcfgDesfazer" disabled><i class="ph-bold ph-arrow-counter-clockwise"></i> Desfazer</button>
+                            <button type="button" class="lcfg-btn lcfg-btn-pri" id="lcfgSalvar" disabled><i class="ph-bold ph-floppy-disk"></i> Salvar alterações</button>
                         </div>
                     </div>
                     <div id="lcfgCorpo"></div>
@@ -4290,47 +4291,118 @@
                     .lentes-view-tabs { display:inline-flex;padding:4px;background:rgba(148,163,184,.10);border:1px solid var(--border-color);border-radius:10px;margin-bottom:16px;gap:3px; }
                     .lentes-view-tabs button { display:flex;align-items:center;gap:7px;border:0;background:transparent;color:var(--text-muted);padding:8px 14px;border-radius:7px;font:inherit;font-size:12.5px;font-weight:650;cursor:pointer; }
                     .lentes-view-tabs button.on { background:var(--bg-card);color:var(--text-main);box-shadow:0 1px 4px rgba(0,0,0,.12); }
-                    /* Configurar fluxo de lentes (09/10/2026) */
-                    .lcfg-barra { position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;margin-bottom:16px;box-shadow:0 6px 18px rgba(0,0,0,.06); }
-                    .lcfg-barra small { color:var(--text-muted);font-size:12px; }
-                    .lcfg-barra small.sujo { color:#b45309;font-weight:650; }
-                    .lcfg-barra-acoes { display:flex;gap:8px;flex-wrap:wrap;align-items:center; }
-                    .lcfg-barra-acoes .btn-outline, .lcfg-barra-acoes .disp-btn { display:inline-flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap; }
-                    .lcfg-barra-acoes button:disabled { opacity:.5;cursor:default; }
-                    .lcfg-secao { margin-bottom:16px; }
-                    .lcfg-secao > h3 { display:flex;align-items:center;gap:8px;margin:0 0 4px; }
-                    .lcfg-ajuda { color:var(--text-muted);font-size:12.5px;margin:0 0 14px;line-height:1.5; }
-                    .lcfg-grid2 { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px; }
-                    .lcfg-campo label { display:block;font-size:11.5px;font-weight:650;color:var(--text-muted);margin-bottom:5px; }
-                    .lcfg-campo input, .lcfg-campo textarea, .lcfg-item input, .lcfg-item textarea, .lcfg-tabela input { width:100%;box-sizing:border-box;background:var(--bg-main, transparent);color:var(--text-main);border:1px solid var(--border-color);border-radius:8px;padding:8px 10px;font:inherit;font-size:13px; }
-                    .lcfg-campo textarea, .lcfg-item textarea { resize:vertical;min-height:58px;line-height:1.45; }
-                    .lcfg-item { display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:10px;align-items:start;border:1px solid var(--border-color);border-radius:10px;padding:10px 12px;margin-bottom:8px; }
-                    .lcfg-item.off { opacity:.55; }
-                    .lcfg-item-textos { display:grid;gap:6px; }
-                    .lcfg-ordem { display:flex;flex-direction:column;gap:3px; }
-                    .lcfg-ordem button { width:28px;height:24px;border:1px solid var(--border-color);background:transparent;color:var(--text-muted);border-radius:6px;cursor:pointer;display:grid;place-items:center; }
-                    .lcfg-ordem button:disabled { opacity:.3;cursor:default; }
-                    .lcfg-switch { position:relative;display:inline-block;width:38px;height:22px;flex:0 0 auto;margin-top:4px; }
-                    .lcfg-switch input { opacity:0;width:0;height:0;position:absolute; }
-                    .lcfg-switch span { position:absolute;inset:0;background:#cbd5e1;border-radius:22px;cursor:pointer;transition:background .15s; }
-                    .lcfg-switch span:before { content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .15s; }
-                    .lcfg-switch input:checked + span { background:#16a34a; }
-                    .lcfg-switch input:checked + span:before { transform:translateX(16px); }
-                    .lcfg-switch input:focus-visible + span { outline:2px solid var(--primary);outline-offset:2px; }
-                    .lcfg-grupo-titulo { font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin:16px 0 6px; }
-                    .lcfg-tabela-wrap { overflow-x:auto; }
-                    .lcfg-tabela { width:100%;border-collapse:collapse;font-size:13px;min-width:760px; }
-                    .lcfg-tabela th { text-align:left;font-size:11px;font-weight:650;color:var(--text-muted);padding:6px 6px;border-bottom:1px solid var(--border-color);white-space:nowrap; }
-                    .lcfg-tabela td { padding:5px 6px;border-bottom:1px solid var(--border-color);vertical-align:middle; }
-                    .lcfg-tabela tr.off td:not(:first-child) { opacity:.5; }
-                    .lcfg-tabela td.lcfg-preco { width:110px; } .lcfg-tabela td.lcfg-prazo { width:72px; } .lcfg-tabela td.lcfg-id { width:120px; }
-                    .lcfg-tabela input.erro, .lcfg-campo input.erro { border-color:#dc2626;background:rgba(220,38,38,.06); }
-                    .lcfg-dica { font-size:11.5px;color:var(--text-muted);margin-top:4px; }
+                    /* Configurar fluxo de lentes (09/10/2026) — acordeão na ordem do fluxo.
+                       Tokens próprios: escuro herda o tema; claro segue o Design A (#630ed4, borda #ecebe6). */
+                    #lentesViewConfig { --l-card: var(--bg-card); --l-line: var(--border-color); --l-line-soft: rgba(148,163,184,.14); --l-ink: var(--text-main); --l-muted: var(--text-muted); --l-accent: #a78bfa; --l-soft: rgba(124,58,237,.16); --l-field: rgba(255,255,255,.035); --l-sub: rgba(255,255,255,.025); --l-ok: #22c55e; --l-warn: #f59e0b; }
+                    body:not(.dark-mode) #lentesViewConfig { --l-card: #fff; --l-line: var(--a-line, #ecebe6); --l-line-soft: var(--a-line-soft, #f0efea); --l-ink: var(--a-ink, #1c1826); --l-muted: var(--a-muted, #6b6577); --l-accent: var(--a-accent, #630ed4); --l-soft: var(--a-soft, #f1ebfb); --l-field: #fff; --l-sub: #fbfaf8; --l-ok: #16a34a; --l-warn: #b45309; }
+                    #lentesViewConfig { color: var(--l-ink); }
+                    .lcfg-barra { position: sticky; top: 8px; z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; background: var(--l-card); border: 1px solid var(--l-line); border-radius: 14px; padding: 14px 18px; margin-bottom: 14px; box-shadow: 0 8px 24px rgba(28,24,38,.06); }
+                    .lcfg-barra-txt h3 { margin: 2px 0 4px; font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
+                    .lcfg-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--l-muted); }
+                    .lcfg-status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--l-ok); }
+                    .lcfg-status.sujo { color: var(--l-warn); font-weight: 600; }
+                    .lcfg-status.sujo::before { background: var(--l-warn); }
+                    .lcfg-barra-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+                    .lcfg-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 38px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--l-line); background: var(--l-card); color: var(--l-ink); font: inherit; font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer; white-space: nowrap; transition: border-color .15s, background .15s; }
+                    .lcfg-btn:hover:not(:disabled) { border-color: var(--l-accent); }
+                    .lcfg-btn:disabled { opacity: .45; cursor: default; }
+                    .lcfg-btn-pri { background: var(--l-accent); border-color: var(--l-accent); color: #fff; }
+                    .lcfg-btn-pri:hover:not(:disabled) { filter: brightness(1.08); }
+                    .lcfg-intro { font-size: 13px; color: var(--l-muted); margin: 0 2px 14px; line-height: 1.5; }
+
+                    /* Acordeão */
+                    .lcfg-acc { border: 1px solid var(--l-line); border-radius: 14px; background: var(--l-card); margin-bottom: 12px; overflow: hidden; }
+                    .lcfg-acc .lcfg-acc { margin-bottom: 8px; border-radius: 12px; }
+                    .lcfg-acc-head { display: flex; align-items: center; gap: 10px; padding: 0 14px 0 6px; min-height: 58px; }
+                    .lcfg-acc.lvl-0 > .lcfg-acc-head { min-height: 68px; padding-left: 10px; }
+                    .lcfg-acc-toggle { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; background: none; border: 0; padding: 10px 8px; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: 10px; }
+                    .lcfg-acc-toggle:focus-visible { outline: 2px solid var(--l-accent); outline-offset: -2px; }
+                    .lcfg-acc-icone { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--l-soft); color: var(--l-accent); font-size: 18px; flex: 0 0 auto; }
+                    .lcfg-acc-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+                    .lcfg-acc-txt b { font-size: 14.5px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+                    .lcfg-acc.lvl-0 > .lcfg-acc-head .lcfg-acc-txt b { font-size: 15.5px; font-weight: 700; }
+                    .lcfg-acc-txt small { font-size: 12px; color: var(--l-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+                    .lcfg-etapa { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--l-accent); }
+                    .lcfg-caret { color: var(--l-muted); font-size: 16px; transition: transform .2s ease; flex: 0 0 auto; }
+                    .lcfg-acc.open > .lcfg-acc-head .lcfg-caret { transform: rotate(180deg); }
+                    .lcfg-acc-body { display: none; padding: 4px 18px 18px; border-top: 1px solid var(--l-line-soft); }
+                    .lcfg-acc.open > .lcfg-acc-body { display: block; }
+                    .lcfg-acc .lcfg-acc .lcfg-acc-body { background: var(--l-sub); padding: 4px 14px 14px; }
+                    .lcfg-acc.off > .lcfg-acc-head .lcfg-acc-txt b, .lcfg-acc.off > .lcfg-acc-head .lcfg-acc-icone { opacity: .5; }
+                    .lcfg-pill { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 99px; font-size: 11px; font-weight: 600; background: var(--l-line-soft); color: var(--l-muted); margin-left: 6px; vertical-align: middle; }
+                    .lcfg-pill.off { background: rgba(245,158,11,.14); color: var(--l-warn); }
+
+                    /* Ordem + interruptor */
+                    .lcfg-ordem { display: flex; flex-direction: column; gap: 2px; }
+                    .lcfg-ordem button { width: 26px; height: 22px; border: 1px solid var(--l-line); background: var(--l-card); color: var(--l-muted); border-radius: 6px; cursor: pointer; display: grid; place-items: center; font-size: 12px; padding: 0; }
+                    .lcfg-ordem button:hover:not(:disabled) { color: var(--l-accent); border-color: var(--l-accent); }
+                    .lcfg-ordem button:disabled { opacity: .3; cursor: default; }
+                    .lcfg-switch { position: relative; display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto; cursor: pointer; font-size: 12px; color: var(--l-muted); }
+                    .lcfg-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+                    .lcfg-switch span { position: relative; width: 36px; height: 21px; border-radius: 21px; background: #cbd5e1; transition: background .15s; flex: 0 0 auto; }
+                    body.dark-mode .lcfg-switch span { background: #3f3f46; }
+                    .lcfg-switch span::before { content: ''; position: absolute; width: 15px; height: 15px; left: 3px; top: 3px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s; }
+                    .lcfg-switch input:checked + span { background: var(--l-ok); }
+                    .lcfg-switch input:checked + span::before { transform: translateX(15px); }
+                    .lcfg-switch input:focus-visible + span { outline: 2px solid var(--l-accent); outline-offset: 2px; }
+                    .lcfg-switch em { font-style: normal; font-weight: 600; min-width: 62px; }
+
+                    /* Campos */
+                    .lcfg-bloco-tit { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--l-muted); margin: 18px 0 8px; }
+                    .lcfg-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+                    .lcfg-campo { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+                    .lcfg-grid .lcfg-campo { margin-top: 0; }
+                    .lcfg-campo > label { font-size: 12px; font-weight: 600; color: var(--l-muted); }
+                    .lcfg-dica { font-size: 11.5px; color: var(--l-muted); }
+                    #lentesViewConfig input[type=text], #lentesViewConfig input[type=number], #lentesViewConfig textarea { width: 100%; box-sizing: border-box; background: var(--l-field); color: var(--l-ink); border: 1px solid var(--l-line); border-radius: 9px; padding: 9px 11px; font: inherit; font-size: 13.5px; transition: border-color .15s, box-shadow .15s; }
+                    #lentesViewConfig textarea { resize: vertical; min-height: 64px; line-height: 1.45; }
+                    #lentesViewConfig input:focus, #lentesViewConfig textarea:focus { outline: none; border-color: var(--l-accent); box-shadow: 0 0 0 3px var(--l-soft); }
+                    #lentesViewConfig input.erro { border-color: #dc2626; background: rgba(220,38,38,.06); }
+                    .lcfg-opcao-txt { display: grid; gap: 8px; margin-top: 14px; }
+                    .lcfg-opcao-txt input { font-weight: 600; }
+
+                    /* Lentes */
+                    .lcfg-lentes { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+                    .lcfg-lente { display: grid; grid-template-columns: auto minmax(0, 1fr) 128px 104px auto; gap: 10px; align-items: center; background: var(--l-card); border: 1px solid var(--l-line); border-radius: 11px; padding: 10px 12px; }
+                    .lcfg-lente.off { opacity: .55; }
+                    .lcfg-lente-ids { grid-column: 2 / -1; display: none; grid-template-columns: 1fr 1fr; gap: 10px; }
+                    .lcfg-lente.ids-open .lcfg-lente-ids { display: grid; }
+                    .lcfg-lente-ids label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: 600; color: var(--l-muted); }
+                    .lcfg-afix { position: relative; display: flex; align-items: center; }
+                    .lcfg-afix > span { position: absolute; font-size: 12.5px; color: var(--l-muted); pointer-events: none; }
+                    .lcfg-afix.pre > span { left: 11px; } .lcfg-afix.pre input { padding-left: 34px !important; font-weight: 650; }
+                    .lcfg-afix.pos > span { right: 11px; } .lcfg-afix.pos input { padding-right: 42px !important; }
+                    .lcfg-ids-btn { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--l-line); background: transparent; color: var(--l-muted); cursor: pointer; display: grid; place-items: center; font-size: 15px; }
+                    .lcfg-ids-btn:hover, .lcfg-lente.ids-open .lcfg-ids-btn { color: var(--l-accent); border-color: var(--l-accent); background: var(--l-soft); }
+                    .lcfg-lente-cab { display: grid; grid-template-columns: 36px minmax(0, 1fr) 128px 104px 34px; gap: 10px; padding: 0 13px; font-size: 11px; font-weight: 600; color: var(--l-muted); margin-top: 14px; }
+
+                    /* Opções de receita (lista simples, sem acordeão) */
+                    .lcfg-item { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 12px; align-items: start; border: 1px solid var(--l-line); border-radius: 11px; padding: 12px; margin-top: 8px; background: var(--l-card); }
+                    .lcfg-item.off { opacity: .55; }
+                    .lcfg-item .lcfg-switch { margin-top: 8px; }
+                    .lcfg-item-txt { display: grid; gap: 6px; }
+                    .lcfg-item-txt input { font-weight: 600; }
+
                     @media (max-width: 767px) {
-                        .lcfg-grid2 { grid-template-columns:1fr; }
-                        .lcfg-barra { position:static; }
-                        .lcfg-barra-acoes { width:100%; }
-                        .lcfg-barra-acoes > * { flex:1;justify-content:center; }
+                        .lcfg-barra { position: static; }
+                        .lcfg-barra-acoes { width: 100%; }
+                        .lcfg-barra-acoes > * { flex: 1; }
+                        .lcfg-grid { grid-template-columns: 1fr; }
+                        .lcfg-acc-body { padding: 4px 12px 14px; }
+                        .lcfg-acc-head { padding-right: 10px; }
+                        .lcfg-acc-icone { display: none; }
+                        .lcfg-lente-cab { display: none; }
+                        .lcfg-acc .lcfg-acc-body { padding: 4px 10px 12px; }
+                        .lcfg-acc .lcfg-acc .lcfg-acc-body { padding: 4px 8px 10px; }
+                        .lcfg-lente { grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; padding: 9px; }
+                        .lcfg-lente > .lcfg-lente-nome { grid-row: 1; grid-column: 1 / -1; }
+                        .lcfg-lente > .lcfg-switch { grid-row: 2; grid-column: 1; }
+                        .lcfg-lente > .lcfg-afix.pre { grid-row: 2; grid-column: 2; }
+                        .lcfg-lente > .lcfg-afix.pos { grid-row: 2; grid-column: 3; }
+                        .lcfg-lente > .lcfg-ids-btn { grid-row: 2; grid-column: 4; }
+                        .lcfg-lente-ids { grid-column: 1 / -1; grid-template-columns: 1fr; }
+                        #lentesViewConfig input[type=text], #lentesViewConfig input[type=number], #lentesViewConfig textarea { font-size: 16px; padding: 8px 10px; }
+                        .lcfg-switch em { display: none; }
                     }
                     .lentes-resumo-acao { display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;margin-bottom:16px; }
                     .lentes-acao-card { display:flex;align-items:center;gap:11px;width:100%;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 14px;min-width:0;color:var(--text-main);font:inherit;text-align:left;cursor:pointer;transition:border-color .16s ease,transform .16s ease,box-shadow .16s ease; }
@@ -6381,14 +6453,38 @@
         }
 
         /* ===== Configurar fluxo de lentes (09/10/2026) =====
-           A loja edita o próprio fluxo: tipos de lente (ordem/ligado), lentes (nome, preço, prazo,
-           IDs da Nuvemshop, ligada), opções de receita, cores do solar e textos. Tudo numa linha
-           de lentes_fluxo_config (dominio = origem da loja); o widget lentes-<loja>.js lê essa linha.
-           RLS: leitura pública, update só do dono da loja ou master; a linha é criada por nós. */
+           A loja edita o próprio fluxo, em acordeão na mesma ordem que o cliente vê: Etapa 1 (tipos de
+           lente → cada tipo abre seus graus/modelos → lentes), Etapa 2 (receita), Etapa 3 (resultado).
+           Tudo numa linha de lentes_fluxo_config (dominio = origem da loja); o widget lentes-<loja>.js lê
+           essa linha. RLS: leitura pública, update só do dono da loja ou master; a linha é criada por nós. */
         let _lcfgDominio = '';
         let _lcfgSalvo = null;      // config como está no banco
         let _lcfgEdit = null;       // cópia em edição
+        let _lcfgUltimo = null;
         let _lcfgTem = false;
+        const _lcfgAbertos = new Set(['etapa1']);   // acordeões abertos (sobrevive a repintar)
+        const _lcfgIdsAbertos = new Set();          // lentes com os IDs da Nuvemshop à mostra
+
+        // O que fica dentro de cada tipo de lente (chaves de `lentes` e `textos` da config).
+        const _LCFG_MAPA = {
+            descanso: { icone: 'ph-moon-stars', textos: ['armacao.comum.desc', 'armacao.sem_aro.desc'], grupos: [
+                { k: 'descanso.armacao', titulo: 'Tipo de armação', lentes: ['descanso.comum', 'descanso.sem_aro'] }] },
+            simples: { icone: 'ph-eye', textos: ['mono.trat.blue.desc', 'mono.trat.ar.desc'], grupos: [
+                { k: 'mono.leve', titulo: 'Grau Leve', texto: 'mono.leve.faixa', lentes: ['mono.leve.ar', 'mono.leve.blue'] },
+                { k: 'mono.medio', titulo: 'Grau Médio', texto: 'mono.medio.faixa', lentes: ['mono.medio.ar', 'mono.medio.blue'] },
+                { k: 'mono.alto', titulo: 'Grau Alto', texto: 'mono.alto.faixa', lentes: ['mono.alto.ar', 'mono.alto.blue'] },
+                { k: 'mono.super', titulo: 'Grau Super Alto', texto: 'mono.super.faixa', lentes: ['mono.super.ar', 'mono.super.blue'] },
+                { k: 'mono.astig', titulo: 'Astigmatismo Alto', texto: 'mono.astig.faixa', lentes: ['mono.astig.ar', 'mono.astig.blue'] }] },
+            multifocal: { icone: 'ph-eyeglasses', textos: ['multi.faixa.leve', 'multi.faixa.alto', 'multi.trat.prime.desc', 'multi.trat.sem_ar.desc'], grupos: [
+                { k: 'multi.basico', titulo: 'Modelo Básico', texto: 'multi.basico.desc', lentes: ['multi.basico.leve.sem_ar', 'multi.basico.leve.prime', 'multi.basico.alto.sem_ar', 'multi.basico.alto.prime'] },
+                { k: 'multi.intermediario', titulo: 'Modelo Intermediário', texto: 'multi.intermediario.desc', lentes: ['multi.intermediario.leve.sem_ar', 'multi.intermediario.leve.prime', 'multi.intermediario.alto.sem_ar', 'multi.intermediario.alto.prime'] },
+                { k: 'multi.avancado', titulo: 'Modelo Avançado', texto: 'multi.avancado.desc', lentes: ['multi.avancado.leve.sem_ar', 'multi.avancado.leve.prime', 'multi.avancado.alto.sem_ar', 'multi.avancado.alto.prime'] }] },
+            solar: { icone: 'ph-sun', cores: true, textos: ['solar.faixa', 'armacao.comum.desc', 'armacao.sem_aro.desc'], grupos: [
+                { k: 'solar.armacao', titulo: 'Tipo de armação', lentes: ['solar.comum', 'solar.sem_aro'] }] }
+        };
+        const _LCFG_TEXTOS_ETAPA1 = ['need.titulo', 'need.sub'];
+        const _LCFG_TEXTOS_RECEITA = ['receita.sub'];
+        const _LCFG_TEXTOS_RESULTADO = ['resultado.botao', 'resultado.nota_padrao', 'resultado.nota_pular', 'resultado.nota_sem_grau'];
 
         function _lcfgDom() {
             return String((activeUser && activeUser.origem) || '').toLowerCase()
@@ -6397,6 +6493,8 @@
         function _lcfgEsc(v) {
             return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
+        function _lcfgBrl(v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }); }
+
         // Chamado no load (checkAbaLentes): mostra o botão "Configurar fluxo" se a loja tem config.
         async function _lcfgCheck() {
             _lcfgTem = false;
@@ -6416,11 +6514,11 @@
             const dom = _lcfgDom();
             const st = document.getElementById('lcfgStatus');
             if (_lcfgEdit && _lcfgDominio === dom) { _lcfgPinta(); return; }
-            if (st) { st.textContent = 'Carregando…'; st.className = ''; }
+            if (st) { st.textContent = 'Carregando…'; st.className = 'lcfg-status'; }
             const { data, error } = await supabaseClient.from('lentes_fluxo_config')
                 .select('config,updated_at,updated_by').eq('dominio', dom).limit(1);
             if (error || !data || !data.length) {
-                document.getElementById('lcfgCorpo').innerHTML = '<div class="card lcfg-secao"><p class="lcfg-ajuda">Não foi possível carregar a configuração do fluxo. Tente recarregar a página.</p></div>';
+                document.getElementById('lcfgCorpo').innerHTML = '<div class="lcfg-acc"><p class="lcfg-intro" style="margin:16px 18px;">Não foi possível carregar a configuração do fluxo. Tente recarregar a página.</p></div>';
                 if (st) st.textContent = '—';
                 return;
             }
@@ -6430,7 +6528,6 @@
             _lcfgUltimo = data[0];
             _lcfgPinta();
         }
-        let _lcfgUltimo = null;
         function _lcfgSujo() { return JSON.stringify(_lcfgEdit) !== JSON.stringify(_lcfgSalvo); }
         function _lcfgAtualizaBarra() {
             const sujo = _lcfgSujo();
@@ -6440,26 +6537,83 @@
             if (salvar) salvar.disabled = !sujo;
             if (desfazer) desfazer.disabled = !sujo;
             if (!st) return;
-            if (sujo) { st.textContent = 'Alterações não salvas'; st.className = 'sujo'; return; }
-            st.className = '';
+            if (sujo) { st.textContent = 'Alterações não salvas'; st.className = 'lcfg-status sujo'; return; }
+            st.className = 'lcfg-status';
             const u = _lcfgUltimo && _lcfgUltimo.updated_at;
             st.textContent = u ? 'Salvo em ' + new Date(u).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'Tudo salvo';
         }
-        function _lcfgSwitch(attrs, on) {
-            return '<label class="lcfg-switch" title="' + (on ? 'Aparece pro cliente' : 'Escondido do cliente') + '"><input type="checkbox" ' + attrs + (on ? ' checked' : '') + '><span></span></label>';
+
+        // ---- peças de interface ----
+        function _lcfgSwitch(attrs, on, rotulo) {
+            return '<label class="lcfg-switch" title="' + (on ? 'Aparece pro cliente' : 'Escondido do cliente') + '">' +
+                '<input type="checkbox" ' + attrs + (on ? ' checked' : '') + '><span></span>' +
+                (rotulo ? '<em>' + (on ? 'Ligado' : 'Desligado') + '</em>' : '') + '</label>';
         }
-        // Lista ordenável (tipos de lente / opções de receita)
-        function _lcfgLista(nome, lista) {
-            return (lista || []).map((it, i) => '<div class="lcfg-item' + (it.ativo === false ? ' off' : '') + '">' +
-                '<div class="lcfg-ordem">' +
-                    '<button type="button" data-lcfg-mover="' + nome + '" data-i="' + i + '" data-d="-1" aria-label="Subir"' + (i === 0 ? ' disabled' : '') + '><i class="ph-bold ph-caret-up"></i></button>' +
-                    '<button type="button" data-lcfg-mover="' + nome + '" data-i="' + i + '" data-d="1" aria-label="Descer"' + (i === lista.length - 1 ? ' disabled' : '') + '><i class="ph-bold ph-caret-down"></i></button>' +
+        function _lcfgOrdem(lista, i, n) {
+            return '<div class="lcfg-ordem">' +
+                '<button type="button" data-lcfg-mover="' + lista + '" data-i="' + i + '" data-d="-1" aria-label="Subir"' + (i === 0 ? ' disabled' : '') + '><i class="ph-bold ph-caret-up"></i></button>' +
+                '<button type="button" data-lcfg-mover="' + lista + '" data-i="' + i + '" data-d="1" aria-label="Descer"' + (i === n - 1 ? ' disabled' : '') + '><i class="ph-bold ph-caret-down"></i></button></div>';
+        }
+        // Acordeão: cabeçalho clicável (abre/fecha) + controles fora do botão (ordem à esquerda, chave à direita)
+        function _lcfgAcc(k, o) {
+            const aberto = _lcfgAbertos.has(k);
+            return '<div class="lcfg-acc lvl-' + (o.nivel || 0) + (aberto ? ' open' : '') + (o.off ? ' off' : '') + '" data-acc="' + _lcfgEsc(k) + '">' +
+                '<div class="lcfg-acc-head">' + (o.esq || '') +
+                    '<button type="button" class="lcfg-acc-toggle" data-lcfg-acc="' + _lcfgEsc(k) + '" aria-expanded="' + aberto + '">' +
+                        (o.icone ? '<span class="lcfg-acc-icone"><i class="ph-bold ' + o.icone + '"></i></span>' : '') +
+                        '<span class="lcfg-acc-txt">' + (o.etapa ? '<span class="lcfg-etapa">' + o.etapa + '</span>' : '') +
+                            '<b>' + o.titulo + '</b>' + (o.meta ? '<small>' + o.meta + '</small>' : '') + '</span>' +
+                        '<i class="ph-bold ph-caret-down lcfg-caret"></i>' +
+                    '</button>' + (o.dir || '') +
                 '</div>' +
-                _lcfgSwitch('data-lcfg-lista="' + nome + '" data-i="' + i + '" data-f="ativo"', it.ativo !== false) +
-                '<div class="lcfg-item-textos">' +
-                    '<input type="text" maxlength="90" data-lcfg-lista="' + nome + '" data-i="' + i + '" data-f="titulo" value="' + _lcfgEsc(it.titulo) + '" aria-label="Título">' +
-                    '<textarea rows="2" maxlength="300" data-lcfg-lista="' + nome + '" data-i="' + i + '" data-f="desc" aria-label="Descrição">' + _lcfgEsc(it.desc) + '</textarea>' +
-                '</div></div>').join('');
+                '<div class="lcfg-acc-body">' + o.corpo + '</div></div>';
+        }
+        function _lcfgIdxTexto(key) { return (_lcfgEdit.textos || []).findIndex(t => t.key === key); }
+        function _lcfgIdxLente(key) { return (_lcfgEdit.lentes || []).findIndex(l => l.key === key); }
+        function _lcfgCampoTexto(key, linhas) {
+            const i = _lcfgIdxTexto(key);
+            if (i < 0) return '';
+            const t = _lcfgEdit.textos[i];
+            return '<div class="lcfg-campo"><label for="lcfgT' + i + '">' + _lcfgEsc(t.label) + '</label>' +
+                '<textarea id="lcfgT' + i + '" rows="' + (linhas || 2) + '" maxlength="400" data-lcfg-texto="' + i + '">' + _lcfgEsc(t.valor) + '</textarea></div>';
+        }
+        function _lcfgTextos(keys, titulo) {
+            const html = keys.map(k => _lcfgCampoTexto(k)).filter(Boolean).join('');
+            return html ? (titulo ? '<div class="lcfg-bloco-tit">' + titulo + '</div>' : '') + '<div class="lcfg-grid">' + html + '</div>' : '';
+        }
+        function _lcfgLente(key) {
+            const i = _lcfgIdxLente(key);
+            if (i < 0) return '';
+            const l = _lcfgEdit.lentes[i];
+            const f = c => 'data-lcfg-lente="' + i + '" data-f="' + c + '"';
+            const idsRuins = !/^\d+$/.test(String(l.produto_id || '')) || !/^\d+$/.test(String(l.variante_id || ''));
+            const idsOpen = _lcfgIdsAbertos.has(i) || idsRuins;
+            return '<div class="lcfg-lente' + (l.ativo === false ? ' off' : '') + (idsOpen ? ' ids-open' : '') + '" data-lente="' + i + '">' +
+                _lcfgSwitch(f('ativo'), l.ativo !== false) +
+                '<input type="text" class="lcfg-lente-nome" maxlength="140" aria-label="Nome da lente" ' + f('nome') + ' value="' + _lcfgEsc(l.nome) + '">' +
+                '<label class="lcfg-afix pre"><span>R$</span><input type="text" inputmode="decimal" aria-label="Preço" ' + f('preco') + ' value="' + _lcfgEsc(String(l.preco).replace('.', ',')) + '"></label>' +
+                '<label class="lcfg-afix pos"><input type="number" min="1" max="90" aria-label="Prazo em dias úteis" ' + f('prazo') + ' value="' + _lcfgEsc(l.prazo) + '"><span>dias</span></label>' +
+                '<button type="button" class="lcfg-ids-btn" data-lcfg-ids="' + i + '" title="IDs do produto na Nuvemshop" aria-label="IDs do produto na Nuvemshop"><i class="ph-bold ph-link-simple"></i></button>' +
+                '<div class="lcfg-lente-ids">' +
+                    '<label>ID do produto (Nuvemshop)<input type="text" inputmode="numeric" ' + f('produto_id') + ' value="' + _lcfgEsc(l.produto_id) + '"' + (/^\d+$/.test(String(l.produto_id || '')) ? '' : ' class="erro"') + '></label>' +
+                    '<label>ID da variante<input type="text" inputmode="numeric" ' + f('variante_id') + ' value="' + _lcfgEsc(l.variante_id) + '"' + (/^\d+$/.test(String(l.variante_id || '')) ? '' : ' class="erro"') + '></label>' +
+                '</div></div>';
+        }
+        function _lcfgLentes(keys) {
+            return '<div class="lcfg-lente-cab"><span></span><span>Lente (nome no carrinho)</span><span>Preço</span><span>Prazo</span><span></span></div>' +
+                '<div class="lcfg-lentes">' + keys.map(_lcfgLente).join('') + '</div>';
+        }
+        // "3 de 4 lentes ligadas · R$ 229 a R$ 989"
+        function _lcfgResumo(keys) {
+            const ls = keys.map(k => _lcfgEdit.lentes[_lcfgIdxLente(k)]).filter(Boolean);
+            const on = ls.filter(l => l.ativo !== false);
+            const precos = on.map(l => Number(l.preco)).filter(n => n > 0);
+            let s = on.length + ' de ' + ls.length + (ls.length === 1 ? ' lente ligada' : ' lentes ligadas');
+            if (precos.length) {
+                const mi = Math.min.apply(null, precos), ma = Math.max.apply(null, precos);
+                s += ' · ' + (mi === ma ? _lcfgBrl(mi) : _lcfgBrl(mi) + ' a ' + _lcfgBrl(ma));
+            }
+            return s;
         }
         function _lcfgPinta() {
             const c = _lcfgEdit || {};
@@ -6469,79 +6623,85 @@
                 if (c.previa_url) { prev.href = c.previa_url + (c.previa_url.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now(); prev.style.display = ''; }
                 else prev.style.display = 'none';
             }
-            // Lentes agrupadas mantendo a ordem do array
-            const grupos = [];
-            (c.lentes || []).forEach((l, i) => {
-                let gr = grupos.find(x => x.nome === l.grupo);
-                if (!gr) { gr = { nome: l.grupo || 'Lentes', itens: [] }; grupos.push(gr); }
-                gr.itens.push(i);
-            });
-            const tabela = grupos.map(gr =>
-                '<div class="lcfg-grupo-titulo">' + _lcfgEsc(gr.nome) + '</div>' +
-                '<div class="lcfg-tabela-wrap"><table class="lcfg-tabela"><thead><tr>' +
-                '<th>Ativa</th><th>Nome no carrinho</th><th>Preço (R$)</th><th>Prazo (dias)</th><th>ID produto</th><th>ID variante</th>' +
-                '</tr></thead><tbody>' +
-                gr.itens.map(i => {
-                    const l = c.lentes[i];
-                    const f = (campo, extra) => 'data-lcfg-lente="' + i + '" data-f="' + campo + '"' + (extra || '');
-                    return '<tr class="' + (l.ativo === false ? 'off' : '') + '">' +
-                        '<td>' + _lcfgSwitch(f('ativo'), l.ativo !== false) + '</td>' +
-                        '<td><input type="text" maxlength="140" ' + f('nome') + ' value="' + _lcfgEsc(l.nome) + '"></td>' +
-                        '<td class="lcfg-preco"><input type="text" inputmode="decimal" ' + f('preco') + ' value="' + _lcfgEsc(String(l.preco).replace('.', ',')) + '"></td>' +
-                        '<td class="lcfg-prazo"><input type="number" min="1" max="90" ' + f('prazo') + ' value="' + _lcfgEsc(l.prazo) + '"></td>' +
-                        '<td class="lcfg-id"><input type="text" inputmode="numeric" ' + f('produto_id') + ' value="' + _lcfgEsc(l.produto_id) + '"></td>' +
-                        '<td class="lcfg-id"><input type="text" inputmode="numeric" ' + f('variante_id') + ' value="' + _lcfgEsc(l.variante_id) + '"></td>' +
-                        '</tr>';
-                }).join('') + '</tbody></table></div>').join('');
-            // Textos agrupados por seção
-            const secoes = [];
-            (c.textos || []).forEach((t, i) => {
-                let s = secoes.find(x => x.nome === t.secao);
-                if (!s) { s = { nome: t.secao || 'Outros', itens: [] }; secoes.push(s); }
-                s.itens.push(i);
-            });
-            const textos = secoes.map(s => '<div class="lcfg-grupo-titulo">' + _lcfgEsc(s.nome) + '</div><div class="lcfg-grid2">' +
-                s.itens.map(i => {
-                    const t = c.textos[i];
-                    return '<div class="lcfg-campo"><label>' + _lcfgEsc(t.label) + '</label>' +
-                        '<textarea rows="3" maxlength="400" data-lcfg-texto="' + i + '">' + _lcfgEsc(t.valor) + '</textarea></div>';
-                }).join('') + '</div>').join('');
+            const usados = new Set([].concat(_LCFG_TEXTOS_ETAPA1, _LCFG_TEXTOS_RECEITA, _LCFG_TEXTOS_RESULTADO));
+            const necs = c.necessidades || [];
+
+            // Etapa 1: cada tipo de lente é um acordeão; dentro, cada grau/modelo é outro acordeão com as lentes.
+            const tipos = necs.map((n, i) => {
+                const mapa = _LCFG_MAPA[n.key] || { grupos: [], textos: [] };
+                (mapa.textos || []).forEach(k => usados.add(k));
+                const todas = [];
+                const grupos = (mapa.grupos || []).map(gr => {
+                    if (gr.texto) usados.add(gr.texto);
+                    todas.push.apply(todas, gr.lentes);
+                    const onGr = gr.lentes.some(k => { const l = c.lentes[_lcfgIdxLente(k)]; return l && l.ativo !== false; });
+                    return _lcfgAcc('g:' + gr.k, {
+                        nivel: 2, titulo: _lcfgEsc(gr.titulo), meta: _lcfgResumo(gr.lentes), off: !onGr,
+                        corpo: (gr.texto ? _lcfgCampoTexto(gr.texto, 3) : '') + _lcfgLentes(gr.lentes)
+                    });
+                }).join('');
+                const off = n.ativo === false;
+                return _lcfgAcc('n:' + n.key, {
+                    nivel: 1, icone: mapa.icone || 'ph-circle', off: off,
+                    titulo: _lcfgEsc(n.titulo) + (off ? '<span class="lcfg-pill off">Escondido</span>' : ''),
+                    meta: off ? 'Desligado: o cliente não vê esta opção' : _lcfgResumo(todas),
+                    esq: _lcfgOrdem('necessidades', i, necs.length),
+                    dir: _lcfgSwitch('data-lcfg-lista="necessidades" data-i="' + i + '" data-f="ativo"', !off, true),
+                    corpo:
+                        '<div class="lcfg-opcao-txt">' +
+                            '<div class="lcfg-campo" style="margin:0"><label>Como aparece na primeira tela</label>' +
+                            '<input type="text" maxlength="90" data-lcfg-lista="necessidades" data-i="' + i + '" data-f="titulo" value="' + _lcfgEsc(n.titulo) + '"></div>' +
+                            '<textarea rows="2" maxlength="300" aria-label="Descrição" data-lcfg-lista="necessidades" data-i="' + i + '" data-f="desc">' + _lcfgEsc(n.desc) + '</textarea>' +
+                        '</div>' +
+                        (mapa.cores ? '<div class="lcfg-campo"><label>Cores das lentes de sol</label><input type="text" maxlength="120" data-lcfg-cores value="' + _lcfgEsc((c.cores_solar || []).join(', ')) + '"><span class="lcfg-dica">Separe por vírgula. Ex.: Marrom, Preto, Verde G15</span></div>' : '') +
+                        _lcfgTextos(mapa.textos || [], 'Textos das telas deste tipo') +
+                        '<div class="lcfg-bloco-tit">' + (n.key === 'multifocal' ? 'Modelos e lentes' : n.key === 'simples' ? 'Graus e lentes' : 'Lentes') + '</div>' + grupos
+                });
+            }).join('');
+
+            const receitas = (c.receita || []).map((r, i, arr) => '<div class="lcfg-item' + (r.ativo === false ? ' off' : '') + '">' +
+                _lcfgOrdem('receita', i, arr.length) +
+                _lcfgSwitch('data-lcfg-lista="receita" data-i="' + i + '" data-f="ativo"', r.ativo !== false) +
+                '<div class="lcfg-item-txt">' +
+                    '<input type="text" maxlength="90" aria-label="Título" data-lcfg-lista="receita" data-i="' + i + '" data-f="titulo" value="' + _lcfgEsc(r.titulo) + '">' +
+                    '<textarea rows="2" maxlength="300" aria-label="Descrição" data-lcfg-lista="receita" data-i="' + i + '" data-f="desc">' + _lcfgEsc(r.desc) + '</textarea>' +
+                '</div></div>').join('');
+            const receitasOn = (c.receita || []).filter(r => r.ativo !== false).length;
+
+            const outros = (c.textos || []).filter(t => !usados.has(t.key)).map(t => t.key);
 
             document.getElementById('lcfgCorpo').innerHTML =
-                '<section class="card lcfg-secao">' +
-                    '<h3><i class="ph-bold ph-sliders-horizontal" style="color:#7c3aed;"></i> Geral</h3>' +
-                    '<p class="lcfg-ajuda">Depois de salvar, a loja passa a mostrar as mudanças em até 5 minutos.</p>' +
-                    '<div class="lcfg-item' + (g.ativo === false ? ' off' : '') + '" style="grid-template-columns:auto minmax(0,1fr);align-items:center;">' +
-                        _lcfgSwitch('data-lcfg-geral="ativo"', g.ativo !== false) +
-                        '<div><b>Fluxo de lentes ligado na loja</b><div class="lcfg-dica">Desligado: o botão de lentes some das páginas de produto.</div></div>' +
-                    '</div>' +
-                    '<div class="lcfg-grid2" style="margin-top:12px;">' +
-                        '<div class="lcfg-campo"><label>Texto do botão na página do produto</label><input type="text" maxlength="40" data-lcfg-geral="botao_texto" value="' + _lcfgEsc(g.botao_texto) + '"></div>' +
-                        '<div class="lcfg-campo"><label>WhatsApp da loja (com DDI e DDD)</label><input type="text" inputmode="numeric" maxlength="15" data-lcfg-geral="whatsapp" value="' + _lcfgEsc(g.whatsapp) + '"><div class="lcfg-dica">Ex.: 5534991632975. Usado no "Falar no WhatsApp".</div></div>' +
-                        '<div class="lcfg-campo"><label>Cores das lentes de sol (separadas por vírgula)</label><input type="text" maxlength="120" data-lcfg-cores value="' + _lcfgEsc((c.cores_solar || []).join(', ')) + '"></div>' +
-                    '</div>' +
-                '</section>' +
-                '<section class="card lcfg-secao">' +
-                    '<h3><i class="ph-bold ph-list-numbers" style="color:#7c3aed;"></i> Tipos de lente (primeira tela)</h3>' +
-                    '<p class="lcfg-ajuda">Use as setas para mudar a ordem. Desligar um tipo esconde ele e todas as lentes dele.</p>' +
-                    _lcfgLista('necessidades', c.necessidades) +
-                '</section>' +
-                '<section class="card lcfg-secao">' +
-                    '<h3><i class="ph-bold ph-eyeglasses" style="color:#7c3aed;"></i> Lentes e preços</h3>' +
-                    '<p class="lcfg-ajuda">O preço aqui é o que aparece no fluxo; no carrinho vale o preço cadastrado no produto da Nuvemshop, então mantenha os dois iguais. ' +
-                    'Os IDs ligam cada lente ao produto da Nuvemshop que vai pro carrinho. Lente desligada some do fluxo (e a opção que só levava a ela também).</p>' +
-                    tabela +
-                '</section>' +
-                '<section class="card lcfg-secao">' +
-                    '<h3><i class="ph-bold ph-file-text" style="color:#7c3aed;"></i> Como enviar a receita</h3>' +
-                    '<p class="lcfg-ajuda">Opções da tela de receita: ordem, quais aparecem e o texto de cada uma.</p>' +
-                    _lcfgLista('receita', c.receita) +
-                '</section>' +
-                '<section class="card lcfg-secao">' +
-                    '<h3><i class="ph-bold ph-text-aa" style="color:#7c3aed;"></i> Textos do fluxo</h3>' +
-                    '<p class="lcfg-ajuda">Enter quebra a linha. Para deixar em negrito, coloque entre dois asteriscos: **assim**.</p>' +
-                    textos +
-                '</section>';
+                '<p class="lcfg-intro">Abra cada etapa para editar. O que estiver <b>desligado</b> some do fluxo da loja. Depois de salvar, a loja mostra as mudanças em até 5 minutos.</p>' +
+                _lcfgAcc('geral', {
+                    icone: 'ph-gear-six', titulo: 'Botão e contato', etapa: 'Geral',
+                    meta: (g.ativo === false ? 'Fluxo desligado na loja' : 'Fluxo ligado') + ' · botão "' + _lcfgEsc(g.botao_texto || '') + '"',
+                    corpo:
+                        '<div class="lcfg-item" style="grid-template-columns:auto minmax(0,1fr);align-items:center;margin-top:14px;">' +
+                            _lcfgSwitch('data-lcfg-geral="ativo"', g.ativo !== false) +
+                            '<div><b style="font-size:14px;">Fluxo de lentes ligado na loja</b><div class="lcfg-dica">Desligado: o botão de lentes some das páginas de produto.</div></div>' +
+                        '</div>' +
+                        '<div class="lcfg-grid" style="margin-top:12px;">' +
+                            '<div class="lcfg-campo"><label>Texto do botão na página do produto</label><input type="text" maxlength="40" data-lcfg-geral="botao_texto" value="' + _lcfgEsc(g.botao_texto) + '"></div>' +
+                            '<div class="lcfg-campo"><label>WhatsApp da loja (DDI + DDD + número)</label><input type="text" inputmode="numeric" maxlength="15" data-lcfg-geral="whatsapp" value="' + _lcfgEsc(g.whatsapp) + '"><span class="lcfg-dica">Usado no "Falar no WhatsApp". Ex.: 5534991632975</span></div>' +
+                        '</div>'
+                }) +
+                _lcfgAcc('etapa1', {
+                    icone: 'ph-list-numbers', etapa: 'Etapa 1', titulo: 'Tipos de lente',
+                    meta: necs.filter(n => n.ativo !== false).length + ' de ' + necs.length + ' tipos aparecendo · use as setas para mudar a ordem',
+                    corpo: _lcfgTextos(_LCFG_TEXTOS_ETAPA1, 'Título da primeira tela') + '<div class="lcfg-bloco-tit">Tipos (na ordem em que aparecem)</div>' + tipos
+                }) +
+                _lcfgAcc('etapa2', {
+                    icone: 'ph-file-text', etapa: 'Etapa 2', titulo: 'Envio da receita',
+                    meta: receitasOn + ' de ' + (c.receita || []).length + ' opções aparecendo',
+                    corpo: _lcfgTextos(_LCFG_TEXTOS_RECEITA) + '<div class="lcfg-bloco-tit">Opções (na ordem em que aparecem)</div>' + receitas
+                }) +
+                _lcfgAcc('etapa3', {
+                    icone: 'ph-shopping-bag', etapa: 'Etapa 3', titulo: 'Resultado e compra',
+                    meta: 'Botão "' + _lcfgEsc((c.textos || []).find(t => t.key === 'resultado.botao') ? c.textos.find(t => t.key === 'resultado.botao').valor : '') + '" e avisos',
+                    corpo: _lcfgTextos(_LCFG_TEXTOS_RESULTADO)
+                }) +
+                (outros.length ? _lcfgAcc('outros', { icone: 'ph-text-aa', titulo: 'Outros textos', corpo: _lcfgTextos(outros) }) : '') +
+                '<p class="lcfg-intro" style="margin-top:4px;">Dica: nos textos, Enter quebra a linha e **dois asteriscos** deixam em negrito.</p>';
             _lcfgAtualizaBarra();
         }
         function _lcfgNum(v) {
@@ -6558,7 +6718,11 @@
             if (el.dataset.lcfgGeral) { c.geral[el.dataset.lcfgGeral] = el.dataset.lcfgGeral === 'whatsapp' ? String(val).replace(/\D/g, '') : val; repinta = el.type === 'checkbox'; }
             else if (el.hasAttribute('data-lcfg-cores')) c.cores_solar = String(val).split(',').map(s => s.trim()).filter(Boolean);
             else if (el.dataset.lcfgLista) { c[el.dataset.lcfgLista][+el.dataset.i][el.dataset.f] = val; repinta = el.type === 'checkbox'; }
-            else if (el.dataset.lcfgTexto != null) c.textos[+el.dataset.lcfgTexto].valor = val;
+            else if (el.dataset.lcfgTexto != null) {
+                c.textos[+el.dataset.lcfgTexto].valor = val;
+                // o mesmo texto pode aparecer em dois tipos (ex.: descrição da armação): mantém as cópias iguais
+                document.querySelectorAll('#lentesViewConfig [data-lcfg-texto="' + el.dataset.lcfgTexto + '"]').forEach(o => { if (o !== el) o.value = val; });
+            }
             else if (el.dataset.lcfgLente != null) {
                 const l = c.lentes[+el.dataset.lcfgLente], f = el.dataset.f;
                 if (f === 'preco') { const n = _lcfgNum(val); l.preco = isNaN(n) ? val : n; el.classList.toggle('erro', !(n > 0)); }
@@ -6570,11 +6734,26 @@
             if (repinta) _lcfgPinta(); else _lcfgAtualizaBarra();
         }
         function _lcfgOnClick(ev) {
-            const b = ev.target.closest && ev.target.closest('[data-lcfg-mover]');
-            if (!b || !_lcfgEdit) return;
-            const lista = _lcfgEdit[b.dataset.lcfgMover], i = +b.dataset.i, j = i + (+b.dataset.d);
+            const t = ev.target.closest && ev.target.closest('[data-lcfg-acc],[data-lcfg-mover],[data-lcfg-ids]');
+            if (!t || !_lcfgEdit) return;
+            if (t.dataset.lcfgAcc) {   // abre/fecha sem repintar (não perde foco nem rolagem)
+                const acc = t.closest('.lcfg-acc'), k = t.dataset.lcfgAcc;
+                const abre = !acc.classList.contains('open');
+                acc.classList.toggle('open', abre);
+                t.setAttribute('aria-expanded', abre ? 'true' : 'false');
+                if (abre) _lcfgAbertos.add(k); else _lcfgAbertos.delete(k);
+                return;
+            }
+            if (t.dataset.lcfgIds != null) {
+                const i = +t.dataset.lcfgIds, row = t.closest('.lcfg-lente');
+                const abre = !row.classList.contains('ids-open');
+                row.classList.toggle('ids-open', abre);
+                if (abre) _lcfgIdsAbertos.add(i); else _lcfgIdsAbertos.delete(i);
+                return;
+            }
+            const lista = _lcfgEdit[t.dataset.lcfgMover], i = +t.dataset.i, j = i + (+t.dataset.d);
             if (!lista || j < 0 || j >= lista.length) return;
-            const t = lista[i]; lista[i] = lista[j]; lista[j] = t;
+            const x = lista[i]; lista[i] = lista[j]; lista[j] = x;
             _lcfgPinta();
         }
         function _lcfgValida(c) {
@@ -6626,6 +6805,7 @@
         }
         function _lcfgReset() {
             _lcfgDominio = ''; _lcfgSalvo = null; _lcfgEdit = null; _lcfgUltimo = null; _lcfgTem = false;
+            _lcfgIdsAbertos.clear();
             const b = document.getElementById('lentesCfgTabBtn'); if (b) b.style.display = 'none';
             const corpo = document.getElementById('lcfgCorpo'); if (corpo) corpo.innerHTML = '';
         }
