@@ -3270,6 +3270,11 @@
         '<p><span>Receita</span><b>' + (lz.receita ? lzEsc(lzResumoReceita(lz.receita)) : 'vou enviar pra ótica') + '</b></p>' +
         (lzValor(lz.lente) && current && numeroPositivo(precoProduto(current))
           ? '<p class="lz-total"><span>Total armação + lente</span><b>' + brl(precoProduto(current) + lzValor(lz.lente)) + '</b></p>' : '') + '</div>' +
+        // Observação livre do cliente (09/10/2026, igual ao widget da Koros): vai na mensagem pra ótica
+        '<label for="lz-obs" style="display:block;font-size:12px;font-weight:600;margin:12px 0 5px;text-align:left">Observação <span style="font-weight:400;opacity:.7">(opcional)</span></label>' +
+        '<textarea id="lz-obs" maxlength="300" rows="2" placeholder="Algo que a ótica precisa saber? Ex.: prefiro lente mais fina, tenho dúvida no grau…" ' +
+        'style="width:100%;box-sizing:border-box;min-height:58px;resize:vertical;font:inherit;font-size:13.5px;border:1px solid rgba(0,0,0,.15);border-radius:10px;padding:9px 11px;margin:0 0 10px;background:#fff;color:#111">' +
+        lzEsc(lz.obs || '') + '</textarea>' +
         '<p class="lz-sub">' + (lzPreco(lz.lente) ? 'Finalize com a ótica no WhatsApp.' : 'A ótica te passa o valor da lente e finaliza com você no WhatsApp.') + '</p>' +
         '<div class="result-buy-actions">' + (lojas.length ? lojas.map(u =>
           '<button class="btn-primary big" data-lz-comprar="' + lzEsc(u.telefone) + '">Comprar — ' + lzEsc(u.rotulo) + '</button>').join('')
@@ -3321,6 +3326,9 @@
       '*Receita:* ' + (lz.receita ? lzResumoReceita(lz.receita) : 'vou enviar aqui')];
     if (lzValor(lz.lente) && current && numeroPositivo(precoProduto(current)))
       linhas.push('*Total:* ' + brl(precoProduto(current) + lzValor(lz.lente)));
+    const obsEl = document.getElementById('lz-obs');
+    lz.obs = obsEl ? String(obsEl.value || '').trim().slice(0, 300) : (lz.obs || '');
+    if (lz.obs) linhas.push('*Observação:* ' + lz.obs);
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(linhas.join('\n')), '_blank');
   }
 
