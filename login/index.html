@@ -5351,6 +5351,35 @@
                     </div>
                 </div>
 
+                <!-- Provador: limite por cliente + bloqueio de cliente (09/10/2026).
+                     Grava em lojistas.limite_provas_dia / provador_bloqueios via RPC; os workflows
+                     "[Loja] Check Limit" leem com pl_limite_cliente(). Bloquear o telefone bloqueia os IPs dele. -->
+                <div class="mp-card" id="plProvCfg" style="display:none;margin-bottom:24px;">
+                    <div class="a-mp-eyebrow">Provador</div>
+                    <div class="mp-plan-name" style="margin-bottom:18px;">Limite e bloqueios</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:28px;">
+                        <div>
+                            <div style="font-size:14px;font-weight:600;">Provas por cliente por dia</div>
+                            <div style="font-size:12.5px;color:var(--text-muted);margin:4px 0 12px;line-height:1.5;">Quantas vezes o mesmo cliente (mesmo WhatsApp ou mesma internet) pode provar por dia. Evita gastar o plano com uma pessoa só.</div>
+                            <div style="display:flex;gap:10px;align-items:center;">
+                                <input id="plLimiteInp" type="number" min="1" max="50" step="1" inputmode="numeric" style="width:90px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:15px;">
+                                <button class="mp-buy-cta" id="plLimiteBtn" onclick="plSalvarLimite()">Salvar</button>
+                                <span id="plLimiteMsg" style="font-size:12.5px;color:var(--text-muted);"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size:14px;font-weight:600;">Bloquear cliente</div>
+                            <div style="font-size:12.5px;color:var(--text-muted);margin:4px 0 12px;line-height:1.5;">O cliente bloqueado não consegue mais usar o provador da sua loja, nem trocando de número na mesma internet.</div>
+                            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                <input id="plBloqInp" type="tel" placeholder="WhatsApp com DDD" style="flex:1;min-width:160px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:14px;">
+                                <button class="mp-buy-cta" id="plBloqBtn" onclick="plBloquear()" style="background:#dc2626;"><i class="ph-bold ph-prohibit"></i> Bloquear</button>
+                            </div>
+                            <div id="plBloqMsg" style="font-size:12.5px;color:var(--text-muted);margin-top:8px;"></div>
+                            <div id="plBloqLista" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Hosts antigos preservados (escondidos via CSS) pra JS continuar populando -->
                 <div id="meuPlanoCreditsHost"></div>
                 <div id="meuPlanoConsumoHost"></div>
@@ -6336,6 +6365,65 @@
             if (comprasFat) comprasFat.textContent = (0).toLocaleString(PL_LOC, { style: 'currency', currency: PL_CUR });
         }
 
+        /* ===== Provador: limite por cliente + bloqueio (09/10/2026) ===== */
+        function _plFoneFmt(t) {
+            t = String(t || '');
+            return t.length === 11 ? '(' + t.slice(0, 2) + ') ' + t.slice(2, 7) + '-' + t.slice(7)
+                 : t.length === 10 ? '(' + t.slice(0, 2) + ') ' + t.slice(2, 6) + '-' + t.slice(6) : t;
+        }
+        async function plProvadorCfgLoad() {
+            const card = document.getElementById('plProvCfg');
+            if (!card || !activeUser || activeUser.limite_provas_dia == null) return;
+            card.style.display = '';
+            document.getElementById('plLimiteInp').value = activeUser.limite_provas_dia;
+            plBloqueiosLoad();
+        }
+        async function plSalvarLimite() {
+            const inp = document.getElementById('plLimiteInp'), msg = document.getElementById('plLimiteMsg');
+            const n = parseInt(inp.value, 10);
+            if (!(n >= 1 && n <= 50)) { msg.style.color = '#ef4444'; msg.textContent = 'Use um número de 1 a 50.'; return; }
+            msg.style.color = ''; msg.textContent = 'Salvando…';
+            const { error } = await supabaseClient.rpc('pl_set_limite_provador', { p_email: activeUser.email, p_limite: n });
+            if (error) { msg.style.color = '#ef4444'; msg.textContent = 'Não foi possível salvar.'; console.warn('[limite]', error); return; }
+            activeUser.limite_provas_dia = n;
+            msg.style.color = '#22c55e'; msg.textContent = 'Salvo! Já vale para as próximas provas.';
+        }
+        async function plBloqueiosLoad() {
+            const box = document.getElementById('plBloqLista');
+            if (!box) return;
+            const { data, error } = await supabaseClient.rpc('pl_bloqueios_lista', { p_email: activeUser.email });
+            if (error) { console.warn('[bloqueios]', error); return; }
+            box.innerHTML = '';
+            (data || []).forEach(b => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;';
+                const txt = document.createElement('span');
+                txt.textContent = '🚫 ' + _plFoneFmt(b.telefone) + '  ·  desde ' + new Date(b.desde).toLocaleDateString('pt-BR');
+                const bt = document.createElement('button');
+                bt.textContent = 'Desbloquear';
+                bt.style.cssText = 'background:none;border:none;color:var(--primary-hi,#a855f7);font-weight:600;cursor:pointer;font:inherit;font-size:12.5px;';
+                bt.onclick = () => plDesbloquear(b.telefone);
+                row.appendChild(txt); row.appendChild(bt); box.appendChild(row);
+            });
+        }
+        async function plBloquear() {
+            const inp = document.getElementById('plBloqInp'), msg = document.getElementById('plBloqMsg');
+            const tel = String(inp.value || '').replace(/\D/g, '');
+            if (tel.length < 10) { msg.style.color = '#ef4444'; msg.textContent = 'Digite o WhatsApp com DDD.'; return; }
+            if (!confirm('Bloquear ' + _plFoneFmt(tel.replace(/^55(?=\d{10,11}$)/, '')) + ' no provador?')) return;
+            msg.style.color = ''; msg.textContent = 'Bloqueando…';
+            const { error } = await supabaseClient.rpc('pl_bloquear_cliente', { p_email: activeUser.email, p_telefone: tel });
+            if (error) { msg.style.color = '#ef4444'; msg.textContent = 'Não foi possível bloquear.'; console.warn('[bloquear]', error); return; }
+            inp.value = ''; msg.style.color = '#22c55e'; msg.textContent = 'Cliente bloqueado.';
+            plBloqueiosLoad();
+        }
+        async function plDesbloquear(tel) {
+            if (!confirm('Desbloquear ' + _plFoneFmt(tel) + '?')) return;
+            const { error } = await supabaseClient.rpc('pl_desbloquear_cliente', { p_email: activeUser.email, p_telefone: tel });
+            if (error) { alert('Não foi possível desbloquear.'); return; }
+            plBloqueiosLoad();
+        }
+
         function showTab(name) {
             if (isDisparosOnly() && name !== 'disparos') name = 'disparos';
             if (isComercial() && name !== 'disparos') name = 'disparos';
@@ -6356,6 +6444,7 @@
                 btn.classList.add('active');
                 btn.setAttribute('aria-selected', 'true');
             }
+            if (name === 'meu-plano') { try { plProvadorCfgLoad(); } catch (e) {} }
             if (name === 'recuperar-leads' && !leadsRecupLoaded && activeUser) {
                 leadsRecupLoaded = true;
                 loadLeadsRecup().catch(err => {
