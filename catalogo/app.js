@@ -2408,13 +2408,19 @@
     const bb = $('#btn-bloquear');
     if (bb) bb.addEventListener('click', async () => {
       const inp = $('#bloq-tel');
-      const tel = String(inp.value || '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
-      if (tel.length < 10) { toast('Digite o WhatsApp com DDD.'); return; }
-      if (!confirm('Bloquear ' + foneBonito(tel) + ' no seu catálogo?')) return;
+      const tels = [...new Set(String(inp.value || '').split(/[\n,;]+/)
+        .map(t => t.replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '')).filter(Boolean))];
+      const ruins = tels.filter(t => t.length < 10 || t.length > 11);
+      if (!tels.length) { toast('Digite o WhatsApp com DDD.'); return; }
+      if (ruins.length) { toast('Confira estes números (precisam ter DDD): ' + ruins.join(', ')); return; }
+      if (!confirm(tels.length === 1 ? 'Bloquear ' + foneBonito(tels[0]) + ' no seu catálogo?'
+                   : 'Bloquear estes ' + tels.length + ' números no seu catálogo?\n\n' + tels.map(foneBonito).join('\n'))) return;
       bb.disabled = true;
-      try { await bloqueios('bloquear', tel); inp.value = ''; toast('Cliente bloqueado ✓'); }
-      catch (e) { toast('Não consegui bloquear. Tente de novo.'); }
-      finally { bb.disabled = false; }
+      const falhas = [];
+      for (const t of tels) { try { await bloqueios('bloquear', t); } catch (e) { falhas.push(t); } }
+      bb.disabled = false;
+      if (falhas.length) { inp.value = falhas.join('\n'); toast('Não consegui bloquear: ' + falhas.map(foneBonito).join(', ')); }
+      else { inp.value = ''; toast(tels.length === 1 ? 'Cliente bloqueado ✓' : tels.length + ' clientes bloqueados ✓'); }
     });
   }
 
