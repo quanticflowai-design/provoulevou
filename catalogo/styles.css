@@ -927,3 +927,43 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif; l
 .estoque-vazio { color: var(--ink-2); font-size: 14px; text-align: center; padding: 20px; }
 .estoque-salvar { position: sticky; bottom: 12px; margin-top: 12px; }
 .estoque-busca { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); font: inherit; font-size: 14px; }
+
+/* ── Aba Provador (limite por dia + bloqueio de clientes) ── */
+.prov-card { margin: 18px 0 4px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 20px; box-shadow: var(--shadow-sm); }
+.prov-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 16px; }
+.prov-ico { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
+  font-size: 20px; background: var(--brand-soft); }
+.prov-ico.perigo { background: rgba(220, 38, 38, .10); }
+.prov-tit { font-size: 15px; font-weight: 700; margin: 0 0 3px; }
+.prov-sub { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+.prov-limite { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.prov-stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--bg); }
+.prov-step { width: 42px; height: 44px; border: 0; background: transparent; color: var(--ink); font-size: 20px; cursor: pointer; }
+.prov-step:hover { background: var(--brand-soft); color: var(--brand); }
+.prov-stepper input { width: 56px; height: 44px; border: 0; border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+  background: var(--card); color: var(--ink); text-align: center; font: inherit; font-size: 17px; font-weight: 700; -moz-appearance: textfield; }
+.prov-stepper input::-webkit-outer-spin-button, .prov-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.prov-unid { color: var(--muted); font-size: 13px; margin-right: auto; }
+.prov-label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+.prov-input { display: block; width: 100%; box-sizing: border-box; min-height: 84px; resize: vertical; padding: 12px 14px;
+  border: 1.5px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--ink); font: inherit; font-size: 14px; line-height: 1.5;
+  transition: border-color .15s, box-shadow .15s; }
+.prov-input::placeholder { color: var(--muted); }
+.prov-input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); background: var(--card); }
+.prov-acoes { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; }
+.prov-conta { color: var(--muted); font-size: 12.5px; }
+.prov-btn-perigo { background: #dc2626 !important; color: #fff !important; }
+.prov-btn-perigo:hover { background: #b91c1c !important; }
+.prov-lista-head { display: flex; align-items: center; gap: 8px; margin: 22px 0 10px; padding-top: 16px; border-top: 1px solid var(--line);
+  font-size: 13.5px; font-weight: 700; }
+.prov-badge { min-width: 22px; padding: 1px 8px; border-radius: 999px; background: var(--brand-soft); color: var(--brand);
+  font-size: 12px; text-align: center; }
+.prov-vazio { margin: 0; padding: 18px; border: 1px dashed var(--line); border-radius: 12px; text-align: center; color: var(--muted); font-size: 13px; }
+.prov-lista { display: flex; flex-direction: column; gap: 8px; }
+.prov-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
+.prov-item-ico { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: rgba(220, 38, 38, .10); font-size: 14px; }
+.prov-item-txt { flex: 1; min-width: 0; }
+.prov-item-fone { font-weight: 700; font-size: 14px; }
+.prov-item-data { color: var(--muted); font-size: 12px; }
+.prov-item .btn-outline { padding: 7px 12px; font-size: 12.5px; }

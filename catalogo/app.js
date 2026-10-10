@@ -2385,15 +2385,21 @@
     renderBloqueios(d);
   }
   function renderBloqueios(lista) {
-    const box = $('#bloq-lista'), vazio = $('#bloq-vazio');
+    const box = $('#bloq-lista'), vazio = $('#bloq-vazio'), tot = $('#bloq-total');
     if (!box) return;
+    lista = lista || [];
     box.innerHTML = '';
-    if (vazio) vazio.hidden = (lista || []).length > 0;
-    (lista || []).forEach(b => {
+    if (vazio) vazio.hidden = lista.length > 0;
+    if (tot) tot.textContent = String(lista.length);
+    lista.forEach(b => {
       const row = document.createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line, #e5e5e5);border-radius:10px;';
-      const txt = document.createElement('span');
-      txt.textContent = foneBonito(b.telefone) + ' · desde ' + new Date(b.desde).toLocaleDateString('pt-BR');
+      row.className = 'prov-item';
+      const ico = document.createElement('span'); ico.className = 'prov-item-ico'; ico.textContent = '🚫';
+      const txt = document.createElement('div'); txt.className = 'prov-item-txt';
+      const fone = document.createElement('div'); fone.className = 'prov-item-fone'; fone.textContent = foneBonito(b.telefone);
+      const dt = document.createElement('div'); dt.className = 'prov-item-data';
+      dt.textContent = 'Bloqueado em ' + new Date(b.desde).toLocaleDateString('pt-BR');
+      txt.appendChild(fone); txt.appendChild(dt);
       const bt = document.createElement('button');
       bt.type = 'button'; bt.className = 'btn-outline'; bt.textContent = 'Desbloquear';
       bt.addEventListener('click', async () => {
@@ -2401,15 +2407,55 @@
         try { await bloqueios('desbloquear', b.telefone); toast('Cliente desbloqueado ✓'); }
         catch (e) { toast('Não consegui desbloquear. Tente de novo.'); }
       });
-      row.appendChild(txt); row.appendChild(bt); box.appendChild(row);
+      row.appendChild(ico); row.appendChild(txt); row.appendChild(bt); box.appendChild(row);
+    });
+  }
+  function telsDoCampo() {
+    const inp = $('#bloq-tel');
+    return [...new Set(String((inp && inp.value) || '').split(/[\n,;]+/)
+      .map(t => t.replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '')).filter(Boolean))];
+  }
+  {
+    const inp = $('#bloq-tel'), conta = $('#bloq-conta');
+    if (inp && conta) inp.addEventListener('input', () => {
+      const n = telsDoCampo().length;
+      conta.textContent = n > 1 ? n + ' números' : '';
+    });
+  }
+
+  // Limite de provas por cliente/dia (pl_catalog_limite: sem p_limite lê, com p_limite grava)
+  async function limiteCatalogo(valor) {
+    const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_limite', {
+      method: 'POST', headers: { apikey: SB_ANON, Authorization: 'Bearer ' + (sessao && sessao.token),
+        'Content-Type': 'application/json' },
+      body: JSON.stringify(valor == null ? { p_store_id: storeRow.id } : { p_store_id: storeRow.id, p_limite: valor })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.message || 'Não foi possível salvar');
+    const inp = $('#lim-valor');
+    if (inp) inp.value = d;
+    return d;
+  }
+  {
+    const inp = $('#lim-valor');
+    const passo = n => { if (!inp) return; const v = (parseInt(inp.value, 10) || 3) + n; inp.value = Math.min(50, Math.max(1, v)); };
+    const m = $('#lim-menos'), p = $('#lim-mais'), s = $('#btn-lim-salvar');
+    if (m) m.addEventListener('click', () => passo(-1));
+    if (p) p.addEventListener('click', () => passo(1));
+    if (s) s.addEventListener('click', async () => {
+      const v = parseInt(inp.value, 10);
+      if (!(v >= 1)) { toast('Use um número de 1 a 50.'); return; }
+      s.disabled = true;
+      try { await limiteCatalogo(v); toast('Limite salvo ✓ Já vale para as próximas provas.'); }
+      catch (e) { toast(e.message && /1 a 50/.test(e.message) ? 'Use um número de 1 a 50.' : 'Não consegui salvar. Tente de novo.'); }
+      finally { s.disabled = false; }
     });
   }
   {
     const bb = $('#btn-bloquear');
     if (bb) bb.addEventListener('click', async () => {
       const inp = $('#bloq-tel');
-      const tels = [...new Set(String(inp.value || '').split(/[\n,;]+/)
-        .map(t => t.replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '')).filter(Boolean))];
+      const tels = telsDoCampo();
       const ruins = tels.filter(t => t.length < 10 || t.length > 11);
       if (!tels.length) { toast('Digite o WhatsApp com DDD.'); return; }
       if (ruins.length) { toast('Confira estes números (precisam ter DDD): ' + ruins.join(', ')); return; }
@@ -2420,7 +2466,7 @@
       for (const t of tels) { try { await bloqueios('bloquear', t); } catch (e) { falhas.push(t); } }
       bb.disabled = false;
       if (falhas.length) { inp.value = falhas.join('\n'); toast('Não consegui bloquear: ' + falhas.map(foneBonito).join(', ')); }
-      else { inp.value = ''; toast(tels.length === 1 ? 'Cliente bloqueado ✓' : tels.length + ' clientes bloqueados ✓'); }
+      else { inp.value = ''; const cc = $('#bloq-conta'); if (cc) cc.textContent = ''; toast(tels.length === 1 ? 'Cliente bloqueado ✓' : tels.length + ' clientes bloqueados ✓'); }
     });
   }
 
@@ -2438,7 +2484,7 @@
       b.setAttribute('aria-selected', on ? 'true' : 'false');
     });
     atualizaVaziosAbas();
-    if (nome === 'bloqueios' && storeRow && sessao) bloqueios('listar').catch(() => {});
+    if (nome === 'bloqueios' && storeRow && sessao) { bloqueios('listar').catch(() => {}); limiteCatalogo().catch(() => {}); }
     try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
   }
   function atualizaVaziosAbas() {

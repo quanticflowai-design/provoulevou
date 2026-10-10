@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=151">
+  <link rel="stylesheet" href="styles.css?v=152">
 </head>
 <body>
   <div id="app">
@@ -350,7 +350,7 @@
           <button type="button" class="admin-menu-btn" data-aba="estoque" role="tab">Estoque</button>
           <button type="button" class="admin-menu-btn" data-aba="categorias" role="tab">Categorias</button>
           <button type="button" class="admin-menu-btn" data-aba="links" role="tab">Links</button>
-          <button type="button" class="admin-menu-btn" data-aba="bloqueios" role="tab">Bloqueios</button>
+          <button type="button" class="admin-menu-btn" data-aba="bloqueios" role="tab">Provador</button>
         </nav>
 
         <div class="admin-aba" data-aba="cadastrar" role="tabpanel" hidden>
@@ -494,19 +494,48 @@
         </div>
         </div>
 
-        <!-- Bloqueios (09/10/2026): o lojista bloqueia o WhatsApp de um cliente; por trás os IPs
-             desse telefone entram junto (provador_bloqueios, origem 'catalogo/<slug>'). -->
+        <!-- Provador (10/10/2026): limite de provas por cliente/dia (pl_catalog_limite) e bloqueio de
+             clientes (pl_catalog_bloqueios — o telefone bloqueado leva junto os IPs dele). -->
         <div class="admin-aba" data-aba="bloqueios" role="tabpanel" hidden>
-        <div class="cat-links">
-          <h3 class="cat-links-tit">Bloquear cliente</h3>
-          <p class="cat-order-sub">O cliente bloqueado não consegue mais provar no seu catálogo, nem trocando de número na mesma internet.</p>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
-            <textarea id="bloq-tel" rows="3" placeholder="WhatsApp com DDD. Para bloquear vários, coloque um por linha ou separe por vírgula." autocomplete="off" style="flex:1 1 100%;min-width:0;resize:vertical;padding:10px 12px;border:1px solid var(--line,#ddd);border-radius:10px;font:inherit;"></textarea>
-            <button class="btn-primary" id="btn-bloquear" type="button">Bloquear</button>
+        <div class="prov-card">
+          <div class="prov-head">
+            <span class="prov-ico" aria-hidden="true">⏱</span>
+            <div>
+              <h3 class="prov-tit">Provas por cliente por dia</h3>
+              <p class="prov-sub">Quantas vezes o mesmo cliente pode provar no seu catálogo por dia. Ajuda a não gastar suas provas com uma pessoa só.</p>
+            </div>
           </div>
-          <h3 class="cat-links-tit" style="margin-top:22px;">Clientes bloqueados</h3>
-          <p class="cat-order-sub" id="bloq-vazio">Nenhum cliente bloqueado.</p>
-          <div id="bloq-lista" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;"></div>
+          <div class="prov-limite">
+            <div class="prov-stepper">
+              <button type="button" class="prov-step" id="lim-menos" aria-label="Diminuir">−</button>
+              <input type="number" id="lim-valor" min="1" max="50" inputmode="numeric" aria-label="Provas por dia">
+              <button type="button" class="prov-step" id="lim-mais" aria-label="Aumentar">+</button>
+            </div>
+            <span class="prov-unid">provas por dia</span>
+            <button class="btn-primary" id="btn-lim-salvar" type="button">Salvar</button>
+          </div>
+        </div>
+
+        <div class="prov-card">
+          <div class="prov-head">
+            <span class="prov-ico perigo" aria-hidden="true">🚫</span>
+            <div>
+              <h3 class="prov-tit">Bloquear clientes</h3>
+              <p class="prov-sub">O cliente bloqueado não consegue mais provar no seu catálogo, nem trocando de número na mesma internet.</p>
+            </div>
+          </div>
+          <label class="prov-label" for="bloq-tel">WhatsApp do cliente (com DDD)</label>
+          <textarea id="bloq-tel" class="prov-input" rows="3" autocomplete="off" placeholder="(11) 91234-5678&#10;Para bloquear vários, coloque um por linha."></textarea>
+          <div class="prov-acoes">
+            <span class="prov-conta" id="bloq-conta"></span>
+            <button class="btn-primary prov-btn-perigo" id="btn-bloquear" type="button">Bloquear</button>
+          </div>
+
+          <div class="prov-lista-head">
+            <span>Clientes bloqueados</span><span class="prov-badge" id="bloq-total">0</span>
+          </div>
+          <p class="prov-vazio" id="bloq-vazio">Nenhum cliente bloqueado até agora.</p>
+          <div id="bloq-lista" class="prov-lista"></div>
         </div>
         </div>
 
@@ -610,6 +639,6 @@
   <div id="toast"></div>
 
   <script src="lentes.js?v=152"></script>
-  <script src="app.js?v=161"></script>
+  <script src="app.js?v=162"></script>
 </body>
 </html>
