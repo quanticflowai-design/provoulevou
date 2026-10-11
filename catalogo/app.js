@@ -557,7 +557,10 @@
                 brand: '#004884', dark: '#003563', soft: 'rgba(0,72,132,.08)', on: '#ffffff' },
     // Casa du Óculos — logo vermelho chapado vira selo sobre fundo claro rosado; vermelho do logo com texto branco
     casaduoculos: { bg: '#FFF6F6', card: '#FFFFFF', line: '#F6D4D6',
-                brand: '#C8040F', dark: '#9E030C', soft: 'rgba(200,4,15,.09)', on: '#ffffff' }
+                brand: '#C8040F', dark: '#9E030C', soft: 'rgba(200,4,15,.09)', on: '#ffffff' },
+    // Ótica Rever (RJ) — logo creme/dourado sobre marinho chapado; marinho do logo (lum 61) fechado p/ 59 -> tema escuro, logo recolorido no mesmo tom; dourado das faixas na marca com texto marinho (5,4:1)
+    oticarever: { bg: '#1E3D79', card: '#27498A', line: 'rgba(236,178,94,.28)',
+                brand: '#ECB25E', dark: '#D49A45', soft: 'rgba(236,178,94,.14)', on: '#1E3D79' }
   };
 
   // ─────────── Tema ───────────
