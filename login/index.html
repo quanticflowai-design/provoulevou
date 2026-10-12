@@ -15783,6 +15783,23 @@
             }
         }
 
+        // UTM em todo link de disparo (12/10/2026): utm_source=whatsapp, utm_medium = tipo de envio,
+        // utm_campaign = nome da campanha em slug (ex.: "RFM · Perdidos" -> rfm-perdidos). Assim a loja
+        // mede no Analytics/Nuvemshop quem entrou e comprou por cada disparo.
+        function plSlug(t) {
+            return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'sem-nome';
+        }
+        function plUtm(url, medium, campanha) {
+            if (!url || !/^https?:\/\//.test(url) || /[?&]utm_source=/.test(url)) return url;
+            const i = url.indexOf('#'), base = i < 0 ? url : url.slice(0, i), hash = i < 0 ? '' : url.slice(i);
+            return base + (base.indexOf('?') < 0 ? '?' : '&') + 'utm_source=whatsapp&utm_medium=' + encodeURIComponent(medium || 'disparo')
+                + '&utm_campaign=' + encodeURIComponent(plSlug(campanha)) + hash;
+        }
+        function _plUtmMassa() {
+            const o = (document.getElementById('waBulkStageSelect') || {}).selectedOptions;
+            return ((o && o[0] && o[0].textContent) || 'disparo em massa').replace(/\s*\(\d+\)\s*$/, '');
+        }
         async function executeBulkSend() {
             const targets = window._waBulkTargets || [];
             if (targets.length === 0) return;
@@ -15879,7 +15896,7 @@
                 // Monta exatamente o número de variáveis que o template espera.
                 // Convenção: {{1}} = primeiro nome, {{2}} = produto provado.
                 // Link deste lead: prioriza o checkout abandonado da loja; senão, o produto provado.
-                const leadLink = leadLinkOf(lead);
+                const leadLink = plUtm(leadLinkOf(lead), 'disparo', _plUtmMassa());
                 const params = waBuildLeadBodyParams(tplObj, firstName, produto, leadLink);
                 // Se o link vai num botão de URL, manda components com o param do botão
                 let components = null;
@@ -17011,7 +17028,7 @@
                     const payloads = targets.map(lead => {
                         const firstName = (lead.name || '').split(' ')[0] || '👋';
                         const produto = lead.product || 'o modelo que você provou';
-                        const leadLink = leadLinkOf(lead) || '';
+                        const leadLink = plUtm(leadLinkOf(lead) || '', 'campanha', CAMP.nome);
                         const params = waBuildLeadBodyParams(tplObj, firstName, produto, leadLink);
                         const p = { to: lead.phone, params: params };
                         if (urlBtnIndex >= 0 && leadLink) {
@@ -17025,7 +17042,7 @@
                     });
                     if (skippedNoLink > 0) setMsg(skippedNoLink + ' lead(s) sem link foram pulados. Criando campanha com ' + payloads.length + '…');
                     const { error } = await campSafeInsert({
-                        lojista_email: activeUser.email, nome: CAMP.nome.trim(), scheduled_at: scheduled_at,
+                        lojista_email: activeUser.email, nome: CAMP.nome.trim(), utm_campaign: plSlug(CAMP.nome), scheduled_at: scheduled_at,
                         template: CAMP.tplName, language: tplLang, payloads: payloads, total: payloads.length,
                         stage_key: CAMP.audience ? (CAMP.audience.rfm ? '__rfm__' : '__segmento__') : waPipelineStageKey(CAMP.pipeline, CAMP.stage),
                         move_to_stage: ((CAMP.pipeline === 'rfm' && !CAMP.audience) ? 'rfm:' : '') + (CAMP.moveToStage || 'msg-1'), status: status
@@ -17034,7 +17051,7 @@
                 } else {
                     for (const tm of recurTimes) {
                         const { error } = await campSafeInsert({
-                            lojista_email: activeUser.email, nome: CAMP.nome.trim(), scheduled_at: new Date().toISOString(),
+                            lojista_email: activeUser.email, nome: CAMP.nome.trim(), utm_campaign: plSlug(CAMP.nome), scheduled_at: new Date().toISOString(),
                             recurrence: 'diario', recur_time: tm, stage_key: waPipelineStageKey(CAMP.pipeline, CAMP.stage), max_per_run: (CAMP.limit && CAMP.limit > 0) ? CAMP.limit : 100,
                             move_to_stage: (CAMP.pipeline === 'rfm' ? 'rfm:' : '') + (CAMP.moveToStage || 'msg-1'),
                             template: CAMP.tplName, language: tplLang, placeholders: placeholders,
@@ -17372,7 +17389,7 @@
             const payloads = sendTargets.map(lead => {
                 const firstName = (lead.name || '').split(' ')[0] || '👋';
                 const produto = lead.product || 'o modelo que você provou';
-                const leadLink = leadLinkOf(lead);
+                const leadLink = plUtm(leadLinkOf(lead), 'disparo', _plUtmMassa());
                 const params = waBuildLeadBodyParams(tplObj, firstName, produto, leadLink);
                 const p = { to: lead.phone, params: params };
                 if (urlBtnIndex >= 0 && leadLink) {
@@ -17566,8 +17583,8 @@
             buttons.forEach((b, i) => { if ((b.type || '').toUpperCase() === 'URL' && /\{\{\s*\d+\s*\}\}/.test(b.url || '')) urlBtnIndex = i; });
 
             const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
-            const leadLink = hasUrl(btn.dataset.checkouturl) ? btn.dataset.checkouturl
-                : (hasUrl(btn.dataset.producturl) ? btn.dataset.producturl : '');
+            const leadLink = plUtm(hasUrl(btn.dataset.checkouturl) ? btn.dataset.checkouturl
+                : (hasUrl(btn.dataset.producturl) ? btn.dataset.producturl : ''), 'individual', 'mensagem individual');
             const needLink = urlBtnIndex >= 0 || bodyKinds.includes('link');
             if (needLink && !leadLink) {
                 btn.classList.add('failed');
