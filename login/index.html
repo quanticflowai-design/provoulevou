@@ -12745,14 +12745,14 @@
                 '#jorPane .jor-topo{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center}',
                 '#jorPane .jor-topo h2{margin:0 !important;font-size:24px !important;font-weight:700 !important;line-height:1.2 !important}#jorPane .jor-topo p{margin:2px 0 0;color:var(--j-muted);font-size:13px}',
                 '#jorPane .jor-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--j-muted)}#jorPane .jor-leg span{display:flex;gap:6px;align-items:center}#jorPane .jor-leg i{width:10px;height:10px;border-radius:99px;display:inline-block}',
-                '#jorPane .jor-cols{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}',
-                '#jorPane .jor-main{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:16px}',
-                '#jorPane .jor-lista{flex:1 1 300px;min-width:0;background:var(--j-card);border:1px solid var(--j-line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;position:sticky;top:12px;max-height:calc(100vh - 40px)}',
+                '#jorPane .jor-cols{display:flex;flex-direction:column;gap:16px}',
+                '#jorPane .jor-main{width:100%;min-width:0;display:flex;flex-direction:column;gap:16px}',
+                '#jorPane .jor-lista{width:100%;min-width:0;background:var(--j-card);border:1px solid var(--j-line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px}',
                 '#jorPane .jor-lista-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}#jorPane .jor-lista-top b{font-size:15px;font-weight:700}#jorPane .jor-lista-top span{font-size:12px;color:var(--j-muted)}',
-                '#jorPane .jor-filtros{display:flex;flex-direction:column;gap:8px}',
+                '#jorPane .jor-filtros{display:grid;grid-template-columns:minmax(0,220px) minmax(0,360px);gap:12px}',
                 '#jorPane .jor-filtros label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--j-muted)}',
                 '#jorPane .jor-filtros select,#jorPane .jor-filtros input{height:36px;width:100%;border:1px solid var(--j-line);border-radius:10px;padding:0 12px;font-size:14px;color:var(--j-ink);background:var(--j-card);margin:0;box-shadow:none}',
-                '#jorPane .jor-clientes{display:flex;flex-direction:column;gap:6px;overflow-y:auto;padding-right:2px}',
+                '#jorPane .jor-clientes{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;max-height:460px;overflow-y:auto;padding-right:2px}',
                 '#jorPane .jor-cli{text-align:left;border:1px solid var(--j-line);background:var(--j-card);border-radius:12px;padding:10px 12px;margin:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;color:var(--j-ink);cursor:pointer;width:100%;min-height:0;box-shadow:none}',
                 '#jorPane .jor-cli:hover{border-color:#cbbdf0}#jorPane .jor-cli.on{border-color:#630ed4;background:var(--j-sel)}',
                 '#jorPane .jor-cli .n{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#jorPane .jor-cli .v{font-weight:600;font-size:13px;font-variant-numeric:tabular-nums}',
@@ -12785,7 +12785,7 @@
                 '#jorPane .jor-div{grid-row:1 / span 4;justify-self:center;width:0;border-left:2px dashed var(--j-line);position:relative}',
                 '#jorPane .jor-div span{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--j-card);border:1px dashed #cfc8de;border-radius:99px;padding:3px 9px;font-size:11.5px;font-weight:600;color:var(--j-muted);white-space:nowrap}',
                 '#jorPane .jor-vazio{color:var(--j-muted);font-size:13.5px;padding:24px 4px;text-align:center}',
-                '@media (max-width:620px){#jorPane .jor-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#jorPane .jor-lista{position:static;max-height:none}}'
+                '@media (max-width:620px){#jorPane .jor-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#jorPane .jor-filtros{grid-template-columns:1fr}}'
             ].join('\n');
             document.head.appendChild(s);
         }
