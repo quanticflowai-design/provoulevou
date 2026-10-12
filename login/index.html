@@ -4072,6 +4072,7 @@
                     </div>
                     <!-- Assistente com IA (12/10/2026): a loja dita a mudança, a IA altera o RASCUNHO e a prévia
                          ao lado mostra o fluxo como vai ficar. Só vai pra loja ao clicar em Salvar. -->
+                    <div id="lcfgMapa"></div>
                     <section class="lcfg-ia" id="lcfgIA">
                         <div class="lcfg-ia-chat">
                             <div class="lcfg-ia-topo">
@@ -6711,7 +6712,7 @@
         let _lcfgEdit = null;       // cópia em edição
         let _lcfgUltimo = null;
         let _lcfgTem = false;
-        const _lcfgAbertos = new Set(['etapa1']);   // acordeões abertos (sobrevive a repintar)
+        const _lcfgAbertos = new Set(['etapa1', 'etapas']);   // acordeões abertos (sobrevive a repintar)
         const _lcfgIdsAbertos = new Set();          // lentes com os IDs da Nuvemshop à mostra
 
         // O que fica dentro de cada tipo de lente (chaves de `lentes` e `textos` da config).
@@ -7044,7 +7045,11 @@
         const _LCFG_X_TIPOS = { escolha: 'Escolher uma opção', multipla: 'Escolher várias opções', texto: 'Escrever uma resposta' };
         const _LCFG_X_ANTES = { tipo: 'Antes do tipo de lente', tratamento: 'Antes do tratamento', receita: 'Antes da receita', resultado: 'Antes do resultado' };
         const _LCFG_ANCORA_DE = { tipo: 'tipo', tratamento: 'tratamento', receita: 'receita', resultado: 'resultado' };
-        function _lcfgExtras() { if (!Array.isArray(_lcfgEdit.etapas_extra)) _lcfgEdit.etapas_extra = []; return _lcfgEdit.etapas_extra; }
+        function _lcfgExtras(criar) {   // só cria a lista quando for mexer (ler não pode sujar o rascunho)
+            if (Array.isArray(_lcfgEdit.etapas_extra)) return _lcfgEdit.etapas_extra;
+            if (criar) { _lcfgEdit.etapas_extra = []; return _lcfgEdit.etapas_extra; }
+            return [];
+        }
         function _lcfgEtNome(k) { const n = (_lcfgEdit.etapas_nomes || {})[k]; return String(n || '').trim() || _LCFG_ET_NOME[k]; }
         function _lcfgMapaNos() {
             const xs = _lcfgExtras(), nos = [];
@@ -7189,9 +7194,9 @@
                 return _lcfgAcc('g:' + g.nome, { nivel: 1, titulo: _lcfgEsc(g.nome), meta: _lcfgResumo(g.keys), off: !on, corpo: _lcfgLentes(g.keys) });
             }).join('');
             const total = (c.lentes || []).length, ligadas = (c.lentes || []).filter(l => l.ativo !== false).length;
+            const mapa = document.getElementById('lcfgMapa'); if (mapa) mapa.innerHTML = _lcfgPintaEtapasCat();   // mapa do fluxo fica no topo
             document.getElementById('lcfgCorpo').innerHTML =
                 '<p class="lcfg-intro">Abra cada parte para editar. O que estiver <b>desligado</b> some do fluxo da loja. Depois de salvar, a loja mostra as mudanças em até 5 minutos.</p>' +
-                _lcfgPintaEtapasCat() +
                 _lcfgCores() +
                 _lcfgAcc('etapa1', {
                     icone: 'ph-list-numbers', etapa: 'Primeira tela', titulo: 'Tipos de lente',
@@ -7213,6 +7218,7 @@
                 if (c.previa_url) { prev.href = c.previa_url + (c.previa_url.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now(); prev.style.display = ''; }
                 else prev.style.display = 'none';
             }
+            const mp = document.getElementById('lcfgMapa'); if (mp && c.modo !== 'catalogo') mp.innerHTML = '';
             if (c.modo === 'catalogo') { _lcfgPintaCatalogo(c); return; }
             const g = c.geral || (c.geral = {});
             const usados = new Set([].concat(_LCFG_TEXTOS_ETAPA1, _LCFG_TEXTOS_RECEITA, _LCFG_TEXTOS_RESULTADO));
@@ -7399,7 +7405,7 @@
             _lcfgPinta();
         }
         function _lcfgXAcao(t) {
-            const xs = _lcfgExtras(), a = t.dataset.lcfgXacao, i = +t.dataset.i, j = +t.dataset.j, x = xs[i];
+            const a = t.dataset.lcfgXacao, xs = _lcfgExtras(a === 'novo'), i = +t.dataset.i, j = +t.dataset.j, x = xs[i];
             if (a === 'novo') {
                 const ant = t.dataset.antes || 'resultado';
                 const nova = { id: 'e' + Date.now().toString(36), nome: 'Nova etapa', titulo: '', dica: '', tipo: 'escolha', obrigatoria: true, antes_de: ant, ativo: true,
@@ -7484,6 +7490,7 @@
             _lcfgIdsAbertos.clear();
             const b = document.getElementById('lentesCfgTabBtn'); if (b) b.style.display = 'none';
             const corpo = document.getElementById('lcfgCorpo'); if (corpo) corpo.innerHTML = '';
+            const mapa = document.getElementById('lcfgMapa'); if (mapa) mapa.innerHTML = '';
             if (typeof _lcfgIAReset === 'function') _lcfgIAReset();
         }
         /* arrastar e soltar: listas (alça .lcfg-grip) e faixa de etapas (.lcfg-chip) */
@@ -7624,7 +7631,7 @@
                     mud.push('Nome da etapa: ' + antes + ' → ' + valor.trim());
                 } else if (t === 'etapa_extra') {
                     if (c.modo !== 'catalogo') { ignoradas++; return; }
-                    const xs = _lcfgExtras();
+                    const xs = _lcfgExtras(campo === 'criar');
                     let d = {}; try { d = valor ? JSON.parse(valor) : {}; } catch (e) { ignoradas++; return; }
                     const limpa = (x) => {
                         if (d.nome != null) x.nome = String(d.nome).slice(0, 40);
