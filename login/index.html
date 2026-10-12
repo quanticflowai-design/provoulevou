@@ -4504,7 +4504,13 @@
 
                     .lcfg-mapa4 { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; align-items: start; }
                     @media (max-width: 1100px) { .lcfg-mapa4 { grid-template-columns: 1fr; } }
-                    .lcfg-arv-wrap { overflow-x: auto; border: 1px solid var(--l-line); border-radius: 14px; background: radial-gradient(circle, var(--l-line) 1px, transparent 1px) 0 0 / 16px 16px; padding: 18px 14px 22px; }
+                    .lcfg-arv-area { position: relative; min-width: 0; }
+                    .lcfg-zoom { position: absolute; right: 10px; top: 10px; z-index: 3; display: flex; align-items: center; gap: 2px; background: var(--l-card); border: 1px solid var(--l-line); border-radius: 10px; padding: 3px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+                    .lcfg-zoom button { height: 28px; min-width: 28px; border: 0; background: none; border-radius: 7px; color: var(--l-ink); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 0 7px; }
+                    .lcfg-zoom button:hover { background: var(--l-soft); color: var(--l-accent); }
+                    .lcfg-zoom span { min-width: 40px; text-align: center; font-size: 12px; font-weight: 700; color: var(--l-muted); font-variant-numeric: tabular-nums; }
+                    .lcfg-arv-wrap { max-height: 720px; overflow-y: auto; padding-top: 50px !important;
+                    overflow-x: auto; border: 1px solid var(--l-line); border-radius: 14px; background: radial-gradient(circle, var(--l-line) 1px, transparent 1px) 0 0 / 16px 16px; padding: 18px 14px 22px; }
                     .lcfg-arv { width: max-content; min-width: 100%; }
                     .lcfg-tcol { display: flex; flex-direction: column; align-items: center; }
                     .lcfg-tn { display: flex; align-items: center; gap: 9px; background: var(--l-card); border: 1.5px solid var(--l-line); border-radius: 12px; padding: 8px 11px; width: 210px; box-sizing: border-box; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.04); }
@@ -7092,7 +7098,18 @@
         const _LCFG_X_TIPOS = { escolha: 'Escolher uma opção', multipla: 'Escolher várias opções', texto: 'Escrever uma resposta' };
         const _LCFG_X_ANTES = { tipo: 'Antes do tipo de lente', tratamento: 'Antes do tratamento', receita: 'Antes da receita', resultado: 'Antes do resultado' };
         const _LCFG_ANCORA_DE = { tipo: 'tipo', tratamento: 'tratamento', receita: 'receita', resultado: 'resultado' };
-        let _lcfgSelEt = 'tipo';
+        let _lcfgSelEt = 'tipo', _lcfgZoom = 1;
+        function _lcfgZoomAplica(z) {
+            _lcfgZoom = Math.max(0.4, Math.min(1.6, Math.round(z * 100) / 100));
+            const a = document.querySelector('#lcfgArvoreBox .lcfg-arv'); if (a) a.style.zoom = _lcfgZoom;
+            const l = document.getElementById('lcfgZoomPct'); if (l) l.textContent = Math.round(_lcfgZoom * 100) + '%';
+        }
+        function _lcfgZoomAjusta() {   // encaixa o mapa inteiro na largura
+            const box = document.getElementById('lcfgArvoreBox'), a = box && box.querySelector('.lcfg-arv'); if (!a) return;
+            a.style.zoom = 1;
+            const larg = a.scrollWidth, disp = box.clientWidth - 30;
+            _lcfgZoomAplica(larg > disp ? disp / larg : 1);
+        }
         function _lcfgExtras(criar) {   // só cria a lista quando for mexer (ler não pode sujar o rascunho)
             if (Array.isArray(_lcfgEdit.etapas_extra)) return _lcfgEdit.etapas_extra;
             if (criar) { _lcfgEdit.etapas_extra = []; return _lcfgEdit.etapas_extra; }
@@ -7143,7 +7160,7 @@
             });
             const soArm = (_lcfgEdit.textos || []).find(t => t.etapa === 'tipo' && /carrinho/.test(t.key) && /titulo$/.test(t.key));
             if (soArm) ramos.push({ rot: soArm.valor || 'Somente a armação', cinza: true, aviso: 'vai direto pro carrinho, só a armação', ids: [] });
-            return '<div class="lcfg-arv"><div class="lcfg-tcol">' + _lcfgArvLinha(tronco) + '<span class="lcfg-tl"></span>' +
+            return '<div class="lcfg-arv" style="zoom:' + _lcfgZoom + '"><div class="lcfg-tcol">' + _lcfgArvLinha(tronco) + '<span class="lcfg-tl"></span>' +
                 '<div class="lcfg-ramos">' + ramos.map(r => '<div class="lcfg-ramo"><span class="lcfg-blabel' + (r.cinza ? ' g' : '') + '">' + _lcfgEsc(_lcfgCurto(r.rot)) + '</span>' +
                     (r.aviso ? '<span class="lcfg-skip">' + r.aviso + '</span>' + (r.ids.length ? '<span class="lcfg-tl"></span>' : '') : '') + _lcfgArvLinha(r.ids) + '</div>').join('') + '</div></div></div>';
         }
@@ -7151,7 +7168,8 @@
         function _lcfgTela(id) {
             const t = (_lcfgEdit.tema || {}), cor = (k, d) => _lcfgHex(t[k]) || d;
             const botao = cor('botao', cor('destaque', '#630ed4')), botaoTx = cor('botao_texto', '#fff'), borda = cor('opcao_borda', cor('borda', '#e5e5e5')), fundoOp = cor('opcao_fundo', '#fff'), titulo = cor('titulo', '#1c1826');
-            const opt = (tt, ss) => '<div class="lcfg-ph-opt" style="border-color:' + borda + ';background:' + fundoOp + '"><b>' + _lcfgEsc(tt) + '</b>' + (ss ? '<small>' + _lcfgEsc(ss) + '</small>' : '') + '</div>';
+            const md = v => _lcfgEsc(v).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');   // **negrito** como no widget
+            const opt = (tt, ss) => '<div class="lcfg-ph-opt" style="border-color:' + borda + ';background:' + fundoOp + '"><b>' + md(tt) + '</b>' + (ss ? '<small>' + md(ss) + '</small>' : '') + '</div>';
             const btn = tx => '<div class="lcfg-ph-btn" style="background:' + botao + ';color:' + botaoTx + '">' + _lcfgEsc(tx) + '</div>';
             let tit = '', dica = '', corpo = '';
             const xs = _lcfgExtras();
@@ -7179,7 +7197,7 @@
                 tx.filter(t2 => /botao$/.test(t2.key) && id !== 'telefone').forEach(t2 => { corpo += btn(t2.valor); });
             }
             return '<div class="lcfg-ph"><div class="lcfg-ph-notch"></div><div class="lcfg-ph-scr"><div class="lcfg-ph-head">' + _lcfgEsc(_lcfgDominio || 'sua loja') + '</div><div class="lcfg-ph-body">' +
-                '<div class="lcfg-ph-tit" style="color:' + titulo + '">' + _lcfgEsc(tit) + '</div>' + (dica ? '<div class="lcfg-ph-dica">' + _lcfgEsc(dica) + '</div>' : '') + corpo +
+                '<div class="lcfg-ph-tit" style="color:' + titulo + '">' + md(tit) + '</div>' + (dica ? '<div class="lcfg-ph-dica">' + md(dica) + '</div>' : '') + corpo +
                 '</div></div></div><span class="lcfg-ph-leg">Como o cliente vê esta etapa · cores aproximadas</span>';
         }
         // campos da etapa escolhida
@@ -7249,7 +7267,13 @@
                 meta: ramos + (ramos === 1 ? ' caminho' : ' caminhos') + (nx ? ' · ' + nx + (nx === 1 ? ' etapa sua' : ' etapas suas') : '') + (desl ? ' · ' + desl + (desl === 1 ? ' desligada' : ' desligadas') : ''),
                 corpo: '<p class="lcfg-intro" style="margin:14px 0 12px;">O começo é igual pra todo mundo; depois do tipo de lente o caminho se divide. Cada coluna mostra o que aquele cliente vê até o resultado. ' +
                     '<b>Clique</b> numa etapa para ver a tela e editar ao lado · <b>+</b> cria uma etapa sua ali · <b>arraste</b> (<i class="ph-bold ph-dots-six-vertical"></i>) as etapas suas e a receita.</p>' +
-                    '<div class="lcfg-mapa4"><div class="lcfg-arv-wrap" id="lcfgArvoreBox">' + _lcfgArvore() + '</div>' +
+                    '<div class="lcfg-mapa4"><div class="lcfg-arv-area"><div class="lcfg-zoom" role="group" aria-label="Zoom do mapa">' +
+                        '<button type="button" data-lcfg-zoom="-" aria-label="Diminuir zoom" title="Diminuir zoom"><i class="ph-bold ph-minus"></i></button>' +
+                        '<span id="lcfgZoomPct">' + Math.round(_lcfgZoom * 100) + '%</span>' +
+                        '<button type="button" data-lcfg-zoom="+" aria-label="Aumentar zoom" title="Aumentar zoom"><i class="ph-bold ph-plus"></i></button>' +
+                        '<button type="button" data-lcfg-zoom="fit" title="Encaixar o mapa inteiro na tela"><i class="ph-bold ph-arrows-in"></i> Ajustar</button>' +
+                        '<button type="button" data-lcfg-zoom="1" title="Tamanho normal">100%</button></div>' +
+                    '<div class="lcfg-arv-wrap" id="lcfgArvoreBox">' + _lcfgArvore() + '</div></div>' +
                     '<div class="lcfg-mapa4-lado"><div id="lcfgTelaBox">' + _lcfgTela(_lcfgSelEt) + '</div><div class="lcfg-ed">' + _lcfgEditorEt(_lcfgSelEt) + '</div></div></div>'
             });
         }
@@ -7488,8 +7512,9 @@
             if (repinta) _lcfgPinta(); else { _lcfgAtualizaBarraEPrevia(); if (c.modo === 'catalogo') _lcfgMapaParcial(); }
         }
         function _lcfgOnClick(ev) {
-            const t = ev.target.closest && ev.target.closest('[data-lcfg-acc],[data-lcfg-mover],[data-lcfg-ids],[data-lcfg-cor-limpa],[data-lcfg-raio-limpa],[data-lcfg-xacao],[data-lcfg-sel]');
+            const t = ev.target.closest && ev.target.closest('[data-lcfg-acc],[data-lcfg-mover],[data-lcfg-ids],[data-lcfg-cor-limpa],[data-lcfg-raio-limpa],[data-lcfg-xacao],[data-lcfg-sel],[data-lcfg-zoom]');
             if (!t || !_lcfgEdit) return;
+            if (t.dataset.lcfgZoom) { const z = t.dataset.lcfgZoom; if (z === 'fit') _lcfgZoomAjusta(); else _lcfgZoomAplica(z === '+' ? _lcfgZoom + 0.1 : z === '-' ? _lcfgZoom - 0.1 : 1); return; }
             if (t.dataset.lcfgXacao) { _lcfgXAcao(t); return; }
             if (t.dataset.lcfgSel) { _lcfgSelEt = t.dataset.lcfgSel; _lcfgPinta(); return; }
             if (t.dataset.lcfgCorLimpa) { const tm = Object.assign({}, _lcfgEdit.tema || {}); delete tm[t.dataset.lcfgCorLimpa]; _lcfgEdit.tema = tm; _lcfgPinta(); return; }
@@ -7678,6 +7703,12 @@
             if (eraSel) _lcfgSelEt = 'x:' + pos;
             _lcfgPinta();
         }
+        document.addEventListener('wheel', ev => {
+            if (!(ev.ctrlKey || ev.metaKey)) return;
+            const box = ev.target.closest && ev.target.closest('#lcfgArvoreBox'); if (!box) return;
+            ev.preventDefault();
+            _lcfgZoomAplica(_lcfgZoom * Math.exp(-ev.deltaY * 0.01));
+        }, { passive: false });
         function _lcfgDragEnd() { _lcfgArrasto = null; document.querySelectorAll('#lentesViewConfig .drop-alvo, #lentesViewConfig .arrastando').forEach(x => x.classList.remove('drop-alvo', 'arrastando')); }
         (function _lcfgLiga() {
             const liga = () => {
