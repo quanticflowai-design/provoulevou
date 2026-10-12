@@ -4414,6 +4414,7 @@
 
                     /* Opções de receita (lista simples, sem acordeão) */
                     .lcfg-item { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 12px; align-items: start; border: 1px solid var(--l-line); border-radius: 11px; padding: 12px; margin-top: 8px; background: var(--l-card); }
+                    .lcfg-item.sem-ordem { grid-template-columns: auto minmax(0, 1fr); }
                     .lcfg-item.off { opacity: .55; }
                     .lcfg-item .lcfg-switch { margin-top: 8px; }
                     .lcfg-item-txt { display: grid; gap: 6px; }
@@ -4496,6 +4497,25 @@
                     .lcfg-op-base span { font-weight: 700; } .lcfg-op-base small { flex-basis: 100%; font-size: 11.5px; }
                     #lentesViewConfig .lcfg-op-base select { height: 32px; border: 1px solid var(--l-line); border-radius: 8px; background: var(--l-field); color: var(--l-ink); font: inherit; font-size: 12.5px; padding: 0 8px; }
                     .lcfg-op-base .lcfg-link-btn { margin-left: auto; padding: 2px 0; }
+                    /* 13/10/2026: cartões de opções compactos e iguais em todas as etapas (nome | descrição numa linha só) */
+                    #lcfgMapa .lcfg-item:not(.lcfg-etapa-item) { gap: 10px; padding: 7px 10px; margin-top: 6px; border-radius: 10px; align-items: center; }
+                    #lcfgMapa .lcfg-item:not(.lcfg-etapa-item) .lcfg-switch { margin-top: 0; }
+                    #lcfgMapa .lcfg-item:not(.lcfg-etapa-item) { grid-template-columns: auto auto minmax(0, 1fr) auto; }
+                    #lcfgMapa .lcfg-item.sem-ordem:not(.lcfg-etapa-item) { grid-template-columns: auto minmax(0, 1fr) auto; }
+                    .lcfg-lixo { width: 30px; height: 30px; border-radius: 8px; border: 1px solid rgba(220,38,38,.28); background: rgba(220,38,38,.06); color: #dc2626; display: grid; place-items: center; cursor: pointer; font-size: 14px; padding: 0; flex: none; }
+                    .lcfg-lixo:hover { background: #dc2626; border-color: #dc2626; color: #fff; }
+                    .lcfg-item.nova > .lcfg-lixo { align-self: start; margin-top: 1px; }
+                    .lcfg-removidas { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 12px; color: var(--l-muted); margin-top: 8px; padding: 6px 2px; }
+                    .lcfg-removidas > i { color: #dc2626; } .lcfg-removidas span { display: inline-flex; align-items: center; gap: 4px; } .lcfg-removidas .lcfg-link-btn { font-size: 12px; padding: 0; }
+                    #lcfgMapa .lcfg-item:not(.lcfg-etapa-item) .lcfg-item-txt { grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 6px; }
+                    #lcfgMapa .lcfg-item:not(.lcfg-etapa-item) .lcfg-item-txt > .lcfg-op-base { grid-column: 1 / -1; margin-top: 0; }
+                    #lentesViewConfig #lcfgMapa .lcfg-item-txt input[type=text], #lentesViewConfig #lcfgMapa .lcfg-item-txt textarea { font-size: 12.5px; padding: 6px 8px; border-radius: 8px; height: 32px; min-height: 0; line-height: 1.35; }
+                    #lentesViewConfig #lcfgMapa .lcfg-item-txt textarea { resize: none; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 400; }
+                    #lentesViewConfig #lcfgMapa .lcfg-item-txt textarea:focus { white-space: normal; overflow: auto; height: 56px; position: relative; z-index: 1; }
+                    #lcfgMapa .lcfg-item:not(.lcfg-etapa-item) .lcfg-ordem { flex-direction: row; align-items: center; gap: 2px; }
+                    #lcfgMapa .lcfg-item:not(.lcfg-etapa-item) .lcfg-ordem .lcfg-grip { display: none; }
+                    #lcfgMapa .lcfg-item:not(.lcfg-etapa-item) .lcfg-ordem button { width: 22px; height: 22px; }
+                    @media (max-width: 700px) { #lcfgMapa .lcfg-item:not(.lcfg-etapa-item) .lcfg-item-txt { grid-template-columns: 1fr; } }
                     .lcfg-v-nova { display: flex; gap: 8px; flex-wrap: wrap; } #lentesViewConfig .lcfg-v-nova input { flex: 1; min-width: 220px; }
                     .lcfg-v-lista { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
                     .lcfg-v-it { display: flex; align-items: center; gap: 10px; border: 1px solid var(--l-line); border-radius: 12px; padding: 9px 10px; }
@@ -7487,21 +7507,54 @@
             if (di) h += '<div class="lcfg-campo"><label>Dica</label><textarea rows="2" maxlength="400" data-lcfg-texto="' + di.i + '">' + _lcfgEsc(di.t.valor) + '</textarea></div>';
             const trat = id === 'tratamento', ocultos = (_lcfgEdit.tratamentos_ocultos || []).map(String);
             const tkDe = o => { const m = o && String(o.t.sel || '').match(/\[data-(?:trat|treatment)="([^"]+)"\]/); return m ? m[1] : null; };
-            if (ordem.length) h += '<div class="lcfg-campo"><label>Opções</label>' + ordem.map(k => {
-                const tk = trat ? tkDe(pares[k].titulo || pares[k].desc) : null, off = tk && ocultos.indexOf(tk) !== -1;
-                return '<div class="lcfg-oprow' + (trat ? ' acao' : '') + (off ? ' off' : '') + '">' + (pares[k].titulo ? inp(pares[k].titulo, 'Nome da opção') : '<span></span>') + (pares[k].desc ? inp(pares[k].desc, 'Descrição') : '<span></span>') +
-                    (tk ? (off ? '<button type="button" class="lcfg-link-btn" onclick="_lcfgTratOculta(\'' + _lcfgEsc(tk) + '\',false)" title="Voltar a mostrar"><i class="ph-bold ph-arrow-counter-clockwise"></i> Restaurar</button>'
-                        : '<button type="button" class="lcfg-mini" onclick="_lcfgTratOculta(\'' + _lcfgEsc(tk) + '\',true)" title="Remover do fluxo"><i class="ph-bold ph-trash"></i></button>') : '') + '</div>';
-            }).join('') + '</div>';
-            if (trat) {
+            if (ordem.length && !trat) {   // 13/10/2026: mesmo cartão do Tipo de lente e do Tratamento (setas, liga/desliga, nome, descrição)
+                const ocE = ((_lcfgEdit.opcoes_ocultas || {})[id] || []).map(String), odE = ((_lcfgEdit.opcoes_ordem || {})[id] || []).map(String);
+                const remE = ((_lcfgEdit.opcoes_removidas || {})[id] || []).map(String);
+                const its = ordem.map((k, j) => ({ k, j })).filter(it => remE.indexOf(it.k) === -1).sort((a, b) => { const pa = odE.indexOf(a.k), pb = odE.indexOf(b.k); return ((pa === -1 ? 999 : pa) - (pb === -1 ? 999 : pb)) || (a.j - b.j); });
+                const areaE = (o, ph) => o ? '<textarea rows="2" maxlength="300" placeholder="' + ph + '" data-lcfg-texto="' + o.i + '">' + _lcfgEsc(o.t.valor) + '</textarea>' : '';
+                const setaE = (k, d, dis) => '<button type="button" onclick="_lcfgOpMove(\'' + id + '\',\'' + _lcfgEsc(k) + '\',' + d + ')" aria-label="' + (d < 0 ? 'Subir' : 'Descer') + '"' + (dis ? ' disabled' : '') + '><i class="ph-bold ph-caret-' + (d < 0 ? 'up' : 'down') + '"></i></button>';
+                const varias = its.length > 1;
+                h += '<div class="lcfg-bloco-tit">' + (id === 'tipo' ? 'Outras opções da tela' : 'Opções da tela — na ordem em que aparecem') + '</div>' + its.map((it, j) => {
+                    const p = pares[it.k], on = ocE.indexOf(it.k) === -1;
+                    return '<div class="lcfg-item' + (on ? '' : ' off') + '">' +   // setas sempre (desabilitadas quando só há uma) pra alinhar com as outras listas
+                        '<div class="lcfg-ordem"><span class="lcfg-grip" aria-hidden="true"><i class="ph-bold ph-dots-six-vertical"></i></span>' + setaE(it.k, -1, j === 0) + setaE(it.k, 1, j === its.length - 1) + '</div>' +
+                        _lcfgSwitch('onchange="_lcfgOpOculta(\'' + id + '\',\'' + _lcfgEsc(it.k) + '\', !this.checked, this)"', on) +
+                        '<div class="lcfg-item-txt">' + (p.titulo ? inp(p.titulo, 'Nome da opção') : '') + areaE(p.desc, 'Descrição (opcional)') + '</div>' +
+                        '<button type="button" class="lcfg-lixo" onclick="_lcfgRemoveOpcao(\'op\',\'' + id + '\',\'' + _lcfgEsc(it.k) + '\',\'' + _lcfgEsc(String(p.titulo ? p.titulo.t.valor : '').replace(/'/g, '')) + '\')" title="Remover do fluxo" aria-label="Remover do fluxo"><i class="ph-bold ph-trash"></i></button></div>';
+                }).join('') + _lcfgRemovidasHtml(remE.map(k => ({ k, nome: pares[k] && pares[k].titulo ? pares[k].titulo.t.valor : k })), k => "_lcfgRestauraOpcao('op','" + id + "','" + _lcfgEsc(k) + "')");
+                _lcfgOpItens[id] = its.map(it => it.k);
+            }
+            if (trat) {   // 13/10/2026: mesmo cartão das opções de "Tipo de lente" (chave liga/desliga, nome, descrição; criados com "Funciona como" e Remover)
                 const xs = _lcfgEdit.tratamentos_extra || [], bases = ((_lcfgEdit.etapas_opcoes || {}).tratamentos) || [];
-                h += '<div class="lcfg-campo"><label>Tratamentos criados por você</label>' + (xs.length ? xs.map((x, i) => '<div class="lcfg-oprow acao nova">' +
-                    '<input type="text" maxlength="90" placeholder="Nome do tratamento" data-lcfg-lista="tratamentos_extra" data-i="' + i + '" data-f="titulo" value="' + _lcfgEsc(x.titulo || '') + '"' + (String(x.titulo || '').trim() ? '' : ' class="erro"') + '>' +
-                    '<input type="text" maxlength="160" placeholder="Descrição" data-lcfg-lista="tratamentos_extra" data-i="' + i + '" data-f="desc" value="' + _lcfgEsc(x.desc || '') + '">' +
-                    '<button type="button" class="lcfg-mini" onclick="_lcfgTratDel(' + i + ')" title="Excluir tratamento"><i class="ph-bold ph-trash"></i></button>' +
-                    '<div class="lcfg-op-base" style="grid-column:1/-1"><span>Funciona como</span><select data-lcfg-lista="tratamentos_extra" data-i="' + i + '" data-f="base" onchange="_lcfgPinta()">' + bases.map(b => '<option value="' + _lcfgEsc(b.key) + '"' + (b.key === x.base ? ' selected' : '') + '>' + _lcfgEsc(b.titulo) + '</option>').join('') + '</select>' +
-                    '<small>Aparece nos mesmos tipos de lente que esse tratamento e ganha uma coluna própria na grade de indicação.</small></div></div>').join('') : '<p class="lcfg-ed-nota">Nenhum ainda.</p>') +
-                    '<button type="button" class="lcfg-link-btn" onclick="_lcfgTratNovo()"><i class="ph-bold ph-plus"></i> Novo tratamento</button></div>';
+                const area = (o, ph) => o ? '<textarea rows="2" maxlength="300" placeholder="' + ph + '" data-lcfg-texto="' + o.i + '">' + _lcfgEsc(o.t.valor) + '</textarea>' : '';
+                const remT = (_lcfgEdit.tratamentos_removidos || []).map(String);
+                const itens = ordem.map(k => ({ key: tkDe(pares[k].titulo || pares[k].desc) || ('t:' + k), k })).filter(it => remT.indexOf(it.key) === -1).concat(xs.map((x, i) => ({ key: String(x.key), i })));
+                const ord = (_lcfgEdit.tratamentos_ordem || []).map(String), pos = it => { const j = ord.indexOf(it.key); return j === -1 ? 999 : j; };
+                itens.forEach((it, j) => it.j = j); itens.sort((a, b) => (pos(a) - pos(b)) || (a.j - b.j));
+                const seta = (key, d, dis) => '<button type="button" onclick="_lcfgTratMove(\'' + _lcfgEsc(key) + '\',' + d + ')" aria-label="' + (d < 0 ? 'Subir' : 'Descer') + '"' + (dis ? ' disabled' : '') + '><i class="ph-bold ph-caret-' + (d < 0 ? 'up' : 'down') + '"></i></button>';
+                const ordemTr = (key, j) => '<div class="lcfg-ordem"><span class="lcfg-grip" aria-hidden="true"><i class="ph-bold ph-dots-six-vertical"></i></span>' + seta(key, -1, j === 0) + seta(key, 1, j === itens.length - 1) + '</div>';
+                const cards = itens.map((it, j) => {
+                    if (it.k != null) {
+                        const k = it.k, tk = tkDe(pares[k].titulo || pares[k].desc), on = !(tk && ocultos.indexOf(tk) !== -1);
+                        return '<div class="lcfg-item' + (on ? '' : ' off') + '">' + ordemTr(it.key, j) +
+                            (tk ? _lcfgSwitch('onchange="_lcfgTratOculta(\'' + _lcfgEsc(tk) + '\', !this.checked)"', on) : '<span></span>') +
+                            '<div class="lcfg-item-txt">' + (pares[k].titulo ? inp(pares[k].titulo, 'Nome do tratamento') : '') + area(pares[k].desc, 'Descrição (opcional)') + '</div>' +
+                            (tk ? '<button type="button" class="lcfg-lixo" onclick="_lcfgRemoveOpcao(\'trat\',\'\',\'' + _lcfgEsc(tk) + '\',\'' + _lcfgEsc(String((pares[k].titulo || {}).t ? pares[k].titulo.t.valor : '').replace(/'/g, '')) + '\')" title="Remover do fluxo" aria-label="Remover do fluxo"><i class="ph-bold ph-trash"></i></button>' : '') + '</div>';
+                    }
+                    const i = it.i, x = xs[i];
+                    return '<div class="lcfg-item nova' + (x.ativo === false ? ' off' : '') + '">' + ordemTr(it.key, j) +
+                    _lcfgSwitch('data-lcfg-lista="tratamentos_extra" data-i="' + i + '" data-f="ativo"', x.ativo !== false) +
+                    '<div class="lcfg-item-txt">' +
+                        '<input type="text" maxlength="90" placeholder="Nome do tratamento" data-lcfg-lista="tratamentos_extra" data-i="' + i + '" data-f="titulo" value="' + _lcfgEsc(x.titulo || '') + '"' + (String(x.titulo || '').trim() ? '' : ' class="erro"') + '>' +
+                        '<textarea rows="2" maxlength="300" placeholder="Descrição (opcional)" data-lcfg-lista="tratamentos_extra" data-i="' + i + '" data-f="desc">' + _lcfgEsc(x.desc || '') + '</textarea>' +
+                        '<div class="lcfg-op-base"><span>Funciona como</span><select data-lcfg-lista="tratamentos_extra" data-i="' + i + '" data-f="base" onchange="_lcfgPinta()">' + bases.map(b => '<option value="' + _lcfgEsc(b.key) + '"' + (b.key === x.base ? ' selected' : '') + '>' + _lcfgEsc(b.titulo) + '</option>').join('') + '</select>' +
+                        '<small>Aparece nos mesmos tipos de lente que esse tratamento e ganha uma coluna própria na grade de indicação.</small></div>' +
+                    '</div><button type="button" class="lcfg-lixo" onclick="_lcfgTratDel(' + i + ')" title="Apagar tratamento" aria-label="Apagar tratamento"><i class="ph-bold ph-trash"></i></button></div>';
+                }).join('');
+                _lcfgTratItens = itens.map(it => it.key);
+                const nomeT = tk => { const k = ordem.find(k => tkDe(pares[k].titulo || pares[k].desc) === tk); return k && pares[k].titulo ? pares[k].titulo.t.valor : tk; };
+                h += '<div class="lcfg-bloco-tit">Opções da tela — na ordem em que aparecem</div>' + cards + _lcfgRemovidasHtml(remT.map(tk => ({ k: tk, nome: nomeT(tk) })), k => "_lcfgRestauraOpcao('trat','','" + _lcfgEsc(k) + "')") +
+                    '<button type="button" class="lcfg-link-btn" style="margin-top:6px" onclick="_lcfgTratNovo()"><i class="ph-bold ph-plus"></i> Novo tratamento</button>';
             }
             if (botoes.length) h += '<div class="lcfg-campo"><label>' + (botoes.length > 1 ? 'Botões' : 'Botão') + '</label>' + botoes.map(o => '<div class="lcfg-oprow um">' + inp(o) + '</div>').join('') + '</div>';
 
@@ -7513,7 +7566,8 @@
             const ocu = (_lcfgEdit.tratamentos_ocultos || []).map(String), o = (((_lcfgEdit.etapas_opcoes || {}).tratamentos) || []).filter(t => ocu.indexOf(String(t.key)) === -1);
             const base = o.map(t => ({ k: t.key, t: _LCFG_TRAT_CURTO[t.key] || t.titulo }));
             const ex = (_lcfgEdit.tratamentos_extra || []).filter(x => x.ativo !== false && String(x.titulo || '').trim()).map(x => ({ k: x.key, t: x.titulo, base: x.base }));
-            const tudo = base.concat(ex);
+            const ord = (_lcfgEdit.tratamentos_ordem || []).map(String), pos = x => { const i = ord.indexOf(String(x.k)); return i === -1 ? 999 : i; };
+            const tudo = base.concat(ex).map((x, i) => ({ x, i })).sort((a, b) => (pos(a.x) - pos(b.x)) || (a.i - b.i)).map(o => o.x);   // ordem do painel (13/10/2026)
             return tudo.length ? tudo : [{ k: 'A', t: 'Antirreflexo' }];
         }
         function _lcfgTratBaseNome(k) { const t = (((_lcfgEdit.etapas_opcoes || {}).tratamentos) || []).find(x => x.key === k); return t ? (_LCFG_TRAT_CURTO[t.key] || t.titulo) : k; }
@@ -7697,6 +7751,59 @@
                 setTimeout(() => { const b = m.querySelector('[data-r="1"]'); if (b) b.focus(); }, 30);
             });
         }
+        let _lcfgTratItens = [], _lcfgOpItens = {};
+        /* Lixeira em todas as opções (13/10/2026): opção criada pela loja é apagada; opção que veio da loja sai do fluxo e
+           fica em "Opções removidas", com Restaurar. Tipo de lente: necessidades[].removida; tratamento: tratamentos_removidos;
+           demais telas: opcoes_removidas[etapa]. O widget só enxerga o "desligado" (ativo/ocultos). */
+        function _lcfgRemovidasHtml(lista, onRest) {
+            if (!lista.length) return '';
+            return '<div class="lcfg-removidas"><i class="ph-bold ph-trash"></i> Removidas: ' + lista.map(x => '<span>' + _lcfgEsc(x.nome) + ' <button type="button" class="lcfg-link-btn" onclick="' + onRest(x.k) + '">Restaurar</button></span>').join('') + '</div>';
+        }
+        async function _lcfgRemoveOpcao(tipo, et, k, nome) {
+            if (!(await _lcfgConfirma('"' + (nome || 'Esta opção') + '" sai do fluxo da sua loja. Dá para trazer de volta em "Removidas", logo abaixo da lista.', { titulo: 'Remover opção?', ok: 'Remover', perigo: true }))) return;
+            const c = _lcfgEdit;
+            if (tipo === 'nec') {
+                const n = (c.necessidades || []).find(x => x.key === k); if (!n) return;
+                if (!(c.necessidades || []).some(x => x !== n && x.ativo !== false && !x.removida)) { crmToast('Deixe pelo menos um tipo de lente no fluxo.', true); return; }
+                n.removida = true; n.ativo = false;
+            } else if (tipo === 'trat') {
+                c.tratamentos_ocultos = Array.from(new Set((c.tratamentos_ocultos || []).map(String).concat([String(k)])));
+                c.tratamentos_removidos = Array.from(new Set((c.tratamentos_removidos || []).map(String).concat([String(k)])));
+            } else {
+                const todas = _lcfgOpItens[et] || [], oc = ((c.opcoes_ocultas || {})[et] || []).map(String);
+                if (!todas.some(x => x !== k && oc.indexOf(x) === -1)) { crmToast('Deixe pelo menos uma opção ligada nesta tela.', true); return; }
+                c.opcoes_ocultas = Object.assign({}, c.opcoes_ocultas, { [et]: Array.from(new Set(oc.concat([k]))) });
+                c.opcoes_removidas = Object.assign({}, c.opcoes_removidas, { [et]: Array.from(new Set(((c.opcoes_removidas || {})[et] || []).map(String).concat([k]))) });
+            }
+            _lcfgPinta();
+        }
+        function _lcfgRestauraOpcao(tipo, et, k) {
+            const c = _lcfgEdit;
+            if (tipo === 'nec') { const n = (c.necessidades || []).find(x => x.key === k); if (n) { delete n.removida; n.ativo = true; } }
+            else if (tipo === 'trat') { c.tratamentos_ocultos = (c.tratamentos_ocultos || []).map(String).filter(x => x !== String(k)); c.tratamentos_removidos = (c.tratamentos_removidos || []).map(String).filter(x => x !== String(k)); }
+            else {
+                c.opcoes_ocultas = Object.assign({}, c.opcoes_ocultas, { [et]: ((c.opcoes_ocultas || {})[et] || []).map(String).filter(x => x !== k) });
+                c.opcoes_removidas = Object.assign({}, c.opcoes_removidas, { [et]: ((c.opcoes_removidas || {})[et] || []).map(String).filter(x => x !== k) });
+            }
+            _lcfgPinta();
+        }
+        function _lcfgOpMove(et, k, d) {   // ordem das opções de uma tela (ex.: receita) — cfg.opcoes_ordem[et]
+            const o = (_lcfgOpItens[et] || []).slice(), i = o.indexOf(k), j = i + d;
+            if (i === -1 || j < 0 || j >= o.length) return;
+            o.splice(j, 0, o.splice(i, 1)[0]);
+            _lcfgEdit.opcoes_ordem = Object.assign({}, _lcfgEdit.opcoes_ordem, { [et]: o }); _lcfgPinta();
+        }
+        function _lcfgOpOculta(et, k, sim, el) {   // desliga/liga uma opção da tela — cfg.opcoes_ocultas[et]; sempre sobra pelo menos uma
+            const todas = _lcfgOpItens[et] || [], atual = ((_lcfgEdit.opcoes_ocultas || {})[et] || []).map(String).filter(x => x !== k);
+            if (sim) { if (todas.filter(x => atual.indexOf(x) === -1 && x !== k).length === 0) { if (el) el.checked = true; crmToast('Deixe pelo menos uma opção ligada nesta tela.', true); return; } atual.push(k); }
+            _lcfgEdit.opcoes_ocultas = Object.assign({}, _lcfgEdit.opcoes_ocultas, { [et]: atual }); _lcfgPinta();
+        }
+        function _lcfgTratMove(key, d) {   // muda a ordem dos tratamentos (13/10/2026): grava cfg.tratamentos_ordem, que o widget e a grade seguem
+            const o = _lcfgTratItens.slice(), i = o.indexOf(String(key)), j = i + d;
+            if (i === -1 || j < 0 || j >= o.length) return;
+            o.splice(j, 0, o.splice(i, 1)[0]);
+            _lcfgEdit.tratamentos_ordem = o.filter(k => k.indexOf('t:') !== 0); _lcfgPinta();
+        }
         function _lcfgTratOculta(tk, sim) {
             const o = (_lcfgEdit.tratamentos_ocultos || []).map(String).filter(k => k !== String(tk));
             if (sim) o.push(String(tk));
@@ -7791,7 +7898,7 @@
         function _lcfgPintaCatalogo(c) {
             const necs = c.necessidades || [];
             const bases = necs.filter(n => !n.base);
-            const tipos = necs.map((n, i, arr) => '<div class="lcfg-item' + (n.ativo === false ? ' off' : '') + (n.base ? ' nova' : '') + '">' +
+            const tipos = necs.map((n, i, arr) => n.removida ? '' : '<div class="lcfg-item' + (n.ativo === false ? ' off' : '') + (n.base ? ' nova' : '') + '">' +
                 _lcfgOrdem('necessidades', i, arr.length) +
                 _lcfgSwitch('data-lcfg-lista="necessidades" data-i="' + i + '" data-f="ativo"', n.ativo !== false) +
                 '<div class="lcfg-item-txt">' +
@@ -7799,9 +7906,10 @@
                     '<textarea rows="2" maxlength="300" aria-label="Descrição" placeholder="Descrição (opcional)" data-lcfg-lista="necessidades" data-i="' + i + '" data-f="desc">' + _lcfgEsc(n.desc) + '</textarea>' +
                     (n.base ? '<div class="lcfg-op-base"><span>Funciona como</span><select data-lcfg-lista="necessidades" data-i="' + i + '" data-f="base" onchange="_lcfgPinta()">' +
                         bases.map(b => '<option value="' + _lcfgEsc(b.key) + '"' + (b.key === n.base ? ' selected' : '') + '>' + _lcfgEsc(b.titulo) + '</option>').join('') + '</select>' +
-                        '<small>' + (_lcfgSemGrau(n.base) ? 'Sem grau: pula tratamento e receita.' : 'Segue o caminho dessa opção e ganha uma grade própria em "Lente indicada".') + '</small>' +
-                        '<button type="button" class="lcfg-link-btn perigo" onclick="_lcfgDelOpcao(' + i + ')"><i class="ph-bold ph-trash"></i> Remover</button></div>' : '') +
-                '</div></div>').join('') +
+                        '<small>' + (_lcfgSemGrau(n.base) ? 'Sem grau: pula tratamento e receita.' : 'Segue o caminho dessa opção e ganha uma grade própria em "Lente indicada".') + '</small></div>' : '') +
+                '</div>' + (n.base ? '<button type="button" class="lcfg-lixo" onclick="_lcfgDelOpcao(' + i + ')" title="Apagar opção" aria-label="Apagar opção"><i class="ph-bold ph-trash"></i></button>'
+                    : '<button type="button" class="lcfg-lixo" onclick="_lcfgRemoveOpcao(\'nec\',\'\',\'' + _lcfgEsc(n.key) + '\',\'' + _lcfgEsc(String(n.titulo || '').replace(/'/g, '')) + '\')" title="Remover do fluxo" aria-label="Remover do fluxo"><i class="ph-bold ph-trash"></i></button>') + '</div>').join('') +
+                _lcfgRemovidasHtml(necs.filter(n => n.removida).map(n => ({ k: n.key, nome: n.titulo })), k => "_lcfgRestauraOpcao('nec','','" + _lcfgEsc(k) + "')") +
                 '<button type="button" class="lcfg-link-btn" style="margin-top:6px" onclick="_lcfgNovaOpcao()"><i class="ph-bold ph-plus"></i> Nova opção</button>';
             const grupos = [];
             (c.lentes || []).forEach(l => { let g = grupos.find(x => x.nome === l.grupo); if (!g) { g = { nome: l.grupo || 'Lentes', keys: [] }; grupos.push(g); } g.keys.push(l.key); });
@@ -8093,7 +8201,7 @@
         async function _lcfgSalvar() {
             if (!_lcfgEdit || !_lcfgSujo()) return;
             const erros = _lcfgValida(_lcfgEdit);
-            if (erros.length) { alert('Corrija antes de salvar:\n\n• ' + erros.slice(0, 8).join('\n• ') + (erros.length > 8 ? '\n• …' : '')); return; }
+            if (erros.length) { crmToast('Corrija antes de salvar: ' + erros.slice(0, 3).join(' · ') + (erros.length > 3 ? ' …' : ''), true); return; }
             const btn = document.getElementById('lcfgSalvar');
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-spinner"></i> Salvando'; }
             try {
