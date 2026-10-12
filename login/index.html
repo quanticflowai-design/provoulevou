@@ -4505,6 +4505,7 @@
                     .lcfg-mapa4 { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; align-items: start; }
                     @media (max-width: 1100px) { .lcfg-mapa4 { grid-template-columns: 1fr; } }
                     .lcfg-arv-area { position: relative; min-width: 0; }
+                    #lcfgArvoreBox { cursor: grab; } #lcfgArvoreBox.arrastando-lousa { cursor: grabbing; user-select: none; }
                     .lcfg-zoom { position: absolute; right: 10px; top: 10px; z-index: 3; display: flex; align-items: center; gap: 2px; background: var(--l-card); border: 1px solid var(--l-line); border-radius: 10px; padding: 3px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
                     .lcfg-zoom button { height: 28px; min-width: 28px; border: 0; background: none; border-radius: 7px; color: var(--l-ink); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 0 7px; }
                     .lcfg-zoom button:hover { background: var(--l-soft); color: var(--l-accent); }
@@ -7078,7 +7079,7 @@
         /* ---- Etapas no modo catálogo (12/10/2026): WhatsApp no início, tratamento padrão, receita antes do tratamento ---- */
         function _lcfgEtapasCat() {
             const ops = ((_lcfgEdit && _lcfgEdit.etapas_opcoes) || {}).tratamentos || [];
-            const e = { telefone: { ativo: true }, tratamento: { ativo: true, padrao: (ops[0] || {}).key || '' }, receita: { posicao: 'final' } };
+            const e = { telefone: { ativo: true }, tratamento: { ativo: true, padrao: (ops[0] || {}).key || '' }, receita: { posicao: 'final' }, uso: { ativo: true, padrao: 'longe' } };
             const s = (_lcfgEdit && _lcfgEdit.etapas) || {};
             Object.keys(e).forEach(k => { if (s[k] && typeof s[k] === 'object') Object.assign(e[k], s[k]); });
             return e;
@@ -7147,7 +7148,7 @@
                 nome = String(x.nome || '').trim() || 'Nova etapa'; sub = String(x.titulo || '').trim() || 'Escreva a pergunta';
             } else {
                 nome = _lcfgEtNome(id); icone = _LCFG_ET_ICONE[id] || 'ph-circle';
-                on = id === 'telefone' ? e.telefone.ativo !== false : id === 'tratamento' ? e.tratamento.ativo !== false : true;
+                on = id === 'telefone' ? e.telefone.ativo !== false : id === 'tratamento' ? e.tratamento.ativo !== false : id === 'uso' ? e.uso.ativo !== false : true;
                 sub = id === 'tipo' ? _lcfgTxt('tipo.titulo') || 'Tipos de lente' : id === 'resultado' ? _lcfgTxt('resultado.titulo') || 'Lente indicada' : _lcfgTxt(id + '.titulo');
                 arrasta = id === 'receita';
             }
@@ -7261,17 +7262,19 @@
                     (trOff ? '<p class="lcfg-ed-aviso">Com o Tratamento desligado esta etapa não aparece — mude a posição.</p>' : '') +
                     '<p class="lcfg-ed-nota">Etapa sua: a resposta fica no histórico do fluxo e não muda a lente indicada.</p>';
             }
-            const k = id, on = k === 'telefone' ? e.telefone.ativo !== false : k === 'tratamento' ? e.tratamento.ativo !== false : true;
-            const NOTA = { tipo: 'Cada opção abre um caminho no mapa. Ligar, desligar e ordenar as opções fica em "Tipos de lente", mais abaixo.', uso: 'Só aparece quando a receita tem adição e a lente é de visão simples.', conferir: 'Tela em que o cliente confere os números lidos da receita.', resultado: 'A lente e o preço vêm da indicação e da sua loja.' };
+            const k = id, on = k === 'telefone' ? e.telefone.ativo !== false : k === 'tratamento' ? e.tratamento.ativo !== false : k === 'uso' ? e.uso.ativo !== false : true;
+            const NOTA = { tipo: 'Cada opção abre um caminho no mapa. Ligar, desligar e ordenar as opções fica em "Tipos de lente", mais abaixo.', uso: 'Só aparece quando a receita tem adição e a lente é de visão simples. Desligada, o fluxo não pergunta e usa o grau escolhido.', conferir: 'Tela em que o cliente confere os números lidos da receita.', resultado: 'A lente e o preço vêm da indicação e da sua loja.' };
             let linha = '';
             if (k === 'tratamento' && !on && ops.length) linha = '<div class="lcfg-ed-linha"><span class="lcfg-ed-rot">Usar</span><select data-lcfg-etapa="tratamento" data-f="padrao" aria-label="Tratamento usado com a etapa desligada">' +
                 ops.map(o => '<option value="' + _lcfgEsc(o.key) + '"' + (o.key === e.tratamento.padrao ? ' selected' : '') + '>' + _lcfgEsc(o.titulo) + '</option>').join('') + '</select></div>';
+            if (k === 'uso' && !on) linha = '<div class="lcfg-ed-linha"><span class="lcfg-ed-rot">Usar o grau de</span><select data-lcfg-etapa="uso" data-f="padrao" aria-label="Grau usado com a etapa desligada">' +
+                '<option value="longe"' + (e.uso.padrao !== 'perto' ? ' selected' : '') + '>Longe</option><option value="perto"' + (e.uso.padrao === 'perto' ? ' selected' : '') + '>Perto (soma a adição)</option></select></div>';
             if (k === 'receita') linha = '<div class="lcfg-ed-linha"><select data-lcfg-etapa="receita" data-f="posicao" aria-label="Onde a receita entra">' +
                 '<option value="primeiro"' + (e.receita.posicao === 'primeiro' ? ' selected' : '') + '>Primeira tela (antes do tipo de lente)</option>' +
                 '<option value="inicio"' + (e.receita.posicao === 'inicio' ? ' selected' : '') + '>Logo depois do tipo de lente</option>' +
                 '<option value="final"' + (e.receita.posicao !== 'inicio' && e.receita.posicao !== 'primeiro' ? ' selected' : '') + '>Depois do tratamento</option></select></div>';
             return '<div class="lcfg-ed-topo">' + nomeIn('data-lcfg-etnome="' + k + '"', _lcfgEtNome(k)) +
-                    ((k === 'telefone' || k === 'tratamento') ? _lcfgSwitch('data-lcfg-etapa="' + k + '" data-f="ativo"', on, true) : (k === 'uso' ? '<span class="lcfg-pill">Só às vezes</span>' : '')) + '</div>' +
+                    ((k === 'telefone' || k === 'tratamento' || k === 'uso') ? _lcfgSwitch('data-lcfg-etapa="' + k + '" data-f="ativo"', on, true) : '') + '</div>' +
                 linha + (NOTA[k] ? '<p class="lcfg-ed-nota">' + NOTA[k] + '</p>' : '') +
                 (k === 'tratamento' && !on ? '<p class="lcfg-ed-nota">Desligada: o cliente não vê esta tela e o fluxo usa o tratamento escolhido.</p>' : '') +
                 (k === 'telefone' && !on ? '<p class="lcfg-ed-nota">Desligada: o cliente vai direto pra próxima etapa.</p>' : '');
@@ -7297,7 +7300,7 @@
                 icone: 'ph-tree-structure', etapa: 'Mapa do fluxo', titulo: 'Caminhos do cliente',
                 meta: ramos + (ramos === 1 ? ' caminho' : ' caminhos') + (nx ? ' · ' + nx + (nx === 1 ? ' etapa sua' : ' etapas suas') : '') + (desl ? ' · ' + desl + (desl === 1 ? ' desligada' : ' desligadas') : ''),
                 corpo: '<p class="lcfg-intro" style="margin:14px 0 12px;">O começo é igual pra todo mundo; depois do tipo de lente o caminho se divide. Cada coluna mostra o que aquele cliente vê até o resultado. ' +
-                    '<b>Clique</b> numa etapa para ver a tela e editar ao lado · <b>+</b> cria uma etapa sua ali · <b>arraste</b> (<i class="ph-bold ph-dots-six-vertical"></i>) as etapas suas e a receita.</p>' +
+                    '<b>Clique</b> numa etapa para ver a tela e editar ao lado · <b>+</b> cria uma etapa sua ali · <b>arraste</b> (<i class="ph-bold ph-dots-six-vertical"></i>) as etapas suas e a receita · arraste o <b>fundo</b> para mover a lousa.</p>' +
                     '<div class="lcfg-mapa4"><div class="lcfg-arv-area"><div class="lcfg-zoom" role="group" aria-label="Zoom do mapa">' +
                         '<button type="button" data-lcfg-zoom="-" aria-label="Diminuir zoom" title="Diminuir zoom"><i class="ph-bold ph-minus"></i></button>' +
                         '<span id="lcfgZoomPct">' + Math.round(_lcfgZoom * 100) + '%</span>' +
@@ -7736,6 +7739,15 @@
             if (eraSel) _lcfgSelEt = 'x:' + pos;
             _lcfgPinta();
         }
+        let _lcfgPan = null;
+        document.addEventListener('mousedown', ev => {
+            const box = ev.target.closest && ev.target.closest('#lcfgArvoreBox');
+            if (!box || ev.button !== 0 || ev.target.closest('.lcfg-tn,.lcfg-tadd,button,input,select,textarea,a')) return;
+            _lcfgPan = { box, x: ev.clientX, y: ev.clientY, l: box.scrollLeft, t: box.scrollTop };
+            box.classList.add('arrastando-lousa'); ev.preventDefault();
+        });
+        document.addEventListener('mousemove', ev => { if (!_lcfgPan) return; _lcfgPan.box.scrollLeft = _lcfgPan.l - (ev.clientX - _lcfgPan.x); _lcfgPan.box.scrollTop = _lcfgPan.t - (ev.clientY - _lcfgPan.y); });
+        document.addEventListener('mouseup', () => { if (_lcfgPan) { _lcfgPan.box.classList.remove('arrastando-lousa'); _lcfgPan = null; } });
         document.addEventListener('wheel', ev => {
             if (!(ev.ctrlKey || ev.metaKey)) return;
             const box = ev.target.closest && ev.target.closest('#lcfgArvoreBox'); if (!box) return;
@@ -7875,11 +7887,12 @@
                 } else if (t === 'set_etapa') {
                     const NOMES = { receita: 'Receita', distancia: 'Perto/longe', tratamento_mono: 'Tratamento (monofocal)', tratamento_multi: 'Tratamento (multifocal)', grau_solar: 'Grau (sol)', cor_solar: 'Cor (sol)' };
                     if (c.modo === 'catalogo') {
-                        const NC = { telefone: 'WhatsApp no início', tratamento: 'Tratamento', receita: 'Receita' };
+                        const NC = { telefone: 'WhatsApp no início', tratamento: 'Tratamento', receita: 'Receita', uso: 'Longe ou perto' };
                         const ops = ((c.etapas_opcoes || {}).tratamentos || []);
                         const ec = _lcfgEtapasCat(), v = valor.trim();
                         let nv;
-                        if (campo === 'ativo' && (alvo === 'telefone' || alvo === 'tratamento')) nv = !/^(false|0|nao|não|off)$/i.test(v);
+                        if (campo === 'ativo' && (alvo === 'telefone' || alvo === 'tratamento' || alvo === 'uso')) nv = !/^(false|0|nao|não|off)$/i.test(v);
+                        else if (campo === 'padrao' && alvo === 'uso' && /^(longe|perto)$/.test(v)) nv = v;
                         else if (campo === 'padrao' && alvo === 'tratamento' && ops.some(o => o.key === v)) nv = v;
                         else if (campo === 'posicao' && alvo === 'receita' && /^(primeiro|inicio|final)$/.test(v)) nv = v;
                         else { ignoradas++; return; }
