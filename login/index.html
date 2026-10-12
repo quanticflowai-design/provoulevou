@@ -15792,6 +15792,7 @@
         }
         function plUtm(url, medium, campanha) {
             if (!url || !/^https?:\/\//.test(url) || /[?&]utm_source=/.test(url)) return url;
+            if (/^https?:\/\/[^/?#]+$/.test(url)) url += '/';   // home sem barra: o botão de URL precisa do caminho começando em '/'
             const i = url.indexOf('#'), base = i < 0 ? url : url.slice(0, i), hash = i < 0 ? '' : url.slice(i);
             return base + (base.indexOf('?') < 0 ? '?' : '&') + 'utm_source=whatsapp&utm_medium=' + encodeURIComponent(medium || 'disparo')
                 + '&utm_campaign=' + encodeURIComponent(plSlug(campanha)) + hash;
