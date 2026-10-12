@@ -4081,7 +4081,7 @@
                             <div class="lcfg-ia-msgs" id="lcfgIAMsgs" aria-live="polite"></div>
                             <div class="lcfg-ia-sug" id="lcfgIASug"></div>
                             <form class="lcfg-ia-form" id="lcfgIAForm">
-                                <textarea id="lcfgIAInput" rows="2" maxlength="800" placeholder="Ex.: sobe 5% as lentes de grau alto e esconde o multifocal" aria-label="O que você quer mudar no fluxo?"></textarea>
+                                <textarea id="lcfgIAInput" rows="2" maxlength="800" placeholder="Ex.: pede a receita primeiro e deixa os botões roxos" aria-label="O que você quer mudar no fluxo?"></textarea>
                                 <button type="submit" class="lcfg-btn lcfg-btn-pri" id="lcfgIAEnviar" aria-label="Enviar"><i class="ph-bold ph-paper-plane-right"></i></button>
                             </form>
                         </div>
@@ -4452,6 +4452,7 @@
                     .lcfg-ia-pensando span { width: 7px; height: 7px; border-radius: 50%; background: var(--l-muted); animation: lcfg-pulsa 1.2s infinite ease-in-out; }
                     .lcfg-ia-pensando span:nth-child(2) { animation-delay: .15s; } .lcfg-ia-pensando span:nth-child(3) { animation-delay: .3s; }
                     @keyframes lcfg-pulsa { 0%, 80%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+                    .lcfg-preco-loja { font-size: 13px; font-weight: 600; color: var(--l-muted); white-space: nowrap; padding: 0 4px; cursor: help; }
                     .lcfg-ia-sug { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 16px 10px; }
                     .lcfg-ia-sug button { font: inherit; font-size: 12px; font-weight: 600; color: var(--l-accent); background: var(--l-soft); border: 0; border-radius: 99px; padding: 6px 11px; cursor: pointer; }
                     .lcfg-ia-sug button:hover { filter: brightness(.97); }
@@ -4482,6 +4483,7 @@
                         .lcfg-lente.cat > .lcfg-lente-nome { grid-row: 1; grid-column: 1 / -1; }
                         .lcfg-lente.cat > .lcfg-switch { grid-row: 2; grid-column: 1; }
                         .lcfg-lente.cat > .lcfg-afix.pre { grid-row: 2; grid-column: 2; }
+                        .lcfg-lente.cat > .lcfg-preco-loja { grid-row: 2; grid-column: 2; }
                         .lcfg-lente.cat > .lcfg-afix.pos { grid-row: 2; grid-column: 3; }
                     }
 
@@ -6815,7 +6817,7 @@
                 return '<div class="lcfg-lente cat' + (temPrazo ? '' : ' sem-prazo') + (l.ativo === false ? ' off' : '') + '" data-lente="' + i + '">' +
                     _lcfgSwitch(f('ativo'), l.ativo !== false) +
                     '<input type="text" class="lcfg-lente-nome" maxlength="140" aria-label="Nome da lente" ' + f('nome') + ' value="' + _lcfgEsc(l.nome) + '">' +
-                    '<label class="lcfg-afix pre"><span>R$</span><input type="text" inputmode="decimal" aria-label="Preço" ' + f('preco') + ' value="' + _lcfgEsc(String(l.preco).replace('.', ',')) + '"></label>' +
+                    '<span class="lcfg-preco-loja" title="Preço do produto na loja. Para mudar, altere na plataforma da loja.">' + _lcfgEsc(_lcfgBrlC(l.preco)) + '</span>' +
                     (temPrazo ? '<label class="lcfg-afix pos"><input type="number" min="1" max="90" aria-label="Prazo em dias úteis" ' + f('prazo') + ' value="' + _lcfgEsc(l.prazo) + '"><span>dias</span></label>' : '') +
                     '</div>';
             }
@@ -6824,7 +6826,7 @@
             return '<div class="lcfg-lente' + (l.ativo === false ? ' off' : '') + (idsOpen ? ' ids-open' : '') + '" data-lente="' + i + '">' +
                 _lcfgSwitch(f('ativo'), l.ativo !== false) +
                 '<input type="text" class="lcfg-lente-nome" maxlength="140" aria-label="Nome da lente" ' + f('nome') + ' value="' + _lcfgEsc(l.nome) + '">' +
-                '<label class="lcfg-afix pre"><span>R$</span><input type="text" inputmode="decimal" aria-label="Preço" ' + f('preco') + ' value="' + _lcfgEsc(String(l.preco).replace('.', ',')) + '"></label>' +
+                '<span class="lcfg-preco-loja" title="Preço do produto na loja. Para mudar, altere na plataforma da loja.">' + _lcfgEsc(_lcfgBrlC(l.preco)) + '</span>' +
                 '<label class="lcfg-afix pos"><input type="number" min="1" max="90" aria-label="Prazo em dias úteis" ' + f('prazo') + ' value="' + _lcfgEsc(l.prazo) + '"><span>dias</span></label>' +
                 '<button type="button" class="lcfg-ids-btn" data-lcfg-ids="' + i + '" title="IDs do produto na Nuvemshop" aria-label="IDs do produto na Nuvemshop"><i class="ph-bold ph-link-simple"></i></button>' +
                 '<div class="lcfg-lente-ids">' +
@@ -6834,9 +6836,9 @@
         }
         function _lcfgLentes(keys) {
             if (_lcfgEdit.modo === 'catalogo')
-                return '<div class="lcfg-lente-cab cat"><span></span><span>Lente (nome no fluxo)</span><span>Preço</span></div>' +
+                return '<div class="lcfg-lente-cab cat"><span></span><span>Lente (nome no fluxo)</span><span>Preço (da loja)</span></div>' +
                     '<div class="lcfg-lentes">' + keys.map(_lcfgLente).join('') + '</div>';
-            return '<div class="lcfg-lente-cab"><span></span><span>Lente (nome no carrinho)</span><span>Preço</span><span>Prazo</span><span></span></div>' +
+            return '<div class="lcfg-lente-cab"><span></span><span>Lente (nome no carrinho)</span><span>Preço (da loja)</span><span>Prazo</span><span></span></div>' +
                 '<div class="lcfg-lentes">' + keys.map(_lcfgLente).join('') + '</div>';
         }
         // "3 de 4 lentes ligadas · R$ 229 a R$ 989"
@@ -7083,7 +7085,7 @@
                 _lcfgAcc('lentes', {
                     icone: 'ph-eyeglasses', etapa: 'Catálogo', titulo: 'Lentes e preços',
                     meta: ligadas + ' de ' + total + ' lentes ligadas · a recomendação escolhe entre as ligadas',
-                    corpo: '<p class="lcfg-intro" style="margin:14px 0 4px;">O preço aqui é o que aparece no fluxo; no carrinho vale o preço do produto na Nuvemshop, então mantenha os dois iguais. Lente desligada nunca é recomendada.</p>' + lentes
+                    corpo: '<p class="lcfg-intro" style="margin:14px 0 4px;">O preço de cada lente é o do produto na sua loja: para mudar, altere direto na plataforma (Nuvemshop). Aqui você escolhe quais lentes aparecem e como se chamam. Lente desligada nunca é recomendada.</p>' + lentes
                 }) +
                 '<p class="lcfg-intro" style="margin-top:4px;">Dica: nos textos, Enter quebra a linha e **dois asteriscos** deixam em negrito.</p>';
             _lcfgAtualizaBarraEPrevia();
@@ -7226,8 +7228,7 @@
             }
             else if (el.dataset.lcfgLente != null) {
                 const l = c.lentes[+el.dataset.lcfgLente], f = el.dataset.f;
-                if (f === 'preco') { const n = _lcfgNum(val); l.preco = isNaN(n) ? val : n; el.classList.toggle('erro', !(n > 0)); }
-                else if (f === 'prazo') { const n = parseInt(val, 10); l.prazo = isNaN(n) ? val : n; el.classList.toggle('erro', !(n > 0 && n <= 90)); }
+                if (f === 'prazo') { const n = parseInt(val, 10); l.prazo = isNaN(n) ? val : n; el.classList.toggle('erro', !(n > 0 && n <= 90)); }
                 else if (f === 'produto_id' || f === 'variante_id') { l[f] = String(val).trim(); el.classList.toggle('erro', !/^\d+$/.test(l[f])); }
                 else if (f === 'ativo') { l.ativo = val; repinta = true; }
                 else l[f] = val;
@@ -7394,7 +7395,7 @@
         let _lcfgIABusy = false;
         let _lcfgPreviaCfg = '';       // rascunho que a prévia está mostrando
         let _lcfgPreviaTimer = null;
-        const _LCFG_IA_SUG = ['Pede a receita no início', 'Tira a pergunta de perto ou longe', 'Deixa o botão principal #1e6bff', 'Sobe 10% os multifocais'];
+        const _LCFG_IA_SUG = ['Pede a receita no início', 'Tira a pergunta de perto ou longe', 'Deixa o botão principal #1e6bff', 'Esconde o multifocal'];
 
         function _lcfgNomeLente(k) { const l = (_lcfgEdit.lentes || []).find(x => x.key === k); return l ? l.nome : k; }
         function _lcfgNomeTexto(k) { const t = (_lcfgEdit.textos || []).find(x => x.key === k); return t ? (t.secao + ' · ' + t.label) : k; }
@@ -7405,7 +7406,7 @@
         function _lcfgAplicaOps(ops) {
             const c = _lcfgEdit, mud = [];
             let ignoradas = 0;
-            const LCAMPOS = c.modo === 'catalogo' ? ['nome', 'preco', 'prazo', 'ativo'] : ['nome', 'preco', 'prazo', 'ativo', 'produto_id', 'variante_id'];
+            const LCAMPOS = c.modo === 'catalogo' ? ['nome', 'prazo', 'ativo'] : ['nome', 'prazo', 'ativo', 'produto_id', 'variante_id'];   // preço não: vem da loja
             (Array.isArray(ops) ? ops : []).forEach(op => {
                 const t = op && op.tipo, alvo = String((op && op.alvo) || ''), campo = String((op && op.campo) || ''), valor = (op && op.valor != null) ? String(op.valor) : '';
                 const lista = Array.isArray(op && op.lista) ? op.lista.map(String) : [];
@@ -7413,8 +7414,7 @@
                     const l = (c.lentes || []).find(x => x.key === alvo);
                     if (!l || LCAMPOS.indexOf(campo) === -1) { ignoradas++; return; }
                     let novo;
-                    if (campo === 'preco') { novo = Math.round(_lcfgNum(valor) * 100) / 100; if (!(novo > 0)) { ignoradas++; return; } }
-                    else if (campo === 'prazo') { novo = parseInt(valor, 10); if (!(novo > 0 && novo <= 90)) { ignoradas++; return; } }
+                    if (campo === 'prazo') { novo = parseInt(valor, 10); if (!(novo > 0 && novo <= 90)) { ignoradas++; return; } }
                     else if (campo === 'ativo') { novo = !/^(false|0|nao|não|off)$/i.test(valor.trim()); }
                     else if (campo === 'produto_id' || campo === 'variante_id') { novo = valor.trim(); if (!/^\d+$/.test(novo)) { ignoradas++; return; } }
                     else { novo = valor.trim(); if (!novo) { ignoradas++; return; } }
@@ -7422,7 +7422,6 @@
                     if (antes === novo) return;
                     l[campo] = novo;
                     mud.push(campo === 'ativo' ? (novo ? 'Ligou' : 'Desligou') + ' a lente ' + l.nome
-                        : campo === 'preco' ? l.nome + ': ' + _lcfgBrlC(antes) + ' → ' + _lcfgBrlC(novo)
                         : campo === 'prazo' ? l.nome + ': prazo ' + antes + ' → ' + novo + ' dias'
                         : l.nome + ': ' + campo.replace('_', ' ') + ' → ' + _lcfgCurto(novo));
                 } else if (t === 'set_texto') {
@@ -7533,7 +7532,7 @@
             const sug = document.getElementById('lcfgIASug');
             if (!box) return;
             if (!_lcfgIAHist.length) {
-                box.innerHTML = '<div class="lcfg-ia-vazio"><i class="ph-bold ph-sparkle"></i>Escreva do seu jeito o que quer mudar: preços, textos, ordem, ligar ou desligar opções. Eu mudo o rascunho e mostro na prévia ao lado.</div>';
+                box.innerHTML = '<div class="lcfg-ia-vazio"><i class="ph-bold ph-sparkle"></i>Escreva do seu jeito o que quer mudar: textos, cores, ordem das etapas, ligar ou desligar opções. Eu mudo o rascunho e mostro na prévia ao lado.</div>';
             } else {
                 const ultimaComMud = (() => { for (let i = _lcfgIAHist.length - 1; i >= 0; i--) if (_lcfgIAHist[i].snap && !_lcfgIAHist[i].desfeito) return i; return -1; })();
                 box.innerHTML = _lcfgIAHist.map((m, i) => {
