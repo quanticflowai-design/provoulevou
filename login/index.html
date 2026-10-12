@@ -4496,6 +4496,8 @@
                     .lcfg-caminho > div { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
                     .lcfg-caminho span { font-size: 12px; font-weight: 600; background: var(--l-soft); color: var(--l-accent); border-radius: 99px; padding: 4px 10px; }
                     .lcfg-caminho i { font-size: 11px; color: var(--l-muted); }
+
+                    .lcfg-etapa-fixa { width: 36px; height: 21px; display: grid; place-items: center; color: var(--l-muted); font-size: 15px; }
                     .lentes-resumo-acao { display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;margin-bottom:16px; }
                     .lentes-acao-card { display:flex;align-items:center;gap:11px;width:100%;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 14px;min-width:0;color:var(--text-main);font:inherit;text-align:left;cursor:pointer;transition:border-color .16s ease,transform .16s ease,box-shadow .16s ease; }
                     .lentes-acao-card:hover { border-color:var(--primary);transform:translateY(-1px);box-shadow:0 7px 20px rgba(124,58,237,.10); }
@@ -6911,6 +6913,48 @@
                     linhas + '<div class="lcfg-bloco-tit">Como fica o caminho do cliente</div>' + mapa
             });
         }
+        /* ---- Etapas no modo catálogo (12/10/2026): WhatsApp no início, tratamento padrão, receita antes do tratamento ---- */
+        function _lcfgEtapasCat() {
+            const ops = ((_lcfgEdit && _lcfgEdit.etapas_opcoes) || {}).tratamentos || [];
+            const e = { telefone: { ativo: true }, tratamento: { ativo: true, padrao: (ops[0] || {}).key || '' }, receita: { posicao: 'final' } };
+            const s = (_lcfgEdit && _lcfgEdit.etapas) || {};
+            Object.keys(e).forEach(k => { if (s[k] && typeof s[k] === 'object') Object.assign(e[k], s[k]); });
+            return e;
+        }
+        function _lcfgCaminhoCat() {
+            const e = _lcfgEtapasCat(), p = [];
+            if (e.telefone.ativo !== false) p.push('WhatsApp');
+            p.push('Tipo de lente');
+            if (e.receita.posicao === 'inicio') p.push('Receita');
+            if (e.tratamento.ativo !== false) p.push('Tratamento');
+            if (e.receita.posicao !== 'inicio') p.push('Receita');
+            p.push('Resultado');
+            return p;
+        }
+        function _lcfgPintaEtapasCat() {
+            const e = _lcfgEtapasCat(), ops = ((_lcfgEdit.etapas_opcoes || {}).tratamentos) || [];
+            const item = (k, on, titulo, dica, extra) => '<div class="lcfg-item lcfg-etapa-item' + (on ? '' : ' off') + '">' +
+                (k ? _lcfgSwitch('data-lcfg-etapa="' + k + '" data-f="ativo"', on) : '<span class="lcfg-etapa-fixa"><i class="ph-bold ph-arrows-down-up"></i></span>') +
+                '<div class="lcfg-item-txt"><b>' + titulo + '</b><span class="lcfg-dica">' + dica + '</span>' + (extra || '') + '</div></div>';
+            const trOn = e.tratamento.ativo !== false;
+            const linhas =
+                item('telefone', e.telefone.ativo !== false, 'Pedir WhatsApp no início', 'Desligado, o cliente vai direto pra escolha da lente (você deixa de capturar o contato logo no começo).') +
+                item('tratamento', trOn, 'Tratamento', 'Desligado, o fluxo usa o tratamento padrão escolhido (se não existir pra lente, usa o primeiro disponível).',
+                    trOn || !ops.length ? '' : '<select data-lcfg-etapa="tratamento" data-f="padrao" aria-label="Tratamento padrão">' +
+                        ops.map(o => '<option value="' + _lcfgEsc(o.key) + '"' + (o.key === e.tratamento.padrao ? ' selected' : '') + '>Padrão: ' + _lcfgEsc(o.titulo) + '</option>').join('') + '</select>') +
+                item(null, true, 'Receita', 'Sempre pedida (a lente indicada depende do grau). Escolha se ela vem antes ou depois do tratamento.',
+                    '<select data-lcfg-etapa="receita" data-f="posicao" aria-label="Posição da receita">' +
+                    '<option value="inicio"' + (e.receita.posicao === 'inicio' ? ' selected' : '') + '>Antes do tratamento (logo após o tipo de lente)</option>' +
+                    '<option value="final"' + (e.receita.posicao !== 'inicio' ? ' selected' : '') + '>Depois do tratamento</option></select>');
+            const caminho = '<div class="lcfg-caminho"><b>Caminho do cliente</b><div>' + _lcfgCaminhoCat().map(p => '<span>' + p + '</span>').join('<i class="ph-bold ph-caret-right"></i>') + '</div></div>';
+            const desl = (e.telefone.ativo === false ? 1 : 0) + (trOn ? 0 : 1);
+            return _lcfgAcc('etapas', {
+                icone: 'ph-flow-arrow', etapa: 'Ordem e etapas', titulo: 'Etapas do fluxo',
+                meta: (e.receita.posicao === 'inicio' ? 'Receita antes do tratamento' : 'Receita depois do tratamento') + (desl ? ' · ' + desl + (desl === 1 ? ' etapa desligada' : ' etapas desligadas') : ' · todas as etapas ligadas'),
+                corpo: '<p class="lcfg-intro" style="margin:14px 0 6px;">Desligue o que não quer perguntar e escolha onde a receita entra. Tipo de lente e receita são sempre perguntados, porque a lente indicada depende deles.</p>' +
+                    linhas + '<div class="lcfg-bloco-tit">Como fica o caminho do cliente</div>' + caminho
+            });
+        }
         // Lojas cujo fluxo é do próprio widget (Cacifé, Koros, Maxilook, Sirena): catálogo, 1ª tela e cores.
         function _lcfgPintaCatalogo(c) {
             const necs = c.necessidades || [];
@@ -6930,6 +6974,7 @@
             const total = (c.lentes || []).length, ligadas = (c.lentes || []).filter(l => l.ativo !== false).length;
             document.getElementById('lcfgCorpo').innerHTML =
                 '<p class="lcfg-intro">Abra cada parte para editar. O que estiver <b>desligado</b> some do fluxo da loja. Depois de salvar, a loja mostra as mudanças em até 5 minutos.</p>' +
+                _lcfgPintaEtapasCat() +
                 _lcfgCores() +
                 _lcfgAcc('etapa1', {
                     icone: 'ph-list-numbers', etapa: 'Primeira tela', titulo: 'Tipos de lente',
@@ -7050,7 +7095,7 @@
             if (el.dataset.lcfgGeral) { c.geral[el.dataset.lcfgGeral] = el.dataset.lcfgGeral === 'whatsapp' ? String(val).replace(/\D/g, '') : val; repinta = el.type === 'checkbox'; }
             else if (el.dataset.lcfgEtapa) {
                 const k = el.dataset.lcfgEtapa, f = el.dataset.f;
-                c.etapas = _lcfgEtapas();
+                c.etapas = c.modo === 'catalogo' ? _lcfgEtapasCat() : _lcfgEtapas();
                 c.etapas[k][f] = f === 'ativo' ? !!val : String(val);
                 repinta = true;
             }
@@ -7257,7 +7302,23 @@
                         : campo === 'whatsapp' ? 'WhatsApp da loja → ' + novo : 'Texto do botão → "' + novo + '"');
                 } else if (t === 'set_etapa') {
                     const NOMES = { receita: 'Receita', distancia: 'Perto/longe', tratamento_mono: 'Tratamento (monofocal)', tratamento_multi: 'Tratamento (multifocal)', grau_solar: 'Grau (sol)', cor_solar: 'Cor (sol)' };
-                    if (c.modo === 'catalogo' || !NOMES[alvo]) { ignoradas++; return; }
+                    if (c.modo === 'catalogo') {
+                        const NC = { telefone: 'WhatsApp no início', tratamento: 'Tratamento', receita: 'Receita' };
+                        const ops = ((c.etapas_opcoes || {}).tratamentos || []);
+                        const ec = _lcfgEtapasCat(), v = valor.trim();
+                        let nv;
+                        if (campo === 'ativo' && (alvo === 'telefone' || alvo === 'tratamento')) nv = !/^(false|0|nao|não|off)$/i.test(v);
+                        else if (campo === 'padrao' && alvo === 'tratamento' && ops.some(o => o.key === v)) nv = v;
+                        else if (campo === 'posicao' && alvo === 'receita' && /^(inicio|final)$/.test(v)) nv = v;
+                        else { ignoradas++; return; }
+                        if (ec[alvo][campo] === nv) return;
+                        ec[alvo][campo] = nv; c.etapas = ec;
+                        mud.push(campo === 'ativo' ? (nv ? 'Ligou' : 'Desligou') + ' a etapa ' + NC[alvo]
+                            : campo === 'posicao' ? 'Receita → ' + (nv === 'inicio' ? 'antes do tratamento' : 'depois do tratamento')
+                            : 'Tratamento padrão → ' + ((ops.find(o => o.key === nv) || {}).titulo || nv));
+                        return;
+                    }
+                    if (!NOMES[alvo]) { ignoradas++; return; }
                     const e = _lcfgEtapas();
                     let novo;
                     if (campo === 'ativo') novo = !/^(false|0|nao|não|off)$/i.test(valor.trim());
