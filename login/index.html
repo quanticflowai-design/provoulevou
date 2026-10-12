@@ -4491,6 +4491,8 @@
                     .lcfg-etapa-item { grid-template-columns: auto minmax(0, 1fr); align-items: center; }
                     .lcfg-etapa-item .lcfg-item-txt b { font-size: 14px; font-weight: 650; }
                     .lcfg-etapa-item .lcfg-switch { margin-top: 0; }
+                    #lentesViewConfig .lcfg-campo select { width: 100%; height: 38px; border: 1px solid var(--l-line); border-radius: 9px; background: var(--l-field); color: var(--l-ink); font: inherit; font-size: 13.5px; padding: 0 10px; box-sizing: border-box; }
+                    #lentesViewConfig .lcfg-campo select:focus { outline: none; border-color: var(--l-accent); box-shadow: 0 0 0 3px var(--l-soft); }
                     .lcfg-etapa-item .lcfg-item-txt select { margin-top: 6px; width: 100%; max-width: 460px; height: 36px; border: 1px solid var(--l-line); border-radius: 9px; background: var(--l-field); color: var(--l-ink); font: inherit; font-size: 13px; padding: 0 10px; }
                     .lcfg-etapa-item .lcfg-item-txt select:focus { outline: none; border-color: var(--l-accent); box-shadow: 0 0 0 3px var(--l-soft); }
                     .lcfg-caminho { border: 1px solid var(--l-line); border-radius: 11px; padding: 10px 12px; margin-top: 8px; background: var(--l-card); }
@@ -4499,6 +4501,29 @@
                     .lcfg-caminho span { font-size: 12px; font-weight: 600; background: var(--l-soft); color: var(--l-accent); border-radius: 99px; padding: 4px 10px; }
                     .lcfg-caminho i { font-size: 11px; color: var(--l-muted); }
 
+                    .lcfg-mapa { display: flex; flex-direction: column; }
+                    .lcfg-no { position: relative; border-radius: 12px; }
+                    .lcfg-no > .lcfg-acc { margin: 0; }
+                    .lcfg-no.extra > .lcfg-acc { border-color: var(--l-accent); border-style: dashed; }
+                    .lcfg-no[draggable="true"] { cursor: grab; }
+                    .lcfg-no.arrastando { opacity: .45; }
+                    .lcfg-no.drop-alvo { outline: 2px dashed var(--l-accent); outline-offset: 3px; }
+                    .lcfg-no-num { width: 26px; height: 26px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 12.5px; font-weight: 700; background: var(--l-accent); color: #fff; margin-left: 4px; }
+                    .lcfg-no.off .lcfg-no-num { background: var(--l-line); color: var(--l-muted); }
+                    .lcfg-no-grip { color: var(--l-muted); font-size: 16px; display: grid; place-items: center; width: 18px; }
+                    .lcfg-no-seta { width: 2px; height: 16px; background: var(--l-line); margin-left: 26px; }
+                    .lcfg-no-add { align-self: flex-start; margin: 6px 0 6px 14px; padding: 5px 12px 5px 10px; border: 1.5px dashed var(--l-line); border-radius: 99px; background: transparent; color: var(--l-muted); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; position: relative; }
+                    .lcfg-no-add::before { content: ''; position: absolute; left: 11px; top: -8px; width: 2px; height: 8px; background: var(--l-line); }
+                    .lcfg-no-add::after { content: ''; position: absolute; left: 11px; bottom: -8px; width: 2px; height: 8px; background: var(--l-line); }
+                    .lcfg-no-add:hover { border-color: var(--l-accent); color: var(--l-accent); background: var(--l-soft); }
+                    .lcfg-pill.nova { background: var(--l-soft); color: var(--l-accent); }
+                    .lcfg-xop { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) 30px 30px 30px; gap: 6px; margin-bottom: 6px; align-items: center; }
+                    .lcfg-mini { width: 30px; height: 30px; border: 1px solid var(--l-line); border-radius: 8px; background: var(--l-card); color: var(--l-muted); cursor: pointer; display: grid; place-items: center; }
+                    .lcfg-mini:disabled { opacity: .35; cursor: default; }
+                    .lcfg-link-btn { border: 0; background: none; color: var(--l-accent); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 6px 0; display: inline-flex; align-items: center; gap: 6px; }
+                    .lcfg-link-btn.perigo { color: #dc2626; }
+                    .lcfg-x-rodape { border-top: 1px solid var(--l-line-soft); margin-top: 12px; padding-top: 6px; }
+                    @media (max-width: 640px) { .lcfg-xop { grid-template-columns: minmax(0, 1fr) 30px 30px 30px; } .lcfg-xop input[data-f="desc"] { grid-column: 1 / -1; grid-row: 2; } }
                     .lcfg-etapa-fixa { width: 36px; height: 21px; display: grid; place-items: center; color: var(--l-muted); font-size: 15px; }
 
                     /* Visual completo + arrastar (12/10/2026) */
@@ -7012,49 +7037,106 @@
             o.push('tratamento');
             if (pos !== 'primeiro' && pos !== 'inicio') o.push.apply(o, rec);
             o.push('resultado');
-            return o.filter(k => k === 'telefone' || k === 'tratamento' || k === 'tipo' || k === 'receita' || tem(k));
+            return o.filter(k => k === 'telefone' || k === 'tratamento' || k === 'tipo' || k === 'receita' || k === 'resultado' || tem(k));
         }
-        function _lcfgPintaEtapasCat() {
+        /* ---- Mapa do fluxo (13/10/2026): o caminho do cliente na ordem, cada etapa com nome próprio, clique abre;
+           o lojista cria etapas novas (cfg.etapas_extra) e arrasta as criadas e a receita. ---- */
+        const _LCFG_X_TIPOS = { escolha: 'Escolher uma opção', multipla: 'Escolher várias opções', texto: 'Escrever uma resposta' };
+        const _LCFG_X_ANTES = { tipo: 'Antes do tipo de lente', tratamento: 'Antes do tratamento', receita: 'Antes da receita', resultado: 'Antes do resultado' };
+        const _LCFG_ANCORA_DE = { tipo: 'tipo', tratamento: 'tratamento', receita: 'receita', resultado: 'resultado' };
+        function _lcfgExtras() { if (!Array.isArray(_lcfgEdit.etapas_extra)) _lcfgEdit.etapas_extra = []; return _lcfgEdit.etapas_extra; }
+        function _lcfgEtNome(k) { const n = (_lcfgEdit.etapas_nomes || {})[k]; return String(n || '').trim() || _LCFG_ET_NOME[k]; }
+        function _lcfgMapaNos() {
+            const xs = _lcfgExtras(), nos = [];
+            _lcfgEtapasCatOrdem().forEach(k => {
+                const anc = _LCFG_ANCORA_DE[k];
+                if (anc) xs.forEach((x, i) => { if ((x.antes_de || 'resultado') === anc) nos.push({ x, i }); });
+                nos.push({ k });
+            });
+            return nos;
+        }
+        function _lcfgNoBuiltin(k, num) {
             const e = _lcfgEtapasCat(), ops = ((_lcfgEdit.etapas_opcoes || {}).tratamentos) || [];
-            const textosDe = k => (_lcfgEdit.textos || []).filter(t => t.etapa === k).map(t => t.key);
-            const titulo = k => { const t = (_lcfgEdit.textos || []).find(x => x.key === k + '.titulo'); return t && String(t.valor || '').trim(); };
+            const textosDe = (_lcfgEdit.textos || []).filter(t => t.etapa === k).map(t => t.key);
+            const tt = ((_lcfgEdit.textos || []).find(x => x.key === k + '.titulo') || {}).valor;
             const AJUDA = {
-                telefone: 'Desligado, o cliente vai direto pra escolha da lente (você deixa de capturar o contato logo no começo).',
+                telefone: 'Desligada, o cliente vai direto pra próxima etapa (você deixa de capturar o contato logo no começo).',
                 tipo: 'As opções desta tela (tipos de lente) ficam em "Opções da primeira tela".',
-                tratamento: 'Desligado, o fluxo usa o tratamento padrão escolhido (se não existir pra lente, usa o primeiro disponível).',
-                receita: 'Sempre pedida (a lente indicada depende do grau). Escolha onde ela entra — ou arraste os blocos abaixo.',
+                tratamento: 'Desligada, o fluxo usa o tratamento padrão escolhido abaixo.',
+                receita: 'Sempre pedida, porque a lente indicada depende do grau. Arraste esta etapa no mapa para mudar onde ela entra.',
                 conferir: 'Tela em que o cliente confere os números lidos da receita.',
                 uso: 'Só aparece quando a receita tem adição (grau de perto) e a lente escolhida é de visão simples.',
-                resultado: 'Tela final com a lente indicada.'
+                resultado: 'Tela final com a lente indicada e os botões de compra.'
             };
-            const trOn = e.tratamento.ativo !== false;
-            const linhas = _lcfgEtapasCatOrdem().map((k, i) => {
-                const on = k === 'telefone' ? e.telefone.ativo !== false : k === 'tratamento' ? trOn : true;
-                let extra = '';
-                if (k === 'tratamento' && !trOn && ops.length) extra = '<div class="lcfg-campo"><label>Tratamento usado quando a etapa está desligada</label><select data-lcfg-etapa="tratamento" data-f="padrao">' +
-                    ops.map(o => '<option value="' + _lcfgEsc(o.key) + '"' + (o.key === e.tratamento.padrao ? ' selected' : '') + '>' + _lcfgEsc(o.titulo) + '</option>').join('') + '</select></div>';
-                if (k === 'receita') extra = '<div class="lcfg-campo"><label>Onde a receita entra</label><select data-lcfg-etapa="receita" data-f="posicao">' +
-                    '<option value="primeiro"' + (e.receita.posicao === 'primeiro' ? ' selected' : '') + '>Primeira tela (antes do tipo de lente)</option>' +
-                    '<option value="inicio"' + (e.receita.posicao === 'inicio' ? ' selected' : '') + '>Logo depois do tipo de lente</option>' +
-                    '<option value="final"' + (e.receita.posicao !== 'inicio' && e.receita.posicao !== 'primeiro' ? ' selected' : '') + '>Depois do tratamento</option></select></div>';
-                const tx = textosDe(k), tt = titulo(k);
-                const corpo = '<p class="lcfg-intro" style="margin:12px 0 8px;">' + AJUDA[k] + '</p>' + extra +
-                    (tx.length ? '<div class="lcfg-bloco-tit">Textos desta tela</div><div class="lcfg-grid">' + tx.map(x => _lcfgCampoTexto(x, 2)).join('') + '</div>'
-                        : '');
-                return _lcfgAcc('et:' + k, {
-                    nivel: 1, icone: _LCFG_ET_ICONE[k], off: !on,
-                    titulo: (i + 1) + '. ' + _LCFG_ET_NOME[k] + (on ? '' : '<span class="lcfg-pill off">Desligada</span>'),
-                    meta: on ? (tt ? '“' + _lcfgEsc(_lcfgCurto(tt)) + '”' : (k === 'tipo' ? 'Opções em “Opções da primeira tela”' : '')) : 'O cliente não vê esta etapa',
-                    dir: (k === 'telefone' || k === 'tratamento') ? _lcfgSwitch('data-lcfg-etapa="' + k + '" data-f="ativo"', on, true) : '',
-                    corpo
-                });
-            }).join('');
-            const desl = (e.telefone.ativo === false ? 1 : 0) + (trOn ? 0 : 1);
+            const on = k === 'telefone' ? e.telefone.ativo !== false : k === 'tratamento' ? e.tratamento.ativo !== false : true;
+            let extra = '';
+            if (k === 'tratamento' && !on && ops.length) extra = '<div class="lcfg-campo"><label>Tratamento usado com a etapa desligada</label><select data-lcfg-etapa="tratamento" data-f="padrao">' +
+                ops.map(o => '<option value="' + _lcfgEsc(o.key) + '"' + (o.key === e.tratamento.padrao ? ' selected' : '') + '>' + _lcfgEsc(o.titulo) + '</option>').join('') + '</select></div>';
+            if (k === 'receita') extra = '<div class="lcfg-campo"><label>Onde a receita entra</label><select data-lcfg-etapa="receita" data-f="posicao">' +
+                '<option value="primeiro"' + (e.receita.posicao === 'primeiro' ? ' selected' : '') + '>Primeira tela (antes do tipo de lente)</option>' +
+                '<option value="inicio"' + (e.receita.posicao === 'inicio' ? ' selected' : '') + '>Logo depois do tipo de lente</option>' +
+                '<option value="final"' + (e.receita.posicao !== 'inicio' && e.receita.posicao !== 'primeiro' ? ' selected' : '') + '>Depois do tratamento</option></select></div>';
+            const corpo = '<p class="lcfg-intro" style="margin:12px 0 8px;">' + AJUDA[k] + '</p>' +
+                '<div class="lcfg-campo"><label>Nome da etapa (só no painel)</label><input type="text" maxlength="40" data-lcfg-etnome="' + k + '" value="' + _lcfgEsc(_lcfgEtNome(k)) + '"></div>' + extra +
+                (textosDe.length ? '<div class="lcfg-bloco-tit">O que o cliente vê nesta tela</div><div class="lcfg-grid">' + textosDe.map(x => _lcfgCampoTexto(x, 2)).join('') + '</div>' : '');
+            const arrasta = k === 'receita';
+            return '<div class="lcfg-no' + (on ? '' : ' off') + '" data-lcfg-no="' + k + '"' + (arrasta ? ' draggable="true"' : '') + '>' + _lcfgAcc('no:' + k, {
+                nivel: 1, icone: _LCFG_ET_ICONE[k], off: !on,
+                esq: '<span class="lcfg-no-num">' + (on ? num : '–') + '</span>' + (arrasta ? '<span class="lcfg-no-grip" title="Arraste para mudar a posição"><i class="ph-bold ph-dots-six-vertical"></i></span>' : ''),
+                titulo: '<span data-lcfg-no-nome="' + k + '">' + _lcfgEsc(_lcfgEtNome(k)) + '</span>' + (on ? '' : '<span class="lcfg-pill off">Desligada</span>') + (k === 'uso' ? '<span class="lcfg-pill">Só às vezes</span>' : ''),
+                meta: on ? (tt ? '“' + _lcfgEsc(_lcfgCurto(tt)) + '”' : (k === 'tipo' ? 'Tipos de lente' : '')) : 'O cliente não vê esta etapa',
+                dir: (k === 'telefone' || k === 'tratamento') ? _lcfgSwitch('data-lcfg-etapa="' + k + '" data-f="ativo"', on, true) : '',
+                corpo
+            }) + '</div>';
+        }
+        function _lcfgNoExtra(x, i, num) {
+            const on = x.ativo !== false, trOff = _lcfgEtapasCat().tratamento.ativo === false && x.antes_de === 'tratamento';
+            const f = (campo) => 'data-lcfg-x="' + i + '" data-f="' + campo + '"';
+            const ops = Array.isArray(x.opcoes) ? x.opcoes : [];
+            const opsHtml = x.tipo === 'texto' ? '' : '<div class="lcfg-bloco-tit">Opções de resposta</div>' + ops.map((o, j) =>
+                '<div class="lcfg-xop"><input type="text" maxlength="80" placeholder="Opção" aria-label="Opção" data-lcfg-xo="' + i + ':' + j + '" data-f="titulo" value="' + _lcfgEsc(o.titulo) + '">' +
+                '<input type="text" maxlength="120" placeholder="Descrição (opcional)" aria-label="Descrição" data-lcfg-xo="' + i + ':' + j + '" data-f="desc" value="' + _lcfgEsc(o.desc || '') + '">' +
+                '<button type="button" class="lcfg-mini" data-lcfg-xacao="opup" data-i="' + i + '" data-j="' + j + '" aria-label="Subir"' + (j ? '' : ' disabled') + '><i class="ph-bold ph-caret-up"></i></button>' +
+                '<button type="button" class="lcfg-mini" data-lcfg-xacao="opdown" data-i="' + i + '" data-j="' + j + '" aria-label="Descer"' + (j < ops.length - 1 ? '' : ' disabled') + '><i class="ph-bold ph-caret-down"></i></button>' +
+                '<button type="button" class="lcfg-mini" data-lcfg-xacao="opdel" data-i="' + i + '" data-j="' + j + '" aria-label="Remover opção"><i class="ph-bold ph-x"></i></button></div>').join('') +
+                '<button type="button" class="lcfg-link-btn" data-lcfg-xacao="opadd" data-i="' + i + '"><i class="ph-bold ph-plus"></i> Adicionar opção</button>';
+            const corpo = '<p class="lcfg-intro" style="margin:12px 0 8px;">Etapa criada por você. A resposta do cliente fica registrada no histórico do fluxo; ela não muda a lente indicada.' + (trOff ? ' <b>Atenção:</b> com o Tratamento desligado, esta etapa não aparece — mude a posição dela.' : '') + '</p>' +
+                '<div class="lcfg-grid">' +
+                    '<div class="lcfg-campo"><label>Nome da etapa (só no painel)</label><input type="text" maxlength="40" ' + f('nome') + ' value="' + _lcfgEsc(x.nome || '') + '"></div>' +
+                    '<div class="lcfg-campo"><label>Onde ela entra</label><select ' + f('antes_de') + '>' + Object.keys(_LCFG_X_ANTES).map(k => '<option value="' + k + '"' + ((x.antes_de || 'resultado') === k ? ' selected' : '') + '>' + _LCFG_X_ANTES[k] + '</option>').join('') + '</select></div>' +
+                    '<div class="lcfg-campo"><label>Pergunta que o cliente vê</label><textarea rows="2" maxlength="200" ' + f('titulo') + (String(x.titulo || '').trim() ? '' : ' class="erro"') + '>' + _lcfgEsc(x.titulo || '') + '</textarea></div>' +
+                    '<div class="lcfg-campo"><label>Dica (opcional)</label><textarea rows="2" maxlength="300" ' + f('dica') + '>' + _lcfgEsc(x.dica || '') + '</textarea></div>' +
+                    '<div class="lcfg-campo"><label>Tipo de resposta</label><select ' + f('tipo') + '>' + Object.keys(_LCFG_X_TIPOS).map(k => '<option value="' + k + '"' + ((x.tipo || 'escolha') === k ? ' selected' : '') + '>' + _LCFG_X_TIPOS[k] + '</option>').join('') + '</select></div>' +
+                    '<div class="lcfg-campo"><label>Resposta obrigatória</label>' + _lcfgSwitch(f('obrigatoria'), x.obrigatoria !== false, true) + '</div>' +
+                '</div>' + opsHtml +
+                '<div class="lcfg-x-rodape"><button type="button" class="lcfg-link-btn perigo" data-lcfg-xacao="del" data-i="' + i + '"><i class="ph-bold ph-trash"></i> Excluir etapa</button></div>';
+            return '<div class="lcfg-no extra' + (on ? '' : ' off') + '" data-lcfg-no="x:' + i + '" draggable="true">' + _lcfgAcc('nox:' + (x.id || i), {
+                nivel: 1, icone: 'ph-chat-circle-dots', off: !on,
+                esq: '<span class="lcfg-no-num">' + (on ? num : '–') + '</span><span class="lcfg-no-grip" title="Arraste para mudar a posição"><i class="ph-bold ph-dots-six-vertical"></i></span>',
+                titulo: '<span data-lcfg-no-nome="x:' + i + '">' + _lcfgEsc(String(x.nome || '').trim() || 'Nova etapa') + '</span><span class="lcfg-pill nova">Criada por você</span>' + (on ? '' : '<span class="lcfg-pill off">Desligada</span>'),
+                meta: on ? (String(x.titulo || '').trim() ? '“' + _lcfgEsc(_lcfgCurto(x.titulo)) + '” · ' + _LCFG_X_TIPOS[x.tipo || 'escolha'] : 'Escreva a pergunta') : 'O cliente não vê esta etapa',
+                dir: _lcfgSwitch(f('ativo'), on, true),
+                corpo
+            }) + '</div>';
+        }
+        function _lcfgPintaEtapasCat() {
+            const e = _lcfgEtapasCat(), nos = _lcfgMapaNos();
+            let num = 0, html = '<div class="lcfg-mapa">';
+            const PODE_ADD = { tipo: 1, tratamento: 1, receita: 1, resultado: 1 };
+            nos.forEach((n, idx) => {
+                const k = n.k, ligado = n.x ? n.x.ativo !== false : !(k === 'telefone' && e.telefone.ativo === false) && !(k === 'tratamento' && e.tratamento.ativo === false);
+                if (ligado) num++;
+                if (k && PODE_ADD[k]) html += '<button type="button" class="lcfg-no-add" data-lcfg-xacao="novo" data-antes="' + _LCFG_ANCORA_DE[k] + '"><i class="ph-bold ph-plus"></i> Adicionar etapa ' + _LCFG_X_ANTES[_LCFG_ANCORA_DE[k]].toLowerCase() + '</button>';
+                else if (idx) html += '<div class="lcfg-no-seta"></div>';
+                html += n.x ? _lcfgNoExtra(n.x, n.i, num) : _lcfgNoBuiltin(k, num);
+            });
+            html += '</div>';
+            const xs = _lcfgExtras().filter(x => x.ativo !== false).length;
+            const desl = (e.telefone.ativo === false ? 1 : 0) + (e.tratamento.ativo === false ? 1 : 0);
             return _lcfgAcc('etapas', {
-                icone: 'ph-flow-arrow', etapa: 'Ordem, etapas e textos', titulo: 'Etapas do fluxo',
-                meta: (e.receita.posicao === 'primeiro' ? 'Receita na primeira tela' : e.receita.posicao === 'inicio' ? 'Receita antes do tratamento' : 'Receita depois do tratamento') + (desl ? ' · ' + desl + (desl === 1 ? ' etapa desligada' : ' etapas desligadas') : ' · todas as etapas ligadas'),
-                corpo: '<p class="lcfg-intro" style="margin:14px 0 6px;">Abra cada etapa para mudar a pergunta, a dica, os nomes das opções e os botões do jeito da sua loja. Dá também para desligar etapas e mudar onde a receita entra.</p>' +
-                    linhas + _lcfgPintaOrdemDnd()
+                icone: 'ph-flow-arrow', etapa: 'Mapa do fluxo', titulo: 'Etapas do fluxo',
+                meta: num + ' etapas no caminho do cliente' + (xs ? ' · ' + xs + (xs === 1 ? ' criada por você' : ' criadas por você') : '') + (desl ? ' · ' + desl + (desl === 1 ? ' desligada' : ' desligadas') : ''),
+                corpo: '<p class="lcfg-intro" style="margin:14px 0 10px;">Este é o caminho que o cliente percorre, de cima para baixo. Clique numa etapa para mudar o nome, a pergunta e as opções. Use <b>+ Adicionar etapa</b> para criar uma pergunta sua e <b>arraste</b> (<i class="ph-bold ph-dots-six-vertical"></i>) as etapas criadas por você e a receita para mudar a ordem.</p>' + html
             });
         }
         /* ---- Ordem das etapas por arrastar (12/10/2026): arraste os blocos; a posição da receita é calculada ---- */
@@ -7260,6 +7342,27 @@
                 // o mesmo texto pode aparecer em dois tipos (ex.: descrição da armação): mantém as cópias iguais
                 document.querySelectorAll('#lentesViewConfig [data-lcfg-texto="' + el.dataset.lcfgTexto + '"]').forEach(o => { if (o !== el) o.value = val; });
             }
+            else if (el.dataset.lcfgEtnome) {
+                const k = el.dataset.lcfgEtnome;
+                c.etapas_nomes = Object.assign({}, c.etapas_nomes || {}, { [k]: String(val).trim() });
+                const h = document.querySelector('#lentesViewConfig [data-lcfg-no-nome="' + k + '"]'); if (h) h.textContent = _lcfgEtNome(k);
+            }
+            else if (el.dataset.lcfgX != null) {
+                const x = _lcfgExtras()[+el.dataset.lcfgX], f = el.dataset.f;
+                if (!x) return;
+                if (f === 'ativo' || f === 'obrigatoria') { x[f] = !!val; repinta = true; }
+                else if (f === 'tipo' || f === 'antes_de') { x[f] = String(val); repinta = true; if (f === 'tipo' && val !== 'texto' && !(x.opcoes || []).length) x.opcoes = [{ key: 'a', titulo: 'Opção 1' }, { key: 'b', titulo: 'Opção 2' }]; }
+                else {
+                    x[f] = String(val);
+                    if (f === 'titulo') el.classList.toggle('erro', !String(val).trim());
+                    if (f === 'nome') { const h = document.querySelector('#lentesViewConfig [data-lcfg-no-nome="x:' + el.dataset.lcfgX + '"]'); if (h) h.textContent = String(val).trim() || 'Nova etapa'; }
+                }
+            }
+            else if (el.dataset.lcfgXo) {
+                const [i, j] = el.dataset.lcfgXo.split(':').map(Number), x = _lcfgExtras()[i];
+                if (!x || !x.opcoes || !x.opcoes[j]) return;
+                x.opcoes[j][el.dataset.f] = String(val);
+            }
             else if (el.dataset.lcfgLente != null) {
                 const l = c.lentes[+el.dataset.lcfgLente], f = el.dataset.f;
                 if (f === 'prazo') { const n = parseInt(val, 10); l.prazo = isNaN(n) ? val : n; el.classList.toggle('erro', !(n > 0 && n <= 90)); }
@@ -7270,8 +7373,9 @@
             if (repinta) _lcfgPinta(); else _lcfgAtualizaBarraEPrevia();
         }
         function _lcfgOnClick(ev) {
-            const t = ev.target.closest && ev.target.closest('[data-lcfg-acc],[data-lcfg-mover],[data-lcfg-ids],[data-lcfg-cor-limpa],[data-lcfg-raio-limpa]');
+            const t = ev.target.closest && ev.target.closest('[data-lcfg-acc],[data-lcfg-mover],[data-lcfg-ids],[data-lcfg-cor-limpa],[data-lcfg-raio-limpa],[data-lcfg-xacao]');
             if (!t || !_lcfgEdit) return;
+            if (t.dataset.lcfgXacao) { _lcfgXAcao(t); return; }
             if (t.dataset.lcfgCorLimpa) { const tm = Object.assign({}, _lcfgEdit.tema || {}); delete tm[t.dataset.lcfgCorLimpa]; _lcfgEdit.tema = tm; _lcfgPinta(); return; }
             if (t.hasAttribute('data-lcfg-raio-limpa')) { const tm = Object.assign({}, _lcfgEdit.tema || {}); delete tm.raio; _lcfgEdit.tema = tm; _lcfgPinta(); return; }
             if (t.dataset.lcfgAcc) {   // abre/fecha sem repintar (não perde foco nem rolagem)
@@ -7294,9 +7398,35 @@
             const x = lista[i]; lista[i] = lista[j]; lista[j] = x;
             _lcfgPinta();
         }
+        function _lcfgXAcao(t) {
+            const xs = _lcfgExtras(), a = t.dataset.lcfgXacao, i = +t.dataset.i, j = +t.dataset.j, x = xs[i];
+            if (a === 'novo') {
+                const ant = t.dataset.antes || 'resultado';
+                const nova = { id: 'e' + Date.now().toString(36), nome: 'Nova etapa', titulo: '', dica: '', tipo: 'escolha', obrigatoria: true, antes_de: ant, ativo: true,
+                    opcoes: [{ key: 'a', titulo: 'Opção 1' }, { key: 'b', titulo: 'Opção 2' }] };
+                let pos = xs.length; for (let k = xs.length - 1; k >= 0; k--) if ((xs[k].antes_de || 'resultado') === ant) { pos = k + 1; break; }
+                xs.splice(pos, 0, nova);
+                _lcfgAbertos.add('etapas'); _lcfgAbertos.add('nox:' + nova.id);
+                _lcfgPinta();
+                setTimeout(() => { const q = document.querySelector('#lentesViewConfig [data-lcfg-x="' + pos + '"][data-f="titulo"]'); if (q) { q.focus(); q.scrollIntoView({ block: 'center', behavior: 'smooth' }); } }, 30);
+                return;
+            }
+            if (!x) return;
+            if (a === 'del') { if (!confirm('Excluir a etapa "' + (x.nome || 'Nova etapa') + '"?')) return; xs.splice(i, 1); }
+            else if (a === 'opadd') { x.opcoes = x.opcoes || []; x.opcoes.push({ key: Date.now().toString(36), titulo: 'Opção ' + (x.opcoes.length + 1) }); }
+            else if (a === 'opdel') { x.opcoes.splice(j, 1); }
+            else if (a === 'opup' || a === 'opdown') { const k = a === 'opup' ? j - 1 : j + 1; if (k < 0 || k >= x.opcoes.length) return; const o = x.opcoes[j]; x.opcoes[j] = x.opcoes[k]; x.opcoes[k] = o; }
+            _lcfgPinta();
+        }
         function _lcfgValida(c) {
             const erros = [];
             if (!(c.necessidades || []).some(n => n.ativo !== false)) erros.push('Deixe pelo menos um tipo de lente ligado.');
+            (Array.isArray(c.etapas_extra) ? c.etapas_extra : []).forEach(x => {
+                if (x.ativo === false) return;
+                const nm = '"' + (String(x.nome || '').trim() || 'Nova etapa') + '"';
+                if (!String(x.titulo || '').trim()) erros.push('Etapa ' + nm + ': escreva a pergunta.');
+                else if (x.tipo !== 'texto' && !(x.opcoes || []).some(o => String(o.titulo || '').trim())) erros.push('Etapa ' + nm + ': coloque pelo menos uma opção.');
+            });
             if (Array.isArray(c.receita) && c.receita.length && !c.receita.some(n => n.ativo !== false)) erros.push('Deixe pelo menos uma opção de receita ligada.');
             Object.keys(c.tema || {}).forEach(k => {
                 if (k === 'raio') { const r = parseInt(c.tema.raio, 10); if (!(r >= 0 && r <= 40)) erros.push('Cantos: use um valor de 0 a 40.'); return; }
@@ -7359,6 +7489,13 @@
         /* arrastar e soltar: listas (alça .lcfg-grip) e faixa de etapas (.lcfg-chip) */
         let _lcfgArrasto = null;
         function _lcfgDragStart(ev) {
+            const no = ev.target.closest && ev.target.closest('[data-lcfg-no][draggable="true"]');
+            if (no && !(ev.target.closest('input,textarea,select'))) {
+                _lcfgArrasto = { tipo: 'no', k: no.dataset.lcfgNo };
+                no.classList.add('arrastando');
+                try { ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', 'lcfg'); } catch (e) {}
+                return;
+            }
             const g = ev.target.closest && ev.target.closest('[data-lcfg-grip],[data-lcfg-chip]');
             if (!g) return;
             _lcfgArrasto = g.dataset.lcfgGrip ? { tipo: 'lista', lista: g.dataset.lcfgGrip, i: +g.dataset.i } : { tipo: 'chip', k: g.dataset.lcfgChip };
@@ -7369,6 +7506,7 @@
         function _lcfgAlvo(ev) {
             if (!_lcfgArrasto) return null;
             if (_lcfgArrasto.tipo === 'chip') return ev.target.closest && ev.target.closest('[data-lcfg-chip]');
+            if (_lcfgArrasto.tipo === 'no') { const n = ev.target.closest && ev.target.closest('[data-lcfg-no]'); return n && n.dataset.lcfgNo !== _lcfgArrasto.k ? n : null; }
             const linha = ev.target.closest && ev.target.closest('.lcfg-item, .lcfg-acc');
             const g = linha && linha.querySelector(':scope > .lcfg-ordem [data-lcfg-grip], :scope > .lcfg-acc-head .lcfg-ordem [data-lcfg-grip]');
             return g && g.dataset.lcfgGrip === _lcfgArrasto.lista ? linha : null;
@@ -7384,6 +7522,7 @@
             document.querySelectorAll('#lentesViewConfig .drop-alvo, #lentesViewConfig .arrastando').forEach(x => x.classList.remove('drop-alvo', 'arrastando'));
             if (!a || !d || !_lcfgEdit) return;
             ev.preventDefault();
+            if (d.tipo === 'no') { _lcfgSoltaNo(d.k, a.dataset.lcfgNo); return; }
             if (d.tipo === 'lista') {
                 const g = a.querySelector('[data-lcfg-grip]'), j = +g.dataset.i, lista = _lcfgEdit[d.lista];
                 if (!lista || j === d.i) return;
@@ -7398,6 +7537,26 @@
             if (!pos) { crmToast(o.cat ? 'O tratamento depende do tipo de lente, então vem depois dele.' : 'As perguntas de grau e tratamento dependem do tipo de lente, então vêm depois dele.', true); _lcfgPinta(); return; }
             const e = o.cat ? _lcfgEtapasCat() : _lcfgEtapas();
             e.receita.posicao = pos; _lcfgEdit.etapas = e;
+            _lcfgPinta();
+        }
+        // solta uma etapa do mapa "antes" do alvo
+        function _lcfgSoltaNo(de, alvo) {
+            const xs = _lcfgExtras(), e = _lcfgEtapasCat();
+            const anc = alvo.indexOf('x:') === 0 ? ((xs[+alvo.slice(2)] || {}).antes_de || 'resultado')
+                : alvo === 'telefone' ? (e.receita.posicao === 'primeiro' ? 'receita' : 'tipo')
+                : (alvo === 'conferir' || alvo === 'uso') ? 'receita' : (_LCFG_ANCORA_DE[alvo] || 'resultado');
+            if (de === 'receita') {
+                const pos = anc === 'tipo' || alvo === 'telefone' ? 'primeiro' : anc === 'tratamento' ? 'inicio' : anc === 'resultado' ? 'final' : null;
+                if (!pos) return;
+                e.receita.posicao = pos; _lcfgEdit.etapas = e; _lcfgPinta(); return;
+            }
+            const i = +de.slice(2), x = xs[i]; if (!x) return;
+            xs.splice(i, 1);
+            x.antes_de = anc;
+            let pos;
+            if (alvo.indexOf('x:') === 0) { const t = +alvo.slice(2); pos = t > i ? t - 1 : t; }
+            else { pos = xs.length; for (let k = xs.length - 1; k >= 0; k--) if ((xs[k].antes_de || 'resultado') === anc) { pos = k + 1; break; } }
+            xs.splice(pos, 0, x);
             _lcfgPinta();
         }
         function _lcfgDragEnd() { _lcfgArrasto = null; document.querySelectorAll('#lentesViewConfig .drop-alvo, #lentesViewConfig .arrastando').forEach(x => x.classList.remove('drop-alvo', 'arrastando')); }
@@ -7458,6 +7617,38 @@
                     mud.push(campo === 'ativo' ? (novo ? 'Ligou' : 'Desligou') + ' a lente ' + l.nome
                         : campo === 'prazo' ? l.nome + ': prazo ' + antes + ' → ' + novo + ' dias'
                         : l.nome + ': ' + campo.replace('_', ' ') + ' → ' + _lcfgCurto(novo));
+                } else if (t === 'nome_etapa') {
+                    if (c.modo !== 'catalogo' || !_LCFG_ET_NOME[alvo] || !valor.trim()) { ignoradas++; return; }
+                    const antes = _lcfgEtNome(alvo);
+                    c.etapas_nomes = Object.assign({}, c.etapas_nomes || {}, { [alvo]: valor.trim().slice(0, 40) });
+                    mud.push('Nome da etapa: ' + antes + ' → ' + valor.trim());
+                } else if (t === 'etapa_extra') {
+                    if (c.modo !== 'catalogo') { ignoradas++; return; }
+                    const xs = _lcfgExtras();
+                    let d = {}; try { d = valor ? JSON.parse(valor) : {}; } catch (e) { ignoradas++; return; }
+                    const limpa = (x) => {
+                        if (d.nome != null) x.nome = String(d.nome).slice(0, 40);
+                        if (d.titulo != null) x.titulo = String(d.titulo).slice(0, 200);
+                        if (d.dica != null) x.dica = String(d.dica).slice(0, 300);
+                        if (_LCFG_X_TIPOS[d.tipo]) x.tipo = d.tipo;
+                        if (_LCFG_X_ANTES[d.antes_de]) x.antes_de = d.antes_de;
+                        if (d.obrigatoria != null) x.obrigatoria = d.obrigatoria !== false && d.obrigatoria !== 'false';
+                        if (d.ativo != null) x.ativo = d.ativo !== false && d.ativo !== 'false';
+                        if (Array.isArray(d.opcoes)) x.opcoes = d.opcoes.map((o, j) => ({ key: 'o' + j, titulo: String(typeof o === 'object' && o ? o.titulo : o).slice(0, 80), desc: typeof o === 'object' && o && o.desc ? String(o.desc).slice(0, 120) : '' })).filter(o => o.titulo.trim());
+                    };
+                    if (campo === 'criar') {
+                        const x = { id: 'e' + Date.now().toString(36) + xs.length, nome: 'Nova etapa', titulo: '', dica: '', tipo: 'escolha', obrigatoria: true, antes_de: 'resultado', ativo: true, opcoes: [] };
+                        limpa(x);
+                        if (!x.titulo.trim() || (x.tipo !== 'texto' && !x.opcoes.length)) { ignoradas++; return; }
+                        xs.push(x); _lcfgAbertos.add('etapas');
+                        mud.push('Nova etapa "' + x.nome + '" (' + _LCFG_X_ANTES[x.antes_de].toLowerCase() + ')');
+                    } else {
+                        const i = xs.findIndex(x => x.id === alvo);
+                        if (i < 0) { ignoradas++; return; }
+                        if (campo === 'remover') { mud.push('Removeu a etapa "' + (xs[i].nome || 'Nova etapa') + '"'); xs.splice(i, 1); }
+                        else if (campo === 'editar') { limpa(xs[i]); mud.push('Etapa "' + (xs[i].nome || 'Nova etapa') + '" alterada'); }
+                        else { ignoradas++; return; }
+                    }
                 } else if (t === 'set_texto') {
                     const x = (c.textos || []).find(y => y.key === alvo);
                     if (!x || !valor.trim()) { ignoradas++; return; }
@@ -7780,6 +7971,7 @@
                 }
                 if (r.step === 'carrinho') { s.carrinho = true; if (d.lente) { s.lente = d.lente; s.preco = Number(d.preco) || s.preco; } }
                 if (r.step === 'so_armacao') s.soArmacao = true;
+                if (r.step === 'etapa_extra' && (d.etapa || d.pergunta)) { s.extras = s.extras || {}; s.extras[String(d.etapa || d.pergunta).slice(0, 60)] = String(d.resposta == null ? '' : d.resposta).slice(0, 300); }   // etapas criadas pelo lojista
                 if (r.step === 'sem_receita_whatsapp') s.pediuWhats = true;
                 if (r.step === 'saiu' && d.ultimo_step) s.ultimoAntesSair = d.ultimo_step;
                 // vale a marcacao mais recente: o lojista pode voltar uma etapa
@@ -7865,7 +8057,7 @@
                     : 'Nenhuma lente vendida no período.';
             }
 
-            const linhas = ses.filter(s => s.passos['receita_metodo'] || s.lente);
+            const linhas = ses.filter(s => s.passos['receita_metodo'] || s.lente || s.extras);
             const subEl = document.getElementById('lentesListaSub');
             if (subEl) subEl.textContent = linhas.length.toLocaleString('pt-BR')
                 + (linhas.length === 1 ? ' cliente' : ' clientes') + ' no período';
@@ -7873,7 +8065,7 @@
             const _brl = v => v ? v.toLocaleString(PL_LOC, { style: 'currency', currency: PL_CUR }) : '—';
             document.getElementById('lentesLista').innerHTML = linhas.length
                 ? '<div class="lentes-tab-wrap"><table class="lentes-tab"><thead><tr>'
-                + '<th>Quando</th><th>Cliente</th><th>Armação</th><th>Escolha</th><th>Receita</th><th>Arquivo</th><th>Grau</th><th>Lente indicada</th><th>Valor</th><th>Fim</th>'
+                + '<th>Quando</th><th>Cliente</th><th>Armação</th><th>Escolha</th><th>Receita</th><th>Arquivo</th><th>Grau</th><th>Lente indicada</th><th>Valor</th><th>Fim</th>' + (linhas.some(s => s.extras) ? '<th>Respostas</th>' : '')
                 + '</tr></thead><tbody>' + linhas.map(s => {
                     const rec = s.leu ? ('<span class="lentes-tag ok">enviou' + (s.confianca === 'baixa' ? ' (difícil de ler)' : '') + '</span>')
                         : s.passos['receita_lida'] ? '<span class="lentes-tag no">falhou</span>'
@@ -7894,7 +8086,9 @@
                         + '<td class="lentes-grau">' + _lentesGrau(s.grau) + '</td>'
                         + '<td>' + (_lesc(s.lente) || '—') + '</td>'
                         + '<td class="num">' + _brl(s.preco) + '</td>'
-                        + '<td>' + fim + '</td></tr>';
+                        + '<td>' + fim + '</td>'
+                        + (linhas.some(x => x.extras) ? '<td>' + (s.extras ? Object.keys(s.extras).map(k => '<div><b>' + _lesc(k) + ':</b> ' + (_lesc(s.extras[k]) || '<span style="color:var(--text-muted)">pulou</span>') + '</div>').join('') : '—') + '</td>' : '')
+                        + '</tr>';
                 }).join('') + '</tbody></table></div>'
                 : '<div class="disp-empty">Ninguém usou o fluxo de lentes neste período.</div>';
 
@@ -8432,14 +8626,15 @@
         }
 
         function _lentesBaixaCsv(linhas) {
-            const cab = ['data', 'telefone', 'armacao', 'visao', 'tratamento', 'receita', 'arquivo', 'grau', 'lente', 'valor', 'fim'];
+            const cab = ['data', 'telefone', 'armacao', 'visao', 'tratamento', 'receita', 'arquivo', 'grau', 'lente', 'valor', 'fim', 'respostas'];
             const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
             const rows = linhas.map(s => [
                 new Date(s.inicio).toLocaleString('pt-BR'), s.telefone || '', s.produto || '',
                 _LENTES_VISAO[s.visao] || '', _LENTES_TRAT[s.trat] || '',
                 s.leu ? ('enviou' + (s.confianca === 'baixa' ? ' (baixa confianca)' : '')) : (s.passos['receita_lida'] ? 'falhou' : (s.pediuWhats ? 'pediu ajuda' : 'digitou')),
                 s.arq || '', _lentesGrauTexto(s.grau), s.lente || '', s.preco || '',
-                s.carrinho ? 'armacao + lente' : (s.soArmacao ? 'so a armacao' : (s.pediuWhats ? 'whatsapp' : 'parou no meio'))
+                s.carrinho ? 'armacao + lente' : (s.soArmacao ? 'so a armacao' : (s.pediuWhats ? 'whatsapp' : 'parou no meio')),
+                s.extras ? Object.keys(s.extras).map(k => k + ': ' + s.extras[k]).join(' | ') : ''
             ].map(esc).join(','));
             const blob = new Blob([cab.join(',') + '\n' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
             const a = document.createElement('a');
