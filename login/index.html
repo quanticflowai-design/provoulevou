@@ -13982,9 +13982,11 @@
             // abandonado" → link do checkout; qualquer outra etapa (ou "Todas") → link do produto.
             const bulkStageKey = (document.getElementById('waBulkStageSelect') || {}).value || 'all';
             const isCheckoutStage = bulkStageKey === 'carrinho-abandonado' || bulkStageKey === 'pagamento-pendente';
-            const leadLinkOf = (l) => isCheckoutStage
-                ? (hasUrl(l.checkoutUrl) ? l.checkoutUrl : '')
-                : (hasUrl(l.productUrl) ? l.productUrl : '');
+            const leadLinkOf = (l) => {   // 12/10/2026: nenhum lead fica sem link (pedido/checkout > produto provado > pagina da loja)
+                const _ok = (u) => (hasUrl(u) ? u : '');
+                const _home = (typeof activeUser !== 'undefined' && activeUser && activeUser.origem) ? ('https://' + String(activeUser.origem).replace(/^https?:\/\//, '').replace(/\/.*$/, '')) : '';
+                return isCheckoutStage ? (_ok(l.checkoutUrl) || _ok(l.productUrl) || _home) : (_ok(l.productUrl) || _ok(l.checkoutUrl) || _home);
+            };
             // Quando o template usa link, leads sem NENHUM link (nem checkout nem produto) são
             // automaticamente pulados — não dá pra mandar o template sem o link deles.
             const skipNoLink = window._waBulkNeedLink ? targets.filter(t => !leadLinkOf(t)) : [];
@@ -15132,9 +15134,11 @@
                     // executeBulkSend e não existe aqui; antes o {{3}} saía sempre vazio → Meta #131008).
                     const hasUrl = (u) => !!u && /^https?:\/\//.test(u);
                     const isCheckoutStage = CAMP.stage === 'carrinho-abandonado' || CAMP.stage === 'pagamento-pendente';
-                    const leadLinkOf = (l) => isCheckoutStage
-                        ? (hasUrl(l.checkoutUrl) ? l.checkoutUrl : '')
-                        : (hasUrl(l.productUrl) ? l.productUrl : '');
+                    const leadLinkOf = (l) => {   // 12/10/2026: nenhum lead fica sem link (pedido/checkout > produto provado > pagina da loja)
+                        const _ok = (u) => (hasUrl(u) ? u : '');
+                        const _home = (typeof activeUser !== 'undefined' && activeUser && activeUser.origem) ? ('https://' + String(activeUser.origem).replace(/^https?:\/\//, '').replace(/\/.*$/, '')) : '';
+                        return isCheckoutStage ? (_ok(l.checkoutUrl) || _ok(l.productUrl) || _home) : (_ok(l.productUrl) || _ok(l.checkoutUrl) || _home);
+                    };
                     // Detecta se o link vai no corpo ({{3}}) ou num botão de URL dinâmico ({{1}} do botão).
                     const linkInBody = bodyKinds.includes('link');
                     const btnComp = tplObj && (tplObj.components || []).find(c => (c.type || '').toUpperCase() === 'BUTTONS');
@@ -15510,9 +15514,11 @@
             // abandonado" → link do checkout; qualquer outra etapa (ou "Todas") → link do produto.
             const bulkStageKey = (document.getElementById('waBulkStageSelect') || {}).value || 'all';
             const isCheckoutStage = bulkStageKey === 'carrinho-abandonado' || bulkStageKey === 'pagamento-pendente';
-            const leadLinkOf = (l) => isCheckoutStage
-                ? (hasUrl(l.checkoutUrl) ? l.checkoutUrl : '')
-                : (hasUrl(l.productUrl) ? l.productUrl : '');
+            const leadLinkOf = (l) => {   // 12/10/2026: nenhum lead fica sem link (pedido/checkout > produto provado > pagina da loja)
+                const _ok = (u) => (hasUrl(u) ? u : '');
+                const _home = (typeof activeUser !== 'undefined' && activeUser && activeUser.origem) ? ('https://' + String(activeUser.origem).replace(/^https?:\/\//, '').replace(/\/.*$/, '')) : '';
+                return isCheckoutStage ? (_ok(l.checkoutUrl) || _ok(l.productUrl) || _home) : (_ok(l.productUrl) || _ok(l.checkoutUrl) || _home);
+            };
             const sendTargets = window._waBulkNeedLink ? targets.filter(t => !!leadLinkOf(t)) : targets;
             if (!sendTargets.length) { fb.style.color = '#ef4444'; fb.textContent = 'Nenhum lead com link salvo (checkout ou produto) pra este modelo.'; return; }
 
