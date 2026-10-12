@@ -4072,10 +4072,12 @@
                     </div>
                     <!-- Assistente com IA (12/10/2026): a loja dita a mudança, a IA altera o RASCUNHO e a prévia
                          ao lado mostra o fluxo como vai ficar. Só vai pra loja ao clicar em Salvar. -->
+                    <div id="lcfgStepTop"></div>
                     <div class="lcfg-topo-grid" id="lcfgTopoGrid">
                         <div class="lcfg-topo-esq">
                             <div id="lcfgMapa"></div>
-                    <section class="lcfg-ia" id="lcfgIA">
+                            <div id="lcfgCorpo"></div>
+                    <section class="lcfg-ia" id="lcfgIA" hidden>
                         <div class="lcfg-ia-chat">
                             <div class="lcfg-ia-topo">
                                 <span class="lcfg-acc-icone"><i class="ph-bold ph-sparkle"></i></span>
@@ -4102,10 +4104,10 @@
                                 <button type="button" class="lcfg-btn" id="lcfgPreviaRecarrega" title="Recarregar a prévia"><i class="ph-bold ph-arrow-clockwise"></i></button>
                             </div>
                             <div class="lcfg-ia-frame"><iframe id="lcfgPreviaFrame" title="Prévia do fluxo de lentes"></iframe></div>
+                            <small class="lcfg-prev-dica"><i class="ph-bold ph-cursor-text"></i> clique no texto da tela para editar</small>
                         </div>
                         </aside>
                     </div>
-                    <div id="lcfgCorpo"></div>
                 </div>
             </div>
 
@@ -4442,6 +4444,20 @@
                     }
 
                     /* Assistente com IA + prévia ao vivo (12/10/2026) */
+                    .lcfg-pp-topcard { background: var(--l-card); border: 1px solid var(--l-line); border-radius: 16px; padding: 10px 12px; margin-bottom: 14px; }
+                    .lcfg-pp-topcard .lcfg-pp-bar { border-bottom: 0; padding: 2px; }
+                    .lcfg-pp-l.aj { flex: 0 0 22px; background: none; border-left: 1px dashed var(--l-line); height: 26px; margin-left: 8px; }
+                    .lcfg-pp-st.aj .n { background: var(--l-line-soft); color: var(--l-muted); } .lcfg-pp-st.aj.on .n { background: var(--l-ink); color: var(--l-card); }
+                    .lcfg-pp-pane > .lcfg-acc.lvl-0 { border: 0; margin: 0; background: none; overflow: visible; }
+                    .lcfg-pp-pane > .lcfg-acc.lvl-0 > .lcfg-acc-head { display: none; }
+                    .lcfg-pp-pane > .lcfg-acc.lvl-0 > .lcfg-acc-body { display: block; padding: 0; border: 0; }
+                    .lcfg-topo-dir .lcfg-ia-previa { background: none; border: 0; height: auto; min-height: 0; overflow: visible; }
+                    .lcfg-topo-dir .lcfg-ia-previa-topo { background: var(--l-card); border: 1px solid var(--l-line); border-radius: 14px; margin-bottom: 12px; }
+                    .lcfg-topo-dir .lcfg-ia-frame { background: #111; border-radius: 40px; padding: 11px; height: min(700px, calc(100vh - 230px)); min-height: 520px; width: 100%; max-width: 340px; margin: 0 auto; box-shadow: 0 18px 40px rgba(28,24,38,.18); }
+                    .lcfg-topo-dir .lcfg-ia-frame { position: relative; display: block; }
+                    .lcfg-topo-dir .lcfg-ia-frame iframe { position: absolute; inset: 11px; width: calc(100% - 22px); height: calc(100% - 22px); border-radius: 30px; max-width: none; }
+                    .lcfg-prev-dica { display: block; text-align: center; font-size: 11.5px; color: var(--l-muted); margin-top: 8px; }
+                    #lcfgIA[hidden] { display: none !important; }
                     .lcfg-pp { background: var(--l-card); border: 1px solid var(--l-line); border-radius: 16px; padding: 14px 16px 16px; }
                     .lcfg-pp-topo { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; } .lcfg-pp-topo small { font-size: 12px; color: var(--l-muted); }
                     .lcfg-pp-bar { display: flex; align-items: center; overflow-x: auto; padding: 4px 2px 8px; border-bottom: 1px solid var(--l-line-soft); }
@@ -4496,7 +4512,7 @@
                     .lcfg-modal .ft { padding: 12px 16px; border-top: 1px solid #ecebe6; display: flex; gap: 8px; justify-content: space-between; align-items: center; font-size: 12px; color: #6b6577; }
                     .lcfg-modal .bd { padding: 16px; } .lcfg-modal .bd .r { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; font-size: 13px; }
                     .lcfg-modal .bd input { width: 80px; font: inherit; font-size: 14px; border: 1px solid #ecebe6; border-radius: 9px; padding: 7px 9px; text-align: center; }
-                    .lcfg-topo-grid { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 14px; align-items: start; margin-bottom: 14px; }
+                    .lcfg-topo-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 14px; align-items: start; margin-bottom: 14px; }
                     .lcfg-topo-esq { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
                     .lcfg-topo-esq > #lcfgMapa:empty { display: none; }
                     .lcfg-topo-dir { position: sticky; top: 90px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
@@ -7343,7 +7359,7 @@
                     '<p class="lcfg-ed-nota">Etapa sua: a resposta fica no histórico do fluxo e não muda a lente indicada.</p>';
             }
             const k = id, on = k === 'telefone' ? e.telefone.ativo !== false : k === 'tratamento' ? e.tratamento.ativo !== false : k === 'uso' ? e.uso.ativo !== false : true;
-            const NOTA = { tipo: 'Cada opção abre um caminho no mapa. Ligar, desligar e ordenar as opções fica em "Tipos de lente", mais abaixo.', uso: 'Só aparece quando a receita tem adição e a lente é de visão simples. Desligada, o fluxo não pergunta e usa o grau escolhido.', conferir: 'Tela em que o cliente confere os números lidos da receita.', resultado: 'A lente e o preço vêm da indicação e da sua loja.' };
+            const NOTA = { tipo: 'Cada opção desta tela abre um caminho do fluxo. Ligue, desligue, renomeie e mude a ordem logo abaixo.', uso: 'Só aparece quando a receita tem adição e a lente é de visão simples. Desligada, o fluxo não pergunta e usa o grau escolhido.', conferir: 'Tela em que o cliente confere os números lidos da receita.', resultado: 'A lente e o preço vêm da indicação e da sua loja.' };
             let linha = '';
             if (k === 'tratamento' && !on && ops.length) linha = '<div class="lcfg-ed-linha"><span class="lcfg-ed-rot">Usar</span><select data-lcfg-etapa="tratamento" data-f="padrao" aria-label="Tratamento usado com a etapa desligada">' +
                 ops.map(o => '<option value="' + _lcfgEsc(o.key) + '"' + (o.key === e.tratamento.padrao ? ' selected' : '') + '>' + _lcfgEsc(o.titulo) + '</option>').join('') + '</select></div>';
@@ -7388,16 +7404,19 @@
             const on = id === 'telefone' ? e.telefone.ativo !== false : id === 'tratamento' ? e.tratamento.ativo !== false : id === 'uso' ? e.uso.ativo !== false : true;
             return { nome: id === 'resultado' ? 'Lente indicada' : _lcfgEtNome(id), on, anc: _LCFG_ANCORA_DE[id] || (id === 'conferir' || id === 'uso' ? 'receita' : null) };
         }
+        const _LCFG_AJUSTES = [['visual', 'Visual', 'ph-palette', 'cores e fonte'], ['lentes', 'Lentes da loja', 'ph-list-checks', 'catálogo']];
+        function _lcfgPassosTodos() { return _lcfgPassosLista().concat(_LCFG_AJUSTES.map(a => a[0])); }
         function _lcfgStepper() {
             const ps = _lcfgPassosLista(), i0 = ps.indexOf(_lcfgSelEt);
             let n = 0;
+            const aj = '<span class="lcfg-pp-l aj"></span>' + _LCFG_AJUSTES.map(a => '<button type="button" class="lcfg-pp-st aj' + (_lcfgSelEt === a[0] ? ' on' : '') + '" data-lcfg-sel="' + a[0] + '"><span class="n"><i class="ph-bold ' + a[2] + '"></i></span><span class="tx"><b>' + a[1] + '</b><small>' + a[3] + '</small></span></button>').join('');
             return ps.map((id, j) => {
                 const p = _lcfgPassoInfo(id); if (p.on) n++;
                 const mais = j && p.anc ? '<span class="lcfg-pp-l"><button type="button" class="lcfg-pp-add" data-lcfg-xacao="novo" data-antes="' + p.anc + '" title="Adicionar etapa aqui"><i class="ph-bold ph-plus"></i></button></span>' : (j ? '<span class="lcfg-pp-l"></span>' : '');
                 const cls = (id === _lcfgSelEt ? ' on' : j < i0 ? ' feito' : '') + (p.on ? '' : ' off');
                 return mais + '<button type="button" class="lcfg-pp-st' + cls + '" data-lcfg-sel="' + id + '"><span class="n">' + (j < i0 && p.on ? '<i class="ph-bold ph-check"></i>' : (p.on ? n : '–')) + '</span>' +
                     '<span class="tx"><b>' + _lcfgEsc(p.nome) + '</b><small>' + (!p.on ? 'desligada' : id === 'resultado' ? (_lcfgGradeOk() ? 'grade por grau' : 'resultado') : p.extra ? 'etapa sua' : 'etapa ' + n) + '</small></span></button>';
-            }).join('');
+            }).join('') + aj;
         }
         // campos de texto da etapa (o mesmo texto também pode ser editado clicando na prévia)
         function _lcfgCamposEt(id) {
@@ -7416,7 +7435,7 @@
             }
             const ks = (_lcfgEdit.textos || []).filter(t => t.etapa === id).map(t => t.key);
             let h = ks.length ? '<div class="lcfg-bloco-tit">O que o cliente vê nesta tela</div>' + ks.map(k => _lcfgCampoTexto(k, 2)).join('') : '';
-            if (id === 'tipo') h += '<p class="lcfg-ed-nota" style="margin-top:6px">Os tipos de lente (nomes, ordem, ligar/desligar) ficam em <b>Tipos de lente</b>, mais abaixo — ou clique no texto na prévia.</p>';
+
             return h;
         }
         /* --- grade de indicação --- */
@@ -7524,17 +7543,23 @@
             _lcfgAtualizaBarraEPrevia(); _lcfgGPickPinta(false);
         }
         function _lcfgPintaEtapasCat() {
-            const ps = _lcfgPassosLista();
+            const ps = _lcfgPassosTodos();
             if (ps.indexOf(_lcfgSelEt) === -1) _lcfgSelEt = ps.indexOf('tipo') !== -1 ? 'tipo' : ps[0];
-            const i = ps.indexOf(_lcfgSelEt), p = _lcfgPassoInfo(_lcfgSelEt);
+            const i = ps.indexOf(_lcfgSelEt), fl = _lcfgPassosLista(), aj = _LCFG_AJUSTES.find(x => x[0] === _lcfgSelEt);
             const nav = '<div class="lcfg-pp-nav"><button type="button" class="lcfg-btn" ' + (i ? 'data-lcfg-sel="' + ps[i - 1] + '"' : 'disabled') + '><i class="ph-bold ph-arrow-left"></i> Anterior</button>' +
                 '<button type="button" class="lcfg-btn lcfg-btn-pri" ' + (i < ps.length - 1 ? 'data-lcfg-sel="' + ps[i + 1] + '"' : 'disabled') + '>Próxima <i class="ph-bold ph-arrow-right"></i></button></div>';
-            const corpo = _lcfgSelEt === 'resultado'
-                ? '<div class="lcfg-ed-topo"><b>Lente indicada</b></div><p class="lcfg-ed-nota">Tela final do fluxo. Os textos dos botões você muda clicando na prévia.</p>' + _lcfgCamposEt('resultado') + _lcfgGrade()
-                : _lcfgEditorEt(_lcfgSelEt) + _lcfgCamposEt(_lcfgSelEt);
-            return '<div class="lcfg-pp"><div class="lcfg-pp-topo"><span class="lcfg-etapa">Fluxo do cliente · passo a passo</span><small>Clique numa etapa · <b>+</b> entre elas cria uma etapa sua · a prévia ao lado acompanha</small></div>' +
-                '<div class="lcfg-pp-bar" id="lcfgStepper">' + _lcfgStepper() + '</div>' +
-                '<div class="lcfg-pp-pane"><div class="lcfg-pp-num">Etapa ' + (i + 1) + ' de ' + ps.length + (p.on ? '' : ' · <span class="lcfg-pill off">desligada</span>') + '</div>' + corpo + nav + '</div></div>';
+            let corpo;
+            if (aj) corpo = '<div class="lcfg-ed-topo"><b>' + aj[1] + '</b></div>' + (aj[0] === 'visual'
+                    ? '<p class="lcfg-ed-nota">Cores de cada elemento, fonte e cantos do fluxo na sua loja. A prévia muda na hora.</p>' + _lcfgCores()
+                    : '<p class="lcfg-ed-nota">Todas as lentes da sua loja. Desligue as que não quer indicar e ajuste o nome que aparece no fluxo. O preço é sempre o do produto na loja.</p>' + _lcfgBlocoLentes);
+            else {
+                const p = _lcfgPassoInfo(_lcfgSelEt);
+                corpo = '<div class="lcfg-pp-num">Etapa ' + (fl.indexOf(_lcfgSelEt) + 1) + ' de ' + fl.length + (p.on ? '' : ' · <span class="lcfg-pill off">desligada</span>') + '</div>' +
+                    (_lcfgSelEt === 'resultado'
+                        ? '<div class="lcfg-ed-topo"><b>Lente indicada</b></div><p class="lcfg-ed-nota">Tela final do fluxo. Os textos dos botões você muda clicando na prévia.</p>' + _lcfgCamposEt('resultado') + _lcfgGrade()
+                        : _lcfgEditorEt(_lcfgSelEt) + _lcfgCamposEt(_lcfgSelEt) + (_lcfgSelEt === 'tipo' ? _lcfgBlocoTipos : ''));
+            }
+            return '<div class="lcfg-pp lcfg-pp-pane">' + corpo + nav + '</div>';
         }
         /* ---- Ordem das etapas por arrastar (12/10/2026): arraste os blocos; a posição da receita é calculada ---- */
         function _lcfgOrdemBlocos() {
@@ -7570,6 +7595,7 @@
             return 'final';
         }
         // Lojas cujo fluxo é do próprio widget (Cacifé, Koros, Maxilook, Sirena): catálogo, 1ª tela e cores.
+        let _lcfgBlocoTipos = '', _lcfgBlocoLentes = '';
         function _lcfgPintaCatalogo(c) {
             const necs = c.necessidades || [];
             const tipos = necs.map((n, i, arr) => '<div class="lcfg-item' + (n.ativo === false ? ' off' : '') + '">' +
@@ -7586,23 +7612,24 @@
                 return _lcfgAcc('g:' + g.nome, { nivel: 1, titulo: _lcfgEsc(g.nome), meta: _lcfgResumo(g.keys), off: !on, corpo: _lcfgLentes(g.keys) });
             }).join('');
             const total = (c.lentes || []).length, ligadas = (c.lentes || []).filter(l => l.ativo !== false).length;
-            const mapa = document.getElementById('lcfgMapa'); if (mapa) mapa.innerHTML = _lcfgPintaEtapasCat();   // mapa do fluxo fica no topo
-            const edb = document.getElementById('lcfgEdBar'); if (edb) edb.innerHTML = '';
-            _lcfgPreviaIr();
-            document.getElementById('lcfgCorpo').innerHTML =
-                '<p class="lcfg-intro">Abra cada parte para editar. O que estiver <b>desligado</b> some do fluxo da loja. Depois de salvar, a loja mostra as mudanças em até 5 minutos.</p>' +
-                _lcfgCores() +
-                _lcfgAcc('etapa1', {
+            // passo a passo (13/10/2026): Tipos de lente vai pra etapa "Tipo de lente"; Visual e Lentes da loja viram etapas
+            _lcfgAbertos.add('cores'); _lcfgAbertos.add('etapa1'); _lcfgAbertos.add('lentes');
+            _lcfgBlocoTipos = _lcfgAcc('etapa1', {
                     icone: 'ph-list-numbers', etapa: 'Primeira tela', titulo: 'Tipos de lente',
                     meta: necs.filter(n => n.ativo !== false).length + ' de ' + necs.length + ' opções aparecendo · use as setas para mudar a ordem',
-                    corpo: '<div class="lcfg-bloco-tit">Opções (na ordem em que aparecem)</div>' + tipos
-                }) +
-                _lcfgAcc('lentes', {
+                    corpo: '<div class="lcfg-bloco-tit">Opções da tela (cada uma abre um caminho) — na ordem em que aparecem</div>' + tipos
+                });
+            _lcfgBlocoLentes = _lcfgAcc('lentes', {
                     icone: 'ph-eyeglasses', etapa: 'Catálogo', titulo: 'Lentes e preços',
                     meta: ligadas + ' de ' + total + ' lentes ligadas · a recomendação escolhe entre as ligadas',
                     corpo: '<p class="lcfg-intro" style="margin:14px 0 4px;">O preço de cada lente é o do produto na sua loja: para mudar, altere direto na plataforma (Nuvemshop). Aqui você escolhe quais lentes aparecem e como se chamam. Lente desligada nunca é recomendada.</p>' + lentes
-                }) +
-                '<p class="lcfg-intro" style="margin-top:4px;">Dica: nos textos, Enter quebra a linha e **dois asteriscos** deixam em negrito.</p>';
+                });
+            const top = document.getElementById('lcfgStepTop');
+            const mapa = document.getElementById('lcfgMapa'); if (mapa) mapa.innerHTML = _lcfgPintaEtapasCat();
+            if (top) top.innerHTML = '<div class="lcfg-pp-topcard"><div class="lcfg-pp-bar" id="lcfgStepper">' + _lcfgStepper() + '</div></div>';
+            const edb = document.getElementById('lcfgEdBar'); if (edb) edb.innerHTML = '';
+            document.getElementById('lcfgCorpo').innerHTML = '';
+            _lcfgPreviaIr();
             _lcfgAtualizaBarraEPrevia();
         }
         function _lcfgPinta() {
@@ -7613,6 +7640,7 @@
                 else prev.style.display = 'none';
             }
             const mp = document.getElementById('lcfgMapa'); if (mp && c.modo !== 'catalogo') mp.innerHTML = '';
+            const stp = document.getElementById('lcfgStepTop'); if (stp && c.modo !== 'catalogo') stp.innerHTML = '';
             const eb = document.getElementById('lcfgEdBar'); if (eb && c.modo !== 'catalogo') eb.innerHTML = '';
             if (c.modo === 'catalogo') { _lcfgPintaCatalogo(c); return; }
             const g = c.geral || (c.geral = {});
@@ -7894,6 +7922,7 @@
             const b = document.getElementById('lentesCfgTabBtn'); if (b) b.style.display = 'none';
             const corpo = document.getElementById('lcfgCorpo'); if (corpo) corpo.innerHTML = '';
             const mapa = document.getElementById('lcfgMapa'); if (mapa) mapa.innerHTML = '';
+            const stp = document.getElementById('lcfgStepTop'); if (stp) stp.innerHTML = '';
             if (typeof _lcfgIAReset === 'function') _lcfgIAReset();
         }
         /* arrastar e soltar: listas (alça .lcfg-grip) e faixa de etapas (.lcfg-chip) */
@@ -8279,8 +8308,8 @@
         // leva a prévia pra etapa escolhida no mapa (x:<índice> = etapa criada pelo lojista)
         function _lcfgPreviaIr() {
             if (!_lcfgPreviaLive || !_lcfgEdit || _lcfgEdit.modo !== 'catalogo') return;
-            const m = { type: 'pl-lentes-ir', etapa: _lcfgSelEt };
-            if (_lcfgSelEt === 'resultado' && typeof _lcfgGradeOk === 'function' && _lcfgGradeOk() && _lcfgGTipo)
+            const m = { type: 'pl-lentes-ir', etapa: _lcfgSelEt === 'visual' ? 'tratamento' : _lcfgSelEt === 'lentes' ? 'resultado' : _lcfgSelEt };
+            if (m.etapa === 'resultado' && typeof _lcfgGradeOk === 'function' && _lcfgGradeOk() && _lcfgGTipo)
                 m.sim = { visao: _lcfgGTipo, trat: _lcfgSim.trat, receita: { odEsf: _lcfgSim.esfOD, odCil: _lcfgSim.cilOD, odEixo: 0, oeEsf: _lcfgSim.esfOE, oeCil: _lcfgSim.cilOE, oeEixo: 0, adicao: null } };
             _lcfgPreviaPost(m);
         }
