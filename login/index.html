@@ -7554,7 +7554,7 @@
         async function _lcfgIAEnviar(texto) {
             texto = String(texto || '').trim();
             if (!texto || _lcfgIABusy || !_lcfgEdit) return;
-            const historico = _lcfgIAHist.filter(m => !m.erro).slice(-6).map(m => ({ de: m.de, texto: m.texto }));
+            const historico = _lcfgIAHist.filter(m => !m.erro).slice(-6).map(m => ({ de: m.de, texto: m.texto, mudancas: m.mudancas || [], desfeito: !!m.desfeito }));
             _lcfgIAHist.push({ de: 'eu', texto });
             _lcfgIABusy = true; _lcfgIAPinta();
             try {
@@ -7567,8 +7567,30 @@
                 });
                 let d = null; try { d = await r.json(); } catch (e) {}
                 if (!r.ok || !d || d.ok === false) throw new Error((d && d.erro) || 'Não consegui falar com a IA agora. Tente de novo.');
+                // "desfazer": volta a última resposta com mudança (ou tudo pro que está salvo)
+                const opsIA = Array.isArray(d.operacoes) ? d.operacoes : [];
+                const desf = opsIA.find(o => o && o.tipo === 'desfazer');
+                if (desf) {
+                    if (String(desf.alvo || '') === 'salvo') {
+                        const tinha = _lcfgSujo();
+                        _lcfgEdit = JSON.parse(JSON.stringify(_lcfgSalvo));
+                        _lcfgIAHist.forEach(m => { if (m.snap) m.desfeito = true; });
+                        _lcfgIAHist.push({ de: 'ia', texto: d.resposta || (tinha ? 'Pronto: descartei o rascunho e voltei para o que está salvo na loja.' : 'O rascunho já está igual ao que está salvo na loja.'), mudancas: tinha ? ['Voltou tudo para o que está salvo na loja'] : [] });
+                    } else {
+                        let i = _lcfgIAHist.length - 1;
+                        while (i >= 0 && !(_lcfgIAHist[i].snap && !_lcfgIAHist[i].desfeito)) i--;
+                        if (i < 0) _lcfgIAHist.push({ de: 'ia', texto: 'Não há alteração minha para desfazer. Se quiser descartar todo o rascunho, peça "volta pro que está salvo".' });
+                        else {
+                            const alvoM = _lcfgIAHist[i];
+                            _lcfgEdit = JSON.parse(alvoM.snap); alvoM.desfeito = true;
+                            _lcfgIAHist.push({ de: 'ia', texto: d.resposta || 'Pronto: desfiz a última alteração.', mudancas: (alvoM.mudancas || []).map(x => 'Desfeito: ' + x) });
+                        }
+                    }
+                    _lcfgPinta(); _lcfgPreviaAtualiza();
+                    return;
+                }
                 const snap = JSON.stringify(_lcfgEdit);
-                const { mud, ignoradas } = _lcfgAplicaOps(d.operacoes);
+                const { mud, ignoradas } = _lcfgAplicaOps(opsIA);
                 // trava de segurança: nunca deixa a primeira tela ou a tela de receita sem opção
                 const semReceita = Array.isArray(_lcfgEdit.receita) && _lcfgEdit.receita.length && !_lcfgEdit.receita.some(n => n.ativo !== false);
                 if (!(_lcfgEdit.necessidades || []).some(n => n.ativo !== false) || semReceita) {
