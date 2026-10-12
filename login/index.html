@@ -8511,8 +8511,9 @@
             f.contentWindow.postMessage(msg, alvo);
         }
         // leva a prévia pra etapa escolhida no mapa (x:<índice> = etapa criada pelo lojista)
+        let _lcfgDaPrevia = false;   // a troca de etapa veio da própria prévia: não manda a prévia pular de volta
         function _lcfgPreviaIr() {
-            if (!_lcfgPreviaLive || !_lcfgEdit || _lcfgEdit.modo !== 'catalogo') return;
+            if (_lcfgDaPrevia || !_lcfgPreviaLive || !_lcfgEdit || _lcfgEdit.modo !== 'catalogo') return;
             const m = { type: 'pl-lentes-ir', etapa: _lcfgSelEt === 'visual' ? 'tratamento' : _lcfgSelEt === 'lentes' ? 'resultado' : _lcfgSelEt };
             if (m.etapa === 'resultado' && typeof _lcfgGradeOk === 'function' && _lcfgGradeOk() && _lcfgGTipo)
                 m.sim = { visao: _lcfgGTipo, base: ((_lcfgEdit.necessidades || []).find(n => n.key === _lcfgGTipo) || {}).base || null, trat: ((_lcfgEdit.tratamentos_extra || []).find(x => x.key === _lcfgSim.trat) || {}).base || _lcfgSim.trat, tratOp: _lcfgSim.trat, receita: { odEsf: _lcfgSim.esfOD, odCil: _lcfgSim.cilOD, odEixo: 0, oeEsf: _lcfgSim.esfOE, oeCil: _lcfgSim.cilOE, oeEixo: 0, adicao: null } };
@@ -8557,6 +8558,14 @@
                 _lcfgPreviaLive = true; _lcfgPreviaTema = JSON.stringify(_lcfgEdit.tema || {});
                 _lcfgPreviaPost({ type: 'pl-lentes-modo', editar: _lcfgPreviaModo === 'editar' });
                 setTimeout(_lcfgPreviaIr, 350); setTimeout(_lcfgPreviaIr, 1600);   // de novo depois que a prévia abre o fluxo sozinha
+            }
+            // cliente avançou no celular da prévia: a barra de etapas acompanha (13/10/2026)
+            if (e.data.type === 'pl-lentes-etapa' && e.data.etapa && _lcfgEdit.modo === 'catalogo') {
+                const et = String(e.data.etapa), passos = _lcfgPassosLista();
+                if (et !== _lcfgSelEt && passos.indexOf(et) !== -1 && passos.indexOf(_lcfgSelEt) !== -1) {   // só entre etapas do fluxo (Visual/Lentes da loja ficam onde estão)
+                    _lcfgSelEt = et; _lcfgDaPrevia = true;
+                    try { _lcfgPinta(); } finally { _lcfgDaPrevia = false; }
+                }
             }
             // texto editado direto na prévia: grava no rascunho sem recarregar a prévia
             if (e.data.type === 'pl-lentes-edit' && e.data.ref) {
