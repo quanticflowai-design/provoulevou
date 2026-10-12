@@ -14338,7 +14338,7 @@
                 if (urlBtnIndex >= 0 && leadLink) {
                     // Botão de URL dinâmico = base fixa (domínio) + {{1}}. Manda só o CAMINHO
                     // (tira esquema+host), pra Meta concatenar com a base do botão sem duplicar o domínio.
-                    const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || leadLink;
+                    const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?';
                     components = [];
                     if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
                     components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
@@ -15096,6 +15096,24 @@
             catch (e) { crmToast && crmToast('Não foi possível excluir.', true); }
         }
 
+        // RFM e Segmentacoes montam o publico so com nome+telefone. Antes de disparar, completa cada
+        // cliente com os MESMOS dados da campanha normal (12/10/2026): produto provado, link do produto
+        // e link do checkout/pedido, tirados do CRM (provas + carrinhos + pedidos pendentes).
+        async function plEnriqueceAlvos(lista) {
+            try { if ((typeof crmLeadMapCache === 'undefined' || !crmLeadMapCache) && typeof loadCRM === 'function') await loadCRM(); } catch (e) {}
+            const mapa = (typeof crmLeadMapCache !== 'undefined' && crmLeadMapCache) ? crmLeadMapCache : {};
+            return (lista || []).map(function (t) {
+                const k = normalize(t.crmPhone || t.phone);
+                const lead = mapa[k] || null;
+                return Object.assign({}, t, {
+                    crmPhone: t.crmPhone || k,
+                    product: t.product || (lead && lead.lastProduct) || '',
+                    productUrl: t.productUrl || (lead && lead.lastProductUrl) || '',
+                    checkoutUrl: t.checkoutUrl || (lead && lead.checkoutUrl) || ''
+                });
+            });
+        }
+
         // ---- Wizard ----
         function campWizardOpen(audience) {
             _campInjectCSS();
@@ -15402,7 +15420,7 @@
             }
             try {
                 if (CAMP.sched === 'dia' || CAMP.sched === 'agora') {
-                    let targets = CAMP.audience ? CAMP.audience.targets : await waGetBulkTargets(CAMP.stage, '', CAMP.pipeline);
+                    let targets = CAMP.audience ? await plEnriqueceAlvos(CAMP.audience.targets) : await waGetBulkTargets(CAMP.stage, '', CAMP.pipeline);   // RFM/Segmentacao: completa produto e links
                     if (!CAMP.audience) targets = campFiltraPeriodo(targets);   // filtro de período (data da última prova)
                     // Link de cada lead — MESMA lógica do disparo imediato (leadLinkOf vive no escopo do
                     // executeBulkSend e não existe aqui; antes o {{3}} saía sempre vazio → Meta #131008).
@@ -15443,7 +15461,7 @@
                         const params = waBuildLeadBodyParams(tplObj, firstName, produto, leadLink);
                         const p = { to: lead.phone, params: params };
                         if (urlBtnIndex >= 0 && leadLink) {
-                            const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || leadLink;
+                            const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?';
                             const components = [];
                             if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
                             components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
@@ -15804,7 +15822,7 @@
                 const params = waBuildLeadBodyParams(tplObj, firstName, produto, leadLink);
                 const p = { to: lead.phone, params: params };
                 if (urlBtnIndex >= 0 && leadLink) {
-                    const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || leadLink;
+                    const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?';
                     const components = [];
                     if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
                     components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
@@ -16004,7 +16022,7 @@
             // pra Meta concatenar com a base do botão sem duplicar domínio).
             let components = null;
             if (urlBtnIndex >= 0 && leadLink) {
-                const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || leadLink;
+                const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?';
                 components = [];
                 if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
                 components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
