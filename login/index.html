@@ -7619,7 +7619,7 @@
             const cel0 = s.fi >= 0 ? celDe(g.faixas[s.fi], trSim) : [], l0 = cel0.map(Lk).filter(l => l && l.ativo !== false)[0];
             const res = s.fi < 0 ? '<span class="lcfg-g-res fora"><i class="ph-bold ph-chat-circle-text"></i> fora da grade → ' + (g.fora === 'auto' ? 'regra de sempre' : 'WhatsApp') + '</span>'
                 : !l0 ? '<span class="lcfg-g-res fora"><i class="ph-bold ph-chat-circle-text"></i> célula vazia → ' + (g.fora === 'auto' ? 'regra de sempre' : 'WhatsApp') + '</span>'
-                : '<span class="lcfg-g-res"><i class="ph-bold ph-check-circle" style="color:#16a34a"></i><span class="lcfg-ix ' + _lcfgIxCls(_lcfgLenteCurta(l0).ix) + '">' + _lcfgLenteCurta(l0).ix + '</span><b>' + _lcfgEsc(_lcfgLenteCurta(l0).nm) + '</b> ' + _lcfgBrlC(l0.preco) + '</span>';
+                : '';   // achou a lente: a própria célula destacada na grade mostra (13/10/2026)
             h += '<div class="lcfg-g-sim"><span class="t"><i class="ph-bold ph-flask"></i> Testar receita</span><span class="o">OD ' + inp('esfOD', 'OD esférico') + inp('cilOD', 'OD cilíndrico') + '</span><span class="o">OE ' + inp('esfOE', 'OE esférico') + inp('cilOE', 'OE cilíndrico') + '</span>' +
                 '<select onchange="_lcfgSim.trat=this.value;_lcfgGRepinta(true)">' + trats.map(t => '<option value="' + t.k + '"' + (t.k === _lcfgSim.trat ? ' selected' : '') + '>' + _lcfgEsc(t.t) + '</option>').join('') + '</select>' + res + '</div>';
             h += '<div class="lcfg-g-tb"><table><thead><tr><th>Grau</th>' + trats.map(t => '<th>' + _lcfgEsc(t.t) + '</th>').join('') + '</tr></thead><tbody>';
