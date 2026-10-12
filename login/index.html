@@ -7418,7 +7418,7 @@
             const aj = '<span class="lcfg-pp-l aj"></span>' + _LCFG_AJUSTES.map(a => '<button type="button" class="lcfg-pp-st aj' + (_lcfgSelEt === a[0] ? ' on' : '') + '" data-lcfg-sel="' + a[0] + '"><span class="n"><i class="ph-bold ' + a[2] + '"></i></span><span class="tx"><b>' + a[1] + '</b><small>' + a[3] + '</small></span></button>').join('');
             return ps.map((id, j) => {
                 const p = _lcfgPassoInfo(id); if (p.on) n++;
-                const mais = j && p.anc ? '<span class="lcfg-pp-l"><button type="button" class="lcfg-pp-add" data-lcfg-xacao="novo" data-antes="' + p.anc + '" title="Adicionar etapa aqui"><i class="ph-bold ph-plus"></i></button></span>' : (j ? '<span class="lcfg-pp-l"></span>' : '');
+                const mais = j ? '<span class="lcfg-pp-l"></span>' : '';   // sem criar etapa nova (decisão do Lucas, 13/10)
                 const cls = (id === _lcfgSelEt ? ' on' : j < i0 ? ' feito' : '') + (p.on ? '' : ' off');
                 return mais + '<button type="button" class="lcfg-pp-st' + cls + '" data-lcfg-sel="' + id + '"><span class="n">' + (j < i0 && p.on ? '<i class="ph-bold ph-check"></i>' : (p.on ? n : '–')) + '</span>' +
                     '<span class="tx"><b>' + _lcfgEsc(p.nome) + '</b><small>' + (!p.on ? 'desligada' : id === 'resultado' ? (_lcfgGradeOk() ? 'grade por grau' : 'resultado') : p.extra ? 'etapa sua' : 'etapa ' + n) + '</small></span></button>';
