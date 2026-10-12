@@ -4058,21 +4058,23 @@
                      fluxo de lentes, em acordeão na ordem do fluxo. Só aparece pra loja que tem linha em
                      lentes_fluxo_config. -->
                 <div id="lentesViewConfig" style="display:none;">
-                    <div class="lcfg-barra" id="lcfgBarra">
-                        <div class="lcfg-barra-txt">
-                            <span class="lentes-eyebrow">FLUXO DE LENTES</span>
-                            <h3>Configurar fluxo</h3>
-                            <span class="lcfg-status" id="lcfgStatus">Carregando…</span>
-                        </div>
-                        <div class="lcfg-barra-acoes">
-                            <a class="lcfg-btn" id="lcfgPrevia" href="#" target="_blank" rel="noopener" style="display:none;"><i class="ph-bold ph-eye"></i> Ver prévia</a>
-                            <button type="button" class="lcfg-btn" id="lcfgDesfazer" disabled><i class="ph-bold ph-arrow-counter-clockwise"></i> Desfazer</button>
-                            <button type="button" class="lcfg-btn lcfg-btn-pri" id="lcfgSalvar" disabled><i class="ph-bold ph-floppy-disk"></i> Salvar alterações</button>
-                        </div>
+                    <!-- 13/10/2026: a faixa "Configurar fluxo" saiu; só o Salvar, no canto da barra de etapas -->
+                    <div class="lcfg-topo-fixo">
+                    <div class="lcfg-acoes">
+                        <small id="lcfgPreviaStatus">Como o cliente vai ver</small>
+                        <button type="button" class="lcfg-acao" id="lcfgPreviaRecarrega" title="Recarregar a prévia"><i class="ph-bold ph-arrow-clockwise"></i></button>
+                        <button type="button" class="lcfg-acao" id="lcfgVersoesBtn" onclick="_lcfgVersoesAbre()" title="Versões guardadas: backup e restaurar"><i class="ph-bold ph-clock-counter-clockwise"></i> Versões</button>
+                        <button type="button" class="lcfg-acao pri" id="lcfgSalvar" disabled><i class="ph-bold ph-floppy-disk"></i> Salvar</button>
+                        <span class="lcfg-status" id="lcfgStatus" hidden>Carregando…</span>
+                        <a class="lcfg-btn" id="lcfgPrevia" href="#" target="_blank" rel="noopener" hidden style="display:none;"></a>
+                        <button type="button" class="lcfg-btn" id="lcfgDesfazer" hidden disabled></button>
+                    </div>
+                    <div class="lcfg-pp-topcard" id="lcfgBarra">
+                        <div id="lcfgStepTop"></div>
+                    </div>
                     </div>
                     <!-- Assistente com IA (12/10/2026): a loja dita a mudança, a IA altera o RASCUNHO e a prévia
                          ao lado mostra o fluxo como vai ficar. Só vai pra loja ao clicar em Salvar. -->
-                    <div id="lcfgStepTop"></div>
                     <div class="lcfg-topo-grid" id="lcfgTopoGrid">
                         <div class="lcfg-topo-esq">
                             <div id="lcfgMapa"></div>
@@ -4095,16 +4097,7 @@
                         <aside class="lcfg-topo-dir">
                             <div id="lcfgEdBar"></div>
                         <div class="lcfg-ia-previa">
-                            <div class="lcfg-ia-previa-topo">
-                                <div><b>Prévia do rascunho</b><small id="lcfgPreviaStatus">Como o cliente vai ver</small></div>
-                                <div class="lcfg-modo" role="group" aria-label="Modo da prévia">
-                                    <button type="button" class="on" data-lcfg-modo="editar" title="Clique nos textos da prévia para editar"><i class="ph-bold ph-pencil-simple"></i> Editar</button>
-                                    <button type="button" data-lcfg-modo="testar" title="Clique nas opções para percorrer o fluxo"><i class="ph-bold ph-hand-pointing"></i> Testar</button>
-                                </div>
-                                <button type="button" class="lcfg-btn" id="lcfgPreviaRecarrega" title="Recarregar a prévia"><i class="ph-bold ph-arrow-clockwise"></i></button>
-                            </div>
                             <div class="lcfg-ia-frame"><iframe id="lcfgPreviaFrame" title="Prévia do fluxo de lentes"></iframe></div>
-                            <small class="lcfg-prev-dica"><i class="ph-bold ph-cursor-text"></i> clique no texto da tela para editar</small>
                         </div>
                         </aside>
                     </div>
@@ -4444,9 +4437,25 @@
                     }
 
                     /* Assistente com IA + prévia ao vivo (12/10/2026) */
-                    .lcfg-pp-topcard { background: var(--l-card); border: 1px solid var(--l-line); border-radius: 16px; padding: 10px 12px; margin-bottom: 14px; }
+                    .lcfg-pp-topcard { background: var(--l-card); border: 1px solid var(--l-line); border-radius: 16px; padding: 10px 12px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; position: sticky; top: 8px; z-index: 6; box-shadow: 0 6px 18px rgba(28,24,38,.05); }
+                    #lcfgStepTop { flex: 1; min-width: 0; } 
+                    .lcfg-salvar-box { flex: none; display: flex; align-items: center; gap: 8px; padding-left: 12px; border-left: 1px solid var(--l-line-soft); }
+                    .lcfg-salvar-box [hidden] { display: none !important; }
                     .lcfg-pp-topcard .lcfg-pp-bar { border-bottom: 0; padding: 2px; }
-                    .lcfg-pp-l.aj { flex: 0 0 22px; background: none; border-left: 1px dashed var(--l-line); height: 26px; margin-left: 8px; }
+                    #lcfgStepTop { container-type: inline-size; }
+                    @container (max-width: 1080px) { .lcfg-pp-st .tx small { display: none; } .lcfg-pp-st { padding-right: 8px; } }
+                    @container (max-width: 820px) { .lcfg-pp-st:not(.on) .tx { display: none; } .lcfg-pp-st { padding: 6px; } }
+                    .lcfg-topo-fixo { display: contents; }
+                    .lcfg-acoes { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin: -4px 2px 8px; }
+                    .lcfg-acoes [hidden] { display: none !important; }
+                    .lcfg-acoes #lcfgPreviaStatus { flex: 0 1 auto; min-width: 0; margin: 0 4px 0 0; font-size: 11.5px; color: var(--l-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                    .lcfg-acao { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--l-line); background: var(--l-card); color: var(--l-ink); font: inherit; font-size: 12.5px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+                    .lcfg-acao:hover:not(:disabled) { border-color: var(--l-accent); }
+                    .lcfg-acao#lcfgPreviaRecarrega { width: 30px; padding: 0; justify-content: center; color: var(--l-muted); }
+                    .lcfg-acao.pri { background: var(--l-accent); border-color: var(--l-accent); color: #fff; } .lcfg-acao:disabled { opacity: .45; cursor: default; }
+                    .lcfg-modal-box.lcfg-vers-box { width: min(620px, calc(100vw - 32px)); max-height: calc(100vh - 64px); overflow: auto; padding: 18px; }
+                    .lcfg-vers-topo { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; } .lcfg-vers-topo > div { flex: 1; } .lcfg-vers-topo b { font-size: 16px; } .lcfg-vers-topo p { margin: 4px 0 0; font-size: 12.5px; color: var(--l-muted); }
+                    .lcfg-pp-l.aj { flex: 0 0 14px; background: none; border-left: 1px dashed var(--l-line); height: 26px; margin-left: 8px; }
                     .lcfg-pp-st.aj .n { background: var(--l-line-soft); color: var(--l-muted); } .lcfg-pp-st.aj.on .n { background: var(--l-ink); color: var(--l-card); }
                     .lcfg-pp-pane > .lcfg-acc.lvl-0 { border: 0; margin: 0; background: none; overflow: visible; }
                     .lcfg-pp-pane > .lcfg-acc.lvl-0 > .lcfg-acc-head { display: none; }
@@ -4460,14 +4469,14 @@
                     #lcfgIA[hidden] { display: none !important; }
                     .lcfg-pp { background: var(--l-card); border: 1px solid var(--l-line); border-radius: 16px; padding: 14px 16px 16px; }
                     .lcfg-pp-topo { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; } .lcfg-pp-topo small { font-size: 12px; color: var(--l-muted); }
-                    .lcfg-pp-bar { display: flex; align-items: center; overflow-x: auto; padding: 4px 2px 8px; border-bottom: 1px solid var(--l-line-soft); }
-                    .lcfg-pp-st { flex: none; display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px; border: 0; background: none; border-radius: 11px; cursor: pointer; font: inherit; color: var(--l-ink); text-align: left; }
+                    .lcfg-pp-bar { display: flex; align-items: center; overflow: hidden; padding: 4px 2px 8px; border-bottom: 1px solid var(--l-line-soft); }
+                    .lcfg-pp-st { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px; border: 0; background: none; border-radius: 11px; cursor: pointer; font: inherit; color: var(--l-ink); text-align: left; }
                     .lcfg-pp-st:hover { background: var(--l-line-soft); }
                     .lcfg-pp-st .n { width: 26px; height: 26px; border-radius: 50%; background: var(--l-line); color: var(--l-muted); display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none; }
-                    .lcfg-pp-st .tx b { display: block; font-size: 13px; white-space: nowrap; } .lcfg-pp-st .tx small { display: block; font-size: 11px; color: var(--l-muted); white-space: nowrap; }
+                    .lcfg-pp-st .tx { min-width: 0; } .lcfg-pp-st .tx b { display: block; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .lcfg-pp-st .tx small { display: block; font-size: 11px; color: var(--l-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
                     .lcfg-pp-st.on { background: var(--l-soft); } .lcfg-pp-st.on .n { background: var(--l-accent); color: #fff; }
                     .lcfg-pp-st.feito .n { background: rgba(22,163,74,.14); color: #16a34a; } .lcfg-pp-st.off { opacity: .5; }
-                    .lcfg-pp-l { flex: 1 0 22px; min-width: 22px; height: 2px; background: var(--l-line); position: relative; }
+                    .lcfg-pp-l { flex: 1 1 22px; min-width: 6px; height: 2px; background: var(--l-line); position: relative; }
                     .lcfg-pp-add { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 22px; height: 22px; padding: 0; line-height: 0; border-radius: 50%; border: 1.5px dashed var(--l-accent); background: var(--l-card); color: var(--l-accent); font-size: 11px; cursor: pointer; display: grid; place-items: center; opacity: .35; transition: opacity .15s; }
                     .lcfg-pp-add i { display: block; line-height: 1; } .lcfg-pp-bar:hover .lcfg-pp-add { opacity: 1; }
                     .lcfg-pp-pane { padding-top: 14px; display: flex; flex-direction: column; gap: 10px; }
@@ -4476,6 +4485,21 @@
                     #lentesViewConfig .lcfg-pp-pane .lcfg-campo label { font-size: 11.5px; font-weight: 700; color: var(--l-muted); }
                     #lentesViewConfig .lcfg-pp-pane input[type=text], #lentesViewConfig .lcfg-pp-pane textarea, #lentesViewConfig .lcfg-pp-pane select { font-size: 13.5px; padding: 8px 10px; border-radius: 9px; }
                     #lentesViewConfig .lcfg-pp-pane textarea { min-height: 52px; }
+                    .lcfg-item.nova { border-style: dashed; border-color: var(--l-accent); }
+                    .lcfg-op-base { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--l-muted); margin-top: 4px; }
+                    .lcfg-op-base span { font-weight: 700; } .lcfg-op-base small { flex-basis: 100%; font-size: 11.5px; }
+                    #lentesViewConfig .lcfg-op-base select { height: 32px; border: 1px solid var(--l-line); border-radius: 8px; background: var(--l-field); color: var(--l-ink); font: inherit; font-size: 12.5px; padding: 0 8px; }
+                    .lcfg-op-base .lcfg-link-btn { margin-left: auto; padding: 2px 0; }
+                    .lcfg-v-nova { display: flex; gap: 8px; flex-wrap: wrap; } #lentesViewConfig .lcfg-v-nova input { flex: 1; min-width: 220px; }
+                    .lcfg-v-lista { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+                    .lcfg-v-it { display: flex; align-items: center; gap: 10px; border: 1px solid var(--l-line); border-radius: 12px; padding: 9px 10px; }
+                    .lcfg-v-it.atual { border-color: var(--l-accent); background: var(--l-soft); }
+                    .lcfg-v-it .ic { width: 32px; height: 32px; border-radius: 9px; background: var(--l-line-soft); color: var(--l-muted); display: grid; place-items: center; flex: none; }
+                    .lcfg-v-it .ic.nome, .lcfg-v-it.atual .ic { background: var(--l-accent); color: #fff; }
+                    .lcfg-v-it .tx { flex: 1; min-width: 0; } .lcfg-v-it .tx b { display: block; font-size: 13.5px; } .lcfg-v-it .tx small { display: block; font-size: 11.5px; color: var(--l-muted); }
+                    .lcfg-oprow.acao { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) auto; align-items: center; }
+                    .lcfg-oprow.off input { opacity: .45; text-decoration: line-through; }
+                    .lcfg-oprow.nova { border: 1.5px dashed var(--l-accent); border-radius: 10px; padding: 6px; }
                     .lcfg-oprow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 6px; margin-bottom: 6px; } .lcfg-oprow.um { grid-template-columns: 1fr; }
                     #lentesViewConfig .lcfg-oprow input[type=text] { font-size: 12.5px; padding: 6px 8px; border-radius: 8px; }
                     .lcfg-pp-pane { gap: 11px; }
@@ -4506,8 +4530,13 @@
                     .lcfg-g-rod .leg { display: flex; gap: 8px; flex-wrap: wrap; } .lcfg-g-rod .leg > span { display: inline-flex; gap: 4px; align-items: center; }
                     .lcfg-g-rod .fora { margin-left: auto; display: flex; gap: 6px; align-items: center; } .lcfg-g-rod select { font: inherit; font-size: 12px; border: 1px solid var(--l-line); border-radius: 8px; padding: 4px 6px; background: var(--l-field); color: var(--l-ink); }
                     .lcfg-g-aviso { border: 1px dashed var(--l-line); border-radius: 12px; padding: 12px; font-size: 13px; color: var(--l-muted); display: flex; gap: 8px; align-items: center; }
+                    .lcfg-conf { width: 420px; } .lcfg-conf .bd { display: flex; gap: 12px; align-items: flex-start; padding: 18px; }
+                    .lcfg-conf .ic { width: 38px; height: 38px; border-radius: 11px; background: #f1ebfb; color: #630ed4; display: grid; place-items: center; font-size: 19px; flex: none; }
+                    .lcfg-conf .ic.perigo { background: #fee2e2; color: #dc2626; }
+                    .lcfg-conf b { display: block; font-size: 15px; margin-bottom: 4px; } .lcfg-conf p { margin: 0; font-size: 13px; color: #6b6577; line-height: 1.45; }
+                    .lcfg-conf .ft { justify-content: flex-end; } .lcfg-conf .lcfg-btn-pri.perigo { background: #dc2626; border-color: #dc2626; }
                     .lcfg-modal { position: fixed; inset: 0; background: rgba(28,24,38,.42); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
-                    .lcfg-modal.on { display: flex; }
+                    .lcfg-modal.on { display: flex; } #lcfgConfirmaModal { z-index: 10000; }
                     .lcfg-modal-box { background: #fff; color: #1c1826; border-radius: 16px; width: 600px; max-width: 100%; max-height: 86vh; display: flex; flex-direction: column; font-family: inherit; }
                     .lcfg-modal .hd { padding: 14px 16px; border-bottom: 1px solid #ecebe6; } .lcfg-modal .hd h3 { margin: 0 0 2px; font-size: 16px; } .lcfg-modal .hd p { margin: 0; font-size: 12.5px; color: #6b6577; }
                     .lcfg-modal .hd input { width: 100%; box-sizing: border-box; margin-top: 10px; font: inherit; font-size: 14px; border: 1px solid #ecebe6; border-radius: 9px; padding: 8px 10px; }
@@ -7424,7 +7453,7 @@
                     '<span class="tx"><b>' + _lcfgEsc(p.nome) + '</b><small>' + (!p.on ? 'desligada' : id === 'resultado' ? (_lcfgGradeOk() ? 'grade por grau' : 'resultado') : p.extra ? 'etapa sua' : 'etapa ' + n) + '</small></span></button>';
             }).join('') + aj;
         }
-        // campos de texto da etapa (o mesmo texto também pode ser editado clicando na prévia)
+        // campos de texto da etapa
         function _lcfgCamposEt(id) {
             if (id.indexOf('x:') === 0) {
                 const i = +id.slice(2), x = _lcfgExtras()[i]; if (!x) return '';
@@ -7450,14 +7479,38 @@
             let h = '';
             if (ti) h += '<div class="lcfg-campo"><label>Pergunta que o cliente vê</label>' + inp(ti) + '</div>';
             if (di) h += '<div class="lcfg-campo"><label>Dica</label><textarea rows="2" maxlength="400" data-lcfg-texto="' + di.i + '">' + _lcfgEsc(di.t.valor) + '</textarea></div>';
-            if (ordem.length) h += '<div class="lcfg-campo"><label>Opções</label>' + ordem.map(k => '<div class="lcfg-oprow">' + (pares[k].titulo ? inp(pares[k].titulo, 'Nome da opção') : '<span></span>') + (pares[k].desc ? inp(pares[k].desc, 'Descrição') : '<span></span>') + '</div>').join('') + '</div>';
+            const trat = id === 'tratamento', ocultos = (_lcfgEdit.tratamentos_ocultos || []).map(String);
+            const tkDe = o => { const m = o && String(o.t.sel || '').match(/\[data-(?:trat|treatment)="([^"]+)"\]/); return m ? m[1] : null; };
+            if (ordem.length) h += '<div class="lcfg-campo"><label>Opções</label>' + ordem.map(k => {
+                const tk = trat ? tkDe(pares[k].titulo || pares[k].desc) : null, off = tk && ocultos.indexOf(tk) !== -1;
+                return '<div class="lcfg-oprow' + (trat ? ' acao' : '') + (off ? ' off' : '') + '">' + (pares[k].titulo ? inp(pares[k].titulo, 'Nome da opção') : '<span></span>') + (pares[k].desc ? inp(pares[k].desc, 'Descrição') : '<span></span>') +
+                    (tk ? (off ? '<button type="button" class="lcfg-link-btn" onclick="_lcfgTratOculta(\'' + _lcfgEsc(tk) + '\',false)" title="Voltar a mostrar"><i class="ph-bold ph-arrow-counter-clockwise"></i> Restaurar</button>'
+                        : '<button type="button" class="lcfg-mini" onclick="_lcfgTratOculta(\'' + _lcfgEsc(tk) + '\',true)" title="Remover do fluxo"><i class="ph-bold ph-trash"></i></button>') : '') + '</div>';
+            }).join('') + '</div>';
+            if (trat) {
+                const xs = _lcfgEdit.tratamentos_extra || [], bases = ((_lcfgEdit.etapas_opcoes || {}).tratamentos) || [];
+                h += '<div class="lcfg-campo"><label>Tratamentos criados por você</label>' + (xs.length ? xs.map((x, i) => '<div class="lcfg-oprow acao nova">' +
+                    '<input type="text" maxlength="90" placeholder="Nome do tratamento" data-lcfg-lista="tratamentos_extra" data-i="' + i + '" data-f="titulo" value="' + _lcfgEsc(x.titulo || '') + '"' + (String(x.titulo || '').trim() ? '' : ' class="erro"') + '>' +
+                    '<input type="text" maxlength="160" placeholder="Descrição" data-lcfg-lista="tratamentos_extra" data-i="' + i + '" data-f="desc" value="' + _lcfgEsc(x.desc || '') + '">' +
+                    '<button type="button" class="lcfg-mini" onclick="_lcfgTratDel(' + i + ')" title="Excluir tratamento"><i class="ph-bold ph-trash"></i></button>' +
+                    '<div class="lcfg-op-base" style="grid-column:1/-1"><span>Funciona como</span><select data-lcfg-lista="tratamentos_extra" data-i="' + i + '" data-f="base" onchange="_lcfgPinta()">' + bases.map(b => '<option value="' + _lcfgEsc(b.key) + '"' + (b.key === x.base ? ' selected' : '') + '>' + _lcfgEsc(b.titulo) + '</option>').join('') + '</select>' +
+                    '<small>Aparece nos mesmos tipos de lente que esse tratamento e ganha uma coluna própria na grade de indicação.</small></div></div>').join('') : '<p class="lcfg-ed-nota">Nenhum ainda.</p>') +
+                    '<button type="button" class="lcfg-link-btn" onclick="_lcfgTratNovo()"><i class="ph-bold ph-plus"></i> Novo tratamento</button></div>';
+            }
             if (botoes.length) h += '<div class="lcfg-campo"><label>' + (botoes.length > 1 ? 'Botões' : 'Botão') + '</label>' + botoes.map(o => '<div class="lcfg-oprow um">' + inp(o) + '</div>').join('') + '</div>';
 
             return h;
         }
         /* --- grade de indicação --- */
-        function _lcfgGTipos() { return (_lcfgEdit.necessidades || []).filter(n => n.ativo !== false && !_lcfgSemGrau(n.key)); }
-        function _lcfgTrats() { const o = ((_lcfgEdit.etapas_opcoes || {}).tratamentos) || []; return o.length ? o.map(t => ({ k: t.key, t: _LCFG_TRAT_CURTO[t.key] || t.titulo })) : [{ k: 'A', t: 'Antirreflexo' }]; }
+        function _lcfgGTipos() { return (_lcfgEdit.necessidades || []).filter(n => n.ativo !== false && !_lcfgSemGrau(n.base || n.key)); }
+        function _lcfgTrats() {
+            const ocu = (_lcfgEdit.tratamentos_ocultos || []).map(String), o = (((_lcfgEdit.etapas_opcoes || {}).tratamentos) || []).filter(t => ocu.indexOf(String(t.key)) === -1);
+            const base = o.map(t => ({ k: t.key, t: _LCFG_TRAT_CURTO[t.key] || t.titulo }));
+            const ex = (_lcfgEdit.tratamentos_extra || []).filter(x => x.ativo !== false && String(x.titulo || '').trim()).map(x => ({ k: x.key, t: x.titulo, base: x.base }));
+            const tudo = base.concat(ex);
+            return tudo.length ? tudo : [{ k: 'A', t: 'Antirreflexo' }];
+        }
+        function _lcfgTratBaseNome(k) { const t = (((_lcfgEdit.etapas_opcoes || {}).tratamentos) || []).find(x => x.key === k); return t ? (_LCFG_TRAT_CURTO[t.key] || t.titulo) : k; }
         function _lcfgLenteCurta(l) {
             const m = String(l.nome).match(/(\d\.\d\d)/), ix = m ? m[1] : '';
             const nm = String(l.nome).replace(/^Lentes de Grau Monofocais\s*/i, '').replace(/^Multifocais\s*/i, 'Multi ').split(/ [-–] /)[0].replace(ix, '').replace('!', '').trim();
@@ -7481,11 +7534,16 @@
             let h = '<div class="lcfg-g" id="lcfgGradeBox"><div class="lcfg-g-topo"><b><i class="ph-bold ph-target"></i> Grade de indicação</b><div class="lcfg-g-seg">' +
                 tipos.map(t => '<button type="button" class="' + (t.key === _lcfgGTipo ? 'on' : '') + '" onclick="_lcfgGTipo=\'' + t.key + '\';_lcfgGRepinta(true)">' + _lcfgEsc(_lcfgCurto(t.titulo)) + '</button>').join('') + '</div></div>';
             if (!g || !Array.isArray(g.faixas) || !g.faixas.length) {
-                return h + '<p class="lcfg-intro" style="margin:8px 0 10px">Ainda sem grade para este tipo de lente: o fluxo indica pela regra de sempre. Crie as faixas de grau e escolha, em cada uma, a lente de cada tratamento.</p>' +
-                    '<button type="button" class="lcfg-btn lcfg-btn-pri" onclick="_lcfgGCria()"><i class="ph-bold ph-plus"></i> Criar grade de indicação</button></div>';
+                const nAtual = (_lcfgEdit.necessidades || []).find(n => n.key === _lcfgGTipo) || {}, nBase = nAtual.base ? (_lcfgEdit.necessidades || []).find(n => n.key === nAtual.base) : null;
+                const gb = nBase && ((_lcfgEdit.indicacao || {})[nBase.key] || {}).faixas;
+                return h + '<p class="lcfg-intro" style="margin:8px 0 10px">' + (nBase
+                        ? 'Esta opção ainda usa a indicação de <b>' + _lcfgEsc(nBase.titulo) + '</b>' + (gb && gb.length ? ' (a grade dela)' : ' (regra de sempre)') + '. Crie uma grade própria para escolher lentes diferentes.'
+                        : 'Ainda sem grade para este tipo de lente: o fluxo indica pela regra de sempre. Crie as faixas de grau e escolha, em cada uma, a lente de cada tratamento.') + '</p>' +
+                    '<button type="button" class="lcfg-btn lcfg-btn-pri" onclick="_lcfgGCria()"><i class="ph-bold ph-plus"></i> ' + (nBase ? 'Criar grade própria' : 'Criar grade de indicação') + '</button></div>';
             }
             const inp = (k, r) => '<input type="number" step="0.25" value="' + _lcfgSim[k] + '" aria-label="' + r + '" oninput="_lcfgSim.' + k + '=+this.value||0;_lcfgGRepinta()">';
-            const cel0 = s.fi >= 0 ? (g.faixas[s.fi].cel || {})[_lcfgSim.trat] || [] : [], l0 = cel0.map(Lk).filter(l => l && l.ativo !== false)[0];
+            const trSim = trats.find(t => t.k === _lcfgSim.trat) || {}, celDe = (f, t) => { const c = (f.cel || {})[t.k] || []; return c.length || !t.base ? c : ((f.cel || {})[t.base] || []); };
+            const cel0 = s.fi >= 0 ? celDe(g.faixas[s.fi], trSim) : [], l0 = cel0.map(Lk).filter(l => l && l.ativo !== false)[0];
             const res = s.fi < 0 ? '<span class="lcfg-g-res fora"><i class="ph-bold ph-chat-circle-text"></i> fora da grade → ' + (g.fora === 'auto' ? 'regra de sempre' : 'WhatsApp') + '</span>'
                 : !l0 ? '<span class="lcfg-g-res fora"><i class="ph-bold ph-chat-circle-text"></i> célula vazia → ' + (g.fora === 'auto' ? 'regra de sempre' : 'WhatsApp') + '</span>'
                 : '<span class="lcfg-g-res"><i class="ph-bold ph-check-circle" style="color:#16a34a"></i><span class="lcfg-ix ' + _lcfgIxCls(_lcfgLenteCurta(l0).ix) + '">' + _lcfgLenteCurta(l0).ix + '</span><b>' + _lcfgEsc(_lcfgLenteCurta(l0).nm) + '</b> ' + _lcfgBrlC(l0.preco) + '</span>';
@@ -7494,9 +7552,10 @@
             h += '<div class="lcfg-g-tb"><table><thead><tr><th>Grau</th>' + trats.map(t => '<th>' + _lcfgEsc(t.t) + '</th>').join('') + '</tr></thead><tbody>';
             g.faixas.forEach((f, i) => {
                 h += '<tr class="' + (i === s.fi ? 'rh' : '') + '"><td class="fx" onclick="_lcfgGFaixa(' + i + ')" title="Editar faixa"><b>' + _lcfgGFaixaNome(f) + '</b><small>cil. até ' + Number(f.cil).toFixed(2).replace('.', ',') + ' <i class="ph-bold ph-pencil-simple"></i></small></td>' +
-                    trats.map(t => { const ids = ((f.cel || {})[t.k]) || [], l = Lk(ids[0]), c = l ? _lcfgLenteCurta(l) : null, off = l && l.ativo === false;
+                    trats.map(t => { const ids = ((f.cel || {})[t.k]) || [], l = Lk(ids[0]), c = l ? _lcfgLenteCurta(l) : null, off = l && l.ativo === false, herda = !l && t.base ? Lk(((f.cel || {})[t.base] || [])[0]) : null;
                         return '<td><div class="cel ' + (l ? 'lcfg-bg' + String(c.ix || 'x').replace('.', '') : 'vazia') + (i === s.fi && t.k === _lcfgSim.trat ? ' hit' : '') + '" onclick="_lcfgGPick(' + i + ',\'' + t.k + '\')">' +
-                            (l ? '<span class="a">' + _lcfgEsc(c.nm) + ' ' + c.ix + (off ? ' <em>(desligada)</em>' : '') + '</span><span class="b">' + _lcfgBrlC(l.preco) + (ids.length > 1 ? ' · +' + (ids.length - 1) + ' opção' : '') + '</span>' : '<i class="ph-bold ph-plus"></i>') + '</div></td>'; }).join('') + '</tr>';
+                            (l ? '<span class="a">' + _lcfgEsc(c.nm) + ' ' + c.ix + (off ? ' <em>(desligada)</em>' : '') + '</span><span class="b">' + _lcfgBrlC(l.preco) + (ids.length > 1 ? ' · +' + (ids.length - 1) + ' opção' : '') + '</span>'
+                                : herda ? '<span class="b">igual a ' + _lcfgEsc(_lcfgTratBaseNome(t.base)) + '</span><span class="b" style="opacity:.7">' + _lcfgEsc(_lcfgLenteCurta(herda).nm) + ' ' + _lcfgLenteCurta(herda).ix + '</span>' : '<i class="ph-bold ph-plus"></i>') + '</div></td>'; }).join('') + '</tr>';
             });
             h += '</tbody></table></div><div class="lcfg-g-rod"><button type="button" class="lcfg-link-btn" onclick="_lcfgGAddFaixa()"><i class="ph-bold ph-plus"></i> Faixa de grau</button>' +
                 '<span class="leg">' + [['1.56', 'grossa'], ['1.59', 'policarb.'], ['1.61', 'fina'], ['1.67', 'ultrafina'], ['1.74', 'extra']].map(x => '<span><span class="lcfg-ix ' + _lcfgIxCls(x[0]) + '">' + x[0] + '</span>' + x[1] + '</span>').join('') + '</span>' +
@@ -7520,6 +7579,8 @@
         }
         function _lcfgGCelVazia() { const o = {}; _lcfgTrats().forEach(t => { o[t.k] = []; }); return o; }
         function _lcfgGCria() {
+            const nAtual = (_lcfgEdit.necessidades || []).find(n => n.key === _lcfgGTipo) || {}, gb = nAtual.base && ((_lcfgEdit.indicacao || {})[nAtual.base] || {});
+            if (gb && Array.isArray(gb.faixas) && gb.faixas.length) { _lcfgGAtual(true); _lcfgEdit.indicacao[_lcfgGTipo] = JSON.parse(JSON.stringify(gb)); _lcfgGMuda(); return; }   // começa copiando a do caminho-base
             const g = _lcfgGAtual(true);
             g.faixas = [[0, 2.75, 2], [3, 4.75, 2], [5, 6.75, 2], [7, 12, 4]].map(x => ({ de: x[0], ate: x[1], cil: x[2], cel: _lcfgGCelVazia() }));
             _lcfgGMuda();
@@ -7573,7 +7634,7 @@
                 const p = _lcfgPassoInfo(_lcfgSelEt);
                 corpo = '<div class="lcfg-pp-num">Etapa ' + (fl.indexOf(_lcfgSelEt) + 1) + ' de ' + fl.length + (p.on ? '' : ' · <span class="lcfg-pill off">desligada</span>') + '</div>' +
                     (_lcfgSelEt === 'resultado'
-                        ? '<div class="lcfg-ed-topo"><b>Lente indicada</b></div><p class="lcfg-ed-nota">Tela final do fluxo. Os textos dos botões você muda clicando na prévia.</p>' + _lcfgCamposEt('resultado') + _lcfgGrade()
+                        ? '<div class="lcfg-ed-topo"><b>Lente indicada</b></div><p class="lcfg-ed-nota">Tela final do fluxo com a lente indicada.</p>' + _lcfgCamposEt('resultado') + _lcfgGrade()
                         : _lcfgEditorEt(_lcfgSelEt) + _lcfgCamposEt(_lcfgSelEt) + (_lcfgSelEt === 'tipo' ? _lcfgBlocoTipos : ''));
             }
             return '<div class="lcfg-pp lcfg-pp-pane">' + corpo + nav + '</div>';
@@ -7613,15 +7674,129 @@
         }
         // Lojas cujo fluxo é do próprio widget (Cacifé, Koros, Maxilook, Sirena): catálogo, 1ª tela e cores.
         let _lcfgBlocoTipos = '', _lcfgBlocoLentes = '';
+        // opção nova na tela de tipo de lente: segue o caminho de uma opção existente (base) e tem grade própria (13/10/2026)
+        function _lcfgConfirma(msg, o) {   // janela de confirmação no visual da dash (13/10/2026)
+            o = o || {};
+            return new Promise(res => {
+                let m = document.getElementById('lcfgConfirmaModal');
+                if (!m) { m = document.createElement('div'); m.id = 'lcfgConfirmaModal'; m.className = 'lcfg-modal'; (document.getElementById('lentesViewConfig') || document.body).appendChild(m); }
+                m.innerHTML = '<div class="lcfg-modal-box lcfg-conf"><div class="bd"><div class="ic' + (o.perigo ? ' perigo' : '') + '"><i class="ph-bold ' + (o.perigo ? 'ph-warning' : 'ph-question') + '"></i></div>' +
+                    '<div><b>' + _lcfgEsc(o.titulo || 'Confirmar') + '</b><p>' + _lcfgEsc(msg) + '</p></div></div>' +
+                    '<div class="ft"><button type="button" class="lcfg-btn" data-r="0">' + _lcfgEsc(o.nao || 'Cancelar') + '</button><button type="button" class="lcfg-btn lcfg-btn-pri' + (o.perigo ? ' perigo' : '') + '" data-r="1">' + _lcfgEsc(o.ok || 'Confirmar') + '</button></div></div>';
+                const fecha = v => { m.classList.remove('on'); document.removeEventListener('keydown', tecla); res(v); };
+                const tecla = e => { if (e.key === 'Escape') fecha(false); if (e.key === 'Enter') fecha(true); };
+                m.onclick = e => { const b = e.target.closest('[data-r]'); if (b) fecha(b.dataset.r === '1'); else if (e.target === m) fecha(false); };
+                document.addEventListener('keydown', tecla);
+                m.classList.add('on');
+                setTimeout(() => { const b = m.querySelector('[data-r="1"]'); if (b) b.focus(); }, 30);
+            });
+        }
+        function _lcfgTratOculta(tk, sim) {
+            const o = (_lcfgEdit.tratamentos_ocultos || []).map(String).filter(k => k !== String(tk));
+            if (sim) o.push(String(tk));
+            _lcfgEdit.tratamentos_ocultos = o; _lcfgPinta();
+        }
+        function _lcfgTratNovo() {
+            const bases = ((_lcfgEdit.etapas_opcoes || {}).tratamentos) || [], xs = _lcfgEdit.tratamentos_extra || (_lcfgEdit.tratamentos_extra = []);
+            xs.push({ key: 'tr' + Date.now().toString(36), titulo: 'Novo tratamento', desc: '', base: (bases[0] || {}).key || 'A', ativo: true });
+            _lcfgPinta();
+            setTimeout(() => { const els = document.querySelectorAll('#lcfgMapa [data-lcfg-lista="tratamentos_extra"][data-f="titulo"]'); const q = els[els.length - 1]; if (q) { q.focus(); q.select(); } }, 30);
+        }
+        async function _lcfgTratDel(i) {
+            const x = (_lcfgEdit.tratamentos_extra || [])[i]; if (!x) return;
+            if (!(await _lcfgConfirma('O tratamento "' + (x.titulo || 'Novo tratamento') + '" sai do fluxo e da grade de indicação.', { titulo: 'Excluir tratamento?', ok: 'Excluir', perigo: true }))) return;
+            _lcfgEdit.tratamentos_extra.splice(i, 1);
+            Object.keys(_lcfgEdit.indicacao || {}).forEach(tp => ((_lcfgEdit.indicacao[tp] || {}).faixas || []).forEach(f => { if (f.cel) delete f.cel[x.key]; }));
+            _lcfgPinta();
+        }
+        /* ---- Versões (13/10/2026): lentes_fluxo_config_hist guarda a versão anterior a cada salvamento; a loja também guarda com nome ---- */
+        let _lcfgVers = null, _lcfgVersErro = '';
+        function _lcfgDataHora(v) { try { return new Date(v).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
+        function _lcfgVersoesHtml() {
+            const sujo = _lcfgSujo();
+            let h = '<div class="lcfg-v-nova"><input type="text" id="lcfgVersNome" maxlength="80" placeholder="Nome da versão (ex.: Black Friday, antes da troca de cores)"' + (sujo ? ' disabled' : '') + '>' +
+                '<button type="button" class="lcfg-btn lcfg-btn-pri" onclick="_lcfgVersoesGuarda()"' + (sujo ? ' disabled' : '') + '><i class="ph-bold ph-bookmark-simple"></i> Guardar esta versão</button></div>' +
+                (sujo ? '<p class="lcfg-ed-aviso" style="margin:-4px 0 6px">Salve as alterações antes de guardar uma versão.</p>' : '');
+            if (_lcfgVersErro) return h + '<p class="lcfg-ed-aviso">' + _lcfgEsc(_lcfgVersErro) + '</p>';
+            if (!_lcfgVers) return h + '<p class="lcfg-ed-nota">Carregando versões…</p>';
+            const st = (document.getElementById('lcfgStatus') || {}).textContent || '';
+            h += '<div class="lcfg-v-lista"><div class="lcfg-v-it atual"><span class="ic"><i class="ph-bold ph-check-circle"></i></span><div class="tx"><b>Versão atual</b><small>' + _lcfgEsc(st) + '</small></div><span class="lcfg-pill">no ar</span></div>';
+            if (!_lcfgVers.length) h += '<p class="lcfg-ed-nota">Nenhuma versão anterior ainda.</p>';
+            h += _lcfgVers.map((v, i) => '<div class="lcfg-v-it"><span class="ic' + (v.nome ? ' nome' : '') + '"><i class="ph-bold ' + (v.nome ? 'ph-bookmark-simple' : 'ph-clock-counter-clockwise') + '"></i></span>' +
+                '<div class="tx"><b>' + _lcfgEsc(v.nome || ('Versão de ' + _lcfgDataHora(v.versao_de || v.salvo_em))) + '</b><small>' + (v.nome ? 'Guardada em ' + _lcfgDataHora(v.salvo_em) : (v.versao_de ? 'Usada até ' + _lcfgDataHora(v.salvo_em) : 'Substituída em ' + _lcfgDataHora(v.salvo_em))) + (v.updated_by ? ' · ' + _lcfgEsc(v.updated_by) : '') + '</small></div>' +
+                '<button type="button" class="lcfg-btn" onclick="_lcfgVersoesRestaura(' + i + ')"><i class="ph-bold ph-arrow-counter-clockwise"></i> Restaurar</button></div>').join('') + '</div>';
+            return h;
+        }
+        function _lcfgVersoesPinta() { const b = document.getElementById('lcfgVersoes'); if (b) b.innerHTML = _lcfgVersoesHtml(); }
+        function _lcfgVersoesAbre() {
+            let m = document.getElementById('lcfgVersoesModal');
+            if (!m) { m = document.createElement('div'); m.id = 'lcfgVersoesModal'; m.className = 'lcfg-modal'; (document.getElementById('lentesViewConfig') || document.body).appendChild(m);   // dentro da view: herda as cores e os campos do painel
+                m.onclick = e => { if (e.target === m || e.target.closest('[data-fecha]')) _lcfgVersoesFecha(); }; }
+            m.innerHTML = '<div class="lcfg-modal-box lcfg-vers-box"><div class="lcfg-vers-topo"><div><b>Versões do fluxo</b><p>Cada vez que você salva, a versão anterior fica guardada aqui. Guarde a versão atual com um nome e volte para qualquer uma quando quiser.</p></div>' +
+                '<button type="button" class="lcfg-btn" data-fecha title="Fechar"><i class="ph-bold ph-x"></i></button></div><div id="lcfgVersoes">' + _lcfgVersoesHtml() + '</div></div>';
+            m.classList.add('on'); document.addEventListener('keydown', _lcfgVersoesTecla);
+            _lcfgVersoesCarrega();
+        }
+        function _lcfgVersoesTecla(e) { if (e.key === 'Escape' && !document.querySelector('#lcfgConfirmaModal.on')) _lcfgVersoesFecha(); }
+        function _lcfgVersoesFecha() { const m = document.getElementById('lcfgVersoesModal'); if (m) m.classList.remove('on'); document.removeEventListener('keydown', _lcfgVersoesTecla); }
+        async function _lcfgVersoesCarrega() {
+            if (_lcfgVers && _lcfgVers.__dom === _lcfgDominio) { _lcfgVersoesPinta(); return; }
+            _lcfgVersErro = '';
+            try {
+                const { data, error } = await supabaseClient.from('lentes_fluxo_config_hist').select('id,config,updated_by,salvo_em,versao_de,nome').eq('dominio', _lcfgDominio).order('id', { ascending: false }).limit(60);
+                if (error) throw error;
+                _lcfgVers = data || []; _lcfgVers.__dom = _lcfgDominio;
+            } catch (e) { _lcfgVersErro = 'Não foi possível carregar as versões agora. Tente de novo em instantes.'; }
+            _lcfgVersoesPinta();
+        }
+        async function _lcfgVersoesGuarda() {
+            if (_lcfgSujo()) return;
+            const nome = String((document.getElementById('lcfgVersNome') || {}).value || '').trim();
+            try {
+                const { error } = await supabaseClient.rpc('pl_lentes_versao_salvar', { p_dominio: _lcfgDominio, p_nome: nome || null });
+                if (error) throw error;
+                _lcfgVers = null; await _lcfgVersoesCarrega();
+                crmToast('Versão guardada.');
+            } catch (e) { crmToast('Não foi possível guardar a versão.', true); }
+        }
+        async function _lcfgVersoesRestaura(i) {
+            const v = (_lcfgVers || [])[i]; if (!v || !v.config) return;
+            const nome = v.nome || ('a versão de ' + _lcfgDataHora(v.versao_de || v.salvo_em));
+            if (!(await _lcfgConfirma('O fluxo volta para ' + nome + '. A mudança fica no rascunho: confira na prévia e clique em Salvar alterações para valer na loja. A versão atual continua guardada aqui.', { titulo: 'Restaurar versão?', ok: 'Restaurar' }))) return;
+            const cfg = JSON.parse(JSON.stringify(v.config));
+            if (_lcfgEdit && _lcfgEdit.previa_url && !cfg.previa_url) cfg.previa_url = _lcfgEdit.previa_url;
+            _lcfgEdit = cfg; _lcfgVersoesFecha();
+            _lcfgPinta();
+            crmToast('Versão carregada no rascunho. Clique em Salvar alterações para publicar.');
+        }
+        function _lcfgNovaOpcao() {
+            const necs = _lcfgEdit.necessidades || (_lcfgEdit.necessidades = []), b = necs.find(n => !n.base && !_lcfgSemGrau(n.key)) || necs[0];
+            necs.push({ key: 'op' + Date.now().toString(36), titulo: 'Nova opção', desc: '', ativo: true, base: b ? b.key : 'mono' });
+            _lcfgPinta();
+            setTimeout(() => { const els = document.querySelectorAll('#lcfgMapa [data-lcfg-lista="necessidades"][data-f="titulo"]'); const q = els[els.length - 1]; if (q) { q.focus(); q.select(); } }, 30);
+        }
+        async function _lcfgDelOpcao(i) {
+            const n = (_lcfgEdit.necessidades || [])[i]; if (!n || !n.base) return;
+            if (!(await _lcfgConfirma('A opção "' + (n.titulo || 'Nova opção') + '" e a grade dela saem do fluxo.', { titulo: 'Remover opção?', ok: 'Remover', perigo: true }))) return;
+            _lcfgEdit.necessidades.splice(i, 1);
+            if (_lcfgEdit.indicacao && _lcfgEdit.indicacao[n.key]) delete _lcfgEdit.indicacao[n.key];
+            _lcfgPinta();
+        }
         function _lcfgPintaCatalogo(c) {
             const necs = c.necessidades || [];
-            const tipos = necs.map((n, i, arr) => '<div class="lcfg-item' + (n.ativo === false ? ' off' : '') + '">' +
+            const bases = necs.filter(n => !n.base);
+            const tipos = necs.map((n, i, arr) => '<div class="lcfg-item' + (n.ativo === false ? ' off' : '') + (n.base ? ' nova' : '') + '">' +
                 _lcfgOrdem('necessidades', i, arr.length) +
                 _lcfgSwitch('data-lcfg-lista="necessidades" data-i="' + i + '" data-f="ativo"', n.ativo !== false) +
                 '<div class="lcfg-item-txt">' +
-                    '<input type="text" maxlength="90" aria-label="Título" data-lcfg-lista="necessidades" data-i="' + i + '" data-f="titulo" value="' + _lcfgEsc(n.titulo) + '">' +
-                    '<textarea rows="2" maxlength="300" aria-label="Descrição" data-lcfg-lista="necessidades" data-i="' + i + '" data-f="desc">' + _lcfgEsc(n.desc) + '</textarea>' +
-                '</div></div>').join('');
+                    '<input type="text" maxlength="90" aria-label="Título" placeholder="Nome da opção" data-lcfg-lista="necessidades" data-i="' + i + '" data-f="titulo" value="' + _lcfgEsc(n.titulo) + '"' + (String(n.titulo || '').trim() ? '' : ' class="erro"') + '>' +
+                    '<textarea rows="2" maxlength="300" aria-label="Descrição" placeholder="Descrição (opcional)" data-lcfg-lista="necessidades" data-i="' + i + '" data-f="desc">' + _lcfgEsc(n.desc) + '</textarea>' +
+                    (n.base ? '<div class="lcfg-op-base"><span>Funciona como</span><select data-lcfg-lista="necessidades" data-i="' + i + '" data-f="base" onchange="_lcfgPinta()">' +
+                        bases.map(b => '<option value="' + _lcfgEsc(b.key) + '"' + (b.key === n.base ? ' selected' : '') + '>' + _lcfgEsc(b.titulo) + '</option>').join('') + '</select>' +
+                        '<small>' + (_lcfgSemGrau(n.base) ? 'Sem grau: pula tratamento e receita.' : 'Segue o caminho dessa opção e ganha uma grade própria em "Lente indicada".') + '</small>' +
+                        '<button type="button" class="lcfg-link-btn perigo" onclick="_lcfgDelOpcao(' + i + ')"><i class="ph-bold ph-trash"></i> Remover</button></div>' : '') +
+                '</div></div>').join('') +
+                '<button type="button" class="lcfg-link-btn" style="margin-top:6px" onclick="_lcfgNovaOpcao()"><i class="ph-bold ph-plus"></i> Nova opção</button>';
             const grupos = [];
             (c.lentes || []).forEach(l => { let g = grupos.find(x => x.nome === l.grupo); if (!g) { g = { nome: l.grupo || 'Lentes', keys: [] }; grupos.push(g); } g.keys.push(l.key); });
             const lentes = grupos.map(g => {
@@ -7643,7 +7818,7 @@
                 });
             const top = document.getElementById('lcfgStepTop');
             const mapa = document.getElementById('lcfgMapa'); if (mapa) mapa.innerHTML = _lcfgPintaEtapasCat();
-            if (top) top.innerHTML = '<div class="lcfg-pp-topcard"><div class="lcfg-pp-bar" id="lcfgStepper">' + _lcfgStepper() + '</div></div>';
+            if (top) top.innerHTML = '<div class="lcfg-pp-bar" id="lcfgStepper">' + _lcfgStepper() + '</div>';
             const edb = document.getElementById('lcfgEdBar'); if (edb) edb.innerHTML = '';
             document.getElementById('lcfgCorpo').innerHTML = '';
             _lcfgPreviaIr();
@@ -7863,7 +8038,7 @@
                 return;
             }
             if (!x) return;
-            if (a === 'del') { if (!confirm('Excluir a etapa "' + (x.nome || 'Nova etapa') + '"?')) return; xs.splice(i, 1); _lcfgSelEt = 'tipo'; }
+            if (a === 'del') { _lcfgConfirma('A etapa "' + (x.nome || 'Nova etapa') + '" sai do fluxo.', { titulo: 'Excluir etapa?', ok: 'Excluir', perigo: true }).then(ok => { if (!ok) return; xs.splice(i, 1); _lcfgSelEt = 'tipo'; _lcfgPinta(); }); return; }
             else if (a === 'opadd') { x.opcoes = x.opcoes || []; x.opcoes.push({ key: Date.now().toString(36), titulo: 'Opção ' + (x.opcoes.length + 1) }); }
             else if (a === 'opdel') { x.opcoes.splice(j, 1); }
             else if (a === 'opup' || a === 'opdown') { const k = a === 'opup' ? j - 1 : j + 1; if (k < 0 || k >= x.opcoes.length) return; const o = x.opcoes[j]; x.opcoes[j] = x.opcoes[k]; x.opcoes[k] = o; }
@@ -7872,6 +8047,12 @@
         function _lcfgValida(c) {
             const erros = [];
             if (!(c.necessidades || []).some(n => n.ativo !== false)) erros.push('Deixe pelo menos um tipo de lente ligado.');
+            (c.necessidades || []).forEach(n => { if (n.base && !String(n.titulo || '').trim()) erros.push('Dê um nome para a opção nova do tipo de lente.'); });
+            (c.tratamentos_extra || []).forEach(x => { if (!String(x.titulo || '').trim()) erros.push('Dê um nome para o tratamento novo.'); });
+            if (c.modo === 'catalogo' && ((c.etapas_opcoes || {}).tratamentos || []).length) {
+                const ocu = (c.tratamentos_ocultos || []).map(String), vis = c.etapas_opcoes.tratamentos.filter(t => ocu.indexOf(String(t.key)) === -1).length + (c.tratamentos_extra || []).filter(x => x.ativo !== false).length;
+                if (!vis) erros.push('Deixe pelo menos um tratamento no fluxo (ou desligue a etapa Tratamento).');
+            }
             Object.keys(c.indicacao || {}).forEach(tp => ((c.indicacao[tp] || {}).faixas || []).forEach(f => {
                 if (!(Number(f.ate) >= Number(f.de))) erros.push('Grade de indicação: a faixa ' + f.de + ' a ' + f.ate + ' está invertida.');
             }));
@@ -7908,7 +8089,7 @@
             const erros = _lcfgValida(_lcfgEdit);
             if (erros.length) { alert('Corrija antes de salvar:\n\n• ' + erros.slice(0, 8).join('\n• ') + (erros.length > 8 ? '\n• …' : '')); return; }
             const btn = document.getElementById('lcfgSalvar');
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-spinner"></i> Salvando…'; }
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-spinner"></i> Salvando'; }
             try {
                 const { data, error } = await supabaseClient.from('lentes_fluxo_config')
                     .update({ config: _lcfgEdit, updated_by: (activeUser && activeUser.email) || null })
@@ -7916,6 +8097,7 @@
                 if (error) throw error;
                 if (!data || !data.length) throw new Error('sem permissão para editar este fluxo');
                 _lcfgSalvo = data[0].config;
+                _lcfgVers = null;   // nova versão anterior entrou no histórico
                 _lcfgEdit = JSON.parse(JSON.stringify(_lcfgSalvo));
                 _lcfgUltimo = data[0];
                 crmToast('Fluxo de lentes salvo. A loja atualiza em até 5 minutos.');
@@ -7924,12 +8106,12 @@
                 console.warn('[lentes cfg] salvar:', e);
                 crmToast('Não foi possível salvar: ' + (e.message || e), true);
             } finally {
-                if (btn) btn.innerHTML = '<i class="ph-bold ph-floppy-disk"></i> Salvar alterações';
+                if (btn) btn.innerHTML = '<i class="ph-bold ph-floppy-disk"></i> Salvar';
                 _lcfgAtualizaBarraEPrevia();
             }
         }
-        function _lcfgDesfazer() {
-            if (!_lcfgSalvo || !confirm('Descartar as alterações que ainda não foram salvas?')) return;
+        async function _lcfgDesfazer() {
+            if (!_lcfgSalvo || !(await _lcfgConfirma('As alterações que ainda não foram salvas serão perdidas.', { titulo: 'Descartar alterações?', ok: 'Descartar', perigo: true }))) return;
             _lcfgEdit = JSON.parse(JSON.stringify(_lcfgSalvo));
             _lcfgPinta();
         }
@@ -8316,7 +8498,7 @@
         }
 
         // ---- prévia ao vivo do rascunho ----
-        let _lcfgPreviaLive = false, _lcfgPreviaTema = '', _lcfgPreviaModo = 'editar';
+        let _lcfgPreviaLive = false, _lcfgPreviaTema = '', _lcfgPreviaModo = 'testar';   // prévia só pra ver/testar (13/10/2026)
         function _lcfgPreviaPost(msg) {
             const f = document.getElementById('lcfgPreviaFrame'); if (!f || !f.contentWindow || !_lcfgEdit) return;
             let alvo = '*'; try { alvo = new URL(_lcfgEdit.previa_url).origin; } catch (_) {}
@@ -8327,7 +8509,7 @@
             if (!_lcfgPreviaLive || !_lcfgEdit || _lcfgEdit.modo !== 'catalogo') return;
             const m = { type: 'pl-lentes-ir', etapa: _lcfgSelEt === 'visual' ? 'tratamento' : _lcfgSelEt === 'lentes' ? 'resultado' : _lcfgSelEt };
             if (m.etapa === 'resultado' && typeof _lcfgGradeOk === 'function' && _lcfgGradeOk() && _lcfgGTipo)
-                m.sim = { visao: _lcfgGTipo, trat: _lcfgSim.trat, receita: { odEsf: _lcfgSim.esfOD, odCil: _lcfgSim.cilOD, odEixo: 0, oeEsf: _lcfgSim.esfOE, oeCil: _lcfgSim.cilOE, oeEixo: 0, adicao: null } };
+                m.sim = { visao: _lcfgGTipo, base: ((_lcfgEdit.necessidades || []).find(n => n.key === _lcfgGTipo) || {}).base || null, trat: ((_lcfgEdit.tratamentos_extra || []).find(x => x.key === _lcfgSim.trat) || {}).base || _lcfgSim.trat, tratOp: _lcfgSim.trat, receita: { odEsf: _lcfgSim.esfOD, odCil: _lcfgSim.cilOD, odEixo: 0, oeEsf: _lcfgSim.esfOE, oeCil: _lcfgSim.cilOE, oeEixo: 0, adicao: null } };
             _lcfgPreviaPost(m);
         }
         function _lcfgPreviaAtualiza() {
@@ -8345,7 +8527,7 @@
             if (!_lcfgEdit) return;
             if (JSON.stringify(_lcfgEdit) === _lcfgPreviaCfg) {
                 const st = document.getElementById('lcfgPreviaStatus');
-                if (st && _lcfgPreviaCfg) st.textContent = _lcfgSujo() ? 'Rascunho (ainda não salvo)' : 'Igual ao que está salvo';
+                if (st && _lcfgPreviaCfg) st.textContent = _lcfgSujo() ? 'Alterações não salvas' : 'Igual ao que está salvo';
                 return;
             }
             clearTimeout(_lcfgPreviaTimer);
@@ -8356,7 +8538,7 @@
                     _lcfgPreviaCfg = JSON.stringify(_lcfgEdit);
                     _lcfgPreviaPost({ type: 'pl-lentes-cfg-live', config: JSON.parse(_lcfgPreviaCfg) });
                     _lcfgPreviaIr();
-                    const st = document.getElementById('lcfgPreviaStatus'); if (st) st.textContent = _lcfgSujo() ? 'Rascunho (ainda não salvo)' : 'Igual ao que está salvo';
+                    const st = document.getElementById('lcfgPreviaStatus'); if (st) st.textContent = _lcfgSujo() ? 'Alterações não salvas' : 'Igual ao que está salvo';
                 }, 250);
                 return;
             }
@@ -8385,7 +8567,7 @@
             let alvo = '*';
             try { alvo = new URL(_lcfgEdit.previa_url).origin; } catch (_) {}
             f.contentWindow.postMessage({ type: 'pl-lentes-cfg', config: JSON.parse(_lcfgPreviaCfg || JSON.stringify(_lcfgEdit)) }, alvo);
-            const st = document.getElementById('lcfgPreviaStatus'); if (st) st.textContent = _lcfgSujo() ? 'Rascunho (ainda não salvo)' : 'Igual ao que está salvo';
+            const st = document.getElementById('lcfgPreviaStatus'); if (st) st.textContent = _lcfgSujo() ? 'Alterações não salvas' : 'Igual ao que está salvo';
         });
         // Ordem arrastada dentro da prévia (opções da 1ª tela) volta pro rascunho, sem recarregar a prévia
         window.addEventListener('message', e => {
@@ -24231,7 +24413,7 @@
             const alvos = _lentesBulkTargets(s);
             if (!alvos.length) { try { crmToast('Nenhum lead pra mover com esses filtros.', true); } catch (e) {} return; }
             const tg = s.tag ? (' com ' + _crmBulkTagLabel(s.tag)) : '';
-            if (!confirm('Mover ' + alvos.length + ' jornada(s) de "' + _lentesBulkTitle(s.from) + '"' + tg + ' para "' + _lentesBulkTitle(s.to) + '"?')) return;
+            if (!(await _lcfgConfirma('Mover ' + alvos.length + ' jornada(s) de "' + _lentesBulkTitle(s.from) + '"' + tg + ' para "' + _lentesBulkTitle(s.to) + '"?', { titulo: 'Mover jornadas?', ok: 'Mover' }))) return;
             const btn = document.getElementById('crmBulkMoveApplyBtn');
             if (btn) { btn.disabled = true; btn.textContent = 'Movendo…'; }
             let ok = 0, falhas = 0, i = 0;
