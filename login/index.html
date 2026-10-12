@@ -5096,6 +5096,7 @@
                   <div class="disp-subnav-inner">
                     <button data-sub="dashboard" class="active" onclick="dispSwitchSub('dashboard')"><i class="ph-bold ph-chart-line-up"></i> <span class="disp-nav-txt">Dashboard</span></button>
                     <button data-sub="crm" onclick="dispSwitchSub('crm')"><i class="ph-bold ph-kanban"></i> <span class="disp-nav-txt">CRM</span></button>
+                    <button data-sub="jornada" onclick="dispSwitchSub('jornada')"><i class="ph-bold ph-path"></i> <span class="disp-nav-txt">Jornada</span></button>
                     <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> <span class="disp-nav-txt">Conversas</span> <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
                     <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-megaphone"></i> <span class="disp-nav-txt">Campanhas</span></button>
                     <button data-sub="segmentacoes" onclick="dispSwitchSub('segmentacoes')"><i class="ph-bold ph-users-four"></i> <span class="disp-nav-txt">Segmentações</span></button>
@@ -5106,6 +5107,7 @@
                 </div>
                 <div class="disp-subpane active" id="dispSubDashboard"></div>
                 <div class="disp-subpane" id="dispSubCrm"></div>
+                <div class="disp-subpane" id="dispSubJornada"></div>
                 <div class="disp-subpane" id="dispSubConversas"></div>
                 <div class="disp-subpane" id="dispSubComercial"></div>
                 <div class="disp-subpane" id="dispSubDisparar"></div>
@@ -12612,13 +12614,259 @@
             } catch (e) {}
         })();
 
+        // ===== Jornada do comprador (12/10/2026) =====
+        // Disparos › Jornada: para cada cliente que COMPROU depois de provar, tudo o que aconteceu
+        // desde a 1ª prova até a compra, numa linha do tempo horizontal agrupada por dia (cartões
+        // alternando acima/abaixo). Lista de compradores à direita. A lista sai do que o painel já
+        // carrega (allOrdersCache + provaMinTsMap, mesma regra de "comprou depois da prova" do
+        // faturamento); os eventos de cada cliente são buscados só quando ele é aberto.
+        let _jor = { periodo: '30', busca: '', sel: null, cache: {}, compradores: null, carregando: false };
+        const _JOR_TIPOS = {
+            prova:  { nome: 'Prova',    cor: '#630ed4', tint: 'rgba(99,14,212,.08)' },
+            loja:   { nome: 'Loja',     cor: '#c2610c', tint: 'rgba(194,97,12,.10)' },
+            msg:    { nome: 'Mensagem', cor: '#2563eb', tint: 'rgba(37,99,235,.08)' },
+            resp:   { nome: 'Conversa', cor: '#0f766e', tint: 'rgba(15,118,110,.09)' },
+            compra: { nome: 'Compra',   cor: '#16a34a', tint: 'rgba(22,163,74,.10)' }
+        };
+        const _JOR_ICONE = {
+            prova: '<path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/>',
+            loja: '<path d="M3 4h2l2.2 10.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2"/><circle cx="9.5" cy="19.5" r="1.2"/><circle cx="17" cy="19.5" r="1.2"/>',
+            msg: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/>',
+            resp: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v4"/>',
+            compra: '<path d="M20 6 9 17l-5-5"/>'
+        };
+        const _JOR_SEM = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+        function _jorIc(t, s) { return '<svg width="' + (s || 15) + '" height="' + (s || 15) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + _JOR_ICONE[t] + '</svg>'; }
+        function _jorDia(d) { return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'America/Sao_Paulo' }); }
+        function _jorHora(d) { return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }); }
+        function _jorChaveDia(d) { return d.toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }); }
+        function _jorDias(a, b) { return Math.round((new Date(_jorChaveDia(b) + 'T12:00:00') - new Date(_jorChaveDia(a) + 'T12:00:00')) / 864e5); }
+        function _jorTxtDias(n) { return n <= 0 ? 'no mesmo dia' : (n === 1 ? '1 dia' : n + ' dias'); }
+        function _jorBrl(v) { return (Number(v) || 0).toLocaleString('pt-BR', { style: 'currency', currency: (typeof PL_CUR !== 'undefined' && PL_CUR) || 'BRL' }); }
+        function _jorTel(raw) {
+            const d = String(raw || '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
+            if (d.length < 10) return d;
+            return '(' + d.slice(0, 2) + ') ' + d.slice(2, -4).replace(/^(\d)/, '$1') + '-' + d.slice(-4);
+        }
+
+        // Compradores: 1ª compra paga DEPOIS da 1ª prova, por cliente
+        function _jorMontaCompradores() {
+            const u = activeUser || {};
+            const fNome = u.campo_nome_pedido || 'customer_name', fTotal = u.campo_total_pedido || 'total', fProd = u.campo_produto_pedido || 'product_name';
+            const rawPorChave = {};
+            (allGensShared || []).forEach(g => { const k = generationCustomerKey(g); if (k && !rawPorChave[k]) rawPorChave[k] = g.telefone_cliente || g.email_cliente; });
+            const porChave = {};
+            (allOrdersCache || []).forEach(o => {
+                if (!pedidoValido(o)) return;
+                const ts = timestampAtribuicaoPedido(o, u); const ms = new Date(ts).getTime(); if (!ts || isNaN(ms)) return;
+                orderPhoneKeys(o).forEach(k => {
+                    if (!provaMinTsMap[k] || !isOrderAfterProva(o, k)) return;
+                    const atual = porChave[k];
+                    if (atual && atual.ms <= ms) return;
+                    porChave[k] = { chave: k, ms, ts, nome: String(o[fNome] || '').trim(), valor: parseFloat(o[fTotal]) || 0,
+                        produto: String(o[fProd] || '').trim(), telPedido: orderPhones(o)[0] || '', raw: rawPorChave[k] || orderPhones(o)[0] || k,
+                        provaTs: provaMinTsMap[k] };
+                });
+            });
+            return Object.values(porChave).sort((a, b) => b.ms - a.ms);
+        }
+
+        async function _jorEventos(b) {
+            if (_jor.cache[b.chave]) return _jor.cache[b.chave];
+            const u = activeUser || {}, l8 = String(b.chave).replace(/\D/g, '').slice(-8);
+            const ini = new Date(new Date(b.provaTs).getTime() - 60e3).toISOString(), fim = new Date(b.ms + 60e3).toISOString();
+            const emails = (typeof plScopeEmails === 'function') ? plScopeEmails() : [u.email];
+            const fPhone = u.campo_telefone_pedido || 'customer_phone', fStatus = u.campo_status_pedido || 'payment_status', fData = u.campo_data_pedido || 'created_at';
+            const PEND = ['pending', 'Pending', 'PENDING', 'waiting_payment', 'awaiting_payment', 'pending_payment', 'AGUARDANDO PAGAMENTO', 'Aguardando pagamento', 'Aguardando Pagamento', 'aguardando_pagamento', 'payment-pending', 'on-hold'];
+            const seguro = p => p.then(r => (r && r.data) || []).catch(() => []);
+            let qProvas = supabaseClient.from(u.tabela).select('produtos,produto_url,created_at,carrinho_adicionado').ilike('origin', '%' + u.origem + '%').gte('created_at', ini).lte('created_at', fim).order('created_at', { ascending: true }).limit(300);
+            qProvas = isVelaroStore() ? qProvas.eq('email_cliente', b.chave) : qProvas.eq('telefone_cliente', String(b.raw).replace(/\D/g, ''));
+            const [provas, envios, respostas, carrinhos, pendentes] = await Promise.all([
+                seguro(qProvas),
+                l8.length === 8 ? seguro(supabaseClient.from('whatsapp_send_log').select('template_name,status,sent_at,source,source_id,error_code').in('email', emails).ilike('lead_phone', '%' + l8 + '%').gte('sent_at', ini).lte('sent_at', fim).order('sent_at', { ascending: true }).limit(100)) : [],
+                l8.length === 8 ? seguro(supabaseClient.from('whatsapp_mensagens').select('body,created_at').in('email', emails).eq('direction', 'in').ilike('lead_phone', '%' + l8 + '%').gte('created_at', ini).lte('created_at', fim).order('created_at', { ascending: true }).limit(50)) : [],
+                (l8.length === 8 && u.origem) ? seguro(supabaseClient.from('abandoned_checkouts').select('customer_visit_created_at,updated_at,total').ilike('abandoned_checkout_url', '%' + u.origem + '%').ilike('contact_phone', '%' + l8 + '%').gte('updated_at', ini).lte('updated_at', fim).limit(20)) : [],
+                (l8.length === 8 && u.tabela_pedidos) ? seguro(supabaseClient.from(u.tabela_pedidos).select('*').ilike(fPhone, '%' + l8 + '%').in(fStatus, PEND).gte(fData, ini).lte(fData, fim).limit(20)) : []
+            ]);
+            // nomes das campanhas/automações
+            const ids = [...new Set(envios.map(e => e.source_id).filter(x => /^[0-9a-f-]{36}$/i.test(x || '')))];
+            const nomes = {};
+            if (ids.length) {
+                const [camps, fls] = await Promise.all([
+                    seguro(supabaseClient.from('disparos_agendados').select('id,nome,stage_key').in('id', ids)),
+                    seguro(supabaseClient.from('flows').select('id,nome').in('id', ids))
+                ]);
+                camps.forEach(x => { nomes[x.id] = x.nome || (x.stage_key ? waPipelineStageTitle(x.stage_key) : 'Campanha'); });
+                fls.forEach(x => { nomes[x.id] = x.nome; });
+            }
+            const ev = [];
+            // provas: provas seguidas (até 30 min) viram um evento só
+            let bloco = null, diaAnt = null;
+            provas.forEach(p => {
+                const d = new Date(p.created_at), prod = String(p.produtos || '').split(',')[0].trim() || 'produto';
+                if (bloco && d - bloco.ultima <= 30 * 60e3) { bloco.prods.push(prod); bloco.ultima = d; if (p.carrinho_adicionado) bloco.clicou = d; return; }
+                const voltou = diaAnt && _jorChaveDia(d) !== _jorChaveDia(diaAnt);
+                bloco = { d, ultima: d, prods: [prod], clicou: p.carrinho_adicionado ? d : null, primeira: !diaAnt, voltou };
+                ev.push(bloco); diaAnt = d;
+            });
+            const evs = [];
+            ev.forEach(x => {
+                const uniq = [...new Set(x.prods)];
+                evs.push({ d: x.d, tipo: 'prova', titulo: x.primeira ? 'Primeira prova' : (x.voltou ? 'Voltou para provar' : 'Provou de novo'),
+                    det: uniq.slice(0, 3).join(' · ') + (uniq.length > 3 ? ' +' + (uniq.length - 3) : '') + (x.prods.length > 1 ? ' (' + x.prods.length + ' provas)' : '') });
+                if (x.clicou) evs.push({ d: new Date(x.clicou.getTime() + 1000), tipo: 'loja', titulo: 'Clicou em "Comprar agora"', det: 'no provador' });
+            });
+            const ST = { read: 'lida', delivered: 'entregue', sent: 'enviada', failed: 'não entregue' };
+            const ORIG = { campanha: 'campanha', recorrente: 'campanha diária', automacao: 'automação', massa: 'disparo em massa', individual: 'mensagem individual' };
+            envios.forEach(e => {
+                if (String(e.status || '').indexOf('skipped') === 0) return;
+                evs.push({ d: new Date(e.sent_at), tipo: 'msg', titulo: 'Recebeu mensagem · ' + (ORIG[e.source] || 'WhatsApp'),
+                    det: (nomes[e.source_id] ? '"' + nomes[e.source_id] + '" · ' : (e.template_name ? e.template_name + ' · ' : '')) + (ST[e.status] || e.status || '') });
+            });
+            respostas.forEach(r => evs.push({ d: new Date(r.created_at), tipo: 'resp', titulo: 'Respondeu no WhatsApp', det: r.body ? '"' + String(r.body).slice(0, 90) + (String(r.body).length > 90 ? '…' : '') + '"' : 'mensagem recebida' }));
+            carrinhos.forEach(c => { const d = new Date(c.customer_visit_created_at || c.updated_at); if (!isNaN(d)) evs.push({ d, tipo: 'loja', titulo: 'Carrinho abandonado', det: c.total ? _jorBrl(c.total) : 'saiu do checkout' }); });
+            pendentes.forEach(o => { const d = new Date(timestampAtribuicaoPedido(o, u)); if (!isNaN(d) && d.getTime() < b.ms) evs.push({ d, tipo: 'loja', titulo: 'Pedido gerado, aguardando pagamento', det: [String(o.payment_method || o.gateway_name || o.gateway || '').toUpperCase(), o[u.campo_total_pedido || 'total'] ? _jorBrl(o[u.campo_total_pedido || 'total']) : ''].filter(Boolean).join(' · ') || 'pagamento pendente' }); });
+            evs.push({ d: new Date(b.ms), tipo: 'compra', titulo: 'Comprou', det: _jorBrl(b.valor) + (b.produto ? ' · ' + b.produto : '') });
+            evs.sort((a, c) => a.d - c.d || (a.tipo === 'compra' ? 1 : 0) - (c.tipo === 'compra' ? 1 : 0));
+            evs._provas = provas.length;
+            _jor.cache[b.chave] = evs;
+            return evs;
+        }
+
+        function _jorInjectCSS() {
+            if (document.getElementById('jorCss')) return;
+            const s = document.createElement('style'); s.id = 'jorCss';
+            s.textContent = [
+                '#jorPane{display:flex;flex-direction:column;gap:16px;color:var(--text-main)}',
+                '#jorPane *{box-sizing:border-box}',
+                '#jorPane .jor-topo{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center}',
+                '#jorPane .jor-topo h2{margin:0;font-size:20px}#jorPane .jor-topo p{margin:2px 0 0;color:var(--text-muted);font-size:13px}',
+                '#jorPane .jor-leg{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--text-muted)}#jorPane .jor-leg span{display:flex;gap:5px;align-items:center}#jorPane .jor-leg i{width:9px;height:9px;border-radius:99px;display:inline-block}',
+                '#jorPane .jor-cols{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}',
+                '#jorPane .jor-main{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:14px}',
+                '#jorPane .jor-lista{flex:1 1 280px;min-width:0;background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;position:sticky;top:12px;max-height:calc(100vh - 40px)}',
+                '#jorPane .jor-lista-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}#jorPane .jor-lista-top b{font-size:15px}#jorPane .jor-lista-top span{font-size:12px;color:var(--text-muted)}',
+                '#jorPane .jor-filtros{display:flex;gap:8px}#jorPane .jor-filtros select,#jorPane .jor-filtros input{height:34px;border:1px solid var(--border);border-radius:10px;padding:0 10px;font:13px inherit;font-family:inherit;color:var(--text-main);background:var(--card-bg);min-width:0}#jorPane .jor-filtros input{flex:1}',
+                '#jorPane .jor-clientes{display:flex;flex-direction:column;gap:6px;overflow-y:auto;padding-right:2px}',
+                '#jorPane .jor-cli{text-align:left;border:1px solid var(--border);background:var(--card-bg);border-radius:12px;padding:9px 11px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;font-family:inherit;color:var(--text-main);cursor:pointer}',
+                '#jorPane .jor-cli:hover{border-color:#cbbdf0}#jorPane .jor-cli.on{border-color:#630ed4;background:rgba(99,14,212,.06)}',
+                '#jorPane .jor-cli .n{font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#jorPane .jor-cli .v{font-weight:600;font-size:13px;font-variant-numeric:tabular-nums}',
+                '#jorPane .jor-cli .s{font-size:12px;color:var(--text-muted)}#jorPane .jor-cli .q{font-size:12px;color:var(--text-muted);text-align:right}',
+                '#jorPane .jor-card{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:18px 20px}',
+                '#jorPane .jor-head{display:flex;flex-wrap:wrap;gap:16px;align-items:center}',
+                '#jorPane .jor-av{width:48px;height:48px;border-radius:14px;background:#630ed4;color:#fff;display:grid;place-items:center;font-weight:700;font-size:17px}',
+                '#jorPane .jor-id{flex:1 1 220px;min-width:0;display:flex;flex-direction:column}#jorPane .jor-id b{font-size:18px}#jorPane .jor-id span{font-size:13px;color:var(--text-muted)}',
+                '#jorPane .jor-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;flex:1 1 440px}',
+                '#jorPane .jor-kpis div{background:rgba(127,127,140,.07);border-radius:12px;padding:9px 11px;display:flex;flex-direction:column}#jorPane .jor-kpis b{font-size:18px;font-variant-numeric:tabular-nums}#jorPane .jor-kpis span{font-size:11.5px;color:var(--text-muted)}',
+                '#jorPane .jor-tit{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)}',
+                '#jorPane .jor-trilho{overflow-x:auto;padding:4px 2px 12px}',
+                '#jorPane .jor-faixa{display:grid;grid-template-rows:44px auto 54px auto;min-width:max-content;position:relative}',
+                '#jorPane .jor-faixa::before{content:"";position:absolute;left:0;right:0;top:calc(44px + (100% - 44px) / 2 - 1.5px);height:3px;border-radius:99px;background:rgba(99,14,212,.16)}',
+                '#jorPane .jor-diatop{grid-row:1;margin:0 6px 8px;border-radius:10px;background:rgba(127,127,140,.08);display:flex;justify-content:space-between;align-items:center;gap:8px;padding:0 12px;font-size:12px;white-space:nowrap}',
+                '#jorPane .jor-diatop b{font-size:13px}#jorPane .jor-diatop span{color:var(--text-muted)}#jorPane .jor-diatop.compra{background:rgba(22,163,74,.12)}#jorPane .jor-diatop.compra b{color:#15803d}',
+                '#jorPane .jor-ev{margin:0 8px;border-radius:14px;background:var(--card-bg);border:1px solid var(--border);padding:11px 13px;display:flex;flex-direction:column;gap:3px;position:relative}',
+                '#jorPane .jor-ev .tp{display:flex;gap:6px;align-items:center;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}',
+                '#jorPane .jor-ev b{font-size:13.5px;line-height:1.3}#jorPane .jor-ev span.d{font-size:12px;color:var(--text-muted);line-height:1.35;overflow-wrap:anywhere}',
+                '#jorPane .jor-ev.cima{grid-row:2;align-self:end}#jorPane .jor-ev.baixo{grid-row:4;align-self:start}',
+                '#jorPane .jor-ev.cima::after,#jorPane .jor-ev.baixo::after{content:"";position:absolute;left:22px;width:2px;height:13px;background:var(--border)}',
+                '#jorPane .jor-ev.cima::after{bottom:-14px}#jorPane .jor-ev.baixo::after{top:-14px}',
+                '#jorPane .jor-ev.compra{border-color:#86d3a3;background:rgba(22,163,74,.07)}',
+                '#jorPane .jor-no{grid-row:3;display:flex;align-items:center;gap:8px;padding-left:12px;position:relative;z-index:1}',
+                '#jorPane .jor-no .p{width:32px;height:32px;border-radius:99px;display:grid;place-items:center;color:#fff;border:3px solid var(--card-bg);box-shadow:0 0 0 1px var(--border)}',
+                '#jorPane .jor-no .h{font-size:12px;font-weight:600;color:var(--text-muted);background:var(--card-bg);padding:1px 5px;border-radius:6px;font-variant-numeric:tabular-nums}',
+                '#jorPane .jor-div{grid-row:1 / span 4;justify-self:center;width:0;border-left:2px dashed rgba(127,127,140,.35);position:relative}',
+                '#jorPane .jor-div span{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card-bg);border:1px dashed rgba(127,127,140,.45);border-radius:99px;padding:3px 9px;font-size:11.5px;font-weight:600;color:var(--text-muted);white-space:nowrap}',
+                '#jorPane .jor-vazio{color:var(--text-muted);font-size:13.5px;padding:24px 4px;text-align:center}',
+                '@media (max-width:620px){#jorPane .jor-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#jorPane .jor-lista{position:static;max-height:none}}'
+            ].join('\n');
+            document.head.appendChild(s);
+        }
+
+        async function jornadaInit(forcar) {
+            const pane = document.getElementById('dispSubJornada'); if (!pane) return;
+            _jorInjectCSS();
+            if (!pane.querySelector('#jorPane')) {
+                pane.innerHTML = '<div id="jorPane">'
+                    + '<div class="jor-topo"><div><h2>Jornada do comprador</h2><p>Tudo o que aconteceu com quem comprou, da primeira prova até a compra</p></div>'
+                    + '<div class="jor-leg">' + Object.keys(_JOR_TIPOS).map(k => '<span><i style="background:' + _JOR_TIPOS[k].cor + '"></i>' + _JOR_TIPOS[k].nome + '</span>').join('') + '</div></div>'
+                    + '<div class="jor-cols"><div class="jor-main" id="jorMain"><div class="jor-card jor-vazio">Carregando compradores…</div></div>'
+                    + '<aside class="jor-lista"><div class="jor-lista-top"><b>Compradores</b><span id="jorQtd"></span></div>'
+                    + '<div class="jor-filtros"><select id="jorPeriodo" aria-label="Período da compra"><option value="7">7 dias</option><option value="30" selected>30 dias</option><option value="90">90 dias</option><option value="365">12 meses</option><option value="0">Tudo</option></select>'
+                    + '<input id="jorBusca" type="search" placeholder="Nome, telefone ou produto" aria-label="Buscar comprador" autocomplete="off"></div>'
+                    + '<div class="jor-clientes" id="jorClientes"></div></aside></div></div>';
+                pane.querySelector('#jorPeriodo').addEventListener('change', e => { _jor.periodo = e.target.value; _jorLista(); });
+                pane.querySelector('#jorBusca').addEventListener('input', e => { _jor.busca = e.target.value.trim().toLowerCase(); _jorLista(); });
+                pane.querySelector('#jorClientes').addEventListener('click', e => { const b = e.target.closest('.jor-cli'); if (!b) return; _jor.sel = b.dataset.k; _jorLista(); _jorAbre(); });
+            }
+            if (_jor.compradores && !forcar) { _jorLista(); return; }
+            if (_jor.carregando) return;
+            _jor.carregando = true;
+            try {
+                if (!allOrdersCache || !allOrdersCache.length || !Object.keys(provaMinTsMap || {}).length) await loadSharedData();
+                _jor.compradores = _jorMontaCompradores();
+                _jor.cache = {};
+            } catch (e) {
+                console.error('[jornada]', e);
+                const m = document.getElementById('jorMain'); if (m) m.innerHTML = '<div class="jor-card jor-vazio">Não foi possível carregar os compradores.</div>';
+            } finally { _jor.carregando = false; }
+            _jorLista();
+        }
+        function _jorFiltrados() {
+            const lim = _jor.periodo === '0' ? 0 : Date.now() - Number(_jor.periodo) * 864e5;
+            return (_jor.compradores || []).filter(b => b.ms >= lim && (!_jor.busca || (b.nome + ' ' + String(b.raw) + ' ' + b.telPedido + ' ' + b.produto).toLowerCase().includes(_jor.busca)));
+        }
+        function _jorLista() {
+            const box = document.getElementById('jorClientes'); if (!box) return;
+            const vis = _jorFiltrados();
+            document.getElementById('jorQtd').textContent = vis.length + ' no período';
+            if (!_jor.sel || !vis.some(b => b.chave === _jor.sel)) { _jor.sel = vis[0] ? vis[0].chave : null; _jorAbre(); }
+            box.innerHTML = vis.length ? vis.slice(0, 300).map(b => {
+                const dd = _jorDias(new Date(b.provaTs), new Date(b.ms));
+                return '<button type="button" class="jor-cli' + (b.chave === _jor.sel ? ' on' : '') + '" data-k="' + escapeHtml(b.chave) + '">'
+                    + '<span class="n">' + escapeHtml(b.nome || _jorTel(b.raw)) + '</span><span class="v">' + _jorBrl(b.valor) + '</span>'
+                    + '<span class="s">comprou ' + (dd <= 0 ? 'no dia da prova' : dd + (dd === 1 ? ' dia' : ' dias') + ' depois') + '</span><span class="q">' + _jorDia(new Date(b.ms)) + '</span></button>';
+            }).join('') + (vis.length > 300 ? '<p class="jor-vazio" style="padding:8px">Mostrando os 300 mais recentes. Use a busca.</p>' : '')
+                : '<p class="jor-vazio">Nenhum comprador no período.</p>';
+        }
+        async function _jorAbre() {
+            const main = document.getElementById('jorMain'); if (!main) return;
+            const b = (_jor.compradores || []).find(x => x.chave === _jor.sel);
+            if (!b) { main.innerHTML = '<div class="jor-card jor-vazio">Nenhum comprador para mostrar neste período.</div>'; return; }
+            const chave = b.chave;
+            main.innerHTML = '<div class="jor-card jor-vazio">Montando a jornada de ' + escapeHtml(b.nome || _jorTel(b.raw)) + '…</div>';
+            let ev;
+            try { ev = await _jorEventos(b); } catch (e) { console.error('[jornada] eventos', e); main.innerHTML = '<div class="jor-card jor-vazio">Não foi possível carregar a jornada deste cliente.</div>'; return; }
+            if (_jor.sel !== chave) return;   // trocou de cliente enquanto carregava
+            const nome = b.nome || _jorTel(b.raw), ini = ev[0].d;
+            const cont = t => ev.filter(e => e.tipo === t).length;
+            const grupos = []; ev.forEach(e => { const k = _jorChaveDia(e.d); if (!grupos.length || grupos[grupos.length - 1].k !== k) grupos.push({ k, d: e.d, its: [] }); grupos[grupos.length - 1].its.push(e); });
+            let h = '', cols = [], col = 0, alt = 0;
+            grupos.forEach((g, gi) => {
+                if (gi > 0) { col++; cols.push('70px'); h += '<div class="jor-div" style="grid-column:' + col + '"><span>' + _jorTxtDias(_jorDias(grupos[gi - 1].d, g.d)) + '</span></div>'; }
+                const c0 = col + 1, compra = g.its.some(e => e.tipo === 'compra');
+                g.its.forEach(e => {
+                    col++; cols.push('190px');
+                    const t = _JOR_TIPOS[e.tipo], lado = (alt++ % 2) ? 'baixo' : 'cima';
+                    h += '<div class="jor-ev ' + lado + (e.tipo === 'compra' ? ' compra' : '') + '" style="grid-column:' + col + '"><span class="tp" style="color:' + t.cor + '">' + _jorIc(e.tipo, 13) + ' ' + t.nome + '</span><b>' + escapeHtml(e.titulo) + '</b><span class="d">' + escapeHtml(e.det) + '</span></div>'
+                        + '<div class="jor-no" style="grid-column:' + col + '"><span class="p" style="background:' + t.cor + '">' + _jorIc(e.tipo, 14) + '</span><span class="h">' + _jorHora(e.d) + '</span></div>';
+                });
+                h += '<div class="jor-diatop' + (compra ? ' compra' : '') + '" style="grid-column:' + c0 + ' / ' + (col + 1) + '"><b>' + _jorDia(g.d) + ' · ' + _JOR_SEM[new Date(g.k + 'T12:00:00').getDay()] + '</b><span>' + (gi === 0 ? '1º contato' : 'dia ' + (_jorDias(ini, g.d) + 1)) + ' · ' + g.its.length + (g.its.length > 1 ? ' eventos' : ' evento') + '</span></div>';
+            });
+            const ini2 = nome.split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+            main.innerHTML = '<section class="jor-card jor-head"><div class="jor-av">' + escapeHtml(ini2 || '?') + '</div>'
+                + '<div class="jor-id"><b>' + escapeHtml(nome) + '</b><span>' + escapeHtml(_jorTel(b.telPedido || b.raw)) + ' · comprou ' + escapeHtml(b.produto || '') + ' · ' + _jorBrl(b.valor) + '</span></div>'
+                + '<div class="jor-kpis"><div><b>' + _jorTxtDias(_jorDias(ini, new Date(b.ms))) + '</b><span>da 1ª prova à compra</span></div><div><b>' + (ev._provas || cont('prova')) + '</b><span>provas</span></div><div><b>' + cont('msg') + '</b><span>mensagens</span></div><div><b>' + cont('resp') + '</b><span>respostas</span></div></div></section>'
+                + '<section class="jor-card" style="padding:14px 10px"><div class="jor-tit" style="padding:0 12px 10px">Linha do tempo por dia · role para o lado</div>'
+                + '<div class="jor-trilho"><div class="jor-faixa" style="grid-template-columns:' + cols.join(' ') + '">' + h + '</div></div></section>';
+        }
+
         function dispSwitchSub(name) {
             if (name === 'historico') name = 'dashboard'; // Histórico foi fundido no Dashboard
             if (name === 'templates') name = 'disparar';  // Mensagens modelo foi integrado em Campanhas
             if (isComercial() && name !== 'crm' && name !== 'conversas') name = 'crm';
             if (isSoConversas()) name = 'conversas';
             document.querySelectorAll('#dispSubnav button[data-sub]').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
-            const map = { dashboard: 'dispSubDashboard', crm: 'dispSubCrm', conversas: 'dispSubConversas', comercial: 'dispSubComercial', disparar: 'dispSubDisparar', segmentacoes: 'dispSubSegmentacoes', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao', automacoes: 'dispSubAutomacoes' };
+            const map = { dashboard: 'dispSubDashboard', crm: 'dispSubCrm', jornada: 'dispSubJornada', conversas: 'dispSubConversas', comercial: 'dispSubComercial', disparar: 'dispSubDisparar', segmentacoes: 'dispSubSegmentacoes', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao', automacoes: 'dispSubAutomacoes' };
             Object.entries(map).forEach(([k, id]) => {
                 const p = document.getElementById(id);
                 if (p) p.classList.toggle('active', k === name);
@@ -12647,6 +12895,7 @@
             if (name === 'segmentacoes') { try { initSegmentacoes(); } catch (e) { console.error(e); } }
             if (name === 'automacoes') { try { initAutomacoes(); } catch (e) { console.error(e); } }
             if (name === 'dashboard') { try { initDispDashboard(); } catch (e) { console.error(e); } }
+            if (name === 'jornada') { try { jornadaInit(); } catch (e) { console.error('[jornada]', e); } }
             _crmSubActive = (name === 'crm');
             if (name === 'crm') {
                 try {
