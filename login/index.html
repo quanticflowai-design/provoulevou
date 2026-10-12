@@ -4070,6 +4070,29 @@
                             <button type="button" class="lcfg-btn lcfg-btn-pri" id="lcfgSalvar" disabled><i class="ph-bold ph-floppy-disk"></i> Salvar alterações</button>
                         </div>
                     </div>
+                    <!-- Assistente com IA (12/10/2026): a loja dita a mudança, a IA altera o RASCUNHO e a prévia
+                         ao lado mostra o fluxo como vai ficar. Só vai pra loja ao clicar em Salvar. -->
+                    <section class="lcfg-ia" id="lcfgIA">
+                        <div class="lcfg-ia-chat">
+                            <div class="lcfg-ia-topo">
+                                <span class="lcfg-acc-icone"><i class="ph-bold ph-sparkle"></i></span>
+                                <div><b>Assistente do fluxo</b><small>Diga o que mudar. Eu altero o rascunho e você confere na prévia antes de salvar.</small></div>
+                            </div>
+                            <div class="lcfg-ia-msgs" id="lcfgIAMsgs" aria-live="polite"></div>
+                            <div class="lcfg-ia-sug" id="lcfgIASug"></div>
+                            <form class="lcfg-ia-form" id="lcfgIAForm">
+                                <textarea id="lcfgIAInput" rows="2" maxlength="800" placeholder="Ex.: sobe 5% as lentes de grau alto e esconde o multifocal" aria-label="O que você quer mudar no fluxo?"></textarea>
+                                <button type="submit" class="lcfg-btn lcfg-btn-pri" id="lcfgIAEnviar" aria-label="Enviar"><i class="ph-bold ph-paper-plane-right"></i></button>
+                            </form>
+                        </div>
+                        <div class="lcfg-ia-previa">
+                            <div class="lcfg-ia-previa-topo">
+                                <div><b>Prévia do rascunho</b><small id="lcfgPreviaStatus">Como o cliente vai ver</small></div>
+                                <button type="button" class="lcfg-btn" id="lcfgPreviaRecarrega" title="Recarregar a prévia"><i class="ph-bold ph-arrow-clockwise"></i></button>
+                            </div>
+                            <div class="lcfg-ia-frame"><iframe id="lcfgPreviaFrame" title="Prévia do fluxo de lentes"></iframe></div>
+                        </div>
+                    </section>
                     <div id="lcfgCorpo"></div>
                 </div>
             </div>
@@ -4404,6 +4427,43 @@
                         #lentesViewConfig input[type=text], #lentesViewConfig input[type=number], #lentesViewConfig textarea { font-size: 16px; padding: 8px 10px; }
                         .lcfg-switch em { display: none; }
                     }
+
+                    /* Assistente com IA + prévia ao vivo (12/10/2026) */
+                    .lcfg-ia { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 14px; margin-bottom: 14px; }
+                    .lcfg-ia-chat, .lcfg-ia-previa { background: var(--l-card); border: 1px solid var(--l-line); border-radius: 14px; display: flex; flex-direction: column; min-width: 0; }
+                    .lcfg-ia-chat { height: 640px; }
+                    .lcfg-ia-topo { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--l-line-soft); }
+                    .lcfg-ia-topo b, .lcfg-ia-previa-topo b { display: block; font-size: 15px; font-weight: 700; }
+                    .lcfg-ia-topo small, .lcfg-ia-previa-topo small { display: block; font-size: 12px; color: var(--l-muted); margin-top: 2px; }
+                    .lcfg-ia-msgs { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+                    .lcfg-ia-vazio { margin: auto; text-align: center; color: var(--l-muted); font-size: 13px; line-height: 1.5; max-width: 320px; }
+                    .lcfg-ia-vazio i { font-size: 28px; color: var(--l-accent); display: block; margin-bottom: 8px; }
+                    .lcfg-ia-msg { max-width: 88%; padding: 10px 13px; border-radius: 14px; font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
+                    .lcfg-ia-msg.eu { align-self: flex-end; background: var(--l-accent); color: #fff; border-bottom-right-radius: 4px; }
+                    .lcfg-ia-msg.ia { align-self: flex-start; background: var(--l-sub); border: 1px solid var(--l-line); border-bottom-left-radius: 4px; }
+                    .lcfg-ia-msg.erro { border-color: rgba(220,38,38,.35); background: rgba(220,38,38,.06); }
+                    .lcfg-ia-mud { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; background: var(--l-card); border: 1px solid var(--l-line-soft); white-space: normal; }
+                    .lcfg-ia-mud b { display: block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--l-muted); margin-bottom: 4px; }
+                    .lcfg-ia-mud ul { margin: 0; padding-left: 16px; font-size: 12.5px; }
+                    .lcfg-ia-mud li { margin: 2px 0; }
+                    .lcfg-ia-desfaz { margin-top: 8px; display: inline-flex; align-items: center; gap: 5px; font: inherit; font-size: 12px; font-weight: 600; color: var(--l-accent); background: none; border: 0; padding: 0; cursor: pointer; }
+                    .lcfg-ia-desfeito { margin-top: 8px; font-size: 12px; color: var(--l-muted); }
+                    .lcfg-ia-pensando { align-self: flex-start; display: inline-flex; gap: 4px; padding: 12px 14px; border-radius: 14px; background: var(--l-sub); border: 1px solid var(--l-line); }
+                    .lcfg-ia-pensando span { width: 7px; height: 7px; border-radius: 50%; background: var(--l-muted); animation: lcfg-pulsa 1.2s infinite ease-in-out; }
+                    .lcfg-ia-pensando span:nth-child(2) { animation-delay: .15s; } .lcfg-ia-pensando span:nth-child(3) { animation-delay: .3s; }
+                    @keyframes lcfg-pulsa { 0%, 80%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+                    .lcfg-ia-sug { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 16px 10px; }
+                    .lcfg-ia-sug button { font: inherit; font-size: 12px; font-weight: 600; color: var(--l-accent); background: var(--l-soft); border: 0; border-radius: 99px; padding: 6px 11px; cursor: pointer; }
+                    .lcfg-ia-sug button:hover { filter: brightness(.97); }
+                    .lcfg-ia-form { display: flex; gap: 8px; padding: 12px 16px 16px; border-top: 1px solid var(--l-line-soft); align-items: flex-end; }
+                    #lentesViewConfig .lcfg-ia-form textarea { min-height: 46px; max-height: 140px; resize: none; }
+                    .lcfg-ia-form .lcfg-btn { height: 46px; width: 46px; padding: 0; flex: 0 0 auto; font-size: 17px; }
+                    .lcfg-ia-previa { height: 640px; overflow: hidden; }
+                    .lcfg-ia-previa-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--l-line-soft); }
+                    .lcfg-ia-previa-topo .lcfg-btn { width: 38px; padding: 0; }
+                    .lcfg-ia-frame { flex: 1; background: #f5efe9; display: flex; justify-content: center; }
+                    .lcfg-ia-frame iframe { width: 100%; max-width: 400px; height: 100%; border: 0; background: #fff; }
+                    @media (max-width: 1100px) { .lcfg-ia { grid-template-columns: 1fr; } .lcfg-ia-chat { height: 520px; } .lcfg-ia-previa { height: 620px; } }
                     .lentes-resumo-acao { display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;margin-bottom:16px; }
                     .lentes-acao-card { display:flex;align-items:center;gap:11px;width:100%;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 14px;min-width:0;color:var(--text-main);font:inherit;text-align:left;cursor:pointer;transition:border-color .16s ease,transform .16s ease,box-shadow .16s ease; }
                     .lentes-acao-card:hover { border-color:var(--primary);transform:translateY(-1px);box-shadow:0 7px 20px rgba(124,58,237,.10); }
@@ -6632,10 +6692,12 @@
             _lcfgSalvo = data[0].config || {};
             _lcfgEdit = JSON.parse(JSON.stringify(_lcfgSalvo));
             _lcfgUltimo = data[0];
+            if (typeof _lcfgIAReset === 'function') _lcfgIAReset();
             _lcfgPinta();
+            if (typeof _lcfgPreviaAtualiza === 'function') _lcfgPreviaAtualiza();
         }
         function _lcfgSujo() { return JSON.stringify(_lcfgEdit) !== JSON.stringify(_lcfgSalvo); }
-        function _lcfgAtualizaBarra() {
+        function _lcfgAtualizaBarraBase() {
             const sujo = _lcfgSujo();
             const st = document.getElementById('lcfgStatus');
             const salvar = document.getElementById('lcfgSalvar');
@@ -6648,6 +6710,7 @@
             const u = _lcfgUltimo && _lcfgUltimo.updated_at;
             st.textContent = u ? 'Salvo em ' + new Date(u).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'Tudo salvo';
         }
+        function _lcfgAtualizaBarraEPrevia() { _lcfgAtualizaBarraBase(); if (typeof _lcfgPreviaAgenda === 'function') _lcfgPreviaAgenda(); }
 
         // ---- peças de interface ----
         function _lcfgSwitch(attrs, on, rotulo) {
@@ -6808,7 +6871,7 @@
                 }) +
                 (outros.length ? _lcfgAcc('outros', { icone: 'ph-text-aa', titulo: 'Outros textos', corpo: _lcfgTextos(outros) }) : '') +
                 '<p class="lcfg-intro" style="margin-top:4px;">Dica: nos textos, Enter quebra a linha e **dois asteriscos** deixam em negrito.</p>';
-            _lcfgAtualizaBarra();
+            _lcfgAtualizaBarraEPrevia();
         }
         function _lcfgNum(v) {
             const s = String(v == null ? '' : v).trim().replace(/[^\d,.-]/g, '');
@@ -6837,7 +6900,7 @@
                 else if (f === 'ativo') { l.ativo = val; repinta = true; }
                 else l[f] = val;
             } else return;
-            if (repinta) _lcfgPinta(); else _lcfgAtualizaBarra();
+            if (repinta) _lcfgPinta(); else _lcfgAtualizaBarraEPrevia();
         }
         function _lcfgOnClick(ev) {
             const t = ev.target.closest && ev.target.closest('[data-lcfg-acc],[data-lcfg-mover],[data-lcfg-ids]');
@@ -6901,7 +6964,7 @@
                 crmToast('Não foi possível salvar: ' + (e.message || e), true);
             } finally {
                 if (btn) btn.innerHTML = '<i class="ph-bold ph-floppy-disk"></i> Salvar alterações';
-                _lcfgAtualizaBarra();
+                _lcfgAtualizaBarraEPrevia();
             }
         }
         function _lcfgDesfazer() {
@@ -6914,6 +6977,7 @@
             _lcfgIdsAbertos.clear();
             const b = document.getElementById('lentesCfgTabBtn'); if (b) b.style.display = 'none';
             const corpo = document.getElementById('lcfgCorpo'); if (corpo) corpo.innerHTML = '';
+            if (typeof _lcfgIAReset === 'function') _lcfgIAReset();
         }
         (function _lcfgLiga() {
             const liga = () => {
@@ -6928,6 +6992,216 @@
             };
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', liga); else liga();
             window.addEventListener('beforeunload', e => { if (_lcfgEdit && _lcfgSujo()) { e.preventDefault(); e.returnValue = ''; } });
+        })();
+
+        /* ===== Assistente com IA do fluxo de lentes (12/10/2026) =====
+           A loja escreve o que quer mudar; o workflow n8n "[PL] Lentes — IA do fluxo" (Claude) devolve
+           operações, que são validadas e aplicadas no RASCUNHO (_lcfgEdit). A prévia ao lado recebe o
+           rascunho por postMessage (preview-lentes.html?draft=1). Nada vai pra loja sem clicar em Salvar. */
+        const LCFG_IA_URL = 'https://n8n.segredosdodrop.com/webhook/pl-lentes-ia';
+        let _lcfgIAHist = [];          // { de: 'eu'|'ia', texto, mudancas?, snap?, desfeito?, erro? }
+        let _lcfgIABusy = false;
+        let _lcfgPreviaCfg = '';       // rascunho que a prévia está mostrando
+        let _lcfgPreviaTimer = null;
+        const _LCFG_IA_SUG = ['Esconde as lentes de sol', 'Sobe 10% os multifocais', 'Coloca o monofocal em primeiro', 'Deixa o título da primeira tela mais curto'];
+
+        function _lcfgNomeLente(k) { const l = (_lcfgEdit.lentes || []).find(x => x.key === k); return l ? l.nome : k; }
+        function _lcfgNomeTexto(k) { const t = (_lcfgEdit.textos || []).find(x => x.key === k); return t ? (t.secao + ' · ' + t.label) : k; }
+        function _lcfgCurto(v) { v = String(v == null ? '' : v).replace(/\s+/g, ' ').trim(); return v.length > 70 ? v.slice(0, 67) + '…' : v; }
+
+        // Aplica as operações da IA no rascunho. Só aceita keys/campos que existem; o resto é ignorado.
+        // Devolve a lista de mudanças em português (o que de fato mudou).
+        function _lcfgAplicaOps(ops) {
+            const c = _lcfgEdit, mud = [];
+            let ignoradas = 0;
+            const LCAMPOS = ['nome', 'preco', 'prazo', 'ativo', 'produto_id', 'variante_id'];
+            (Array.isArray(ops) ? ops : []).forEach(op => {
+                const t = op && op.tipo, alvo = String((op && op.alvo) || ''), campo = String((op && op.campo) || ''), valor = (op && op.valor != null) ? String(op.valor) : '';
+                const lista = Array.isArray(op && op.lista) ? op.lista.map(String) : [];
+                if (t === 'set_lente') {
+                    const l = (c.lentes || []).find(x => x.key === alvo);
+                    if (!l || LCAMPOS.indexOf(campo) === -1) { ignoradas++; return; }
+                    let novo;
+                    if (campo === 'preco') { novo = Math.round(_lcfgNum(valor) * 100) / 100; if (!(novo > 0)) { ignoradas++; return; } }
+                    else if (campo === 'prazo') { novo = parseInt(valor, 10); if (!(novo > 0 && novo <= 90)) { ignoradas++; return; } }
+                    else if (campo === 'ativo') { novo = !/^(false|0|nao|não|off)$/i.test(valor.trim()); }
+                    else if (campo === 'produto_id' || campo === 'variante_id') { novo = valor.trim(); if (!/^\d+$/.test(novo)) { ignoradas++; return; } }
+                    else { novo = valor.trim(); if (!novo) { ignoradas++; return; } }
+                    const antes = campo === 'ativo' ? l.ativo !== false : l[campo];
+                    if (antes === novo) return;
+                    l[campo] = novo;
+                    mud.push(campo === 'ativo' ? (novo ? 'Ligou' : 'Desligou') + ' a lente ' + l.nome
+                        : campo === 'preco' ? l.nome + ': ' + _lcfgBrlC(antes) + ' → ' + _lcfgBrlC(novo)
+                        : campo === 'prazo' ? l.nome + ': prazo ' + antes + ' → ' + novo + ' dias'
+                        : l.nome + ': ' + campo.replace('_', ' ') + ' → ' + _lcfgCurto(novo));
+                } else if (t === 'set_texto') {
+                    const x = (c.textos || []).find(y => y.key === alvo);
+                    if (!x || !valor.trim()) { ignoradas++; return; }
+                    if (x.valor === valor) return;
+                    x.valor = valor;
+                    mud.push(_lcfgNomeTexto(alvo) + ': "' + _lcfgCurto(valor) + '"');
+                } else if (t === 'set_opcao') {
+                    const m = alvo.match(/^(necessidades|receita):(.+)$/);
+                    const it = m && (c[m[1]] || []).find(y => y.key === m[2]);
+                    if (!it || ['titulo', 'desc', 'ativo'].indexOf(campo) === -1) { ignoradas++; return; }
+                    if (campo === 'ativo') {
+                        const novo = !/^(false|0|nao|não|off)$/i.test(valor.trim());
+                        if ((it.ativo !== false) === novo) return;
+                        it.ativo = novo;
+                        mud.push((novo ? 'Mostrou' : 'Escondeu') + ' a opção ' + it.titulo);
+                    } else {
+                        if (campo === 'titulo' && !valor.trim()) { ignoradas++; return; }
+                        if (it[campo] === valor) return;
+                        it[campo] = valor;
+                        mud.push((campo === 'titulo' ? 'Título' : 'Descrição') + ' de ' + it.titulo + ': "' + _lcfgCurto(valor) + '"');
+                    }
+                } else if (t === 'ordenar') {
+                    const arr = c[alvo];
+                    if (!Array.isArray(arr) || (alvo !== 'necessidades' && alvo !== 'receita')) { ignoradas++; return; }
+                    const atual = arr.map(y => y.key);
+                    if (lista.length !== atual.length || lista.some(k => atual.indexOf(k) === -1) || new Set(lista).size !== lista.length) { ignoradas++; return; }
+                    if (lista.join() === atual.join()) return;
+                    c[alvo] = lista.map(k => arr.find(y => y.key === k));
+                    mud.push('Nova ordem: ' + c[alvo].map(y => y.titulo).join(' → '));
+                } else if (t === 'set_geral') {
+                    if (['ativo', 'botao_texto', 'whatsapp'].indexOf(campo) === -1) { ignoradas++; return; }
+                    let novo = valor.trim();
+                    if (campo === 'ativo') novo = !/^(false|0|nao|não|off)$/i.test(novo);
+                    if (campo === 'whatsapp') { novo = novo.replace(/\D/g, ''); if (novo.length < 12 || novo.length > 13) { ignoradas++; return; } }
+                    if (campo === 'botao_texto' && !novo) { ignoradas++; return; }
+                    const antes = campo === 'ativo' ? c.geral.ativo !== false : c.geral[campo];
+                    if (antes === novo) return;
+                    c.geral[campo] = novo;
+                    mud.push(campo === 'ativo' ? (novo ? 'Ligou' : 'Desligou') + ' o fluxo na loja'
+                        : campo === 'whatsapp' ? 'WhatsApp da loja → ' + novo : 'Texto do botão → "' + novo + '"');
+                } else if (t === 'set_cores') {
+                    const cores = lista.map(s => s.trim()).filter(Boolean);
+                    if (!cores.length) { ignoradas++; return; }
+                    if ((c.cores_solar || []).join() === cores.join()) return;
+                    c.cores_solar = cores;
+                    mud.push('Cores das lentes de sol → ' + cores.join(', '));
+                } else ignoradas++;
+            });
+            return { mud, ignoradas };
+        }
+        function _lcfgBrlC(v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+
+        function _lcfgIAPinta() {
+            const box = document.getElementById('lcfgIAMsgs');
+            const sug = document.getElementById('lcfgIASug');
+            if (!box) return;
+            if (!_lcfgIAHist.length) {
+                box.innerHTML = '<div class="lcfg-ia-vazio"><i class="ph-bold ph-sparkle"></i>Escreva do seu jeito o que quer mudar: preços, textos, ordem, ligar ou desligar opções. Eu mudo o rascunho e mostro na prévia ao lado.</div>';
+            } else {
+                const ultimaComMud = (() => { for (let i = _lcfgIAHist.length - 1; i >= 0; i--) if (_lcfgIAHist[i].snap && !_lcfgIAHist[i].desfeito) return i; return -1; })();
+                box.innerHTML = _lcfgIAHist.map((m, i) => {
+                    if (m.de === 'eu') return '<div class="lcfg-ia-msg eu">' + _lcfgEsc(m.texto) + '</div>';
+                    let h = '<div class="lcfg-ia-msg ia' + (m.erro ? ' erro' : '') + '">' + _lcfgEsc(m.texto);
+                    if (m.mudancas && m.mudancas.length) {
+                        h += '<div class="lcfg-ia-mud"><b>' + m.mudancas.length + (m.mudancas.length === 1 ? ' alteração no rascunho' : ' alterações no rascunho') + '</b><ul>' +
+                            m.mudancas.map(x => '<li>' + _lcfgEsc(x) + '</li>').join('') + '</ul></div>';
+                        if (m.desfeito) h += '<div class="lcfg-ia-desfeito">Desfeito.</div>';
+                        else if (i === ultimaComMud) h += '<button type="button" class="lcfg-ia-desfaz" data-lcfg-ia-desfaz="' + i + '"><i class="ph-bold ph-arrow-counter-clockwise"></i> Desfazer estas alterações</button>';
+                    }
+                    return h + '</div>';
+                }).join('') + (_lcfgIABusy ? '<div class="lcfg-ia-pensando" aria-label="Pensando"><span></span><span></span><span></span></div>' : '');
+            }
+            box.scrollTop = box.scrollHeight;
+            if (sug) sug.innerHTML = _lcfgIAHist.length ? '' : _LCFG_IA_SUG.map(s => '<button type="button" data-lcfg-ia-sug="' + _lcfgEsc(s) + '">' + _lcfgEsc(s) + '</button>').join('');
+            const btn = document.getElementById('lcfgIAEnviar'); if (btn) btn.disabled = _lcfgIABusy;
+        }
+        async function _lcfgIAEnviar(texto) {
+            texto = String(texto || '').trim();
+            if (!texto || _lcfgIABusy || !_lcfgEdit) return;
+            const historico = _lcfgIAHist.filter(m => !m.erro).slice(-6).map(m => ({ de: m.de, texto: m.texto }));
+            _lcfgIAHist.push({ de: 'eu', texto });
+            _lcfgIABusy = true; _lcfgIAPinta();
+            try {
+                let token = '';
+                try { const { data } = await supabaseClient.auth.getSession(); token = (data && data.session && data.session.access_token) || ''; } catch (e) {}
+                const r = await fetch(LCFG_IA_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+                    body: JSON.stringify({ dominio: _lcfgDominio, comando: texto, config: _lcfgEdit, historico })
+                });
+                let d = null; try { d = await r.json(); } catch (e) {}
+                if (!r.ok || !d || d.ok === false) throw new Error((d && d.erro) || 'Não consegui falar com a IA agora. Tente de novo.');
+                const snap = JSON.stringify(_lcfgEdit);
+                const { mud, ignoradas } = _lcfgAplicaOps(d.operacoes);
+                // trava de segurança: nunca deixa a primeira tela ou a tela de receita sem opção
+                if (!(_lcfgEdit.necessidades || []).some(n => n.ativo !== false) || !(_lcfgEdit.receita || []).some(n => n.ativo !== false)) {
+                    _lcfgEdit = JSON.parse(snap);
+                    _lcfgIAHist.push({ de: 'ia', texto: 'Não apliquei: isso deixaria o fluxo sem nenhuma opção numa das telas. Deixe pelo menos uma ligada.', erro: true });
+                } else {
+                    let txt = d.resposta || (mud.length ? 'Pronto.' : 'Não encontrei nada para mudar.');
+                    if (ignoradas) txt += '\n(' + ignoradas + (ignoradas === 1 ? ' alteração sugerida foi ignorada' : ' alterações sugeridas foram ignoradas') + ' por não bater com o fluxo.)';
+                    _lcfgIAHist.push({ de: 'ia', texto: txt, mudancas: mud, snap: mud.length ? snap : null });
+                    if (mud.length) { _lcfgPinta(); _lcfgPreviaAtualiza(); }
+                }
+            } catch (e) {
+                _lcfgIAHist.push({ de: 'ia', texto: e.message || String(e), erro: true });
+            } finally {
+                _lcfgIABusy = false; _lcfgIAPinta();
+            }
+        }
+        function _lcfgIADesfaz(i) {
+            const m = _lcfgIAHist[i];
+            if (!m || !m.snap || m.desfeito) return;
+            _lcfgEdit = JSON.parse(m.snap);
+            m.desfeito = true;
+            _lcfgPinta(); _lcfgIAPinta(); _lcfgPreviaAtualiza();
+        }
+
+        // ---- prévia ao vivo do rascunho ----
+        function _lcfgPreviaAtualiza() {
+            clearTimeout(_lcfgPreviaTimer);
+            const f = document.getElementById('lcfgPreviaFrame');
+            const c = _lcfgEdit;
+            if (!f || !c || !c.previa_url) return;
+            _lcfgPreviaCfg = JSON.stringify(c);
+            const st = document.getElementById('lcfgPreviaStatus'); if (st) st.textContent = 'Atualizando…';
+            f.src = c.previa_url + (c.previa_url.indexOf('?') === -1 ? '?' : '&') + 'draft=1&abrir=1&t=' + Date.now();
+        }
+        // edição manual no painel: atualiza a prévia depois que a pessoa para de digitar
+        function _lcfgPreviaAgenda() {
+            if (!_lcfgEdit) return;
+            if (JSON.stringify(_lcfgEdit) === _lcfgPreviaCfg) {
+                const st = document.getElementById('lcfgPreviaStatus');
+                if (st && _lcfgPreviaCfg) st.textContent = _lcfgSujo() ? 'Rascunho (ainda não salvo)' : 'Igual ao que está salvo';
+                return;
+            }
+            clearTimeout(_lcfgPreviaTimer);
+            _lcfgPreviaTimer = setTimeout(_lcfgPreviaAtualiza, 1500);
+        }
+        window.addEventListener('message', e => {
+            const f = document.getElementById('lcfgPreviaFrame');
+            if (!f || e.source !== f.contentWindow || !e.data || e.data.type !== 'pl-lentes-ready' || !_lcfgEdit) return;
+            let alvo = '*';
+            try { alvo = new URL(_lcfgEdit.previa_url).origin; } catch (_) {}
+            f.contentWindow.postMessage({ type: 'pl-lentes-cfg', config: JSON.parse(_lcfgPreviaCfg || JSON.stringify(_lcfgEdit)) }, alvo);
+            const st = document.getElementById('lcfgPreviaStatus'); if (st) st.textContent = _lcfgSujo() ? 'Rascunho (ainda não salvo)' : 'Igual ao que está salvo';
+        });
+        function _lcfgIAReset() {
+            _lcfgIAHist = []; _lcfgIABusy = false; _lcfgPreviaCfg = ''; clearTimeout(_lcfgPreviaTimer);
+            const f = document.getElementById('lcfgPreviaFrame'); if (f) f.removeAttribute('src');
+            _lcfgIAPinta();
+        }
+        (function _lcfgIALiga() {
+            const liga = () => {
+                const form = document.getElementById('lcfgIAForm');
+                if (!form || form._lcfg) return;
+                form._lcfg = true;
+                const inp = document.getElementById('lcfgIAInput');
+                form.addEventListener('submit', e => { e.preventDefault(); const v = inp.value; inp.value = ''; _lcfgIAEnviar(v); });
+                inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event('submit')); } });
+                document.getElementById('lcfgIA').addEventListener('click', e => {
+                    const s = e.target.closest('[data-lcfg-ia-sug]'); if (s) { _lcfgIAEnviar(s.dataset.lcfgIaSug); return; }
+                    const d = e.target.closest('[data-lcfg-ia-desfaz]'); if (d) _lcfgIADesfaz(+d.dataset.lcfgIaDesfaz);
+                });
+                document.getElementById('lcfgPreviaRecarrega').addEventListener('click', _lcfgPreviaAtualiza);
+                _lcfgIAPinta();
+            };
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', liga); else liga();
         })();
 
         function _lentesMudaVisao(visao) {
