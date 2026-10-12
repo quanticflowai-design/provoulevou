@@ -6998,29 +6998,62 @@
             p.push('Resultado');
             return p;
         }
+        /* Etapas no modo catálogo (12/10/2026): cada etapa abre e mostra os próprios textos (pergunta, dica, opções, botões) */
+        const _LCFG_ET_NOME = { telefone: 'WhatsApp', tipo: 'Tipo de lente', tratamento: 'Tratamento', receita: 'Receita', conferir: 'Conferir a receita', uso: 'Longe ou perto', resultado: 'Resultado' };
+        const _LCFG_ET_ICONE = { telefone: 'ph-whatsapp-logo', tipo: 'ph-eyeglasses', tratamento: 'ph-sparkle', receita: 'ph-file-text', conferir: 'ph-check-square', uso: 'ph-arrows-out-line-horizontal', resultado: 'ph-shopping-cart' };
+        function _lcfgEtapasCatOrdem() {
+            const e = _lcfgEtapasCat(), tem = k => (_lcfgEdit.textos || []).some(t => t.etapa === k);
+            const pos = e.receita.posicao, o = ['telefone'];
+            const rec = ['receita'].concat(tem('conferir') ? ['conferir'] : [], tem('uso') ? ['uso'] : []);
+            if (pos === 'primeiro') o.push.apply(o, rec);
+            o.push('tipo');
+            if (pos === 'inicio') o.push.apply(o, rec);
+            o.push('tratamento');
+            if (pos !== 'primeiro' && pos !== 'inicio') o.push.apply(o, rec);
+            o.push('resultado');
+            return o.filter(k => k === 'telefone' || k === 'tratamento' || k === 'tipo' || k === 'receita' || tem(k));
+        }
         function _lcfgPintaEtapasCat() {
             const e = _lcfgEtapasCat(), ops = ((_lcfgEdit.etapas_opcoes || {}).tratamentos) || [];
-            const item = (k, on, titulo, dica, extra) => '<div class="lcfg-item lcfg-etapa-item' + (on ? '' : ' off') + '">' +
-                (k ? _lcfgSwitch('data-lcfg-etapa="' + k + '" data-f="ativo"', on) : '<span class="lcfg-etapa-fixa"><i class="ph-bold ph-arrows-down-up"></i></span>') +
-                '<div class="lcfg-item-txt"><b>' + titulo + '</b><span class="lcfg-dica">' + dica + '</span>' + (extra || '') + '</div></div>';
+            const textosDe = k => (_lcfgEdit.textos || []).filter(t => t.etapa === k).map(t => t.key);
+            const titulo = k => { const t = (_lcfgEdit.textos || []).find(x => x.key === k + '.titulo'); return t && String(t.valor || '').trim(); };
+            const AJUDA = {
+                telefone: 'Desligado, o cliente vai direto pra escolha da lente (você deixa de capturar o contato logo no começo).',
+                tipo: 'As opções desta tela (tipos de lente) ficam em "Opções da primeira tela".',
+                tratamento: 'Desligado, o fluxo usa o tratamento padrão escolhido (se não existir pra lente, usa o primeiro disponível).',
+                receita: 'Sempre pedida (a lente indicada depende do grau). Escolha onde ela entra — ou arraste os blocos abaixo.',
+                conferir: 'Tela em que o cliente confere os números lidos da receita.',
+                uso: 'Só aparece quando a receita tem adição (grau de perto) e a lente escolhida é de visão simples.',
+                resultado: 'Tela final com a lente indicada.'
+            };
             const trOn = e.tratamento.ativo !== false;
-            const linhas =
-                item('telefone', e.telefone.ativo !== false, 'Pedir WhatsApp no início', 'Desligado, o cliente vai direto pra escolha da lente (você deixa de capturar o contato logo no começo).') +
-                item('tratamento', trOn, 'Tratamento', 'Desligado, o fluxo usa o tratamento padrão escolhido (se não existir pra lente, usa o primeiro disponível).',
-                    trOn || !ops.length ? '' : '<select data-lcfg-etapa="tratamento" data-f="padrao" aria-label="Tratamento padrão">' +
-                        ops.map(o => '<option value="' + _lcfgEsc(o.key) + '"' + (o.key === e.tratamento.padrao ? ' selected' : '') + '>Padrão: ' + _lcfgEsc(o.titulo) + '</option>').join('') + '</select>') +
-                item(null, true, 'Receita', 'Sempre pedida (a lente indicada depende do grau). Escolha onde ela entra — ou arraste na faixa abaixo.',
-                    '<select data-lcfg-etapa="receita" data-f="posicao" aria-label="Posição da receita">' +
+            const linhas = _lcfgEtapasCatOrdem().map((k, i) => {
+                const on = k === 'telefone' ? e.telefone.ativo !== false : k === 'tratamento' ? trOn : true;
+                let extra = '';
+                if (k === 'tratamento' && !trOn && ops.length) extra = '<div class="lcfg-campo"><label>Tratamento usado quando a etapa está desligada</label><select data-lcfg-etapa="tratamento" data-f="padrao">' +
+                    ops.map(o => '<option value="' + _lcfgEsc(o.key) + '"' + (o.key === e.tratamento.padrao ? ' selected' : '') + '>' + _lcfgEsc(o.titulo) + '</option>').join('') + '</select></div>';
+                if (k === 'receita') extra = '<div class="lcfg-campo"><label>Onde a receita entra</label><select data-lcfg-etapa="receita" data-f="posicao">' +
                     '<option value="primeiro"' + (e.receita.posicao === 'primeiro' ? ' selected' : '') + '>Primeira tela (antes do tipo de lente)</option>' +
-                    '<option value="inicio"' + (e.receita.posicao === 'inicio' ? ' selected' : '') + '>Antes do tratamento (logo após o tipo de lente)</option>' +
-                    '<option value="final"' + (e.receita.posicao !== 'inicio' && e.receita.posicao !== 'primeiro' ? ' selected' : '') + '>Depois do tratamento</option></select>');
-            const caminho = '<div class="lcfg-caminho"><b>Caminho do cliente</b><div>' + _lcfgCaminhoCat().map(p => '<span>' + p + '</span>').join('<i class="ph-bold ph-caret-right"></i>') + '</div></div>';
+                    '<option value="inicio"' + (e.receita.posicao === 'inicio' ? ' selected' : '') + '>Logo depois do tipo de lente</option>' +
+                    '<option value="final"' + (e.receita.posicao !== 'inicio' && e.receita.posicao !== 'primeiro' ? ' selected' : '') + '>Depois do tratamento</option></select></div>';
+                const tx = textosDe(k), tt = titulo(k);
+                const corpo = '<p class="lcfg-intro" style="margin:12px 0 8px;">' + AJUDA[k] + '</p>' + extra +
+                    (tx.length ? '<div class="lcfg-bloco-tit">Textos desta tela</div><div class="lcfg-grid">' + tx.map(x => _lcfgCampoTexto(x, 2)).join('') + '</div>'
+                        : '');
+                return _lcfgAcc('et:' + k, {
+                    nivel: 1, icone: _LCFG_ET_ICONE[k], off: !on,
+                    titulo: (i + 1) + '. ' + _LCFG_ET_NOME[k] + (on ? '' : '<span class="lcfg-pill off">Desligada</span>'),
+                    meta: on ? (tt ? '“' + _lcfgEsc(_lcfgCurto(tt)) + '”' : (k === 'tipo' ? 'Opções em “Opções da primeira tela”' : '')) : 'O cliente não vê esta etapa',
+                    dir: (k === 'telefone' || k === 'tratamento') ? _lcfgSwitch('data-lcfg-etapa="' + k + '" data-f="ativo"', on, true) : '',
+                    corpo
+                });
+            }).join('');
             const desl = (e.telefone.ativo === false ? 1 : 0) + (trOn ? 0 : 1);
             return _lcfgAcc('etapas', {
-                icone: 'ph-flow-arrow', etapa: 'Ordem e etapas', titulo: 'Etapas do fluxo',
+                icone: 'ph-flow-arrow', etapa: 'Ordem, etapas e textos', titulo: 'Etapas do fluxo',
                 meta: (e.receita.posicao === 'primeiro' ? 'Receita na primeira tela' : e.receita.posicao === 'inicio' ? 'Receita antes do tratamento' : 'Receita depois do tratamento') + (desl ? ' · ' + desl + (desl === 1 ? ' etapa desligada' : ' etapas desligadas') : ' · todas as etapas ligadas'),
-                corpo: '<p class="lcfg-intro" style="margin:14px 0 6px;">Desligue o que não quer perguntar e escolha onde a receita entra. Tipo de lente e receita são sempre perguntados, porque a lente indicada depende deles.</p>' +
-                    linhas + _lcfgPintaOrdemDnd() + '<div class="lcfg-bloco-tit">Como fica o caminho do cliente</div>' + caminho
+                corpo: '<p class="lcfg-intro" style="margin:14px 0 6px;">Abra cada etapa para mudar a pergunta, a dica, os nomes das opções e os botões do jeito da sua loja. Dá também para desligar etapas e mudar onde a receita entra.</p>' +
+                    linhas + _lcfgPintaOrdemDnd()
             });
         }
         /* ---- Ordem das etapas por arrastar (12/10/2026): arraste os blocos; a posição da receita é calculada ---- */
