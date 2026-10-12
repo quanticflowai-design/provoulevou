@@ -29892,6 +29892,136 @@
         window.plVgResetPeriodo = function () { token++; atual = 'all'; window._plVgView = null; pinta(); status('Desde a primeira prova'); };
     })();
     </script>
+    <!-- Assistente da dash (13/10/2026): ícone no canto inferior direito abre um chat com os números DA LOJA logada.
+         Servidor: n8n [PL] Assistente da dash (webhook pl-assistente) — confere o token do login e só consulta a loja desse login. -->
+    <style>
+      #plAssist { --pa-ac: #630ed4; --pa-ac2: #7c3aed; --pa-soft: #f3ecfd; --pa-ink: #1c1826; --pa-mu: #6b6578; --pa-line: #ecebe6; --pa-bg: #fcfbfe; --pa-card: #fff; font-family: inherit; }
+      body.dark-mode #plAssist { --pa-soft: rgba(124,58,237,.18); --pa-ink: #f5f4f0; --pa-mu: #a8a2b2; --pa-line: rgba(255,255,255,.09); --pa-bg: #0d0d14; --pa-card: #15151f; }
+      #plAssist .pa-fab { position: fixed; right: 24px; bottom: 24px; z-index: 9990; display: flex; align-items: center; gap: 9px; border: 0; cursor: pointer; background: linear-gradient(135deg, var(--pa-ac), var(--pa-ac2)); color: #fff; height: 52px; border-radius: 999px; padding: 0 18px 0 15px; font: inherit; font-weight: 700; font-size: 14px; box-shadow: 0 12px 30px rgba(99,14,212,.35); transition: transform .15s; }
+      #plAssist .pa-fab:hover { transform: translateY(-2px); } #plAssist .pa-fab i { font-size: 22px; }
+      #plAssist .pa-fab.aberto { width: 52px; padding: 0; justify-content: center; } #plAssist .pa-fab.aberto span { display: none; }
+      #plAssist .pa-chat { position: fixed; right: 24px; bottom: 88px; z-index: 9989; width: 400px; height: min(640px, calc(100vh - 116px)); background: var(--pa-card); color: var(--pa-ink); border: 1px solid var(--pa-line); border-radius: 20px; box-shadow: 0 24px 60px rgba(28,24,38,.24); display: flex; flex-direction: column; overflow: hidden; opacity: 0; transform: translateY(12px) scale(.98); pointer-events: none; transition: .18s; }
+      #plAssist .pa-chat.on { opacity: 1; transform: none; pointer-events: auto; }
+      #plAssist .pa-top { display: flex; align-items: center; gap: 10px; padding: 14px 14px 12px; background: linear-gradient(135deg, var(--pa-ac), var(--pa-ac2)); color: #fff; }
+      #plAssist .pa-top .av { width: 36px; height: 36px; border-radius: 11px; background: rgba(255,255,255,.18); display: grid; place-items: center; font-size: 20px; flex: none; }
+      #plAssist .pa-top b { display: block; font-size: 15px; } #plAssist .pa-top small { display: block; font-size: 12px; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+      #plAssist .pa-x { margin-left: auto; border: 0; background: rgba(255,255,255,.16); color: #fff; width: 32px; height: 32px; border-radius: 9px; cursor: pointer; font-size: 16px; display: grid; place-items: center; flex: none; }
+      #plAssist .pa-msgs { flex: 1; overflow: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: var(--pa-bg); }
+      #plAssist .pa-m { max-width: 88%; font-size: 13.5px; line-height: 1.45; }
+      #plAssist .pa-m.eu { align-self: flex-end; background: var(--pa-ac); color: #fff; padding: 9px 12px; border-radius: 14px 14px 4px 14px; }
+      #plAssist .pa-m.ia { align-self: flex-start; background: var(--pa-card); border: 1px solid var(--pa-line); padding: 11px 12px; border-radius: 14px 14px 14px 4px; }
+      #plAssist .pa-m.ia p { margin: 0 0 8px; } #plAssist .pa-m.ia p:last-child { margin: 0; }
+      #plAssist .pa-m.erro { border-color: rgba(220,38,38,.35); }
+      #plAssist .pa-fonte { display: block; margin-top: 8px; font-size: 11px; color: var(--pa-mu); }
+      #plAssist .pa-nums { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0; }
+      #plAssist .pa-num { background: var(--pa-soft); border-radius: 10px; padding: 8px 9px; } #plAssist .pa-num small { display: block; font-size: 11px; color: var(--pa-mu); } #plAssist .pa-num b { font-size: 16px; }
+      #plAssist .pa-d { font-size: 11px; font-weight: 700; } #plAssist .pa-d.up { color: #16a34a; } #plAssist .pa-d.dn { color: #dc2626; }
+      #plAssist .pa-rank { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+      #plAssist .pa-rank li { display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: center; font-size: 12.5px; }
+      #plAssist .pa-rank .bar { grid-column: 2/4; height: 5px; border-radius: 9px; background: var(--pa-soft); overflow: hidden; margin-top: -2px; } #plAssist .pa-rank .bar i { display: block; height: 100%; background: var(--pa-ac2); border-radius: 9px; }
+      #plAssist .pa-rank .n { color: var(--pa-mu); font-weight: 700; }
+      #plAssist .pa-spark { display: flex; align-items: flex-end; gap: 2px; height: 54px; margin: 8px 0 2px; } #plAssist .pa-spark i { flex: 1; background: var(--pa-ac2); border-radius: 2px 2px 0 0; opacity: .85; min-height: 2px; }
+      #plAssist .pa-funil { display: flex; flex-direction: column; gap: 5px; margin: 8px 0; } #plAssist .pa-funil div { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+      #plAssist .pa-funil span { flex: none; width: 118px; color: var(--pa-mu); } #plAssist .pa-funil em { font-style: normal; height: 18px; border-radius: 6px; background: var(--pa-ac2); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; padding: 0 6px; min-width: 24px; }
+      #plAssist .pa-acao { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; border: 1px solid var(--pa-ac); color: var(--pa-ac); background: transparent; border-radius: 9px; padding: 6px 10px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+      #plAssist .pa-dig { display: flex; gap: 4px; padding: 4px 2px; } #plAssist .pa-dig i { width: 7px; height: 7px; border-radius: 50%; background: #c4b5fd; animation: paB 1s infinite; } #plAssist .pa-dig i:nth-child(2) { animation-delay: .15s; } #plAssist .pa-dig i:nth-child(3) { animation-delay: .3s; }
+      @keyframes paB { 0%, 80%, 100% { transform: translateY(0); opacity: .5; } 40% { transform: translateY(-4px); opacity: 1; } }
+      #plAssist .pa-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px 4px; border-top: 1px solid var(--pa-line); background: var(--pa-card); }
+      #plAssist .pa-chip { border: 1px solid var(--pa-line); background: var(--pa-card); border-radius: 999px; padding: 6px 10px; font: inherit; font-size: 12px; cursor: pointer; color: var(--pa-ink); white-space: nowrap; } #plAssist .pa-chip:hover { border-color: var(--pa-ac); color: var(--pa-ac); }
+      #plAssist .pa-chips.min .pa-chip:nth-child(n+4) { display: none; }
+      #plAssist .pa-inp { display: flex; gap: 8px; padding: 10px 14px 14px; background: var(--pa-card); margin: 0; }
+      #plAssist .pa-inp input { flex: 1; height: 42px; border: 1px solid var(--pa-line); border-radius: 12px; padding: 0 12px; font: inherit; font-size: 13.5px; outline: none; background: var(--pa-card); color: var(--pa-ink); } #plAssist .pa-inp input:focus { border-color: var(--pa-ac); }
+      #plAssist .pa-inp button { width: 42px; height: 42px; border-radius: 12px; border: 0; background: var(--pa-ac); color: #fff; font-size: 18px; cursor: pointer; display: grid; place-items: center; flex: none; }
+      #plAssist .pa-rod { font-size: 10.5px; color: var(--pa-mu); text-align: center; padding: 0 14px 10px; background: var(--pa-card); margin-top: -6px; }
+      @media (max-width: 640px) { #plAssist .pa-chat { right: 0; bottom: 0; width: 100%; height: 100%; border-radius: 0; } #plAssist .pa-fab.aberto { display: none; } #plAssist .pa-fab { right: 16px; bottom: 16px; } }
+    </style>
+    <div id="plAssist" style="display:none;">
+      <button type="button" class="pa-fab" id="paFab" aria-label="Abrir assistente"><i class="ph-fill ph-sparkle"></i><span>Pergunte à Provou</span></button>
+      <section class="pa-chat" id="paChat" aria-label="Assistente Provou Levou">
+        <div class="pa-top"><div class="av"><i class="ph-fill ph-sparkle"></i></div><div><b>Assistente Provou Levou</b><small id="paSub">responde com os dados da sua loja</small></div><button type="button" class="pa-x" id="paFecha" aria-label="Fechar"><i class="ph-bold ph-x"></i></button></div>
+        <div class="pa-msgs" id="paMsgs"></div>
+        <div class="pa-chips" id="paChips"></div>
+        <form class="pa-inp" id="paForm"><input id="paQ" maxlength="600" placeholder="Pergunte sobre a sua loja…" autocomplete="off"><button aria-label="Enviar"><i class="ph-bold ph-paper-plane-right"></i></button></form>
+        <div class="pa-rod">Só vê os dados da sua loja.</div>
+      </section>
+    </div>
+    <script>
+    (function () {
+        const URL_IA = 'https://n8n.segredosdodrop.com/webhook/pl-assistente';
+        const $ = id => document.getElementById(id);
+        const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const brl = v => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const n = v => Number(v || 0).toLocaleString('pt-BR');
+        const delta = (a, b) => { if (!b) return ''; const p = Math.round((a - b) / b * 100); return '<span class="pa-d ' + (p >= 0 ? 'up' : 'dn') + '">' + (p >= 0 ? '▲ ' : '▼ ') + Math.abs(p) + '% vs 30 dias antes</span>'; };
+        const num = (r, v, d) => '<div class="pa-num"><small>' + r + '</small><b>' + v + '</b>' + (d ? '<br>' + d : '') + '</div>';
+        const nomeP = s => esc(String(s || '?').replace(/^ÓCULOS( DE GRAU| DE SOL)?\s*/i, '').replace(/\s*-\s*/, ' · ').toLowerCase().replace(/(^|\s|·|\()\S/g, c => c.toUpperCase()));
+        const rank = l => { if (!l || !l.length) return '<p>Ainda sem dados no período.</p>'; const mx = Math.max(...l.map(x => x[1])); return '<ul class="pa-rank">' + l.map((x, i) => '<li><span class="n">' + (i + 1) + '</span><span>' + nomeP(x[0]) + '</span><b>' + x[1] + '</b><span class="bar"><i style="width:' + Math.round(x[1] / mx * 100) + '%"></i></span></li>').join('') + '</ul>'; };
+        const fonte = D => '<span class="pa-fonte">Fonte: provas e pedidos pagos da loja · ' + esc(D.gerado_em) + '</span>';
+        const semPed = D => D.tem_pedidos ? '' : '<p>Os pedidos da sua loja ainda não estão ligados à Provou Levou, então não consigo calcular vendas. Fale com o suporte para ligar.</p>';
+        const R = {
+            vendas: D => { const p = D.p30, a = D.p30ant; return semPed(D) || '<p>Nos <b>últimos 30 dias</b>, quem usou o provador comprou <b>' + brl(p.fat_pos) + '</b> na sua loja.</p><div class="pa-nums">' + num('Vendas pós-prova', brl(p.fat_pos), delta(p.fat_pos, a.fat_pos)) + num('Pedidos', n(p.pedidos_pos), delta(p.pedidos_pos, a.pedidos_pos)) + num('Ticket médio', brl(p.ticket)) + num('Do faturamento da loja', p.pct + '%') + '</div><p>Conta só pedido pago feito <b>depois</b> da primeira prova da pessoa.</p>' + fonte(D); },
+            mes: D => { const m = D.mes; return '<p>Do dia 1º deste mês até agora:</p><div class="pa-nums">' + (D.tem_pedidos ? num('Vendas pós-prova', brl(m.fat_pos)) + num('Pedidos', n(m.pedidos_pos)) : '') + num('Provas', n(m.provas)) + num('Pessoas', n(m.pessoas)) + (D.tem_pedidos ? num('Do faturamento', m.pct + '%') : '') + '</div>' + fonte(D); },
+            provas: D => { const p = D.p30, a = D.p30ant, mx = Math.max(1, ...D.provas_dia.map(y => y[1])); return '<p><b>' + n(p.provas) + ' provas</b> de <b>' + n(p.pessoas) + ' pessoas</b> nos últimos 30 dias ' + delta(p.provas, a.provas) + '.</p><div class="pa-spark">' + D.provas_dia.map(x => '<i title="' + x[0] + ': ' + x[1] + '" style="height:' + Math.max(4, Math.round(x[1] / mx * 100)) + '%"></i>').join('') + '</div><small style="color:var(--pa-mu);font-size:11px">provas por dia · últimos 30 dias</small>' + fonte(D); },
+            top_provados: D => '<p>Os modelos mais provados nos últimos 30 dias:</p>' + rank(D.top_provados_full) + fonte(D),
+            top_vendidos: D => semPed(D) || '<p>O que mais vendeu para quem provou antes (30 dias):</p>' + rank(D.top_vendidos_pos) + fonte(D),
+            nao_compraram: D => '<p><b>' + n(D.nao_compraram.pessoas) + ' pessoas</b> provaram nos últimos 30 dias e ainda não compraram. Todas deixaram o WhatsApp.</p>' + (D.p30.ticket ? '<p>Se 1 em cada 10 comprar no seu ticket médio (' + brl(D.p30.ticket) + '), são cerca de <b>' + brl(D.nao_compraram.potencial) + '</b>.</p>' : '') + '<button type="button" class="pa-acao" data-pa-ir="disparos"><i class="ph-bold ph-paper-plane-tilt"></i> Ir para Disparos</button>' + fonte(D),
+            lentes: D => { const l = D.lentes || {}; if (!l.sessoes) return '<p>O fluxo de lentes não teve acessos nos últimos 30 dias.</p>' + fonte(D); const mx = Math.max(l.sessoes, 1); return '<p>Nos últimos 30 dias, o fluxo de lentes foi aberto <b>' + n(l.sessoes) + ' vezes</b>:</p><div class="pa-funil">' + [['Abriu o fluxo', l.sessoes], ['Escolheu o tipo', l.visao], ['Escolheu tratamento', l.tratamento], ['Viu a lente indicada', l.recomendou], ['Pôs no carrinho', l.carrinho]].map(x => '<div><span>' + x[0] + '</span><em style="width:' + Math.max(12, Math.round((x[1] || 0) / mx * 100)) + '%">' + n(x[1]) + '</em></div>').join('') + '</div>' + (D.tem_pedidos ? '<p>A loja teve <b>' + n(l.pedidos_com_lente) + ' pedidos com lente</b> no período (' + brl(l.fat_lente_pedidos) + ').</p>' : '') + fonte(D); },
+            crescimento: D => { const p = D.p30, a = D.p30ant; return semPed(D) || '<p>Últimos 30 dias comparados com os 30 anteriores:</p><div class="pa-nums">' + num('Faturamento da loja', brl(p.fat_loja), delta(p.fat_loja, a.fat_loja)) + num('Vendas pós-prova', brl(p.fat_pos), delta(p.fat_pos, a.fat_pos)) + '</div><p>A parte do faturamento que veio de quem provou foi de <b>' + a.pct + '%</b> para <b>' + p.pct + '%</b>.</p>' + fonte(D); }
+        };
+        const CHIPS = [['vendas', 'Quanto o provador vendeu?'], ['provas', 'Quantas provas tive?'], ['nao_compraram', 'Quem provou e não comprou?'], ['top_provados', 'Quais óculos mais provam?'], ['lentes', 'Como está o fluxo de lentes?'], ['top_vendidos', 'O que mais vendeu pelo provador?'], ['crescimento', 'A loja cresceu com o provador?'], ['mes', 'E neste mês?']];
+        let aberto = false, dom = null, cache = null, cacheEm = 0, hist = [], ocupado = false;
+        const loja = () => (typeof activeUser !== 'undefined' && activeUser && activeUser.origem) ? String(activeUser.origem).toLowerCase() : null;
+        function msg(cls, html) { const d = document.createElement('div'); d.className = 'pa-m ' + cls; d.innerHTML = html; $('paMsgs').appendChild(d); $('paMsgs').scrollTop = 1e9; return d; }
+        function md(t) { return esc(t).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').split(/\n{2,}/).map(p => '<p>' + p.replace(/\n/g, '<br>') + '</p>').join(''); }
+        async function chama(body) {
+            const s = (typeof supabaseClient !== 'undefined') ? (await supabaseClient.auth.getSession()).data.session : null;
+            if (!s) throw new Error('Sua sessão expirou. Entre de novo na dashboard.');
+            const r = await fetch(URL_IA, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify(Object.assign({ dominio: dom }, body)) });
+            let j = null; try { j = await r.json(); } catch (e) {}
+            if (!r.ok || !j || !j.ok) throw new Error((j && j.erro) || 'Não consegui responder agora. Tente de novo em instantes.');
+            if (j.dados) { cache = j.dados; cacheEm = Date.now(); }
+            return j;
+        }
+        async function pergunta(k, texto) {
+            if (ocupado) return; ocupado = true;
+            msg('eu', esc(texto)); $('paChips').classList.add('min');
+            const t = msg('ia', '<div class="pa-dig"><i></i><i></i><i></i></div>');
+            try {
+                let html;
+                if (k) { const D = (cache && Date.now() - cacheEm < 5 * 60e3) ? cache : (await chama({ intencao: k })).dados; html = R[k](D); hist.push({ role: 'user', content: texto }, { role: 'assistant', content: '(mostrei os números de: ' + texto + ')' }); }
+                else { const j = await chama({ pergunta: texto, historico: hist }); html = md(j.resposta); hist.push({ role: 'user', content: texto }, { role: 'assistant', content: j.resposta }); }
+                hist = hist.slice(-6); t.innerHTML = html;
+            } catch (e) { t.classList.add('erro'); t.innerHTML = '<p>' + esc(e.message) + '</p>'; }
+            ocupado = false; $('paMsgs').scrollTop = 1e9;
+        }
+        function inicia() {
+            $('paMsgs').innerHTML = ''; hist = []; cache = null;
+            const nome = (activeUser && (activeUser.nome_loja || activeUser.origem)) || 'sua loja';
+            $('paSub').textContent = nome + ' · responde com os dados da sua loja';
+            msg('ia', '<p>Oi! Sou o assistente da Provou Levou. Respondo com os números da <b>sua loja</b>: provas, vendas pelo provador, quem não comprou, lentes…</p><p>Escolha uma pergunta abaixo ou escreva a sua.</p>');
+            $('paChips').classList.remove('min');
+            $('paChips').innerHTML = CHIPS.map(c => '<button type="button" class="pa-chip" data-pa-k="' + c[0] + '">' + c[1] + '</button>').join('');
+        }
+        function alterna(v) {
+            aberto = v == null ? !aberto : v;
+            $('paChat').classList.toggle('on', aberto); $('paFab').classList.toggle('aberto', aberto);
+            $('paFab').innerHTML = aberto ? '<i class="ph-bold ph-x"></i>' : '<i class="ph-fill ph-sparkle"></i><span>Pergunte à Provou</span>';
+            if (aberto) { if (dom !== loja()) { dom = loja(); inicia(); } setTimeout(() => $('paQ').focus(), 200); }
+        }
+        $('paFab').addEventListener('click', () => alterna());
+        $('paFecha').addEventListener('click', () => alterna(false));
+        $('paChips').addEventListener('click', e => { const b = e.target.closest('[data-pa-k]'); if (b) pergunta(b.dataset.paK, b.textContent); });
+        $('paMsgs').addEventListener('click', e => { const b = e.target.closest('[data-pa-ir]'); if (b && typeof showTab === 'function') { alterna(false); showTab(b.dataset.paIr); } });
+        $('paForm').addEventListener('submit', e => { e.preventDefault(); const q = $('paQ').value.trim(); if (!q) return; $('paQ').value = ''; pergunta(null, q); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && aberto) alterna(false); });
+        // aparece quando há loja logada; troca de loja (master) reinicia a conversa
+        setInterval(() => {
+            const l = loja(), box = $('plAssist');
+            box.style.display = l ? '' : 'none';
+            if (l && dom && l !== dom) { dom = l; inicia(); }
+        }, 1000);
+    })();
+    </script>
 </body>
 
 </html>
