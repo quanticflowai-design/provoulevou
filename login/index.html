@@ -20162,7 +20162,18 @@
             showTab('disparos');
             setTimeout(() => {
                 try { dispSwitchSub('disparar'); } catch (e) {}
-                setTimeout(() => { try { campWizardOpen({ name: 'RFM · ' + RFM_SEG[k][0], targets, rfm: true }); } catch (e) { console.warn('[rfm] campanha', e); } }, 150);
+                // Abre na ETAPA do CRM: pipeline Matriz RFM com o segmento clicado já escolhido (12/10/2026)
+                setTimeout(async () => {
+                    try {
+                        campWizardOpen();
+                        CAMP.nome = 'RFM · ' + RFM_SEG[k][0];
+                        CAMP.publicoTipo = 'crm'; CAMP.pipeline = 'rfm';
+                        campWizardRender();
+                        await rfmPipeGaranta();
+                        await campOnStage('rfm-' + k);
+                        campWizardRender();
+                    } catch (e) { console.warn('[rfm] campanha', e); }
+                }, 150);
             }, 120);
         }
         function _rfmInjectCSS() {
