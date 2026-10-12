@@ -7203,7 +7203,7 @@
         function _lcfgEtapasCatOrdem() {
             const e = _lcfgEtapasCat(), tem = k => (_lcfgEdit.textos || []).some(t => t.etapa === k);
             const pos = e.receita.posicao, o = ['telefone'];
-            const rec = ['receita'].concat(tem('conferir') ? ['conferir'] : [], tem('uso') ? ['uso'] : []);
+            const rec = ['receita'].concat(tem('conferir') ? ['conferir'] : []);   // "longe ou perto" fora do passo a passo (Lucas, 13/10): o fluxo usa o grau de longe
             if (pos === 'primeiro') o.push.apply(o, rec);
             o.push('tipo');
             if (pos === 'inicio') o.push.apply(o, rec);
