@@ -15886,7 +15886,7 @@
                 if (urlBtnIndex >= 0 && leadLink) {
                     // Botão de URL dinâmico = base fixa (domínio) + {{1}}. Manda só o CAMINHO
                     // (tira esquema+host), pra Meta concatenar com a base do botão sem duplicar o domínio.
-                    const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?';
+                    const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?utm_source=whatsapp';   // só '?' a Meta recusa (#100 Invalid parameter)
                     components = [];
                     if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
                     components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
@@ -17015,7 +17015,7 @@
                         const params = waBuildLeadBodyParams(tplObj, firstName, produto, leadLink);
                         const p = { to: lead.phone, params: params };
                         if (urlBtnIndex >= 0 && leadLink) {
-                            const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?';
+                            const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?utm_source=whatsapp';   // só '?' a Meta recusa (#100 Invalid parameter)
                             const components = [];
                             if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
                             components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
@@ -17376,7 +17376,7 @@
                 const params = waBuildLeadBodyParams(tplObj, firstName, produto, leadLink);
                 const p = { to: lead.phone, params: params };
                 if (urlBtnIndex >= 0 && leadLink) {
-                    const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?';
+                    const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?utm_source=whatsapp';   // só '?' a Meta recusa (#100 Invalid parameter)
                     const components = [];
                     if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
                     components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
@@ -17584,7 +17584,7 @@
             // pra Meta concatenar com a base do botão sem duplicar domínio).
             let components = null;
             if (urlBtnIndex >= 0 && leadLink) {
-                const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?';
+                const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?utm_source=whatsapp';   // só '?' a Meta recusa (#100 Invalid parameter)
                 components = [];
                 if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
                 components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
