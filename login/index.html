@@ -4072,7 +4072,9 @@
                     </div>
                     <!-- Assistente com IA (12/10/2026): a loja dita a mudança, a IA altera o RASCUNHO e a prévia
                          ao lado mostra o fluxo como vai ficar. Só vai pra loja ao clicar em Salvar. -->
-                    <div id="lcfgMapa"></div>
+                    <div class="lcfg-topo-grid" id="lcfgTopoGrid">
+                        <div class="lcfg-topo-esq">
+                            <div id="lcfgMapa"></div>
                     <section class="lcfg-ia" id="lcfgIA">
                         <div class="lcfg-ia-chat">
                             <div class="lcfg-ia-topo">
@@ -4086,14 +4088,23 @@
                                 <button type="submit" class="lcfg-btn lcfg-btn-pri" id="lcfgIAEnviar" aria-label="Enviar"><i class="ph-bold ph-paper-plane-right"></i></button>
                             </form>
                         </div>
+                    </section>
+                        </div>
+                        <aside class="lcfg-topo-dir">
+                            <div id="lcfgEdBar"></div>
                         <div class="lcfg-ia-previa">
                             <div class="lcfg-ia-previa-topo">
                                 <div><b>Prévia do rascunho</b><small id="lcfgPreviaStatus">Como o cliente vai ver</small></div>
+                                <div class="lcfg-modo" role="group" aria-label="Modo da prévia">
+                                    <button type="button" class="on" data-lcfg-modo="editar" title="Clique nos textos da prévia para editar"><i class="ph-bold ph-pencil-simple"></i> Editar</button>
+                                    <button type="button" data-lcfg-modo="testar" title="Clique nas opções para percorrer o fluxo"><i class="ph-bold ph-hand-pointing"></i> Testar</button>
+                                </div>
                                 <button type="button" class="lcfg-btn" id="lcfgPreviaRecarrega" title="Recarregar a prévia"><i class="ph-bold ph-arrow-clockwise"></i></button>
                             </div>
                             <div class="lcfg-ia-frame"><iframe id="lcfgPreviaFrame" title="Prévia do fluxo de lentes"></iframe></div>
                         </div>
-                    </section>
+                        </aside>
+                    </div>
                     <div id="lcfgCorpo"></div>
                 </div>
             </div>
@@ -4111,7 +4122,6 @@
                         <div class="crm-pipeline-switch" id="crmPipelineSwitch" role="tablist" aria-label="Pipeline do CRM">
                             <button type="button" class="on" data-crm-pipeline="provador" aria-selected="true" onclick="crmSwitchPipeline('provador')"><i class="ph-bold ph-eyeglasses"></i> Provador</button>
                             <button type="button" id="crmPipelineLentesBtn" data-crm-pipeline="lentes" aria-selected="false" onclick="crmSwitchPipeline('lentes')" style="display:none;"><i class="ph-bold ph-circle-half-tilt"></i> Lentes</button>
-                            <button type="button" id="crmPipelineRfmBtn" data-crm-pipeline="rfm" aria-selected="false" onclick="crmSwitchPipeline('rfm')" style="display:none;" title="Todos os clientes que já compraram, pelos segmentos da Matriz RFM"><i class="ph-bold ph-chart-pie-slice"></i> Matriz RFM</button>
                         </div>
                     </div>
         <style id="crmMenuCss">
@@ -4431,9 +4441,21 @@
                     }
 
                     /* Assistente com IA + prévia ao vivo (12/10/2026) */
-                    .lcfg-ia { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 14px; margin-bottom: 14px; }
+                    .lcfg-topo-grid { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 14px; align-items: start; margin-bottom: 14px; }
+                    .lcfg-topo-esq { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+                    .lcfg-topo-esq > #lcfgMapa:empty { display: none; }
+                    .lcfg-topo-dir { position: sticky; top: 90px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+                    .lcfg-topo-dir > #lcfgEdBar:empty { display: none; }
+                    .lcfg-topo-esq #lcfgMapa .lcfg-acc { margin-bottom: 0; }
+                    .lcfg-ia { display: block; margin: 0; }
+                    .lcfg-modo { display: flex; gap: 2px; background: var(--l-line-soft); border-radius: 9px; padding: 2px; margin-left: auto; }
+                    .lcfg-modo button { border: 0; background: none; border-radius: 7px; height: 28px; padding: 0 9px; font: inherit; font-size: 12px; font-weight: 600; color: var(--l-muted); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+                    .lcfg-modo button.on { background: var(--l-card); color: var(--l-accent); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+                    .lcfg-ed-eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--l-accent); }
+                    .lcfg-mapa4.so-arvore { grid-template-columns: 1fr; }
+                    @media (max-width: 1100px) { .lcfg-topo-grid { grid-template-columns: 1fr; } .lcfg-topo-dir { position: static; } }
                     .lcfg-ia-chat, .lcfg-ia-previa { background: var(--l-card); border: 1px solid var(--l-line); border-radius: 14px; display: flex; flex-direction: column; min-width: 0; }
-                    .lcfg-ia-chat { height: 640px; }
+                    .lcfg-ia-chat { height: 420px; }
                     .lcfg-ia-topo { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--l-line-soft); }
                     .lcfg-ia-topo b, .lcfg-ia-previa-topo b { display: block; font-size: 15px; font-weight: 700; }
                     .lcfg-ia-topo small, .lcfg-ia-previa-topo small { display: block; font-size: 12px; color: var(--l-muted); margin-top: 2px; }
@@ -4461,12 +4483,12 @@
                     .lcfg-ia-form { display: flex; gap: 8px; padding: 12px 16px 16px; border-top: 1px solid var(--l-line-soft); align-items: flex-end; }
                     #lentesViewConfig .lcfg-ia-form textarea { min-height: 46px; max-height: 140px; resize: none; }
                     .lcfg-ia-form .lcfg-btn { height: 46px; width: 46px; padding: 0; flex: 0 0 auto; font-size: 17px; }
-                    .lcfg-ia-previa { height: 640px; overflow: hidden; }
+                    .lcfg-ia-previa { height: min(720px, calc(100vh - 200px)); min-height: 520px; overflow: hidden; }
                     .lcfg-ia-previa-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--l-line-soft); }
                     .lcfg-ia-previa-topo .lcfg-btn { width: 38px; padding: 0; }
                     .lcfg-ia-frame { flex: 1; background: #f5efe9; display: flex; justify-content: center; }
                     .lcfg-ia-frame iframe { width: 100%; max-width: 400px; height: 100%; border: 0; background: #fff; }
-                    @media (max-width: 1100px) { .lcfg-ia { grid-template-columns: 1fr; } .lcfg-ia-chat { height: 520px; } .lcfg-ia-previa { height: 620px; } }
+                    @media (max-width: 1100px) { .lcfg-ia-chat { height: 420px; } .lcfg-ia-previa { height: 640px; } }
 
                     /* Cores + modo catálogo (12/10/2026) */
                     .lcfg-bolinha { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 3px; vertical-align: -1px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
@@ -5133,7 +5155,6 @@
                                 <select id="recurPipeline" class="wa-bulk-field" style="width:100%;" onchange="populateRecurStage()">
                                     <option value="provador">Provador virtual</option>
                                     <option value="lentes">Fluxo de lentes</option>
-                                    <option value="rfm">Matriz RFM</option>
                                 </select>
                             </div>
                             <div>
@@ -6659,7 +6680,6 @@
         function showTab(name) {
             if (isDisparosOnly() && name !== 'disparos') name = 'disparos';
             if (isComercial() && name !== 'disparos') name = 'disparos';
-            if (name !== 'disparos' && typeof rfmPipeSaiDoCrm === 'function') rfmPipeSaiDoCrm();
             const pane = document.getElementById('tab-' + name);
             const btn = document.querySelector('.tab-btn[data-tab="' + name + '"]');
             if (!pane && !btn && name !== 'visao-geral') { return showTab('visao-geral'); }
@@ -7283,9 +7303,8 @@
                 (k === 'telefone' && !on ? '<p class="lcfg-ed-nota">Desligada: o cliente vai direto pra próxima etapa.</p>' : '');
         }
         function _lcfgMapaParcial(semTela) {   // atualiza árvore (e a tela) sem refazer os campos (não perde o foco)
-            const a = document.getElementById('lcfgArvoreBox'), t = document.getElementById('lcfgTelaBox');
+            const a = document.getElementById('lcfgArvoreBox');
             if (a) a.innerHTML = _lcfgArvore();
-            if (t && !semTela) t.innerHTML = _lcfgTela(_lcfgSelEt);
         }
         // edição direto na tela: ao focar mostra o texto cru (com **), ao sair mostra formatado
         document.addEventListener('focusin', ev => { const el = ev.target.closest && ev.target.closest('[data-lcfg-ce]'); if (el) { el.textContent = String(_lcfgCEValor(el.dataset.lcfgCe) || ''); el.removeAttribute('data-vazio'); } });
@@ -7304,14 +7323,13 @@
                 meta: ramos + (ramos === 1 ? ' caminho' : ' caminhos') + (nx ? ' · ' + nx + (nx === 1 ? ' etapa sua' : ' etapas suas') : '') + (desl ? ' · ' + desl + (desl === 1 ? ' desligada' : ' desligadas') : ''),
                 corpo: '<p class="lcfg-intro" style="margin:14px 0 12px;">O começo é igual pra todo mundo; depois do tipo de lente o caminho se divide. Cada coluna mostra o que aquele cliente vê até o resultado. ' +
                     '<b>Clique</b> numa etapa para ver a tela e editar ao lado · <b>+</b> cria uma etapa sua ali · <b>arraste</b> (<i class="ph-bold ph-dots-six-vertical"></i>) as etapas suas e a receita · arraste o <b>fundo</b> para mover a lousa.</p>' +
-                    '<div class="lcfg-mapa4"><div class="lcfg-arv-area"><div class="lcfg-zoom" role="group" aria-label="Zoom do mapa">' +
+                    '<div class="lcfg-mapa4 so-arvore"><div class="lcfg-arv-area"><div class="lcfg-zoom" role="group" aria-label="Zoom do mapa">' +
                         '<button type="button" data-lcfg-zoom="-" aria-label="Diminuir zoom" title="Diminuir zoom"><i class="ph-bold ph-minus"></i></button>' +
                         '<span id="lcfgZoomPct">' + Math.round(_lcfgZoom * 100) + '%</span>' +
                         '<button type="button" data-lcfg-zoom="+" aria-label="Aumentar zoom" title="Aumentar zoom"><i class="ph-bold ph-plus"></i></button>' +
                         '<button type="button" data-lcfg-zoom="fit" title="Encaixar o mapa inteiro na tela"><i class="ph-bold ph-arrows-in"></i> Ajustar</button>' +
                         '<button type="button" data-lcfg-zoom="1" title="Tamanho normal">100%</button></div>' +
-                    '<div class="lcfg-arv-wrap" id="lcfgArvoreBox">' + _lcfgArvore() + '</div></div>' +
-                    '<div class="lcfg-mapa4-lado"><div class="lcfg-ed">' + _lcfgEditorEt(_lcfgSelEt) + '</div><div id="lcfgTelaBox">' + _lcfgTela(_lcfgSelEt) + '</div></div></div>'
+                    '<div class="lcfg-arv-wrap" id="lcfgArvoreBox">' + _lcfgArvore() + '</div></div></div>'
             });
         }
         /* ---- Ordem das etapas por arrastar (12/10/2026): arraste os blocos; a posição da receita é calculada ---- */
@@ -7365,6 +7383,8 @@
             }).join('');
             const total = (c.lentes || []).length, ligadas = (c.lentes || []).filter(l => l.ativo !== false).length;
             const mapa = document.getElementById('lcfgMapa'); if (mapa) mapa.innerHTML = _lcfgPintaEtapasCat();   // mapa do fluxo fica no topo
+            const edb = document.getElementById('lcfgEdBar'); if (edb) edb.innerHTML = '<div class="lcfg-ed"><span class="lcfg-ed-eyebrow">Etapa selecionada no mapa</span>' + _lcfgEditorEt(_lcfgSelEt) + '</div>';
+            _lcfgPreviaIr();
             document.getElementById('lcfgCorpo').innerHTML =
                 '<p class="lcfg-intro">Abra cada parte para editar. O que estiver <b>desligado</b> some do fluxo da loja. Depois de salvar, a loja mostra as mudanças em até 5 minutos.</p>' +
                 _lcfgCores() +
@@ -7389,6 +7409,7 @@
                 else prev.style.display = 'none';
             }
             const mp = document.getElementById('lcfgMapa'); if (mp && c.modo !== 'catalogo') mp.innerHTML = '';
+            const eb = document.getElementById('lcfgEdBar'); if (eb && c.modo !== 'catalogo') eb.innerHTML = '';
             if (c.modo === 'catalogo') { _lcfgPintaCatalogo(c); return; }
             const g = c.geral || (c.geral = {});
             const usados = new Set([].concat(_LCFG_TEXTOS_ETAPA1, _LCFG_TEXTOS_RECEITA, _LCFG_TEXTOS_RESULTADO));
@@ -7551,11 +7572,12 @@
             if (repinta) _lcfgPinta(); else { _lcfgAtualizaBarraEPrevia(); if (c.modo === 'catalogo') _lcfgMapaParcial(); }
         }
         function _lcfgOnClick(ev) {
-            const t = ev.target.closest && ev.target.closest('[data-lcfg-acc],[data-lcfg-mover],[data-lcfg-ids],[data-lcfg-cor-limpa],[data-lcfg-raio-limpa],[data-lcfg-xacao],[data-lcfg-sel],[data-lcfg-zoom]');
+            const t = ev.target.closest && ev.target.closest('[data-lcfg-acc],[data-lcfg-mover],[data-lcfg-ids],[data-lcfg-cor-limpa],[data-lcfg-raio-limpa],[data-lcfg-xacao],[data-lcfg-sel],[data-lcfg-zoom],[data-lcfg-modo]');
             if (!t || !_lcfgEdit) return;
             if (t.dataset.lcfgZoom) { const z = t.dataset.lcfgZoom; if (z === 'fit') _lcfgZoomAjusta(); else _lcfgZoomAplica(z === '+' ? _lcfgZoom + 0.1 : z === '-' ? _lcfgZoom - 0.1 : 1); return; }
             if (t.dataset.lcfgXacao) { _lcfgXAcao(t); return; }
             if (t.dataset.lcfgSel) { _lcfgSelEt = t.dataset.lcfgSel; _lcfgPinta(); return; }
+            if (t.dataset.lcfgModo) { _lcfgPreviaModo = t.dataset.lcfgModo; document.querySelectorAll('#lentesViewConfig [data-lcfg-modo]').forEach(b => b.classList.toggle('on', b === t)); _lcfgPreviaPost({ type: 'pl-lentes-modo', editar: _lcfgPreviaModo === 'editar' }); return; }
             if (t.dataset.lcfgCorLimpa) { const tm = Object.assign({}, _lcfgEdit.tema || {}); delete tm[t.dataset.lcfgCorLimpa]; _lcfgEdit.tema = tm; _lcfgPinta(); return; }
             if (t.hasAttribute('data-lcfg-raio-limpa')) { const tm = Object.assign({}, _lcfgEdit.tema || {}); delete tm.raio; _lcfgEdit.tema = tm; _lcfgPinta(); return; }
             if (t.dataset.lcfgAcc) {   // abre/fecha sem repintar (não perde foco nem rolagem)
@@ -8041,8 +8063,17 @@
         }
 
         // ---- prévia ao vivo do rascunho ----
+        let _lcfgPreviaLive = false, _lcfgPreviaTema = '', _lcfgPreviaModo = 'editar';
+        function _lcfgPreviaPost(msg) {
+            const f = document.getElementById('lcfgPreviaFrame'); if (!f || !f.contentWindow || !_lcfgEdit) return;
+            let alvo = '*'; try { alvo = new URL(_lcfgEdit.previa_url).origin; } catch (_) {}
+            f.contentWindow.postMessage(msg, alvo);
+        }
+        // leva a prévia pra etapa escolhida no mapa (x:<índice> = etapa criada pelo lojista)
+        function _lcfgPreviaIr() { if (_lcfgPreviaLive && _lcfgEdit && _lcfgEdit.modo === 'catalogo') _lcfgPreviaPost({ type: 'pl-lentes-ir', etapa: _lcfgSelEt }); }
         function _lcfgPreviaAtualiza() {
             clearTimeout(_lcfgPreviaTimer);
+            _lcfgPreviaLive = false;
             const f = document.getElementById('lcfgPreviaFrame');
             const c = _lcfgEdit;
             if (!f || !c || !c.previa_url) return;
@@ -8059,8 +8090,36 @@
                 return;
             }
             clearTimeout(_lcfgPreviaTimer);
+            // prévia ao vivo: manda a config sem recarregar (cores trocadas recarregam, pra limpar o tema antigo)
+            const tema = JSON.stringify(_lcfgEdit.tema || {});
+            if (_lcfgPreviaLive && tema === _lcfgPreviaTema) {
+                _lcfgPreviaTimer = setTimeout(() => {
+                    _lcfgPreviaCfg = JSON.stringify(_lcfgEdit);
+                    _lcfgPreviaPost({ type: 'pl-lentes-cfg-live', config: JSON.parse(_lcfgPreviaCfg) });
+                    _lcfgPreviaIr();
+                    const st = document.getElementById('lcfgPreviaStatus'); if (st) st.textContent = _lcfgSujo() ? 'Rascunho (ainda não salvo)' : 'Igual ao que está salvo';
+                }, 250);
+                return;
+            }
             _lcfgPreviaTimer = setTimeout(_lcfgPreviaAtualiza, 1500);
         }
+        window.addEventListener('message', e => {
+            const f = document.getElementById('lcfgPreviaFrame');
+            if (!f || e.source !== f.contentWindow || !e.data || !_lcfgEdit) return;
+            if (e.data.type === 'pl-lentes-live-ok') {
+                _lcfgPreviaLive = true; _lcfgPreviaTema = JSON.stringify(_lcfgEdit.tema || {});
+                _lcfgPreviaPost({ type: 'pl-lentes-modo', editar: _lcfgPreviaModo === 'editar' });
+                setTimeout(_lcfgPreviaIr, 350); setTimeout(_lcfgPreviaIr, 1600);   // de novo depois que a prévia abre o fluxo sozinha
+            }
+            // texto editado direto na prévia: grava no rascunho sem recarregar a prévia
+            if (e.data.type === 'pl-lentes-edit' && e.data.ref) {
+                _lcfgCEGrava(String(e.data.ref), String(e.data.valor == null ? '' : e.data.valor).slice(0, 400));
+                _lcfgPreviaCfg = JSON.stringify(_lcfgEdit);
+                _lcfgAtualizaBarraEPrevia();
+                if (_lcfgEdit.modo === 'catalogo') _lcfgMapaParcial(true);
+                document.querySelectorAll('#lentesViewConfig [data-lcfg-texto]').forEach(el => { const t = _lcfgEdit.textos[+el.dataset.lcfgTexto]; if (t && el !== document.activeElement && el.value !== t.valor) el.value = t.valor; });
+            }
+        });
         window.addEventListener('message', e => {
             const f = document.getElementById('lcfgPreviaFrame');
             if (!f || e.source !== f.contentWindow || !e.data || e.data.type !== 'pl-lentes-ready' || !_lcfgEdit) return;
@@ -9130,7 +9189,6 @@
             _crmConfigMem = null;
             _crmOverridesMem = null;
             if (typeof _crmLentesConfigMem !== 'undefined') _crmLentesConfigMem = null;
-            if (typeof rfmPipeReset === 'function') rfmPipeReset();
             crmLeadMapCache = null; _plPrecoProva = null; _plLojaCache = null;
             crmLoaded = false;
             leadsRecupLoaded = false;
@@ -11926,7 +11984,6 @@
                 } catch (e) {}
             } else {
                 try { crmStopAutoRefresh(); } catch (e) {}
-                try { rfmPipeSaiDoCrm(); } catch (e) {}
             }
         }
 
@@ -12062,7 +12119,6 @@
               + '      <select id="automGatilhoPipeline" class="autom-input" style="min-width:150px;" onchange="automOnCrmPipelineChange()">'
               + '        <option value="provador">Provador virtual</option>'
               + (_hasLentesPipeline ? '        <option value="lentes">Fluxo de lentes</option>' : '')
-              + (rfmPipeDisponivel() ? '        <option value="rfm">Matriz RFM</option>' : '')
               + '      </select>'
               + '      <span style="font-size:12.5px;color:var(--text-muted);">na etapa</span>'
               + '      <select id="automGatilhoEtapa" class="autom-input" style="min-width:170px;"></select>'
@@ -12116,7 +12172,6 @@
             const pipeline = (document.getElementById('automGatilhoPipeline') || {}).value || 'provador';
             let cols = [];
             if (pipeline === 'lentes') cols = _lentesCrmEtapas().map(e => ({ key: e.id, title: e.rot }));
-            else if (pipeline === 'rfm') cols = (rfmPipeEstado().cfg.columns || []).filter(c => c.key !== 'convertido');
             else { try { cols = (typeof getCrmConfig === 'function' && (getCrmConfig().columns || [])) || []; } catch (e) {} }
             etEl.innerHTML = '<option value="">— escolha a etapa —</option>'
                 + cols.map(c => '<option value="' + escapeHtml(c.key) + '">' + escapeHtml(c.title || c.key) + '</option>').join('');
@@ -12124,7 +12179,6 @@
         async function automOnCrmPipelineChange() {
             const pipeline = (document.getElementById('automGatilhoPipeline') || {}).value || 'provador';
             if (pipeline === 'lentes') await waEnsureLensPipelineData();
-            if (pipeline === 'rfm') { try { await rfmPipeGaranta(); } catch (e) {} }
             automPopulateCrmStages();
         }
 
@@ -12454,7 +12508,6 @@
             automOnGatilhoChange();   // popula/mostra o seletor de etapa se gatilho = crm_etapa
             const etEl = document.getElementById('automGatilhoEtapa');
             if (etEl && decodedEtapa.stage) etEl.value = decodedEtapa.stage;
-            if (decodedEtapa.pipeline === 'rfm') rfmPipeGaranta().then(() => { automPopulateCrmStages(); const e2 = document.getElementById('automGatilhoEtapa'); if (e2) e2.value = decodedEtapa.stage; }).catch(() => {});
             if (ativoEl) ativoEl.checked = flow ? !!flow.ativo : false;
             if (exC) exC.checked = !!AUTOM.exits.para_se_comprou;
             if (exR) exR.checked = !!AUTOM.exits.para_se_respondeu;
@@ -12992,13 +13045,8 @@
             // etapa de lentes. Grava 'lentes:<id>'; "Compra confirmada" fica de fora (vem do pedido).
             const _lentesStage = _hasLentesPipeline || String(d.estagio || '').indexOf('lentes:') === 0;
             const _provOpts = cols.map(c => '<option value="' + escapeHtml(c.key) + '"' + (c.key === d.estagio ? ' selected' : '') + '>' + escapeHtml(c.title) + '</option>').join('');
-            const _rfmStage = rfmPipeDisponivel() || String(d.estagio || '').indexOf('rfm:') === 0;
-            const _rfmOpts = !_rfmStage ? '' : '<optgroup label="Matriz RFM">' + (rfmPipeEstado().cfg.columns || []).filter(c => !c.auto).map(c => {
-                    const v = 'rfm:' + c.key;
-                    return '<option value="' + escapeHtml(v) + '"' + (v === d.estagio ? ' selected' : '') + '>' + escapeHtml('Matriz RFM · ' + c.title) + '</option>';
-                }).join('') + '</optgroup>';
-            const _stageOpts = !_lentesStage ? (_rfmOpts ? '<optgroup label="CRM do provador">' + _provOpts + '</optgroup>' + _rfmOpts : _provOpts)
-                : _rfmOpts + '<optgroup label="CRM do provador">' + _provOpts + '</optgroup>'
+            const _stageOpts = !_lentesStage ? _provOpts
+                : '<optgroup label="CRM do provador">' + _provOpts + '</optgroup>'
                 + '<optgroup label="CRM de lentes">' + _lentesCrmEtapas().filter(e => e.id !== 'comprou').map(e => {
                     const v = 'lentes:' + e.id;
                     return '<option value="' + escapeHtml(v) + '"' + (v === d.estagio ? ' selected' : '') + '>' + escapeHtml(e.grupo + ' · ' + e.rot) + '</option>';
@@ -14824,12 +14872,11 @@
         }
 
         function waPipelineStageKey(pipeline, stageKey) {
-            return pipeline === 'lentes' ? ('lentes:' + stageKey) : (pipeline === 'rfm' ? ('rfm:' + stageKey) : stageKey);
+            return pipeline === 'lentes' ? ('lentes:' + stageKey) : stageKey;
         }
 
         function waDecodePipelineStage(encoded) {
             const raw = String(encoded || '');
-            if (raw.indexOf('rfm:') === 0) return { pipeline: 'rfm', stage: raw.slice(4) };
             return raw.indexOf('lentes:') === 0
                 ? { pipeline: 'lentes', stage: raw.slice(7) }
                 : { pipeline: 'provador', stage: raw };
@@ -14840,10 +14887,6 @@
             if (parsed.pipeline === 'lentes') {
                 const etapa = (typeof _lentesCrmEtapas === 'function' ? _lentesCrmEtapas() : []).find(e => e.id === parsed.stage);
                 return etapa ? ('Lentes · ' + etapa.rot) : (parsed.stage || 'Fluxo de lentes');
-            }
-            if (parsed.pipeline === 'rfm') {
-                const col = (rfmPipeEstado().cfg.columns || rfmPipeColsPadrao()).find(c => c.key === parsed.stage);
-                return 'Matriz RFM · ' + (col ? col.title : (parsed.stage || '—'));
             }
             const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
             const col = (cfg.columns || []).find(c => c.key === parsed.stage);
@@ -14886,7 +14929,6 @@
         // limit: número máximo de leads (0/null = todos)
         async function waGetBulkTargets(stageKey, limit, pipeline) {
             if (pipeline === 'lentes') return waGetLensTargets(stageKey, limit);
-            if (pipeline === 'rfm') return waGetRfmTargets(stageKey, limit);
             if (!crmLeadMapCache) return [];
             const config = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
             const overrides = (typeof getCrmOverrides === 'function') ? getCrmOverrides() : {};
@@ -15008,7 +15050,6 @@
             if (!sel) return;
             const pipeWrap = document.getElementById('waBulkPipelineWrap');
             const pipeSel = document.getElementById('waBulkPipelineSelect');
-            if (pipeSel) [...pipeSel.options].forEach(o => { if (o.value === 'rfm') o.hidden = o.disabled = true; });
             if (pipeWrap) pipeWrap.style.display = _hasLentesPipeline ? 'block' : 'none';
             const pipeline = _hasLentesPipeline && pipeSel ? pipeSel.value : 'provador';
             if (pipeline === 'lentes') {
@@ -16092,13 +16133,12 @@
                     const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
                     const etapas = CAMP.pipeline === 'lentes'
                         ? _lentesCrmEtapas().filter(e => e.id !== 'comprou').map(e => ({ key: e.id, title: e.rot }))
-                        : (CAMP.pipeline === 'rfm' ? (rfmPipeEstado().cfg.columns || []) : (cfg.columns || [])).filter(c => c.key !== 'convertido');
+                        : (cfg.columns || []).filter(c => c.key !== 'convertido');
                     const opts = etapas.map(c => '<option value="' + escapeHtml(c.key || c.id) + '"' + ((c.key || c.id) === CAMP.stage ? ' selected' : '') + '>' + escapeHtml(c.title || c.rot) + '</option>').join('');
-                    const pipe = (_hasLentesPipeline || rfmPipeDisponivel()) ? ('<label class="camp-lbl" for="campPipeline">Pipeline do CRM</label>'
+                    const pipe = _hasLentesPipeline ? ('<label class="camp-lbl" for="campPipeline">Pipeline do CRM</label>'
                         + '<select id="campPipeline" class="camp-sel" style="margin-bottom:12px;" onchange="campSetPipeline(this.value)">'
                         + '<option value="provador"' + (CAMP.pipeline === 'provador' ? ' selected' : '') + '>Provador virtual</option>'
-                        + (_hasLentesPipeline ? '<option value="lentes"' + (CAMP.pipeline === 'lentes' ? ' selected' : '') + '>Fluxo de lentes</option>' : '')
-                        + (rfmPipeDisponivel() ? '<option value="rfm"' + (CAMP.pipeline === 'rfm' ? ' selected' : '') + '>Matriz RFM (clientes que já compraram)</option>' : '') + '</select>') : '';
+                        + '<option value="lentes"' + (CAMP.pipeline === 'lentes' ? ' selected' : '') + '>Fluxo de lentes</option></select>') : '';
                     inner = pipe + '<label class="camp-lbl" for="campStage">Público (etapa do CRM) <span style="color:#dc2626;">*</span></label>'
                         + '<select id="campStage" class="camp-sel" onchange="campOnStage(this.value)"><option value="">Selecione…</option>' + opts + '</select>'
                         + '<div id="campStageCount" class="camp-msg" style="color:var(--text-muted);">' + (CAMP.targetCount != null && !CAMP.audience ? ('<i class="ph-bold ph-users-three"></i> ~' + CAMP.targetCount + ' clientes nesta etapa' + campPeriodoSufixo()) : '') + '</div>'
@@ -16195,7 +16235,7 @@
         // CAMP.moveToStage; o webhook [PL] WA — Inbound lê move_to_stage da campanha ao
         // confirmar a ENTREGA e move o lead pra essa etapa (fallback msg-1).
         function campMoveToStageHTML() {
-            const cfg = (CAMP.pipeline === 'rfm' && !CAMP.audience) ? rfmPipeEstado().cfg : ((typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] });
+            const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
             const cols = (cfg.columns || []).filter(c => (c.key || c.id) && (c.key || c.id) !== 'convertido');
             const cur = CAMP.moveToStage || 'msg-1';
             let opts = cols.map(c => {
@@ -16224,7 +16264,7 @@
             CAMP.limit = null; // nova etapa → recomeça a quantidade
             const inp0 = document.getElementById('campLimit'); if (inp0) inp0.value = '';
             const cfg = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
-            const c = CAMP.pipeline === 'lentes' ? _lentesCrmEtapas().find(x => x.id === key) : (CAMP.pipeline === 'rfm' ? (rfmPipeEstado().cfg.columns || []) : (cfg.columns || [])).find(x => x.key === key);
+            const c = CAMP.pipeline === 'lentes' ? _lentesCrmEtapas().find(x => x.id === key) : (cfg.columns || []).find(x => x.key === key);
             CAMP.stageTitle = c ? (c.title || c.rot) : key;
             const box = document.getElementById('campStageCount'); if (box) box.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> contando…';
             try { const t = await waGetBulkTargets(key, '', CAMP.pipeline); CAMP._stageTargets = t; CAMP.targetCount = campFiltraPeriodo(t).length; }
@@ -16233,10 +16273,9 @@
             campRevealLimit();
         }
         async function campSetPipeline(pipeline) {
-            CAMP.pipeline = pipeline === 'lentes' ? 'lentes' : (pipeline === 'rfm' ? 'rfm' : 'provador');
-            CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.targetCount = null; CAMP.limit = null; CAMP.moveToStage = '';
+            CAMP.pipeline = pipeline === 'lentes' ? 'lentes' : 'provador';
+            CAMP.stage = ''; CAMP.stageTitle = ''; CAMP.targetCount = null; CAMP.limit = null;
             if (CAMP.pipeline === 'lentes') await waEnsureLensPipelineData();
-            if (CAMP.pipeline === 'rfm') { try { await rfmPipeGaranta(); } catch (e) { console.warn('[campanha RFM]', e); } }
             campWizardRender();
         }
         // Alterna o tipo de público (etapa do CRM vs segmentação) no passo 2 do assistente.
@@ -16400,7 +16439,7 @@
                         lojista_email: activeUser.email, nome: CAMP.nome.trim(), scheduled_at: scheduled_at,
                         template: CAMP.tplName, language: tplLang, payloads: payloads, total: payloads.length,
                         stage_key: CAMP.audience ? (CAMP.audience.rfm ? '__rfm__' : '__segmento__') : waPipelineStageKey(CAMP.pipeline, CAMP.stage),
-                        move_to_stage: ((CAMP.pipeline === 'rfm' && !CAMP.audience) ? 'rfm:' : '') + (CAMP.moveToStage || 'msg-1'), status: status
+                        move_to_stage: (CAMP.moveToStage || 'msg-1'), status: status
                     });
                     if (error) throw error;
                 } else {
@@ -16408,7 +16447,7 @@
                         const { error } = await campSafeInsert({
                             lojista_email: activeUser.email, nome: CAMP.nome.trim(), scheduled_at: new Date().toISOString(),
                             recurrence: 'diario', recur_time: tm, stage_key: waPipelineStageKey(CAMP.pipeline, CAMP.stage), max_per_run: (CAMP.limit && CAMP.limit > 0) ? CAMP.limit : 100,
-                            move_to_stage: (CAMP.pipeline === 'rfm' ? 'rfm:' : '') + (CAMP.moveToStage || 'msg-1'),
+                            move_to_stage: (CAMP.moveToStage || 'msg-1'),
                             template: CAMP.tplName, language: tplLang, placeholders: placeholders,
                             active: aprovado, status: status, total: 0
                         });
@@ -16839,15 +16878,8 @@
             const sel = document.getElementById('recurStage'); if (!sel) return;
             const wrap = document.getElementById('recurPipelineWrap');
             const pipeSel = document.getElementById('recurPipeline');
-            if (wrap) wrap.style.display = plPipeOpcoes(pipeSel) ? 'block' : 'none';
-            const pipeline = pipeSel ? pipeSel.value : 'provador';
-            if (pipeline === 'rfm') {
-                rfmPipeColunas().then(cols => {
-                    sel.innerHTML = cols.filter(c => c.key !== 'convertido')
-                        .map(c => '<option value="' + escapeHtml(c.key) + '">' + escapeHtml(c.title) + '</option>').join('');
-                });
-                return;
-            }
+            if (wrap) wrap.style.display = _hasLentesPipeline ? 'block' : 'none';
+            const pipeline = _hasLentesPipeline && pipeSel ? pipeSel.value : 'provador';
             if (pipeline === 'lentes') {
                 waEnsureLensPipelineData().then(() => {
                     sel.innerHTML = _lentesCrmEtapas().filter(e => e.id !== 'comprou')
@@ -16863,7 +16895,7 @@
             const fb = document.getElementById('recurFeedback');
             const time = (document.getElementById('recurTime') || {}).value;
             const stage = (document.getElementById('recurStage') || {}).value;
-            const pipeline = (document.getElementById('recurPipeline') || {}).value || 'provador';
+            const pipeline = _hasLentesPipeline ? ((document.getElementById('recurPipeline') || {}).value || 'provador') : 'provador';
             const max = parseInt((document.getElementById('recurMax') || {}).value, 10) || 100;
             if (!time || !stage) { fb.style.color = '#ef4444'; fb.textContent = 'Escolha horário e etapa.'; return; }
             const tplName = _waBulkTemplate || _waConfigCache.default_template;
@@ -16876,7 +16908,6 @@
                 const { error } = await supabaseClient.from('disparos_agendados').insert({
                     lojista_email: activeUser.email, scheduled_at: new Date().toISOString(),
                     recurrence: 'diario', recur_time: time, stage_key: waPipelineStageKey(pipeline, stage), max_per_run: max,
-                    move_to_stage: pipeline === 'rfm' ? 'rfm:msg-1' : 'msg-1',
                     template: tplName, language: tplLang,
                     link_in_body: !!window._waBulkLinkInBody,
                     url_btn_index: (typeof _waBulkUrlBtnIndex === 'number') ? _waBulkUrlBtnIndex : -1,
@@ -19043,7 +19074,6 @@
         }
 
         function renderCenariosRecuperacao() {
-            if (typeof _crmPipelineMode !== 'undefined' && _crmPipelineMode === 'rfm') { const _cs = document.getElementById('cenariosRecupSection'); if (_cs) _cs.style.display = 'none'; return; }
             if (typeof _crmPipelineMode !== 'undefined' && _crmPipelineMode === 'lentes') { try { renderCenariosLentes(); } catch (e) {} return; }
             try { _crmCenariosTextos(false); } catch (e) {}
             const section = document.getElementById('cenariosRecupSection');
@@ -20614,7 +20644,6 @@
             _crmConfigMem = null;
             _crmOverridesMem = null;
             if (typeof _crmLentesConfigMem !== 'undefined') _crmLentesConfigMem = null;
-            if (typeof rfmPipeReset === 'function') rfmPipeReset();
             crmLeadMapCache = null; _plPrecoProva = null; _plLojaCache = null;
             try {
                 await loadSharedData();
@@ -21409,8 +21438,8 @@
         function crmScopeEmails() { return _crmScopeEmails || [((activeUser && activeUser.email) || 'default').toLowerCase()]; }
         function crmScopeEmail()  { return crmScopeEmails()[0]; }
 
-        function crmConfigKey()    { return (_plProvStash ? 'pl-crm-rfm-config-' : 'pl-crm-config-')    + crmScopeEmail(); }
-        function crmOverridesKey() { return (_plProvStash ? 'pl-crm-rfm-overrides-' : 'pl-crm-overrides-') + crmScopeEmail(); }
+        function crmConfigKey()    { return 'pl-crm-config-'    + crmScopeEmail(); }
+        function crmOverridesKey() { return 'pl-crm-overrides-' + crmScopeEmail(); }
         function crmRespKey()      { return 'pl-crm-resp-'      + crmScopeEmail(); }
         function crmTeamKey()      { return 'pl-crm-team-'      + crmScopeEmail(); }
 
@@ -21545,7 +21574,7 @@
         function setCrmConfig(cfg) {
             _crmConfigMem = cfg;
             try { localStorage.setItem(crmConfigKey(), JSON.stringify(cfg)); } catch(e) {}
-            const email = crmOvEmail();
+            const email = crmScopeEmail();
             supabaseClient.from('crm_pipeline_config').upsert({
                 lojista_email: email,
                 columns: cfg.columns,
@@ -21576,7 +21605,7 @@
             if (colKey) ov[phone] = colKey; else delete ov[phone];
             _crmOverridesMem = ov;
             try { localStorage.setItem(crmOverridesKey(), JSON.stringify(ov)); } catch(e) {}
-            const email = crmOvEmail();
+            const email = crmScopeEmail();
             if (colKey) {
                 supabaseClient.from('crm_lead_overrides').upsert({
                     lojista_email: email,
@@ -21591,7 +21620,7 @@
                 // apagar por igualdade deixaria a linha gêmea viva e a etapa voltaria.
                 supabaseClient.from('crm_lead_overrides')
                     .delete()
-                    .in('lojista_email', crmOvEmails())
+                    .in('lojista_email', crmScopeEmails())
                     .like('telefone', '%' + phone)
                     .then(({ error }) => {
                         if (error) console.warn('[CRM] override delete falhou:', error.message);
@@ -21645,7 +21674,6 @@
 
         let _crmImportMode = 'provador';   // quadro que recebe a importação (provador | lentes)
         function openCrmImportModal() {
-            if (_crmPipelineMode === 'rfm') { crmToast('Na Matriz RFM os clientes vêm dos pedidos pagos da loja. A importação de planilha fica no pipeline Provador.', true); return; }
             _crmImport = null;
             _crmImportMode = _crmPipelineMode === 'lentes' ? 'lentes' : 'provador';
             const _it = document.getElementById('crmImpTitle');
@@ -21990,7 +22018,6 @@
         }
 
         function crmClassify(d) {
-            if (d && d.rfmRule) return d.rfmRule;   // cliente da Matriz RFM: o segmento é a etapa automática
             // Funil automático: comprou (pós-prova) = Convertido; tem carrinho abandonado real
             // na loja (checkout aberto, casado por telefone) = Carrinho abandonado; clicou em
             // "Comprar Agora" no provador mas não comprou = lead quentíssimo; o resto = "Provou e
@@ -22109,9 +22136,9 @@
             _crmPipelineDraft = JSON.parse(JSON.stringify(_lz ? getCrmLentesConfig() : getCrmConfig())); // deep clone
             _crmColPendingDelete = -1;
             const _t = document.getElementById('crmPipelineModalTitle');
-            if (_t) _t.textContent = _lz ? 'Personalizar funil — CRM de lentes' : (_crmPipelineMode === 'rfm' ? 'Personalizar funil — Matriz RFM' : 'Personalizar Funil');
+            if (_t) _t.textContent = _lz ? 'Personalizar funil — CRM de lentes' : 'Personalizar Funil';
             const _d = document.getElementById('crmPipelineModalDesc');
-            if (_d) _d.textContent = _lz ? _CRM_PIPE_DESC_LENTES : (_crmPipelineMode === 'rfm' ? _CRM_PIPE_DESC_RFM : _CRM_PIPE_DESC_PROVADOR);
+            if (_d) _d.textContent = _lz ? _CRM_PIPE_DESC_LENTES : _CRM_PIPE_DESC_PROVADOR;
             renderCrmPipelineList();
             const inp = document.getElementById('crmNewColInput'); if (inp) inp.value = '';
             const m = document.getElementById('crmPipelineModal');
@@ -22222,7 +22249,7 @@
                 // Sincroniza delete no Supabase em massa
                 supabaseClient.from('crm_lead_overrides')
                     .delete()
-                    .in('lojista_email', crmOvEmails())
+                    .in('lojista_email', crmScopeEmails())
                     .in('telefone', orphanPhones)
                     .then(({ error }) => {
                         if (error) console.warn('[CRM] limpeza de overrides órfãos falhou:', error.message);
@@ -22244,7 +22271,7 @@
             _crmResetPending = false;
             restore();
             _crmColPendingDelete = -1;
-            _crmPipelineDraft = { columns: _crmPipelineDraftMode === 'lentes' ? _lentesDefaultCols() : (_plProvStash ? rfmPipeColsPadrao() : CRM_DEFAULT_COLUMNS.slice()) };
+            _crmPipelineDraft = { columns: _crmPipelineDraftMode === 'lentes' ? _lentesDefaultCols() : CRM_DEFAULT_COLUMNS.slice() };
             renderCrmPipelineList();
         }
 
@@ -22455,8 +22482,7 @@
             const initials = nm ? nm.split(/\s+/).slice(0, 2).map(w => w.charAt(0)).join('').toUpperCase() : '';
 
             const badge = (txt, color, bg, icon) => '<span class="clm-badge" style="color:' + color + ';background:' + bg + ';"><i class="ph-bold ' + icon + '"></i> ' + txt + '</span>';
-            const statusB = (lead.rfmSeg && !lead.bought) ? badge('Cliente · ' + escapeHtml((RFM_SEG[lead.rfmSeg] || [lead.rfmSeg])[0]), (RFM_SEG[lead.rfmSeg] || [0, '#7c3aed'])[1], 'rgba(127,127,127,.12)', 'ph-chart-pie-slice')
-                : lead.bought ? badge('Convertido', '#059669', 'rgba(16,185,129,.12)', 'ph-check-circle')
+            const statusB = lead.bought ? badge('Convertido', '#059669', 'rgba(16,185,129,.12)', 'ph-check-circle')
                 : lead.pendingPayment ? badge('Pagamento pendente', '#d97706', 'rgba(245,158,11,.12)', 'ph-hourglass-medium')
                 : lead.jaCliente ? badge('Já é cliente', '#d97706', 'rgba(217,119,6,.12)', 'ph-warning')
                 : badge('Não comprou', '#7c3aed', 'rgba(124,58,237,.1)', 'ph-circle');
@@ -22484,10 +22510,8 @@
             const details = f('Custo deste lead', '<span id="clmCusto" style="color:var(--text-muted);font-weight:500;">calculando…</span>', true)
                 + f('Responsável', respSelectHtml)
                 + f('Etapa atual', escapeHtml(crmStageTitle(colKey)))
-                + (lead.rfmSeg ? (f('Compras pagas', String(lead.rfmCompras || 0)) + f('Total gasto', _brl(lead.rfmTotal || 0))
-                    + f('Última compra', crmFmtDate(String(lead.rfmUltima || '').slice(0, 10))) + f('Segmento RFM', escapeHtml((RFM_SEG[lead.rfmSeg] || [lead.rfmSeg])[0]))) : '')
                 // Produto provado já aparece na seção "Produtos provados" (lista completa) — não repete aqui.
-                + ((!_lz && lead.provaCount && Object.keys(lead.provados || {}).length) ? '' : f(_lz ? 'Armação' : ((lead.rfmSeg && !lead.provaCount) ? 'Último produto comprado' : (lead.pendingPayment && !lead.provaCount ? 'Produto do pedido' : 'Produto provado')), produtoHtml, true))
+                + ((!_lz && lead.provaCount && Object.keys(lead.provados || {}).length) ? '' : f(_lz ? 'Armação' : (lead.pendingPayment && !lead.provaCount ? 'Produto do pedido' : 'Produto provado'), produtoHtml, true))
                 + (_lz ? (f('Lente', escapeHtml(_lz.lente || 'Ainda não definida'), true)
                     + f('Visão', escapeHtml((_LENTES_VISAO[_lz.visao] || _lz.visao) || '—'))
                     + f('Tratamento', escapeHtml((_LENTES_TRAT[_lz.trat] || _lz.trat) || '—'))
@@ -22682,9 +22706,6 @@
         }
 
         async function loadCRM(silent) {
-            try { rfmPipeBotao(); } catch (e) {}
-            if (_crmPipelineMode === 'rfm' && _plProvStash) return rfmPipeRecarrega();
-            if (_crmPipelineMode === 'rfm' && _rfmPipe && silent) { rfmPipeAtivar(); renderCrmBoard(); return; }   // voltou pro CRM com o RFM aberto
             const loader = document.getElementById('crmLoader');
             const content = document.getElementById('crmContent');
             const emptyEl = document.getElementById('crmEmptyState');
@@ -22956,7 +22977,6 @@
                 }
 
                 const phoneList = Object.keys(leadMap);
-                if (phoneList.length === 0 && _crmPipelineMode === 'rfm') { rfmPipeAbrir(); return; }   // loja sem provas: o RFM vem dos pedidos
                 if (phoneList.length === 0) {
                     if (emptyEl) emptyEl.style.display = 'block';
                     return;
@@ -23016,7 +23036,7 @@
                 });
 
                 crmLeadMapCache = leadMap;
-                if (_crmPipelineMode === 'rfm') rfmPipeAbrir(); else renderCrmBoard();
+                renderCrmBoard();
                 if (content) content.style.display = 'block';
                 try { renderCenariosRecuperacao(); } catch(e) { console.warn('cenarios:', e); }
                 return;
@@ -23032,197 +23052,10 @@
             }
         }
 
-        // ===== Pipeline "Matriz RFM" no CRM (12/10/2026) =====
-        // Quadro igual ao do provador, mas com os CLIENTES da Matriz RFM: todo mundo que já pagou um
-        // pedido na loja, inclusive quem nunca usou o provador (RPC pl_rfm_leads, mesma regra da matriz).
-        // Etapas automáticas = segmentos da matriz (Campeões, Fiéis…). As manuais (Mensagem 1/2/3,
-        // Em contato, Negociando, Perdido) e o Convertido funcionam como no provador.
-        // Etapas e colunas gravam em crm_lead_overrides / crm_pipeline_config com o e-mail 'rfm:<email>'
-        // (mesmo truque do 'lentes:'), então nunca se misturam com o funil do provador.
-        // Convertido aqui = comprou DE NOVO depois de ser trabalhado (pedido mais novo que a etapa).
-        // Com o quadro RFM aberto, as variáveis do CRM (crmLeadMapCache, config, etapas) apontam pro RFM
-        // e o funil do provador fica guardado em _plProvStash. Sair do CRM ou trocar de pipeline devolve.
-        var _rfmPipe = null, _plProvStash = null, _rfmPipeCarregando = null, _rfmProvTentou = false;
-        const RFM_PIPE_ORDEM = ['campeoes', 'fieis', 'novos', 'promissores', 'naoperder', 'risco', 'hibernando', 'perdidos'];
-        const RFM_PIPE_ICONES = { campeoes: 'ph-trophy', fieis: 'ph-heart', novos: 'ph-sparkle', promissores: 'ph-trend-up', naoperder: 'ph-warning-octagon', risco: 'ph-warning', hibernando: 'ph-moon', perdidos: 'ph-ghost' };
-        const _CRM_PIPE_DESC_RFM = 'Matriz RFM: renomeie, reordene, adicione ou remova colunas. Os 8 segmentos da matriz (AUTO) classificam os clientes sozinhos pela última compra e quantas vezes compraram — só podem ser renomeados/reordenados. Colunas que você criar recebem clientes ao arrastar, por campanha ou automação.';
-        function rfmPipeColsPadrao() {
-            return RFM_PIPE_ORDEM.map(k => ({ key: 'rfm-' + k, title: RFM_SEG[k][0], icon: RFM_PIPE_ICONES[k], auto: true, rule: 'rfm-' + k }))
-                .concat(CRM_DEFAULT_COLUMNS.filter(c => !c.auto || c.key === 'convertido').map(c => Object.assign({}, c)));
-        }
-        function rfmPipeDisponivel() { return !!(activeUser && activeUser.tabela_pedidos); }
-        function rfmPipeEmails() { return crmScopeEmails().map(e => 'rfm:' + e); }
-        // E-mail das etapas/colunas do quadro ABERTO (provador = e-mail da loja; RFM = 'rfm:<e-mail>')
-        function crmOvEmail() { return (_plProvStash ? 'rfm:' : '') + crmScopeEmail(); }
-        function crmOvEmails() { return _plProvStash ? rfmPipeEmails() : crmScopeEmails(); }
-        function rfmPipeBotao() {
-            const b = document.getElementById('crmPipelineRfmBtn');
-            if (b) b.style.display = rfmPipeDisponivel() ? '' : 'none';
-        }
-        async function _rfmPipeOverrides(emails) {
-            const out = []; let from = 0;
-            while (true) {
-                const { data, error } = await supabaseClient.from('crm_lead_overrides')
-                    .select('telefone,column_key,updated_at').in('lojista_email', emails).range(from, from + 999);
-                if (error || !data || !data.length) break;
-                out.push(...data); if (data.length < 1000) break; from += 1000;
-            }
-            return out;
-        }
-        async function rfmPipeCarrega() {
-            const emails = rfmPipeEmails();
-            // provador: produto provado, link e nome de quem também usou o provador
-            const prov = _plProvStash ? _plProvStash.lead : crmLeadMapCache;
-            const [rpc, cfgR, ovRows] = await Promise.all([
-                supabaseClient.rpc('pl_rfm_leads', { p_email: activeUser.email }),
-                supabaseClient.from('crm_pipeline_config').select('lojista_email,columns').in('lojista_email', emails),
-                _rfmPipeOverrides(emails)
-            ]);
-            if (rpc.error) throw rpc.error;
-            const cfgRows = (cfgR && cfgR.data) || [];
-            const pick = cfgRows.find(r => r.lojista_email === 'rfm:' + crmScopeEmail() && Array.isArray(r.columns) && r.columns.length)
-                      || cfgRows.find(r => Array.isArray(r.columns) && r.columns.length);
-            const cols = pick ? pick.columns.slice() : rfmPipeColsPadrao();
-            rfmPipeColsPadrao().filter(c => c.auto).forEach((c, i) => { if (!cols.some(x => x.key === c.key)) cols.splice(Math.min(i, cols.length), 0, c); });
-            const ov = {}, ovAt = {};
-            (ovRows || []).forEach(r => {
-                const k = normalize(r.telefone); if (!k) return;
-                const at = r.updated_at || '';
-                if (ovAt[k] != null && at < ovAt[k]) return;
-                ovAt[k] = at; ov[k] = r.column_key;
-            });
-            const leadMap = {};
-            (rpc.data || []).forEach(r => {
-                const k = normalize(r.telefone); if (!k) return;
-                const p = prov && prov[k];
-                const ult = r.ultima_compra || '';
-                const prodPedido = (String(r.produto || '').split(/,\s+|\s\|\s/)[0] || '').trim();
-                leadMap[k] = {
-                    provaCount: p ? p.provaCount : 0, uniqueDates: new Set(), provados: p ? p.provados : undefined,
-                    lastDate: String(ult).slice(0, 10), firstDate: p ? p.firstDate : '',
-                    lastProduct: (p && p.lastProduct) || prodPedido, lastProductUrl: (p && p.lastProductUrl) || '',
-                    checkoutUrl: (p && p.checkoutUrl) || '', rawPhone: r.telefone,
-                    bought: false, jaCliente: false, clicked: false,
-                    name: (p && p.name) || String(r.nome || '').trim().split(/\s+/)[0] || '',
-                    rfmRule: 'rfm-' + r.segmento, rfmSeg: r.segmento, rfmCompras: r.compras || 0, rfmTotal: Number(r.total) || 0, rfmUltima: ult
-                };
-                // Convertido: comprou de novo depois de entrar numa etapa do pipeline
-                if (ov[k] && ov[k] !== 'perdido' && ovAt[k] && ult && Date.parse(ult) > Date.parse(ovAt[k])) leadMap[k].bought = true;
-            });
-            _rfmPipe = { leadMap, cfg: { columns: cols }, ov, ovAt, at: Date.now() };
-            return _rfmPipe;
-        }
-        async function rfmPipeGaranta() {
-            if (_rfmPipe) return _rfmPipe;
-            if (!_rfmPipeCarregando) _rfmPipeCarregando = rfmPipeCarrega().finally(() => { _rfmPipeCarregando = null; });
-            return _rfmPipeCarregando;
-        }
-        // Estado atual do RFM (com o quadro aberto, as variáveis globais do CRM são a fonte)
-        function rfmPipeEstado() {
-            if (_plProvStash) return { leadMap: crmLeadMapCache || {}, cfg: _crmConfigMem || { columns: rfmPipeColsPadrao() }, ov: _crmOverridesMem || {} };
-            return _rfmPipe ? { leadMap: _rfmPipe.leadMap, cfg: _rfmPipe.cfg, ov: _rfmPipe.ov } : { leadMap: {}, cfg: { columns: rfmPipeColsPadrao() }, ov: {} };
-        }
-        function rfmPipeAtivar() {
-            if (!_rfmPipe) return;
-            if (!_plProvStash) _plProvStash = { lead: crmLeadMapCache, cfg: _crmConfigMem, ov: _crmOverridesMem };
-            crmLeadMapCache = _rfmPipe.leadMap; _crmConfigMem = _rfmPipe.cfg; _crmOverridesMem = _rfmPipe.ov;
-        }
-        function rfmPipeDesativar() {
-            if (!_plProvStash) return;
-            if (_rfmPipe) {
-                _rfmPipe.leadMap = crmLeadMapCache || _rfmPipe.leadMap;
-                _rfmPipe.cfg = _crmConfigMem || _rfmPipe.cfg;
-                _rfmPipe.ov = _crmOverridesMem || _rfmPipe.ov;
-            }
-            crmLeadMapCache = _plProvStash.lead; _crmConfigMem = _plProvStash.cfg; _crmOverridesMem = _plProvStash.ov;
-            _plProvStash = null;
-        }
-        // Troca de loja / recarregar tudo: esquece o RFM (as globais são zeradas por quem chama)
-        function rfmPipeReset() {
-            _plProvStash = null; _rfmPipe = null; _rfmPipeCarregando = null; _rfmProvTentou = false;
-            if (_crmPipelineMode === 'rfm') crmResetPipelineSelector();
-        }
-        // Saiu do CRM (outra aba/sub-aba): devolve as variáveis do provador; o botão RFM continua marcado
-        function rfmPipeSaiDoCrm() { rfmPipeDesativar(); }
-        async function rfmPipeAbrir() {
-            const board = document.getElementById('crmBoard');
-            const content = document.getElementById('crmContent'), empty = document.getElementById('crmEmptyState');
-            if (content) content.style.display = 'block';
-            if (empty) empty.style.display = 'none';
-            const cen = document.getElementById('cenariosRecupSection');
-            if (cen) cen.style.display = 'none';
-            try {
-                // time, tags, tarefas e o produto provado de quem também provou vêm do CRM do provador
-                if (!crmLeadMapCache && !_plProvStash && !_rfmProvTentou) { _rfmProvTentou = true; crmLoaded = true; await loadCRM(true); }
-                if (!_rfmPipe) {
-                    if (board) board.innerHTML = '<div class="disp-empty">Carregando os clientes da Matriz RFM…</div>';
-                    await rfmPipeGaranta();
-                }
-                if (_crmPipelineMode !== 'rfm') return;   // trocou de quadro enquanto carregava
-                rfmPipeAtivar();
-                renderCrmBoard();
-                const _tp = document.getElementById('crmTeamPanel');
-                if (_tp && _tp.style.display && _tp.style.display !== 'none') { try { renderCrmTeamPanel(); } catch (e) {} }
-            } catch (e) {
-                console.error('[CRM RFM]', e);
-                if (board) board.innerHTML = '<div class="disp-empty">Não foi possível carregar os clientes da Matriz RFM.</div>';
-            }
-        }
-        // Recarregar (auto-refresh) com o quadro RFM aberto
-        async function rfmPipeRecarrega() {
-            try {
-                rfmPipeDesativar();
-                _rfmPipe = null;
-                await rfmPipeGaranta();
-            } catch (e) { console.warn('[CRM RFM] recarregar', e); }
-            if (_crmPipelineMode === 'rfm' && _rfmPipe) { rfmPipeAtivar(); renderCrmBoard(); }
-        }
-        // Alvos de campanha de uma etapa do pipeline RFM (mesmo formato do waGetBulkTargets).
-        // Aqui todo mundo já comprou: a trava é a etapa (quem está em conversa/convertido/perdido sai do "todas").
-        async function waGetRfmTargets(stageKey, limit) {
-            await rfmPipeGaranta();
-            const st = rfmPipeEstado();
-            const cols = st.cfg.columns || [], valid = new Set(cols.map(c => c.key));
-            const etapa = (ph, d) => {
-                if (d.bought && valid.has('convertido')) return 'convertido';
-                const k = st.ov[ph]; if (k && valid.has(k)) return k;
-                const col = cols.find(c => c.auto && c.rule === d.rfmRule);
-                return col ? col.key : d.rfmRule;
-            };
-            const contato = ['msg-1', 'msg-2', 'msg-3', 'em-contato', 'negociando', 'convertido', 'perdido'];
-            let out = Object.entries(st.leadMap).filter(([ph, d]) => {
-                const k = etapa(ph, d);
-                return (!stageKey || stageKey === 'all') ? contato.indexOf(k) < 0 : k === stageKey;
-            }).map(([ph, d]) => ({
-                phone: String(d.rawPhone || ph).replace(/\D/g, ''), crmPhone: ph, name: d.name || '',
-                product: d.lastProduct || 'sua última compra', productUrl: d.lastProductUrl || '', checkoutUrl: d.checkoutUrl || '',
-                lastDate: d.lastDate || ''
-            })).filter(l => l.phone.length >= 10);
-            out.sort((a, b) => (b.lastDate || '').localeCompare(a.lastDate || ''));
-            if (limit && Number(limit) > 0) out = out.slice(0, Number(limit));
-            return out;
-        }
-        // Colunas do RFM pra seletores fora do CRM (campanhas, automações, disparo diário)
-        async function rfmPipeColunas() {
-            try { await rfmPipeGaranta(); } catch (e) {}
-            return (rfmPipeEstado().cfg.columns || rfmPipeColsPadrao());
-        }
-        // Mostra/esconde as opções de pipeline (Lentes só pra quem tem; RFM pra quem tem tabela de pedidos)
-        function plPipeOpcoes(sel) {
-            if (!sel) return false;
-            [...sel.options].forEach(o => {
-                if (o.value === 'lentes') o.hidden = o.disabled = !_hasLentesPipeline;
-                if (o.value === 'rfm') o.hidden = o.disabled = !rfmPipeDisponivel();
-            });
-            if (sel.selectedOptions[0] && sel.selectedOptions[0].disabled) sel.value = 'provador';
-            return !!(_hasLentesPipeline || rfmPipeDisponivel());
-        }
-
         let _crmPipelineMode = 'provador';
 
         function crmResetPipelineSelector() {
             _crmPipelineMode = 'provador';
-            if (typeof rfmPipeReset === 'function') rfmPipeReset();
             document.querySelectorAll('[data-crm-pipeline]').forEach(btn => {
                 const on = btn.dataset.crmPipeline === 'provador';
                 btn.classList.toggle('on', on); btn.setAttribute('aria-selected', on ? 'true' : 'false');
@@ -23238,8 +23071,7 @@
         }
 
         function crmSwitchPipeline(mode) {
-            if (mode !== 'rfm') rfmPipeDesativar();
-            _crmPipelineMode = mode === 'lentes' ? 'lentes' : (mode === 'rfm' ? 'rfm' : 'provador');
+            _crmPipelineMode = mode === 'lentes' ? 'lentes' : 'provador';
             document.querySelectorAll('[data-crm-pipeline]').forEach(btn => {
                 const on = btn.dataset.crmPipeline === _crmPipelineMode;
                 btn.classList.toggle('on', on);
@@ -23247,7 +23079,7 @@
             });
             const lentes = _crmPipelineMode === 'lentes';
             const sub = document.getElementById('crmPipelineSubtitle');
-            if (sub) sub.textContent = lentes ? 'jornada completa do fluxo de lentes' : (_crmPipelineMode === 'rfm' ? 'todos os clientes que já compraram (Matriz RFM)' : 'funil de leads do provador');
+            if (sub) sub.textContent = lentes ? 'jornada completa do fluxo de lentes' : 'funil de leads do provador';
             // Os dois quadros têm a mesma barra (Tarefas, Time, Mais, disparo); cada botão
             // sabe em qual quadro está (_crmPipelineMode).
             const actions = document.getElementById('crmProvadorActions');
@@ -23263,7 +23095,6 @@
             const clear = document.getElementById('crmSearchClear');
             if (clear) clear.style.display = 'none';
 
-            if (_crmPipelineMode === 'rfm') { rfmPipeAbrir(); return; }
             if (lentes) {
                 const content = document.getElementById('crmContent');
                 const empty = document.getElementById('crmEmptyState');
@@ -24699,7 +24530,7 @@
             phones.forEach(ph => { ov[ph] = to; });
             setCrmOverrides(ov);
             renderCrmBoard();
-            const email = crmOvEmail();
+            const email = crmScopeEmail();
             const nowIso = new Date().toISOString();
             const rows = phones.map(ph => ({ lojista_email: email, telefone: ph, column_key: to, updated_at: nowIso }));
             let erro = null;
@@ -24989,9 +24820,7 @@
                         const meta = document.createElement('div');
                         meta.className = 'crm-card-meta';
                         const provasSpan = document.createElement('span');
-                        provasSpan.innerHTML = lead.rfmSeg
-                            ? ('<i class="ph-bold ph-bag"></i> ' + lead.rfmCompras + ' compra' + (lead.rfmCompras > 1 ? 's' : '') + ' · ' + _brl(lead.rfmTotal || 0))
-                            : lead.pendingPayment
+                        provasSpan.innerHTML = lead.pendingPayment
                             ? ('<i class="ph-bold ph-hourglass-medium"></i> ' + (lead.pendingPaymentMethod ? String(lead.pendingPaymentMethod).toUpperCase() : 'Pagamento') + ' pendente')
                             : (lead.provaCount > 0)
                             ? ('<i class="ph-bold ph-eye"></i> ' + lead.provaCount + ' prova' + (lead.provaCount > 1 ? 's' : ''))
