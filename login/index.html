@@ -15792,11 +15792,15 @@
         }
         function plUtm(url, medium, campanha) {
             if (!url || !/^https?:\/\//.test(url) || /[?&]utm_source=/.test(url)) return url;
-            if (/^https?:\/\/[^/?#]+$/.test(url)) url += '/';   // home sem barra: o botão de URL precisa do caminho começando em '/'
+            // Página inicial: a Meta recusa o botão de URL que começa com "?" (#100), então a home vai com o caminho do catálogo
+            if (/^https?:\/\/[^/?#]+\/?$/.test(url)) url = url.replace(/\/?$/, '/') + plHomePath();
             const i = url.indexOf('#'), base = i < 0 ? url : url.slice(0, i), hash = i < 0 ? '' : url.slice(i);
             return base + (base.indexOf('?') < 0 ? '?' : '&') + 'utm_source=provou_recuperado&utm_medium=' + encodeURIComponent(medium || 'disparo')
                 + '&utm_campaign=' + encodeURIComponent(plSlug(campanha)) + hash;
         }
+        const __NUVEM=["acessoriostyle_orders", "amazoni_orders", "arc_orders", "barch_orders", "cacife_orders", "califa_orders", "calmo_orders", "cicia_orders", "dope_orders", "duoari_orders", "evo_orders", "fortuna_orders", "foss_orders", "goog_orders", "hazon_orders", "helvi_orders", "koros_orders", "lafolie_orders", "lahtref_orders", "lindamenina_orders", "luzzi_orders", "madammas_orders", "madui_orders", "maho_orders", "mait_orders", "marandola_orders", "maxilook_orders", "meninaflor_orders", "midas_orders", "mipiace_orders", "moritz_orders", "nc_orders", "oss_orders", "osv_orders", "paris_london_orders", "penelope_orders", "rivello_orders", "santi_orders", "sirena_orders", "soucet_orders", "sua_armacao_orders", "sunrise_orders", "umut_orders", "ves_orders", "vksolaris_orders", "wsstyle_orders"], __SHOP=["brecho_orders", "cand_orders", "velaro_orders", "voluntarios_orders"];
+        const __homePath=(tab,pagos)=>(__SHOP.includes(tab)||(pagos||[]).includes("partially_refunded"))?"collections/all":(__NUVEM.includes(tab)?"produtos/":"./");   // botão de URL não pode começar com "?" (Meta #100)
+        function plHomePath() { const u = (typeof activeUser !== 'undefined' && activeUser) || {}; return __homePath(u.tabela_pedidos || '', u.valores_status_pago || []); }
         function _plUtmMassa() {
             const o = (document.getElementById('waBulkStageSelect') || {}).selectedOptions;
             return ((o && o[0] && o[0].textContent) || 'disparo em massa').replace(/\s*\(\d+\)\s*$/, '');
@@ -15904,7 +15908,7 @@
                 if (urlBtnIndex >= 0 && leadLink) {
                     // Botão de URL dinâmico = base fixa (domínio) + {{1}}. Manda só o CAMINHO
                     // (tira esquema+host), pra Meta concatenar com a base do botão sem duplicar o domínio.
-                    const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?utm_source=provou_recuperado';   // só '?' a Meta recusa (#100 Invalid parameter)
+                    const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || (plHomePath() + '?utm_source=provou_recuperado');   // só '?' a Meta recusa (#100 Invalid parameter)
                     components = [];
                     if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
                     components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
@@ -17033,7 +17037,7 @@
                         const params = waBuildLeadBodyParams(tplObj, firstName, produto, leadLink);
                         const p = { to: lead.phone, params: params };
                         if (urlBtnIndex >= 0 && leadLink) {
-                            const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?utm_source=provou_recuperado';   // só '?' a Meta recusa (#100 Invalid parameter)
+                            const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || (plHomePath() + '?utm_source=provou_recuperado');   // só '?' a Meta recusa (#100 Invalid parameter)
                             const components = [];
                             if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
                             components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
@@ -17396,7 +17400,7 @@
                 const params = waBuildLeadBodyParams(tplObj, firstName, produto, leadLink);
                 const p = { to: lead.phone, params: params };
                 if (urlBtnIndex >= 0 && leadLink) {
-                    const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?utm_source=provou_recuperado';   // só '?' a Meta recusa (#100 Invalid parameter)
+                    const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || (plHomePath() + '?utm_source=provou_recuperado');   // só '?' a Meta recusa (#100 Invalid parameter)
                     const components = [];
                     if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
                     components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
@@ -17604,7 +17608,7 @@
             // pra Meta concatenar com a base do botão sem duplicar domínio).
             let components = null;
             if (urlBtnIndex >= 0 && leadLink) {
-                const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || '?utm_source=provou_recuperado';   // só '?' a Meta recusa (#100 Invalid parameter)
+                const btnSuffix = leadLink.replace(/^https?:\/\/[^/]+\/?/, '') || (plHomePath() + '?utm_source=provou_recuperado');   // só '?' a Meta recusa (#100 Invalid parameter)
                 components = [];
                 if (params.length) components.push({ type: 'body', parameters: params.map(t => ({ type: 'text', text: t })) });
                 components.push({ type: 'button', sub_type: 'url', index: String(urlBtnIndex), parameters: [{ type: 'text', text: btnSuffix }] });
