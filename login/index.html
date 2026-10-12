@@ -7464,7 +7464,8 @@
         const _LCFG_GRADE_LOJAS = ['oticasirena.com.br'];   // widgets que já seguem a grade
         const _LCFG_TRAT_CURTO = { A: 'Antirreflexo', AB: '+ Luz azul', AF: '+ Fotossensível', ABF: 'Foto + luz azul' };
         let _lcfgGTipo = null;
-        const _lcfgSim = { esfOD: -2.5, cilOD: -0.5, esfOE: -2.25, cilOE: 0, trat: '' };
+        const _lcfgSim = { esfOD: -2.5, cilOD: -0.5, esfOE: -2.25, cilOE: 0, add: 1.5, trat: '' };
+        function _lcfgGEhMulti() { const n = (_lcfgEdit.necessidades || []).find(x => x.key === _lcfgGTipo) || {}; return /multi/i.test(String(n.base || _lcfgGTipo || '')); }   // aba multifocal (ou opção que segue a multifocal)
         function _lcfgGradeOk() { return _LCFG_GRADE_LOJAS.indexOf(_lcfgDominio) !== -1; }
         function _lcfgPassosLista() {
             const xs = _lcfgExtras(), ex = anc => xs.map((x, i) => (x.antes_de || 'resultado') === anc ? 'x:' + i : null).filter(Boolean);
@@ -7590,11 +7591,14 @@
             return { nm: nm || l.nome, ix };
         }
         const _lcfgIxCls = ix => 'lcfg-ix' + String(ix || 'x').replace('.', '');
+        function _lcfgGAddOk(f, add) { return add == null || ((f.addMin == null || add >= Number(f.addMin) - 1e-9) && (f.addMax == null || add <= Number(f.addMax) + 1e-9)); }
+        function _lcfgGAddNome(f) { const n = v => Number(v).toFixed(2).replace('.', ','); return f.addMin == null && f.addMax == null ? 'qualquer adição' : 'adição ' + (f.addMin != null ? n(f.addMin) : '…') + ' a ' + (f.addMax != null ? n(f.addMax) : '…'); }
         function _lcfgGFaixaNome(f) { const n = v => Number(v).toFixed(2).replace('.', ','); return (Number(f.de) ? n(f.de) + ' a ' : 'até ') + n(f.ate); }
         function _lcfgGSimula(g) {
             const esf = Math.max(Math.abs(_lcfgSim.esfOD), Math.abs(_lcfgSim.esfOE)), cil = Math.max(Math.abs(_lcfgSim.cilOD), Math.abs(_lcfgSim.cilOE));
             const fs = (g && g.faixas) || [];
-            return { esf, cil, fi: fs.findIndex(f => esf >= Number(f.de) - 1e-9 && esf <= Number(f.ate) + 1e-9 && cil <= Number(f.cil) + 1e-9) };
+            const add = _lcfgGEhMulti() ? Math.abs(Number(_lcfgSim.add) || 0) : null;   // multifocal: a faixa também tem adição (13/10/2026)
+            return { esf, cil, add, fi: fs.findIndex(f => esf >= Number(f.de) - 1e-9 && esf <= Number(f.ate) + 1e-9 && cil <= Number(f.cil) + 1e-9 && _lcfgGAddOk(f, add)) };
         }
         function _lcfgGrade() {
             if (!_lcfgGradeOk()) return '<div class="lcfg-g-aviso"><i class="ph-bold ph-info"></i> Nesta loja, a lente indicada segue a regra configurada pela Provou Levou. A grade de indicação por grau chega aqui em breve.</div>';
@@ -7620,11 +7624,11 @@
             const res = s.fi < 0 ? '<span class="lcfg-g-res fora"><i class="ph-bold ph-chat-circle-text"></i> fora da grade → ' + (g.fora === 'auto' ? 'regra de sempre' : 'WhatsApp') + '</span>'
                 : !l0 ? '<span class="lcfg-g-res fora"><i class="ph-bold ph-chat-circle-text"></i> célula vazia → ' + (g.fora === 'auto' ? 'regra de sempre' : 'WhatsApp') + '</span>'
                 : '';   // achou a lente: a própria célula destacada na grade mostra (13/10/2026)
-            h += '<div class="lcfg-g-sim"><span class="t"><i class="ph-bold ph-flask"></i> Testar receita</span><span class="o">OD ' + inp('esfOD', 'OD esférico') + inp('cilOD', 'OD cilíndrico') + '</span><span class="o">OE ' + inp('esfOE', 'OE esférico') + inp('cilOE', 'OE cilíndrico') + '</span>' +
+            h += '<div class="lcfg-g-sim"><span class="t"><i class="ph-bold ph-flask"></i> Testar receita</span><span class="o">OD ' + inp('esfOD', 'OD esférico') + inp('cilOD', 'OD cilíndrico') + '</span><span class="o">OE ' + inp('esfOE', 'OE esférico') + inp('cilOE', 'OE cilíndrico') + '</span>' + (_lcfgGEhMulti() ? '<span class="o">Adição ' + inp('add', 'Adição') + '</span>' : '') +
                 '<select onchange="_lcfgSim.trat=this.value;_lcfgGRepinta(true)">' + trats.map(t => '<option value="' + t.k + '"' + (t.k === _lcfgSim.trat ? ' selected' : '') + '>' + _lcfgEsc(t.t) + '</option>').join('') + '</select>' + res + '</div>';
             h += '<div class="lcfg-g-tb"><table><thead><tr><th>Grau</th>' + trats.map(t => '<th>' + _lcfgEsc(t.t) + '</th>').join('') + '</tr></thead><tbody>';
             g.faixas.forEach((f, i) => {
-                h += '<tr class="' + (i === s.fi ? 'rh' : '') + '"><td class="fx" onclick="_lcfgGFaixa(' + i + ')" title="Editar faixa"><b>' + _lcfgGFaixaNome(f) + '</b><small>cil. até ' + Number(f.cil).toFixed(2).replace('.', ',') + ' <i class="ph-bold ph-pencil-simple"></i></small></td>' +
+                h += '<tr class="' + (i === s.fi ? 'rh' : '') + '"><td class="fx" onclick="_lcfgGFaixa(' + i + ')" title="Editar faixa"><b>' + _lcfgGFaixaNome(f) + '</b><small>cil. até ' + Number(f.cil).toFixed(2).replace('.', ',') + (_lcfgGEhMulti() ? '<br>' + _lcfgGAddNome(f) : '') + ' <i class="ph-bold ph-pencil-simple"></i></small></td>' +
                     trats.map(t => { const ids = ((f.cel || {})[t.k]) || [], l = Lk(ids[0]), c = l ? _lcfgLenteCurta(l) : null, off = l && l.ativo === false, herda = !l && t.base ? Lk(((f.cel || {})[t.base] || [])[0]) : null;
                         return '<td><div class="cel ' + (l ? 'lcfg-bg' + String(c.ix || 'x').replace('.', '') : 'vazia') + (i === s.fi && t.k === _lcfgSim.trat ? ' hit' : '') + '" onclick="_lcfgGPick(' + i + ',\'' + t.k + '\')">' +
                             (l ? '<span class="a">' + _lcfgEsc(c.nm) + ' ' + c.ix + (off ? ' <em>(desligada)</em>' : '') + '</span><span class="b">' + _lcfgBrlC(l.preco) + (ids.length > 1 ? ' · +' + (ids.length - 1) + ' opção' : '') + '</span>'
@@ -7655,14 +7659,15 @@
             const nAtual = (_lcfgEdit.necessidades || []).find(n => n.key === _lcfgGTipo) || {}, gb = nAtual.base && ((_lcfgEdit.indicacao || {})[nAtual.base] || {});
             if (gb && Array.isArray(gb.faixas) && gb.faixas.length) { _lcfgGAtual(true); _lcfgEdit.indicacao[_lcfgGTipo] = JSON.parse(JSON.stringify(gb)); _lcfgGMuda(); return; }   // começa copiando a do caminho-base
             const g = _lcfgGAtual(true);
-            g.faixas = [[0, 2.75, 2], [3, 4.75, 2], [5, 6.75, 2], [7, 12, 4]].map(x => ({ de: x[0], ate: x[1], cil: x[2], cel: _lcfgGCelVazia() }));
+            const mu = _lcfgGEhMulti();
+            g.faixas = [[0, 2.75, 2], [3, 4.75, 2], [5, 6.75, 2], [7, 12, 4]].map(x => Object.assign({ de: x[0], ate: x[1], cil: x[2], cel: _lcfgGCelVazia() }, mu ? { addMin: 0.75, addMax: 3.5 } : {}));
             _lcfgGMuda();
         }
         function _lcfgGSet(k, v) { const g = _lcfgGAtual(true); g[k] = v; _lcfgGMuda(); }
-        function _lcfgGAddFaixa() { const g = _lcfgGAtual(true), u = g.faixas[g.faixas.length - 1]; g.faixas.push({ de: u ? Number(u.ate) + 0.25 : 0, ate: u ? Number(u.ate) + 2 : 2, cil: 2, cel: _lcfgGCelVazia() }); _lcfgGMuda(); _lcfgGFaixa(g.faixas.length - 1); }
+        function _lcfgGAddFaixa() { const g = _lcfgGAtual(true), u = g.faixas[g.faixas.length - 1]; g.faixas.push(Object.assign({ de: u ? Number(u.ate) + 0.25 : 0, ate: u ? Number(u.ate) + 2 : 2, cil: 2, cel: _lcfgGCelVazia() }, _lcfgGEhMulti() && u ? { addMin: u.addMin == null ? null : u.addMin, addMax: u.addMax == null ? null : u.addMax } : {})); _lcfgGMuda(); _lcfgGFaixa(g.faixas.length - 1); }
         function _lcfgModal(id, html) {
             let m = document.getElementById(id);
-            if (!m) { m = document.createElement('div'); m.id = id; m.className = 'lcfg-modal'; m.addEventListener('click', e => { if (e.target === m) _lcfgModalFecha(id); }); document.body.appendChild(m); }
+            if (!m) { m = document.createElement('div'); m.id = id; m.className = 'lcfg-modal'; m.addEventListener('click', e => { if (e.target === m) _lcfgModalFecha(id); }); (document.getElementById('lentesViewConfig') || document.body).appendChild(m); }   // dentro da view: herda cores (13/10/2026)
             m.innerHTML = '<div class="lcfg-modal-box">' + html + '</div>'; m.classList.add('on');
         }
         function _lcfgModalFecha(id) { const m = document.getElementById(id); if (m) m.classList.remove('on'); _lcfgGRepinta(true); }
@@ -7670,7 +7675,9 @@
         function _lcfgGFaixa(i) {
             _lcfgGFx = i; const f = _lcfgGAtual(true).faixas[i];
             const inp = (k, v) => '<input type="number" step="0.25" value="' + v + '" onchange="_lcfgGAtual(true).faixas[_lcfgGFx].' + k + '=+this.value;_lcfgGMuda()">';
-            _lcfgModal('lcfgFxModal', '<div class="hd"><h3>Faixa de grau</h3><p>Vale o maior grau entre os dois olhos (sem o sinal).</p></div><div class="bd"><div class="r">Grau de ' + inp('de', f.de) + ' até ' + inp('ate', f.ate) + '</div><div class="r">Cilíndrico até ' + inp('cil', f.cil) + '</div></div>' +
+            const inpN = (k, v) => '<input type="number" step="0.25" min="0" value="' + (v == null ? '' : v) + '" placeholder="—" onchange="_lcfgGAtual(true).faixas[_lcfgGFx].' + k + '=(this.value===\'\'?null:Math.abs(+this.value));_lcfgGMuda()">';
+            _lcfgModal('lcfgFxModal', '<div class="hd"><h3>Faixa de grau</h3><p>Vale o maior grau entre os dois olhos (sem o sinal).</p></div><div class="bd"><div class="r">Grau de ' + inp('de', f.de) + ' até ' + inp('ate', f.ate) + '</div><div class="r">Cilíndrico até ' + inp('cil', f.cil) + '</div>' +
+                (_lcfgGEhMulti() ? '<div class="r">Adição de ' + inpN('addMin', f.addMin) + ' até ' + inpN('addMax', f.addMax) + '</div><p style="margin:0;font-size:12px;color:var(--l-muted)">Deixe a adição em branco para valer qualquer adição.</p>' : '') + '</div>' +
                 '<div class="ft"><button type="button" class="lcfg-btn" style="color:#dc2626" onclick="_lcfgGAtual(true).faixas.splice(_lcfgGFx,1);_lcfgModalFecha(\'lcfgFxModal\');_lcfgGMuda()">Remover faixa</button><button type="button" class="lcfg-btn lcfg-btn-pri" onclick="_lcfgModalFecha(\'lcfgFxModal\')">Pronto</button></div>');
         }
         let _lcfgGPk = null;
@@ -8710,7 +8717,7 @@
             if (_lcfgDaPrevia || !_lcfgPreviaLive || !_lcfgEdit || _lcfgEdit.modo !== 'catalogo') return;
             const m = { type: 'pl-lentes-ir', etapa: _lcfgSelEt === 'visual' ? 'tratamento' : _lcfgSelEt === 'lentes' ? 'resultado' : _lcfgSelEt };
             if (m.etapa === 'resultado' && typeof _lcfgGradeOk === 'function' && _lcfgGradeOk() && _lcfgGTipo)
-                m.sim = { visao: _lcfgGTipo, base: ((_lcfgEdit.necessidades || []).find(n => n.key === _lcfgGTipo) || {}).base || null, trat: ((_lcfgEdit.tratamentos_extra || []).find(x => x.key === _lcfgSim.trat) || {}).base || _lcfgSim.trat, tratOp: _lcfgSim.trat, receita: { odEsf: _lcfgSim.esfOD, odCil: _lcfgSim.cilOD, odEixo: 0, oeEsf: _lcfgSim.esfOE, oeCil: _lcfgSim.cilOE, oeEixo: 0, adicao: null } };
+                m.sim = { visao: _lcfgGTipo, base: ((_lcfgEdit.necessidades || []).find(n => n.key === _lcfgGTipo) || {}).base || null, trat: ((_lcfgEdit.tratamentos_extra || []).find(x => x.key === _lcfgSim.trat) || {}).base || _lcfgSim.trat, tratOp: _lcfgSim.trat, receita: { odEsf: _lcfgSim.esfOD, odCil: _lcfgSim.cilOD, odEixo: 0, oeEsf: _lcfgSim.esfOE, oeCil: _lcfgSim.cilOE, oeEixo: 0, adicao: _lcfgGEhMulti() ? _lcfgSim.add : null } };
             _lcfgPreviaPost(m);
         }
         function _lcfgPreviaAtualiza() {
