@@ -4464,6 +4464,26 @@
                     .lcfg-ia-frame { flex: 1; background: #f5efe9; display: flex; justify-content: center; }
                     .lcfg-ia-frame iframe { width: 100%; max-width: 400px; height: 100%; border: 0; background: #fff; }
                     @media (max-width: 1100px) { .lcfg-ia { grid-template-columns: 1fr; } .lcfg-ia-chat { height: 520px; } .lcfg-ia-previa { height: 620px; } }
+
+                    /* Cores + modo catálogo (12/10/2026) */
+                    .lcfg-bolinha { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 3px; vertical-align: -1px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+                    .lcfg-cores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+                    .lcfg-cor { display: grid; grid-template-columns: 44px minmax(0, 1fr) 96px; gap: 10px; align-items: center; border: 1px solid var(--l-line); border-radius: 11px; padding: 10px 12px; background: var(--l-card); }
+                    .lcfg-cor input[type=color] { width: 44px; height: 40px; padding: 0; border: 1px solid var(--l-line); border-radius: 9px; background: none; cursor: pointer; }
+                    .lcfg-cor input[type=color]::-webkit-color-swatch-wrapper { padding: 3px; } .lcfg-cor input[type=color]::-webkit-color-swatch { border: 0; border-radius: 6px; }
+                    .lcfg-cor-txt b { display: block; font-size: 13.5px; font-weight: 650; } .lcfg-cor-txt small { display: block; font-size: 11.5px; color: var(--l-muted); line-height: 1.35; }
+                    #lentesViewConfig .lcfg-cor input[type=text] { font-family: ui-monospace, Menlo, monospace; font-size: 13px; text-transform: lowercase; }
+                    .lcfg-lente.cat { grid-template-columns: auto minmax(0, 1fr) 128px 104px; }
+                    .lcfg-lente.cat.sem-prazo { grid-template-columns: auto minmax(0, 1fr) 128px; }
+                    .lcfg-lente-cab.cat { grid-template-columns: 36px minmax(0, 1fr) 128px; }
+                    @media (max-width: 767px) {
+                        .lcfg-cores { grid-template-columns: 1fr; }
+                        .lcfg-lente.cat, .lcfg-lente.cat.sem-prazo { grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); }
+                        .lcfg-lente.cat > .lcfg-lente-nome { grid-row: 1; grid-column: 1 / -1; }
+                        .lcfg-lente.cat > .lcfg-switch { grid-row: 2; grid-column: 1; }
+                        .lcfg-lente.cat > .lcfg-afix.pre { grid-row: 2; grid-column: 2; }
+                        .lcfg-lente.cat > .lcfg-afix.pos { grid-row: 2; grid-column: 3; }
+                    }
                     .lentes-resumo-acao { display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;margin-bottom:16px; }
                     .lentes-acao-card { display:flex;align-items:center;gap:11px;width:100%;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 14px;min-width:0;color:var(--text-main);font:inherit;text-align:left;cursor:pointer;transition:border-color .16s ease,transform .16s ease,box-shadow .16s ease; }
                     .lentes-acao-card:hover { border-color:var(--primary);transform:translateY(-1px);box-shadow:0 7px 20px rgba(124,58,237,.10); }
@@ -6755,6 +6775,15 @@
             if (i < 0) return '';
             const l = _lcfgEdit.lentes[i];
             const f = c => 'data-lcfg-lente="' + i + '" data-f="' + c + '"';
+            if (_lcfgEdit.modo === 'catalogo') {   // a chave é o ID do produto; prazo só se a loja usar
+                const temPrazo = l.prazo != null && l.prazo !== '';
+                return '<div class="lcfg-lente cat' + (temPrazo ? '' : ' sem-prazo') + (l.ativo === false ? ' off' : '') + '" data-lente="' + i + '">' +
+                    _lcfgSwitch(f('ativo'), l.ativo !== false) +
+                    '<input type="text" class="lcfg-lente-nome" maxlength="140" aria-label="Nome da lente" ' + f('nome') + ' value="' + _lcfgEsc(l.nome) + '">' +
+                    '<label class="lcfg-afix pre"><span>R$</span><input type="text" inputmode="decimal" aria-label="Preço" ' + f('preco') + ' value="' + _lcfgEsc(String(l.preco).replace('.', ',')) + '"></label>' +
+                    (temPrazo ? '<label class="lcfg-afix pos"><input type="number" min="1" max="90" aria-label="Prazo em dias úteis" ' + f('prazo') + ' value="' + _lcfgEsc(l.prazo) + '"><span>dias</span></label>' : '') +
+                    '</div>';
+            }
             const idsRuins = !/^\d+$/.test(String(l.produto_id || '')) || !/^\d+$/.test(String(l.variante_id || ''));
             const idsOpen = _lcfgIdsAbertos.has(i) || idsRuins;
             return '<div class="lcfg-lente' + (l.ativo === false ? ' off' : '') + (idsOpen ? ' ids-open' : '') + '" data-lente="' + i + '">' +
@@ -6769,6 +6798,9 @@
                 '</div></div>';
         }
         function _lcfgLentes(keys) {
+            if (_lcfgEdit.modo === 'catalogo')
+                return '<div class="lcfg-lente-cab cat"><span></span><span>Lente (nome no fluxo)</span><span>Preço</span></div>' +
+                    '<div class="lcfg-lentes">' + keys.map(_lcfgLente).join('') + '</div>';
             return '<div class="lcfg-lente-cab"><span></span><span>Lente (nome no carrinho)</span><span>Preço</span><span>Prazo</span><span></span></div>' +
                 '<div class="lcfg-lentes">' + keys.map(_lcfgLente).join('') + '</div>';
         }
@@ -6784,14 +6816,69 @@
             }
             return s;
         }
+        const _LCFG_CORES = [
+            ['botao', 'Botão principal', 'Fundo de "Escolher lentes" e "Comprar armação + lente"'],
+            ['botao_texto', 'Texto do botão', 'Cor das letras desses botões'],
+            ['destaque', 'Destaque', 'Barra de progresso, opção em foco e títulos'],
+            ['fundo_opcao', 'Fundo das opções', 'Fundo ao passar o mouse e das caixas de aviso'],
+            ['borda', 'Bordas', 'Contorno das opções e campos']
+        ];
+        function _lcfgHex(v) { return /^#[0-9a-fA-F]{6}$/.test(String(v || '').trim()) ? String(v).trim().toLowerCase() : (/^#[0-9a-fA-F]{3}$/.test(String(v || '').trim()) ? ('#' + String(v).trim().slice(1).split('').map(x => x + x).join('')).toLowerCase() : null); }
+        function _lcfgCores() {
+            const t = _lcfgEdit.tema || {};
+            return _lcfgAcc('cores', {
+                icone: 'ph-palette', etapa: 'Visual', titulo: 'Cores do fluxo',
+                meta: _LCFG_CORES.map(c => t[c[0]] ? '<span class="lcfg-bolinha" style="background:' + _lcfgEsc(_lcfgHex(t[c[0]]) || '#ccc') + '"></span>' : '').join('') + ' Use o seletor ou cole o código (ex.: #7a1f5c)',
+                corpo: '<div class="lcfg-cores">' + _LCFG_CORES.map(c => {
+                    const v = _lcfgHex(t[c[0]]) || '';
+                    return '<div class="lcfg-cor"><input type="color" aria-label="' + c[1] + '" data-lcfg-cor="' + c[0] + '" value="' + (v || '#000000') + '">' +
+                        '<div class="lcfg-cor-txt"><b>' + c[1] + '</b><small>' + c[2] + '</small></div>' +
+                        '<input type="text" maxlength="7" aria-label="Código da cor ' + c[1] + '" data-lcfg-cor-hex="' + c[0] + '" value="' + _lcfgEsc(v) + '" placeholder="#000000"></div>';
+                }).join('') + '</div>'
+            });
+        }
+        // Lojas cujo fluxo é do próprio widget (Cacifé, Koros, Maxilook, Sirena): catálogo, 1ª tela e cores.
+        function _lcfgPintaCatalogo(c) {
+            const necs = c.necessidades || [];
+            const tipos = necs.map((n, i, arr) => '<div class="lcfg-item' + (n.ativo === false ? ' off' : '') + '">' +
+                _lcfgOrdem('necessidades', i, arr.length) +
+                _lcfgSwitch('data-lcfg-lista="necessidades" data-i="' + i + '" data-f="ativo"', n.ativo !== false) +
+                '<div class="lcfg-item-txt">' +
+                    '<input type="text" maxlength="90" aria-label="Título" data-lcfg-lista="necessidades" data-i="' + i + '" data-f="titulo" value="' + _lcfgEsc(n.titulo) + '">' +
+                    '<textarea rows="2" maxlength="300" aria-label="Descrição" data-lcfg-lista="necessidades" data-i="' + i + '" data-f="desc">' + _lcfgEsc(n.desc) + '</textarea>' +
+                '</div></div>').join('');
+            const grupos = [];
+            (c.lentes || []).forEach(l => { let g = grupos.find(x => x.nome === l.grupo); if (!g) { g = { nome: l.grupo || 'Lentes', keys: [] }; grupos.push(g); } g.keys.push(l.key); });
+            const lentes = grupos.map(g => {
+                const on = g.keys.some(k => { const l = c.lentes[_lcfgIdxLente(k)]; return l && l.ativo !== false; });
+                return _lcfgAcc('g:' + g.nome, { nivel: 1, titulo: _lcfgEsc(g.nome), meta: _lcfgResumo(g.keys), off: !on, corpo: _lcfgLentes(g.keys) });
+            }).join('');
+            const total = (c.lentes || []).length, ligadas = (c.lentes || []).filter(l => l.ativo !== false).length;
+            document.getElementById('lcfgCorpo').innerHTML =
+                '<p class="lcfg-intro">Abra cada parte para editar. O que estiver <b>desligado</b> some do fluxo da loja. Depois de salvar, a loja mostra as mudanças em até 5 minutos.</p>' +
+                _lcfgCores() +
+                _lcfgAcc('etapa1', {
+                    icone: 'ph-list-numbers', etapa: 'Primeira tela', titulo: 'Tipos de lente',
+                    meta: necs.filter(n => n.ativo !== false).length + ' de ' + necs.length + ' opções aparecendo · use as setas para mudar a ordem',
+                    corpo: '<div class="lcfg-bloco-tit">Opções (na ordem em que aparecem)</div>' + tipos
+                }) +
+                _lcfgAcc('lentes', {
+                    icone: 'ph-eyeglasses', etapa: 'Catálogo', titulo: 'Lentes e preços',
+                    meta: ligadas + ' de ' + total + ' lentes ligadas · a recomendação escolhe entre as ligadas',
+                    corpo: '<p class="lcfg-intro" style="margin:14px 0 4px;">O preço aqui é o que aparece no fluxo; no carrinho vale o preço do produto na Nuvemshop, então mantenha os dois iguais. Lente desligada nunca é recomendada.</p>' + lentes
+                }) +
+                '<p class="lcfg-intro" style="margin-top:4px;">Dica: nos textos, Enter quebra a linha e **dois asteriscos** deixam em negrito.</p>';
+            _lcfgAtualizaBarraEPrevia();
+        }
         function _lcfgPinta() {
             const c = _lcfgEdit || {};
-            const g = c.geral || (c.geral = {});
             const prev = document.getElementById('lcfgPrevia');
             if (prev) {
                 if (c.previa_url) { prev.href = c.previa_url + (c.previa_url.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now(); prev.style.display = ''; }
                 else prev.style.display = 'none';
             }
+            if (c.modo === 'catalogo') { _lcfgPintaCatalogo(c); return; }
+            const g = c.geral || (c.geral = {});
             const usados = new Set([].concat(_LCFG_TEXTOS_ETAPA1, _LCFG_TEXTOS_RECEITA, _LCFG_TEXTOS_RESULTADO));
             const necs = c.necessidades || [];
 
@@ -6854,6 +6941,7 @@
                             '<div class="lcfg-campo"><label>WhatsApp da loja (DDI + DDD + número)</label><input type="text" inputmode="numeric" maxlength="15" data-lcfg-geral="whatsapp" value="' + _lcfgEsc(g.whatsapp) + '"><span class="lcfg-dica">Usado no "Falar no WhatsApp". Ex.: 5534991632975</span></div>' +
                         '</div>'
                 }) +
+                _lcfgCores() +
                 _lcfgAcc('etapa1', {
                     icone: 'ph-list-numbers', etapa: 'Etapa 1', titulo: 'Tipos de lente',
                     meta: necs.filter(n => n.ativo !== false).length + ' de ' + necs.length + ' tipos aparecendo · use as setas para mudar a ordem',
@@ -6885,6 +6973,14 @@
             const val = el.type === 'checkbox' ? el.checked : el.value;
             let repinta = false;
             if (el.dataset.lcfgGeral) { c.geral[el.dataset.lcfgGeral] = el.dataset.lcfgGeral === 'whatsapp' ? String(val).replace(/\D/g, '') : val; repinta = el.type === 'checkbox'; }
+            else if (el.dataset.lcfgCor || el.dataset.lcfgCorHex) {
+                const k = el.dataset.lcfgCor || el.dataset.lcfgCorHex, hex = _lcfgHex(val);
+                el.classList.toggle('erro', !hex && !!el.dataset.lcfgCorHex);
+                if (!hex) { _lcfgAtualizaBarraEPrevia(); return; }
+                c.tema = Object.assign({}, c.tema || {}, { [k]: hex });
+                const par = document.querySelector('#lentesViewConfig [' + (el.dataset.lcfgCor ? 'data-lcfg-cor-hex' : 'data-lcfg-cor') + '="' + k + '"]');
+                if (par && par.value.toLowerCase() !== hex) par.value = hex;
+            }
             else if (el.hasAttribute('data-lcfg-cores')) c.cores_solar = String(val).split(',').map(s => s.trim()).filter(Boolean);
             else if (el.dataset.lcfgLista) { c[el.dataset.lcfgLista][+el.dataset.i][el.dataset.f] = val; repinta = el.type === 'checkbox'; }
             else if (el.dataset.lcfgTexto != null) {
@@ -6928,17 +7024,21 @@
         function _lcfgValida(c) {
             const erros = [];
             if (!(c.necessidades || []).some(n => n.ativo !== false)) erros.push('Deixe pelo menos um tipo de lente ligado.');
-            if (!(c.receita || []).some(n => n.ativo !== false)) erros.push('Deixe pelo menos uma opção de receita ligada.');
+            if (Array.isArray(c.receita) && c.receita.length && !c.receita.some(n => n.ativo !== false)) erros.push('Deixe pelo menos uma opção de receita ligada.');
+            Object.keys(c.tema || {}).forEach(k => { if (!_lcfgHex(c.tema[k])) erros.push('Cor inválida em ' + k + ' (use #RRGGBB).'); });
             (c.necessidades || []).concat(c.receita || []).forEach(n => { if (!String(n.titulo || '').trim()) erros.push('Tem uma opção sem título.'); });
-            const wa = String(c.geral.whatsapp || '');
-            if (wa && (wa.length < 12 || wa.length > 13)) erros.push('WhatsApp da loja: use DDI + DDD + número (ex.: 5534991632975).');
-            if (!String(c.geral.botao_texto || '').trim()) erros.push('O texto do botão não pode ficar vazio.');
+            const cat = c.modo === 'catalogo';
+            if (!cat) {
+                const wa = String((c.geral || {}).whatsapp || '');
+                if (wa && (wa.length < 12 || wa.length > 13)) erros.push('WhatsApp da loja: use DDI + DDD + número (ex.: 5534991632975).');
+                if (!String((c.geral || {}).botao_texto || '').trim()) erros.push('O texto do botão não pode ficar vazio.');
+            }
             (c.lentes || []).forEach(l => {
                 const nome = String(l.nome || '').trim() || '(sem nome)';
                 if (!String(l.nome || '').trim()) erros.push('Tem uma lente sem nome.');
                 if (!(typeof l.preco === 'number' && l.preco > 0)) erros.push('Preço inválido em: ' + nome);
-                if (!(Number.isInteger(l.prazo) && l.prazo > 0 && l.prazo <= 90)) erros.push('Prazo inválido em: ' + nome);
-                if (!/^\d+$/.test(String(l.produto_id || '')) || !/^\d+$/.test(String(l.variante_id || ''))) erros.push('ID de produto/variante inválido em: ' + nome);
+                if ((!cat || l.prazo != null) && !(Number.isInteger(l.prazo) && l.prazo > 0 && l.prazo <= 90)) erros.push('Prazo inválido em: ' + nome);
+                if (!cat && (!/^\d+$/.test(String(l.produto_id || '')) || !/^\d+$/.test(String(l.variante_id || '')))) erros.push('ID de produto/variante inválido em: ' + nome);
             });
             return Array.from(new Set(erros));
         }
@@ -7003,7 +7103,7 @@
         let _lcfgIABusy = false;
         let _lcfgPreviaCfg = '';       // rascunho que a prévia está mostrando
         let _lcfgPreviaTimer = null;
-        const _LCFG_IA_SUG = ['Esconde as lentes de sol', 'Sobe 10% os multifocais', 'Coloca o monofocal em primeiro', 'Deixa o título da primeira tela mais curto'];
+        const _LCFG_IA_SUG = ['Sobe 10% os multifocais', 'Deixa o botão principal #1e6bff', 'Coloca o multifocal em primeiro', 'Desliga as lentes mais baratas'];
 
         function _lcfgNomeLente(k) { const l = (_lcfgEdit.lentes || []).find(x => x.key === k); return l ? l.nome : k; }
         function _lcfgNomeTexto(k) { const t = (_lcfgEdit.textos || []).find(x => x.key === k); return t ? (t.secao + ' · ' + t.label) : k; }
@@ -7014,7 +7114,7 @@
         function _lcfgAplicaOps(ops) {
             const c = _lcfgEdit, mud = [];
             let ignoradas = 0;
-            const LCAMPOS = ['nome', 'preco', 'prazo', 'ativo', 'produto_id', 'variante_id'];
+            const LCAMPOS = c.modo === 'catalogo' ? ['nome', 'preco', 'prazo', 'ativo'] : ['nome', 'preco', 'prazo', 'ativo', 'produto_id', 'variante_id'];
             (Array.isArray(ops) ? ops : []).forEach(op => {
                 const t = op && op.tipo, alvo = String((op && op.alvo) || ''), campo = String((op && op.campo) || ''), valor = (op && op.valor != null) ? String(op.valor) : '';
                 const lista = Array.isArray(op && op.lista) ? op.lista.map(String) : [];
@@ -7074,6 +7174,13 @@
                     c.geral[campo] = novo;
                     mud.push(campo === 'ativo' ? (novo ? 'Ligou' : 'Desligou') + ' o fluxo na loja'
                         : campo === 'whatsapp' ? 'WhatsApp da loja → ' + novo : 'Texto do botão → "' + novo + '"');
+                } else if (t === 'set_cor') {
+                    const NOMES = { botao: 'Botão principal', botao_texto: 'Texto do botão', destaque: 'Destaque', fundo_opcao: 'Fundo das opções', borda: 'Bordas' };
+                    const hex = _lcfgHex(valor);
+                    if (!NOMES[alvo] || !hex) { ignoradas++; return; }
+                    if (_lcfgHex((c.tema || {})[alvo]) === hex) return;
+                    c.tema = Object.assign({}, c.tema || {}, { [alvo]: hex });
+                    mud.push('Cor · ' + NOMES[alvo] + ' → ' + hex);
                 } else if (t === 'set_cores') {
                     const cores = lista.map(s => s.trim()).filter(Boolean);
                     if (!cores.length) { ignoradas++; return; }
@@ -7129,7 +7236,8 @@
                 const snap = JSON.stringify(_lcfgEdit);
                 const { mud, ignoradas } = _lcfgAplicaOps(d.operacoes);
                 // trava de segurança: nunca deixa a primeira tela ou a tela de receita sem opção
-                if (!(_lcfgEdit.necessidades || []).some(n => n.ativo !== false) || !(_lcfgEdit.receita || []).some(n => n.ativo !== false)) {
+                const semReceita = Array.isArray(_lcfgEdit.receita) && _lcfgEdit.receita.length && !_lcfgEdit.receita.some(n => n.ativo !== false);
+                if (!(_lcfgEdit.necessidades || []).some(n => n.ativo !== false) || semReceita) {
                     _lcfgEdit = JSON.parse(snap);
                     _lcfgIAHist.push({ de: 'ia', texto: 'Não apliquei: isso deixaria o fluxo sem nenhuma opção numa das telas. Deixe pelo menos uma ligada.', erro: true });
                 } else {
