@@ -12795,8 +12795,6 @@
             _jorInjectCSS();
             if (!pane.querySelector('#jorPane')) {
                 pane.innerHTML = '<div id="jorPane">'
-                    + '<div class="jor-topo"><div><h2>Jornada do comprador</h2><p>Tudo o que aconteceu com quem comprou, da primeira prova até a compra</p></div>'
-                    + '<div class="jor-leg">' + Object.keys(_JOR_TIPOS).map(k => '<span><i style="background:' + _JOR_TIPOS[k].cor + '"></i>' + _JOR_TIPOS[k].nome + '</span>').join('') + '</div></div>'
                     + '<div class="jor-cols"><div class="jor-main" id="jorMain"><div class="jor-card jor-vazio">Carregando compradores…</div></div>'
                     + '<aside class="jor-lista"><div class="jor-lista-top"><b>Compradores</b><span id="jorQtd"></span></div>'
                     + '<div class="jor-filtros"><label>Período da compra<select id="jorPeriodo"><option value="7">Últimos 7 dias</option><option value="30" selected>Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="365">Últimos 12 meses</option><option value="0">Desde o início</option></select></label>'
@@ -12861,10 +12859,8 @@
                 h += '<div class="jor-diatop' + (compra ? ' compra' : '') + (g.its.length === 1 ? ' um' : '') + '" style="grid-column:' + c0 + ' / ' + (col + 1) + '"><b>' + _jorDia(g.d) + ' · ' + _JOR_SEM[new Date(g.k + 'T12:00:00').getDay()] + '</b><span>' + (gi === 0 ? '1º contato' : 'dia ' + (_jorDias(ini, g.d) + 1)) + ' · ' + g.its.length + (g.its.length > 1 ? ' eventos' : ' evento') + '</span></div>';
             });
             const ini2 = nome.split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
-            main.innerHTML = '<section class="jor-card jor-head"><div class="jor-av">' + escapeHtml(ini2 || '?') + '</div>'
-                + '<div class="jor-id"><b>' + escapeHtml(nome) + '</b><span>' + escapeHtml(_jorTel(b.telPedido || b.raw)) + ' · comprou ' + escapeHtml(b.produto || '') + ' · ' + _jorBrl(b.valor) + '</span></div>'
-                + '<div class="jor-kpis"><div><b>' + _jorTxtDias(_jorDias(ini, new Date(b.ms))) + '</b><span>da 1ª prova à compra</span></div><div><b>' + (ev._provas || cont('prova')) + '</b><span>provas</span></div><div><b>' + cont('msg') + '</b><span>mensagens</span></div><div><b>' + cont('resp') + '</b><span>respostas</span></div></div></section>'
-                + '<section class="jor-card" style="padding:14px 10px"><div class="jor-tit" style="padding:0 12px 10px">Linha do tempo por dia · role para o lado</div>'
+            main.innerHTML = ''
+                + '<section class="jor-card" style="padding:14px 10px"><div class="jor-tit" style="padding:0 12px 10px">' + escapeHtml(nome) + ' · ' + _jorBrl(b.valor) + ' · ' + _jorTxtDias(_jorDias(ini, new Date(b.ms))) + ' da 1ª prova à compra</div>'
                 + '<div class="jor-trilho"><div class="jor-faixa" style="grid-template-columns:' + cols.join(' ') + '">' + h + '</div></div></section>';
         }
 
