@@ -7376,10 +7376,10 @@
                 '<option value="inicio"' + (e.receita.posicao === 'inicio' ? ' selected' : '') + '>Logo depois do tipo de lente</option>' +
                 '<option value="final"' + (e.receita.posicao !== 'inicio' && e.receita.posicao !== 'primeiro' ? ' selected' : '') + '>Depois do tratamento</option></select></div>';
             return '<div class="lcfg-ed-topo">' + nomeIn('data-lcfg-etnome="' + k + '"', _lcfgEtNome(k)) +
-                    ((k === 'telefone' || k === 'tratamento' || k === 'uso') ? _lcfgSwitch('data-lcfg-etapa="' + k + '" data-f="ativo"', on, true) : '') + '</div>' +
+                    ((k === 'tratamento' || k === 'uso') ? _lcfgSwitch('data-lcfg-etapa="' + k + '" data-f="ativo"', on, true) : '') + '</div>' +
                 linha + (NOTA[k] ? '<p class="lcfg-ed-nota">' + NOTA[k] + '</p>' : '') +
                 (k === 'tratamento' && !on ? '<p class="lcfg-ed-nota">Desligada: o cliente não vê esta tela e o fluxo usa o tratamento escolhido.</p>' : '') +
-                (k === 'telefone' && !on ? '<p class="lcfg-ed-nota">Desligada: o cliente vai direto pra próxima etapa.</p>' : '');
+                '';
         }
         function _lcfgMapaParcial(semTela) {   // atualiza árvore (e a tela) sem refazer os campos (não perde o foco)
             const a = document.getElementById('lcfgArvoreBox');
