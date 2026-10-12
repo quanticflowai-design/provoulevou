@@ -4498,6 +4498,27 @@
                     .lcfg-caminho i { font-size: 11px; color: var(--l-muted); }
 
                     .lcfg-etapa-fixa { width: 36px; height: 21px; display: grid; place-items: center; color: var(--l-muted); font-size: 15px; }
+
+                    /* Visual completo + arrastar (12/10/2026) */
+                    .lcfg-cor { grid-template-columns: 44px minmax(0, 1fr) 96px 30px; }
+                    .lcfg-cor.vazia input[type=color] { opacity: .35; }
+                    .lcfg-cor.vazia .lcfg-cor-txt small { font-style: italic; }
+                    .lcfg-cor-limpa { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--l-line); background: transparent; color: var(--l-muted); cursor: pointer; display: grid; place-items: center; padding: 0; }
+                    .lcfg-cor-limpa:hover { color: var(--l-accent); border-color: var(--l-accent); }
+                    .lcfg-cor-limpa[hidden] { display: none; }
+                    .lcfg-select { width: 100%; height: 38px; border: 1px solid var(--l-line); border-radius: 9px; background: var(--l-field); color: var(--l-ink); font: inherit; font-size: 13.5px; padding: 0 10px; }
+                    .lcfg-raio { display: flex; align-items: center; gap: 10px; } .lcfg-raio input[type=range] { flex: 1; accent-color: var(--l-accent); }
+                    .lcfg-raio .lcfg-btn { height: 32px; padding: 0 10px; font-size: 12px; } .lcfg-raio .lcfg-btn[hidden] { display: none; }
+                    .lcfg-grip { width: 26px; height: 22px; display: grid; place-items: center; color: var(--l-muted); cursor: grab; border-radius: 6px; }
+                    .lcfg-grip:hover { color: var(--l-accent); background: var(--l-soft); }
+                    .lcfg-dnd { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 12px; border: 1px dashed var(--l-line); border-radius: 12px; background: var(--l-sub); margin-bottom: 6px; }
+                    .lcfg-dnd > i { color: var(--l-muted); font-size: 12px; }
+                    .lcfg-chip { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 99px; background: var(--l-card); border: 1.5px solid var(--l-accent); color: var(--l-accent); font-size: 13px; font-weight: 650; cursor: grab; user-select: none; }
+                    .lcfg-chip.fixo { border-color: var(--l-line); color: var(--l-muted); cursor: default; }
+                    .lcfg-chip:active { cursor: grabbing; }
+                    #lentesViewConfig .arrastando { opacity: .45; }
+                    #lentesViewConfig .drop-alvo { outline: 2px dashed var(--l-accent); outline-offset: 3px; }
+                    @media (max-width: 767px) { .lcfg-cor { grid-template-columns: 40px minmax(0, 1fr) 30px; } .lcfg-cor input[type=text] { grid-column: 2 / 4; } }
                     .lentes-resumo-acao { display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;margin-bottom:16px; }
                     .lentes-acao-card { display:flex;align-items:center;gap:11px;width:100%;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 14px;min-width:0;color:var(--text-main);font:inherit;text-align:left;cursor:pointer;transition:border-color .16s ease,transform .16s ease,box-shadow .16s ease; }
                     .lentes-acao-card:hover { border-color:var(--primary);transform:translateY(-1px);box-shadow:0 7px 20px rgba(124,58,237,.10); }
@@ -6753,7 +6774,7 @@
                 (rotulo ? '<em>' + (on ? 'Ligado' : 'Desligado') + '</em>' : '') + '</label>';
         }
         function _lcfgOrdem(lista, i, n) {
-            return '<div class="lcfg-ordem">' +
+            return '<div class="lcfg-ordem"><span class="lcfg-grip" draggable="true" data-lcfg-grip="' + lista + '" data-i="' + i + '" title="Arraste para mudar a ordem" aria-hidden="true"><i class="ph-bold ph-dots-six-vertical"></i></span>' +
                 '<button type="button" data-lcfg-mover="' + lista + '" data-i="' + i + '" data-d="-1" aria-label="Subir"' + (i === 0 ? ' disabled' : '') + '><i class="ph-bold ph-caret-up"></i></button>' +
                 '<button type="button" data-lcfg-mover="' + lista + '" data-i="' + i + '" data-d="1" aria-label="Descer"' + (i === n - 1 ? ' disabled' : '') + '><i class="ph-bold ph-caret-down"></i></button></div>';
         }
@@ -6830,25 +6851,61 @@
             }
             return s;
         }
-        const _LCFG_CORES = [
-            ['botao', 'Botão principal', 'Fundo de "Escolher lentes" e "Comprar armação + lente"'],
-            ['botao_texto', 'Texto do botão', 'Cor das letras desses botões'],
-            ['destaque', 'Destaque', 'Barra de progresso, opção em foco e títulos'],
-            ['fundo_opcao', 'Fundo das opções', 'Fundo ao passar o mouse e das caixas de aviso'],
-            ['borda', 'Bordas', 'Contorno das opções e campos']
+        /* ---- Visual completo (12/10/2026): uma cor por elemento + cantos + fonte. Em branco = cor da loja. ---- */
+        const _LCFG_TEMA_GRUPOS = [
+            ['atalhos', 'Cores gerais (atalhos)', 'Mudam vários elementos de uma vez. As cores de cada elemento, nos grupos abaixo, têm prioridade sobre estas.', [
+                ['destaque', 'Destaque', 'Barra de progresso, opção em foco e títulos'], ['fundo_opcao', 'Fundo suave', 'Opção em foco e caixas de aviso'], ['borda', 'Bordas', 'Contorno das opções e campos']]],
+            ['tela', 'Tela e janela', '', [['fundo_tela', 'Fundo atrás da janela', 'A área em volta do fluxo'], ['fundo_janela', 'Fundo da janela', 'O cartão onde o fluxo aparece']]],
+            ['textos', 'Textos', '', [['titulo', 'Títulos das telas', 'Ex.: "Qual tipo de lente você procura?"'], ['texto', 'Texto principal', 'Nomes das opções e da lente'], ['texto_secundario', 'Texto secundário', 'Descrições e detalhes']]],
+            ['progresso', 'Barra de progresso', '', [['progresso', 'Etapas feitas e atual', ''], ['progresso_fundo', 'Etapas que faltam', '']]],
+            ['opcoes', 'Opções', '', [['opcao_fundo', 'Fundo da opção', ''], ['opcao_borda', 'Borda da opção', ''], ['opcao_foco', 'Borda da opção em foco', 'Ao passar o mouse ou selecionada'], ['opcao_foco_fundo', 'Fundo da opção em foco', '']]],
+            ['botoes', 'Botões e links', '', [['botao', 'Botão principal', '"Escolher lentes" e "Comprar armação + lente"'], ['botao_texto', 'Texto do botão principal', ''],
+                ['botao_secundario', 'Botão secundário', 'Ex.: "Comprar só a armação"'], ['botao_secundario_texto', 'Texto do botão secundário', ''], ['link', 'Links', '"voltar" e afins']]],
+            ['resultado', 'Resultado e avisos', '', [['preco', 'Preço', ''], ['resultado_borda', 'Borda do cartão da lente', ''], ['aviso_fundo', 'Fundo dos avisos', ''], ['aviso_texto', 'Texto dos avisos', ''],
+                ['selo_fundo', 'Fundo dos selos', 'Ex.: "Mais vendido"'], ['selo_texto', 'Texto dos selos', '']]],
+            ['campos', 'Campos', 'Campos da receita e do WhatsApp.', [['campo_fundo', 'Fundo dos campos', ''], ['campo_borda', 'Borda dos campos', '']]]
         ];
+        const _LCFG_CORES = [].concat(..._LCFG_TEMA_GRUPOS.map(g => g[3]));
+        const _LCFG_FONTES = ['DM Sans', 'Inter', 'Poppins', 'Montserrat', 'Lato', 'Nunito', 'Raleway', 'Work Sans', 'Josefin Sans', 'Quicksand', 'Playfair Display', 'Lora', 'Cormorant Garamond', 'Libre Baskerville'];
         function _lcfgHex(v) { return /^#[0-9a-fA-F]{6}$/.test(String(v || '').trim()) ? String(v).trim().toLowerCase() : (/^#[0-9a-fA-F]{3}$/.test(String(v || '').trim()) ? ('#' + String(v).trim().slice(1).split('').map(x => x + x).join('')).toLowerCase() : null); }
+        function _lcfgCorLinha(c, t) {
+            const v = _lcfgHex(t[c[0]]) || '';
+            return '<div class="lcfg-cor' + (v ? '' : ' vazia') + '" data-lcfg-cor-linha="' + c[0] + '">' +
+                '<input type="color" aria-label="' + c[1] + '" data-lcfg-cor="' + c[0] + '" value="' + (v || '#ffffff') + '">' +
+                '<div class="lcfg-cor-txt"><b>' + c[1] + '</b><small>' + (v ? (c[2] || 'Personalizada') : 'Cor da loja' + (c[2] ? ' · ' + c[2] : '')) + '</small></div>' +
+                '<input type="text" maxlength="7" aria-label="Código da cor ' + c[1] + '" data-lcfg-cor-hex="' + c[0] + '" value="' + _lcfgEsc(v) + '" placeholder="da loja">' +
+                '<button type="button" class="lcfg-cor-limpa" data-lcfg-cor-limpa="' + c[0] + '" title="Voltar à cor da loja" aria-label="Voltar à cor da loja"' + (v ? '' : ' hidden') + '><i class="ph-bold ph-arrow-counter-clockwise"></i></button></div>';
+        }
         function _lcfgCores() {
             const t = _lcfgEdit.tema || {};
+            const definidas = _LCFG_CORES.filter(c => _lcfgHex(t[c[0]]));
+            const grupos = _LCFG_TEMA_GRUPOS.map(g => {
+                const n = g[3].filter(c => _lcfgHex(t[c[0]])).length;
+                return _lcfgAcc('tema:' + g[0], {
+                    nivel: 1, titulo: g[1],
+                    meta: (g[3].map(c => _lcfgHex(t[c[0]]) ? '<span class="lcfg-bolinha" style="background:' + _lcfgHex(t[c[0]]) + '"></span>' : '').join('')) + (n ? n + ' de ' + g[3].length + ' personalizadas' : 'Todas com a cor da loja'),
+                    corpo: (g[2] ? '<p class="lcfg-intro" style="margin:12px 0 0;">' + g[2] + '</p>' : '') + '<div class="lcfg-cores">' + g[3].map(c => _lcfgCorLinha(c, t)).join('') + '</div>'
+                });
+            }).join('');
+            const raio = parseInt(t.raio, 10), temRaio = t.raio !== undefined && t.raio !== '' && raio >= 0;
+            const formato = _lcfgAcc('tema:formato', {
+                nivel: 1, titulo: 'Fonte e cantos',
+                meta: (t.fonte ? 'Fonte ' + _lcfgEsc(t.fonte) : 'Fonte da loja') + ' · ' + (temRaio ? 'cantos ' + raio + ' px' : 'cantos da loja'),
+                corpo: '<div class="lcfg-grid" style="margin-top:14px;">' +
+                    '<div class="lcfg-campo"><label>Fonte do fluxo</label><select class="lcfg-select" data-lcfg-fonte><option value="">Fonte da loja</option>' +
+                        _LCFG_FONTES.map(f => '<option value="' + f + '"' + (t.fonte === f ? ' selected' : '') + ' style="font-family:\'' + f + '\'">' + f + '</option>').join('') + '</select></div>' +
+                    '<div class="lcfg-campo"><label>Cantos arredondados <span data-lcfg-raio-val>' + (temRaio ? raio + ' px' : 'da loja') + '</span></label>' +
+                        '<div class="lcfg-raio"><input type="range" min="0" max="28" step="1" value="' + (temRaio ? raio : 12) + '" data-lcfg-raio aria-label="Cantos arredondados em pixels">' +
+                        '<button type="button" class="lcfg-btn" data-lcfg-raio-limpa' + (temRaio ? '' : ' hidden') + '>Da loja</button></div>' +
+                        '<span class="lcfg-dica">0 = cantos retos · 28 = bem arredondados</span></div>' +
+                '</div>'
+            });
             return _lcfgAcc('cores', {
-                icone: 'ph-palette', etapa: 'Visual', titulo: 'Cores do fluxo',
-                meta: _LCFG_CORES.map(c => t[c[0]] ? '<span class="lcfg-bolinha" style="background:' + _lcfgEsc(_lcfgHex(t[c[0]]) || '#ccc') + '"></span>' : '').join('') + ' Use o seletor ou cole o código (ex.: #7a1f5c)',
-                corpo: '<div class="lcfg-cores">' + _LCFG_CORES.map(c => {
-                    const v = _lcfgHex(t[c[0]]) || '';
-                    return '<div class="lcfg-cor"><input type="color" aria-label="' + c[1] + '" data-lcfg-cor="' + c[0] + '" value="' + (v || '#000000') + '">' +
-                        '<div class="lcfg-cor-txt"><b>' + c[1] + '</b><small>' + c[2] + '</small></div>' +
-                        '<input type="text" maxlength="7" aria-label="Código da cor ' + c[1] + '" data-lcfg-cor-hex="' + c[0] + '" value="' + _lcfgEsc(v) + '" placeholder="#000000"></div>';
-                }).join('') + '</div>'
+                icone: 'ph-palette', etapa: 'Visual', titulo: 'Cores, fonte e cantos',
+                meta: definidas.slice(0, 8).map(c => '<span class="lcfg-bolinha" style="background:' + _lcfgHex(t[c[0]]) + '"></span>').join('') +
+                    (definidas.length ? definidas.length + ' cores personalizadas' : 'Cores da loja') + (t.fonte ? ' · ' + _lcfgEsc(t.fonte) : ''),
+                corpo: '<p class="lcfg-intro" style="margin:14px 0 4px;">Mude a cor de <b>cada elemento</b> do fluxo, a fonte e os cantos. O que ficar com "cor da loja" continua como hoje. Também dá pra pedir no assistente: <i>"deixa a barra de progresso #9b30ff"</i>.</p>' +
+                    grupos + formato
             });
         }
         /* ---- Etapas do fluxo (modo completo, 12/10/2026): desligar etapas e mudar a posição da receita ---- */
@@ -6874,6 +6931,12 @@
         // mesma regra do widget (seqFor em lentes-barch.js)
         function _lcfgCaminho(need) {
             const e = _lcfgEtapas(), on = k => e[k].ativo !== false;
+            if (on('receita') && e.receita.posicao === 'primeiro') {
+                const resto = need === 'descanso' ? ['desc-frame'] : need === 'simples' ? [on('distancia') ? 'mono-dist' : null, 'mono-grau*', on('tratamento_mono') ? 'mono-trat' : null]
+                    : need === 'multifocal' ? ['multi-model', 'multi-grau*', on('tratamento_multi') ? 'multi-trat' : null]
+                    : need === 'solar' ? [on('grau_solar') ? 'sun-grau' : null, 'sun-frame', on('cor_solar') ? 'sun-color' : null] : [];
+                return ['Receita', 'Tipo de lente'].concat(resto.filter(Boolean).map(p => p.endsWith('*') ? 'Grau (pela receita)' : _LCFG_NOME_PASSO[p])).concat(['Resultado']);
+            }
             const ini = on('receita') && e.receita.posicao === 'inicio' && need !== 'descanso';
             const r0 = ini ? 'recipe' : null, r1 = (!ini && on('receita')) ? 'recipe' : null;
             let s;
@@ -6890,8 +6953,9 @@
                 const on = e[k].ativo !== false;
                 let extra = '';
                 if (k === 'receita' && on) extra = '<select data-lcfg-etapa="receita" data-f="posicao" aria-label="Posição da receita">' +
-                    '<option value="inicio"' + (e.receita.posicao === 'inicio' ? ' selected' : '') + '>No início (logo após o tipo de lente) — o grau sai da receita</option>' +
-                    '<option value="final"' + (e.receita.posicao !== 'inicio' ? ' selected' : '') + '>No fim (antes do resultado)</option></select>';
+                    '<option value="primeiro"' + (e.receita.posicao === 'primeiro' ? ' selected' : '') + '>Primeira tela (antes do tipo de lente) — o grau sai da receita</option>' +
+                    '<option value="inicio"' + (e.receita.posicao === 'inicio' ? ' selected' : '') + '>Logo após o tipo de lente — o grau sai da receita</option>' +
+                    '<option value="final"' + (e.receita.posicao !== 'inicio' && e.receita.posicao !== 'primeiro' ? ' selected' : '') + '>No fim (antes do resultado)</option></select>';
                 if (k === 'tratamento_mono' && !on) extra = '<select data-lcfg-etapa="tratamento_mono" data-f="padrao" aria-label="Tratamento padrão monofocal">' +
                     '<option value="ar"' + (e.tratamento_mono.padrao !== 'blue' ? ' selected' : '') + '>Padrão: apenas antirreflexo</option>' +
                     '<option value="blue"' + (e.tratamento_mono.padrao === 'blue' ? ' selected' : '') + '>Padrão: antirreflexo + filtro de luz azul</option></select>';
@@ -6908,9 +6972,9 @@
             const desl = _LCFG_ETAPAS_INFO.filter(([k]) => e[k].ativo === false).length;
             return _lcfgAcc('etapas', {
                 icone: 'ph-flow-arrow', etapa: 'Ordem e etapas', titulo: 'Etapas do fluxo',
-                meta: (e.receita.ativo === false ? 'Sem pedir receita' : e.receita.posicao === 'inicio' ? 'Receita no início' : 'Receita no fim') + (desl ? ' · ' + desl + (desl === 1 ? ' etapa desligada' : ' etapas desligadas') : ' · todas as etapas ligadas'),
+                meta: (e.receita.ativo === false ? 'Sem pedir receita' : e.receita.posicao === 'primeiro' ? 'Receita na primeira tela' : e.receita.posicao === 'inicio' ? 'Receita logo após o tipo' : 'Receita no fim') + (desl ? ' · ' + desl + (desl === 1 ? ' etapa desligada' : ' etapas desligadas') : ' · todas as etapas ligadas'),
                 corpo: '<p class="lcfg-intro" style="margin:14px 0 6px;">Desligue o que não quer perguntar e escolha onde a receita entra. Tipo de lente, modelo da multifocal e armação são sempre perguntados, porque a lente indicada depende deles.</p>' +
-                    linhas + '<div class="lcfg-bloco-tit">Como fica o caminho do cliente</div>' + mapa
+                    linhas + _lcfgPintaOrdemDnd() + '<div class="lcfg-bloco-tit">Como fica o caminho do cliente</div>' + mapa
             });
         }
         /* ---- Etapas no modo catálogo (12/10/2026): WhatsApp no início, tratamento padrão, receita antes do tratamento ---- */
@@ -6924,10 +6988,11 @@
         function _lcfgCaminhoCat() {
             const e = _lcfgEtapasCat(), p = [];
             if (e.telefone.ativo !== false) p.push('WhatsApp');
+            if (e.receita.posicao === 'primeiro') p.push('Receita');
             p.push('Tipo de lente');
             if (e.receita.posicao === 'inicio') p.push('Receita');
             if (e.tratamento.ativo !== false) p.push('Tratamento');
-            if (e.receita.posicao !== 'inicio') p.push('Receita');
+            if (e.receita.posicao !== 'inicio' && e.receita.posicao !== 'primeiro') p.push('Receita');
             p.push('Resultado');
             return p;
         }
@@ -6942,18 +7007,52 @@
                 item('tratamento', trOn, 'Tratamento', 'Desligado, o fluxo usa o tratamento padrão escolhido (se não existir pra lente, usa o primeiro disponível).',
                     trOn || !ops.length ? '' : '<select data-lcfg-etapa="tratamento" data-f="padrao" aria-label="Tratamento padrão">' +
                         ops.map(o => '<option value="' + _lcfgEsc(o.key) + '"' + (o.key === e.tratamento.padrao ? ' selected' : '') + '>Padrão: ' + _lcfgEsc(o.titulo) + '</option>').join('') + '</select>') +
-                item(null, true, 'Receita', 'Sempre pedida (a lente indicada depende do grau). Escolha se ela vem antes ou depois do tratamento.',
+                item(null, true, 'Receita', 'Sempre pedida (a lente indicada depende do grau). Escolha onde ela entra — ou arraste na faixa abaixo.',
                     '<select data-lcfg-etapa="receita" data-f="posicao" aria-label="Posição da receita">' +
+                    '<option value="primeiro"' + (e.receita.posicao === 'primeiro' ? ' selected' : '') + '>Primeira tela (antes do tipo de lente)</option>' +
                     '<option value="inicio"' + (e.receita.posicao === 'inicio' ? ' selected' : '') + '>Antes do tratamento (logo após o tipo de lente)</option>' +
-                    '<option value="final"' + (e.receita.posicao !== 'inicio' ? ' selected' : '') + '>Depois do tratamento</option></select>');
+                    '<option value="final"' + (e.receita.posicao !== 'inicio' && e.receita.posicao !== 'primeiro' ? ' selected' : '') + '>Depois do tratamento</option></select>');
             const caminho = '<div class="lcfg-caminho"><b>Caminho do cliente</b><div>' + _lcfgCaminhoCat().map(p => '<span>' + p + '</span>').join('<i class="ph-bold ph-caret-right"></i>') + '</div></div>';
             const desl = (e.telefone.ativo === false ? 1 : 0) + (trOn ? 0 : 1);
             return _lcfgAcc('etapas', {
                 icone: 'ph-flow-arrow', etapa: 'Ordem e etapas', titulo: 'Etapas do fluxo',
-                meta: (e.receita.posicao === 'inicio' ? 'Receita antes do tratamento' : 'Receita depois do tratamento') + (desl ? ' · ' + desl + (desl === 1 ? ' etapa desligada' : ' etapas desligadas') : ' · todas as etapas ligadas'),
+                meta: (e.receita.posicao === 'primeiro' ? 'Receita na primeira tela' : e.receita.posicao === 'inicio' ? 'Receita antes do tratamento' : 'Receita depois do tratamento') + (desl ? ' · ' + desl + (desl === 1 ? ' etapa desligada' : ' etapas desligadas') : ' · todas as etapas ligadas'),
                 corpo: '<p class="lcfg-intro" style="margin:14px 0 6px;">Desligue o que não quer perguntar e escolha onde a receita entra. Tipo de lente e receita são sempre perguntados, porque a lente indicada depende deles.</p>' +
-                    linhas + '<div class="lcfg-bloco-tit">Como fica o caminho do cliente</div>' + caminho
+                    linhas + _lcfgPintaOrdemDnd() + '<div class="lcfg-bloco-tit">Como fica o caminho do cliente</div>' + caminho
             });
+        }
+        /* ---- Ordem das etapas por arrastar (12/10/2026): arraste os blocos; a posição da receita é calculada ---- */
+        function _lcfgOrdemBlocos() {
+            const cat = _lcfgEdit.modo === 'catalogo';
+            const e = cat ? _lcfgEtapasCat() : _lcfgEtapas();
+            if (!cat && e.receita.ativo === false) return null;
+            const meio = cat ? (e.tratamento.ativo !== false ? 'tratamento' : null) : 'perguntas';
+            const pos = e.receita.posicao, ordem = [];
+            if (pos === 'primeiro') ordem.push('receita');
+            ordem.push('tipo');
+            if (pos === 'inicio') ordem.push('receita');
+            if (meio) ordem.push(meio);
+            if (pos !== 'primeiro' && pos !== 'inicio') ordem.push('receita');
+            return { ordem, cat, e };
+        }
+        const _LCFG_BLOCO_NOME = { tipo: 'Tipo de lente', receita: 'Receita', tratamento: 'Tratamento', perguntas: 'Grau, tratamento e demais perguntas' };
+        function _lcfgPintaOrdemDnd() {
+            const o = _lcfgOrdemBlocos();
+            if (!o) return '';
+            const fixoIni = o.cat && o.e.telefone.ativo !== false ? '<span class="lcfg-chip fixo"><i class="ph-bold ph-whatsapp-logo"></i> WhatsApp</span><i class="ph-bold ph-caret-right"></i>' : '';
+            return '<div class="lcfg-bloco-tit">Ordem das etapas — arraste os blocos</div>' +
+                '<div class="lcfg-dnd" data-lcfg-dnd>' + fixoIni +
+                o.ordem.map(k => '<span class="lcfg-chip" draggable="true" data-lcfg-chip="' + k + '"><i class="ph-bold ph-dots-six-vertical"></i> ' + _LCFG_BLOCO_NOME[k] + '</span>').join('<i class="ph-bold ph-caret-right"></i>') +
+                '<i class="ph-bold ph-caret-right"></i><span class="lcfg-chip fixo">Resultado</span></div>' +
+                '<span class="lcfg-dica">A receita pode ir pra qualquer lugar. ' + (o.cat ? 'O tratamento vem sempre depois do tipo de lente, porque depende dele.' : 'As perguntas de grau e tratamento vêm sempre depois do tipo de lente, porque dependem dele.') + '</span>';
+        }
+        // nova ordem dos blocos → posição da receita (ou null se a ordem não for possível)
+        function _lcfgOrdemParaPosicao(ordem) {
+            const it = ordem.indexOf('tipo'), ir = ordem.indexOf('receita'), im = Math.max(ordem.indexOf('tratamento'), ordem.indexOf('perguntas'));
+            if (im !== -1 && im < it) return null;
+            if (ir < it) return 'primeiro';
+            if (im === -1 || ir < im) return im === -1 ? 'final' : 'inicio';
+            return 'final';
         }
         // Lojas cujo fluxo é do próprio widget (Cacifé, Koros, Maxilook, Sirena): catálogo, 1ª tela e cores.
         function _lcfgPintaCatalogo(c) {
@@ -7101,11 +7200,22 @@
             }
             else if (el.dataset.lcfgCor || el.dataset.lcfgCorHex) {
                 const k = el.dataset.lcfgCor || el.dataset.lcfgCorHex, hex = _lcfgHex(val);
-                el.classList.toggle('erro', !hex && !!el.dataset.lcfgCorHex);
+                el.classList.toggle('erro', !hex && !!el.dataset.lcfgCorHex && String(val).trim() !== '');
                 if (!hex) { _lcfgAtualizaBarraEPrevia(); return; }
                 c.tema = Object.assign({}, c.tema || {}, { [k]: hex });
                 const par = document.querySelector('#lentesViewConfig [' + (el.dataset.lcfgCor ? 'data-lcfg-cor-hex' : 'data-lcfg-cor') + '="' + k + '"]');
                 if (par && par.value.toLowerCase() !== hex) par.value = hex;
+                const linha = el.closest('.lcfg-cor');
+                if (linha) { linha.classList.remove('vazia'); const lb = linha.querySelector('[data-lcfg-cor-limpa]'); if (lb) lb.hidden = false; const sm = linha.querySelector('small'); if (sm && /^Cor da loja/.test(sm.textContent)) sm.textContent = 'Personalizada'; }
+            }
+            else if (el.hasAttribute('data-lcfg-fonte')) {
+                c.tema = Object.assign({}, c.tema || {});
+                if (val) c.tema.fonte = String(val); else delete c.tema.fonte;
+            }
+            else if (el.hasAttribute('data-lcfg-raio')) {
+                c.tema = Object.assign({}, c.tema || {}, { raio: parseInt(val, 10) });
+                const lab = document.querySelector('#lentesViewConfig [data-lcfg-raio-val]'); if (lab) lab.textContent = c.tema.raio + ' px';
+                const lb = document.querySelector('#lentesViewConfig [data-lcfg-raio-limpa]'); if (lb) lb.hidden = false;
             }
             else if (el.hasAttribute('data-lcfg-cores')) c.cores_solar = String(val).split(',').map(s => s.trim()).filter(Boolean);
             else if (el.dataset.lcfgLista) { c[el.dataset.lcfgLista][+el.dataset.i][el.dataset.f] = val; repinta = el.type === 'checkbox'; }
@@ -7125,8 +7235,10 @@
             if (repinta) _lcfgPinta(); else _lcfgAtualizaBarraEPrevia();
         }
         function _lcfgOnClick(ev) {
-            const t = ev.target.closest && ev.target.closest('[data-lcfg-acc],[data-lcfg-mover],[data-lcfg-ids]');
+            const t = ev.target.closest && ev.target.closest('[data-lcfg-acc],[data-lcfg-mover],[data-lcfg-ids],[data-lcfg-cor-limpa],[data-lcfg-raio-limpa]');
             if (!t || !_lcfgEdit) return;
+            if (t.dataset.lcfgCorLimpa) { const tm = Object.assign({}, _lcfgEdit.tema || {}); delete tm[t.dataset.lcfgCorLimpa]; _lcfgEdit.tema = tm; _lcfgPinta(); return; }
+            if (t.hasAttribute('data-lcfg-raio-limpa')) { const tm = Object.assign({}, _lcfgEdit.tema || {}); delete tm.raio; _lcfgEdit.tema = tm; _lcfgPinta(); return; }
             if (t.dataset.lcfgAcc) {   // abre/fecha sem repintar (não perde foco nem rolagem)
                 const acc = t.closest('.lcfg-acc'), k = t.dataset.lcfgAcc;
                 const abre = !acc.classList.contains('open');
@@ -7151,7 +7263,11 @@
             const erros = [];
             if (!(c.necessidades || []).some(n => n.ativo !== false)) erros.push('Deixe pelo menos um tipo de lente ligado.');
             if (Array.isArray(c.receita) && c.receita.length && !c.receita.some(n => n.ativo !== false)) erros.push('Deixe pelo menos uma opção de receita ligada.');
-            Object.keys(c.tema || {}).forEach(k => { if (!_lcfgHex(c.tema[k])) erros.push('Cor inválida em ' + k + ' (use #RRGGBB).'); });
+            Object.keys(c.tema || {}).forEach(k => {
+                if (k === 'raio') { const r = parseInt(c.tema.raio, 10); if (!(r >= 0 && r <= 40)) erros.push('Cantos: use um valor de 0 a 40.'); return; }
+                if (k === 'fonte') { if (_LCFG_FONTES.indexOf(c.tema.fonte) === -1) erros.push('Fonte não disponível: ' + c.tema.fonte); return; }
+                if (!_lcfgHex(c.tema[k])) erros.push('Cor inválida em ' + k + ' (use #RRGGBB).');
+            });
             (c.necessidades || []).concat(c.receita || []).forEach(n => { if (!String(n.titulo || '').trim()) erros.push('Tem uma opção sem título.'); });
             const cat = c.modo === 'catalogo';
             if (!cat) {
@@ -7205,6 +7321,51 @@
             const corpo = document.getElementById('lcfgCorpo'); if (corpo) corpo.innerHTML = '';
             if (typeof _lcfgIAReset === 'function') _lcfgIAReset();
         }
+        /* arrastar e soltar: listas (alça .lcfg-grip) e faixa de etapas (.lcfg-chip) */
+        let _lcfgArrasto = null;
+        function _lcfgDragStart(ev) {
+            const g = ev.target.closest && ev.target.closest('[data-lcfg-grip],[data-lcfg-chip]');
+            if (!g) return;
+            _lcfgArrasto = g.dataset.lcfgGrip ? { tipo: 'lista', lista: g.dataset.lcfgGrip, i: +g.dataset.i } : { tipo: 'chip', k: g.dataset.lcfgChip };
+            const linha = g.dataset.lcfgGrip ? g.closest('.lcfg-item, .lcfg-acc') : g;
+            if (linha) linha.classList.add('arrastando');
+            try { ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', 'lcfg'); if (linha && linha !== g) ev.dataTransfer.setDragImage(linha, 20, 20); } catch (e) {}
+        }
+        function _lcfgAlvo(ev) {
+            if (!_lcfgArrasto) return null;
+            if (_lcfgArrasto.tipo === 'chip') return ev.target.closest && ev.target.closest('[data-lcfg-chip]');
+            const linha = ev.target.closest && ev.target.closest('.lcfg-item, .lcfg-acc');
+            const g = linha && linha.querySelector(':scope > .lcfg-ordem [data-lcfg-grip], :scope > .lcfg-acc-head .lcfg-ordem [data-lcfg-grip]');
+            return g && g.dataset.lcfgGrip === _lcfgArrasto.lista ? linha : null;
+        }
+        function _lcfgDragOver(ev) {
+            const a = _lcfgAlvo(ev); if (!a) return;
+            ev.preventDefault();
+            document.querySelectorAll('#lentesViewConfig .drop-alvo').forEach(x => { if (x !== a) x.classList.remove('drop-alvo'); });
+            a.classList.add('drop-alvo');
+        }
+        function _lcfgDrop(ev) {
+            const a = _lcfgAlvo(ev), d = _lcfgArrasto; _lcfgArrasto = null;
+            document.querySelectorAll('#lentesViewConfig .drop-alvo, #lentesViewConfig .arrastando').forEach(x => x.classList.remove('drop-alvo', 'arrastando'));
+            if (!a || !d || !_lcfgEdit) return;
+            ev.preventDefault();
+            if (d.tipo === 'lista') {
+                const g = a.querySelector('[data-lcfg-grip]'), j = +g.dataset.i, lista = _lcfgEdit[d.lista];
+                if (!lista || j === d.i) return;
+                const [x] = lista.splice(d.i, 1); lista.splice(j, 0, x);
+                _lcfgPinta(); return;
+            }
+            const o = _lcfgOrdemBlocos(); if (!o) return;
+            const ordem = o.ordem.slice(), de = ordem.indexOf(d.k), para = ordem.indexOf(a.dataset.lcfgChip);
+            if (de === -1 || para === -1 || de === para) return;
+            ordem.splice(de, 1); ordem.splice(para, 0, d.k);
+            const pos = _lcfgOrdemParaPosicao(ordem);
+            if (!pos) { crmToast(o.cat ? 'O tratamento depende do tipo de lente, então vem depois dele.' : 'As perguntas de grau e tratamento dependem do tipo de lente, então vêm depois dele.', true); _lcfgPinta(); return; }
+            const e = o.cat ? _lcfgEtapasCat() : _lcfgEtapas();
+            e.receita.posicao = pos; _lcfgEdit.etapas = e;
+            _lcfgPinta();
+        }
+        function _lcfgDragEnd() { _lcfgArrasto = null; document.querySelectorAll('#lentesViewConfig .drop-alvo, #lentesViewConfig .arrastando').forEach(x => x.classList.remove('drop-alvo', 'arrastando')); }
         (function _lcfgLiga() {
             const liga = () => {
                 const v = document.getElementById('lentesViewConfig');
@@ -7213,6 +7374,10 @@
                 v.addEventListener('input', _lcfgOnInput);
                 v.addEventListener('change', _lcfgOnInput);
                 v.addEventListener('click', _lcfgOnClick);
+                v.addEventListener('dragstart', _lcfgDragStart);
+                v.addEventListener('dragover', _lcfgDragOver);
+                v.addEventListener('drop', _lcfgDrop);
+                v.addEventListener('dragend', _lcfgDragEnd);
                 document.getElementById('lcfgSalvar').addEventListener('click', _lcfgSalvar);
                 document.getElementById('lcfgDesfazer').addEventListener('click', _lcfgDesfazer);
             };
@@ -7309,12 +7474,12 @@
                         let nv;
                         if (campo === 'ativo' && (alvo === 'telefone' || alvo === 'tratamento')) nv = !/^(false|0|nao|não|off)$/i.test(v);
                         else if (campo === 'padrao' && alvo === 'tratamento' && ops.some(o => o.key === v)) nv = v;
-                        else if (campo === 'posicao' && alvo === 'receita' && /^(inicio|final)$/.test(v)) nv = v;
+                        else if (campo === 'posicao' && alvo === 'receita' && /^(primeiro|inicio|final)$/.test(v)) nv = v;
                         else { ignoradas++; return; }
                         if (ec[alvo][campo] === nv) return;
                         ec[alvo][campo] = nv; c.etapas = ec;
                         mud.push(campo === 'ativo' ? (nv ? 'Ligou' : 'Desligou') + ' a etapa ' + NC[alvo]
-                            : campo === 'posicao' ? 'Receita → ' + (nv === 'inicio' ? 'antes do tratamento' : 'depois do tratamento')
+                            : campo === 'posicao' ? 'Receita → ' + (nv === 'primeiro' ? 'primeira tela' : nv === 'inicio' ? 'antes do tratamento' : 'depois do tratamento')
                             : 'Tratamento padrão → ' + ((ops.find(o => o.key === nv) || {}).titulo || nv));
                         return;
                     }
@@ -7322,16 +7487,30 @@
                     const e = _lcfgEtapas();
                     let novo;
                     if (campo === 'ativo') novo = !/^(false|0|nao|não|off)$/i.test(valor.trim());
-                    else if (campo === 'posicao' && alvo === 'receita' && /^(inicio|final)$/.test(valor.trim())) novo = valor.trim();
+                    else if (campo === 'posicao' && alvo === 'receita' && /^(primeiro|inicio|final)$/.test(valor.trim())) novo = valor.trim();
                     else if (campo === 'padrao' && ((alvo === 'tratamento_mono' && /^(ar|blue)$/.test(valor.trim())) || (alvo === 'tratamento_multi' && /^(sem_ar|prime)$/.test(valor.trim())))) novo = valor.trim();
                     else { ignoradas++; return; }
                     if (e[alvo][campo] === novo) return;
                     e[alvo][campo] = novo; c.etapas = e;
                     mud.push(campo === 'ativo' ? (novo ? 'Ligou' : 'Desligou') + ' a etapa ' + NOMES[alvo]
-                        : campo === 'posicao' ? 'Receita → ' + (novo === 'inicio' ? 'no início (grau sai da receita)' : 'no fim')
+                        : campo === 'posicao' ? 'Receita → ' + (novo === 'primeiro' ? 'primeira tela (grau sai da receita)' : novo === 'inicio' ? 'logo após o tipo de lente (grau sai da receita)' : 'no fim')
                         : NOMES[alvo] + ' → padrão ' + ({ ar: 'apenas antirreflexo', blue: 'antirreflexo + filtro azul', sem_ar: 'sem antirreflexo', prime: 'antirreflexo PRIME' })[novo]);
+                } else if (t === 'set_estilo') {
+                    const tm = Object.assign({}, c.tema || {});
+                    if (alvo === 'raio') { const r = parseInt(valor, 10); if (!(r >= 0 && r <= 40)) { ignoradas++; return; } if (parseInt(tm.raio, 10) === r) return; tm.raio = r; mud.push('Cantos → ' + r + ' px'); }
+                    else if (alvo === 'fonte') {
+                        const vf = valor.trim().toLowerCase();
+                        const f = _LCFG_FONTES.find(x => x.toLowerCase() === vf) || (vf.length >= 3 ? _LCFG_FONTES.find(x => x.toLowerCase().startsWith(vf)) : null);
+                        if (!f && !/^(padrao|padrão|loja|)$/i.test(valor.trim())) { ignoradas++; return; }
+                        if (f) { if (tm.fonte === f) return; tm.fonte = f; mud.push('Fonte → ' + f); } else { if (!tm.fonte) return; delete tm.fonte; mud.push('Fonte → a da loja'); }
+                    } else { ignoradas++; return; }
+                    c.tema = tm;
                 } else if (t === 'set_cor') {
-                    const NOMES = { botao: 'Botão principal', botao_texto: 'Texto do botão', destaque: 'Destaque', fundo_opcao: 'Fundo das opções', borda: 'Bordas' };
+                    const NOMES = {}; _LCFG_CORES.forEach(x => { NOMES[x[0]] = x[1]; });
+                    if (NOMES[alvo] && /^(padrao|padrão|loja|limpar|)$/i.test(valor.trim())) {
+                        if (!(c.tema || {})[alvo]) return;
+                        const tm = Object.assign({}, c.tema); delete tm[alvo]; c.tema = tm; mud.push('Cor · ' + NOMES[alvo] + ' → cor da loja'); return;
+                    }
                     const hex = _lcfgHex(valor);
                     if (!NOMES[alvo] || !hex) { ignoradas++; return; }
                     if (_lcfgHex((c.tema || {})[alvo]) === hex) return;
