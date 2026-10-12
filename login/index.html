@@ -7624,6 +7624,20 @@
             f.contentWindow.postMessage({ type: 'pl-lentes-cfg', config: JSON.parse(_lcfgPreviaCfg || JSON.stringify(_lcfgEdit)) }, alvo);
             const st = document.getElementById('lcfgPreviaStatus'); if (st) st.textContent = _lcfgSujo() ? 'Rascunho (ainda não salvo)' : 'Igual ao que está salvo';
         });
+        // Ordem arrastada dentro da prévia (opções da 1ª tela) volta pro rascunho, sem recarregar a prévia
+        window.addEventListener('message', e => {
+            const f = document.getElementById('lcfgPreviaFrame');
+            if (!f || e.source !== f.contentWindow || !e.data || e.data.type !== 'pl-lentes-ordem' || !_lcfgEdit) return;
+            if (e.data.lista !== 'necessidades' || !Array.isArray(e.data.ordem)) return;
+            const arr = _lcfgEdit.necessidades || [];
+            const novo = e.data.ordem.map(k => arr.find(n => n.key === String(k))).filter(Boolean);
+            arr.forEach(n => { if (novo.indexOf(n) === -1) novo.push(n); });
+            if (novo.map(n => n.key).join() === arr.map(n => n.key).join()) return;
+            _lcfgEdit.necessidades = novo;
+            _lcfgPreviaCfg = JSON.stringify(_lcfgEdit);   // a prévia já está nessa ordem
+            _lcfgPinta();
+            crmToast('Ordem atualizada no rascunho. Clique em Salvar para valer na loja.');
+        });
         function _lcfgIAReset() {
             _lcfgIAHist = []; _lcfgIABusy = false; _lcfgPreviaCfg = ''; clearTimeout(_lcfgPreviaTimer);
             const f = document.getElementById('lcfgPreviaFrame'); if (f) f.removeAttribute('src');
