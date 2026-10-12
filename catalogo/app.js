@@ -560,7 +560,10 @@
                 brand: '#C8040F', dark: '#9E030C', soft: 'rgba(200,4,15,.09)', on: '#ffffff' },
     // Ótica Rever (RJ) — logo creme/dourado sobre marinho chapado; marinho do logo (lum 61) fechado p/ 59 -> tema escuro, logo recolorido no mesmo tom; dourado das faixas na marca com texto marinho (5,4:1)
     oticarever: { bg: '#1E3D79', card: '#27498A', line: 'rgba(236,178,94,.28)',
-                brand: '#ECB25E', dark: '#D49A45', soft: 'rgba(236,178,94,.14)', on: '#1E3D79' }
+                brand: '#ECB25E', dark: '#D49A45', soft: 'rgba(236,178,94,.14)', on: '#1E3D79' },
+    // Visóptica (SC) — logo azul-petróleo + marinho sobre branco (#FDFDFD); bg = fundo do logo, tema claro; brand = petróleo do olho #06757C (5,5:1 c/ branco), hover marinho do texto
+    visoptica: { bg: '#FDFDFD', card: '#FFFFFF', line: '#DCEBEA',
+                brand: '#06757C', dark: '#04223C', soft: 'rgba(6,117,124,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
