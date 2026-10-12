@@ -16768,7 +16768,7 @@
                 const diarioOpt = CAMP.audience ? '' : ('<label class="camp-opt ' + (CAMP.sched === 'diario' ? 'sel' : '') + '"><input type="radio" name="campSched" ' + (CAMP.sched === 'diario' ? 'checked' : '') + ' onchange="campSetSched(\'diario\')"><div><b>Todo dia (contínuo)</b><br><span>Dispara diariamente pros novos clientes da etapa.</span>'
                     + (CAMP.sched === 'diario' ? ('<div style="margin-top:9px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;"><span style="font-size:12.5px;color:var(--text-muted);">Horário 1</span><input type="time" class="camp-inp" style="width:auto;" value="' + escapeHtml(CAMP.hora1) + '" oninput="CAMP.hora1=this.value"><span style="font-size:12.5px;color:var(--text-muted);">Horário 2 (opcional)</span><input type="time" class="camp-inp" style="width:auto;" value="' + escapeHtml(CAMP.hora2) + '" oninput="CAMP.hora2=this.value"></div>') : '')
                     + '</div></label>');
-                const agoraOpt = '<label class="camp-opt ' + (CAMP.sched === 'agora' ? 'sel' : '') + '"><input type="radio" name="campSched" ' + (CAMP.sched === 'agora' ? 'checked' : '') + ' onchange="campSetSched(\'agora\')"><div><b>Disparar agora</b><br><span>Envia em seguida (em até ~5 min).</span></div></label>';
+                const agoraOpt = '<label class="camp-opt ' + (CAMP.sched === 'agora' ? 'sel' : '') + '"><input type="radio" name="campSched" ' + (CAMP.sched === 'agora' ? 'checked' : '') + ' onchange="campSetSched(\'agora\')"><div><b>Disparar agora</b><br><span>Envia na hora, assim que você criar.</span></div></label>';
                 body = '<h3 class="camp-h">Quando enviar?</h3><p class="camp-p">' + (CAMP.audience ? 'Este público é uma fotografia de agora — o envio é único.' : 'Agora, num dia específico, ou todos os dias em horário(s) fixo(s).') + '</p>'
                     + agoraOpt
                     + diarioOpt
@@ -17049,6 +17049,8 @@
                         move_to_stage: ((CAMP.pipeline === 'rfm' && !CAMP.audience) ? 'rfm:' : '') + (CAMP.moveToStage || 'msg-1'), status: status
                     });
                     if (error) throw error;
+                    // "Disparar agora": chama o envio na hora em vez de esperar o ciclo de 5 min (12/10/2026)
+                    if (CAMP.sched === 'agora') { try { fetch('https://n8n.segredosdodrop.com/webhook/pl-disparos-agora', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).catch(() => {}); } catch (e) {} }
                 } else {
                     for (const tm of recurTimes) {
                         const { error } = await campSafeInsert({
