@@ -4453,9 +4453,9 @@
                     .lcfg-pp-pane > .lcfg-acc.lvl-0 > .lcfg-acc-body { display: block; padding: 0; border: 0; }
                     .lcfg-topo-dir .lcfg-ia-previa { background: none; border: 0; height: auto; min-height: 0; overflow: visible; }
                     .lcfg-topo-dir .lcfg-ia-previa-topo { background: var(--l-card); border: 1px solid var(--l-line); border-radius: 14px; margin-bottom: 12px; }
-                    .lcfg-topo-dir .lcfg-ia-frame { background: #111; border-radius: 40px; padding: 11px; height: min(700px, calc(100vh - 230px)); min-height: 520px; width: 100%; max-width: 340px; margin: 0 auto; box-shadow: 0 18px 40px rgba(28,24,38,.18); }
+                    .lcfg-topo-dir .lcfg-ia-frame { background: #111; border-radius: 34px; padding: 0; height: 600px; width: 300px; max-width: 300px; margin: 0 auto; box-shadow: 0 16px 36px rgba(28,24,38,.18); flex: none; overflow: hidden; }
                     .lcfg-topo-dir .lcfg-ia-frame { position: relative; display: block; }
-                    .lcfg-topo-dir .lcfg-ia-frame iframe { position: absolute; inset: 11px; width: calc(100% - 22px); height: calc(100% - 22px); border-radius: 30px; max-width: none; }
+                    .lcfg-topo-dir .lcfg-ia-frame iframe { position: absolute; left: 10px; top: 10px; width: 375px; height: 777px; max-width: none; border-radius: 35px; transform: scale(.7467); transform-origin: 0 0; }   /* celular em escala, como no protótipo */
                     .lcfg-prev-dica { display: block; text-align: center; font-size: 11.5px; color: var(--l-muted); margin-top: 8px; }
                     #lcfgIA[hidden] { display: none !important; }
                     .lcfg-pp { background: var(--l-card); border: 1px solid var(--l-line); border-radius: 16px; padding: 14px 16px 16px; }
@@ -4472,7 +4472,13 @@
                     .lcfg-pp-add i { display: block; line-height: 1; } .lcfg-pp-bar:hover .lcfg-pp-add { opacity: 1; }
                     .lcfg-pp-pane { padding-top: 14px; display: flex; flex-direction: column; gap: 10px; }
                     .lcfg-pp-num { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--l-muted); }
-                    .lcfg-pp-pane .lcfg-campo { margin: 0; }
+                    .lcfg-pp-pane .lcfg-campo { margin: 0; gap: 5px; }
+                    #lentesViewConfig .lcfg-pp-pane .lcfg-campo label { font-size: 11.5px; font-weight: 700; color: var(--l-muted); }
+                    #lentesViewConfig .lcfg-pp-pane input[type=text], #lentesViewConfig .lcfg-pp-pane textarea, #lentesViewConfig .lcfg-pp-pane select { font-size: 13.5px; padding: 8px 10px; border-radius: 9px; }
+                    #lentesViewConfig .lcfg-pp-pane textarea { min-height: 52px; }
+                    .lcfg-oprow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 6px; margin-bottom: 6px; } .lcfg-oprow.um { grid-template-columns: 1fr; }
+                    #lentesViewConfig .lcfg-oprow input[type=text] { font-size: 12.5px; padding: 6px 8px; border-radius: 8px; }
+                    .lcfg-pp-pane { gap: 11px; }
                     .lcfg-pp-nav { display: flex; justify-content: space-between; margin-top: 6px; }
                     .lcfg-g { border: 1px solid var(--l-line); border-radius: 14px; padding: 12px; margin-top: 4px; }
                     .lcfg-g-topo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; } .lcfg-g-topo > b { flex: 1; font-size: 15px; } .lcfg-g-topo > b i { color: var(--l-accent); }
@@ -7433,8 +7439,19 @@
                         '<button type="button" class="lcfg-mini" data-lcfg-xacao="opdel" data-i="' + i + '" data-j="' + j + '"><i class="ph-bold ph-x"></i></button></div>').join('') +
                         '<button type="button" class="lcfg-link-btn" data-lcfg-xacao="opadd" data-i="' + i + '"><i class="ph-bold ph-plus"></i> Adicionar opção</button>');
             }
-            const ks = (_lcfgEdit.textos || []).filter(t => t.etapa === id).map(t => t.key);
-            let h = ks.length ? '<div class="lcfg-bloco-tit">O que o cliente vê nesta tela</div>' + ks.map(k => _lcfgCampoTexto(k, 2)).join('') : '';
+            // compacto como no protótipo: pergunta, dica, uma linha por opção (nome | descrição) e botões
+            const meus = (_lcfgEdit.textos || []).map((t, i) => ({ t, i })).filter(o => o.t.etapa === id);
+            if (!meus.length) return '';
+            const inp = (o, ph) => '<input type="text" maxlength="200" data-lcfg-texto="' + o.i + '" placeholder="' + (ph || '') + '" value="' + _lcfgEsc(o.t.valor) + '">';
+            const ti = meus.find(o => o.t.key === id + '.titulo'), di = meus.find(o => o.t.key === id + '.dica');
+            const pares = {}, ordem = [];
+            meus.forEach(o => { const m = o.t.key.match(/^[a-z]+\.(.+)\.(titulo|desc)$/); if (m && o.t.key !== id + '.titulo') { if (!pares[m[1]]) { pares[m[1]] = {}; ordem.push(m[1]); } pares[m[1]][m[2]] = o; } });
+            const botoes = meus.filter(o => /botao$/.test(o.t.key));
+            let h = '';
+            if (ti) h += '<div class="lcfg-campo"><label>Pergunta que o cliente vê</label>' + inp(ti) + '</div>';
+            if (di) h += '<div class="lcfg-campo"><label>Dica</label><textarea rows="2" maxlength="400" data-lcfg-texto="' + di.i + '">' + _lcfgEsc(di.t.valor) + '</textarea></div>';
+            if (ordem.length) h += '<div class="lcfg-campo"><label>Opções</label>' + ordem.map(k => '<div class="lcfg-oprow">' + (pares[k].titulo ? inp(pares[k].titulo, 'Nome da opção') : '<span></span>') + (pares[k].desc ? inp(pares[k].desc, 'Descrição') : '<span></span>') + '</div>').join('') + '</div>';
+            if (botoes.length) h += '<div class="lcfg-campo"><label>' + (botoes.length > 1 ? 'Botões' : 'Botão') + '</label>' + botoes.map(o => '<div class="lcfg-oprow um">' + inp(o) + '</div>').join('') + '</div>';
 
             return h;
         }
