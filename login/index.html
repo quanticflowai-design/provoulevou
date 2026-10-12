@@ -4502,6 +4502,52 @@
                     .lcfg-caminho span { font-size: 12px; font-weight: 600; background: var(--l-soft); color: var(--l-accent); border-radius: 99px; padding: 4px 10px; }
                     .lcfg-caminho i { font-size: 11px; color: var(--l-muted); }
 
+                    .lcfg-mapa4 { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; align-items: start; }
+                    @media (max-width: 1100px) { .lcfg-mapa4 { grid-template-columns: 1fr; } }
+                    .lcfg-arv-wrap { overflow-x: auto; border: 1px solid var(--l-line); border-radius: 14px; background: radial-gradient(circle, var(--l-line) 1px, transparent 1px) 0 0 / 16px 16px; padding: 18px 14px 22px; }
+                    .lcfg-arv { width: max-content; min-width: 100%; }
+                    .lcfg-tcol { display: flex; flex-direction: column; align-items: center; }
+                    .lcfg-tn { display: flex; align-items: center; gap: 9px; background: var(--l-card); border: 1.5px solid var(--l-line); border-radius: 12px; padding: 8px 11px; width: 210px; box-sizing: border-box; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.04); }
+                    .lcfg-tn:hover { border-color: var(--l-accent); }
+                    .lcfg-tn.sel { border-color: var(--l-accent); box-shadow: 0 0 0 3px var(--l-soft); }
+                    .lcfg-tn.extra { border-style: dashed; border-color: var(--l-accent); }
+                    .lcfg-tn.off { opacity: .45; }
+                    .lcfg-tn.fim { background: var(--l-ink); border-color: var(--l-ink); color: var(--l-card); }
+                    .lcfg-tn.fim small { color: inherit; opacity: .7; } .lcfg-tn.fim .lcfg-tn-ic { background: rgba(255,255,255,.14); color: inherit; }
+                    .lcfg-tn[draggable="true"] { cursor: grab; }
+                    .lcfg-tn.arrastando { opacity: .4; } .lcfg-tn.drop-alvo { outline: 2px dashed var(--l-accent); outline-offset: 3px; }
+                    .lcfg-tn-ic { width: 30px; height: 30px; flex: none; border-radius: 9px; background: var(--l-soft); color: var(--l-accent); display: grid; place-items: center; font-size: 15px; }
+                    .lcfg-tn-tx { flex: 1; min-width: 0; } .lcfg-tn-tx b { display: block; font-size: 13px; } .lcfg-tn-tx small { display: block; font-size: 11px; color: var(--l-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                    .lcfg-tn-gr { color: var(--l-muted); }
+                    .lcfg-tl { display: block; width: 2px; height: 16px; background: var(--l-line); margin: 0 auto; }
+                    .lcfg-tadd { width: 24px; height: 24px; border-radius: 50%; border: 1.5px dashed var(--l-accent); background: var(--l-card); color: var(--l-accent); display: grid; place-items: center; cursor: pointer; font-size: 12px; padding: 0; }
+                    .lcfg-tadd:hover { background: var(--l-soft); }
+                    .lcfg-ramos { display: flex; gap: 14px; align-items: flex-start; padding-top: 16px; position: relative; }
+                    .lcfg-ramos::before { content: ''; position: absolute; top: 0; left: 105px; right: 105px; height: 2px; background: var(--l-line); }
+                    .lcfg-ramo { display: flex; flex-direction: column; align-items: center; position: relative; width: 210px; }
+                    .lcfg-skip { text-align: center; max-width: 210px; }
+                    .lcfg-ramo::before { content: ''; position: absolute; top: -16px; left: 50%; width: 2px; height: 16px; background: var(--l-line); }
+                    .lcfg-blabel { font-size: 11.5px; font-weight: 700; color: #fff; background: var(--l-accent); border-radius: 99px; padding: 3px 10px; margin-bottom: 8px; max-width: 210px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                    .lcfg-blabel.g { background: #64748b; }
+                    .lcfg-skip { font-size: 11px; color: var(--l-muted); border: 1px dashed var(--l-line); border-radius: 8px; padding: 5px 9px; background: var(--l-card); }
+                    .lcfg-mapa4-lado { position: sticky; top: 90px; display: flex; flex-direction: column; gap: 12px; }
+                    .lcfg-ph { width: 230px; margin: 0 auto; border-radius: 28px; background: #111; padding: 8px; box-shadow: 0 12px 30px rgba(28,24,38,.16); }
+                    .lcfg-ph-notch { height: 14px; display: flex; justify-content: center; align-items: center; } .lcfg-ph-notch::after { content: ''; width: 60px; height: 5px; border-radius: 5px; background: #e5e5e5; }
+                    .lcfg-ph-scr { background: #fff; border-radius: 21px; overflow: hidden; height: 380px; display: flex; flex-direction: column; color: #1c1826; }
+                    .lcfg-ph-head { text-align: center; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a8494; padding: 8px 0; border-bottom: 1px solid #eee; }
+                    .lcfg-ph-body { padding: 12px; overflow: auto; flex: 1; }
+                    .lcfg-ph-tit { text-align: center; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px; }
+                    .lcfg-ph-dica { background: #f6f4f8; border-radius: 8px; padding: 7px 9px; font-size: 10.5px; color: #6b6577; margin-bottom: 8px; }
+                    .lcfg-ph-opt { border: 1px solid; border-radius: 9px; padding: 8px 10px; margin-bottom: 6px; }
+                    .lcfg-ph-opt b { display: block; font-size: 11.5px; font-weight: 600; } .lcfg-ph-opt small { display: block; font-size: 10px; color: #7a7384; margin-top: 2px; }
+                    .lcfg-ph-btn { text-align: center; border-radius: 8px; padding: 9px; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-top: 6px; }
+                    .lcfg-ph-in { border: 1px solid #ddd; border-radius: 8px; padding: 8px; font-size: 11px; color: #999; }
+                    .lcfg-ph-res { border: 1.5px solid; border-radius: 10px; padding: 8px; margin-bottom: 6px; } .lcfg-ph-res b { display: block; font-size: 11px; } .lcfg-ph-res small { font-size: 10px; color: #7a7384; }
+                    .lcfg-ph-img { height: 70px; border-radius: 7px; background: linear-gradient(135deg, #eee, #f8f8f8); display: grid; place-items: center; font-size: 10px; color: #aaa; margin-bottom: 6px; }
+                    .lcfg-ph-leg { display: block; text-align: center; font-size: 11px; color: var(--l-muted); margin-top: 6px; }
+                    .lcfg-ed { border: 1px solid var(--l-line); border-radius: 14px; background: var(--l-card); padding: 14px; }
+                    .lcfg-ed-topo { display: flex; align-items: center; gap: 8px; } .lcfg-ed-topo b { font-size: 15px; flex: 1; }
+                    .lcfg-ed .lcfg-campo textarea { min-height: 54px; }
                     .lcfg-mapa { display: flex; flex-direction: column; }
                     .lcfg-no { position: relative; border-radius: 12px; }
                     .lcfg-no > .lcfg-acc { margin: 0; }
@@ -7040,35 +7086,133 @@
             o.push('resultado');
             return o.filter(k => k === 'telefone' || k === 'tratamento' || k === 'tipo' || k === 'receita' || k === 'resultado' || tem(k));
         }
-        /* ---- Mapa do fluxo (13/10/2026): o caminho do cliente na ordem, cada etapa com nome próprio, clique abre;
-           o lojista cria etapas novas (cfg.etapas_extra) e arrasta as criadas e a receita. ---- */
+        /* ---- Mapa de caminhos (13/10/2026): tronco comum + um caminho por tipo de lente (o que cada cliente vê);
+           à direita a tela da etapa escolhida (nas cores da loja) e os campos dela. O lojista cria etapas
+           (cfg.etapas_extra), renomeia (cfg.etapas_nomes) e arrasta as criadas e a receita. ---- */
         const _LCFG_X_TIPOS = { escolha: 'Escolher uma opção', multipla: 'Escolher várias opções', texto: 'Escrever uma resposta' };
         const _LCFG_X_ANTES = { tipo: 'Antes do tipo de lente', tratamento: 'Antes do tratamento', receita: 'Antes da receita', resultado: 'Antes do resultado' };
         const _LCFG_ANCORA_DE = { tipo: 'tipo', tratamento: 'tratamento', receita: 'receita', resultado: 'resultado' };
+        let _lcfgSelEt = 'tipo';
         function _lcfgExtras(criar) {   // só cria a lista quando for mexer (ler não pode sujar o rascunho)
             if (Array.isArray(_lcfgEdit.etapas_extra)) return _lcfgEdit.etapas_extra;
             if (criar) { _lcfgEdit.etapas_extra = []; return _lcfgEdit.etapas_extra; }
             return [];
         }
         function _lcfgEtNome(k) { const n = (_lcfgEdit.etapas_nomes || {})[k]; return String(n || '').trim() || _LCFG_ET_NOME[k]; }
-        function _lcfgMapaNos() {
-            const xs = _lcfgExtras(), nos = [];
-            _lcfgEtapasCatOrdem().forEach(k => {
-                const anc = _LCFG_ANCORA_DE[k];
-                if (anc) xs.forEach((x, i) => { if ((x.antes_de || 'resultado') === anc) nos.push({ x, i }); });
-                nos.push({ k });
-            });
-            return nos;
+        function _lcfgTxt(key) { const t = (_lcfgEdit.textos || []).find(x => x.key === key); return t ? String(t.valor || '') : ''; }
+        function _lcfgTemEt(k) { return (_lcfgEdit.textos || []).some(t => t.etapa === k); }
+        const _lcfgSemGrau = key => /^(semgrau|descanso)$/.test(String(key));
+        const _lcfgMono = key => /^(mono|simples)$/.test(String(key));
+        // nó da árvore
+        function _lcfgArvNo(id) {
+            const e = _lcfgEtapasCat(), xs = _lcfgExtras();
+            let nome, sub, icone, on = true, extra = false, arrasta = false;
+            if (id.indexOf('x:') === 0) {
+                const x = xs[+id.slice(2)]; if (!x) return '';
+                extra = true; arrasta = true; on = x.ativo !== false; icone = 'ph-chat-circle-dots';
+                nome = String(x.nome || '').trim() || 'Nova etapa'; sub = String(x.titulo || '').trim() || 'Escreva a pergunta';
+            } else {
+                nome = _lcfgEtNome(id); icone = _LCFG_ET_ICONE[id] || 'ph-circle';
+                on = id === 'telefone' ? e.telefone.ativo !== false : id === 'tratamento' ? e.tratamento.ativo !== false : true;
+                sub = id === 'tipo' ? _lcfgTxt('tipo.titulo') || 'Tipos de lente' : id === 'resultado' ? _lcfgTxt('resultado.titulo') || 'Lente indicada' : _lcfgTxt(id + '.titulo');
+                arrasta = id === 'receita';
+            }
+            return '<div class="lcfg-tn' + (extra ? ' extra' : '') + (on ? '' : ' off') + (_lcfgSelEt === id ? ' sel' : '') + (id === 'resultado' ? ' fim' : '') + '" data-lcfg-sel="' + id + '" data-lcfg-no="' + id + '"' + (arrasta ? ' draggable="true"' : '') + '>' +
+                '<span class="lcfg-tn-ic"><i class="ph-bold ' + icone + '"></i></span><span class="lcfg-tn-tx"><b>' + _lcfgEsc(nome) + '</b><small>' + (on ? _lcfgEsc(_lcfgCurto(sub)) : 'desligada') + '</small></span>' +
+                (extra ? '<span class="lcfg-pill nova">sua</span>' : '') + (arrasta ? '<i class="ph-bold ph-dots-six-vertical lcfg-tn-gr"></i>' : '') + '</div>';
         }
-        function _lcfgNoBuiltin(k, num) {
-            const e = _lcfgEtapasCat(), ops = ((_lcfgEdit.etapas_opcoes || {}).tratamentos) || [];
-            const textosDe = (_lcfgEdit.textos || []).filter(t => t.etapa === k).map(t => t.key);
-            const tt = ((_lcfgEdit.textos || []).find(x => x.key === k + '.titulo') || {}).valor;
+        function _lcfgArvAdd(antes) { return '<button type="button" class="lcfg-tadd" data-lcfg-xacao="novo" data-antes="' + antes + '" title="' + _LCFG_X_ANTES[antes] + '"><i class="ph-bold ph-plus"></i></button>'; }
+        function _lcfgArvLinha(ids) { return ids.map((id, i) => (i ? '<span class="lcfg-tl"></span>' : '') + (id.indexOf('+') === 0 ? _lcfgArvAdd(id.slice(1)) : _lcfgArvNo(id))).join(''); }
+        function _lcfgArvore() {
+            const e = _lcfgEtapasCat(), xs = _lcfgExtras(), pos = e.receita.posicao, trOn = e.tratamento.ativo !== false;
+            const ex = anc => xs.map((x, i) => (x.antes_de || 'resultado') === anc ? 'x:' + i : null).filter(Boolean);
+            const rec = () => ['+receita'].concat(ex('receita'), ['receita'], _lcfgTemEt('conferir') ? ['conferir'] : []);
+            const tronco = ['telefone'].concat(pos === 'primeiro' ? rec() : [], ['+tipo'], ex('tipo'), ['tipo']);
+            const necs = (_lcfgEdit.necessidades || []).filter(n => n.ativo !== false);
+            const ramos = necs.map(n => {
+                let p = [];
+                if (!_lcfgSemGrau(n.key)) {
+                    const tr = trOn ? ['+tratamento'].concat(ex('tratamento'), ['tratamento']) : [];
+                    const uso = _lcfgMono(n.key) && _lcfgTemEt('uso') ? ['uso'] : [];
+                    if (pos === 'primeiro') p = tr.concat(uso);
+                    else if (pos === 'inicio') p = rec().concat(uso, tr);
+                    else p = tr.concat(rec(), uso);
+                }
+                p = p.concat(['+resultado'], ex('resultado'), ['resultado']);
+                return { rot: n.titulo, cinza: _lcfgSemGrau(n.key), aviso: _lcfgSemGrau(n.key) ? 'pula tratamento e receita' : '', ids: p };
+            });
+            const soArm = (_lcfgEdit.textos || []).find(t => t.etapa === 'tipo' && /carrinho/.test(t.key) && /titulo$/.test(t.key));
+            if (soArm) ramos.push({ rot: soArm.valor || 'Somente a armação', cinza: true, aviso: 'vai direto pro carrinho, só a armação', ids: [] });
+            return '<div class="lcfg-arv"><div class="lcfg-tcol">' + _lcfgArvLinha(tronco) + '<span class="lcfg-tl"></span>' +
+                '<div class="lcfg-ramos">' + ramos.map(r => '<div class="lcfg-ramo"><span class="lcfg-blabel' + (r.cinza ? ' g' : '') + '">' + _lcfgEsc(_lcfgCurto(r.rot)) + '</span>' +
+                    (r.aviso ? '<span class="lcfg-skip">' + r.aviso + '</span>' + (r.ids.length ? '<span class="lcfg-tl"></span>' : '') : '') + _lcfgArvLinha(r.ids) + '</div>').join('') + '</div></div></div>';
+        }
+        // tela da etapa (mock nas cores da loja)
+        function _lcfgTela(id) {
+            const t = (_lcfgEdit.tema || {}), cor = (k, d) => _lcfgHex(t[k]) || d;
+            const botao = cor('botao', cor('destaque', '#630ed4')), botaoTx = cor('botao_texto', '#fff'), borda = cor('opcao_borda', cor('borda', '#e5e5e5')), fundoOp = cor('opcao_fundo', '#fff'), titulo = cor('titulo', '#1c1826');
+            const opt = (tt, ss) => '<div class="lcfg-ph-opt" style="border-color:' + borda + ';background:' + fundoOp + '"><b>' + _lcfgEsc(tt) + '</b>' + (ss ? '<small>' + _lcfgEsc(ss) + '</small>' : '') + '</div>';
+            const btn = tx => '<div class="lcfg-ph-btn" style="background:' + botao + ';color:' + botaoTx + '">' + _lcfgEsc(tx) + '</div>';
+            let tit = '', dica = '', corpo = '';
+            const xs = _lcfgExtras();
+            if (id.indexOf('x:') === 0) {
+                const x = xs[+id.slice(2)] || {};
+                tit = x.titulo || 'Escreva a pergunta'; dica = x.dica || '';
+                corpo = x.tipo === 'texto' ? '<div class="lcfg-ph-in">O cliente escreve aqui…</div>' + btn('Continuar')
+                    : (x.opcoes || []).map(o => opt((x.tipo === 'multipla' ? '☐ ' : '') + o.titulo, o.desc)).join('') + (x.tipo === 'multipla' ? btn('Continuar') : '');
+            } else if (id === 'tipo') {
+                tit = _lcfgTxt('tipo.titulo') || 'Escolha sua lente';
+                corpo = (_lcfgEdit.necessidades || []).filter(n => n.ativo !== false).map(n => opt(n.titulo, n.desc)).join('');
+                const arm = (_lcfgEdit.textos || []).filter(t2 => t2.etapa === 'tipo' && /carrinho/.test(t2.key));
+                if (arm.length) corpo += opt((arm.find(a => /titulo$/.test(a.key)) || {}).valor || '', (arm.find(a => /desc$/.test(a.key)) || {}).valor || '');
+            } else if (id === 'resultado') {
+                tit = _lcfgTxt('resultado.titulo') || 'Sua lente';
+                corpo = '<div class="lcfg-ph-res" style="border-color:' + botao + '"><div class="lcfg-ph-img">foto da lente</div><b>Lente indicada pro grau do cliente</b><small>preço da loja</small></div>' +
+                    btn(_lcfgTxt('resultado.plc_buy_both.botao') || 'Comprar armação + lente');
+            } else {
+                const tx = (_lcfgEdit.textos || []).filter(t2 => t2.etapa === id);
+                tit = _lcfgTxt(id + '.titulo'); dica = _lcfgTxt(id + '.dica');
+                const pares = {};
+                tx.forEach(t2 => { const m = t2.key.match(/^[a-z]+\.(.+)\.(titulo|desc)$/); if (m && t2.key !== id + '.titulo') { (pares[m[1]] = pares[m[1]] || {})[m[2]] = t2.valor; } });
+                corpo = Object.keys(pares).map(k => opt(pares[k].titulo || '', pares[k].desc || '')).join('');
+                if (id === 'telefone') corpo = '<div class="lcfg-ph-in">(11) 99999-9999</div>' + btn((tx.find(t2 => /botao$/.test(t2.key)) || {}).valor || 'Continuar');
+                tx.filter(t2 => /botao$/.test(t2.key) && id !== 'telefone').forEach(t2 => { corpo += btn(t2.valor); });
+            }
+            return '<div class="lcfg-ph"><div class="lcfg-ph-notch"></div><div class="lcfg-ph-scr"><div class="lcfg-ph-head">' + _lcfgEsc(_lcfgDominio || 'sua loja') + '</div><div class="lcfg-ph-body">' +
+                '<div class="lcfg-ph-tit" style="color:' + titulo + '">' + _lcfgEsc(tit) + '</div>' + (dica ? '<div class="lcfg-ph-dica">' + _lcfgEsc(dica) + '</div>' : '') + corpo +
+                '</div></div></div><span class="lcfg-ph-leg">Como o cliente vê esta etapa · cores aproximadas</span>';
+        }
+        // campos da etapa escolhida
+        function _lcfgEditorEt(id) {
+            const e = _lcfgEtapasCat(), ops = ((_lcfgEdit.etapas_opcoes || {}).tratamentos) || [], xs = _lcfgExtras();
+            if (id.indexOf('x:') === 0) {
+                const i = +id.slice(2), x = xs[i]; if (!x) return '';
+                const on = x.ativo !== false, trOff = e.tratamento.ativo === false && x.antes_de === 'tratamento';
+                const f = (campo) => 'data-lcfg-x="' + i + '" data-f="' + campo + '"';
+                const ops2 = Array.isArray(x.opcoes) ? x.opcoes : [];
+                return '<div class="lcfg-ed-topo"><b>' + _lcfgEsc(String(x.nome || '').trim() || 'Nova etapa') + '</b><span class="lcfg-pill nova">Criada por você</span>' + _lcfgSwitch(f('ativo'), on, true) + '</div>' +
+                    '<p class="lcfg-intro" style="margin:6px 0 10px;">A resposta do cliente fica registrada no histórico do fluxo; ela não muda a lente indicada.' + (trOff ? ' <b>Atenção:</b> com o Tratamento desligado, esta etapa não aparece — mude a posição.' : '') + '</p>' +
+                    '<div class="lcfg-campo"><label>Nome da etapa (só no painel)</label><input type="text" maxlength="40" ' + f('nome') + ' value="' + _lcfgEsc(x.nome || '') + '"></div>' +
+                    '<div class="lcfg-campo"><label>Pergunta que o cliente vê</label><textarea rows="2" maxlength="200" ' + f('titulo') + (String(x.titulo || '').trim() ? '' : ' class="erro"') + '>' + _lcfgEsc(x.titulo || '') + '</textarea></div>' +
+                    '<div class="lcfg-campo"><label>Dica (opcional)</label><textarea rows="2" maxlength="300" ' + f('dica') + '>' + _lcfgEsc(x.dica || '') + '</textarea></div>' +
+                    '<div class="lcfg-campo"><label>Onde ela entra</label><select ' + f('antes_de') + '>' + Object.keys(_LCFG_X_ANTES).map(k => '<option value="' + k + '"' + ((x.antes_de || 'resultado') === k ? ' selected' : '') + '>' + _LCFG_X_ANTES[k] + '</option>').join('') + '</select></div>' +
+                    '<div class="lcfg-campo"><label>Tipo de resposta</label><select ' + f('tipo') + '>' + Object.keys(_LCFG_X_TIPOS).map(k => '<option value="' + k + '"' + ((x.tipo || 'escolha') === k ? ' selected' : '') + '>' + _LCFG_X_TIPOS[k] + '</option>').join('') + '</select></div>' +
+                    '<div class="lcfg-campo"><label>Resposta obrigatória</label>' + _lcfgSwitch(f('obrigatoria'), x.obrigatoria !== false, true) + '</div>' +
+                    (x.tipo === 'texto' ? '' : '<div class="lcfg-bloco-tit">Opções de resposta</div>' + ops2.map((o, j) =>
+                        '<div class="lcfg-xop"><input type="text" maxlength="80" placeholder="Opção" aria-label="Opção" data-lcfg-xo="' + i + ':' + j + '" data-f="titulo" value="' + _lcfgEsc(o.titulo) + '">' +
+                        '<input type="text" maxlength="120" placeholder="Descrição (opcional)" aria-label="Descrição" data-lcfg-xo="' + i + ':' + j + '" data-f="desc" value="' + _lcfgEsc(o.desc || '') + '">' +
+                        '<button type="button" class="lcfg-mini" data-lcfg-xacao="opup" data-i="' + i + '" data-j="' + j + '" aria-label="Subir"' + (j ? '' : ' disabled') + '><i class="ph-bold ph-caret-up"></i></button>' +
+                        '<button type="button" class="lcfg-mini" data-lcfg-xacao="opdown" data-i="' + i + '" data-j="' + j + '" aria-label="Descer"' + (j < ops2.length - 1 ? '' : ' disabled') + '><i class="ph-bold ph-caret-down"></i></button>' +
+                        '<button type="button" class="lcfg-mini" data-lcfg-xacao="opdel" data-i="' + i + '" data-j="' + j + '" aria-label="Remover opção"><i class="ph-bold ph-x"></i></button></div>').join('') +
+                        '<button type="button" class="lcfg-link-btn" data-lcfg-xacao="opadd" data-i="' + i + '"><i class="ph-bold ph-plus"></i> Adicionar opção</button>') +
+                    '<div class="lcfg-x-rodape"><button type="button" class="lcfg-link-btn perigo" data-lcfg-xacao="del" data-i="' + i + '"><i class="ph-bold ph-trash"></i> Excluir etapa</button></div>';
+            }
+            const k = id;
             const AJUDA = {
                 telefone: 'Desligada, o cliente vai direto pra próxima etapa (você deixa de capturar o contato logo no começo).',
-                tipo: 'As opções desta tela (tipos de lente) ficam em "Opções da primeira tela".',
+                tipo: 'Cada opção desta tela abre um caminho no mapa. Os nomes e a ordem das opções ficam em "Tipos de lente", mais abaixo.',
                 tratamento: 'Desligada, o fluxo usa o tratamento padrão escolhido abaixo.',
-                receita: 'Sempre pedida, porque a lente indicada depende do grau. Arraste esta etapa no mapa para mudar onde ela entra.',
+                receita: 'Sempre pedida, porque a lente indicada depende do grau. Arraste esta etapa no mapa (ou escolha abaixo) para mudar onde ela entra.',
                 conferir: 'Tela em que o cliente confere os números lidos da receita.',
                 uso: 'Só aparece quando a receita tem adição (grau de perto) e a lente escolhida é de visão simples.',
                 resultado: 'Tela final com a lente indicada e os botões de compra.'
@@ -7081,67 +7225,32 @@
                 '<option value="primeiro"' + (e.receita.posicao === 'primeiro' ? ' selected' : '') + '>Primeira tela (antes do tipo de lente)</option>' +
                 '<option value="inicio"' + (e.receita.posicao === 'inicio' ? ' selected' : '') + '>Logo depois do tipo de lente</option>' +
                 '<option value="final"' + (e.receita.posicao !== 'inicio' && e.receita.posicao !== 'primeiro' ? ' selected' : '') + '>Depois do tratamento</option></select></div>';
-            const corpo = '<p class="lcfg-intro" style="margin:12px 0 8px;">' + AJUDA[k] + '</p>' +
+            const textosDe = (_lcfgEdit.textos || []).filter(t => t.etapa === k).map(t => t.key);
+            return '<div class="lcfg-ed-topo"><b>' + _lcfgEsc(_lcfgEtNome(k)) + '</b>' + (k === 'uso' ? '<span class="lcfg-pill">Só às vezes</span>' : '') +
+                    ((k === 'telefone' || k === 'tratamento') ? _lcfgSwitch('data-lcfg-etapa="' + k + '" data-f="ativo"', on, true) : '') + '</div>' +
+                '<p class="lcfg-intro" style="margin:6px 0 10px;">' + AJUDA[k] + '</p>' +
                 '<div class="lcfg-campo"><label>Nome da etapa (só no painel)</label><input type="text" maxlength="40" data-lcfg-etnome="' + k + '" value="' + _lcfgEsc(_lcfgEtNome(k)) + '"></div>' + extra +
-                (textosDe.length ? '<div class="lcfg-bloco-tit">O que o cliente vê nesta tela</div><div class="lcfg-grid">' + textosDe.map(x => _lcfgCampoTexto(x, 2)).join('') + '</div>' : '');
-            const arrasta = k === 'receita';
-            return '<div class="lcfg-no' + (on ? '' : ' off') + '" data-lcfg-no="' + k + '"' + (arrasta ? ' draggable="true"' : '') + '>' + _lcfgAcc('no:' + k, {
-                nivel: 1, icone: _LCFG_ET_ICONE[k], off: !on,
-                esq: '<span class="lcfg-no-num">' + (on ? num : '–') + '</span>' + (arrasta ? '<span class="lcfg-no-grip" title="Arraste para mudar a posição"><i class="ph-bold ph-dots-six-vertical"></i></span>' : ''),
-                titulo: '<span data-lcfg-no-nome="' + k + '">' + _lcfgEsc(_lcfgEtNome(k)) + '</span>' + (on ? '' : '<span class="lcfg-pill off">Desligada</span>') + (k === 'uso' ? '<span class="lcfg-pill">Só às vezes</span>' : ''),
-                meta: on ? (tt ? '“' + _lcfgEsc(_lcfgCurto(tt)) + '”' : (k === 'tipo' ? 'Tipos de lente' : '')) : 'O cliente não vê esta etapa',
-                dir: (k === 'telefone' || k === 'tratamento') ? _lcfgSwitch('data-lcfg-etapa="' + k + '" data-f="ativo"', on, true) : '',
-                corpo
-            }) + '</div>';
+                (textosDe.length ? '<div class="lcfg-bloco-tit">O que o cliente vê nesta tela</div>' + textosDe.map(x => _lcfgCampoTexto(x, 2)).join('') : '');
         }
-        function _lcfgNoExtra(x, i, num) {
-            const on = x.ativo !== false, trOff = _lcfgEtapasCat().tratamento.ativo === false && x.antes_de === 'tratamento';
-            const f = (campo) => 'data-lcfg-x="' + i + '" data-f="' + campo + '"';
-            const ops = Array.isArray(x.opcoes) ? x.opcoes : [];
-            const opsHtml = x.tipo === 'texto' ? '' : '<div class="lcfg-bloco-tit">Opções de resposta</div>' + ops.map((o, j) =>
-                '<div class="lcfg-xop"><input type="text" maxlength="80" placeholder="Opção" aria-label="Opção" data-lcfg-xo="' + i + ':' + j + '" data-f="titulo" value="' + _lcfgEsc(o.titulo) + '">' +
-                '<input type="text" maxlength="120" placeholder="Descrição (opcional)" aria-label="Descrição" data-lcfg-xo="' + i + ':' + j + '" data-f="desc" value="' + _lcfgEsc(o.desc || '') + '">' +
-                '<button type="button" class="lcfg-mini" data-lcfg-xacao="opup" data-i="' + i + '" data-j="' + j + '" aria-label="Subir"' + (j ? '' : ' disabled') + '><i class="ph-bold ph-caret-up"></i></button>' +
-                '<button type="button" class="lcfg-mini" data-lcfg-xacao="opdown" data-i="' + i + '" data-j="' + j + '" aria-label="Descer"' + (j < ops.length - 1 ? '' : ' disabled') + '><i class="ph-bold ph-caret-down"></i></button>' +
-                '<button type="button" class="lcfg-mini" data-lcfg-xacao="opdel" data-i="' + i + '" data-j="' + j + '" aria-label="Remover opção"><i class="ph-bold ph-x"></i></button></div>').join('') +
-                '<button type="button" class="lcfg-link-btn" data-lcfg-xacao="opadd" data-i="' + i + '"><i class="ph-bold ph-plus"></i> Adicionar opção</button>';
-            const corpo = '<p class="lcfg-intro" style="margin:12px 0 8px;">Etapa criada por você. A resposta do cliente fica registrada no histórico do fluxo; ela não muda a lente indicada.' + (trOff ? ' <b>Atenção:</b> com o Tratamento desligado, esta etapa não aparece — mude a posição dela.' : '') + '</p>' +
-                '<div class="lcfg-grid">' +
-                    '<div class="lcfg-campo"><label>Nome da etapa (só no painel)</label><input type="text" maxlength="40" ' + f('nome') + ' value="' + _lcfgEsc(x.nome || '') + '"></div>' +
-                    '<div class="lcfg-campo"><label>Onde ela entra</label><select ' + f('antes_de') + '>' + Object.keys(_LCFG_X_ANTES).map(k => '<option value="' + k + '"' + ((x.antes_de || 'resultado') === k ? ' selected' : '') + '>' + _LCFG_X_ANTES[k] + '</option>').join('') + '</select></div>' +
-                    '<div class="lcfg-campo"><label>Pergunta que o cliente vê</label><textarea rows="2" maxlength="200" ' + f('titulo') + (String(x.titulo || '').trim() ? '' : ' class="erro"') + '>' + _lcfgEsc(x.titulo || '') + '</textarea></div>' +
-                    '<div class="lcfg-campo"><label>Dica (opcional)</label><textarea rows="2" maxlength="300" ' + f('dica') + '>' + _lcfgEsc(x.dica || '') + '</textarea></div>' +
-                    '<div class="lcfg-campo"><label>Tipo de resposta</label><select ' + f('tipo') + '>' + Object.keys(_LCFG_X_TIPOS).map(k => '<option value="' + k + '"' + ((x.tipo || 'escolha') === k ? ' selected' : '') + '>' + _LCFG_X_TIPOS[k] + '</option>').join('') + '</select></div>' +
-                    '<div class="lcfg-campo"><label>Resposta obrigatória</label>' + _lcfgSwitch(f('obrigatoria'), x.obrigatoria !== false, true) + '</div>' +
-                '</div>' + opsHtml +
-                '<div class="lcfg-x-rodape"><button type="button" class="lcfg-link-btn perigo" data-lcfg-xacao="del" data-i="' + i + '"><i class="ph-bold ph-trash"></i> Excluir etapa</button></div>';
-            return '<div class="lcfg-no extra' + (on ? '' : ' off') + '" data-lcfg-no="x:' + i + '" draggable="true">' + _lcfgAcc('nox:' + (x.id || i), {
-                nivel: 1, icone: 'ph-chat-circle-dots', off: !on,
-                esq: '<span class="lcfg-no-num">' + (on ? num : '–') + '</span><span class="lcfg-no-grip" title="Arraste para mudar a posição"><i class="ph-bold ph-dots-six-vertical"></i></span>',
-                titulo: '<span data-lcfg-no-nome="x:' + i + '">' + _lcfgEsc(String(x.nome || '').trim() || 'Nova etapa') + '</span><span class="lcfg-pill nova">Criada por você</span>' + (on ? '' : '<span class="lcfg-pill off">Desligada</span>'),
-                meta: on ? (String(x.titulo || '').trim() ? '“' + _lcfgEsc(_lcfgCurto(x.titulo)) + '” · ' + _LCFG_X_TIPOS[x.tipo || 'escolha'] : 'Escreva a pergunta') : 'O cliente não vê esta etapa',
-                dir: _lcfgSwitch(f('ativo'), on, true),
-                corpo
-            }) + '</div>';
+        function _lcfgMapaParcial() {   // atualiza árvore e tela sem refazer os campos (não perde o foco)
+            const a = document.getElementById('lcfgArvoreBox'), t = document.getElementById('lcfgTelaBox');
+            if (a) a.innerHTML = _lcfgArvore();
+            if (t) t.innerHTML = _lcfgTela(_lcfgSelEt);
         }
         function _lcfgPintaEtapasCat() {
-            const e = _lcfgEtapasCat(), nos = _lcfgMapaNos();
-            let num = 0, html = '<div class="lcfg-mapa">';
-            const PODE_ADD = { tipo: 1, tratamento: 1, receita: 1, resultado: 1 };
-            nos.forEach((n, idx) => {
-                const k = n.k, ligado = n.x ? n.x.ativo !== false : !(k === 'telefone' && e.telefone.ativo === false) && !(k === 'tratamento' && e.tratamento.ativo === false);
-                if (ligado) num++;
-                if (k && PODE_ADD[k]) html += '<button type="button" class="lcfg-no-add" data-lcfg-xacao="novo" data-antes="' + _LCFG_ANCORA_DE[k] + '"><i class="ph-bold ph-plus"></i> Adicionar etapa ' + _LCFG_X_ANTES[_LCFG_ANCORA_DE[k]].toLowerCase() + '</button>';
-                else if (idx) html += '<div class="lcfg-no-seta"></div>';
-                html += n.x ? _lcfgNoExtra(n.x, n.i, num) : _lcfgNoBuiltin(k, num);
-            });
-            html += '</div>';
-            const xs = _lcfgExtras().filter(x => x.ativo !== false).length;
+            const e = _lcfgEtapasCat(), xs = _lcfgExtras();
+            const valido = _lcfgSelEt.indexOf('x:') === 0 ? !!xs[+_lcfgSelEt.slice(2)] : !!_LCFG_ET_NOME[_lcfgSelEt];
+            if (!valido) _lcfgSelEt = 'tipo';
+            const nx = xs.filter(x => x.ativo !== false).length;
             const desl = (e.telefone.ativo === false ? 1 : 0) + (e.tratamento.ativo === false ? 1 : 0);
+            const ramos = (_lcfgEdit.necessidades || []).filter(n => n.ativo !== false).length;
             return _lcfgAcc('etapas', {
-                icone: 'ph-flow-arrow', etapa: 'Mapa do fluxo', titulo: 'Etapas do fluxo',
-                meta: num + ' etapas no caminho do cliente' + (xs ? ' · ' + xs + (xs === 1 ? ' criada por você' : ' criadas por você') : '') + (desl ? ' · ' + desl + (desl === 1 ? ' desligada' : ' desligadas') : ''),
-                corpo: '<p class="lcfg-intro" style="margin:14px 0 10px;">Este é o caminho que o cliente percorre, de cima para baixo. Clique numa etapa para mudar o nome, a pergunta e as opções. Use <b>+ Adicionar etapa</b> para criar uma pergunta sua e <b>arraste</b> (<i class="ph-bold ph-dots-six-vertical"></i>) as etapas criadas por você e a receita para mudar a ordem.</p>' + html
+                icone: 'ph-tree-structure', etapa: 'Mapa do fluxo', titulo: 'Caminhos do cliente',
+                meta: ramos + (ramos === 1 ? ' caminho' : ' caminhos') + (nx ? ' · ' + nx + (nx === 1 ? ' etapa sua' : ' etapas suas') : '') + (desl ? ' · ' + desl + (desl === 1 ? ' desligada' : ' desligadas') : ''),
+                corpo: '<p class="lcfg-intro" style="margin:14px 0 12px;">O começo é igual pra todo mundo; depois do tipo de lente o caminho se divide. Cada coluna mostra o que aquele cliente vê até o resultado. ' +
+                    '<b>Clique</b> numa etapa para ver a tela e editar ao lado · <b>+</b> cria uma etapa sua ali · <b>arraste</b> (<i class="ph-bold ph-dots-six-vertical"></i>) as etapas suas e a receita.</p>' +
+                    '<div class="lcfg-mapa4"><div class="lcfg-arv-wrap" id="lcfgArvoreBox">' + _lcfgArvore() + '</div>' +
+                    '<div class="lcfg-mapa4-lado"><div id="lcfgTelaBox">' + _lcfgTela(_lcfgSelEt) + '</div><div class="lcfg-ed">' + _lcfgEditorEt(_lcfgSelEt) + '</div></div></div>'
             });
         }
         /* ---- Ordem das etapas por arrastar (12/10/2026): arraste os blocos; a posição da receita é calculada ---- */
@@ -7376,12 +7485,13 @@
                 else if (f === 'ativo') { l.ativo = val; repinta = true; }
                 else l[f] = val;
             } else return;
-            if (repinta) _lcfgPinta(); else _lcfgAtualizaBarraEPrevia();
+            if (repinta) _lcfgPinta(); else { _lcfgAtualizaBarraEPrevia(); if (c.modo === 'catalogo') _lcfgMapaParcial(); }
         }
         function _lcfgOnClick(ev) {
-            const t = ev.target.closest && ev.target.closest('[data-lcfg-acc],[data-lcfg-mover],[data-lcfg-ids],[data-lcfg-cor-limpa],[data-lcfg-raio-limpa],[data-lcfg-xacao]');
+            const t = ev.target.closest && ev.target.closest('[data-lcfg-acc],[data-lcfg-mover],[data-lcfg-ids],[data-lcfg-cor-limpa],[data-lcfg-raio-limpa],[data-lcfg-xacao],[data-lcfg-sel]');
             if (!t || !_lcfgEdit) return;
             if (t.dataset.lcfgXacao) { _lcfgXAcao(t); return; }
+            if (t.dataset.lcfgSel) { _lcfgSelEt = t.dataset.lcfgSel; _lcfgPinta(); return; }
             if (t.dataset.lcfgCorLimpa) { const tm = Object.assign({}, _lcfgEdit.tema || {}); delete tm[t.dataset.lcfgCorLimpa]; _lcfgEdit.tema = tm; _lcfgPinta(); return; }
             if (t.hasAttribute('data-lcfg-raio-limpa')) { const tm = Object.assign({}, _lcfgEdit.tema || {}); delete tm.raio; _lcfgEdit.tema = tm; _lcfgPinta(); return; }
             if (t.dataset.lcfgAcc) {   // abre/fecha sem repintar (não perde foco nem rolagem)
@@ -7412,13 +7522,13 @@
                     opcoes: [{ key: 'a', titulo: 'Opção 1' }, { key: 'b', titulo: 'Opção 2' }] };
                 let pos = xs.length; for (let k = xs.length - 1; k >= 0; k--) if ((xs[k].antes_de || 'resultado') === ant) { pos = k + 1; break; }
                 xs.splice(pos, 0, nova);
-                _lcfgAbertos.add('etapas'); _lcfgAbertos.add('nox:' + nova.id);
+                _lcfgAbertos.add('etapas'); _lcfgSelEt = 'x:' + pos;
                 _lcfgPinta();
-                setTimeout(() => { const q = document.querySelector('#lentesViewConfig [data-lcfg-x="' + pos + '"][data-f="titulo"]'); if (q) { q.focus(); q.scrollIntoView({ block: 'center', behavior: 'smooth' }); } }, 30);
+                setTimeout(() => { const q = document.querySelector('#lentesViewConfig [data-lcfg-x="' + pos + '"][data-f="titulo"]'); if (q) { q.focus(); q.select(); } }, 30);
                 return;
             }
             if (!x) return;
-            if (a === 'del') { if (!confirm('Excluir a etapa "' + (x.nome || 'Nova etapa') + '"?')) return; xs.splice(i, 1); }
+            if (a === 'del') { if (!confirm('Excluir a etapa "' + (x.nome || 'Nova etapa') + '"?')) return; xs.splice(i, 1); _lcfgSelEt = 'tipo'; }
             else if (a === 'opadd') { x.opcoes = x.opcoes || []; x.opcoes.push({ key: Date.now().toString(36), titulo: 'Opção ' + (x.opcoes.length + 1) }); }
             else if (a === 'opdel') { x.opcoes.splice(j, 1); }
             else if (a === 'opup' || a === 'opdown') { const k = a === 'opup' ? j - 1 : j + 1; if (k < 0 || k >= x.opcoes.length) return; const o = x.opcoes[j]; x.opcoes[j] = x.opcoes[k]; x.opcoes[k] = o; }
@@ -7558,12 +7668,14 @@
                 e.receita.posicao = pos; _lcfgEdit.etapas = e; _lcfgPinta(); return;
             }
             const i = +de.slice(2), x = xs[i]; if (!x) return;
+            const eraSel = _lcfgSelEt === de;
             xs.splice(i, 1);
             x.antes_de = anc;
             let pos;
             if (alvo.indexOf('x:') === 0) { const t = +alvo.slice(2); pos = t > i ? t - 1 : t; }
             else { pos = xs.length; for (let k = xs.length - 1; k >= 0; k--) if ((xs[k].antes_de || 'resultado') === anc) { pos = k + 1; break; } }
             xs.splice(pos, 0, x);
+            if (eraSel) _lcfgSelEt = 'x:' + pos;
             _lcfgPinta();
         }
         function _lcfgDragEnd() { _lcfgArrasto = null; document.querySelectorAll('#lentesViewConfig .drop-alvo, #lentesViewConfig .arrastando').forEach(x => x.classList.remove('drop-alvo', 'arrastando')); }
