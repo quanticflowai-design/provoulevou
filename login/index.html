@@ -4516,6 +4516,19 @@
                     #lcfgMapa .lcfg-item:not(.lcfg-etapa-item) .lcfg-ordem .lcfg-grip { display: none; }
                     #lcfgMapa .lcfg-item:not(.lcfg-etapa-item) .lcfg-ordem button { width: 22px; height: 22px; }
                     @media (max-width: 700px) { #lcfgMapa .lcfg-item:not(.lcfg-etapa-item) .lcfg-item-txt { grid-template-columns: 1fr; } }
+                    .lcfg-atu { border: 1px solid var(--l-line); border-radius: 12px; padding: 12px; margin: 4px 0 12px; background: var(--l-card); }
+                    .lcfg-atu-top { display: flex; align-items: center; gap: 12px; } .lcfg-atu-top > div { flex: 1; min-width: 0; }
+                    .lcfg-atu-top b { display: block; font-size: 13.5px; } .lcfg-atu-top small { display: block; font-size: 12px; color: var(--l-muted); }
+                    .lcfg-atu-ok { display: flex; align-items: center; gap: 6px; margin: 10px 0 0; font-size: 12.5px; color: var(--l-ok); font-weight: 600; }
+                    #lcfgMapa .lcfg-item.lcfg-atu-item { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+                    .lcfg-atu-txt { display: grid; gap: 6px; min-width: 0; }
+                    .lcfg-atu-nome { display: flex; align-items: baseline; gap: 8px; } .lcfg-atu-nome b { font-size: 13px; flex: 1; min-width: 0; } .lcfg-atu-nome span { font-size: 12.5px; color: var(--l-muted); font-weight: 600; }
+                    .lcfg-atu-campos { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 12px; color: var(--l-muted); }
+                    .lcfg-atu-campos label, .lcfg-atu-fx { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--l-muted); }
+                    #lentesViewConfig .lcfg-atu select, #lentesViewConfig .lcfg-atu input[type=number] { height: 30px; border: 1px solid var(--l-line); border-radius: 8px; background: var(--l-field); color: var(--l-ink); font: inherit; font-size: 12.5px; padding: 0 6px; }
+                    #lentesViewConfig .lcfg-atu input[type=number] { width: 72px; }
+                    .lcfg-atu-duv { margin: 0; font-size: 12px; color: #b45309; }
+                    .lcfg-atu-saiu { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12.5px; border: 1px solid var(--l-line); border-radius: 10px; padding: 7px 10px; margin-top: 6px; }
                     .lcfg-v-nova { display: flex; gap: 8px; flex-wrap: wrap; } #lentesViewConfig .lcfg-v-nova input { flex: 1; min-width: 220px; }
                     .lcfg-v-lista { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
                     .lcfg-v-it { display: flex; align-items: center; gap: 10px; border: 1px solid var(--l-line); border-radius: 12px; padding: 9px 10px; }
@@ -7689,7 +7702,7 @@
             let corpo;
             if (aj) corpo = '<div class="lcfg-ed-topo"><b>' + aj[1] + '</b></div>' + (aj[0] === 'visual'
                     ? '<p class="lcfg-ed-nota">Cores de cada elemento, fonte e cantos do fluxo na sua loja. A prévia muda na hora.</p>' + _lcfgCores()
-                    : '<p class="lcfg-ed-nota">Todas as lentes da sua loja. Desligue as que não quer indicar e ajuste o nome que aparece no fluxo. O preço é sempre o do produto na loja.</p>' + _lcfgBlocoLentes);
+                    : '<p class="lcfg-ed-nota">Todas as lentes da sua loja. Desligue as que não quer indicar e ajuste o nome que aparece no fluxo. O preço é sempre o do produto na loja.</p>' + _lcfgAtuHtml() + _lcfgBlocoLentes);
             else {
                 const p = _lcfgPassoInfo(_lcfgSelEt);
                 corpo = '<div class="lcfg-pp-num">Etapa ' + (fl.indexOf(_lcfgSelEt) + 1) + ' de ' + fl.length + (p.on ? '' : ' · <span class="lcfg-pill off">desligada</span>') + '</div>' +
@@ -7881,6 +7894,79 @@
             _lcfgEdit = cfg; _lcfgVersoesFecha();
             _lcfgPinta();
             crmToast('Versão carregada no rascunho. Clique em Salvar alterações para publicar.');
+        }
+        /* ---- Atualizar lentes da loja (13/10/2026): botão busca na Nuvemshop as lentes novas/que saíram (n8n pl-lentes-atualizar);
+           a IA lê nome + descrição; o lojista confere e adiciona — vai pro rascunho (lentes_extra + lentes) e vale ao Salvar. ---- */
+        let _lcfgAtu = null, _lcfgAtuBusy = false;
+        const _LCFG_TRAT_NOME = { A: 'Antirreflexo', AB: 'Luz azul + antirreflexo', AF: 'Fotossensível + antirreflexo', ABF: 'Luz azul + fotossensível + antirreflexo' };
+        function _lcfgAtuGrupo(l) { return l.visao === 'multi' ? 'Multifocal · ' + (l.linha || 'Nova') : 'Monofocal · ' + [l.familia, l.indice].filter(Boolean).join(' '); }
+        function _lcfgAtuHtml() {
+            let h = '<div class="lcfg-atu"><div class="lcfg-atu-top"><div><b>Atualizar lentes da loja</b><small>Busca na sua Nuvemshop as lentes novas e as que saíram. Você confere antes de entrar no fluxo.</small></div>' +
+                '<button type="button" class="lcfg-btn lcfg-btn-pri" onclick="_lcfgAtuBusca()"' + (_lcfgAtuBusy ? ' disabled' : '') + '><i class="ph-bold ' + (_lcfgAtuBusy ? 'ph-spinner' : 'ph-arrows-clockwise') + '"></i> ' + (_lcfgAtuBusy ? 'Buscando…' : 'Atualizar lentes') + '</button></div>';
+            if (_lcfgAtuBusy) h += '<p class="lcfg-ed-nota" style="margin:8px 0 0">Lendo os produtos de lente da loja… pode levar até 1 minuto.</p>';
+            const a = _lcfgAtu;
+            if (a && !_lcfgAtuBusy) {
+                if (a.erro) h += '<p class="lcfg-ed-aviso" style="margin:8px 0 0">' + _lcfgEsc(a.erro) + '</p>';
+                else if (!a.novas.length && !a.sairam.length) h += '<p class="lcfg-atu-ok"><i class="ph-bold ph-check-circle"></i> Tudo em dia: as ' + a.total + ' lentes da loja já estão no fluxo.</p>';
+                if (a.novas.length) {
+                    h += '<div class="lcfg-bloco-tit">' + a.novas.length + (a.novas.length > 1 ? ' lentes novas' : ' lente nova') + ' — confira os dados lidos da descrição</div>' + a.novas.map((l, i) => {
+                        const num = (f, j, k, v) => '<input type="number" step="0.25" value="' + (v == null ? '' : v) + '" onchange="_lcfgAtuSet(' + i + ',\'' + f + '\',' + j + ',\'' + k + '\',this.value)">';
+                        const sel = (k, ops) => '<select onchange="_lcfgAtuSet(' + i + ',\'' + k + '\',-1,\'\',this.value)">' + ops.map(o => '<option value="' + o[0] + '"' + (String(l[k]) === String(o[0]) ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>';
+                        return '<div class="lcfg-item lcfg-atu-item' + (l._fora ? ' off' : '') + '">' +
+                            _lcfgSwitch('onchange="_lcfgAtuSet(' + i + ',\'_fora\',-1,\'\',!this.checked)"', !l._fora) +
+                            '<div class="lcfg-atu-txt"><div class="lcfg-atu-nome"><b>' + _lcfgEsc(l.nome) + '</b><span>' + _lcfgBrl(l.preco) + '</span></div>' +
+                            '<div class="lcfg-atu-campos"><label>Tipo ' + sel('visao', [['mono', 'Visão simples'], ['multi', 'Multifocal']]) + '</label>' +
+                            '<label>Índice ' + sel('indice', [['1.50', '1.50'], ['1.56', '1.56'], ['1.59', '1.59'], ['1.61', '1.61'], ['1.67', '1.67'], ['1.74', '1.74']]) + '</label>' +
+                            '<label>Tratamento ' + sel('trat', Object.keys(_LCFG_TRAT_NOME).map(k => [k, _LCFG_TRAT_NOME[k]])) + '</label>' +
+                            (l.visao === 'multi' ? '<label>Adição ' + num('addMin', -1, '', l.addMin) + ' a ' + num('addMax', -1, '', l.addMax) + '</label>' : '') + '</div>' +
+                            (l.faixas || []).map((f, j) => '<div class="lcfg-atu-fx">Grau ' + (j + 1) + ': esférico ' + num('faixas', j, 'esfMin', f.esfMin) + ' a ' + num('faixas', j, 'esfMax', f.esfMax) + ' · cilíndrico ' + num('faixas', j, 'cilMin', f.cilMin) + ' a ' + num('faixas', j, 'cilMax', f.cilMax) + '</div>').join('') +
+                            ((l.duvidas || []).length ? '<p class="lcfg-atu-duv"><i class="ph-bold ph-warning"></i> ' + l.duvidas.map(_lcfgEsc).join(' ') + '</p>' : '') +
+                            '</div></div>';
+                    }).join('') + '<button type="button" class="lcfg-btn lcfg-btn-pri" style="margin-top:8px" onclick="_lcfgAtuAdiciona()"><i class="ph-bold ph-plus"></i> Adicionar ao fluxo</button>';
+                }
+                if (a.sairam.length) h += '<div class="lcfg-bloco-tit">Lentes que não estão mais na loja</div>' + a.sairam.map(x => '<div class="lcfg-atu-saiu"><span>' + _lcfgEsc(x.nome) + '</span><button type="button" class="lcfg-btn" onclick="_lcfgAtuDesliga(\'' + _lcfgEsc(x.key) + '\')">Desligar no fluxo</button></div>').join('');
+            }
+            return h + '</div>';
+        }
+        async function _lcfgAtuBusca() {
+            if (_lcfgAtuBusy) return; _lcfgAtuBusy = true; _lcfgAtu = null; _lcfgPinta();
+            try {
+                const s = (await supabaseClient.auth.getSession()).data.session;
+                if (!s) throw new Error('Sua sessão expirou. Entre de novo na dashboard.');
+                const r = await fetch('https://n8n.segredosdodrop.com/webhook/pl-lentes-atualizar', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify({ dominio: _lcfgDominio }) });
+                let j = null; try { j = await r.json(); } catch (e) {}
+                if (!r.ok || !j || !j.ok) throw new Error((j && j.erro) || 'Não consegui buscar as lentes agora. Tente de novo em instantes.');
+                _lcfgAtu = { total: j.total_loja || 0, novas: (j.novas || []).map(l => Object.assign({}, l)), sairam: j.sairam || [] };
+            } catch (e) { _lcfgAtu = { erro: e.message, novas: [], sairam: [] }; }
+            _lcfgAtuBusy = false; _lcfgPinta();
+        }
+        function _lcfgAtuSet(i, f, j, k, v) {
+            const l = _lcfgAtu && _lcfgAtu.novas[i]; if (!l) return;
+            if (f === 'faixas') { const x = l.faixas[j]; if (x) x[k] = v === '' ? null : Number(v); return; }
+            if (f === '_fora') { l._fora = !!v; _lcfgPinta(); return; }
+            if (f === 'addMin' || f === 'addMax') { l[f] = v === '' ? null : Number(v); return; }
+            l[f] = v; if (f === 'visao') _lcfgPinta();
+        }
+        function _lcfgAtuAdiciona() {
+            const c = _lcfgEdit, sel = (_lcfgAtu.novas || []).filter(l => !l._fora); if (!sel.length) { crmToast('Ligue pelo menos uma lente para adicionar.', true); return; }
+            const ruim = sel.find(l => !(l.faixas || []).length || l.faixas.some(f => f.esfMin == null || f.esfMax == null || f.cilMax == null));
+            if (ruim) { crmToast('Preencha a faixa de grau de "' + ruim.nome + '".', true); return; }
+            c.lentes_extra = (c.lentes_extra || []).filter(x => !sel.some(l => l.id === String(x.id)));
+            c.lentes = c.lentes || [];
+            sel.forEach(l => {
+                const obj = Object.assign({}, l); delete obj._fora; delete obj.duvidas;
+                if (obj.visao === 'multi') { delete obj.familia; delete obj.cilEst; delete obj.superCil; } else { delete obj.linha; delete obj.addMin; delete obj.addMax; obj.cilEst = !!obj.cilEst; obj.superCil = !!obj.superCil; }
+                c.lentes_extra.push(obj);
+                if (!c.lentes.some(x => String(x.key) === l.id)) c.lentes.push({ key: l.id, nome: l.nome, ativo: true, grupo: _lcfgAtuGrupo(l), preco: l.preco });
+            });
+            _lcfgAtu.novas = _lcfgAtu.novas.filter(l => l._fora);
+            crmToast(sel.length + (sel.length > 1 ? ' lentes adicionadas' : ' lente adicionada') + '. Clique em Salvar para valer na loja.');
+            _lcfgPinta();
+        }
+        function _lcfgAtuDesliga(k) {
+            const l = (_lcfgEdit.lentes || []).find(x => String(x.key) === String(k)); if (l) l.ativo = false;
+            if (_lcfgAtu) _lcfgAtu.sairam = _lcfgAtu.sairam.filter(x => x.key !== k);
+            _lcfgPinta();
         }
         function _lcfgNovaOpcao() {
             const necs = _lcfgEdit.necessidades || (_lcfgEdit.necessidades = []), b = necs.find(n => !n.base && !_lcfgSemGrau(n.key)) || necs[0];
