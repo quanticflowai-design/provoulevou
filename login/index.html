@@ -4484,6 +4484,18 @@
                         .lcfg-lente.cat > .lcfg-afix.pre { grid-row: 2; grid-column: 2; }
                         .lcfg-lente.cat > .lcfg-afix.pos { grid-row: 2; grid-column: 3; }
                     }
+
+                    /* Etapas do fluxo (12/10/2026) */
+                    .lcfg-etapa-item { grid-template-columns: auto minmax(0, 1fr); align-items: center; }
+                    .lcfg-etapa-item .lcfg-item-txt b { font-size: 14px; font-weight: 650; }
+                    .lcfg-etapa-item .lcfg-switch { margin-top: 0; }
+                    .lcfg-etapa-item .lcfg-item-txt select { margin-top: 6px; width: 100%; max-width: 460px; height: 36px; border: 1px solid var(--l-line); border-radius: 9px; background: var(--l-field); color: var(--l-ink); font: inherit; font-size: 13px; padding: 0 10px; }
+                    .lcfg-etapa-item .lcfg-item-txt select:focus { outline: none; border-color: var(--l-accent); box-shadow: 0 0 0 3px var(--l-soft); }
+                    .lcfg-caminho { border: 1px solid var(--l-line); border-radius: 11px; padding: 10px 12px; margin-top: 8px; background: var(--l-card); }
+                    .lcfg-caminho > b { display: block; font-size: 13px; margin-bottom: 7px; }
+                    .lcfg-caminho > div { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+                    .lcfg-caminho span { font-size: 12px; font-weight: 600; background: var(--l-soft); color: var(--l-accent); border-radius: 99px; padding: 4px 10px; }
+                    .lcfg-caminho i { font-size: 11px; color: var(--l-muted); }
                     .lentes-resumo-acao { display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;margin-bottom:16px; }
                     .lentes-acao-card { display:flex;align-items:center;gap:11px;width:100%;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 14px;min-width:0;color:var(--text-main);font:inherit;text-align:left;cursor:pointer;transition:border-color .16s ease,transform .16s ease,box-shadow .16s ease; }
                     .lentes-acao-card:hover { border-color:var(--primary);transform:translateY(-1px);box-shadow:0 7px 20px rgba(124,58,237,.10); }
@@ -6837,6 +6849,68 @@
                 }).join('') + '</div>'
             });
         }
+        /* ---- Etapas do fluxo (modo completo, 12/10/2026): desligar etapas e mudar a posição da receita ---- */
+        const _LCFG_ETAPAS_PADRAO = {
+            receita: { ativo: true, posicao: 'final' }, distancia: { ativo: true },
+            tratamento_mono: { ativo: true, padrao: 'ar' }, tratamento_multi: { ativo: true, padrao: 'sem_ar' },
+            grau_solar: { ativo: true }, cor_solar: { ativo: true }
+        };
+        const _LCFG_ETAPAS_INFO = [
+            ['receita', 'Receita', 'Desligada: o cliente envia a receita depois, pelo WhatsApp da compra.'],
+            ['distancia', 'Perto ou longe (monofocal)', 'Só informativa; desligada, o fluxo não pergunta.'],
+            ['tratamento_mono', 'Tratamento (monofocal)', 'Desligado, usa o tratamento padrão escolhido.'],
+            ['tratamento_multi', 'Tratamento (multifocal)', 'Desligado, usa o tratamento padrão escolhido.'],
+            ['grau_solar', 'Grau (lentes de sol)', 'Hoje só tem uma faixa; desligado, pula direto.'],
+            ['cor_solar', 'Cor (lentes de sol)', 'Desligada, a cor fica a combinar pelo WhatsApp.']
+        ];
+        function _lcfgEtapas() {
+            const e = JSON.parse(JSON.stringify(_LCFG_ETAPAS_PADRAO)), s = (_lcfgEdit && _lcfgEdit.etapas) || {};
+            Object.keys(e).forEach(k => { if (s[k] && typeof s[k] === 'object') Object.assign(e[k], s[k]); });
+            return e;
+        }
+        const _LCFG_NOME_PASSO = { 'recipe': 'Receita', 'mono-dist': 'Perto/longe', 'mono-grau': 'Grau', 'mono-trat': 'Tratamento', 'multi-model': 'Modelo', 'multi-grau': 'Grau', 'multi-trat': 'Tratamento', 'sun-grau': 'Grau', 'sun-frame': 'Armação', 'sun-color': 'Cor', 'desc-frame': 'Armação' };
+        // mesma regra do widget (seqFor em lentes-barch.js)
+        function _lcfgCaminho(need) {
+            const e = _lcfgEtapas(), on = k => e[k].ativo !== false;
+            const ini = on('receita') && e.receita.posicao === 'inicio' && need !== 'descanso';
+            const r0 = ini ? 'recipe' : null, r1 = (!ini && on('receita')) ? 'recipe' : null;
+            let s;
+            if (need === 'descanso') s = ['desc-frame'];
+            else if (need === 'simples') s = [r0, on('distancia') ? 'mono-dist' : null, ini ? 'mono-grau*' : 'mono-grau', on('tratamento_mono') ? 'mono-trat' : null, r1];
+            else if (need === 'multifocal') s = [r0, 'multi-model', ini ? 'multi-grau*' : 'multi-grau', on('tratamento_multi') ? 'multi-trat' : null, r1];
+            else if (need === 'solar') s = [r0, on('grau_solar') ? 'sun-grau' : null, 'sun-frame', on('cor_solar') ? 'sun-color' : null, r1];
+            else s = [];
+            return ['Tipo de lente'].concat(s.filter(Boolean).map(p => p.endsWith('*') ? 'Grau (pela receita)' : _LCFG_NOME_PASSO[p])).concat(['Resultado']);
+        }
+        function _lcfgPintaEtapas() {
+            const e = _lcfgEtapas(), c = _lcfgEdit;
+            const linhas = _LCFG_ETAPAS_INFO.map(([k, titulo, dica]) => {
+                const on = e[k].ativo !== false;
+                let extra = '';
+                if (k === 'receita' && on) extra = '<select data-lcfg-etapa="receita" data-f="posicao" aria-label="Posição da receita">' +
+                    '<option value="inicio"' + (e.receita.posicao === 'inicio' ? ' selected' : '') + '>No início (logo após o tipo de lente) — o grau sai da receita</option>' +
+                    '<option value="final"' + (e.receita.posicao !== 'inicio' ? ' selected' : '') + '>No fim (antes do resultado)</option></select>';
+                if (k === 'tratamento_mono' && !on) extra = '<select data-lcfg-etapa="tratamento_mono" data-f="padrao" aria-label="Tratamento padrão monofocal">' +
+                    '<option value="ar"' + (e.tratamento_mono.padrao !== 'blue' ? ' selected' : '') + '>Padrão: apenas antirreflexo</option>' +
+                    '<option value="blue"' + (e.tratamento_mono.padrao === 'blue' ? ' selected' : '') + '>Padrão: antirreflexo + filtro de luz azul</option></select>';
+                if (k === 'tratamento_multi' && !on) extra = '<select data-lcfg-etapa="tratamento_multi" data-f="padrao" aria-label="Tratamento padrão multifocal">' +
+                    '<option value="sem_ar"' + (e.tratamento_multi.padrao !== 'prime' ? ' selected' : '') + '>Padrão: sem antirreflexo</option>' +
+                    '<option value="prime"' + (e.tratamento_multi.padrao === 'prime' ? ' selected' : '') + '>Padrão: antirreflexo PRIME</option></select>';
+                return '<div class="lcfg-item lcfg-etapa-item' + (on ? '' : ' off') + '">' +
+                    _lcfgSwitch('data-lcfg-etapa="' + k + '" data-f="ativo"', on) +
+                    '<div class="lcfg-item-txt"><b>' + titulo + '</b><span class="lcfg-dica">' + dica + '</span>' + extra + '</div></div>';
+            }).join('');
+            const tipos = (c.necessidades || []).filter(n => n.ativo !== false);
+            const mapa = tipos.map(n => '<div class="lcfg-caminho"><b>' + _lcfgEsc(n.titulo) + '</b><div>' +
+                _lcfgCaminho(n.key).map(p => '<span>' + _lcfgEsc(p) + '</span>').join('<i class="ph-bold ph-caret-right"></i>') + '</div></div>').join('');
+            const desl = _LCFG_ETAPAS_INFO.filter(([k]) => e[k].ativo === false).length;
+            return _lcfgAcc('etapas', {
+                icone: 'ph-flow-arrow', etapa: 'Ordem e etapas', titulo: 'Etapas do fluxo',
+                meta: (e.receita.ativo === false ? 'Sem pedir receita' : e.receita.posicao === 'inicio' ? 'Receita no início' : 'Receita no fim') + (desl ? ' · ' + desl + (desl === 1 ? ' etapa desligada' : ' etapas desligadas') : ' · todas as etapas ligadas'),
+                corpo: '<p class="lcfg-intro" style="margin:14px 0 6px;">Desligue o que não quer perguntar e escolha onde a receita entra. Tipo de lente, modelo da multifocal e armação são sempre perguntados, porque a lente indicada depende deles.</p>' +
+                    linhas + '<div class="lcfg-bloco-tit">Como fica o caminho do cliente</div>' + mapa
+            });
+        }
         // Lojas cujo fluxo é do próprio widget (Cacifé, Koros, Maxilook, Sirena): catálogo, 1ª tela e cores.
         function _lcfgPintaCatalogo(c) {
             const necs = c.necessidades || [];
@@ -6941,6 +7015,7 @@
                             '<div class="lcfg-campo"><label>WhatsApp da loja (DDI + DDD + número)</label><input type="text" inputmode="numeric" maxlength="15" data-lcfg-geral="whatsapp" value="' + _lcfgEsc(g.whatsapp) + '"><span class="lcfg-dica">Usado no "Falar no WhatsApp". Ex.: 5534991632975</span></div>' +
                         '</div>'
                 }) +
+                _lcfgPintaEtapas() +
                 _lcfgCores() +
                 _lcfgAcc('etapa1', {
                     icone: 'ph-list-numbers', etapa: 'Etapa 1', titulo: 'Tipos de lente',
@@ -6973,6 +7048,12 @@
             const val = el.type === 'checkbox' ? el.checked : el.value;
             let repinta = false;
             if (el.dataset.lcfgGeral) { c.geral[el.dataset.lcfgGeral] = el.dataset.lcfgGeral === 'whatsapp' ? String(val).replace(/\D/g, '') : val; repinta = el.type === 'checkbox'; }
+            else if (el.dataset.lcfgEtapa) {
+                const k = el.dataset.lcfgEtapa, f = el.dataset.f;
+                c.etapas = _lcfgEtapas();
+                c.etapas[k][f] = f === 'ativo' ? !!val : String(val);
+                repinta = true;
+            }
             else if (el.dataset.lcfgCor || el.dataset.lcfgCorHex) {
                 const k = el.dataset.lcfgCor || el.dataset.lcfgCorHex, hex = _lcfgHex(val);
                 el.classList.toggle('erro', !hex && !!el.dataset.lcfgCorHex);
@@ -7103,7 +7184,7 @@
         let _lcfgIABusy = false;
         let _lcfgPreviaCfg = '';       // rascunho que a prévia está mostrando
         let _lcfgPreviaTimer = null;
-        const _LCFG_IA_SUG = ['Sobe 10% os multifocais', 'Deixa o botão principal #1e6bff', 'Coloca o multifocal em primeiro', 'Desliga as lentes mais baratas'];
+        const _LCFG_IA_SUG = ['Pede a receita no início', 'Tira a pergunta de perto ou longe', 'Deixa o botão principal #1e6bff', 'Sobe 10% os multifocais'];
 
         function _lcfgNomeLente(k) { const l = (_lcfgEdit.lentes || []).find(x => x.key === k); return l ? l.nome : k; }
         function _lcfgNomeTexto(k) { const t = (_lcfgEdit.textos || []).find(x => x.key === k); return t ? (t.secao + ' · ' + t.label) : k; }
@@ -7174,6 +7255,20 @@
                     c.geral[campo] = novo;
                     mud.push(campo === 'ativo' ? (novo ? 'Ligou' : 'Desligou') + ' o fluxo na loja'
                         : campo === 'whatsapp' ? 'WhatsApp da loja → ' + novo : 'Texto do botão → "' + novo + '"');
+                } else if (t === 'set_etapa') {
+                    const NOMES = { receita: 'Receita', distancia: 'Perto/longe', tratamento_mono: 'Tratamento (monofocal)', tratamento_multi: 'Tratamento (multifocal)', grau_solar: 'Grau (sol)', cor_solar: 'Cor (sol)' };
+                    if (c.modo === 'catalogo' || !NOMES[alvo]) { ignoradas++; return; }
+                    const e = _lcfgEtapas();
+                    let novo;
+                    if (campo === 'ativo') novo = !/^(false|0|nao|não|off)$/i.test(valor.trim());
+                    else if (campo === 'posicao' && alvo === 'receita' && /^(inicio|final)$/.test(valor.trim())) novo = valor.trim();
+                    else if (campo === 'padrao' && ((alvo === 'tratamento_mono' && /^(ar|blue)$/.test(valor.trim())) || (alvo === 'tratamento_multi' && /^(sem_ar|prime)$/.test(valor.trim())))) novo = valor.trim();
+                    else { ignoradas++; return; }
+                    if (e[alvo][campo] === novo) return;
+                    e[alvo][campo] = novo; c.etapas = e;
+                    mud.push(campo === 'ativo' ? (novo ? 'Ligou' : 'Desligou') + ' a etapa ' + NOMES[alvo]
+                        : campo === 'posicao' ? 'Receita → ' + (novo === 'inicio' ? 'no início (grau sai da receita)' : 'no fim')
+                        : NOMES[alvo] + ' → padrão ' + ({ ar: 'apenas antirreflexo', blue: 'antirreflexo + filtro azul', sem_ar: 'sem antirreflexo', prime: 'antirreflexo PRIME' })[novo]);
                 } else if (t === 'set_cor') {
                     const NOMES = { botao: 'Botão principal', botao_texto: 'Texto do botão', destaque: 'Destaque', fundo_opcao: 'Fundo das opções', borda: 'Bordas' };
                     const hex = _lcfgHex(valor);
