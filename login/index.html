@@ -6595,6 +6595,7 @@
             }
             if (name === 'lentes' && activeUser) {
                 if (typeof loadLentes === 'function') loadLentes().catch(e => console.error('[lentes]', e));
+                if (_lcfgTem) _lentesMudaVisao('config');   // loja com fluxo configurável: a aba abre direto em "Configurar fluxo"
             }
             if (name === 'disparos' && activeUser) {
                 if (typeof loadDisparos === 'function') {
