@@ -5725,7 +5725,7 @@
                             </div>
                             <div></div>
                             <button class="mp-buy-cta" onclick="openCreditsModal()">
-                                <i class="ph-bold ph-plus-circle"></i> Comprar Créditos
+                                <i class="ph-bold ph-plus-circle"></i> Comprar provas avulsas
                             </button>
                         </div>
                     </div>
@@ -5797,11 +5797,17 @@
                     .mpa-total b { font-size:24px; font-weight:800; letter-spacing:-.02em; font-variant-numeric:tabular-nums; color:inherit; line-height:1.1; }
                     .mpa-nota { margin-top:12px; font-size:12.5px; color:var(--text-muted); line-height:1.5; }
                     .mpa-nota.erro { color:#dc2626; }
+                    .mpa-box { max-width:520px; text-align:left; position:relative; }
+                    .mpa-box h3 { margin:2px 0 6px; font-size:20px; }
+                    .mpa-x { position:absolute; top:12px; right:14px; width:32px; height:32px; border:0; background:transparent; color:var(--text-muted); font-size:24px; line-height:1; cursor:pointer; border-radius:8px; }
                     @media (max-width: 480px) { .mpa-linha { gap:12px; } .mpa-total b { font-size:20px; } #mpaComprar { width:100%; justify-content:center; } }
                 </style>
-                <div class="mp-card" id="mpAvulsas" style="margin-bottom:24px;">
+                <!-- Popup aberto pelo botão "Comprar provas avulsas" do card Seu plano (e pelo chip de créditos do topo). -->
+                <div class="mpp-modal" id="mpaModal" role="dialog" aria-modal="true" aria-labelledby="mpaTitulo">
+                <div class="mpp-box mpa-box" id="mpAvulsas">
+                    <button type="button" class="mpa-x" id="mpaX" aria-label="Fechar">×</button>
                     <div class="a-mp-eyebrow">Provas avulsas</div>
-                    <div class="mp-plan-name">Comprar provas avulsas</div>
+                    <h3 id="mpaTitulo">Comprar provas avulsas</h3>
                     <div class="mp-plan-sub" id="mpaSub">Compre provas além do plano pelo mesmo preço por prova do seu plano, sem mudar de plano. Mínimo de 50 provas.</div>
                     <div class="mpa-linha">
                         <div class="mpa-campo"><span>Quantidade</span>
@@ -5817,6 +5823,7 @@
                         <button type="button" class="pl-cfg-btn" id="mpaComprar" disabled><i class="ph-bold ph-qr-code"></i> Gerar QR PIX</button>
                     </div>
                     <div class="mpa-nota" id="mpaNota">Calculando o preço do seu plano...</div>
+                </div>
                 </div>
 
                 <div class="mp-card" id="mpPlanos" style="margin-bottom:24px;">
@@ -18452,9 +18459,8 @@
         }
 
         function openCreditsModal() {
-            // 13/10/2026: a recarga antiga (pacotes fixos da tabela velha) foi trocada pelas provas avulsas do Meu plano.
-            showTab('meu-plano');
-            setTimeout(() => { const c = document.getElementById('mpAvulsas'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 150);
+            // 13/10/2026: a recarga antiga (pacotes fixos da tabela velha) foi trocada pelo popup de provas avulsas.
+            mpaAbrir();
         }
         function closeCreditsModal() {
             const modal = document.getElementById('creditsBuyModal');
@@ -20194,6 +20200,20 @@
             nota.textContent = mppBrl(_mpaPreco, 2) + ' por prova, o mesmo preço do seu plano' + (_mpaInfo.plano_atual ? ': ' + _mpaInfo.plano_atual : '') + '.' + val + ja;
         }
 
+        function mpaAbrir() {
+            const m = document.getElementById('mpaModal'); if (!m) return;
+            if (m.parentElement !== document.body) document.body.appendChild(m);   // a aba pode estar oculta
+            m.classList.add('on');
+            if (!m._mpaWired) {
+                m._mpaWired = true;
+                m.addEventListener('click', e => { if (e.target === m) mpaFecharPopup(); });
+                document.getElementById('mpaX').addEventListener('click', mpaFecharPopup);
+                document.addEventListener('keydown', e => { if (e.key === 'Escape' && m.classList.contains('on')) mpaFecharPopup(); });
+            }
+            mpaRender();
+        }
+        function mpaFecharPopup() { const m = document.getElementById('mpaModal'); if (m) m.classList.remove('on'); }
+
         async function mpaRender() {
             const card = document.getElementById('mpAvulsas');
             if (!card || !activeUser) return;
@@ -20219,6 +20239,7 @@
         // Passo 1: confirma com o valor calculado no servidor para a quantidade escolhida
         async function mpaConfirmar(qtd) {
             if (!(qtd >= PL_AVULSAS_MIN)) return;
+            mpaFecharPopup();
             const box = mppAbrirModal(); if (!box) return;
             box.innerHTML = '<h3 id="mppTitulo"></h3><p id="mppSub">Calculando o valor a pagar...</p>';
             document.getElementById('mppTitulo').textContent = 'Comprar ' + qtd.toLocaleString('pt-BR') + ' provas avulsas?';
