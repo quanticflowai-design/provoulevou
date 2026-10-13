@@ -569,7 +569,10 @@
                 brand: '#0079A8', dark: '#005A80', soft: 'rgba(0,121,168,.10)', on: '#ffffff' },
     // Ótica OM (Vinícius, BA) — monograma OM dourado sobre vinho chapado #190608 -> bg = fundo do logo, tema escuro; botão dourado com texto vinho (~9:1)
     oticaom: { bg: '#190608', card: '#24090D', line: '#3D1A1F',
-                brand: '#D4AF5A', dark: '#B8913E', soft: 'rgba(212,175,90,.12)', on: '#190608' }
+                brand: '#D4AF5A', dark: '#B8913E', soft: 'rgba(212,175,90,.12)', on: '#190608' },
+    // Óptica Harumi (SP) — olho ciano + laranja sobre preto chapado -> bg preto igual ao logo, tema escuro; botão ciano com texto preto (~11:1)
+    opticaharumi: { bg: '#000000', card: '#0D1114', line: '#1E2A30',
+                brand: '#1EC8E8', dark: '#0596C5', soft: 'rgba(30,200,232,.12)', on: '#000000' }
   };
 
   // ─────────── Tema ───────────
