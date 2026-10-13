@@ -5759,6 +5759,49 @@
                     </div>
                 </div>
 
+                <!-- Mudar de plano por PIX (13/10/2026). Tabela de planos desde 08/10/2026.
+                     O PIX é gerado pelo workflow n8n [PL] PIX Provador Extra (webhook pl-plano-pix, Mercado Pago).
+                     O plano da loja só muda quando o pagamento for aprovado no Mercado Pago (quem muda é o n8n, não a dash). -->
+                <style>
+                    .mpp-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; margin-top:18px; }
+                    .mpp-item { border:1px solid var(--border); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:6px; background:transparent; min-width:0; }
+                    .mpp-item.atual { border-color:var(--primary-hi,#a855f7); box-shadow:0 0 0 1px var(--primary-hi,#a855f7) inset; }
+                    .mpp-top { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+                    .mpp-nome { font-size:15px; font-weight:700; letter-spacing:-.01em; color:var(--text-main, var(--text)); }
+                    .mpp-tag { font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; padding:4px 8px; border-radius:999px; background:rgba(168,85,247,.14); color:var(--primary-hi,#a855f7); white-space:nowrap; }
+                    .mpp-preco { font-size:24px; font-weight:800; letter-spacing:-.02em; font-variant-numeric:tabular-nums; color:var(--text-main, var(--text)); margin-top:4px; }
+                    .mpp-preco small { font-size:13px; font-weight:500; color:var(--text-muted); }
+                    .mpp-info { font-size:13px; color:var(--text-muted); line-height:1.5; }
+                    .mpp-info strong { color:var(--text-main, var(--text)); font-weight:600; }
+                    .mpp-item .pl-cfg-btn { margin-top:10px; justify-content:center; width:100%; }
+                    .mpp-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999; align-items:center; justify-content:center; padding:16px; }
+                    .mpp-modal.on { display:flex; }
+                    .mpp-box { background:var(--card-bg,#fff); color:var(--text-main, var(--text)); border:1px solid var(--border); border-radius:18px; padding:24px; width:100%; max-width:420px; max-height:calc(100vh - 32px); overflow:auto; text-align:center; }
+                    .mpp-box h3 { margin:0 0 6px; font-size:18px; font-weight:700; letter-spacing:-.015em; }
+                    .mpp-box p { margin:0 0 14px; font-size:13px; color:var(--text-muted); line-height:1.55; }
+                    .mpp-resumo { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:14px 0; }
+                    .mpp-resumo div { border:1px solid var(--border); border-radius:10px; padding:10px 6px; }
+                    .mpp-resumo span { display:block; font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; }
+                    .mpp-resumo b { font-size:15px; font-variant-numeric:tabular-nums; }
+                    .mpp-acoes { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
+                    .mpp-btn-sec { display:inline-flex; align-items:center; gap:6px; padding:10px 18px; border:1px solid var(--border); border-radius:10px; background:transparent; color:inherit; font:inherit; font-size:13.5px; font-weight:600; cursor:pointer; }
+                    .mpp-qr { width:220px; max-width:100%; height:auto; aspect-ratio:1; display:block; margin:6px auto 12px; background:#fff; padding:10px; border-radius:12px; }
+                    .mpp-copia { width:100%; box-sizing:border-box; height:84px; resize:none; padding:10px; border:1px solid var(--border); border-radius:10px; background:transparent; color:inherit; font-family:monospace; font-size:11px; line-height:1.45; word-break:break-all; }
+                    .mpp-status { margin-top:12px; font-size:12.5px; color:var(--text-muted); }
+                    .mpp-status.ok { color:#16a34a; font-weight:600; }
+                    .mpp-status.erro { color:#dc2626; }
+                    @media (max-width: 480px) { .mpp-grid { grid-template-columns:1fr; } .mpp-box { padding:20px 16px; } }
+                </style>
+                <div class="mp-card" id="mpPlanos" style="margin-bottom:24px;">
+                    <div class="a-mp-eyebrow">Planos</div>
+                    <div class="mp-plan-name">Mudar de plano</div>
+                    <div class="mp-plan-sub">Pague a mensalidade do plano novo por PIX. O plano muda assim que o Mercado Pago confirmar o pagamento. Prova além do plano sai pelo mesmo preço por prova do plano.</div>
+                    <div class="mpp-grid" id="mppGrid"></div>
+                </div>
+                <div class="mpp-modal" id="mppModal" role="dialog" aria-modal="true" aria-labelledby="mppTitulo">
+                    <div class="mpp-box" id="mppBox"></div>
+                </div>
+
                 <!-- Provador: limite por cliente + bloqueio de cliente (09/10/2026).
                      Grava em lojistas.limite_provas_dia / provador_bloqueios via RPC; os workflows
                      "[Loja] Check Limit" leem com pl_limite_cliente(). Bloquear o telefone bloqueia os IPs dele. -->
@@ -6918,7 +6961,7 @@
                 btn.classList.add('active');
                 btn.setAttribute('aria-selected', 'true');
             }
-            if (name === 'meu-plano') { try { plProvadorCfgLoad(); } catch (e) {} }
+            if (name === 'meu-plano') { try { plProvadorCfgLoad(); } catch (e) {} try { mppRender(); } catch (e) {} }
             if (name === 'recuperar-leads' && !leadsRecupLoaded && activeUser) {
                 leadsRecupLoaded = true;
                 loadLeadsRecup().catch(err => {
@@ -19835,6 +19878,205 @@
             _packPixPaymentId = null;
         }
 
+        // ===== Mudar de plano por PIX (13/10/2026) =====
+        // Tabela que o lojista vê desde 08/10/2026. R$/prova = preço ÷ provas (mesma régua do painel de gestão).
+        // O valor enviado é só informativo: o n8n recalcula o preço pelo nome do plano e confere a loja pelo token do login.
+        // O plano da loja NÃO muda aqui: só o n8n muda (provou_levou_stores + pagamentos_clientes) quando o MP aprovar.
+        const PL_PLANOS_PIX = [
+            { nome: 'Essencial',    valor: 39,   provas: 50 },
+            { nome: 'Crescimento',  valor: 79,   provas: 100 },
+            { nome: 'Profissional', valor: 159,  provas: 200 },
+            { nome: 'Escala',       valor: 369,  provas: 500 },
+            { nome: 'Volume 1.000', valor: 699,  provas: 1000 },
+            { nome: 'Volume 1.500', valor: 959,  provas: 1500 },
+            { nome: 'Volume 2.500', valor: 1499, provas: 2500 }
+        ];
+        const PL_PLANO_PIX_URL = PACKS_WEBHOOK_BASE + '/pl-plano-pix';
+        const PL_PLANO_PIX_STATUS_URL = PACKS_WEBHOOK_BASE + '/pl-plano-pix-status';
+        let _mppPoll = null, _mppPaymentId = null, _mppEmAndamento = false;
+
+        function mppBrl(v, casas) {
+            return Number(v).toLocaleString(PL_LOC, { style: 'currency', currency: PL_CUR, minimumFractionDigits: casas == null ? 0 : casas, maximumFractionDigits: casas == null ? 2 : casas });
+        }
+        function mppPrecoProva(p) { return Math.round(p.valor / p.provas * 10000) / 10000; }
+
+        // Plano atual = mesmo preço e mesmas provas (plano novo é gravado como Personalizado + plano_personalizado,
+        // então compara pelos números, não pelo nome: o "Escala" antigo é 1.200 provas, o novo é 500).
+        function mppPlanoAtual(store) {
+            if (!store) return null;
+            const val = Number(store.valor_personalizado) || PACKS_PLAN_VALUES[store.plan] || 0;
+            const lim = Number(store.limite_personalizado) || PLAN_LIMITS_LOJISTA[store.plan] || 0;
+            return PL_PLANOS_PIX.find(p => p.valor === val && p.provas === lim) || null;
+        }
+
+        // Monta o pedido que vai para o n8n (função pura, testável sem a página).
+        function mppMontaPedido(plano, user, store) {
+            const p = PL_PLANOS_PIX.find(x => x.nome === plano);
+            if (!p) throw new Error('Plano inválido');
+            const email = String((user && user.email) || '').toLowerCase();
+            const origem = String((user && user.origem) || (store && store.domain) || '');
+            const slug = PACKS_LOJA_SLUG[email] || normalizeStoreDomain(origem).split('.')[0] || 'desconhecida';
+            return {
+                tipo: 'plano',
+                plano: p.nome,
+                valor: p.valor,
+                fotos: p.provas,
+                loja: slug,
+                email: email,
+                origin: origem,
+                store_id: (store && store.id) || null,
+                phone: ''
+            };
+        }
+
+        async function mppRender() {
+            const grid = document.getElementById('mppGrid');
+            if (!grid || !activeUser) return;
+            let store = null;
+            try { store = await plMinhaLoja(); } catch (e) {}
+            const atual = mppPlanoAtual(store);
+            grid.textContent = '';
+            PL_PLANOS_PIX.forEach(p => {
+                const ehAtual = !!(atual && atual.nome === p.nome);
+                const card = document.createElement('div');
+                card.className = 'mpp-item' + (ehAtual ? ' atual' : '');
+                const top = document.createElement('div'); top.className = 'mpp-top';
+                const nome = document.createElement('div'); nome.className = 'mpp-nome'; nome.textContent = p.nome;
+                top.appendChild(nome);
+                if (ehAtual) { const t = document.createElement('span'); t.className = 'mpp-tag'; t.textContent = 'Seu plano'; top.appendChild(t); }
+                const preco = document.createElement('div'); preco.className = 'mpp-preco';
+                preco.textContent = mppBrl(p.valor);
+                const sm = document.createElement('small'); sm.textContent = ' /mês'; preco.appendChild(sm);
+                const info = document.createElement('div'); info.className = 'mpp-info';
+                const s1 = document.createElement('strong'); s1.textContent = p.provas.toLocaleString('pt-BR') + ' provas';
+                const s2 = document.createElement('strong'); s2.textContent = mppBrl(mppPrecoProva(p), 2);
+                info.append(s1, ' por mês', document.createElement('br'), s2, ' por prova (também o preço da prova extra)');
+                const btn = document.createElement('button');
+                btn.type = 'button'; btn.className = 'pl-cfg-btn';
+                if (ehAtual) { btn.disabled = true; btn.textContent = 'Plano atual'; }
+                else { btn.innerHTML = '<i class="ph-bold ph-qr-code"></i> Gerar QR PIX'; btn.onclick = () => mppConfirmar(p.nome); }
+                card.append(top, preco, info, btn);
+                grid.appendChild(card);
+            });
+        }
+
+        function mppAbrirModal() {
+            const m = document.getElementById('mppModal');
+            if (!m) return null;
+            if (m.parentElement !== document.body) document.body.appendChild(m);   // a aba pode estar oculta
+            m.classList.add('on');
+            if (!m._mppWired) {
+                m._mppWired = true;
+                m.addEventListener('click', e => { if (e.target === m) mppFechar(); });
+                document.addEventListener('keydown', e => { if (e.key === 'Escape' && m.classList.contains('on')) mppFechar(); });
+            }
+            return document.getElementById('mppBox');
+        }
+
+        function mppFechar() {
+            const m = document.getElementById('mppModal');
+            if (m) m.classList.remove('on');
+            if (_mppPoll) { clearInterval(_mppPoll); _mppPoll = null; }
+            _mppPaymentId = null; _mppEmAndamento = false;
+        }
+
+        // Passo 1: confirmação (não gera nada até o lojista confirmar)
+        async function mppConfirmar(plano) {
+            const p = PL_PLANOS_PIX.find(x => x.nome === plano);
+            if (!p) return;
+            const box = mppAbrirModal(); if (!box) return;
+            let store = null; try { store = await plMinhaLoja(); } catch (e) {}
+            const atual = mppPlanoAtual(store);
+            const deNome = atual ? atual.nome : ((store && (store.plano_personalizado || store.plan)) || 'plano atual');
+            box.innerHTML =
+                '<h3 id="mppTitulo"></h3><p id="mppSub"></p>' +
+                '<div class="mpp-resumo"><div><span>Valor</span><b id="mppRv"></b></div><div><span>Provas</span><b id="mppRp"></b></div><div><span>Por prova</span><b id="mppRu"></b></div></div>' +
+                '<p>O plano muda assim que o Mercado Pago confirmar o PIX. Até lá, seu plano atual continua valendo.</p>' +
+                '<div class="mpp-acoes"><button type="button" class="mpp-btn-sec" id="mppCancelar">Cancelar</button>' +
+                '<button type="button" class="pl-cfg-btn" id="mppGerar"><i class="ph-bold ph-qr-code"></i> Gerar QR PIX</button></div>';
+            document.getElementById('mppTitulo').textContent = 'Mudar para o plano ' + p.nome + '?';
+            document.getElementById('mppSub').textContent = 'Hoje: ' + deNome + '. Novo: ' + p.nome + ', mensalidade de ' + mppBrl(p.valor) + '.';
+            document.getElementById('mppRv').textContent = mppBrl(p.valor);
+            document.getElementById('mppRp').textContent = p.provas.toLocaleString('pt-BR');
+            document.getElementById('mppRu').textContent = mppBrl(mppPrecoProva(p), 2);
+            document.getElementById('mppCancelar').onclick = mppFechar;
+            document.getElementById('mppGerar').onclick = () => mppGerarPix(p.nome, store);
+        }
+
+        // Passo 2: gera o PIX no n8n (Mercado Pago) e mostra QR + copia e cola
+        async function mppGerarPix(plano, store) {
+            if (_mppEmAndamento) return;
+            _mppEmAndamento = true;
+            const box = document.getElementById('mppBox');
+            const btn = document.getElementById('mppGerar');
+            if (btn) { btn.disabled = true; btn.textContent = 'Gerando PIX...'; }
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (!session || !session.access_token) throw new Error('Sua sessão expirou. Entre de novo na dashboard.');
+                const pedido = mppMontaPedido(plano, activeUser, store);
+                const r = await fetch(PL_PLANO_PIX_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                    body: JSON.stringify(pedido)
+                });
+                const data = await r.json().catch(() => ({}));
+                if (!r.ok || data.ok === false) throw new Error(data.erro || ('Não consegui gerar o PIX agora (HTTP ' + r.status + ').'));
+                const paymentId = data.payment_id || data.id;
+                const qr = data.qr_code, qr64 = data.qr_code_base64;
+                if (!paymentId || !qr) throw new Error('PIX gerado sem os dados completos.');
+                _mppPaymentId = paymentId;
+                const p = PL_PLANOS_PIX.find(x => x.nome === plano);
+                box.innerHTML =
+                    '<h3 id="mppTitulo"></h3><p>Escaneie o QR Code no app do banco ou use o PIX copia e cola.</p>' +
+                    '<img class="mpp-qr" id="mppQr" alt="QR Code PIX" />' +
+                    '<textarea class="mpp-copia" id="mppCopia" readonly></textarea>' +
+                    '<div class="mpp-acoes" style="margin-top:10px;"><button type="button" class="pl-cfg-btn" id="mppCopiar"><i class="ph-bold ph-copy"></i> Copiar código PIX</button>' +
+                    '<button type="button" class="mpp-btn-sec" id="mppFecharBtn">Fechar</button></div>' +
+                    '<div class="mpp-status" id="mppStatus">Aguardando pagamento...</div>';
+                document.getElementById('mppTitulo').textContent = 'Plano ' + p.nome + ' · ' + mppBrl(p.valor);
+                const img = document.getElementById('mppQr');
+                if (qr64) img.src = 'data:image/png;base64,' + qr64; else img.style.display = 'none';
+                document.getElementById('mppCopia').value = qr;
+                document.getElementById('mppFecharBtn').onclick = mppFechar;
+                const cb = document.getElementById('mppCopiar');
+                cb.onclick = async () => {
+                    try { await navigator.clipboard.writeText(qr); }
+                    catch (e) { const ta = document.getElementById('mppCopia'); ta.select(); try { document.execCommand('copy'); } catch (_) {} }
+                    cb.innerHTML = '<i class="ph-bold ph-check"></i> Copiado';
+                    setTimeout(() => { cb.innerHTML = '<i class="ph-bold ph-copy"></i> Copiar código PIX'; }, 2000);
+                };
+                if (_mppPoll) clearInterval(_mppPoll);
+                let tentativas = 0;
+                _mppPoll = setInterval(() => { if (++tentativas > 150) { clearInterval(_mppPoll); _mppPoll = null; return; } mppChecarStatus(p.nome); }, 4000);
+            } catch (err) {
+                console.error('mppGerarPix', err);
+                _mppEmAndamento = false;
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-qr-code"></i> Gerar QR PIX'; }
+                if (typeof crmToast === 'function') crmToast(err.message || 'Erro ao gerar PIX', true);
+            }
+        }
+
+        // Só mostra o status. Quem muda o plano é o n8n, ao confirmar o approved no Mercado Pago.
+        async function mppChecarStatus(plano) {
+            if (!_mppPaymentId) return;
+            try {
+                const r = await fetch(PL_PLANO_PIX_STATUS_URL + '?payment_id=' + encodeURIComponent(_mppPaymentId));
+                if (!r.ok) return;
+                const data = await r.json();
+                const st = data.status || (data[0] && data[0].status);
+                const el = document.getElementById('mppStatus');
+                if (st === 'approved') {
+                    clearInterval(_mppPoll); _mppPoll = null;
+                    if (el) { el.className = 'mpp-status ok'; el.textContent = 'Pagamento confirmado. Seu plano agora é o ' + plano + '.'; }
+                    try { _plLojaCache = null; } catch (e) {}
+                    setTimeout(() => { try { loadConsumoPlano(); } catch (e) {} try { mppRender(); } catch (e) {} }, 2500);
+                } else if (st === 'cancelled' || st === 'rejected') {
+                    clearInterval(_mppPoll); _mppPoll = null;
+                    if (el) { el.className = 'mpp-status erro'; el.textContent = 'Pagamento não aprovado (' + st + '). Seu plano não mudou. Gere um novo PIX.'; }
+                }
+            } catch (e) { /* ignora falha pontual do polling */ }
+        }
+
         function loadVisaoGeral() {
             if (!allOrdersCache || !generationPhones) return;
             renderEngajamentoCards((window._plVgView && window._plVgView.gens) || allGensShared || []);
@@ -21364,6 +21606,7 @@
                     .from('provou_levou_pix_extras')
                     .select('valor,approved_at')
                     .eq('status', 'approved')
+                    .or('raw_payload.is.null,raw_payload->>tipo.neq.plano')   // PIX de mensalidade (plano) não é prova extra
                     .ilike('origin', `%${activeUser.origem}%`);
                 if (error) throw error;
                 const count = (data || []).length;
