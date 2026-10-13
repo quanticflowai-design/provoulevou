@@ -5756,6 +5756,9 @@
                     .mpp-resumo div { border:1px solid var(--border); border-radius:10px; padding:10px 6px; }
                     .mpp-resumo span { display:block; font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; }
                     .mpp-resumo b { font-size:15px; font-variant-numeric:tabular-nums; }
+                    .mpp-pagar { border:1px solid var(--border); border-radius:12px; padding:14px 12px; margin:14px 0; text-align:center; }
+                    .mpp-pagar span { display:block; font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; }
+                    .mpp-pagar b { display:block; font-size:28px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--primary); }
                     .mpp-acoes { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
                     .mpp-btn-sec { display:inline-flex; align-items:center; gap:6px; padding:10px 18px; border:1px solid var(--border); border-radius:10px; background:transparent; color:inherit; font:inherit; font-size:13.5px; font-weight:600; cursor:pointer; }
                     .mpp-qr { width:220px; max-width:100%; height:auto; aspect-ratio:1; display:block; margin:6px auto 12px; background:#fff; padding:10px; border-radius:12px; }
@@ -20006,24 +20009,22 @@
             const credito = Number(calc.credito) || 0;
             box.innerHTML =
                 '<h3 id="mppTitulo"></h3><p id="mppSub"></p>' +
-                '<div class="mpp-resumo"><div><span>A pagar</span><b id="mppRv"></b></div><div><span>Valor cheio</span><b id="mppRc"></b></div><div><span>Crédito</span><b id="mppRcr"></b></div></div>' +
+                '<div class="mpp-pagar"><span>Valor a pagar hoje</span><b id="mppRv"></b></div>' +
                 '<p id="mppExpl"></p>' +
                 '<div class="mpp-acoes"><button type="button" class="mpp-btn-sec" id="mppCancelar">Cancelar</button>' +
                 '<button type="button" class="pl-cfg-btn" id="mppGerar"><i class="ph-bold ph-qr-code"></i> Gerar QR PIX</button></div>';
             document.getElementById('mppTitulo').textContent = 'Mudar para o plano ' + p.nome + '?';
             document.getElementById('mppSub').textContent = 'Hoje: ' + deNome + '. Novo: ' + p.nome + ', ' + p.provas.toLocaleString('pt-BR') + ' provas por mês (' + mppBrl(mppPrecoProva(p), 2) + ' por prova).';
             document.getElementById('mppRv').textContent = mppBrl(calc.valor_cobrado, 2);
-            document.getElementById('mppRc').textContent = mppBrl(calc.valor_cheio, 2);
-            document.getElementById('mppRcr').textContent = credito > 0 ? '− ' + mppBrl(credito, 2) : mppBrl(0, 2);
-            document.getElementById('mppExpl').textContent = (credito > 0
-                ? 'O crédito é o valor dos ' + calc.dias_restantes + ' dias que ainda faltam do seu plano atual (de ' + calc.ciclo_dias + ' dias). '
-                : '') + 'O plano novo começa assim que o Mercado Pago confirmar o PIX, e o novo ciclo conta a partir desse dia. Até lá, seu plano atual continua valendo.';
+            document.getElementById('mppExpl').textContent = 'Valor a pagar hoje: ' + mppBrl(calc.valor_cobrado, 2) + (credito > 0
+                ? ', já descontado o que sobrou do seu plano atual. '
+                : '. ') + 'O plano novo começa assim que o Mercado Pago confirmar o PIX, e o novo ciclo conta a partir desse dia. Até lá, seu plano atual continua valendo.';
             document.getElementById('mppCancelar').onclick = mppFechar;
-            document.getElementById('mppGerar').onclick = () => mppGerarPix(p.nome, store);
+            document.getElementById('mppGerar').onclick = () => mppGerarPix(p.nome, store, Number(calc.valor_cobrado));
         }
 
         // Passo 2: gera o PIX no n8n (Mercado Pago) e mostra QR + copia e cola
-        async function mppGerarPix(plano, store) {
+        async function mppGerarPix(plano, store, valorSimulado) {
             if (_mppEmAndamento) return;
             _mppEmAndamento = true;
             const box = document.getElementById('mppBox');
@@ -20052,8 +20053,8 @@
                     '<div class="mpp-acoes" style="margin-top:10px;"><button type="button" class="pl-cfg-btn" id="mppCopiar"><i class="ph-bold ph-copy"></i> Copiar código PIX</button>' +
                     '<button type="button" class="mpp-btn-sec" id="mppFecharBtn">Fechar</button></div>' +
                     '<div class="mpp-status" id="mppStatus">Aguardando pagamento...</div>';
-                const pago = Number(data.valor_cobrado) > 0 ? Number(data.valor_cobrado) : p.valor;
-                document.getElementById('mppTitulo').textContent = 'Plano ' + p.nome + ' · ' + mppBrl(pago, 2);
+                const pago = Number(data.valor_cobrado) > 0 ? Number(data.valor_cobrado) : (valorSimulado > 0 ? valorSimulado : p.valor);
+                document.getElementById('mppTitulo').textContent = 'Plano ' + p.nome + ' · a pagar hoje ' + mppBrl(pago, 2);
                 const img = document.getElementById('mppQr');
                 if (qr64) img.src = 'data:image/png;base64,' + qr64; else img.style.display = 'none';
                 document.getElementById('mppCopia').value = qr;
