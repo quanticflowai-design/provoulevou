@@ -19637,8 +19637,6 @@
                             precoFoto = PACKS_PLAN_VALUES[store.plan] / PACKS_PLAN_LIMITS_REF[store.plan];
                             planLabel = store.plan;
                         }
-                        // Aplica markup pra evitar canibalização do upgrade
-                        if (precoFoto != null) precoFoto = precoFoto * PACKS_MARKUP;
                     }
                 }
             } catch (e) { console.warn('packs preço/foto fail:', e); }
@@ -19656,7 +19654,7 @@
             document.getElementById('packExtraPrecoFoto').textContent = brl(precoFoto);
             document.getElementById('packExtraSub').textContent = isOverride
                 ? 'Acordo especial: provas extras por ' + brl(precoFoto) + ' cada.'
-                : 'Plano vigente: ' + planLabel + '. Provas extras saem por ' + brl(precoFoto) + ' (30% acima do R$/foto do plano).';
+                : 'Plano vigente: ' + planLabel + '. Provas extras saem por ' + brl(precoFoto) + ' (valor do plano ÷ limite de provas).';
 
             // Smart nudge: checa extras já comprados no ciclo e sugere upgrade se aplicável
             renderUpgradeNudge(store);
