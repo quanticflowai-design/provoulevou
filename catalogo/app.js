@@ -566,7 +566,10 @@
                 brand: '#06757C', dark: '#04223C', soft: 'rgba(6,117,124,.10)', on: '#ffffff' },
     // Fábrica de Óculos Visual (SP) — logo foto azul-ciano + preto; sem fundo chapado -> bg branco, tema claro; brand = ciano do logo fechado p/ #0079A8 (4,9:1 c/ branco)
     fabricadeoculosvisual: { bg: '#FFFFFF', card: '#FFFFFF', line: '#D6EEF6',
-                brand: '#0079A8', dark: '#005A80', soft: 'rgba(0,121,168,.10)', on: '#ffffff' }
+                brand: '#0079A8', dark: '#005A80', soft: 'rgba(0,121,168,.10)', on: '#ffffff' },
+    // Ótica OM (Vinícius, BA) — monograma OM dourado sobre vinho chapado #190608 -> bg = fundo do logo, tema escuro; botão dourado com texto vinho (~9:1)
+    oticaom: { bg: '#190608', card: '#24090D', line: '#3D1A1F',
+                brand: '#D4AF5A', dark: '#B8913E', soft: 'rgba(212,175,90,.12)', on: '#190608' }
   };
 
   // ─────────── Tema ───────────
