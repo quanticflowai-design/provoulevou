@@ -30475,11 +30475,73 @@
                     '<p style="font-size:12px;color:var(--pa-mu)">Custo: R$ 0,35 por mensagem entregue. Recuperado: pedido pago até 30 dias depois de uma mensagem entregue.</p>' + fonte(D); },
             crescimento: D => { const p = D.p30, a = D.p30ant; return semPed(D) || '<p>Últimos 30 dias comparados com os 30 anteriores:</p><div class="pa-nums">' + num('Faturamento da loja', brl(p.fat_loja), delta(p.fat_loja, a.fat_loja)) + num('Vendas pós-prova', brl(p.fat_pos), delta(p.fat_pos, a.fat_pos)) + '</div><p>A parte do faturamento que veio de quem provou foi de <b>' + a.pct + '%</b> para <b>' + p.pct + '%</b>.</p>' + fonte(D); }
         };
-        const CHIPS = [['vendas', 'Quanto o provador vendeu?'], ['provas', 'Quantas provas tive?'], ['nao_compraram', 'Quem provou e não comprou?'], ['top_provados', 'Quais óculos mais provam?'], ['lentes', 'Como está o fluxo de lentes?'], ['top_vendidos', 'O que mais vendeu pelo provador?'], ['disparos', 'Disparos: quanto custou e quanto voltou?'], ['crescimento', 'A loja cresceu com o provador?'], ['mes', 'E neste mês?']];
+        const CHIPS = [['q:Como está o consumo do meu plano este mês?', 'Como está meu plano?'], ['q:Quantos leads tenho em cada etapa do CRM?', 'Leads no CRM'], ['q:Quem são meus melhores clientes e qual a taxa de recompra?', 'Melhores clientes'], ['vendas', 'Quanto o provador vendeu?'], ['provas', 'Quantas provas tive?'], ['nao_compraram', 'Quem provou e não comprou?'], ['top_provados', 'Quais óculos mais provam?'], ['lentes', 'Como está o fluxo de lentes?'], ['top_vendidos', 'O que mais vendeu pelo provador?'], ['disparos', 'Disparos: quanto custou e quanto voltou?'], ['crescimento', 'A loja cresceu com o provador?'], ['mes', 'E neste mês?']];
         let aberto = false, dom = null, cache = null, cacheEm = 0, hist = [], ocupado = false;
         const loja = () => (typeof activeUser !== 'undefined' && activeUser && activeUser.origem) ? String(activeUser.origem).toLowerCase() : null;
         function msg(cls, html) { const d = document.createElement('div'); d.className = 'pa-m ' + cls; d.innerHTML = html; $('paMsgs').appendChild(d); $('paMsgs').scrollTop = 1e9; return d; }
         function md(t) { return esc(t).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').split(/\n{2,}/).map(p => '<p>' + p.replace(/\n/g, '<br>') + '</p>').join(''); }
+
+        // Retrato com os números que a PRÓPRIA dash calcula (13/10/2026): clientes/recompra/LTV, plano, CRM por etapa e
+        // produção de lentes. Vai junto com a pergunta livre; o servidor confere o login e só repassa ao Claude.
+        let snapCache = null, snapEm = 0, snapDom = null;
+        const comTempo = (p, ms) => Promise.race([p, new Promise(r => setTimeout(() => r('__tempo'), ms))]);
+        const mascara = p => { const d = String(p || '').replace(/\D/g, ''); return d.length > 4 ? '…' + d.slice(-4) : d; };
+        async function retrato() {
+            if (snapCache && snapDom === dom && Date.now() - snapEm < 5 * 60e3) return snapCache;
+            const o = {};
+            try {   // Clientes & LTV (mesma conta de loadRecompra / loadLtv)
+                if (typeof allOrdersCache === 'undefined' || !allOrdersCache || !allOrdersCache.length) await comTempo(loadSharedData(), 20000);
+                const m = buildPhonePosProvaOrders(); let tot = 0, r30 = 0, r60 = 0, r90 = 0, soma = 0;
+                m.forEach(arr => { if (!arr.length) return; tot++; soma += arr.reduce((a, x) => a + x.val, 0);
+                    if (arr.length >= 2) { const d = (new Date(arr[1].ts) - new Date(arr[0].ts)) / 864e5; if (d <= 30) r30++; if (d <= 60) r60++; if (d <= 90) r90++; } });
+                const fT = activeUser.campo_total_pedido || 'total', fN = activeUser.campo_nome_pedido || null, by = {};
+                allOrdersCache.forEach(x => { const ph = orderPrimaryCustomerKey(x); if (!ph || !generationPhones.has(ph) || !isOrderAfterProva(x, ph)) return;
+                    const b = by[ph] = by[ph] || { nome: (fN && x[fN]) || nameMap[ph] || '', total: 0, pedidos: 0, tel: ph }; b.total += parseFloat(x[fT]) || 0; b.pedidos++; });
+                const top = Object.values(by).sort((a, b) => b.total - a.total || b.pedidos - a.pedidos).slice(0, 10)
+                    .map(b => ({ cliente: String(b.nome || '').trim().split(' ').slice(0, 2).join(' ') || 'sem nome', final_tel: mascara(b.tel), total: Math.round(b.total * 100) / 100, pedidos: b.pedidos }));
+                o.clientes = { compradores_pos_prova: tot, recompra_ate_30d: r30, recompra_ate_60d: r60, recompra_ate_90d: r90,
+                    taxa_recompra_90d_pct: tot ? Math.round(r90 / tot * 1000) / 10 : 0, ltv_medio: tot ? Math.round(soma / tot * 100) / 100 : 0, maiores_ltv: top };
+            } catch (e) { o.clientes_erro = 'indisponível'; }
+            try {   // Meu plano (mesma conta de loadConsumoPlano)
+                const st = await comTempo(plMinhaLoja(), 10000);
+                if (st && st !== '__tempo') {
+                    const teste = st.status === 'Teste Gratuito', ini = (st.last_payment && st.last_payment !== '-') ? st.last_payment : (teste ? st.implementation_date : null);
+                    if (ini) {
+                        const cut = ini + 'T00:00:00-03:00';
+                        const a = await supabaseClient.from('geracoes_provou_levou').select('id', { count: 'exact', head: true }).ilike('origin', '%' + activeUser.origem + '%').gte('created_at', cut);
+                        const b = await supabaseClient.from('geracoes_provou_levou').select('id', { count: 'exact', head: true }).ilike('origin', '%' + activeUser.origem + '%').gte('created_at', cut).not('pix_payment_id', 'is', null);
+                        const usadas = a.count || 0, pix = b.count || 0, extras = parseInt(st.fotos_extras, 10) || 0;
+                        const pers = !!st.plano_personalizado, lim0 = pers ? parseFloat(st.limite_personalizado || 0) : 0, base = PLAN_LIMITS_LOJISTA[st.plan];
+                        const ilim = base === Infinity || (pers && !(lim0 > 0));
+                        const limite = ((pers && lim0 > 0) ? lim0 : (ilim ? UNLIMITED_REF_LIMIT : (base || 0))) + extras, cobr = Math.max(0, usadas - pix);
+                        o.plano = { plano: st.plano_personalizado || st.plan || '—', ilimitado: ilim, status: st.status || '', inicio_ciclo: ini, ciclo_desde: teste ? 'início do teste grátis' : 'último pagamento',
+                            provas_usadas: cobr, provas_pix_avulsas: pix, creditos_extras: extras, limite: limite, restantes: Math.max(0, limite - cobr), excedente: Math.max(0, cobr - limite),
+                            uso_pct: limite ? Math.round(cobr / limite * 1000) / 10 : 0, valor_mensal: pers ? parseFloat(st.valor_personalizado || 0) : (PACKS_PLAN_VALUES[st.plan] || 0) };
+                    }
+                }
+            } catch (e) { o.plano_erro = 'indisponível'; }
+            try {   // CRM: leads por etapa (mesma regra do quadro, sem filtros)
+                if (typeof crmLeadMapCache === 'undefined' || !crmLeadMapCache) await comTempo(loadCRM(true), 25000);
+                if (crmLeadMapCache) {
+                    const cfg = getCrmConfig(), ov = getCrmOverrides(), cont = {}; cfg.columns.forEach(c => cont[c.key] = 0);
+                    Object.keys(crmLeadMapCache).forEach(ph => { const d = crmLeadMapCache[ph]; let k;
+                        if (d.bought && cont.convertido != null) k = 'convertido';
+                        else { k = ov[ph]; if (k && cont[k] == null) k = null; if (!k) { const rule = crmClassify(d), col = cfg.columns.find(c => c.auto && c.rule === rule); k = col ? col.key : (cont[rule] != null ? rule : 'cold'); } }
+                        cont[k] = (cont[k] || 0) + 1; });
+                    o.crm = { total_leads: Object.keys(crmLeadMapCache).length, por_etapa: cfg.columns.map(c => ({ etapa: c.title || c.key, leads: cont[c.key] || 0 })) };
+                }
+            } catch (e) { o.crm_erro = 'indisponível'; }
+            try {   // Produção de lentes (mesma lista do quadro de produção)
+                if (document.getElementById('lentesCards') && typeof loadLentes === 'function' && (typeof _lentesCarregado === 'undefined' || !_lentesCarregado)) await comTempo(loadLentes(), 20000);
+                if (typeof _lentesProducao === 'function' && typeof _lentesCarregado !== 'undefined' && _lentesCarregado) {
+                    const it = _lentesProducao(), c = {}; _LENTES_PROD.forEach(e => c[e.rot] = 0);
+                    it.forEach(v => { const e = _LENTES_PROD.find(x => x.id === _lentesEtapaProducao(v)) || _LENTES_PROD[0]; c[e.rot]++; });
+                    o.lentes_producao = { pedidos: it.length, por_etapa: c };
+                }
+            } catch (e) {}
+            snapCache = o; snapEm = Date.now(); snapDom = dom;
+            return o;
+        }
         async function chama(body) {
             const s = (typeof supabaseClient !== 'undefined') ? (await supabaseClient.auth.getSession()).data.session : null;
             if (!s) throw new Error('Sua sessão expirou. Entre de novo na dashboard.');
@@ -30496,7 +30558,7 @@
             try {
                 let html;
                 if (k) { const D = (cache && Date.now() - cacheEm < 5 * 60e3) ? cache : (await chama({ intencao: k })).dados; html = R[k](D); hist.push({ role: 'user', content: texto }, { role: 'assistant', content: '(mostrei os números de: ' + texto + ')' }); }
-                else { const j = await chama({ pergunta: texto, historico: hist }); html = md(j.resposta); hist.push({ role: 'user', content: texto }, { role: 'assistant', content: j.resposta }); }
+                else { let rt = {}; try { rt = await retrato(); } catch (e) {} const j = await chama({ pergunta: texto, historico: hist, dash: rt }); html = md(j.resposta); hist.push({ role: 'user', content: texto }, { role: 'assistant', content: j.resposta }); }
                 hist = hist.slice(-6); t.innerHTML = html;
             } catch (e) { t.classList.add('erro'); t.innerHTML = '<p>' + esc(e.message) + '</p>'; }
             ocupado = false; $('paMsgs').scrollTop = 1e9;
@@ -30517,7 +30579,7 @@
         }
         $('paFab').addEventListener('click', () => alterna());
         $('paFecha').addEventListener('click', () => alterna(false));
-        $('paChips').addEventListener('click', e => { const b = e.target.closest('[data-pa-k]'); if (b) pergunta(b.dataset.paK, b.textContent); });
+        $('paChips').addEventListener('click', e => { const b = e.target.closest('[data-pa-k]'); if (b) { const k = b.dataset.paK; if (k.indexOf('q:') === 0) pergunta(null, k.slice(2)); else pergunta(k, b.textContent); } });
         $('paMsgs').addEventListener('click', e => { const b = e.target.closest('[data-pa-ir]'); if (b && typeof showTab === 'function') { alterna(false); showTab(b.dataset.paIr); } });
         $('paForm').addEventListener('submit', e => { e.preventDefault(); const q = $('paQ').value.trim(); if (!q) return; $('paQ').value = ''; pergunta(null, q); });
         document.addEventListener('keydown', e => { if (e.key === 'Escape' && aberto) alterna(false); });
