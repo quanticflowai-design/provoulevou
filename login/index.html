@@ -3720,10 +3720,10 @@
                         </h2>
                         <div class="date-filter-bar" style="margin-bottom:0;">
                             <div class="date-presets">
-                                <button class="btn-preset active" onclick="setDatePresetCompras(0)">Tudo</button>
+                                <button class="btn-preset" onclick="setDatePresetCompras(0)">Tudo</button>
                                 <button class="btn-preset" onclick="setDatePresetCompras(1)">Hoje</button>
                                 <button class="btn-preset" onclick="setDatePresetCompras(7)">7 dias</button>
-                                <button class="btn-preset" onclick="setDatePresetCompras(30)">30 dias</button>
+                                <button class="btn-preset active" onclick="setDatePresetCompras(30)">30 dias</button>
                             </div>
                             <div class="date-custom">
                                 <label><i class="ph-bold ph-calendar-blank"></i></label>
@@ -3868,15 +3868,15 @@
                     <div class="a-page-head a-tab-head">
                         <div class="a-page-title">
                             <h1>Provas</h1>
-                            <p id="provasASub" data-a-sub="todo o período">Todo o período</p>
+                            <p id="provasASub" data-a-sub="últimos 30 dias">Últimos 30 dias</p>
                         </div>
                         <div class="a-page-actions">
                             <div class="date-filter-bar" style="margin-bottom:0;">
                                 <div class="date-presets">
-                                    <button class="btn-preset active" onclick="setDatePresetProvas(0)">Tudo</button>
+                                    <button class="btn-preset" onclick="setDatePresetProvas(0)">Tudo</button>
                                     <button class="btn-preset" onclick="setDatePresetProvas(1)">Hoje</button>
                                     <button class="btn-preset" onclick="setDatePresetProvas(7)">7 dias</button>
-                                    <button class="btn-preset" onclick="setDatePresetProvas(30)">30 dias</button>
+                                    <button class="btn-preset active" onclick="setDatePresetProvas(30)">30 dias</button>
                                 </div>
                                 <div class="date-custom">
                                     <label><i class="ph-bold ph-calendar-blank"></i></label>
@@ -14651,7 +14651,7 @@
         }
 
         /* ===== Dashboard de Efetividade dos Disparos (1ª sub-aba) ===== */
-        let _dispDashPeriod = 'all'; // 1 (hoje) | 7 | 30 | 90 | 'all' | 'custom' — abre em "Tudo"
+        let _dispDashPeriod = 30; // 1 (hoje) | 7 | 30 | 90 | 'all' | 'custom' — abre em "30 dias"
         let _dispCustomFrom = null; // ms, começo do dia inicial (filtro Personalizado)
         let _dispCustomTo = null;   // ms, fim do dia final (filtro Personalizado)
 
@@ -18739,8 +18739,13 @@
 
 
                 // Estado dos dois painéis
-        let dateFromProvas = '', dateToProvas = '';
-        let dateFromCompras = '', dateToCompras = '';
+        // Padrão ao abrir: últimos 30 dias (mesma conta do botão "30 dias"); o lojista pode trocar.
+        const _pl30Fim = new Date().toISOString().split('T')[0];
+        const _pl30Ini = (() => { const f = new Date(); f.setDate(f.getDate() - 30 + 1); return f.toISOString().split('T')[0]; })();
+        let dateFromProvas = _pl30Ini, dateToProvas = _pl30Fim;
+        let dateFromCompras = _pl30Ini, dateToCompras = _pl30Fim;
+        ['dateFromProvas', 'dateFromCompras'].forEach(id => { const el = document.getElementById(id); if (el) el.value = _pl30Ini; });
+        ['dateToProvas', 'dateToCompras'].forEach(id => { const el = document.getElementById(id); if (el) el.value = _pl30Fim; });
         let comprasFilterRecorrente = false;
         let currentPageProvas = 1;
         let currentPageCompras = 1;
@@ -21765,6 +21770,7 @@
             crmLeadMapCache = null; _plPrecoProva = null; _plLojaCache = null;
             try {
                 await loadSharedData();
+                try { if (window.plVgAplicaPadrao) await window.plVgAplicaPadrao(); } catch (e) { console.warn('[vg periodo] padrão 30 dias:', e); }
                 loadVisaoGeral();
                 loadRecompra();
                 _rfmPedidos = null;
@@ -30361,7 +30367,7 @@
             { k: 'all', t: 'Tudo' }, { k: '7', t: '7 dias' }, { k: '30', t: '30 dias' },
             { k: '90', t: '90 dias' }, { k: 'mes', t: 'Este mês' }, { k: 'custom', t: 'Personalizado' }
         ];
-        var atual = 'all', token = 0;
+        var atual = '30', token = 0;   // padrão ao abrir: últimos 30 dias
 
         function intervalo(k) {
             var h = hoje();
@@ -30412,7 +30418,8 @@
             });
         }
 
-        function status(txt) { var s = document.getElementById('aVgFiltroInfo'); if (s) s.textContent = txt || ''; }
+        var _ultStatus = 'Carregando…';
+        function status(txt) { _ultStatus = txt || ''; var s = document.getElementById('aVgFiltroInfo'); if (s) s.textContent = txt || ''; }
 
         function sincronizaDatas(from, to) {
             try { dateFromCompras = from || ''; dateToCompras = to || ''; } catch (e) {}
@@ -30490,7 +30497,7 @@
             var bar = document.createElement('div'); bar.id = 'aVgFiltro'; bar.className = 'a-vg-filtro';
             var esq = document.createElement('div'); esq.className = 'a-vg-filtro-l';
             var lbl = document.createElement('span'); lbl.className = 'a-vg-filtro-t'; lbl.textContent = 'Período';
-            var info = document.createElement('span'); info.id = 'aVgFiltroInfo'; info.className = 'a-vg-filtro-i'; info.textContent = 'Desde a primeira prova';
+            var info = document.createElement('span'); info.id = 'aVgFiltroInfo'; info.className = 'a-vg-filtro-i'; info.textContent = _ultStatus;
             esq.append(lbl, info);
             var pills = document.createElement('div'); pills.className = 'a-vg-pills'; pills.setAttribute('role', 'group'); pills.setAttribute('aria-label', 'Período da Visão Geral');
             PRESETS.forEach(function (p) {
@@ -30515,8 +30522,12 @@
             return true;
         }
         var n = 0, iv = setInterval(function () { if (monta() || ++n > 60) clearInterval(iv); }, 500);
-        // troca de loja/login: volta para "Tudo"
-        window.plVgResetPeriodo = function () { token++; atual = 'all'; window._plVgView = null; pinta(); status('Desde a primeira prova'); };
+        // troca de loja/login: volta para o padrão (últimos 30 dias); aplicado por plVgAplicaPadrao() quando os dados chegam
+        window.plVgResetPeriodo = function () { token++; atual = '30'; window._plVgView = null; pinta(); status('Carregando…'); };
+        window.plVgAplicaPadrao = function () {
+            if (atual !== '30' || window._plVgView) return Promise.resolve();
+            var iv = intervalo('30'); return aplica('30', iv.from, iv.to);
+        };
     })();
     </script>
     <!-- Assistente da dash (13/10/2026): ícone no canto inferior direito abre um chat com os números DA LOJA logada.
