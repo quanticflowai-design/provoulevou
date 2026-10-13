@@ -5782,6 +5782,43 @@
                         .mpp-item .pl-cfg-btn { font-size:12px; padding:8px 6px; white-space:normal; text-align:center; gap:4px; }
                     }
                 </style>
+                <!-- Provas avulsas por PIX (13/10/2026). Preço por prova = valor do plano ÷ provas do plano; mínimo 50.
+                     O PIX é gerado pelo workflow n8n [PL] Provas avulsas (PIX) (webhook pl-avulsas-pix, Mercado Pago).
+                     O valor é recalculado no n8n pelo plano da loja do login; a dash só mostra. Valem no ciclo atual. -->
+                <style>
+                    .mpa-linha { display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px; margin-top:18px; }
+                    .mpa-chips { display:flex; flex-wrap:wrap; gap:8px; }
+                    .mpa-chip { padding:9px 14px; border:1px solid var(--border); border-radius:10px; background:transparent; color:inherit; font:inherit; font-size:13.5px; font-weight:600; cursor:pointer; font-variant-numeric:tabular-nums; }
+                    .mpa-chip.on { border-color:var(--primary-hi,#a855f7); box-shadow:0 0 0 1px var(--primary-hi,#a855f7) inset; color:var(--primary-hi,#a855f7); }
+                    .mpa-campo { display:flex; flex-direction:column; gap:6px; }
+                    .mpa-campo span, .mpa-total span { font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); }
+                    .mpa-campo input { width:120px; height:40px; box-sizing:border-box; padding:0 12px; border:1px solid var(--border); border-radius:10px; background:transparent; color:inherit; font:inherit; font-size:15px; font-weight:600; font-variant-numeric:tabular-nums; }
+                    .mpa-total { display:flex; flex-direction:column; gap:4px; min-width:120px; }
+                    .mpa-total b { font-size:24px; font-weight:800; letter-spacing:-.02em; font-variant-numeric:tabular-nums; color:inherit; line-height:1.1; }
+                    .mpa-nota { margin-top:12px; font-size:12.5px; color:var(--text-muted); line-height:1.5; }
+                    .mpa-nota.erro { color:#dc2626; }
+                    @media (max-width: 480px) { .mpa-linha { gap:12px; } .mpa-total b { font-size:20px; } #mpaComprar { width:100%; justify-content:center; } }
+                </style>
+                <div class="mp-card" id="mpAvulsas" style="margin-bottom:24px;">
+                    <div class="a-mp-eyebrow">Provas avulsas</div>
+                    <div class="mp-plan-name">Comprar provas avulsas</div>
+                    <div class="mp-plan-sub" id="mpaSub">Compre provas além do plano pelo mesmo preço por prova do seu plano, sem mudar de plano. Mínimo de 50 provas.</div>
+                    <div class="mpa-linha">
+                        <div class="mpa-campo"><span>Quantidade</span>
+                            <div class="mpa-chips" id="mpaChips">
+                                <button type="button" class="mpa-chip on" data-q="50">50</button>
+                                <button type="button" class="mpa-chip" data-q="100">100</button>
+                                <button type="button" class="mpa-chip" data-q="200">200</button>
+                                <button type="button" class="mpa-chip" data-q="500">500</button>
+                                <input type="number" id="mpaQtd" min="50" step="10" value="50" inputmode="numeric" aria-label="Quantidade de provas avulsas">
+                            </div>
+                        </div>
+                        <div class="mpa-total"><span>Total</span><b id="mpaTotal">—</b></div>
+                        <button type="button" class="pl-cfg-btn" id="mpaComprar" disabled><i class="ph-bold ph-qr-code"></i> Gerar QR PIX</button>
+                    </div>
+                    <div class="mpa-nota" id="mpaNota">Calculando o preço do seu plano...</div>
+                </div>
+
                 <div class="mp-card" id="mpPlanos" style="margin-bottom:24px;">
                     <div class="a-mp-eyebrow">Planos</div>
                     <div class="mp-plan-name">Mudar de plano</div>
@@ -6951,7 +6988,7 @@
                 btn.classList.add('active');
                 btn.setAttribute('aria-selected', 'true');
             }
-            if (name === 'meu-plano') { try { plProvadorCfgLoad(); } catch (e) {} try { mppRender(); } catch (e) {} }
+            if (name === 'meu-plano') { try { plProvadorCfgLoad(); } catch (e) {} try { mppRender(); } catch (e) {} try { mpaRender(); } catch (e) {} }
             if (name === 'recuperar-leads' && !leadsRecupLoaded && activeUser) {
                 leadsRecupLoaded = true;
                 loadLeadsRecup().catch(err => {
@@ -18415,8 +18452,9 @@
         }
 
         function openCreditsModal() {
-            const modal = document.getElementById('creditsBuyModal');
-            if (modal) modal.classList.add('active');
+            // 13/10/2026: a recarga antiga (pacotes fixos da tabela velha) foi trocada pelas provas avulsas do Meu plano.
+            showTab('meu-plano');
+            setTimeout(() => { const c = document.getElementById('mpAvulsas'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 150);
         }
         function closeCreditsModal() {
             const modal = document.getElementById('creditsBuyModal');
@@ -20101,6 +20139,169 @@
             } catch (e) { /* ignora falha pontual do polling */ }
         }
 
+        // ===== Provas avulsas por PIX (13/10/2026) =====
+        // Preço por prova = valor do plano ÷ provas do plano (o n8n calcula pela loja do login; nada do navegador vale).
+        // Mínimo 50. Aprovado o PIX, o n8n grava em pagamentos_clientes (tipo 'extra') e as provas valem no ciclo atual.
+        // Reusa o modal/polling do "Mudar de plano" (mppAbrirModal, mppFechar, _mppPoll, _mppPaymentId).
+        const PL_AVULSAS_PIX_URL = PACKS_WEBHOOK_BASE + '/pl-avulsas-pix';
+        const PL_AVULSAS_PIX_STATUS_URL = PACKS_WEBHOOK_BASE + '/pl-avulsas-pix-status';
+        const PL_AVULSAS_MIN = 50;
+        let _mpaPreco = null, _mpaInfo = null;
+
+        function mpaDataBr(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[3] + '/' + m[2] + '/' + m[1] : ''; }
+        function mpaQtd() { const n = parseInt((document.getElementById('mpaQtd') || {}).value, 10); return Number.isInteger(n) ? n : 0; }
+
+        async function mpaChamar(url, corpo) {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session || !session.access_token) throw new Error('Sua sessão expirou. Entre de novo na dashboard.');
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                body: JSON.stringify(corpo)
+            });
+            const data = await r.json().catch(() => ({}));
+            if (!r.ok || data.ok === false) throw new Error(data.erro || ('Não consegui falar com o servidor agora (HTTP ' + r.status + ').'));
+            return data;
+        }
+        function mpaPedido(qtd, simular) {
+            const pedido = { quantidade: qtd };
+            if (simular) pedido.simular = true;
+            return pedido;
+        }
+
+        function mpaAtualizaTotal() {
+            const qtd = mpaQtd(), tot = document.getElementById('mpaTotal'), btn = document.getElementById('mpaComprar'), nota = document.getElementById('mpaNota');
+            if (!tot || !btn) return;
+            document.querySelectorAll('#mpaChips .mpa-chip').forEach(c => c.classList.toggle('on', +c.dataset.q === qtd));
+            if (!(_mpaPreco > 0)) { tot.textContent = '—'; btn.disabled = true; return; }
+            if (qtd < PL_AVULSAS_MIN) {
+                tot.textContent = '—'; btn.disabled = true;
+                nota.className = 'mpa-nota erro'; nota.textContent = 'A compra mínima é de ' + PL_AVULSAS_MIN + ' provas.';
+                return;
+            }
+            tot.textContent = mppBrl(Math.round(qtd * _mpaPreco * 100) / 100, 2);
+            btn.disabled = false;
+            mpaNotaPadrao();
+        }
+        function mpaNotaPadrao() {
+            const nota = document.getElementById('mpaNota'); if (!nota || !_mpaInfo) return;
+            const hoje = new Date().toISOString().slice(0, 10);
+            const val = _mpaInfo.validade && _mpaInfo.validade >= hoje ? ' Valem até a renovação do plano em ' + mpaDataBr(_mpaInfo.validade) + '.' : ' Valem até a próxima renovação do plano.';
+            const ja = Number(_mpaInfo.avulsas_ciclo) > 0 ? ' Neste ciclo você já comprou ' + Number(_mpaInfo.avulsas_ciclo).toLocaleString('pt-BR') + ' provas avulsas.' : '';
+            nota.className = 'mpa-nota';
+            nota.textContent = mppBrl(_mpaPreco, 2) + ' por prova, o mesmo preço do seu plano' + (_mpaInfo.plano_atual ? ': ' + _mpaInfo.plano_atual : '') + '.' + val + ja;
+        }
+
+        async function mpaRender() {
+            const card = document.getElementById('mpAvulsas');
+            if (!card || !activeUser) return;
+            if (!card._mpaWired) {
+                card._mpaWired = true;
+                document.querySelectorAll('#mpaChips .mpa-chip').forEach(c => c.addEventListener('click', () => { document.getElementById('mpaQtd').value = c.dataset.q; mpaAtualizaTotal(); }));
+                document.getElementById('mpaQtd').addEventListener('input', mpaAtualizaTotal);
+                document.getElementById('mpaComprar').addEventListener('click', () => mpaConfirmar(mpaQtd()));
+            }
+            try {
+                const d = await mpaChamar(PL_AVULSAS_PIX_URL, mpaPedido(PL_AVULSAS_MIN, true));
+                _mpaPreco = Number(d.preco_prova) || null; _mpaInfo = d;
+                const novo = Number(d.avulsas_ciclo) || 0;
+                if (novo !== (window._plAvulsasCiclo || 0)) { window._plAvulsasCiclo = novo; try { loadConsumoPlano(); } catch (e) {} }
+                mpaAtualizaTotal();
+            } catch (err) {
+                _mpaPreco = null; mpaAtualizaTotal();
+                const nota = document.getElementById('mpaNota');
+                if (nota) { nota.className = 'mpa-nota erro'; nota.textContent = err.message || 'Não consegui calcular o preço agora.'; }
+            }
+        }
+
+        // Passo 1: confirma com o valor calculado no servidor para a quantidade escolhida
+        async function mpaConfirmar(qtd) {
+            if (!(qtd >= PL_AVULSAS_MIN)) return;
+            const box = mppAbrirModal(); if (!box) return;
+            box.innerHTML = '<h3 id="mppTitulo"></h3><p id="mppSub">Calculando o valor a pagar...</p>';
+            document.getElementById('mppTitulo').textContent = 'Comprar ' + qtd.toLocaleString('pt-BR') + ' provas avulsas?';
+            let calc;
+            try { calc = await mpaChamar(PL_AVULSAS_PIX_URL, mpaPedido(qtd, true)); }
+            catch (err) {
+                box.innerHTML = '<h3 id="mppTitulo"></h3><p id="mppSub"></p><div class="mpp-acoes"><button type="button" class="mpp-btn-sec" id="mppCancelar">Fechar</button></div>';
+                document.getElementById('mppTitulo').textContent = 'Provas avulsas';
+                document.getElementById('mppSub').textContent = err.message || 'Não consegui calcular o valor agora.';
+                document.getElementById('mppCancelar').onclick = mppFechar;
+                return;
+            }
+            box.innerHTML = '<h3 id="mppTitulo"></h3><p id="mppSub"></p>' +
+                '<div class="mpp-pagar"><span>Valor a pagar</span><b id="mppRv"></b></div>' +
+                '<div class="mpp-acoes"><button type="button" class="mpp-btn-sec" id="mppCancelar">Cancelar</button>' +
+                '<button type="button" class="pl-cfg-btn" id="mppGerar"><i class="ph-bold ph-qr-code"></i> Gerar QR PIX</button></div>';
+            document.getElementById('mppTitulo').textContent = 'Comprar ' + qtd.toLocaleString('pt-BR') + ' provas avulsas?';
+            const hoje = new Date().toISOString().slice(0, 10);
+            document.getElementById('mppSub').textContent = qtd.toLocaleString('pt-BR') + ' × ' + mppBrl(calc.preco_prova, 2) + ' por prova (preço do seu plano).' +
+                (calc.validade && calc.validade >= hoje ? ' Valem até ' + mpaDataBr(calc.validade) + '.' : ' Valem até a próxima renovação do plano.');
+            document.getElementById('mppRv').textContent = mppBrl(calc.valor_cobrado, 2);
+            document.getElementById('mppCancelar').onclick = mppFechar;
+            document.getElementById('mppGerar').onclick = () => mpaGerarPix(qtd);
+        }
+
+        // Passo 2: gera o PIX e acompanha o status (quem credita é o n8n, ao confirmar o approved no Mercado Pago)
+        async function mpaGerarPix(qtd) {
+            if (_mppEmAndamento) return;
+            _mppEmAndamento = true;
+            const box = document.getElementById('mppBox');
+            const btn = document.getElementById('mppGerar');
+            if (btn) { btn.disabled = true; btn.textContent = 'Gerando PIX...'; }
+            try {
+                const data = await mpaChamar(PL_AVULSAS_PIX_URL, mpaPedido(qtd, false));
+                const paymentId = data.payment_id || data.id, qr = data.qr_code, qr64 = data.qr_code_base64;
+                if (!paymentId || !qr) throw new Error('PIX gerado sem os dados completos.');
+                _mppPaymentId = paymentId;
+                box.innerHTML =
+                    '<h3 id="mppTitulo"></h3><p>Escaneie o QR Code no app do banco ou use o PIX copia e cola.</p>' +
+                    '<img class="mpp-qr" id="mppQr" alt="QR Code PIX" />' +
+                    '<textarea class="mpp-copia" id="mppCopia" readonly></textarea>' +
+                    '<div class="mpp-acoes" style="margin-top:10px;"><button type="button" class="pl-cfg-btn" id="mppCopiar"><i class="ph-bold ph-copy"></i> Copiar código PIX</button>' +
+                    '<button type="button" class="mpp-btn-sec" id="mppFecharBtn">Fechar</button></div>' +
+                    '<div class="mpp-status" id="mppStatus">Aguardando pagamento...</div>';
+                document.getElementById('mppTitulo').textContent = qtd.toLocaleString('pt-BR') + ' provas avulsas · ' + mppBrl(data.valor_cobrado, 2);
+                const img = document.getElementById('mppQr');
+                if (qr64) img.src = 'data:image/png;base64,' + qr64; else img.style.display = 'none';
+                document.getElementById('mppCopia').value = qr;
+                document.getElementById('mppFecharBtn').onclick = mppFechar;
+                const cb = document.getElementById('mppCopiar');
+                cb.onclick = async () => {
+                    try { await navigator.clipboard.writeText(qr); }
+                    catch (e) { const ta = document.getElementById('mppCopia'); ta.select(); try { document.execCommand('copy'); } catch (_) {} }
+                    cb.innerHTML = '<i class="ph-bold ph-check"></i> Copiado';
+                    setTimeout(() => { cb.innerHTML = '<i class="ph-bold ph-copy"></i> Copiar código PIX'; }, 2000);
+                };
+                if (_mppPoll) clearInterval(_mppPoll);
+                let tentativas = 0;
+                _mppPoll = setInterval(() => { if (++tentativas > 150) { clearInterval(_mppPoll); _mppPoll = null; return; } mpaChecarStatus(qtd); }, 4000);
+            } catch (err) {
+                console.error('mpaGerarPix', err);
+                _mppEmAndamento = false;
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-qr-code"></i> Gerar QR PIX'; }
+                if (typeof crmToast === 'function') crmToast(err.message || 'Erro ao gerar PIX', true);
+            }
+        }
+
+        async function mpaChecarStatus(qtd) {
+            if (!_mppPaymentId) return;
+            try {
+                const r = await fetch(PL_AVULSAS_PIX_STATUS_URL + '?payment_id=' + encodeURIComponent(_mppPaymentId));
+                if (!r.ok) return;
+                const data = await r.json();
+                const el = document.getElementById('mppStatus');
+                if (data.status === 'approved' && data.aplicado) {
+                    clearInterval(_mppPoll); _mppPoll = null;
+                    if (el) { el.className = 'mpp-status ok'; el.textContent = 'Pagamento confirmado. ' + qtd.toLocaleString('pt-BR') + ' provas avulsas liberadas.'; }
+                    setTimeout(() => { try { mpaRender(); } catch (e) {} }, 1500);
+                } else if (data.status === 'cancelled' || data.status === 'rejected') {
+                    clearInterval(_mppPoll); _mppPoll = null;
+                    if (el) { el.className = 'mpp-status erro'; el.textContent = 'Pagamento não aprovado (' + data.status + '). Gere um novo PIX.'; }
+                }
+            } catch (e) { /* ignora falha pontual do polling */ }
+        }
+
         function loadVisaoGeral() {
             if (!allOrdersCache || !generationPhones) return;
             renderEngajamentoCards((window._plVgView && window._plVgView.gens) || allGensShared || []);
@@ -21741,7 +21942,8 @@
                         .not('pix_payment_id', 'is', null);
                     if (!rPix.error) usadasPix = rPix.count || 0;
                 } catch (_) {}
-                const creditoFotos = parseInt(store.fotos_extras, 10) || 0;
+                // + provas avulsas compradas por PIX no ciclo (13/10/2026; o n8n devolve, ver mpaRender)
+                const creditoFotos = (parseInt(store.fotos_extras, 10) || 0) + (window._plAvulsasCiclo || 0);
 
                 const planLabel = store.plano_personalizado || store.plan || '—';
                 const isPersonalizado = !!store.plano_personalizado;
