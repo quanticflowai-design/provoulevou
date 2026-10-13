@@ -5776,6 +5776,16 @@
                             <div id="plBloqMsg" style="font-size:12.5px;color:var(--text-muted);margin-top:8px;"></div>
                             <div id="plBloqLista" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;"></div>
                         </div>
+                        <!-- Bloquear ao atingir o limite do plano (13/10/2026). Padrão desligado.
+                             Grava em crm_pipeline_config, linha 'provador:<dominio>', via RPC pl_set_bloqueio_limite. -->
+                        <div>
+                            <div style="font-size:14px;font-weight:600;">Bloquear provador ao atingir o limite</div>
+                            <div style="font-size:12.5px;color:var(--text-muted);margin:4px 0 12px;line-height:1.5;">Quando ligado, o provador para de funcionar na sua loja assim que as provas do plano do mês acabarem. Desligado, ele continua funcionando.</div>
+                            <div style="display:flex;gap:10px;align-items:center;">
+                                <label class="autom-switch"><input type="checkbox" id="plBloqLimiteChk" onchange="plSalvarBloqLimite(this.checked)"><span id="plBloqLimiteTxt">Desligado</span></label>
+                                <span id="plBloqLimiteMsg" style="font-size:12.5px;color:var(--text-muted);"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -6776,6 +6786,44 @@
             card.style.display = '';
             document.getElementById('plLimiteInp').value = activeUser.limite_provas_dia;
             plBloqueiosLoad();
+            plBloqLimiteLoad();
+        }
+        /* Bloquear provador ao atingir o limite do plano — por loja (chave = domínio), padrão desligado.
+           Sem coluna nova: usa crm_pipeline_config com a linha 'provador:<dominio>' (mesmo truque do
+           'lentes:'/'rfm:'); os leitores do CRM filtram por chave exata e exigem columns array, então não colide. */
+        function _plBloqLimiteChave() {
+            const dom = normalizeStoreDomain(activeUser && activeUser.origem);
+            return dom ? 'provador:' + dom : null;
+        }
+        function _plBloqLimiteUi(on) {
+            const chk = document.getElementById('plBloqLimiteChk'), txt = document.getElementById('plBloqLimiteTxt');
+            if (chk) chk.checked = !!on;
+            if (txt) txt.textContent = on ? 'Ligado' : 'Desligado';
+        }
+        async function plBloqLimiteLoad() {
+            const chk = document.getElementById('plBloqLimiteChk'), chave = _plBloqLimiteChave();
+            if (!chk) return;
+            _plBloqLimiteUi(false);
+            if (!chave) { chk.disabled = true; return; }
+            chk.disabled = true;
+            const { data, error } = await supabaseClient.from('crm_pipeline_config')
+                .select('columns').eq('lojista_email', chave).limit(1);
+            chk.disabled = false;
+            if (error) { console.warn('[bloq limite]', error); return; }
+            const cfg = data && data[0] && data[0].columns;
+            _plBloqLimiteUi(!!(cfg && !Array.isArray(cfg) && cfg.bloquear_ao_limite === true));
+        }
+        async function plSalvarBloqLimite(on) {
+            const chk = document.getElementById('plBloqLimiteChk'), msg = document.getElementById('plBloqLimiteMsg'), chave = _plBloqLimiteChave();
+            if (!chave) { _plBloqLimiteUi(!on); msg.style.color = '#ef4444'; msg.textContent = 'Loja sem domínio cadastrado.'; return; }
+            _plBloqLimiteUi(on); chk.disabled = true; msg.style.color = ''; msg.textContent = 'Salvando…';
+            // Escrita direta em 'provador:%' é bloqueada por RLS — grava só pela função pl_set_bloqueio_limite (confere o dono da loja).
+            const { error } = await supabaseClient.rpc('pl_set_bloqueio_limite', {
+                p_dominio: chave.slice('provador:'.length), p_valor: !!on, p_por: (activeUser && activeUser.email) || null
+            });
+            chk.disabled = false;
+            if (error) { _plBloqLimiteUi(!on); msg.style.color = '#ef4444'; msg.textContent = 'Não foi possível salvar.'; console.warn('[bloq limite]', error); return; }
+            msg.style.color = '#22c55e'; msg.textContent = 'Salvo!';
         }
         async function plSalvarLimite() {
             const inp = document.getElementById('plLimiteInp'), msg = document.getElementById('plLimiteMsg');
