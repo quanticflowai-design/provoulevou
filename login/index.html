@@ -5695,7 +5695,7 @@
                     </div>
                 </div>
 
-                <div class="mp-grid">
+                <div class="mp-grid" style="grid-template-columns:minmax(0,1fr);">
                     <!-- Main plan card -->
                     <div class="mp-card mp-main">
                         <div class="mp-main-head">
@@ -5739,24 +5739,6 @@
                         </div>
                     </div>
 
-                    <!-- Aside cards -->
-                    <div class="mp-aside">
-                        <div class="mp-aside-card">
-                            <div class="a-aside-head"><span class="a-ico"><i class="ph-bold ph-chart-line-up"></i></span><div class="title">Crescimento LTV</div></div>
-                            <div class="body" id="mpGrowthBody">
-                                Acompanhe a evolução do faturamento atribuído ao provador na aba Visão Geral.
-                            </div>
-                        </div>
-                        <div class="mp-aside-card smart" id="mpSmartCard">
-                            <div class="a-aside-head"><span class="a-ico"><i class="ph-bold ph-lightbulb"></i></span><div class="title">Sugestão inteligente</div></div>
-                            <div class="body" id="mpSmartBody">
-                                Continue usando o provador pra acumular dados de impacto.
-                            </div>
-                            <a class="cta" href="#" onclick="event.preventDefault();showTab('visao-geral');">
-                                Ver impacto <i class="ph-bold ph-arrow-right"></i>
-                            </a>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Mudar de plano por PIX (13/10/2026). Tabela de planos desde 08/10/2026.
@@ -18345,7 +18327,7 @@
 
                     // Smart suggestion contextual
                     const smartBody = document.getElementById('mpSmartBody');
-                    if (usados >= cap && saldo === 0) {
+                    if (!smartBody) { /* card de sugestao removido do Meu Plano (13/10) */ } else if (usados >= cap && saldo === 0) {
                         smartBody.innerHTML = 'Seu plano esgotou. Considere fazer <strong>upgrade</strong> pra evitar interrupção do provador.';
                     } else if (pct >= 80) {
                         smartBody.innerHTML = 'Você está em <strong>' + pct + '%</strong> do limite mensal do seu plano.';
