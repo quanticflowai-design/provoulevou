@@ -5724,7 +5724,7 @@
                                 <div class="val" id="mpProxFatura">—</div>
                             </div>
                             <div></div>
-                            <button class="mp-buy-cta" onclick="openCreditsModal()">
+                            <button type="button" class="mpa-cta" onclick="mpaAbrir()">
                                 <i class="ph-bold ph-plus-circle"></i> Comprar provas avulsas
                             </button>
                         </div>
@@ -5797,6 +5797,10 @@
                     .mpa-total b { font-size:24px; font-weight:800; letter-spacing:-.02em; font-variant-numeric:tabular-nums; color:inherit; line-height:1.1; }
                     .mpa-nota { margin-top:12px; font-size:12.5px; color:var(--text-muted); line-height:1.5; }
                     .mpa-nota.erro { color:#dc2626; }
+                    .mpa-cta { display:inline-flex; align-items:center; gap:8px; padding:12px 20px; justify-self:end; border:0; border-radius:10px; background:linear-gradient(135deg,#630ed4,#7c3aed); color:#fff; font:inherit; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; box-shadow:0 8px 20px -8px rgba(99,14,212,.5); transition:transform .15s, box-shadow .15s; }
+                    .mpa-cta:hover { transform:translateY(-1px); box-shadow:0 12px 24px -10px rgba(99,14,212,.6); }
+                    .mpa-cta i { font-size:17px; }
+                    @media (max-width: 640px) { #tab-meu-plano .mp-bottom .mpa-cta { grid-column:1 / -1; justify-self:stretch; justify-content:center; } }
                     .mpa-box { max-width:520px; text-align:left; position:relative; }
                     .mpa-box h3 { margin:2px 0 6px; font-size:20px; }
                     .mpa-x { position:absolute; top:12px; right:14px; width:32px; height:32px; border:0; background:transparent; color:var(--text-muted); font-size:24px; line-height:1; cursor:pointer; border-radius:8px; }
