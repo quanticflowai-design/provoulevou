@@ -19968,7 +19968,7 @@
             _mppPaymentId = null; _mppEmAndamento = false;
         }
 
-        // Pede ao n8n só o cálculo (simular: true): valor cheio, crédito do plano atual e valor a pagar. Não cria pagamento.
+        // Pede ao n8n só o cálculo (simular: true): diferença do plano (já com crédito), excedente em aberto e total a pagar. Não cria pagamento.
         async function mppSimular(plano, store) {
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session || !session.access_token) throw new Error('Sua sessão expirou. Entre de novo na dashboard.');
@@ -19985,7 +19985,7 @@
         }
 
         // Passo 1: confirmação com o valor calculado no servidor (não gera nada até o lojista confirmar)
-        // Upgrade: paga o plano novo menos o crédito dos dias que faltam do plano atual; o plano novo vale na hora.
+        // Upgrade: paga o plano novo menos o crédito dos dias que faltam do plano atual, mais o excedente em aberto; o plano novo vale na hora.
         async function mppConfirmar(plano) {
             const p = PL_PLANOS_PIX.find(x => x.nome === plano);
             if (!p) return;
@@ -20006,7 +20006,9 @@
                 document.getElementById('mppCancelar').onclick = mppFechar;
                 return;
             }
-            const credito = Number(calc.credito) || 0;
+            // Valores vêm do servidor: total = diferença do plano novo (já com o crédito) + excedente em aberto.
+            const excedente = Math.max(0, Number(calc.excedente_aberto) || 0);
+            const diferenca = Number(calc.diferenca_plano) > 0 ? Number(calc.diferenca_plano) : Math.max(0, Number(calc.valor_cobrado) - excedente);
             box.innerHTML =
                 '<h3 id="mppTitulo"></h3><p id="mppSub"></p>' +
                 '<div class="mpp-pagar"><span>Valor a pagar hoje</span><b id="mppRv"></b></div>' +
@@ -20016,9 +20018,8 @@
             document.getElementById('mppTitulo').textContent = 'Mudar para o plano ' + p.nome + '?';
             document.getElementById('mppSub').textContent = 'Hoje: ' + deNome + '. Novo: ' + p.nome + ', ' + p.provas.toLocaleString('pt-BR') + ' provas por mês (' + mppBrl(mppPrecoProva(p), 2) + ' por prova).';
             document.getElementById('mppRv').textContent = mppBrl(calc.valor_cobrado, 2);
-            document.getElementById('mppExpl').textContent = 'Valor a pagar hoje: ' + mppBrl(calc.valor_cobrado, 2) + (credito > 0
-                ? ', já descontado o que sobrou do seu plano atual. '
-                : '. ') + 'O plano novo começa assim que o Mercado Pago confirmar o PIX, e o novo ciclo conta a partir desse dia. Até lá, seu plano atual continua valendo.';
+            document.getElementById('mppExpl').textContent = 'Inclui: diferença do plano novo ' + mppBrl(diferenca, 2) +
+                (excedente > 0 ? ' + excedente em aberto ' + mppBrl(excedente, 2) : '') + '.';
             document.getElementById('mppCancelar').onclick = mppFechar;
             document.getElementById('mppGerar').onclick = () => mppGerarPix(p.nome, store, Number(calc.valor_cobrado));
         }
