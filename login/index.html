@@ -20163,8 +20163,10 @@
             if (!r.ok || data.ok === false) throw new Error(data.erro || ('Não consegui falar com o servidor agora (HTTP ' + r.status + ').'));
             return data;
         }
-        function mpaPedido(qtd, simular) {
-            const pedido = { quantidade: qtd };
+        // store_id da loja aberta na dash: sem ele, admin vendo outra loja recebia o preço da loja do próprio login.
+        async function mpaPedido(qtd, simular) {
+            let store = null; try { store = await plMinhaLoja(); } catch (e) {}
+            const pedido = { quantidade: qtd, store_id: (store && store.id) || null };
             if (simular) pedido.simular = true;
             return pedido;
         }
@@ -20202,7 +20204,7 @@
                 document.getElementById('mpaComprar').addEventListener('click', () => mpaConfirmar(mpaQtd()));
             }
             try {
-                const d = await mpaChamar(PL_AVULSAS_PIX_URL, mpaPedido(PL_AVULSAS_MIN, true));
+                const d = await mpaChamar(PL_AVULSAS_PIX_URL, await mpaPedido(PL_AVULSAS_MIN, true));
                 _mpaPreco = Number(d.preco_prova) || null; _mpaInfo = d;
                 const novo = Number(d.avulsas_ciclo) || 0;
                 if (novo !== (window._plAvulsasCiclo || 0)) { window._plAvulsasCiclo = novo; try { loadConsumoPlano(); } catch (e) {} }
@@ -20221,7 +20223,7 @@
             box.innerHTML = '<h3 id="mppTitulo"></h3><p id="mppSub">Calculando o valor a pagar...</p>';
             document.getElementById('mppTitulo').textContent = 'Comprar ' + qtd.toLocaleString('pt-BR') + ' provas avulsas?';
             let calc;
-            try { calc = await mpaChamar(PL_AVULSAS_PIX_URL, mpaPedido(qtd, true)); }
+            try { calc = await mpaChamar(PL_AVULSAS_PIX_URL, await mpaPedido(qtd, true)); }
             catch (err) {
                 box.innerHTML = '<h3 id="mppTitulo"></h3><p id="mppSub"></p><div class="mpp-acoes"><button type="button" class="mpp-btn-sec" id="mppCancelar">Fechar</button></div>';
                 document.getElementById('mppTitulo').textContent = 'Provas avulsas';
@@ -20250,7 +20252,7 @@
             const btn = document.getElementById('mppGerar');
             if (btn) { btn.disabled = true; btn.textContent = 'Gerando PIX...'; }
             try {
-                const data = await mpaChamar(PL_AVULSAS_PIX_URL, mpaPedido(qtd, false));
+                const data = await mpaChamar(PL_AVULSAS_PIX_URL, await mpaPedido(qtd, false));
                 const paymentId = data.payment_id || data.id, qr = data.qr_code, qr64 = data.qr_code_base64;
                 if (!paymentId || !qr) throw new Error('PIX gerado sem os dados completos.');
                 _mppPaymentId = paymentId;
