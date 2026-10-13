@@ -563,7 +563,10 @@
                 brand: '#ECB25E', dark: '#D49A45', soft: 'rgba(236,178,94,.14)', on: '#1E3D79' },
     // Visóptica (SC) — logo azul-petróleo + marinho sobre branco (#FDFDFD); bg = fundo do logo, tema claro; brand = petróleo do olho #06757C (5,5:1 c/ branco), hover marinho do texto
     visoptica: { bg: '#FDFDFD', card: '#FFFFFF', line: '#DCEBEA',
-                brand: '#06757C', dark: '#04223C', soft: 'rgba(6,117,124,.10)', on: '#ffffff' }
+                brand: '#06757C', dark: '#04223C', soft: 'rgba(6,117,124,.10)', on: '#ffffff' },
+    // Fábrica de Óculos Visual (SP) — logo foto azul-ciano + preto; sem fundo chapado -> bg branco, tema claro; brand = ciano do logo fechado p/ #0079A8 (4,9:1 c/ branco)
+    fabricadeoculosvisual: { bg: '#FFFFFF', card: '#FFFFFF', line: '#D6EEF6',
+                brand: '#0079A8', dark: '#005A80', soft: 'rgba(0,121,168,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
