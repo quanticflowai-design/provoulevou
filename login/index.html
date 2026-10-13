@@ -19980,25 +19980,59 @@
             _mppPaymentId = null; _mppEmAndamento = false;
         }
 
-        // Passo 1: confirmação (não gera nada até o lojista confirmar)
+        // Pede ao n8n só o cálculo (simular: true): valor cheio, crédito do plano atual e valor a pagar. Não cria pagamento.
+        async function mppSimular(plano, store) {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session || !session.access_token) throw new Error('Sua sessão expirou. Entre de novo na dashboard.');
+            const pedido = Object.assign(mppMontaPedido(plano, activeUser, store), { simular: true });
+            const r = await fetch(PL_PLANO_PIX_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                body: JSON.stringify(pedido)
+            });
+            const data = await r.json().catch(() => ({}));
+            if (!r.ok || data.ok === false) throw new Error(data.erro || ('Não consegui calcular o valor agora (HTTP ' + r.status + ').'));
+            if (!(Number(data.valor_cobrado) > 0)) throw new Error('Não consegui calcular o valor agora.');
+            return data;
+        }
+
+        // Passo 1: confirmação com o valor calculado no servidor (não gera nada até o lojista confirmar)
+        // Upgrade: paga o plano novo menos o crédito dos dias que faltam do plano atual; o plano novo vale na hora.
         async function mppConfirmar(plano) {
             const p = PL_PLANOS_PIX.find(x => x.nome === plano);
             if (!p) return;
             const box = mppAbrirModal(); if (!box) return;
+            box.innerHTML = '<h3 id="mppTitulo"></h3><p id="mppSub">Calculando o valor a pagar...</p>';
+            document.getElementById('mppTitulo').textContent = 'Mudar para o plano ' + p.nome + '?';
             let store = null; try { store = await plMinhaLoja(); } catch (e) {}
             const atual = mppPlanoAtual(store);
             const deNome = atual ? atual.nome : ((store && (store.plano_personalizado || store.plan)) || 'plano atual');
+            let calc;
+            try { calc = await mppSimular(p.nome, store); }
+            catch (err) {
+                console.error('mppSimular', err);
+                box.innerHTML = '<h3 id="mppTitulo"></h3><p id="mppSub"></p>' +
+                    '<div class="mpp-acoes"><button type="button" class="mpp-btn-sec" id="mppCancelar">Fechar</button></div>';
+                document.getElementById('mppTitulo').textContent = 'Mudar para o plano ' + p.nome;
+                document.getElementById('mppSub').textContent = err.message || 'Não consegui calcular o valor agora.';
+                document.getElementById('mppCancelar').onclick = mppFechar;
+                return;
+            }
+            const credito = Number(calc.credito) || 0;
             box.innerHTML =
                 '<h3 id="mppTitulo"></h3><p id="mppSub"></p>' +
-                '<div class="mpp-resumo"><div><span>Valor</span><b id="mppRv"></b></div><div><span>Provas</span><b id="mppRp"></b></div><div><span>Por prova</span><b id="mppRu"></b></div></div>' +
-                '<p>O plano muda assim que o Mercado Pago confirmar o PIX. Até lá, seu plano atual continua valendo.</p>' +
+                '<div class="mpp-resumo"><div><span>A pagar</span><b id="mppRv"></b></div><div><span>Valor cheio</span><b id="mppRc"></b></div><div><span>Crédito</span><b id="mppRcr"></b></div></div>' +
+                '<p id="mppExpl"></p>' +
                 '<div class="mpp-acoes"><button type="button" class="mpp-btn-sec" id="mppCancelar">Cancelar</button>' +
                 '<button type="button" class="pl-cfg-btn" id="mppGerar"><i class="ph-bold ph-qr-code"></i> Gerar QR PIX</button></div>';
             document.getElementById('mppTitulo').textContent = 'Mudar para o plano ' + p.nome + '?';
-            document.getElementById('mppSub').textContent = 'Hoje: ' + deNome + '. Novo: ' + p.nome + ', mensalidade de ' + mppBrl(p.valor) + '.';
-            document.getElementById('mppRv').textContent = mppBrl(p.valor);
-            document.getElementById('mppRp').textContent = p.provas.toLocaleString('pt-BR');
-            document.getElementById('mppRu').textContent = mppBrl(mppPrecoProva(p), 2);
+            document.getElementById('mppSub').textContent = 'Hoje: ' + deNome + '. Novo: ' + p.nome + ', ' + p.provas.toLocaleString('pt-BR') + ' provas por mês (' + mppBrl(mppPrecoProva(p), 2) + ' por prova).';
+            document.getElementById('mppRv').textContent = mppBrl(calc.valor_cobrado, 2);
+            document.getElementById('mppRc').textContent = mppBrl(calc.valor_cheio, 2);
+            document.getElementById('mppRcr').textContent = credito > 0 ? '− ' + mppBrl(credito, 2) : mppBrl(0, 2);
+            document.getElementById('mppExpl').textContent = (credito > 0
+                ? 'O crédito é o valor dos ' + calc.dias_restantes + ' dias que ainda faltam do seu plano atual (de ' + calc.ciclo_dias + ' dias). '
+                : '') + 'O plano novo começa assim que o Mercado Pago confirmar o PIX, e o novo ciclo conta a partir desse dia. Até lá, seu plano atual continua valendo.';
             document.getElementById('mppCancelar').onclick = mppFechar;
             document.getElementById('mppGerar').onclick = () => mppGerarPix(p.nome, store);
         }
@@ -20033,7 +20067,8 @@
                     '<div class="mpp-acoes" style="margin-top:10px;"><button type="button" class="pl-cfg-btn" id="mppCopiar"><i class="ph-bold ph-copy"></i> Copiar código PIX</button>' +
                     '<button type="button" class="mpp-btn-sec" id="mppFecharBtn">Fechar</button></div>' +
                     '<div class="mpp-status" id="mppStatus">Aguardando pagamento...</div>';
-                document.getElementById('mppTitulo').textContent = 'Plano ' + p.nome + ' · ' + mppBrl(p.valor);
+                const pago = Number(data.valor_cobrado) > 0 ? Number(data.valor_cobrado) : p.valor;
+                document.getElementById('mppTitulo').textContent = 'Plano ' + p.nome + ' · ' + mppBrl(pago, 2);
                 const img = document.getElementById('mppQr');
                 if (qr64) img.src = 'data:image/png;base64,' + qr64; else img.style.display = 'none';
                 document.getElementById('mppCopia').value = qr;
