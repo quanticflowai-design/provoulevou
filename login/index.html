@@ -30515,7 +30515,7 @@
                         const ilim = base === Infinity || (pers && !(lim0 > 0));
                         const limite = ((pers && lim0 > 0) ? lim0 : (ilim ? UNLIMITED_REF_LIMIT : (base || 0))) + extras, cobr = Math.max(0, usadas - pix);
                         o.plano = { plano: st.plano_personalizado || st.plan || '—', ilimitado: ilim, status: st.status || '', inicio_ciclo: ini, ciclo_desde: teste ? 'início do teste grátis' : 'último pagamento',
-                            provas_usadas: cobr, provas_pix_avulsas: pix, creditos_extras: extras, limite: limite, restantes: Math.max(0, limite - cobr), excedente: Math.max(0, cobr - limite),
+                            provas_no_ciclo_total: usadas, provas_que_contam_no_limite: cobr, provas_pix_avulsas: pix, creditos_extras: extras, limite: limite, restantes: Math.max(0, limite - cobr), excedente: Math.max(0, cobr - limite),
                             uso_pct: limite ? Math.round(cobr / limite * 1000) / 10 : 0, valor_mensal: pers ? parseFloat(st.valor_personalizado || 0) : (PACKS_PLAN_VALUES[st.plan] || 0) };
                     }
                 }
