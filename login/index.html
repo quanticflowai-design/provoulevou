@@ -3518,15 +3518,6 @@
                 </div>
                 <div class="vg-row3" id="vringsGrid" style="display:none;">
                     <div class="vring-card vg-ring-cell">
-                        <div class="vring" id="ringReengaj" style="--ring-color:#a855f7;">
-                            <div class="vring-inner">
-                                <div class="vring-value" id="ringReengajValue">0<small>%</small></div>
-                            </div>
-                        </div>
-                        <div class="vring-label">Re-engajamento</div>
-                        <div class="vring-desc">% de clientes que provaram mais de uma vez.</div>
-                    </div>
-                    <div class="vring-card vg-ring-cell">
                         <div class="vring" id="ringDia" style="--ring-color:#06b6d4;">
                             <div class="vring-inner">
                                 <div class="vring-value" id="ringDiaValue">0<small>%</small></div>
@@ -20295,9 +20286,13 @@
             }
 
             // ===== ANÉIS =====
+            // Re-engajamento — anel removido da Visão Geral (dado segue na Jornada); guard mantido
             const ringReengaj = document.getElementById('ringReengaj');
-            ringReengaj.style.setProperty('--ring-pct', Math.min(100, pctReengaj));
-            document.getElementById('ringReengajValue').innerHTML = pctReengaj.toFixed(0) + '<small>%</small>';
+            if (ringReengaj) {
+                ringReengaj.style.setProperty('--ring-pct', Math.min(100, pctReengaj));
+                const ringReengajValue = document.getElementById('ringReengajValue');
+                if (ringReengajValue) ringReengajValue.innerHTML = pctReengaj.toFixed(0) + '<small>%</small>';
+            }
 
             const ringDia = document.getElementById('ringDia');
             ringDia.style.setProperty('--ring-pct', Math.min(100, pctVoltaramDia));
