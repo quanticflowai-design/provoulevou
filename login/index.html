@@ -31074,9 +31074,9 @@
       @media (max-width: 640px) { #plAssist .pa-chat { right: 0; bottom: 0; width: 100%; height: 100%; border-radius: 0; } #plAssist .pa-fab.aberto { display: none; } #plAssist .pa-fab { right: 16px; bottom: 16px; } }
     </style>
     <div id="plAssist" style="display:none;">
-      <button type="button" class="pa-fab" id="paFab" aria-label="Abrir assistente"><i class="ph-fill ph-sparkle"></i><span>Pergunte à Provou</span></button>
-      <section class="pa-chat" id="paChat" aria-label="Assistente Provou Levou">
-        <div class="pa-top"><div class="av"><i class="ph-fill ph-sparkle"></i></div><div><b>Assistente Provou Levou</b><small id="paSub">responde com os dados da sua loja</small></div><button type="button" class="pa-x" id="paFecha" aria-label="Fechar"><i class="ph-bold ph-x"></i></button></div>
+      <button type="button" class="pa-fab" id="paFab" aria-label="Abrir o Levi, assistente da loja"><i class="ph-fill ph-sparkle"></i><span>Pergunte ao Levi</span></button>
+      <section class="pa-chat" id="paChat" aria-label="Levi, assistente da Provou Levou">
+        <div class="pa-top"><div class="av"><i class="ph-fill ph-sparkle"></i></div><div><b>Levi</b><small id="paSub">assistente da sua loja · responde com os seus dados</small></div><button type="button" class="pa-x" id="paFecha" aria-label="Fechar"><i class="ph-bold ph-x"></i></button></div>
         <div class="pa-msgs" id="paMsgs"></div>
         <div class="pa-chips" id="paChips"></div>
         <form class="pa-inp" id="paForm"><input id="paQ" maxlength="600" placeholder="Pergunte sobre a sua loja…" autocomplete="off"><button aria-label="Enviar"><i class="ph-bold ph-paper-plane-right"></i></button></form>
@@ -31202,15 +31202,15 @@
         function inicia() {
             $('paMsgs').innerHTML = ''; hist = []; cache = null;
             const nome = (activeUser && (activeUser.nome_loja || activeUser.origem)) || 'sua loja';
-            $('paSub').textContent = nome + ' · responde com os dados da sua loja';
-            msg('ia', '<p>Oi! Sou o assistente da Provou Levou. Respondo com os números da <b>sua loja</b>: provas, vendas pelo provador, quem não comprou, lentes…</p><p>Escolha uma pergunta abaixo ou escreva a sua.</p>');
+            $('paSub').textContent = 'assistente da sua loja · ' + nome;
+            msg('ia', '<p>Oi! Eu sou o <b>Levi</b>, o assistente da Provou Levou. Respondo com os números da <b>sua loja</b>: provas, vendas pelo provador, quem não comprou, lentes…</p><p>Escolha uma pergunta abaixo ou escreva a sua.</p>');
             $('paChips').classList.remove('min');
             $('paChips').innerHTML = CHIPS.map(c => '<button type="button" class="pa-chip" data-pa-k="' + c[0] + '">' + c[1] + '</button>').join('');
         }
         function alterna(v) {
             aberto = v == null ? !aberto : v;
             $('paChat').classList.toggle('on', aberto); $('paFab').classList.toggle('aberto', aberto);
-            $('paFab').innerHTML = aberto ? '<i class="ph-bold ph-x"></i>' : '<i class="ph-fill ph-sparkle"></i><span>Pergunte à Provou</span>';
+            $('paFab').innerHTML = aberto ? '<i class="ph-bold ph-x"></i>' : '<i class="ph-fill ph-sparkle"></i><span>Pergunte ao Levi</span>';
             if (aberto) { if (dom !== loja()) { dom = loja(); inicia(); } setTimeout(() => $('paQ').focus(), 200); }
         }
         $('paFab').addEventListener('click', () => alterna());
