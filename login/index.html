@@ -3972,6 +3972,21 @@
                     </div>
                 </div>
 
+                <!-- 13/10/2026: liga/desliga o fluxo de lentes nas páginas de produto. Grava config.geral.ativo em
+                     lentes_fluxo_config (mesmo update do Salvar do Configurar fluxo). Sem a chave = desligado. -->
+                <section class="card" id="lentesAtivoBox" style="display:none;padding:16px 20px;margin-bottom:16px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px 20px;flex-wrap:wrap;">
+                        <div style="min-width:0;flex:1 1 280px;">
+                            <div style="font-size:14px;font-weight:600;">Mostrar fluxo de lentes nos produtos</div>
+                            <div style="font-size:12.5px;color:var(--text-muted);margin-top:4px;line-height:1.5;">Ligado: o botão de lentes aparece nas páginas de produto da sua loja (em até 5 minutos). Desligado: o botão some.</div>
+                        </div>
+                        <div style="display:flex;gap:10px;align-items:center;">
+                            <span id="lentesAtivoMsg" style="font-size:12.5px;color:var(--text-muted);"></span>
+                            <label class="autom-switch"><input type="checkbox" id="lentesAtivoChk" onchange="_lcfgSalvarAtivo(this.checked)"><span id="lentesAtivoTxt">Desligado</span></label>
+                        </div>
+                    </div>
+                </section>
+
                 <div class="lentes-tabs-linha">
                     <div class="lentes-view-tabs" role="tablist" aria-label="Visão da área de lentes">
                         <button type="button" class="on" data-lentes-view="operacao" aria-selected="true" onclick="_lentesMudaVisao('operacao')">
@@ -7052,12 +7067,56 @@
             const dom = _lcfgDom();
             if (!dom || !supabaseClient) return false;
             try {
-                const { data, error } = await supabaseClient.from('lentes_fluxo_config').select('dominio').eq('dominio', dom).limit(1);
+                const { data, error } = await supabaseClient.from('lentes_fluxo_config').select('dominio,config').eq('dominio', dom).limit(1);
                 if (error || !data || !data.length) return false;
                 _lcfgTem = true;
                 if (btn) btn.style.display = '';
+                _lentesAtivoUi(!!(data[0].config && data[0].config.geral && data[0].config.geral.ativo === true), true);
                 return true;
             } catch (e) { return false; }
+        }
+        /* "Mostrar fluxo de lentes nos produtos" (13/10/2026): config.geral.ativo === true liga; ausente/false = desligado. */
+        function _lentesAtivoUi(on, mostrar) {
+            const box = document.getElementById('lentesAtivoBox'), chk = document.getElementById('lentesAtivoChk'), txt = document.getElementById('lentesAtivoTxt');
+            if (box && mostrar !== undefined) box.style.display = mostrar ? '' : 'none';
+            if (chk) chk.checked = !!on;
+            if (txt) txt.textContent = on ? 'Ligado' : 'Desligado';
+        }
+        async function _lcfgSalvarAtivo(on) {
+            const chk = document.getElementById('lentesAtivoChk'), msg = document.getElementById('lentesAtivoMsg'), dom = _lcfgDom();
+            if (!dom || !supabaseClient) { _lentesAtivoUi(!on); return; }
+            _lentesAtivoUi(on); if (chk) chk.disabled = true;
+            if (msg) { msg.style.color = ''; msg.textContent = 'Salvando…'; }
+            try {
+                // lê a config atual do banco e muda só geral.ativo (não leva edições não salvas do Configurar fluxo)
+                const { data: atual, error: e1 } = await supabaseClient.from('lentes_fluxo_config').select('config').eq('dominio', dom).limit(1);
+                if (e1) throw e1;
+                if (!atual || !atual.length) throw new Error('loja sem fluxo de lentes');
+                const cfg = atual[0].config || {};
+                cfg.geral = Object.assign({}, cfg.geral || {}, { ativo: !!on });
+                const { data, error } = await supabaseClient.from('lentes_fluxo_config')
+                    .update({ config: cfg, updated_by: (activeUser && activeUser.email) || null })
+                    .eq('dominio', dom).select('config,updated_at,updated_by');
+                if (error) throw error;
+                if (!data || !data.length) throw new Error('sem permissão para editar este fluxo');
+                // mantém o Configurar fluxo (se aberto) com o mesmo valor, sem perder o que está em edição
+                if (_lcfgSalvo && _lcfgDominio === dom) {
+                    (_lcfgSalvo.geral || (_lcfgSalvo.geral = {})).ativo = !!on;
+                    if (_lcfgEdit) (_lcfgEdit.geral || (_lcfgEdit.geral = {})).ativo = !!on;
+                    _lcfgUltimo = data[0];
+                    _lcfgVers = null;
+                    if (document.getElementById('lcfgCorpo') && _lcfgEdit && _lcfgEdit.modo !== 'catalogo') _lcfgPinta();
+                    else _lcfgAtualizaBarraBase();
+                }
+                if (msg) { msg.style.color = '#22c55e'; msg.textContent = 'Salvo!'; }
+                crmToast(on ? 'Fluxo de lentes ligado. Aparece nos produtos em até 5 minutos.' : 'Fluxo de lentes desligado. Some dos produtos em até 5 minutos.');
+            } catch (e) {
+                console.warn('[lentes ativo]', e);
+                _lentesAtivoUi(!on);
+                if (msg) { msg.style.color = '#ef4444'; msg.textContent = 'Não foi possível salvar.'; }
+            } finally {
+                if (chk) chk.disabled = false;
+            }
         }
         async function _lcfgAbrir() {
             const dom = _lcfgDom();
@@ -8175,10 +8234,10 @@
                 '<p class="lcfg-intro">Abra cada etapa para editar. O que estiver <b>desligado</b> some do fluxo da loja. Depois de salvar, a loja mostra as mudanças em até 5 minutos.</p>' +
                 _lcfgAcc('geral', {
                     icone: 'ph-gear-six', titulo: 'Botão e contato', etapa: 'Geral',
-                    meta: (g.ativo === false ? 'Fluxo desligado na loja' : 'Fluxo ligado') + ' · botão "' + _lcfgEsc(g.botao_texto || '') + '"',
+                    meta: (g.ativo !== true ? 'Fluxo desligado na loja' : 'Fluxo ligado') + ' · botão "' + _lcfgEsc(g.botao_texto || '') + '"',
                     corpo:
                         '<div class="lcfg-item" style="grid-template-columns:auto minmax(0,1fr);align-items:center;margin-top:14px;">' +
-                            _lcfgSwitch('data-lcfg-geral="ativo"', g.ativo !== false) +
+                            _lcfgSwitch('data-lcfg-geral="ativo"', g.ativo === true) +
                             '<div><b style="font-size:14px;">Fluxo de lentes ligado na loja</b><div class="lcfg-dica">Desligado: o botão de lentes some das páginas de produto.</div></div>' +
                         '</div>' +
                         '<div class="lcfg-grid" style="margin-top:12px;">' +
@@ -8388,6 +8447,7 @@
                 _lcfgVers = null;   // nova versão anterior entrou no histórico
                 _lcfgEdit = JSON.parse(JSON.stringify(_lcfgSalvo));
                 _lcfgUltimo = data[0];
+                _lentesAtivoUi(!!(_lcfgSalvo && _lcfgSalvo.geral && _lcfgSalvo.geral.ativo === true));
                 crmToast('Fluxo de lentes salvo. A loja atualiza em até 5 minutos.');
                 _lcfgPinta();
             } catch (e) {
@@ -8407,6 +8467,7 @@
             _lcfgDominio = ''; _lcfgSalvo = null; _lcfgEdit = null; _lcfgUltimo = null; _lcfgTem = false;
             _lcfgIdsAbertos.clear();
             const b = document.getElementById('lentesCfgTabBtn'); if (b) b.style.display = 'none';
+            _lentesAtivoUi(false, false);
             const corpo = document.getElementById('lcfgCorpo'); if (corpo) corpo.innerHTML = '';
             const mapa = document.getElementById('lcfgMapa'); if (mapa) mapa.innerHTML = '';
             const stp = document.getElementById('lcfgStepTop'); if (stp) stp.innerHTML = '';
@@ -8627,7 +8688,7 @@
                     if (campo === 'ativo') novo = !/^(false|0|nao|não|off)$/i.test(novo);
                     if (campo === 'whatsapp') { novo = novo.replace(/\D/g, ''); if (novo.length < 12 || novo.length > 13) { ignoradas++; return; } }
                     if (campo === 'botao_texto' && !novo) { ignoradas++; return; }
-                    const antes = campo === 'ativo' ? c.geral.ativo !== false : c.geral[campo];
+                    const antes = campo === 'ativo' ? c.geral.ativo === true : c.geral[campo];
                     if (antes === novo) return;
                     c.geral[campo] = novo;
                     mud.push(campo === 'ativo' ? (novo ? 'Ligou' : 'Desligou') + ' o fluxo na loja'
