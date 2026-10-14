@@ -2422,6 +2422,7 @@
     <div class="container">
         <header id="mainHeader" style="display: none;">
             <div style="display:flex;align-items:center;gap:20px;">
+                <button type="button" class="pl-burger" id="plBurger" aria-label="Abrir menu" aria-expanded="false" aria-controls="topbarCenter"><span class="pl-burger-ic" aria-hidden="true">&#9776;</span></button>
                 <a href="../index.html" style="display:flex;align-items:center;">
                     <img src="https://i.ibb.co/MDGF2YDD/Logo-provou-branco-1.png" alt="Provou Levou" style="height:34px;width:auto;" id="headerLogo">
                 </a>
@@ -31430,6 +31431,83 @@
         .dashboard-content .tab-pane pre, .dashboard-content .tab-pane code { white-space: pre-wrap; overflow-wrap: anywhere; }
       }
     </style>
+    <!-- ============================================================
+         MENU HAMBÚRGUER (<=760px) — substitui a linha de abas rolável.
+         Desktop intocado: botão e fundo ficam ocultos acima de 760px.
+         ============================================================ -->
+    <div class="pl-burger-backdrop" id="plBurgerBackdrop" aria-hidden="true"></div>
+    <style id="plMobileBurger">
+      .pl-burger, .pl-burger-backdrop { display: none; }
+      @media (max-width: 760px) {
+        #mainHeader { z-index: 1000 !important; }
+        #mainHeader .pl-burger {
+          display: inline-flex; align-items: center; justify-content: center;
+          order: 0; flex: 0 0 auto; width: 40px; height: 40px; margin: 0 0 8px; padding: 0;
+          border: 1px solid var(--border, rgba(0,0,0,.08)); border-radius: 10px;
+          background: transparent; color: var(--text-main, inherit); cursor: pointer;
+          font-size: 20px; line-height: 1; font-family: inherit;
+        }
+        #mainHeader > div:first-child > a { margin-bottom: 8px; margin-right: auto; }
+        #mainHeader > div:last-child { margin-bottom: 8px; }
+        /* painel fechado: abas somem do topo (o header fica com 1 linha só) */
+        body:not(.pl-menu-open) #mainHeader #topbarCenter { display: none !important; }
+        /* painel aberto: abas empilhadas, por cima do conteúdo, logo abaixo do header */
+        body.pl-menu-open #mainHeader #topbarCenter {
+          display: block !important; position: absolute !important;
+          top: 100% !important; left: 0 !important; right: 0 !important;
+          width: auto !important; max-width: none !important; margin: 0 !important;
+          padding: 8px 12px 12px !important; box-sizing: border-box !important;
+          max-height: calc(100vh - 72px); max-height: calc(100dvh - 72px);
+          overflow-x: hidden !important; overflow-y: auto !important;
+          background: #fdfcfb; border-bottom: 1px solid var(--border, rgba(0,0,0,.08));
+          box-shadow: 0 16px 32px rgba(0,0,0,.18);
+        }
+        body.dark-mode.pl-menu-open #mainHeader #topbarCenter { background: #0e0e12; }
+        body.pl-menu-open #mainHeader #topbarCenter .tab-nav {
+          flex-direction: column !important; width: 100% !important; gap: 2px !important;
+          margin: 0 !important; overflow: visible !important; align-items: stretch !important;
+        }
+        body.pl-menu-open #mainHeader #topbarCenter .tab-btn {
+          width: 100% !important; justify-content: flex-start !important; text-align: left !important;
+          padding: 14px 12px !important; font-size: 15px !important; border-radius: 10px !important;
+        }
+        body.pl-menu-open #mainHeader #topbarCenter .tab-btn::after { display: none !important; }
+        body.pl-menu-open #mainHeader #topbarCenter .tab-btn.active { background: rgba(124,58,237,.10) !important; border-bottom-color: transparent !important; }
+        body.pl-menu-open .pl-burger-backdrop {
+          display: block; position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,.35);
+        }
+      }
+    </style>
+    <script>
+    (function () {
+        var btn = document.getElementById('plBurger');
+        var bd = document.getElementById('plBurgerBackdrop');
+        var nav = document.getElementById('tabNav');
+        if (!btn || !bd) return;
+        var ic = btn.querySelector('.pl-burger-ic');
+        function setMenu(open) {
+            document.body.classList.toggle('pl-menu-open', open);
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            btn.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
+            if (ic) ic.innerHTML = open ? '&#10005;' : '&#9776;';
+        }
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            setMenu(!document.body.classList.contains('pl-menu-open'));
+        });
+        bd.addEventListener('click', function () { setMenu(false); });
+        // a aba já chama showTab() pelo próprio onclick; aqui só fecha o painel
+        if (nav) nav.addEventListener('click', function (e) {
+            if (e.target.closest('.tab-btn')) setMenu(false);
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && document.body.classList.contains('pl-menu-open')) setMenu(false);
+        });
+        var mq = window.matchMedia('(max-width: 760px)');
+        var onMq = function () { if (!mq.matches) setMenu(false); };
+        if (mq.addEventListener) mq.addEventListener('change', onMq); else if (mq.addListener) mq.addListener(onMq);
+    })();
+    </script>
 </body>
 
 </html>
