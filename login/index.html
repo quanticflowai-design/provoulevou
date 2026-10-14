@@ -12997,7 +12997,8 @@
                 '#jorPane .jor-main{width:100%;min-width:0;display:flex;flex-direction:column;gap:16px}',
                 '#jorPane .jor-lista{width:100%;min-width:0;background:var(--j-card);border:1px solid var(--j-line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px}',
                 '#jorPane .jor-lista-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}#jorPane .jor-lista-top b{font-size:15px;font-weight:700}#jorPane .jor-lista-top span{font-size:12px;color:var(--j-muted)}',
-                '#jorPane .jor-filtros{display:grid;grid-template-columns:minmax(0,220px) minmax(0,360px);gap:12px}',
+                '#jorPane .jor-filtros{display:grid;grid-template-columns:minmax(0,200px) minmax(0,300px) minmax(0,320px);gap:12px}',
+                '#jorPane .jor-cli .t{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:700;color:#7c3aed;background:rgba(124,58,237,.10);border-radius:99px;padding:1px 7px;vertical-align:1px}',
                 '#jorPane .jor-filtros label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--j-muted)}',
                 '#jorPane .jor-filtros select,#jorPane .jor-filtros input{height:36px;width:100%;border:1px solid var(--j-line);border-radius:10px;padding:0 12px;font-size:14px;color:var(--j-ink);background:var(--j-card);margin:0;box-shadow:none}',
                 '#jorPane .jor-clientes{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));grid-auto-rows:max-content;align-content:start;gap:8px;max-height:460px;overflow-y:auto;padding:2px 4px 2px 2px}',
@@ -13046,10 +13047,12 @@
                     + '<div class="jor-cols"><div class="jor-main" id="jorMain"><div class="jor-card jor-vazio">Carregando compradores…</div></div>'
                     + '<aside class="jor-lista"><div class="jor-lista-top"><b>Compradores</b><span id="jorQtd"></span></div>'
                     + '<div class="jor-filtros"><label>Período da compra<select id="jorPeriodo"><option value="7">Últimos 7 dias</option><option value="30" selected>Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="365">Últimos 12 meses</option><option value="0">Desde o início</option></select></label>'
+                    + '<label>Disparos<select id="jorDisparo"><option value="">Todos os compradores</option><option value="sim">Só quem recebeu disparo antes de comprar</option><option value="nao">Só quem não recebeu disparo</option></select></label>'
                     + '<label>Buscar<input id="jorBusca" type="search" placeholder="Nome, telefone ou produto" autocomplete="off"></label></div>'
                     + '<div class="jor-clientes" id="jorClientes"></div></aside></div></div>';
                 pane.querySelector('#jorPeriodo').addEventListener('change', e => { _jor.periodo = e.target.value; _jorLista(); });
                 pane.querySelector('#jorBusca').addEventListener('input', e => { _jor.busca = e.target.value.trim().toLowerCase(); _jorLista(); });
+                pane.querySelector('#jorDisparo').addEventListener('change', e => { _jor.disparo = e.target.value; _jorLista(); });
                 pane.querySelector('#jorClientes').addEventListener('click', e => { const b = e.target.closest('.jor-cli'); if (!b) return; _jor.sel = b.dataset.k; _jorLista(); _jorAbre(); });
             }
             if (_jor.compradores && !forcar) { _jorLista(); return; }
@@ -13059,25 +13062,56 @@
                 if (!allOrdersCache || !allOrdersCache.length || !Object.keys(provaMinTsMap || {}).length) await loadSharedData();
                 _jor.compradores = _jorMontaCompradores();
                 _jor.cache = {};
+                await _jorMarcaDisparos(_jor.compradores);
             } catch (e) {
                 console.error('[jornada]', e);
                 const m = document.getElementById('jorMain'); if (m) m.innerHTML = '<div class="jor-card jor-vazio">Não foi possível carregar os compradores.</div>';
             } finally { _jor.carregando = false; }
             _jorLista();
         }
+        // Filtro "recebeu disparo antes de comprar" (14/10/2026): mesma regra da linha do tempo — mensagem do WhatsApp
+        // oficial (whatsapp_send_log) entre a 1ª prova e a compra, pelo telefone (8 últimos dígitos). Não conta pulada nem falha.
+        async function _jorMarcaDisparos(lista) {
+            if (!lista || !lista.length) return;
+            const u = activeUser || {}, emails = (typeof plScopeEmails === 'function') ? plScopeEmails() : [u.email];
+            const desde = new Date(Math.max(Math.min(...lista.map(b => new Date(b.provaTs).getTime() || Date.now())), Date.now() - 400 * 864e5) - 60e3).toISOString();
+            const por8 = {};
+            try {
+                for (let pag = 0; pag < 40; pag++) {
+                    const { data, error } = await supabaseClient.from('whatsapp_send_log').select('lead_phone,sent_at,status')
+                        .in('email', emails).gte('sent_at', desde).order('sent_at', { ascending: true }).range(pag * 1000, pag * 1000 + 999);
+                    if (error || !data) break;
+                    data.forEach(e => {
+                        const st = String(e.status || '');
+                        if (st.indexOf('skipped') === 0 || st === 'failed') return;
+                        const k = String(e.lead_phone || '').replace(/\D/g, '').slice(-8); if (k.length !== 8) return;
+                        (por8[k] = por8[k] || []).push(new Date(e.sent_at).getTime());
+                    });
+                    if (data.length < 1000) break;
+                }
+            } catch (e) { console.warn('[jornada] disparos', e); return; }
+            lista.forEach(b => {
+                const ini = new Date(b.provaTs).getTime() - 60e3, fim = b.ms + 60e3;
+                const ks = [...new Set([String(b.raw || ''), String(b.telPedido || ''), String(b.chave || '')].map(x => x.replace(/\D/g, '').slice(-8)).filter(x => x.length === 8))];
+                b.disparos = ks.reduce((n, k) => n + (por8[k] || []).filter(t => t >= ini && t <= fim).length, 0);
+            });
+            _jor.disparosOk = true;
+        }
         function _jorFiltrados() {
             const lim = _jor.periodo === '0' ? 0 : Date.now() - Number(_jor.periodo) * 864e5;
-            return (_jor.compradores || []).filter(b => b.ms >= lim && (!_jor.busca || (b.nome + ' ' + String(b.raw) + ' ' + b.telPedido + ' ' + b.produto).toLowerCase().includes(_jor.busca)));
+            return (_jor.compradores || []).filter(b => b.ms >= lim && (!_jor.busca || (b.nome + ' ' + String(b.raw) + ' ' + b.telPedido + ' ' + b.produto).toLowerCase().includes(_jor.busca))
+                && (!_jor.disparo || (_jor.disparo === 'sim' ? b.disparos > 0 : !(b.disparos > 0))));
         }
         function _jorLista() {
             const box = document.getElementById('jorClientes'); if (!box) return;
             const vis = _jorFiltrados();
-            document.getElementById('jorQtd').textContent = vis.length + ' no período';
+            const _cd = vis.filter(b => b.disparos > 0).length;
+            document.getElementById('jorQtd').textContent = vis.length + ' no período' + (_jor.disparosOk && !_jor.disparo ? ' · ' + _cd + ' receberam disparo antes de comprar' : '');
             if (!_jor.sel || !vis.some(b => b.chave === _jor.sel)) { _jor.sel = vis[0] ? vis[0].chave : null; _jorAbre(); }
             box.innerHTML = vis.length ? vis.slice(0, 300).map(b => {
                 const dd = _jorDias(new Date(b.provaTs), new Date(b.ms));
                 return '<button type="button" class="jor-cli' + (b.chave === _jor.sel ? ' on' : '') + '" data-k="' + escapeHtml(b.chave) + '">'
-                    + '<span class="n">' + escapeHtml(b.nome || _jorTel(b.raw)) + '</span><span class="v">' + _jorBrl(b.valor) + '</span>'
+                    + '<span class="n">' + escapeHtml(b.nome || _jorTel(b.raw)) + (b.disparos > 0 ? '<span class="t" title="Recebeu ' + b.disparos + (b.disparos === 1 ? ' disparo' : ' disparos') + ' antes de comprar">disparo</span>' : '') + '</span><span class="v">' + _jorBrl(b.valor) + '</span>'
                     + '<span class="s">comprou ' + (dd <= 0 ? 'no dia da prova' : dd + (dd === 1 ? ' dia' : ' dias') + ' depois') + '</span><span class="q">' + _jorDia(new Date(b.ms)) + '</span></button>';
             }).join('') + (vis.length > 300 ? '<p class="jor-vazio" style="padding:8px">Mostrando os 300 mais recentes. Use a busca.</p>' : '')
                 : '<p class="jor-vazio">Nenhum comprador no período.</p>';
