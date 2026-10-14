@@ -2623,6 +2623,9 @@
                 <button class="tab-btn" data-tab="meu-plano" id="tab-btn-meu-plano" onclick="showTab('meu-plano')" role="tab" aria-selected="false">
                     <i class="ph-bold ph-credit-card"></i> Meu Plano
                 </button>
+                <button class="tab-btn" data-tab="configuracoes" id="tab-btn-configuracoes" onclick="showTab('configuracoes')" role="tab" aria-selected="false">
+                    <i class="ph-bold ph-gear-six"></i> Configurações
+                </button>
             </nav>
 
             <div class="plan-chip-group" id="planChipGroup" style="display:none;">
@@ -5861,51 +5864,6 @@
                     <div class="mpg-list" id="mpgList"><div class="mpg-vazio">Carregando…</div></div>
                 </div>
 
-                <!-- Provador: limite por cliente + bloqueio de cliente (09/10/2026).
-                     Grava em lojistas.limite_provas_dia / provador_bloqueios via RPC; os workflows
-                     "[Loja] Check Limit" leem com pl_limite_cliente(). Bloquear o telefone bloqueia os IPs dele. -->
-                <style>
-                    .pl-cfg-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 18px; border:0; border-radius:10px;
-                        background:linear-gradient(135deg,#7c3aed,#a855f7); color:#fff; font:inherit; font-size:13.5px; font-weight:700; cursor:pointer; white-space:nowrap; }
-                    .pl-cfg-btn.danger { background:#dc2626; }
-                    .pl-cfg-btn:disabled { opacity:.6; cursor:default; }
-                </style>
-                <div class="mp-card" id="plProvCfg" style="display:none;margin-bottom:24px;">
-                    <div class="a-mp-eyebrow">Provador</div>
-                    <div class="mp-plan-name" style="margin-bottom:18px;">Limite e bloqueios</div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:28px;">
-                        <div>
-                            <div style="font-size:14px;font-weight:600;">Provas por cliente por dia</div>
-                            <div style="font-size:12.5px;color:var(--text-muted);margin:4px 0 12px;line-height:1.5;">Quantas vezes o mesmo cliente (mesmo WhatsApp ou mesma internet) pode provar por dia. Evita gastar o plano com uma pessoa só.</div>
-                            <div style="display:flex;gap:10px;align-items:center;">
-                                <input id="plLimiteInp" type="number" min="1" max="50" step="1" inputmode="numeric" style="width:90px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:15px;">
-                                <button type="button" class="pl-cfg-btn" id="plLimiteBtn" onclick="plSalvarLimite()">Salvar</button>
-                                <span id="plLimiteMsg" style="font-size:12.5px;color:var(--text-muted);"></span>
-                            </div>
-                        </div>
-                        <div>
-                            <div style="font-size:14px;font-weight:600;">Bloquear cliente</div>
-                            <div style="font-size:12.5px;color:var(--text-muted);margin:4px 0 12px;line-height:1.5;">O cliente bloqueado não consegue mais usar o provador da sua loja, nem trocando de número na mesma internet.</div>
-                            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                                <textarea id="plBloqInp" rows="3" placeholder="WhatsApp com DDD. Para bloquear vários, coloque um por linha ou separe por vírgula." style="flex:1 1 100%;min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:14px;resize:vertical;"></textarea>
-                                <button type="button" class="pl-cfg-btn danger" id="plBloqBtn" onclick="plBloquear()"><i class="ph-bold ph-prohibit"></i> Bloquear</button>
-                            </div>
-                            <div id="plBloqMsg" style="font-size:12.5px;color:var(--text-muted);margin-top:8px;"></div>
-                            <div id="plBloqLista" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;"></div>
-                        </div>
-                        <!-- Bloquear ao atingir o limite do plano (13/10/2026). Padrão desligado.
-                             Grava em crm_pipeline_config, linha 'provador:<dominio>', via RPC pl_set_bloqueio_limite. -->
-                        <div>
-                            <div style="font-size:14px;font-weight:600;">Bloquear provador ao atingir o limite</div>
-                            <div style="font-size:12.5px;color:var(--text-muted);margin:4px 0 12px;line-height:1.5;">Quando ligado, o provador para de funcionar na sua loja assim que as provas do plano do mês acabarem. Desligado, ele continua funcionando.</div>
-                            <div style="display:flex;gap:10px;align-items:center;">
-                                <label class="autom-switch"><input type="checkbox" id="plBloqLimiteChk" onchange="plSalvarBloqLimite(this.checked)"><span id="plBloqLimiteTxt">Desligado</span></label>
-                                <span id="plBloqLimiteMsg" style="font-size:12.5px;color:var(--text-muted);"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Hosts antigos preservados (escondidos via CSS) pra JS continuar populando -->
                 <div id="meuPlanoCreditsHost"></div>
                 <div id="meuPlanoConsumoHost"></div>
@@ -6816,6 +6774,61 @@
             </div>
 
         </div>
+
+            <!-- ====== ABA CONFIGURAÇÕES (13/10/2026) — cartão "Limite e bloqueios" movido da aba Meu Plano ====== -->
+            <div class="tab-pane" id="tab-configuracoes" role="tabpanel" aria-labelledby="tab-btn-configuracoes">
+                <div class="a-page-head a-tab-head">
+                    <div class="a-page-title">
+                        <h1>Configurações</h1>
+                        <p id="configASub" data-a-sub="provador">Provador</p>
+                    </div>
+                </div>
+
+                <!-- Provador: limite por cliente + bloqueio de cliente (09/10/2026).
+                     Grava em lojistas.limite_provas_dia / provador_bloqueios via RPC; os workflows
+                     "[Loja] Check Limit" leem com pl_limite_cliente(). Bloquear o telefone bloqueia os IPs dele. -->
+                <style>
+                    .pl-cfg-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 18px; border:0; border-radius:10px;
+                        background:linear-gradient(135deg,#7c3aed,#a855f7); color:#fff; font:inherit; font-size:13.5px; font-weight:700; cursor:pointer; white-space:nowrap; }
+                    .pl-cfg-btn.danger { background:#dc2626; }
+                    .pl-cfg-btn:disabled { opacity:.6; cursor:default; }
+                </style>
+                <div class="mp-card" id="plProvCfg" style="display:none;margin-bottom:24px;">
+                    <div class="a-mp-eyebrow">Provador</div>
+                    <div class="mp-plan-name" style="margin-bottom:18px;">Limite e bloqueios</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:28px;">
+                        <div>
+                            <div style="font-size:14px;font-weight:600;">Provas por cliente por dia</div>
+                            <div style="font-size:12.5px;color:var(--text-muted);margin:4px 0 12px;line-height:1.5;">Quantas vezes o mesmo cliente (mesmo WhatsApp ou mesma internet) pode provar por dia. Evita gastar o plano com uma pessoa só.</div>
+                            <div style="display:flex;gap:10px;align-items:center;">
+                                <input id="plLimiteInp" type="number" min="1" max="50" step="1" inputmode="numeric" style="width:90px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:15px;">
+                                <button type="button" class="pl-cfg-btn" id="plLimiteBtn" onclick="plSalvarLimite()">Salvar</button>
+                                <span id="plLimiteMsg" style="font-size:12.5px;color:var(--text-muted);"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size:14px;font-weight:600;">Bloquear cliente</div>
+                            <div style="font-size:12.5px;color:var(--text-muted);margin:4px 0 12px;line-height:1.5;">O cliente bloqueado não consegue mais usar o provador da sua loja, nem trocando de número na mesma internet.</div>
+                            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                <textarea id="plBloqInp" rows="3" placeholder="WhatsApp com DDD. Para bloquear vários, coloque um por linha ou separe por vírgula." style="flex:1 1 100%;min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:14px;resize:vertical;"></textarea>
+                                <button type="button" class="pl-cfg-btn danger" id="plBloqBtn" onclick="plBloquear()"><i class="ph-bold ph-prohibit"></i> Bloquear</button>
+                            </div>
+                            <div id="plBloqMsg" style="font-size:12.5px;color:var(--text-muted);margin-top:8px;"></div>
+                            <div id="plBloqLista" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;"></div>
+                        </div>
+                        <!-- Bloquear ao atingir o limite do plano (13/10/2026). Padrão desligado.
+                             Grava em crm_pipeline_config, linha 'provador:<dominio>', via RPC pl_set_bloqueio_limite. -->
+                        <div>
+                            <div style="font-size:14px;font-weight:600;">Bloquear provador ao atingir o limite</div>
+                            <div style="font-size:12.5px;color:var(--text-muted);margin:4px 0 12px;line-height:1.5;">Quando ligado, o provador para de funcionar na sua loja assim que as provas do plano do mês acabarem. Desligado, ele continua funcionando.</div>
+                            <div style="display:flex;gap:10px;align-items:center;">
+                                <label class="autom-switch"><input type="checkbox" id="plBloqLimiteChk" onchange="plSalvarBloqLimite(this.checked)"><span id="plBloqLimiteTxt">Desligado</span></label>
+                                <span id="plBloqLimiteMsg" style="font-size:12.5px;color:var(--text-muted);"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         <div style="text-align: center; margin-top: 60px; padding: 24px 0; border-top: 1px solid var(--border);" id="quanticFooter">
             <span style="font-size:13px;color:#666;font-weight:400;">&copy; 2026 Provou Levou — Tecnologia by Quantic</span>
             <img src="https://i.ibb.co/23hMHTRt/logo-quantic-na-melhor-qualidade.png" alt="Quantic Logo"
@@ -7020,7 +7033,8 @@
                 btn.classList.add('active');
                 btn.setAttribute('aria-selected', 'true');
             }
-            if (name === 'meu-plano') { try { plProvadorCfgLoad(); } catch (e) {} try { mppRender(); } catch (e) {} try { mpaRender(); } catch (e) {} try { mpgRender(); } catch (e) {} }
+            if (name === 'configuracoes') { try { plProvadorCfgLoad(); } catch (e) {} }
+            if (name === 'meu-plano') { try { mppRender(); } catch (e) {} try { mpaRender(); } catch (e) {} try { mpgRender(); } catch (e) {} }
             if (name === 'recuperar-leads' && !leadsRecupLoaded && activeUser) {
                 leadsRecupLoaded = true;
                 loadLeadsRecup().catch(err => {
@@ -10288,14 +10302,14 @@
             unifyTopbar();
             _toggleEmailColumn();
             if (isDisparosOnly()) {
-                ['visao-geral','clientes','provas','meu-plano'].forEach(function(t){
+                ['visao-geral','clientes','provas','meu-plano','configuracoes'].forEach(function(t){
                     var b = document.querySelector('.tab-btn[data-tab="'+t+'"]');
                     if (b) b.style.display = 'none';
                 });
             }
             if (isComercial()) {
                 document.body.classList.add('pl-comercial');
-                ['visao-geral','clientes','provas','lentes','meu-plano'].forEach(function(t){
+                ['visao-geral','clientes','provas','lentes','meu-plano','configuracoes'].forEach(function(t){
                     var b = document.querySelector('.tab-btn[data-tab="'+t+'"]');
                     if (b) b.style.display = 'none';
                 });
@@ -10387,7 +10401,8 @@
                     'provas': 'Provas',
                     'crm': 'CRM',
                     'disparos': 'Disparos',
-                    'meu-plano': 'Meu Plano'
+                    'meu-plano': 'Meu Plano',
+                    'configuracoes': 'Configurações'
                 };
                 const el = document.getElementById('pageTitleText');
                 if (el) el.textContent = map[name] || 'Dashboard';
@@ -11923,7 +11938,7 @@
         // title/sub são TEXTO (escapados aqui); actionsHtml é markup montado pelo chamador.
         // Layout A · subtítulo cinza "Loja · …" dos cabeçalhos de aba (Clientes, Provas, Meu Plano, Lentes). Só textContent.
         function _aTabSub(name) {
-            const ids = { 'clientes': 'clientesASub', 'provas': 'provasASub', 'meu-plano': 'planoASub', 'lentes': 'lentesASub' };
+            const ids = { 'clientes': 'clientesASub', 'provas': 'provasASub', 'meu-plano': 'planoASub', 'lentes': 'lentesASub', 'configuracoes': 'configASub' };
             const el = document.getElementById(ids[name] || '');
             if (!el) return;
             const loja = (typeof activeUser !== 'undefined' && activeUser && (activeUser.nome_loja || activeUser.nome)) || '';
@@ -29929,13 +29944,15 @@
       body[data-active-tab="clientes"] #pageTitleRow,
       body[data-active-tab="provas"] #pageTitleRow,
       body[data-active-tab="meu-plano"] #pageTitleRow,
-      body[data-active-tab="lentes"] #pageTitleRow { display: none !important; }
+      body[data-active-tab="lentes"] #pageTitleRow,
+      body[data-active-tab="configuracoes"] #pageTitleRow { display: none !important; }
       .a-tab-head { margin: 0 0 24px !important; }
       @media (min-width: 601px) {
         body[data-active-tab="clientes"] #dashboardSection,
         body[data-active-tab="provas"] #dashboardSection,
         body[data-active-tab="meu-plano"] #dashboardSection,
-        body[data-active-tab="lentes"] #dashboardSection { padding-top: 76px !important; }
+        body[data-active-tab="lentes"] #dashboardSection,
+        body[data-active-tab="configuracoes"] #dashboardSection { padding-top: 76px !important; }
       }
       .a-tab-head .a-page-title p { font-size: 14px !important; margin: 0 !important; color: var(--a-muted); }
       body.dark-mode .a-tab-head .a-page-title p { color: var(--text-muted); }
@@ -30055,10 +30072,10 @@
       /* ---- Meu Plano ---- */
       @media (min-width: 981px) { #tab-meu-plano .mp-grid { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 24px; } }
       #tab-meu-plano .mp-main { gap: 22px; }
-      #tab-meu-plano .mp-card { padding: 32px !important; }
+      #tab-meu-plano .mp-card, #tab-configuracoes .mp-card { padding: 32px !important; }
       .a-mp-eyebrow { font-size: 13px; font-weight: 600; color: var(--a-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
       body.dark-mode .a-mp-eyebrow { color: var(--text-muted); }
-      #tab-meu-plano .mp-plan-name { font-size: 32px; font-weight: 800; letter-spacing: -0.035em; line-height: 1.1; }
+      #tab-meu-plano .mp-plan-name, #tab-configuracoes .mp-plan-name { font-size: 32px; font-weight: 800; letter-spacing: -0.035em; line-height: 1.1; }
       #tab-meu-plano .mp-plan-sub { font-size: 13.5px; margin-top: 6px; }
       #tab-meu-plano .mp-status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; letter-spacing: 0; text-transform: none; padding: 6px 12px; }
       #tab-meu-plano .mp-status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
@@ -30135,7 +30152,7 @@
       body:not(.dark-mode) #tab-meu-plano .a-mp-packs .pack-card.recommended::before { background: var(--a-accent); border-color: var(--a-accent); color: #fff; }
       body:not(.dark-mode) #tab-meu-plano .a-mp-packs .pack-card.recommended::after { content: 'Recomendado'; top: -11px; left: 18px; right: auto; background: var(--a-accent);
                font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 5px; box-shadow: none; }
-      @media (max-width: 640px) { #tab-meu-plano .mp-card { padding: 22px !important; } #tab-meu-plano .a-mp-packs { padding: 22px 18px; } #tab-meu-plano .mp-plan-name { font-size: 26px; } }
+      @media (max-width: 640px) { #tab-meu-plano .mp-card, #tab-configuracoes .mp-card { padding: 22px !important; } #tab-meu-plano .a-mp-packs { padding: 22px 18px; } #tab-meu-plano .mp-plan-name, #tab-configuracoes .mp-plan-name { font-size: 26px; } }
 
       /* ---- Lentes (sem mockup: mesma linguagem do layout A) ---- */
       #lentesPeriodo { display: inline-flex; gap: 4px; padding: 4px; border-radius: 10px; }
