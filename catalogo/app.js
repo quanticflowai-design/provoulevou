@@ -1911,6 +1911,8 @@
 
   // Pergunta ao banco. Devolve o número de provas usadas, ou null se não deu
   // pra saber (rede fora, função ausente) — null NÃO é zero.
+  const _dddBloq = {};   // telefone -> DDDs aceitos pela loja, quando o DDD dele está fora
+  function _dddTexto(l) { const a = String(l || '').split(', ').filter(Boolean); return a.length > 1 ? a.slice(0, -1).join(', ') + ' e ' + a[a.length - 1] : a.join(''); }
   async function consultaServidor(tel) {
     if (!tel) return null;
     try {
@@ -1923,6 +1925,9 @@
       const d = await r.json();
       // Telefone/loja que a função não reconheceu não zera o contador local.
       if (!d || d.erro) return null;
+      // DDD fora da área atendida pela loja (14/10/2026, pl_catalog_stores.ddds_permitidos): não prova
+      if (d.ddd_bloqueado) { _dddBloq[tel] = (d.ddds || []).join(', '); absorveServidor(tel, 999); return 999; }
+      delete _dddBloq[tel];
       // franquia definida no banco (por loja) vence a constante local.
       // ilimitado=true (limite_diario NULL na loja) = sem teto — Satika foi a 1ª.
       if (d.ilimitado === true) MAX_PROVAS_DIA = Infinity;
@@ -2001,11 +2006,13 @@
     if (box) {
       box.hidden = !bloqueado;
       const tit = $('#limite-titulo');
-      if (tit) tit.textContent = 'Você já usou ' + provasTxt();
+      const ddd = tel && _dddBloq[tel];
+      if (tit) tit.textContent = ddd ? 'Provador indisponível para o seu DDD' : 'Você já usou ' + provasTxt();
       const t = $('#limite-texto');
       if (t) {
-        t.textContent = 'Volte amanhã para provar outras peças' +
-          (temWhatsappLoja() ? ' — ou chame a loja para tirar dúvidas.' : '.');
+        t.textContent = ddd
+          ? 'Esta loja atende apenas os DDDs ' + _dddTexto(ddd) + (temWhatsappLoja() ? '. Fale com a loja para tirar dúvidas.' : '.')
+          : 'Volte amanhã para provar outras peças' + (temWhatsappLoja() ? ' — ou chame a loja para tirar dúvidas.' : '.');
       }
       if (btnW) btnW.hidden = !temWhatsappLoja();
     }
@@ -2119,7 +2126,7 @@
         try {
           const j = await res.json();
           if (j.error === 'limite_diario' || j.error === 'limite_atingido' || j.limited) {
-            msg = 'Você já usou suas provas de hoje. Volte amanhã!';
+            msg = _dddBloq['55' + tel] ? 'Esta loja atende apenas os DDDs ' + _dddTexto(_dddBloq['55' + tel]) + '.' : 'Você já usou suas provas de hoje. Volte amanhã!';
             marcaLimite('55' + tel);   // o servidor mandou parar: a tela para também
           }
         } catch (e) {}
