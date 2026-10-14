@@ -31486,9 +31486,39 @@
           padding: 14px 12px !important; font-size: 15px !important; border-radius: 10px !important;
         }
         #mainHeader #topbarCenter .tab-btn::after { display: none !important; }
-        #mainHeader #topbarCenter .tab-btn.active { background: rgba(124,58,237,.10) !important; border-bottom-color: transparent !important; }
+        /* itens da gaveta: área de toque >= 44px, ícone visível, transição suave */
+        #mainHeader #topbarCenter .tab-btn {
+          align-items: center !important; gap: 12px !important;
+          min-height: 44px !important; box-sizing: border-box !important; position: relative !important;
+          background: transparent !important; box-shadow: none !important; border: none !important;
+          transition: background-color .2s ease, color .2s ease !important;
+        }
+        #mainHeader #topbarCenter .tab-btn i {
+          display: inline-flex !important; align-items: center; justify-content: center;
+          width: 20px; flex: 0 0 20px; font-size: 18px; color: inherit !important; opacity: .7;
+          transition: color .2s ease, opacity .2s ease;
+        }
+        #mainHeader #topbarCenter .tab-btn:not(.active):hover { background: rgba(28,24,38,.04) !important; }
+        #mainHeader #topbarCenter .tab-btn:focus-visible { outline: 2px solid var(--a-accent, #630ed4); outline-offset: 2px; }
+        /* barra lateral de acento (só aparece na aba ativa) */
+        #mainHeader #topbarCenter .tab-btn::before {
+          content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px;
+          border-radius: 0 3px 3px 0; background: var(--a-accent, #630ed4);
+          opacity: 0; transform: scaleY(.4); transition: opacity .2s ease, transform .2s ease;
+        }
+        /* aba ativa: fundo suave na cor de destaque, texto e ícone na mesma cor, sem sublinhado */
+        #mainHeader #topbarCenter .tab-btn.active {
+          background: rgba(99,14,212,.08) !important; color: var(--a-accent, #630ed4) !important;
+          font-weight: 700 !important; box-shadow: none !important; border-bottom: none !important;
+        }
+        #mainHeader #topbarCenter .tab-btn.active::before { opacity: 1; transform: scaleY(1); }
+        #mainHeader #topbarCenter .tab-btn.active i { color: var(--a-accent, #630ed4) !important; opacity: 1; }
+        body.dark-mode #mainHeader #topbarCenter .tab-btn:not(.active):hover { background: rgba(255,255,255,.05) !important; }
+        body.dark-mode #mainHeader #topbarCenter .tab-btn.active { background: rgba(167,139,250,.14) !important; color: #c4b5fd !important; }
+        body.dark-mode #mainHeader #topbarCenter .tab-btn.active i { color: #c4b5fd !important; }
+        body.dark-mode #mainHeader #topbarCenter .tab-btn::before { background: #a78bfa; }
         @media (prefers-reduced-motion: reduce) {
-          #mainHeader #topbarCenter, #mainHeader::before { transition: none !important; }
+          #mainHeader #topbarCenter, #mainHeader::before, #mainHeader #topbarCenter .tab-btn, #mainHeader #topbarCenter .tab-btn::before, #mainHeader #topbarCenter .tab-btn i { transition: none !important; }
         }
       }
     </style>
