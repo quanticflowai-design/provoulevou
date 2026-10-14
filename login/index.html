@@ -31449,32 +31449,46 @@
         }
         #mainHeader > div:first-child > a { margin-bottom: 8px; margin-right: auto; }
         #mainHeader > div:last-child { margin-bottom: 8px; }
-        /* painel fechado: abas somem do topo (o header fica com 1 linha só) */
-        body:not(.pl-menu-open) #mainHeader #topbarCenter { display: none !important; }
-        /* painel aberto: abas empilhadas, por cima do conteúdo, logo abaixo do header */
+        /* gaveta lateral: abas ficam numa gaveta fixa à esquerda, escondida fora da tela */
+        #mainHeader #topbarCenter {
+          display: block !important; position: fixed !important;
+          top: 0 !important; left: 0 !important; bottom: 0 !important; right: auto !important;
+          height: 100% !important; height: 100dvh !important;
+          width: 80% !important; max-width: 360px !important; flex: none !important; order: 0 !important;
+          margin: 0 !important; padding: 64px 12px 16px !important; box-sizing: border-box !important;
+          overflow-x: hidden !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch;
+          background: #fdfcfb; border-right: 1px solid var(--border, rgba(0,0,0,.08));
+          box-shadow: none; z-index: 2;
+          transform: translateX(-100%); visibility: hidden;
+          transition: transform .28s ease, box-shadow .28s ease, visibility 0s linear .28s;
+        }
+        body.dark-mode #mainHeader #topbarCenter { background: #0e0e12; border-right-color: rgba(255,255,255,.06); }
         body.pl-menu-open #mainHeader #topbarCenter {
-          display: block !important; position: absolute !important;
-          top: 100% !important; left: 0 !important; right: 0 !important;
-          width: auto !important; max-width: none !important; margin: 0 !important;
-          padding: 8px 12px 12px !important; box-sizing: border-box !important;
-          max-height: calc(100vh - 72px); max-height: calc(100dvh - 72px);
-          overflow-x: hidden !important; overflow-y: auto !important;
-          background: #fdfcfb; border-bottom: 1px solid var(--border, rgba(0,0,0,.08));
-          box-shadow: 0 16px 32px rgba(0,0,0,.18);
+          transform: translateX(0); visibility: visible;
+          box-shadow: 8px 0 32px rgba(0,0,0,.25);
+          transition: transform .28s ease, box-shadow .28s ease, visibility 0s linear 0s;
         }
-        body.dark-mode.pl-menu-open #mainHeader #topbarCenter { background: #0e0e12; }
-        body.pl-menu-open #mainHeader #topbarCenter .tab-nav {
-          flex-direction: column !important; width: 100% !important; gap: 2px !important;
-          margin: 0 !important; overflow: visible !important; align-items: stretch !important;
+        /* fundo escurecido (cobre a tela inteira, inclusive o topo); toque fecha */
+        #mainHeader::before {
+          content: ""; position: fixed; inset: 0; z-index: 1;
+          background: rgba(0,0,0,.40); opacity: 0; pointer-events: none;
+          transition: opacity .28s ease;
         }
-        body.pl-menu-open #mainHeader #topbarCenter .tab-btn {
+        body.pl-menu-open #mainHeader::before { opacity: 1; pointer-events: auto; }
+        /* ✕ fica por cima da gaveta */
+        #mainHeader .pl-burger { position: relative; z-index: 3; }
+        #mainHeader #topbarCenter .tab-nav {
+          display: flex !important; flex-direction: column !important; width: 100% !important; gap: 2px !important;
+          margin: 0 !important; padding: 0 !important; overflow: visible !important; align-items: stretch !important;
+        }
+        #mainHeader #topbarCenter .tab-btn {
           width: 100% !important; justify-content: flex-start !important; text-align: left !important;
           padding: 14px 12px !important; font-size: 15px !important; border-radius: 10px !important;
         }
-        body.pl-menu-open #mainHeader #topbarCenter .tab-btn::after { display: none !important; }
-        body.pl-menu-open #mainHeader #topbarCenter .tab-btn.active { background: rgba(124,58,237,.10) !important; border-bottom-color: transparent !important; }
-        body.pl-menu-open .pl-burger-backdrop {
-          display: block; position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,.35);
+        #mainHeader #topbarCenter .tab-btn::after { display: none !important; }
+        #mainHeader #topbarCenter .tab-btn.active { background: rgba(124,58,237,.10) !important; border-bottom-color: transparent !important; }
+        @media (prefers-reduced-motion: reduce) {
+          #mainHeader #topbarCenter, #mainHeader::before { transition: none !important; }
         }
       }
     </style>
@@ -31496,6 +31510,11 @@
             setMenu(!document.body.classList.contains('pl-menu-open'));
         });
         bd.addEventListener('click', function () { setMenu(false); });
+        // toque no fundo escurecido (pseudo-elemento do header) fecha a gaveta
+        var hdr = document.getElementById('mainHeader');
+        if (hdr) hdr.addEventListener('click', function (e) {
+            if (e.target === hdr && document.body.classList.contains('pl-menu-open')) setMenu(false);
+        });
         // a aba já chama showTab() pelo próprio onclick; aqui só fecha o painel
         if (nav) nav.addEventListener('click', function (e) {
             if (e.target.closest('.tab-btn')) setMenu(false);
