@@ -31309,6 +31309,127 @@
         }, 1000);
     })();
     </script>
+    <!-- ============================================================
+         MOBILE LAYOUT (<=760px) — só layout/CSS, desktop intocado.
+         Menu: barra superior com logo + ações e linha de abas rolável.
+         ============================================================ -->
+    <style id="plMobileLayout">
+      @media (max-width: 760px) {
+        /* sem rolagem horizontal da página */
+        /* clip (e não hidden) para não quebrar o position:sticky do menu; hidden fica de fallback */
+        html, body { overflow-x: hidden !important; overflow-x: clip !important; max-width: 100%; }
+        .container { box-sizing: border-box !important; max-width: 100% !important; width: 100% !important; }
+        body:not(.login-mode) .container { padding: 0 !important; }
+        .dashboard-content { box-sizing: border-box !important; max-width: 100% !important; padding-left: 12px !important; padding-right: 12px !important; }
+        .dashboard-content .tab-pane { min-width: 0; max-width: 100%; }
+
+        /* ---- MENU: barra fixa no topo, 2 linhas (logo+ações / abas roláveis) ---- */
+        #mainHeader {
+          position: sticky !important; top: 0 !important;
+          height: auto !important; min-height: 0 !important;
+          flex-wrap: wrap !important; row-gap: 4px !important; column-gap: 8px !important;
+          padding: 8px 12px 0 !important; align-items: center !important;
+          flex-direction: row !important; justify-content: space-between !important;
+          margin: 0 !important; gap: 4px 8px !important;
+        }
+        #mainHeader > div:first-child { display: contents !important; }
+        #mainHeader > div:first-child > a { order: 1; flex: 0 0 auto; }
+        #mainHeader > div:last-child { order: 2; margin-left: auto; flex-wrap: nowrap; min-width: 0; width: auto !important; justify-content: flex-end !important; }
+        #topbarCenter {
+          order: 3 !important; flex: 1 0 100% !important; width: 100% !important; max-width: 100% !important;
+          padding-left: 0 !important; height: auto !important;
+          overflow-x: auto !important; overflow-y: hidden !important; -webkit-overflow-scrolling: touch;
+          margin: 0 -12px !important; padding: 0 12px !important; box-sizing: content-box !important;
+        }
+        #topbarCenter .tab-nav, .tab-nav {
+          display: flex !important; width: max-content !important; max-width: none !important;
+          gap: 18px !important; flex-wrap: nowrap !important; overflow: visible !important;
+          margin: 0 !important; padding: 0 !important; height: auto !important;
+        }
+        #topbarCenter .tab-btn, .tab-nav .tab-btn {
+          flex: 0 0 auto !important; white-space: nowrap !important;
+          padding: 12px 2px 11px !important; font-size: 14px !important;
+        }
+        .dashboard-content { padding-top: 16px !important; }
+
+        /* título da página + chip do plano empilham */
+        #pageTitleRow { flex-wrap: wrap !important; gap: 10px !important; margin-bottom: 16px !important; }
+        #pageTitleRow h1 { min-width: 0; }
+        #pageTitleRight { flex-shrink: 1 !important; min-width: 0; max-width: 100%; flex-wrap: wrap; }
+
+        /* ---- Disparos: menu lateral vira barra horizontal rolável ---- */
+        .disp-layout { flex-direction: column !important; gap: 12px !important; min-height: 0 !important; }
+        .disp-subnav, .disp-subnav.mini {
+          width: auto !important; max-width: 100% !important; flex-direction: column !important;
+          padding: 0 12px !important; border-right: none !important; border-bottom: none !important;
+          overflow: visible !important; align-self: stretch !important;
+        }
+        .disp-subnav-inner {
+          display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important;
+          overflow-x: auto !important; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+          position: static !important; gap: 2px !important; padding: 4px !important; max-width: 100%;
+          box-sizing: border-box;
+        }
+        .disp-subnav-inner::-webkit-scrollbar { display: none; }
+        .disp-subnav-inner::before { display: none !important; }
+        .disp-subnav button, .disp-subnav.mini button, .disp-subnav-inner button {
+          flex: 0 0 auto !important; width: auto !important; white-space: nowrap !important;
+          justify-content: flex-start !important; padding: 9px 12px !important; position: relative;
+        }
+        .disp-subnav.mini .disp-nav-txt { display: inline !important; }
+        .disp-subnav.mini .disp-sub-badge { position: static !important; margin-left: 6px !important; }
+        .disp-nav-burger { display: none !important; }
+        .disp-layout > .disp-subpane.active { padding: 0 12px !important; min-width: 0 !important; max-width: 100%; }
+
+        /* Disparos: cola no topo e dá respiro lateral aos cartões fora do menu */
+        body[data-active-tab="disparos"] .dashboard-content { padding: 8px 0 0 0 !important; }
+        body[data-active-tab="disparos"] #tab-disparos { padding: 0 12px !important; box-sizing: border-box; }
+        body[data-active-tab="disparos"] #tab-disparos > .disp-layout { margin-left: -12px !important; margin-right: -12px !important; }
+        .wa-card-head { flex-wrap: wrap !important; gap: 10px !important; }
+        .wa-card-head > * { min-width: 0; }
+        .wa-card-title { font-size: 19px !important; line-height: 1.25 !important; }
+        .wa-status { flex-shrink: 0; }
+
+        /* Visão Geral: pílulas de período rolam dentro da linha, sem cortar */
+        .a-vg-pills { max-width: 100% !important; overflow-x: auto !important; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        .a-vg-pills::-webkit-scrollbar { display: none; }
+        .a-vg-pills > button { flex: 0 0 auto !important; white-space: nowrap !important; }
+        .a-vg-filtro, .a-vg-filtro-r { min-width: 0; max-width: 100%; }
+        .date-filter-bar, .a-page-actions, .a-page-head { min-width: 0; max-width: 100%; flex-wrap: wrap; }
+        .date-presets, .date-custom { box-sizing: border-box !important; max-width: 100% !important; }
+        .date-presets { overflow-x: auto !important; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        .date-presets::-webkit-scrollbar { display: none; }
+        .date-presets > button { flex: 0 0 auto !important; white-space: nowrap !important; }
+        .date-custom input[type="date"] { min-width: 0; flex: 1 1 110px; }
+
+        /* etiquetas/pílulas ao lado dos títulos quebram linha em vez de vazar */
+        .dashboard-content .tab-pane .a-tag { white-space: normal !important; max-width: 100%; text-align: left; }
+        .dashboard-content .tab-pane h2 { flex-wrap: wrap; min-width: 0; }
+
+        /* itens de log (Disparos/WhatsApp): coluna de texto pode encolher */
+        .disp-log-item { grid-template-columns: 8px minmax(0, 1fr) auto auto auto !important; gap: 8px !important; }
+        .wa-log-item { grid-template-columns: auto minmax(0, 1fr) auto auto !important; gap: 8px !important; }
+        .disp-log-item > *, .wa-log-item > * { min-width: 0; overflow-wrap: anywhere; }
+
+        /* Jornada: KPIs não forçam 460px */
+        #jorPane .jor-kpis { flex: 1 1 100% !important; min-width: 0 !important; }
+
+        /* Lentes: grade de efeitos e modais cabem na tela */
+        .lcfg-fx-grid { grid-template-columns: minmax(0, max-content) minmax(56px, 96px) auto minmax(56px, 96px) !important; gap: 8px !important; }
+        .lcfg-conf, .lcfg-modal-box, #lcfgFxModal .lcfg-modal-box { width: calc(100vw - 24px) !important; max-width: 100% !important; }
+
+        /* modais: campos não passam da borda; grade de 3 do pacote de créditos compacta */
+        .modal textarea, .credits-modal textarea, .plan-modal textarea, [class*="modal"] textarea,
+        .modal input, [class*="modal"] input:not([type="checkbox"]):not([type="radio"]) { box-sizing: border-box; max-width: 100%; }
+        .credits-modal [style*="grid-template-columns:repeat(3,1fr)"] { padding-left: 0 !important; padding-right: 0 !important; gap: 8px !important; }
+        .credits-modal [style*="grid-template-columns:repeat(3,1fr)"] > div { padding: 12px 8px !important; min-width: 0; }
+
+        /* tabelas: rolam dentro do cartão, nunca a página */
+        .dashboard-content .table-container, .dashboard-content .table-wrap, .dashboard-content [class*="table-wrap"] { max-width: 100%; overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+        .dashboard-content .tab-pane img, .dashboard-content .tab-pane video, .dashboard-content .tab-pane iframe { max-width: 100%; }
+        .dashboard-content .tab-pane pre, .dashboard-content .tab-pane code { white-space: pre-wrap; overflow-wrap: anywhere; }
+      }
+    </style>
 </body>
 
 </html>
