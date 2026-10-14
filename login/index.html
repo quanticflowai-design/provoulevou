@@ -5840,6 +5840,27 @@
                     <div class="mpp-box" id="mppBox"></div>
                 </div>
 
+                <!-- Últimos pagamentos da loja (13/10/2026). Lê pagamentos_clientes (RLS pgto_select_own: só a loja do e-mail do login). -->
+                <style>
+                    .mpg-list { display:flex; flex-direction:column; margin-top:14px; }
+                    .mpg-row { display:grid; grid-template-columns:110px 120px minmax(0,1fr) auto; gap:14px; align-items:center; padding:12px 0; border-top:1px solid var(--border); font-size:13.5px; }
+                    .mpg-row:first-child { border-top:0; }
+                    .mpg-data { color:var(--text-muted); font-variant-numeric:tabular-nums; }
+                    .mpg-tipo { font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; padding:4px 8px; border-radius:999px; background:rgba(168,85,247,.14); color:var(--primary-hi,#a855f7); justify-self:start; white-space:nowrap; }
+                    .mpg-desc { color:var(--text-main, var(--text)); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+                    .mpg-valor { font-weight:700; font-variant-numeric:tabular-nums; color:var(--text-main, var(--text)); text-align:right; white-space:nowrap; }
+                    .mpg-vazio { font-size:13px; color:var(--text-muted); padding:8px 0; }
+                    @media (max-width: 640px) {
+                        .mpg-row { grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"data valor" "desc tipo"; gap:6px 12px; }
+                        .mpg-data { grid-area:data; } .mpg-valor { grid-area:valor; } .mpg-desc { grid-area:desc; white-space:normal; } .mpg-tipo { grid-area:tipo; justify-self:end; }
+                    }
+                </style>
+                <div class="mp-card" id="mpPagamentos" style="margin-bottom:24px;">
+                    <div class="a-mp-eyebrow">Pagamentos</div>
+                    <div class="mp-plan-name">Últimos pagamentos</div>
+                    <div class="mpg-list" id="mpgList"><div class="mpg-vazio">Carregando…</div></div>
+                </div>
+
                 <!-- Provador: limite por cliente + bloqueio de cliente (09/10/2026).
                      Grava em lojistas.limite_provas_dia / provador_bloqueios via RPC; os workflows
                      "[Loja] Check Limit" leem com pl_limite_cliente(). Bloquear o telefone bloqueia os IPs dele. -->
@@ -6999,7 +7020,7 @@
                 btn.classList.add('active');
                 btn.setAttribute('aria-selected', 'true');
             }
-            if (name === 'meu-plano') { try { plProvadorCfgLoad(); } catch (e) {} try { mppRender(); } catch (e) {} try { mpaRender(); } catch (e) {} }
+            if (name === 'meu-plano') { try { plProvadorCfgLoad(); } catch (e) {} try { mppRender(); } catch (e) {} try { mpaRender(); } catch (e) {} try { mpgRender(); } catch (e) {} }
             if (name === 'recuperar-leads' && !leadsRecupLoaded && activeUser) {
                 leadsRecupLoaded = true;
                 loadLeadsRecup().catch(err => {
@@ -19965,6 +19986,50 @@
                 store_id: (store && store.id) || null,
                 phone: ''
             };
+        }
+
+        // ====== Últimos pagamentos da loja (Meu Plano) ======
+        // Só leitura: provou_levou_stores (id da loja do login) -> pagamentos_clientes (últimos 10).
+        async function mpgRender() {
+            const box = document.getElementById('mpgList');
+            if (!box) return;
+            const vazio = (txt) => {
+                while (box.firstChild) box.removeChild(box.firstChild);
+                const d = document.createElement('div');
+                d.className = 'mpg-vazio';
+                d.textContent = txt || 'Nenhum pagamento registrado ainda';
+                box.appendChild(d);
+            };
+            try {
+                if (!supabaseClient || !activeUser || !activeUser.email) { vazio(); return; }
+                const rs = await supabaseClient.from('provou_levou_stores').select('id').in('email', plScopeEmails());
+                const ids = (rs.error || !rs.data) ? [] : rs.data.map(r => r.id).filter(Boolean);
+                if (!ids.length) { vazio(); return; }
+                const rp = await supabaseClient.from('pagamentos_clientes')
+                    .select('tipo, valor, data_pagamento, descricao, created_at')
+                    .in('store_id', ids)
+                    .order('data_pagamento', { ascending: false, nullsFirst: false })
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                if (rp.error || !rp.data || !rp.data.length) { vazio(); return; }
+                const brl = (v) => { const n = Number(v); return isFinite(n) ? n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—'; };
+                const dt = (v) => { const m = String(v || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? (m[3] + '/' + m[2] + '/' + m[1]) : '—'; };
+                const tipoTxt = (t) => { const x = String(t || '').toLowerCase(); return x === 'extra' ? 'Excedente' : (x === 'mensalidade' ? 'Mensalidade' : (t || 'Pagamento')); };
+                while (box.firstChild) box.removeChild(box.firstChild);
+                rp.data.forEach(p => {
+                    const row = document.createElement('div'); row.className = 'mpg-row';
+                    const c1 = document.createElement('span'); c1.className = 'mpg-data'; c1.textContent = dt(p.data_pagamento || p.created_at);
+                    const c2 = document.createElement('span'); c2.className = 'mpg-tipo'; c2.textContent = tipoTxt(p.tipo);
+                    const c3 = document.createElement('span'); c3.className = 'mpg-desc';
+                    let desc = String(p.descricao || '').trim();
+                    if (!desc) desc = tipoTxt(p.tipo);
+                    if (desc.length > 80) desc = desc.slice(0, 79) + '…';
+                    c3.textContent = desc; c3.title = String(p.descricao || '');
+                    const c4 = document.createElement('span'); c4.className = 'mpg-valor'; c4.textContent = brl(p.valor);
+                    row.appendChild(c1); row.appendChild(c2); row.appendChild(c3); row.appendChild(c4);
+                    box.appendChild(row);
+                });
+            } catch (e) { vazio(); }
         }
 
         async function mppRender() {
