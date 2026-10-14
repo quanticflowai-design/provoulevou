@@ -5727,7 +5727,10 @@
                                 <div class="label">Valor Próx. Fatura</div>
                                 <div class="val" id="mpProxFatura">—</div>
                             </div>
-                            <div></div>
+                            <div class="mp-stat-block" id="mpFormaBox" style="display:none;">
+                                <div class="label">Forma de pagamento</div>
+                                <div class="val" id="mpForma">—</div>
+                            </div>
                             <button type="button" class="mpa-cta" onclick="mpaAbrir()">
                                 <i class="ph-bold ph-plus-circle"></i> Comprar provas avulsas
                             </button>
@@ -22014,6 +22017,15 @@
             sec.style.display = '';
         }
 
+        // Próximo vencimento = mesmo dia do mês seguinte ao último pagamento (mesma régua do upgrade por PIX).
+        function _mpVencTxt(ini) {
+            const m = String(ini || '').match(/^(\d{4})-(\d{2})-(\d{2})/); if (!m) return '';
+            const y = +m[1], mo = +m[2], d = +m[3], ult = new Date(Date.UTC(y, mo + 1, 0)).getUTCDate();
+            const v = new Date(Date.UTC(y, mo, Math.min(d, ult)));
+            const hoje = new Date(Date.now() - 3 * 3600e3); hoje.setUTCHours(0, 0, 0, 0);
+            const f = v.toISOString().slice(8, 10) + '/' + v.toISOString().slice(5, 7) + '/' + v.toISOString().slice(0, 4);
+            return v < hoje ? '' : ' · próximo vencimento: ' + f;   // passado: não mostra (last_payment pode estar desatualizado na gestão)
+        }
         async function loadConsumoPlano() {
             const card = document.getElementById('consumoPlanoCard');
             if (!card || !activeUser) { if (card) card.style.display = 'none'; return; }
@@ -22187,7 +22199,14 @@
                         mpName.textContent = (isUnlimited ? planLabel + ' · Ilimitado' : planLabel) + valorSufix;
                         document.getElementById('mpPlanSub').textContent = isTeste
                             ? 'Início do teste gratuito: ' + startFmt
-                            : 'Último pagamento: ' + startFmt;
+                            : 'Último pagamento: ' + startFmt + _mpVencTxt(startDate);
+                        // Forma de pagamento (14/10/2026): vem de provou_levou_stores.forma_pagamento, preenchida no painel de gestão
+                        const _fb = document.getElementById('mpFormaBox');
+                        if (_fb) {
+                            const _fp = String(store.forma_pagamento || '').trim();
+                            _fb.style.display = (!isTeste && _fp) ? '' : 'none';
+                            document.getElementById('mpForma').textContent = _fp;
+                        }
 
                         const mpStatus = document.getElementById('mpStatus');
                         mpStatus.classList.remove('muted');
