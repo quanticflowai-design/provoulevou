@@ -5837,6 +5837,15 @@
                 </div>
                 </div>
 
+                <!-- Pagar fatura atual (16/10/2026): mensalidade do plano atual + excedente em aberto, por PIX. Mesmo PIX do n8n (tipo_cobranca: renovacao). -->
+                <div class="mp-card" id="mpFatura" style="margin-bottom:24px;">
+                    <div class="a-mp-eyebrow">Fatura</div>
+                    <div class="mp-plan-name">Pagar fatura atual</div>
+                    <div class="mp-plan-sub">Mensalidade do seu plano mais o excedente em aberto (provas acima da franquia desde o último pagamento). O pagamento aprovado reinicia o ciclo do seu plano.</div>
+                    <div class="mpp-pagar" style="max-width:360px;"><span>Valor da fatura</span><b id="mppFaturaValor">—</b></div>
+                    <div class="mpa-nota" id="mppFaturaNota">Calculando a fatura...</div>
+                    <button type="button" class="pl-cfg-btn" id="mppFaturaBtn" disabled><i class="ph-bold ph-qr-code"></i> Gerar QR PIX da fatura</button>
+                </div>
                 <div class="mp-card" id="mpPlanos" style="margin-bottom:24px;">
                     <div class="a-mp-eyebrow">Planos</div>
                     <div class="mp-plan-name">Mudar de plano</div>
@@ -7046,7 +7055,7 @@
                 btn.setAttribute('aria-selected', 'true');
             }
             if (name === 'configuracoes') { try { plProvadorCfgLoad(); } catch (e) {} }
-            if (name === 'meu-plano') { try { mppRender(); } catch (e) {} try { mpaRender(); } catch (e) {} try { mpgRender(); } catch (e) {} }
+            if (name === 'meu-plano') { try { mppRender(); } catch (e) {} try { mppRenderFatura(); } catch (e) {} try { mpaRender(); } catch (e) {} try { mpgRender(); } catch (e) {} }
             if (name === 'recuperar-leads' && !leadsRecupLoaded && activeUser) {
                 leadsRecupLoaded = true;
                 loadLeadsRecup().catch(err => {
@@ -20119,7 +20128,7 @@
         }
 
         // Monta o pedido que vai para o n8n (função pura, testável sem a página).
-        function mppMontaPedido(plano, user, store) {
+        function mppMontaPedido(plano, user, store, renov) {
             const p = PL_PLANOS_PIX.find(x => x.nome === plano);
             if (!p) throw new Error('Plano inválido');
             const email = String((user && user.email) || '').toLowerCase();
@@ -20134,7 +20143,8 @@
                 email: email,
                 origin: origem,
                 store_id: (store && store.id) || null,
-                phone: ''
+                phone: '',
+                tipo_cobranca: renov ? 'renovacao' : undefined
             };
         }
 
@@ -20213,6 +20223,30 @@
             });
         }
 
+        // Cartão "Pagar fatura atual": o valor vem do servidor (mensalidade + excedente em aberto), igual ao modal.
+        async function mppRenderFatura() {
+            const valorEl = document.getElementById('mppFaturaValor');
+            const notaEl = document.getElementById('mppFaturaNota');
+            const btn = document.getElementById('mppFaturaBtn');
+            if (!valorEl || !btn) return;
+            valorEl.textContent = '—'; btn.disabled = true; btn.dataset.plano = '';
+            let store = null;
+            try { store = await plMinhaLoja(); } catch (e) {}
+            const atual = mppPlanoAtual(store);
+            if (!atual) { notaEl.textContent = 'Não consegui identificar o seu plano atual. Fale com o suporte.'; return; }
+            try {
+                const calc = await mppSimular(atual.nome, store, true);
+                const exc = Math.max(0, Number(calc.excedente_aberto) || 0);
+                valorEl.textContent = mppBrl(calc.valor_cobrado, 2);
+                notaEl.textContent = 'Mensalidade do ' + atual.nome + ' ' + mppBrl(calc.diferenca_plano, 2) + (exc > 0 ? ' + excedente em aberto ' + mppBrl(exc, 2) : ' · sem excedente em aberto') + '.';
+                btn.dataset.plano = atual.nome;
+                btn.disabled = false;
+                btn.onclick = () => mppConfirmar(atual.nome, true);
+            } catch (err) {
+                notaEl.textContent = err.message || 'Não consegui calcular a fatura agora.';
+            }
+        }
+
         function mppAbrirModal() {
             const m = document.getElementById('mppModal');
             if (!m) return null;
@@ -20234,10 +20268,10 @@
         }
 
         // Pede ao n8n só o cálculo (simular: true): diferença do plano (já com crédito), excedente em aberto e total a pagar. Não cria pagamento.
-        async function mppSimular(plano, store) {
+        async function mppSimular(plano, store, renov) {
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session || !session.access_token) throw new Error('Sua sessão expirou. Entre de novo na dashboard.');
-            const pedido = Object.assign(mppMontaPedido(plano, activeUser, store), { simular: true });
+            const pedido = Object.assign(mppMontaPedido(plano, activeUser, store, renov), { simular: true });
             const r = await fetch(PL_PLANO_PIX_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
@@ -20251,7 +20285,7 @@
 
         // Passo 1: confirmação com o valor calculado no servidor (não gera nada até o lojista confirmar)
         // Upgrade: paga o plano novo menos o crédito dos dias que faltam do plano atual, mais o excedente em aberto; o plano novo vale na hora.
-        async function mppConfirmar(plano) {
+        async function mppConfirmar(plano, renov) {
             const p = PL_PLANOS_PIX.find(x => x.nome === plano);
             if (!p) return;
             const box = mppAbrirModal(); if (!box) return;
@@ -20261,7 +20295,7 @@
             const atual = mppPlanoAtual(store);
             const deNome = atual ? atual.nome : ((store && (store.plano_personalizado || store.plan)) || 'plano atual');
             let calc;
-            try { calc = await mppSimular(p.nome, store); }
+            try { calc = await mppSimular(p.nome, store, renov); }
             catch (err) {
                 console.error('mppSimular', err);
                 box.innerHTML = '<h3 id="mppTitulo"></h3><p id="mppSub"></p>' +
@@ -20280,17 +20314,19 @@
                 '<p id="mppExpl"></p>' +
                 '<div class="mpp-acoes"><button type="button" class="mpp-btn-sec" id="mppCancelar">Cancelar</button>' +
                 '<button type="button" class="pl-cfg-btn" id="mppGerar"><i class="ph-bold ph-qr-code"></i> Gerar QR PIX</button></div>';
-            document.getElementById('mppTitulo').textContent = 'Mudar para o plano ' + p.nome + '?';
-            document.getElementById('mppSub').textContent = 'Hoje: ' + deNome + '. Novo: ' + p.nome + ', ' + p.provas.toLocaleString('pt-BR') + ' provas por mês (' + mppBrl(mppPrecoProva(p), 2) + ' por prova).';
+            document.getElementById('mppTitulo').textContent = renov ? 'Pagar fatura do plano ' + p.nome + '?' : 'Mudar para o plano ' + p.nome + '?';
+            document.getElementById('mppSub').textContent = renov
+                ? 'Plano atual: ' + p.nome + ', ' + p.provas.toLocaleString('pt-BR') + ' provas por mês. Sem troca de plano.'
+                : 'Hoje: ' + deNome + '. Novo: ' + p.nome + ', ' + p.provas.toLocaleString('pt-BR') + ' provas por mês (' + mppBrl(mppPrecoProva(p), 2) + ' por prova).';
             document.getElementById('mppRv').textContent = mppBrl(calc.valor_cobrado, 2);
-            document.getElementById('mppExpl').textContent = 'Inclui: diferença do plano novo ' + mppBrl(diferenca, 2) +
+            document.getElementById('mppExpl').textContent = (renov ? 'Inclui: mensalidade ' : 'Inclui: diferença do plano novo ') + mppBrl(diferenca, 2) +
                 (excedente > 0 ? ' + excedente em aberto ' + mppBrl(excedente, 2) : '') + '.';
             document.getElementById('mppCancelar').onclick = mppFechar;
-            document.getElementById('mppGerar').onclick = () => mppGerarPix(p.nome, store, Number(calc.valor_cobrado));
+            document.getElementById('mppGerar').onclick = () => mppGerarPix(p.nome, store, Number(calc.valor_cobrado), renov);
         }
 
         // Passo 2: gera o PIX no n8n (Mercado Pago) e mostra QR + copia e cola
-        async function mppGerarPix(plano, store, valorSimulado) {
+        async function mppGerarPix(plano, store, valorSimulado, renov) {
             if (_mppEmAndamento) return;
             _mppEmAndamento = true;
             const box = document.getElementById('mppBox');
@@ -20299,7 +20335,7 @@
             try {
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (!session || !session.access_token) throw new Error('Sua sessão expirou. Entre de novo na dashboard.');
-                const pedido = mppMontaPedido(plano, activeUser, store);
+                const pedido = mppMontaPedido(plano, activeUser, store, renov);
                 const r = await fetch(PL_PLANO_PIX_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
