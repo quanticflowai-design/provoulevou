@@ -31088,14 +31088,15 @@
             status('Carregando ' + fmtBR(from) + ' a ' + fmtBR(to) + '…');
             var gens = [];
             try {
-                var r = await supabaseClient.rpc('pl_provas_agg_periodo', {
+                // Velaro identifica o cliente por e-mail: a versão _email agrupa por e-mail (16/10/2026)
+                var r = await supabaseClient.rpc(isVelaroStore() ? 'pl_provas_agg_periodo_email' : 'pl_provas_agg_periodo', {
                     p_origem: activeUser.origem,
                     p_from: from + 'T00:00:00-03:00',
                     p_to: somaDias(to, 1) + 'T00:00:00-03:00'
                 });
                 if (r.error) throw r.error;
                 gens = (r.data || []).map(function (a) {
-                    return { telefone_cliente: a.telefone, created_at: a.primeira_ts, produtos: a.ultimo_produto || '',
+                    return { telefone_cliente: a.telefone, email_cliente: a.telefone, created_at: a.primeira_ts, produtos: a.ultimo_produto || '',
                              _provas: a.provas, _dias: a.dias_distintos, _ultimaTs: a.ultima_ts, _clicou: a.clicou_comprar };
                 });
             } catch (e) {
