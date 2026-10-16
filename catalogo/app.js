@@ -2779,7 +2779,7 @@
       const legenda = document.createElement('span');
       legenda.textContent = foto.url ? 'Trocar foto' : 'Adicionar foto';
       const arquivo = document.createElement('input');
-      arquivo.type = 'file'; arquivo.accept = 'image/*'; arquivo.hidden = true;
+      arquivo.type = 'file'; arquivo.accept = 'image/*'; arquivo.className = 'file-oculto';
       arquivo.addEventListener('change', () => escolheFotoVariante(foto, arquivo.files[0]));
       seletor.append(img, legenda, arquivo);
       const campo = document.createElement('input');
