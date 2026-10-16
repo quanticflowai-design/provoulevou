@@ -6495,6 +6495,7 @@
                                 <img id="waPv2Img" class="wa-msg-img" alt="" style="display:none;">
                                 <div id="waPv2Body" class="wa-msg-body"></div>
                                 <div id="waPv2Btn" class="wa-msg-btn" style="display:none;"></div>
+                                <div id="waPv2Qr"></div>
                                 <div class="wa-msg-time">agora ✓✓</div>
                             </div>
                         </div>
@@ -6587,6 +6588,12 @@
                                     <div class="wa-help">Cole qualquer link completo começando com <strong>https://</strong> ou <strong>http://</strong>. Pode ser uma página da loja, coleção, checkout, WhatsApp ou outro site.</div>
                                 </div>
                             </div>
+                            <div style="margin-top:14px;">
+                                <label class="wa-label">Botões de resposta rápida <span style="color:var(--text-muted);font-weight:500;">(opcional — até 3)</span></label>
+                                <div class="wa-help" style="margin-top:0;margin-bottom:8px;">O cliente toca no botão (ex.: "Quero", "Não tenho interesse") e recebe na hora a resposta que você escrever. O clique aparece na aba Conversas.</div>
+                                <div id="newTplQrList" style="display:flex;flex-direction:column;gap:10px;"></div>
+                                <button type="button" class="wa-chip-btn green" id="newTplQrAdd" style="margin-top:10px;" onclick="tplQrAdd()"><i class="ph-bold ph-plus"></i> Adicionar botão de resposta</button>
+                            </div>
                             <div>
                                 <label class="wa-label">Prévia da mensagem</label>
                                 <div class="wa-msg-preview">
@@ -6594,6 +6601,7 @@
                                         <img id="waPvImg" class="wa-msg-img" alt="" style="display:none;">
                                         <div id="waPvBody" class="wa-msg-body"></div>
                                         <div id="waPvBtn" class="wa-msg-btn" style="display:none;"></div>
+                                        <div id="waPvQr"></div>
                                         <div class="wa-msg-time">agora ✓✓</div>
                                     </div>
                                 </div>
@@ -11199,7 +11207,13 @@
                     const at = m.wa_timestamp || m.created_at;
                     const tpl = (m.direction === 'out' && m.template_name) ? '<div class="chat-msg-tpl">Template · ' + escapeHtml(m.template_name) + '</div>' : '';
                     // Botão do template (CTA) — renderiza como botão de verdade, igual chega no WhatsApp
-                    const btn = (m.btn_label)
+                    if (m.direction === 'in' && m.msg_type === 'button') {
+                        return `<div class="chat-msg in"><div class="chat-msg-tpl"><i class="ph-bold ph-hand-tap"></i> Clicou no botão</div><div class="chat-msg-cta" style="text-align:center;padding:6px 10px;border:1px solid rgba(2,126,181,.35);border-radius:8px;color:#027eb5;font-weight:600;font-size:13.5px;">${escapeHtml(m.btn_label || m.body || '')}</div><div class="chat-msg-time">${chatFmtTime(at)}</div></div>`;
+                    }
+                    const _btnLines = String(m.btn_label || '').split('\n').map(s => s.trim()).filter(Boolean);
+                    const btn = (_btnLines.length > 1 && !m.btn_url)
+                        ? _btnLines.map(l => '<div class="chat-msg-cta" style="text-align:center;margin-top:7px;padding-top:8px;border-top:1px solid rgba(0,0,0,.10);color:#027eb5;font-weight:600;font-size:13.5px;"><i class="ph-bold ph-arrow-bend-up-left"></i> ' + escapeHtml(l) + '</div>').join('')
+                        : (m.btn_label)
                         ? (m.btn_url
                             ? '<a class="chat-msg-cta" href="' + escapeHtml(m.btn_url) + '" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;margin-top:7px;padding-top:8px;border-top:1px solid rgba(0,0,0,.10);color:#027eb5;text-decoration:none;font-weight:600;font-size:13.5px;"><i class="ph-bold ph-arrow-square-out"></i> ' + escapeHtml(m.btn_label) + '</a>'
                             : '<div class="chat-msg-cta" style="text-align:center;margin-top:7px;padding-top:8px;border-top:1px solid rgba(0,0,0,.10);color:#027eb5;font-weight:600;font-size:13.5px;">' + escapeHtml(m.btn_label) + '</div>')
@@ -12020,6 +12034,7 @@
             // limpa a imagem de cabeçalho de uma abertura anterior
             const _hi = document.getElementById('newTplHeaderImg'); if (_hi) _hi.value = '';
             try { tplPreviewHeaderImg(); } catch (e) {}
+            try { tplQrReset(); } catch (e) {}
             try { tplUpdateButtonLinkMode(); } catch (e) {}
             try { tplUpdatePreview(); } catch (e) {}
             try { tplSyncHighlight(); } catch (e) {} // sincroniza o realce do corpo com o conteúdo atual
@@ -12445,6 +12460,50 @@
             if (inp) inp.value = '';
             tplPreviewHeaderImg();
         }
+        // ===== Botões de RESPOSTA RÁPIDA (QUICK_REPLY da Meta) =====
+        // Cada botão: texto (até 25 caracteres, exigência da Meta) + resposta automática
+        // (texto de sessão — o clique abre a janela de 24h). Máx. 3 por template.
+        const TPL_QR_MAX = 3, TPL_QR_TEXT_MAX = 25, TPL_QR_REPLY_MAX = 1000;
+        function tplQrRows() {
+            return Array.from(document.querySelectorAll('#newTplQrList .tpl-qr-row')).map(r => ({
+                text: ((r.querySelector('.tpl-qr-text') || {}).value || '').trim(),
+                reply: ((r.querySelector('.tpl-qr-reply') || {}).value || '').trim()
+            }));
+        }
+        function tplQrRefreshAdd() {
+            const n = document.querySelectorAll('#newTplQrList .tpl-qr-row').length;
+            const add = document.getElementById('newTplQrAdd');
+            if (add) add.style.display = n >= TPL_QR_MAX ? 'none' : '';
+        }
+        function tplQrAdd(text, reply) {
+            const list = document.getElementById('newTplQrList');
+            if (!list || list.querySelectorAll('.tpl-qr-row').length >= TPL_QR_MAX) return;
+            const row = document.createElement('div');
+            row.className = 'tpl-qr-row';
+            row.style.cssText = 'border:1px solid var(--border-color, rgba(124,58,237,.2));border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;';
+            row.innerHTML =
+                '<div style="display:flex;gap:8px;align-items:center;">' +
+                    '<input type="text" class="wa-input tpl-qr-text" maxlength="' + TPL_QR_TEXT_MAX + '" placeholder="Texto do botão (ex.: Quero)" oninput="tplUpdatePreview()" style="flex:1;">' +
+                    '<button type="button" class="wa-chip-btn red" onclick="this.closest(\'.tpl-qr-row\').remove();tplQrRefreshAdd();tplUpdatePreview();" title="Remover botão"><i class="ph-bold ph-trash"></i></button>' +
+                '</div>' +
+                '<textarea class="wa-input tpl-qr-reply" rows="2" maxlength="' + TPL_QR_REPLY_MAX + '" placeholder="Resposta automática que o cliente recebe ao tocar (ex.: Perfeito! Separei o seu, é só finalizar aqui…)"></textarea>';
+            row.querySelector('.tpl-qr-text').value = text || '';
+            row.querySelector('.tpl-qr-reply').value = reply || '';
+            list.appendChild(row);
+            tplQrRefreshAdd();
+            tplUpdatePreview();
+        }
+        function tplQrReset() {
+            const list = document.getElementById('newTplQrList');
+            if (list) list.innerHTML = '';
+            tplQrRefreshAdd();
+        }
+        // Renderiza botões de resposta rápida na prévia (mesmo visual do botão CTA).
+        function tplQrPreviewHtml(labels) {
+            return (labels || []).filter(Boolean).map(l =>
+                '<div class="wa-msg-btn" style="display:flex;"><i class="ph-bold ph-arrow-bend-up-left"></i> ' + escapeHtml(l) + '</div>').join('');
+        }
+
         // Prévia estilo WhatsApp: imagem no topo + corpo (com variáveis de exemplo) + botão.
         function tplUpdateButtonLinkMode() {
             const mode = ((document.getElementById('newTplBtnLinkMode') || {}).value || 'product');
@@ -12486,6 +12545,8 @@
                 }
                 else { pvBtn.style.display = 'none'; pvBtn.innerHTML = ''; }
             }
+            const pvQr = document.getElementById('waPvQr');
+            if (pvQr) pvQr.innerHTML = tplQrPreviewHtml(tplQrRows().map(r => r.text));
         }
         // Prévia de um template JÁ CRIADO: abre a mensagem como vai no WhatsApp — com a
         // imagem (se o template tiver header de imagem e ela estiver definida) ou só o texto.
@@ -12508,7 +12569,12 @@
             if (title) title.textContent = name;
             if (pvImg) { if (img) { pvImg.src = img; pvImg.style.display = 'block'; } else { pvImg.style.display = 'none'; pvImg.removeAttribute('src'); } }
             if (pvBody) pvBody.innerHTML = bodyHtml || '<span class="wa-msg-empty">(sem corpo de texto)</span>';
-            if (pvBtn) { if (btnText) { pvBtn.innerHTML = '<i class="ph-bold ph-arrow-square-out"></i> ' + escapeHtml(btnText); pvBtn.style.display = 'flex'; } else { pvBtn.style.display = 'none'; pvBtn.innerHTML = ''; } }
+            const _allBtns = (btnComp && btnComp.buttons) || [];
+            const _ctaBtn = _allBtns.find(b => String(b.type || '').toUpperCase() !== 'QUICK_REPLY');
+            const _qrLabels = _allBtns.filter(b => String(b.type || '').toUpperCase() === 'QUICK_REPLY').map(b => b.text);
+            if (pvBtn) { if (_ctaBtn && _ctaBtn.text) { pvBtn.innerHTML = '<i class="ph-bold ph-arrow-square-out"></i> ' + escapeHtml(_ctaBtn.text); pvBtn.style.display = 'flex'; } else { pvBtn.style.display = 'none'; pvBtn.innerHTML = ''; } }
+            const pvQr2 = document.getElementById('waPv2Qr');
+            if (pvQr2) pvQr2.innerHTML = tplQrPreviewHtml(_qrLabels);
             const modal = document.getElementById('waMsgPreviewModal');
             // O modal fica dentro de #tab-meu-plano, mas os botões "Ver prévia" também aparecem
             // na aba Disparos — e lá aquele tab-pane está display:none, então o modal não
@@ -12644,6 +12710,28 @@
                 });
             }
 
+            // Respostas rápidas: QUICK_REPLY no mesmo componente BUTTONS, sempre DEPOIS do CTA
+            // (a Meta exige os quick replies agrupados; CTA no índice 0 mantém o urlBtnIndex dos disparos).
+            const _qr = tplQrRows();
+            if (_qr.length) {
+                const _seen = new Set();
+                for (let i = 0; i < _qr.length; i++) {
+                    const q = _qr[i];
+                    if (!q.text) { fb.className = 'wa-feedback error'; fb.innerHTML = 'Escreva o <strong>texto do botão de resposta ' + (i + 1) + '</strong> ou remova o botão.'; return; }
+                    if (q.text.length > TPL_QR_TEXT_MAX) { fb.className = 'wa-feedback error'; fb.innerHTML = 'O texto do botão "' + escapeHtml(q.text) + '" passa de ' + TPL_QR_TEXT_MAX + ' caracteres (limite da Meta).'; return; }
+                    if (/\{\{.*?\}\}/.test(q.text)) { fb.className = 'wa-feedback error'; fb.innerHTML = 'O texto do botão de resposta não pode ter variável.'; return; }
+                    const k = q.text.toLowerCase();
+                    if (_seen.has(k)) { fb.className = 'wa-feedback error'; fb.innerHTML = 'Dois botões com o mesmo texto ("' + escapeHtml(q.text) + '"). Use textos diferentes.'; return; }
+                    _seen.add(k);
+                    if (btnText && btnText.toLowerCase() === k) { fb.className = 'wa-feedback error'; fb.innerHTML = 'O botão de resposta não pode ter o mesmo texto do botão de link.'; return; }
+                    if (!q.reply) { fb.className = 'wa-feedback error'; fb.innerHTML = 'Escreva a <strong>resposta automática</strong> do botão "' + escapeHtml(q.text) + '".'; return; }
+                }
+                let _btnsComp = components.find(c => c.type === 'BUTTONS');
+                if (!_btnsComp) { _btnsComp = { type: 'BUTTONS', buttons: [] }; components.push(_btnsComp); }
+                _qr.forEach(q => _btnsComp.buttons.push({ type: 'QUICK_REPLY', text: q.text }));
+            }
+            const _qrConfig = _qr.map(q => ({ text: q.text, reply: q.reply }));
+
             const payload = { name, category, language: lang, components };
             const btn = document.getElementById('waTplSubmitBtn');
             btn.disabled = true;
@@ -12661,7 +12749,13 @@
                 if (result.ok && result.body && result.body.id) {
                     // Registra como template da Provou Levou (pra aparecer na lista filtrada)
                     try {
-                        await supabaseClient.from('pl_wa_templates').insert({ email: activeUser.email, name });
+                        const _row = { email: activeUser.email, name };
+                        if (_qrConfig.length) _row.quick_replies = _qrConfig;
+                        let _ins = await supabaseClient.from('pl_wa_templates').insert(_row);
+                        if (_ins && _ins.error && _qrConfig.length) {
+                            console.warn('[pl-templates] quick_replies:', _ins.error);
+                            _ins = await supabaseClient.from('pl_wa_templates').insert({ email: activeUser.email, name });
+                        }
                         _plTplNamesCache = null; _waTemplatesCache = [];
                     } catch (e) { console.warn('[pl-templates] insert:', e); }
                     // Template de imagem: grava a MESMA imagem em pl_wa_templates pro envio
