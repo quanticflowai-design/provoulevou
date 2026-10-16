@@ -351,6 +351,7 @@
           <button type="button" class="admin-menu-btn" data-aba="categorias" role="tab">Categorias</button>
           <button type="button" class="admin-menu-btn" data-aba="links" role="tab">Links</button>
           <button type="button" class="admin-menu-btn" data-aba="bloqueios" role="tab">Provador</button>
+          <button type="button" class="admin-menu-btn" data-aba="conta" role="tab">Conta</button>
         </nav>
 
         <div class="admin-aba" data-aba="cadastrar" role="tabpanel" hidden>
@@ -539,6 +540,31 @@
         </div>
         </div>
 
+        <div class="admin-aba" data-aba="conta" role="tabpanel" hidden>
+        <div class="prov-card">
+          <div class="prov-head">
+            <span class="prov-ico" aria-hidden="true">🔒</span>
+            <div>
+              <h3 class="prov-tit">Trocar senha</h3>
+              <p class="prov-sub">Senha de acesso ao painel do seu catálogo. Use pelo menos 8 caracteres.</p>
+            </div>
+          </div>
+          <form id="form-senha" autocomplete="on" onsubmit="return false">
+            <input type="email" id="senha-email" autocomplete="username" hidden>
+            <label class="prov-label" for="senha-atual">Senha atual</label>
+            <input type="password" id="senha-atual" class="prov-input" autocomplete="current-password" required>
+            <label class="prov-label" for="senha-nova">Nova senha</label>
+            <input type="password" id="senha-nova" class="prov-input" autocomplete="new-password" minlength="8" required>
+            <label class="prov-label" for="senha-confirma">Repita a nova senha</label>
+            <input type="password" id="senha-confirma" class="prov-input" autocomplete="new-password" minlength="8" required>
+            <div class="prov-acoes">
+              <span class="prov-conta" id="senha-msg" role="status"></span>
+              <button class="btn-primary" id="btn-senha-salvar" type="submit">Salvar nova senha</button>
+            </div>
+          </form>
+        </div>
+        </div>
+
         <div class="admin-aba" data-aba="links" role="tabpanel" hidden>
         <!-- Link principal: sempre existe, então a aba nunca abre vazia. -->
         <div class="cat-links" id="link-geral">
@@ -639,6 +665,6 @@
   <div id="toast"></div>
 
   <script src="lentes.js?v=152"></script>
-  <script src="app.js?v=168"></script>
+  <script src="app.js?v=169"></script>
 </body>
 </html>
