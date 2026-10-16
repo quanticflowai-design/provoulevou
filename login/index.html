@@ -19132,8 +19132,15 @@
             return _temStatusCache[tabela];
         }
         // Sem a coluna no resultado, `o.status` e undefined e o pedido passa — de proposito.
+        // Pagamento anulado/estornado nao e compra (16/10/2026: pedido de teste com PIX anulado contava como recuperado).
+        const PAG_ANULADO = ['voided', 'refunded', 'chargeback', 'charged_back', 'estornado', 'anulado'];
+        // Numero comercial da propria Provou Levou nunca conta como compra (ultimos 8 digitos). Pedido do Lucas e testes.
+        const NUMEROS_TESTE = ['38034714'];
         function pedidoValido(o) {
-            return CANCELADOS.indexOf(String((o && o.status) || '').toLowerCase()) === -1;
+            if (CANCELADOS.indexOf(String((o && o.status) || '').toLowerCase()) !== -1) return false;
+            if (PAG_ANULADO.indexOf(String((o && o.payment_status) || '').toLowerCase()) !== -1) return false;
+            const tel = String((o && (o.customer_phone || o.telefone)) || '').replace(/\D/g, '').slice(-8);
+            return !(tel && NUMEROS_TESTE.indexOf(tel) !== -1);
         }
         // Acrescenta `status` ao select so quando a tabela tem a coluna.
         function comStatus(campos, tem) {
