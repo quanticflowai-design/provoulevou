@@ -572,7 +572,11 @@
                 brand: '#D4AF5A', dark: '#B8913E', soft: 'rgba(212,175,90,.12)', on: '#190608' },
     // Óptica Harumi (SP) — olho ciano + laranja sobre preto chapado -> bg preto igual ao logo, tema escuro; botão ciano com texto preto (~11:1)
     opticaharumi: { bg: '#000000', card: '#0D1114', line: '#1E2A30',
-                brand: '#1EC8E8', dark: '#0596C5', soft: 'rgba(30,200,232,.12)', on: '#000000' }
+                brand: '#1EC8E8', dark: '#0596C5', soft: 'rgba(30,200,232,.12)', on: '#000000' },
+    // Ótica Visali (Ubá/MG, DV9) — logo faixa azul #2E3092 com 'ÓTICA' verde e 'VISALI' branco -> bg igual ao logo, tema escuro;
+    // botão verde da marca com texto preto (~10:1)
+    visali: { bg: '#2E3092', card: '#363BA3', line: 'rgba(166,206,56,.28)',
+              brand: '#A6CE38', dark: '#8DB52A', soft: 'rgba(166,206,56,.14)', on: '#111111' }
   };
 
   // ─────────── Tema ───────────
