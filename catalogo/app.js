@@ -2513,6 +2513,39 @@
     const cv = $('#categorias-vazio');
     if (cv) cv.hidden = categoriasDaLoja(true).length > 0;
   }
+  // ─────────── Aba Conta: trocar senha (16/10/2026) ───────────
+  {
+    const btn = $('#btn-senha-salvar'), msg = $('#senha-msg');
+    const diz = (t, erro) => { if (msg) { msg.textContent = t; msg.style.color = erro ? '#c0392b' : ''; } };
+    if (btn) btn.addEventListener('click', async () => {
+      const atual = ($('#senha-atual') || {}).value || '', nova = ($('#senha-nova') || {}).value || '', conf = ($('#senha-confirma') || {}).value || '';
+      const email = String((sessao && sessao.email) || '').trim().toLowerCase();
+      if (!email) { diz('Entre de novo no painel para trocar a senha.', true); return; }
+      if (!atual) { diz('Digite a sua senha atual.', true); return; }
+      if (nova.length < 8) { diz('A nova senha precisa ter pelo menos 8 caracteres.', true); return; }
+      if (nova !== conf) { diz('As duas senhas novas não são iguais.', true); return; }
+      if (nova === atual) { diz('A nova senha tem que ser diferente da atual.', true); return; }
+      btn.disabled = true; diz('Salvando…');
+      try {
+        // confere a senha atual entrando de novo (e pega um token novo)
+        const r1 = await fetch(SB_URL + '/auth/v1/token?grant_type=password', {
+          method: 'POST', headers: { apikey: SB_ANON, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: atual }) });
+        const j1 = await r1.json().catch(() => ({}));
+        if (!r1.ok || !j1.access_token) { diz('A senha atual está errada.', true); return; }
+        const r2 = await fetch(SB_URL + '/auth/v1/user', {
+          method: 'PUT', headers: { apikey: SB_ANON, Authorization: 'Bearer ' + j1.access_token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: nova }) });
+        const j2 = await r2.json().catch(() => ({}));
+        if (!r2.ok) { diz((j2 && (j2.msg || j2.error_description || j2.message)) || 'Não consegui trocar a senha. Tente de novo.', true); return; }
+        try { sessao.token = j1.access_token; localStorage.setItem(SESSAO, JSON.stringify(sessao)); } catch (e) {}
+        ['#senha-atual', '#senha-nova', '#senha-confirma'].forEach(id => { const el = $(id); if (el) el.value = ''; });
+        diz('Senha trocada ✓ Use a nova senha no próximo acesso.');
+        toast('Senha trocada ✓');
+      } catch (e) { diz('Sem conexão. Tente de novo.', true); }
+      finally { btn.disabled = false; }
+    });
+  }
   $$('.admin-menu-btn').forEach(b => b.addEventListener('click', () => mostraAba(b.dataset.aba)));
   {
     const bn = $('#btn-aba-novo');
