@@ -13164,6 +13164,7 @@
             try {
                 if (!allOrdersCache || !allOrdersCache.length || !Object.keys(provaMinTsMap || {}).length) await loadSharedData();
                 _jor.compradores = _jorMontaCompradores();
+                await _jorSomaRecuperados(_jor.compradores);
                 _jor.cache = {};
                 await _jorMarcaDisparos(_jor.compradores);
             } catch (e) {
@@ -13171,6 +13172,38 @@
                 const m = document.getElementById('jorMain'); if (m) m.innerHTML = '<div class="jor-card jor-vazio">Não foi possível carregar os compradores.</div>';
             } finally { _jor.carregando = false; }
             _jorLista();
+        }
+        // Recuperados por disparo SEM prova (16/10/2026, Penélope): campanhas como a "RFM · Em risco" falam com quem
+        // já comprou e nunca provou. A aba Disparos conta essa venda como recuperada (mensagem entregue/lida até 30 dias
+        // antes do pagamento), mas a Jornada só listava quem provou — o cliente sumia daqui. Mesma regra do card de
+        // recuperados; a linha do tempo começa no 1º disparo da janela.
+        async function _jorSomaRecuperados(lista) {
+            const u = activeUser || {}, JAN = 30 * 864e5;
+            let rows = [];
+            try { rows = await getSendLogShared(); } catch (e) { console.warn('[jornada] send_log', e); return; }
+            const porTel = {};
+            (rows || []).forEach(r => {
+                const st = String(r.status || '').toLowerCase(); if (st !== 'delivered' && st !== 'read') return;
+                const ph = normalize(r.lead_phone); const ms = new Date(r.sent_at).getTime(); if (!ph || !ms) return;
+                (porTel[ph] = porTel[ph] || []).push(ms);
+            });
+            const ja = new Set(lista.map(b => b.chave));
+            const fNome = u.campo_nome_pedido || 'customer_name', fTotal = u.campo_total_pedido || 'total', fProd = u.campo_produto_pedido || 'product_name';
+            const novos = {};
+            (allOrdersCache || []).forEach(o => {
+                if (!pedidoValido(o)) return;
+                const ts = timestampAtribuicaoPedido(o, u); const ms = new Date(ts).getTime(); if (!ts || isNaN(ms)) return;
+                const keys = orderPhoneKeys(o); if (keys.some(k => ja.has(k))) return;
+                keys.forEach(k => {
+                    const envs = (porTel[k] || []).filter(t => t <= ms && ms - t <= JAN); if (!envs.length) return;
+                    const atual = novos[k]; if (atual && atual.ms <= ms) return;
+                    novos[k] = { chave: k, ms, ts, nome: String(o[fNome] || '').trim(), valor: parseFloat(o[fTotal]) || 0,
+                        produto: String(o[fProd] || '').trim(), telPedido: orderPhones(o)[0] || '', raw: orderPhones(o)[0] || k,
+                        provaTs: new Date(Math.min(...envs)).toISOString(), semProva: true };
+                });
+            });
+            Object.values(novos).forEach(b => lista.push(b));
+            lista.sort((a, b) => b.ms - a.ms);
         }
         // Filtro "recebeu disparo antes de comprar" (14/10/2026): mesma regra da linha do tempo — mensagem do WhatsApp
         // oficial (whatsapp_send_log) entre a 1ª prova e a compra, pelo telefone (8 últimos dígitos). Não conta pulada nem falha.
@@ -13215,7 +13248,7 @@
                 const dd = _jorDias(new Date(b.provaTs), new Date(b.ms));
                 return '<button type="button" class="jor-cli' + (b.chave === _jor.sel ? ' on' : '') + '" data-k="' + escapeHtml(b.chave) + '">'
                     + '<span class="n">' + escapeHtml(b.nome || _jorTel(b.raw)) + (b.disparos > 0 ? '<span class="t" title="Recebeu ' + b.disparos + (b.disparos === 1 ? ' disparo' : ' disparos') + ' antes de comprar">disparo</span>' : '') + '</span><span class="v">' + _jorBrl(b.valor) + '</span>'
-                    + '<span class="s">comprou ' + (dd <= 0 ? 'no dia da prova' : dd + (dd === 1 ? ' dia' : ' dias') + ' depois') + '</span><span class="q">' + _jorDia(new Date(b.ms)) + '</span></button>';
+                    + '<span class="s">' + (b.semProva ? 'sem prova · comprou ' + (dd <= 0 ? 'no dia do disparo' : dd + (dd === 1 ? ' dia' : ' dias') + ' após o disparo') : 'comprou ' + (dd <= 0 ? 'no dia da prova' : dd + (dd === 1 ? ' dia' : ' dias') + ' depois')) + '</span><span class="q">' + _jorDia(new Date(b.ms)) + '</span></button>';
             }).join('') + (vis.length > 300 ? '<p class="jor-vazio" style="padding:8px">Mostrando os 300 mais recentes. Use a busca.</p>' : '')
                 : '<p class="jor-vazio">Nenhum comprador no período.</p>';
         }
@@ -13245,7 +13278,7 @@
             });
             const ini2 = nome.split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
             main.innerHTML = ''
-                + '<section class="jor-card" style="padding:14px 10px"><div class="jor-tit" style="padding:0 12px 10px">' + escapeHtml(nome) + ' · ' + _jorBrl(b.valor) + ' · ' + _jorTxtDias(_jorDias(ini, new Date(b.ms))) + ' da 1ª prova à compra</div>'
+                + '<section class="jor-card" style="padding:14px 10px"><div class="jor-tit" style="padding:0 12px 10px">' + escapeHtml(nome) + ' · ' + _jorBrl(b.valor) + ' · ' + _jorTxtDias(_jorDias(ini, new Date(b.ms))) + (b.semProva ? ' do disparo à compra (não fez prova)' : ' da 1ª prova à compra') + '</div>'
                 + '<div class="jor-trilho"><div class="jor-faixa" style="grid-template-columns:' + cols.join(' ') + '">' + h + '</div></div></section>';
         }
 
