@@ -20129,7 +20129,7 @@
 
         // Monta o pedido que vai para o n8n (função pura, testável sem a página).
         function mppMontaPedido(plano, user, store, renov) {
-            const p = PL_PLANOS_PIX.find(x => x.nome === plano);
+            const p = renov ? { nome: 'renovacao', valor: 0, provas: 0 } : PL_PLANOS_PIX.find(x => x.nome === plano);
             if (!p) throw new Error('Plano inválido');
             const email = String((user && user.email) || '').toLowerCase();
             const origem = String((user && user.origem) || (store && store.domain) || '');
@@ -20233,15 +20233,16 @@
             let store = null;
             try { store = await plMinhaLoja(); } catch (e) {}
             const atual = mppPlanoAtual(store);
-            if (!atual) { notaEl.textContent = 'Não consegui identificar o seu plano atual. Fale com o suporte.'; return; }
+            const nomeAtual = atual ? atual.nome : String((store && (store.plano_personalizado || store.plan)) || '').trim();
+            if (!nomeAtual) { notaEl.textContent = 'Não consegui identificar o seu plano atual. Fale com o suporte.'; return; }
             try {
-                const calc = await mppSimular(atual.nome, store, true);
+                const calc = await mppSimular(nomeAtual, store, true);
                 const exc = Math.max(0, Number(calc.excedente_aberto) || 0);
                 valorEl.textContent = mppBrl(calc.valor_cobrado, 2);
-                notaEl.textContent = 'Mensalidade do ' + atual.nome + ' ' + mppBrl(calc.diferenca_plano, 2) + (exc > 0 ? ' + excedente em aberto ' + mppBrl(exc, 2) : ' · sem excedente em aberto') + '.';
-                btn.dataset.plano = atual.nome;
+                notaEl.textContent = 'Mensalidade do ' + nomeAtual + ' ' + mppBrl(calc.diferenca_plano, 2) + (exc > 0 ? ' + excedente em aberto ' + mppBrl(exc, 2) : ' · sem excedente em aberto') + '.';
+                btn.dataset.plano = nomeAtual;
                 btn.disabled = false;
-                btn.onclick = () => mppConfirmar(atual.nome, true);
+                btn.onclick = () => mppConfirmar(nomeAtual, true);
             } catch (err) {
                 notaEl.textContent = err.message || 'Não consegui calcular a fatura agora.';
             }
@@ -20286,7 +20287,7 @@
         // Passo 1: confirmação com o valor calculado no servidor (não gera nada até o lojista confirmar)
         // Upgrade: paga o plano novo menos o crédito dos dias que faltam do plano atual, mais o excedente em aberto; o plano novo vale na hora.
         async function mppConfirmar(plano, renov) {
-            const p = PL_PLANOS_PIX.find(x => x.nome === plano);
+            const p = PL_PLANOS_PIX.find(x => x.nome === plano) || (renov ? { nome: plano, valor: 0, provas: 0 } : null);
             if (!p) return;
             const box = mppAbrirModal(); if (!box) return;
             box.innerHTML = '<h3 id="mppTitulo"></h3><p id="mppSub">Calculando o valor a pagar...</p>';
@@ -20316,7 +20317,7 @@
                 '<button type="button" class="pl-cfg-btn" id="mppGerar"><i class="ph-bold ph-qr-code"></i> Gerar QR PIX</button></div>';
             document.getElementById('mppTitulo').textContent = renov ? 'Pagar fatura do plano ' + p.nome + '?' : 'Mudar para o plano ' + p.nome + '?';
             document.getElementById('mppSub').textContent = renov
-                ? 'Plano atual: ' + p.nome + ', ' + p.provas.toLocaleString('pt-BR') + ' provas por mês. Sem troca de plano.'
+                ? 'Plano atual: ' + p.nome + '. Sem troca de plano.'
                 : 'Hoje: ' + deNome + '. Novo: ' + p.nome + ', ' + p.provas.toLocaleString('pt-BR') + ' provas por mês (' + mppBrl(mppPrecoProva(p), 2) + ' por prova).';
             document.getElementById('mppRv').textContent = mppBrl(calc.valor_cobrado, 2);
             document.getElementById('mppExpl').textContent = (renov ? 'Inclui: mensalidade ' : 'Inclui: diferença do plano novo ') + mppBrl(diferenca, 2) +
@@ -20347,7 +20348,7 @@
                 const qr = data.qr_code, qr64 = data.qr_code_base64;
                 if (!paymentId || !qr) throw new Error('PIX gerado sem os dados completos.');
                 _mppPaymentId = paymentId;
-                const p = PL_PLANOS_PIX.find(x => x.nome === plano);
+                const p = PL_PLANOS_PIX.find(x => x.nome === plano) || { nome: plano, valor: 0, provas: 0 };
                 box.innerHTML =
                     '<h3 id="mppTitulo"></h3><p>Escaneie o QR Code no app do banco ou use o PIX copia e cola.</p>' +
                     '<img class="mpp-qr" id="mppQr" alt="QR Code PIX" />' +
