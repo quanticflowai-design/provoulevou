@@ -20728,7 +20728,7 @@
                 nudge.style.display = 'none'; return;
             }
             const lastPay = store.last_payment;
-            const brl = v => v.toLocaleString(PL_LOC, { style: 'currency', currency: PL_CUR, minimumFractionDigits: 2 });
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
             const planAtualValor = PACKS_PLAN_VALUES[planAtual] || 0;
             const nextValor = PACKS_PLAN_VALUES[nextPlan];
             const nextLimite = PACKS_PLAN_LIMITS_REF[nextPlan];
@@ -20836,7 +20836,7 @@
             if (precoFoto == null || precoFoto <= 0) { card.style.display = 'none'; return; }
             _packPrecoFotoLoja = precoFoto;
             card.style.display = '';
-            const brl = v => v.toLocaleString(PL_LOC, { style: 'currency', currency: PL_CUR, minimumFractionDigits: 2 });
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
             document.getElementById('packExtraPrecoFoto').textContent = brl(precoFoto);
             document.getElementById('packExtraSub').textContent = isOverride
                 ? 'Acordo especial: provas extras por ' + brl(precoFoto) + ' cada.'
@@ -20870,7 +20870,7 @@
         async function iniciarCompraExtra(qty, valor) {
             const modal = document.getElementById('packPixModal');
             modal.style.display = 'flex';
-            const brl = v => v.toLocaleString(PL_LOC, { style: 'currency', currency: PL_CUR, minimumFractionDigits: 2 });
+            const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
             document.getElementById('packPixTitle').textContent = qty.toLocaleString('pt-BR') + ' provas extras · ' + brl(valor);
             document.getElementById('packPixLoading').style.display = '';
             document.getElementById('packPixQr').style.display = 'none';
@@ -20973,7 +20973,7 @@
         let _mppPoll = null, _mppPaymentId = null, _mppEmAndamento = false;
 
         function mppBrl(v, casas) {
-            return Number(v).toLocaleString(PL_LOC, { style: 'currency', currency: PL_CUR, minimumFractionDigits: casas == null ? 0 : casas, maximumFractionDigits: casas == null ? 2 : casas });
+            return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: casas == null ? 0 : casas, maximumFractionDigits: casas == null ? 2 : casas });
         }
         function mppPrecoProva(p) { return Math.round(p.valor / p.provas * 10000) / 10000; }
 
@@ -22979,7 +22979,7 @@
                 const count = (data || []).length;
                 const total = (data || []).reduce((s, r) => s + (parseFloat(r.valor) || 0), 0);
                 document.getElementById('provasExtrasCount').textContent = count.toLocaleString('pt-BR');
-                document.getElementById('provasExtrasValor').textContent = total.toLocaleString(PL_LOC, { style: 'currency', currency: PL_CUR });
+                document.getElementById('provasExtrasValor').textContent = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                 if (card) card.style.display = count > 0 ? '' : 'none';
             } catch (err) {
                 console.error('loadProvasExtras error', err);
@@ -23112,7 +23112,7 @@
                 const planValor = isPersonalizado
                     ? parseFloat(store.valor_personalizado || 0)
                     : (PACKS_PLAN_VALUES[store.plan] || 0);
-                const fmtBRL = v => v.toLocaleString(PL_LOC, { style: 'currency', currency: PL_CUR, minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                const fmtBRL = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 2 });
                 const valorSufix = (planValor > 0 && !isTeste) ? ' · ' + fmtBRL(planValor) + '/mês' : '';
                 document.getElementById('consumoPlanName').textContent = (isUnlimited
                     ? planLabel + ' · Ilimitado'
