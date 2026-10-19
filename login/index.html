@@ -3999,6 +3999,7 @@
                         <div class="lcfg-acoes">
                             <small id="lcfgPreviaStatus">Como o cliente vai ver</small>
                             <button type="button" class="lcfg-acao" id="lcfgPreviaRecarrega" title="Recarregar a prévia"><i class="ph-bold ph-arrow-clockwise"></i></button>
+                            <button type="button" class="lcfg-acao" id="lcfgMapaBtn" onclick="_lcfgMapaFluxo()" title="Ver o caminho do cliente em caixas e setas"><i class="ph-bold ph-tree-structure"></i> Mapa</button>
                             <button type="button" class="lcfg-acao" id="lcfgVersoesBtn" onclick="_lcfgVersoesAbre()" title="Versões guardadas: backup e restaurar"><i class="ph-bold ph-clock-counter-clockwise"></i> Versões</button>
                             <button type="button" class="lcfg-acao pri" id="lcfgSalvar" disabled><i class="ph-bold ph-floppy-disk"></i> Salvar</button>
                             <span class="lcfg-status" id="lcfgStatus" hidden>Carregando…</span>
@@ -4511,6 +4512,42 @@
                     #lcfgMapa .lcfg-item:not(.lcfg-etapa-item) { gap: 10px; padding: 7px 10px; margin-top: 6px; border-radius: 10px; align-items: center; }
                     #lcfgMapa .lcfg-item:not(.lcfg-etapa-item) .lcfg-switch { margin-top: 0; }
                     #lcfgMapa .lcfg-item:not(.lcfg-etapa-item) { grid-template-columns: auto auto minmax(0, 1fr) auto; }
+                    .lcfg-item-acoes { display: flex; gap: 6px; align-items: center; align-self: center; }
+                    .lcfg-item.nova > .lcfg-item-acoes { align-self: start; margin-top: 1px; }
+                    .lcfg-regra-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--l-line); background: var(--l-card); color: var(--l-muted); display: grid; place-items: center; cursor: pointer; font-size: 14px; padding: 0; flex: none; }
+                    .lcfg-regra-btn:hover, .lcfg-regra-btn.on { border-color: var(--l-accent); color: var(--l-accent); }
+                    .lcfg-regra-btn.tem { color: var(--l-accent); background: var(--l-soft); border-color: var(--l-accent); }
+                    #lcfgMapa .lcfg-item-txt > .lcfg-regra, #lcfgMapa .lcfg-item-txt > .lcfg-regra-chips { grid-column: 1 / -1; }
+                    .lcfg-regra-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+                    .lcfg-regra-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; color: var(--l-accent); background: var(--l-soft); border-radius: 999px; padding: 3px 9px; }
+                    .lcfg-regra { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; background: var(--l-soft); border-radius: 10px; padding: 10px; }
+                    .lcfg-regra label { display: grid; gap: 4px; font-size: 12px; font-weight: 600; color: var(--l-ink); min-width: 0; }
+                    .lcfg-regra label.largo { grid-column: 1 / -1; } .lcfg-regra small { font-weight: 400; color: var(--l-muted); margin-left: 4px; }
+                    #lentesViewConfig .lcfg-regra select, #lentesViewConfig .lcfg-regra input[type=text] { height: 32px; font-size: 12.5px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--l-line); background: var(--l-card); color: var(--l-ink); font-family: inherit; width: 100%; }
+                    @media (max-width: 700px) { .lcfg-regra { grid-template-columns: 1fr; } }
+                    .lcfg-rx { display: grid; gap: 10px; margin-top: 10px; padding: 12px; border: 1px solid var(--l-line); border-radius: 12px; background: var(--l-card); }
+                    .lcfg-rx-tit { font-size: 13px; font-weight: 700; color: var(--l-ink); display: flex; align-items: center; gap: 6px; }
+                    .lcfg-rx .lcfg-ed-rot small, .lcfg-rx-lim > span small { display: block; font-weight: 400; color: var(--l-muted); font-size: 11.5px; margin: 2px 0 0; }
+                    .lcfg-rx-lim { display: grid; gap: 6px; font-size: 12px; font-weight: 600; color: var(--l-ink); min-width: 0; }
+                    .lcfg-rx-lim > div { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; }
+                    .lcfg-rx-lim > div.col { grid-template-columns: 1fr; }
+                    .lcfg-rx-lim label { display: grid; gap: 3px; font-size: 11.5px; font-weight: 600; color: var(--l-muted); min-width: 0; }
+                    #lentesViewConfig .lcfg-rx-lim input[type=text] { height: 32px; font-size: 12.5px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--l-line); background: var(--l-card); color: var(--l-ink); font-family: inherit; width: 100%; box-sizing: border-box; }
+                    #lentesViewConfig .lcfg-rx-lim input.erro { border-color: #d93025; }
+                    .lcfg-regra .lcfg-rx-lim { grid-column: 1 / -1; }
+                    .lcfg-x-rotas { display: grid; gap: 6px; font-size: 12px; font-weight: 600; color: var(--l-ink); }
+                    .lcfg-x-rota { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 8px; align-items: center; }
+                    .lcfg-x-rota b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+                    #lentesViewConfig .lcfg-x-rota select { height: 32px; font-size: 12.5px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--l-line); background: var(--l-card); color: var(--l-ink); font-family: inherit; width: 100%; }
+                    #lcfgMapaModal .lcfg-modal-box { width: 640px; }
+                    .lcfg-mf { display: grid; gap: 4px; max-height: 64vh; overflow: auto; }
+                    .lcfg-mf-et { border: 1px solid var(--l-line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; background: var(--l-card); }
+                    .lcfg-mf-cab b { font-size: 14px; }
+                    .lcfg-mf-op { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, .8fr); align-items: center; gap: 8px; font-size: 13px; }
+                    .lcfg-mf-op em { font-style: normal; font-size: 11.5px; color: var(--l-accent); }
+                    .lcfg-mf-op i { color: var(--l-muted); }
+                    .lcfg-mf-op b { font-size: 12.5px; color: var(--l-accent); } .lcfg-mf-op b.fim { color: var(--l-ok); } .lcfg-mf-op b.wa { color: #16a34a; }
+                    .lcfg-mf-seta { text-align: center; color: var(--l-muted); font-size: 14px; }
                     #lcfgMapa .lcfg-item.sem-ordem:not(.lcfg-etapa-item) { grid-template-columns: auto minmax(0, 1fr) auto; }
                     .lcfg-lixo { width: 30px; height: 30px; border-radius: 8px; border: 1px solid rgba(220,38,38,.28); background: rgba(220,38,38,.06); color: #dc2626; display: grid; place-items: center; cursor: pointer; font-size: 14px; padding: 0; flex: none; }
                     .lcfg-lixo:hover { background: #dc2626; border-color: #dc2626; color: #fff; }
@@ -7689,6 +7726,14 @@
                     '<div class="lcfg-ed-linha"><span class="lcfg-ed-rot">Obrigatória</span>' + _lcfgSwitch(f('obrigatoria'), x.obrigatoria !== false, true) +
                     '<button type="button" class="lcfg-link-btn perigo" style="margin-left:auto" data-lcfg-xacao="del" data-i="' + i + '"><i class="ph-bold ph-trash"></i> Excluir</button></div>' +
                     (trOff ? '<p class="lcfg-ed-aviso">Com o Tratamento desligado esta etapa não aparece — mude a posição.</p>' : '') +
+                    '<div class="lcfg-regra" style="margin-top:8px">' +
+                        '<label><span>Aparece no caminho</span><select ' + f('so_tipo') + '><option value="">Todos os tipos de lente</option>' +
+                            (_lcfgEdit.necessidades || []).filter(n => n.ativo !== false).map(n => '<option value="' + _lcfgEsc(n.key) + '"' + (x.so_tipo === n.key ? ' selected' : '') + '>Só ' + _lcfgEsc(_lcfgCurto(n.titulo)) + '</option>').join('') + '</select></label>' +
+                        '<label><span>Só em produtos com <small>vírgula · vazio = todos</small></span><input type="text" maxlength="200" ' + f('produtos') + ' value="' + _lcfgEsc(x.produtos || '') + '" placeholder="Ex.: infantil"></label>' +
+                        (x.tipo !== 'texto' && (x.opcoes || []).length ? '<div class="largo lcfg-x-rotas"><span>Para onde vai cada resposta</span>' + (x.opcoes || []).map((o, j) =>
+                            '<div class="lcfg-x-rota"><b>' + _lcfgEsc(_lcfgCurto(o.titulo || ('Opção ' + (j + 1)))) + '</b><select data-lcfg-xo="' + i + ':' + j + '" data-f="acao">' +
+                            [['', 'Segue o fluxo'], ['aviso', 'Aviso + WhatsApp'], ['so_armacao', 'Só a armação (carrinho)']].map(a => '<option value="' + a[0] + '"' + ((o.acao || '') === a[0] ? ' selected' : '') + '>' + a[1] + '</option>').join('') + '</select></div>').join('') + '</div>' : '') +
+                    '</div>' +
                     '<p class="lcfg-ed-nota">Etapa sua: a resposta fica no histórico do fluxo e não muda a lente indicada.</p>';
             }
             const k = id, on = k === 'telefone' ? e.telefone.ativo !== false : k === 'tratamento' ? e.tratamento.ativo !== false : k === 'uso' ? e.uso.ativo !== false : true;
@@ -7704,7 +7749,7 @@
                 '<option value="final"' + (e.receita.posicao !== 'inicio' && e.receita.posicao !== 'primeiro' ? ' selected' : '') + '>Depois do tratamento</option></select></div>';
             return '<div class="lcfg-ed-topo">' + nomeIn('data-lcfg-etnome="' + k + '"', _lcfgEtNome(k)) +
                     ((k === 'tratamento' || k === 'uso') ? _lcfgSwitch('data-lcfg-etapa="' + k + '" data-f="ativo"', on, true) : '') + '</div>' +
-                linha + (NOTA[k] ? '<p class="lcfg-ed-nota">' + NOTA[k] + '</p>' : '') +
+                linha + (NOTA[k] ? '<p class="lcfg-ed-nota">' + NOTA[k] + '</p>' : '') + (k === 'receita' || k === 'conferir' ? _lcfgRxBloco() : '') +
                 (k === 'tratamento' && !on ? '<p class="lcfg-ed-nota">Desligada: o cliente não vê esta tela e o fluxo usa o tratamento escolhido.</p>' : '') +
                 '';
         }
@@ -7811,8 +7856,8 @@
                         const k = it.k, tk = tkDe(pares[k].titulo || pares[k].desc), on = !(tk && ocultos.indexOf(tk) !== -1);
                         return '<div class="lcfg-item' + (on ? '' : ' off') + '">' + ordemTr(it.key, j) +
                             (tk ? _lcfgSwitch('onchange="_lcfgTratOculta(\'' + _lcfgEsc(tk) + '\', !this.checked)"', on) : '<span></span>') +
-                            '<div class="lcfg-item-txt">' + (pares[k].titulo ? inp(pares[k].titulo, 'Nome do tratamento') : '') + area(pares[k].desc, 'Descrição (opcional)') + '</div>' +
-                            (tk ? '<button type="button" class="lcfg-lixo" onclick="_lcfgRemoveOpcao(\'trat\',\'\',\'' + _lcfgEsc(tk) + '\',\'' + _lcfgEsc(String((pares[k].titulo || {}).t ? pares[k].titulo.t.valor : '').replace(/'/g, '')) + '\')" title="Remover do fluxo" aria-label="Remover do fluxo"><i class="ph-bold ph-trash"></i></button>' : '') + '</div>';
+                            '<div class="lcfg-item-txt">' + (pares[k].titulo ? inp(pares[k].titulo, 'Nome do tratamento') : '') + area(pares[k].desc, 'Descrição (opcional)') + (tk ? _lcfgRegraPainel('tratamento', tk) : '') + '</div><div class="lcfg-item-acoes">' + (tk ? _lcfgRegraBtn('tratamento', tk) : '') +
+                            (tk ? '<button type="button" class="lcfg-lixo" onclick="_lcfgRemoveOpcao(\'trat\',\'\',\'' + _lcfgEsc(tk) + '\',\'' + _lcfgEsc(String((pares[k].titulo || {}).t ? pares[k].titulo.t.valor : '').replace(/'/g, '')) + '\')" title="Remover do fluxo" aria-label="Remover do fluxo"><i class="ph-bold ph-trash"></i></button>' : '') + '</div></div>';
                     }
                     const i = it.i, x = xs[i];
                     return '<div class="lcfg-item nova' + (x.ativo === false ? ' off' : '') + '">' + ordemTr(it.key, j) +
@@ -7822,7 +7867,8 @@
                         '<textarea rows="2" maxlength="300" placeholder="Descrição (opcional)" data-lcfg-lista="tratamentos_extra" data-i="' + i + '" data-f="desc">' + _lcfgEsc(x.desc || '') + '</textarea>' +
                         '<div class="lcfg-op-base"><span>Funciona como</span><select data-lcfg-lista="tratamentos_extra" data-i="' + i + '" data-f="base" onchange="_lcfgPinta()">' + bases.map(b => '<option value="' + _lcfgEsc(b.key) + '"' + (b.key === x.base ? ' selected' : '') + '>' + _lcfgEsc(b.titulo) + '</option>').join('') + '</select>' +
                         '<small>Aparece nos mesmos tipos de lente que esse tratamento e ganha uma coluna própria na grade de indicação.</small></div>' +
-                    '</div><button type="button" class="lcfg-lixo" onclick="_lcfgTratDel(' + i + ')" title="Apagar tratamento" aria-label="Apagar tratamento"><i class="ph-bold ph-trash"></i></button></div>';
+                        _lcfgRegraPainel('tratamento', x.key) +
+                    '</div><div class="lcfg-item-acoes">' + _lcfgRegraBtn('tratamento', x.key) + '<button type="button" class="lcfg-lixo" onclick="_lcfgTratDel(' + i + ')" title="Apagar tratamento" aria-label="Apagar tratamento"><i class="ph-bold ph-trash"></i></button></div></div>';
                 }).join('');
                 _lcfgTratItens = itens.map(it => it.key);
                 const nomeT = tk => { const k = ordem.find(k => tkDe(pares[k].titulo || pares[k].desc) === tk); return k && pares[k].titulo ? pares[k].titulo.t.valor : tk; };
@@ -8269,6 +8315,100 @@
             if (_lcfgEdit.indicacao && _lcfgEdit.indicacao[n.key]) delete _lcfgEdit.indicacao[n.key];
             _lcfgPinta();
         }
+        /* ---- Rota e produtos por opção (19/10/2026) — cfg.op_regras[etapa][chave] = {acao, aviso_titulo, aviso_texto, produtos} ---- */
+        let _lcfgRegraAberta = '';
+        const _LCFG_ACOES = {
+            tipo: [['seguir', 'Seguir para a próxima etapa'], ['pular_tratamento', 'Pular o tratamento (vai direto para a receita)'], ['so_armacao', 'Levar só a armação para o carrinho'], ['aviso', 'Mostrar um aviso e chamar no WhatsApp']],
+            tratamento: [['seguir', 'Seguir para a próxima etapa'], ['so_armacao', 'Levar só a armação para o carrinho'], ['aviso', 'Mostrar um aviso e chamar no WhatsApp']]
+        };
+        const _LCFG_ACAO_CURTA = { pular_tratamento: 'Pula o tratamento', so_armacao: 'Só armação', aviso: 'Aviso + WhatsApp' };
+        function _lcfgRegra(et, k) { return (((_lcfgEdit || {}).op_regras || {})[et] || {})[k] || {}; }
+        function _lcfgRegraSet(et, k, f, v) {
+            const c = _lcfgEdit; c.op_regras = c.op_regras || {}; c.op_regras[et] = c.op_regras[et] || {};
+            const r = c.op_regras[et][k] = c.op_regras[et][k] || {};
+            if (v === '' || v == null || (f === 'acao' && v === 'seguir')) delete r[f]; else r[f] = v;
+            if (f === 'acao' && v !== 'aviso') { delete r.aviso_titulo; delete r.aviso_texto; }
+            if (!Object.keys(r).length) delete c.op_regras[et][k];
+        }
+        function _lcfgRegraChips(et, k) {
+            const r = _lcfgRegra(et, k), out = [];
+            if (r.acao && _LCFG_ACAO_CURTA[r.acao]) out.push('<span class="lcfg-regra-chip"><i class="ph-bold ph-arrow-elbow-down-right"></i> ' + _LCFG_ACAO_CURTA[r.acao] + '</span>');
+            if (r.produtos) out.push('<span class="lcfg-regra-chip"><i class="ph-bold ph-tag"></i> Só em: ' + _lcfgEsc(r.produtos) + '</span>');
+            const lim = _lcfgRxResumo(r); if (lim) out.push('<span class="lcfg-regra-chip"><i class="ph-bold ph-eyeglasses"></i> ' + lim + '</span>');
+            return out.length ? '<div class="lcfg-regra-chips">' + out.join('') + '</div>' : '';
+        }
+        function _lcfgRegraBtn(et, k) {
+            const on = _lcfgRegraAberta === et + ':' + k, tem = Object.keys(_lcfgRegra(et, k)).length > 0;
+            return '<button type="button" class="lcfg-regra-btn' + (on ? ' on' : '') + (tem ? ' tem' : '') + '" onclick="_lcfgRegraToggle(\'' + et + '\',\'' + _lcfgEsc(k) + '\')" title="Para onde vai e em quais produtos aparece" aria-label="Caminho desta opção"><i class="ph-bold ph-arrow-elbow-down-right"></i></button>';
+        }
+        function _lcfgRegraToggle(et, k) { _lcfgRegraAberta = _lcfgRegraAberta === et + ':' + k ? '' : et + ':' + k; _lcfgPinta(); }
+        function _lcfgRegraPainel(et, k) {
+            if (_lcfgRegraAberta !== et + ':' + k) return _lcfgRegraChips(et, k);
+            const r = _lcfgRegra(et, k), ac = r.acao || 'seguir', d = 'data-lcfg-regra="' + et + '|' + _lcfgEsc(k) + '|';
+            return '<div class="lcfg-regra">' +
+                '<label class="largo"><span>Ao escolher esta opção</span><select ' + d + 'acao">' + _LCFG_ACOES[et].map(a => '<option value="' + a[0] + '"' + (a[0] === ac ? ' selected' : '') + '>' + a[1] + '</option>').join('') + '</select></label>' +
+                (ac === 'aviso' ? '<label><span>Título do aviso</span><input type="text" maxlength="90" ' + d + 'aviso_titulo" value="' + _lcfgEsc(r.aviso_titulo || '') + '" placeholder="Vamos montar essa lente com você"></label>' +
+                    '<label><span>Texto do aviso</span><input type="text" maxlength="300" ' + d + 'aviso_texto" value="' + _lcfgEsc(r.aviso_texto || '') + '" placeholder="Fale com a gente no WhatsApp que a gente monta com você."></label>' : '') +
+                '<label class="largo"><span>Mostrar só em produtos com <small>palavras do nome do produto, separadas por vírgula · vazio = todos</small></span><input type="text" maxlength="200" ' + d + 'produtos" value="' + _lcfgEsc(r.produtos || '') + '" placeholder="Ex.: sem aro, titanium"></label>' +
+                (et === 'tipo' && ac !== 'so_armacao' && !_lcfgSemGrau(k) ? '<div class="largo lcfg-rx-lim"><span>Grau que esta lente atende <small>vazio = usa o limite geral da receita · fora do limite: aviso + WhatsApp</small></span><div>' +
+                    _lcfgRxCampo(d + 'esf_min"', r.esf_min, 'Esférico mín.', _lcfgRxGeral('esf_min')) + _lcfgRxCampo(d + 'esf_max"', r.esf_max, 'Esférico máx.', _lcfgRxGeral('esf_max')) + _lcfgRxCampo(d + 'cil_max"', r.cil_max, 'Cilíndrico até', _lcfgRxGeral('cil_max')) + '</div></div>' : '') +
+                '</div>';
+        }
+        /* ---- Regras da receita (19/10/2026) — cfg.receita_regras = { esf_min, esf_max, cil_max, add_max, exigir_dnp, aviso_titulo, aviso_texto } ---- */
+        const _lcfgNumBR = v => { const n = Number(String(v == null ? '' : v).replace(',', '.')); return String(v == null ? '' : v).trim() !== '' && isFinite(n) ? n : null; };
+        const _lcfgGrau = n => (n > 0 ? '+' : '') + n.toFixed(2).replace('.', ',');
+        function _lcfgRxCampo(attrs, v, rot, ph) { return '<label><span>' + rot + '</span><input type="text" inputmode="decimal" maxlength="7" ' + attrs + ' value="' + _lcfgEsc(v == null ? '' : v) + '" placeholder="' + ph + '"></label>'; }
+        function _lcfgRxGeral(f) { const n = _lcfgNumBR(((_lcfgEdit || {}).receita_regras || {})[f]); return n == null ? 'sem limite' : 'geral: ' + _lcfgGrau(f === 'cil_max' ? -Math.abs(n) : n); }
+        function _lcfgRxResumo(r) {
+            const a = _lcfgNumBR(r.esf_min), b = _lcfgNumBR(r.esf_max), c = _lcfgNumBR(r.cil_max), p = [];
+            if (a != null && b != null) p.push('Esf ' + _lcfgGrau(a) + ' a ' + _lcfgGrau(b)); else if (a != null) p.push('Esf a partir de ' + _lcfgGrau(a)); else if (b != null) p.push('Esf até ' + _lcfgGrau(b));
+            if (c != null) p.push('Cil até ' + _lcfgGrau(-Math.abs(c)));
+            return p.join(' · ');
+        }
+        function _lcfgRxBloco() {
+            const g = (_lcfgEdit || {}).receita_regras || {}, d = f => 'data-lcfg-rx="' + f + '"';
+            return '<div class="lcfg-rx">' +
+                '<div class="lcfg-rx-tit"><i class="ph-bold ph-sliders-horizontal"></i> Regras da receita</div>' +
+                '<div class="lcfg-ed-linha"><span class="lcfg-ed-rot">Exigir DNP <small>o cliente informa a distância de cada pupila até o nariz</small></span>' + _lcfgSwitch(d('exigir_dnp'), !!g.exigir_dnp, true) + '</div>' +
+                '<div class="lcfg-rx-lim"><span>Grau que a loja atende <small>vale para todos os tipos de lente; cada tipo pode ter o seu (seta ↳ na opção)</small></span><div>' +
+                    _lcfgRxCampo(d('esf_min'), g.esf_min, 'Esférico mín.', 'sem limite') + _lcfgRxCampo(d('esf_max'), g.esf_max, 'Esférico máx.', 'sem limite') +
+                    _lcfgRxCampo(d('cil_max'), g.cil_max, 'Cilíndrico até', 'sem limite') + _lcfgRxCampo(d('add_max'), g.add_max, 'Adição até', 'sem limite') + '</div></div>' +
+                '<div class="lcfg-rx-lim"><span>Aviso quando o grau passa do limite <small>aparece com um botão para o WhatsApp da loja</small></span><div class="col">' +
+                    '<label><span>Título</span><input type="text" maxlength="90" ' + d('aviso_titulo') + ' value="' + _lcfgEsc(g.aviso_titulo || '') + '" placeholder="Sua receita pede uma lente sob medida"></label>' +
+                    '<label><span>Texto</span><input type="text" maxlength="300" ' + d('aviso_texto') + ' value="' + _lcfgEsc(g.aviso_texto || '') + '" placeholder="Esse grau precisa de uma lente especial. Fale com a nossa equipe no WhatsApp."></label></div></div>' +
+                '<p class="lcfg-ed-nota">Cilíndrico positivo na receita é convertido antes de comparar. Os limites usam o maior grau entre os dois olhos.</p></div>';
+        }
+        // Mapa do fluxo: caixas e setas a partir das etapas e das rotas de cada opção
+        function _lcfgMapaFluxo() {
+            const c = _lcfgEdit || {}, R = c.op_regras || {};
+            const passos = _lcfgPassosLista().filter(p => _lcfgPassoInfo(p).on !== false);
+            const nome = p => _lcfgPassoInfo(p).nome || p;
+            const prox = p => { const i = passos.indexOf(p); return i >= 0 && i < passos.length - 1 ? passos[i + 1] : null; };
+            const destino = (et, k, padrao) => { const r = (R[et] || {})[k] || {};
+                if (r.acao === 'so_armacao') return { t: 'Só armação (carrinho)', cls: 'fim' };
+                if (r.acao === 'aviso') return { t: 'Aviso + WhatsApp', cls: 'wa' };
+                if (r.acao === 'pular_tratamento') { const rc = passos.find(p => p === 'receita'); return { t: rc ? nome(rc) : 'Lente indicada', cls: '' }; }
+                return padrao; };
+            const blocos = passos.map(p => {
+                let ops = [];
+                const seg = prox(p) ? { t: nome(prox(p)), cls: '' } : { t: 'Fim', cls: 'fim' };
+                const segPara = key => { const i = passos.indexOf(p); for (let j = i + 1; j < passos.length; j++) { const q = passos[j];   // pula etapas da loja que são de outro caminho (19/10)
+                    if (q.indexOf('x:') === 0) { const xq = _lcfgExtras()[+q.slice(2)] || {}; if (xq.so_tipo && xq.so_tipo !== key) continue; } return { t: nome(q), cls: '' }; } return { t: 'Fim', cls: 'fim' }; };
+                if (p === 'tipo') ops = (c.necessidades || []).filter(n => n.ativo !== false && !n.removida).map(n => ({ nome: n.titulo, prod: ((R.tipo || {})[n.key] || {}).produtos, d: destino('tipo', n.key, _lcfgSemGrau(n.base || n.key) ? { t: nome('resultado'), cls: '' } : segPara(n.key)) }));
+                else if (p === 'tratamento') ops = (_lcfgTrats() || []).map(t => ({ nome: t.t, prod: ((R.tratamento || {})[t.k] || {}).produtos, d: destino('tratamento', t.k, seg) }));
+                else if (p.indexOf('x:') === 0) { const x = _lcfgExtras()[+p.slice(2)] || {};   // etapa da loja: rota de cada resposta (19/10)
+                    if (x.tipo !== 'texto') ops = (x.opcoes || []).map(o => ({ nome: o.titulo, d: o.acao === 'aviso' ? { t: 'Aviso + WhatsApp', cls: 'wa' } : o.acao === 'so_armacao' ? { t: 'Só armação (carrinho)', cls: 'fim' } : seg })); }
+                let cond = '';
+                if (p.indexOf('x:') === 0) { const x = _lcfgExtras()[+p.slice(2)] || {}, n = (c.necessidades || []).find(q => q.key === x.so_tipo);
+                    cond = [n ? 'só no caminho ' + n.titulo : '', x.produtos ? 'só em: ' + x.produtos : ''].filter(Boolean).join(' · '); }
+                if (p === 'receita' || p === 'conferir') { const g = c.receita_regras || {}, lim = _lcfgRxResumo(g), ad = _lcfgNumBR(g.add_max);
+                    cond = [lim, ad != null ? 'Adição até ' + _lcfgGrau(ad) : '', g.exigir_dnp ? 'pede DNP' : ''].filter(Boolean).join(' · ') + (lim || ad != null ? ' → fora disso: Aviso + WhatsApp' : ''); }
+                return '<div class="lcfg-mf-et"><div class="lcfg-mf-cab"><b>' + _lcfgEsc(nome(p)) + '</b>' + (cond ? ' <em style="font-size:11.5px;color:var(--l-muted);font-style:normal">' + _lcfgEsc(cond) + '</em>' : '') + '</div>' +
+                    (ops.length ? ops.map(o => '<div class="lcfg-mf-op"><span>' + _lcfgEsc(o.nome || '') + (o.prod ? ' <em>só em: ' + _lcfgEsc(o.prod) + '</em>' : '') + '</span><i class="ph-bold ph-arrow-right"></i><b class="' + o.d.cls + '">' + _lcfgEsc(o.d.t) + '</b></div>').join('')
+                        : '<div class="lcfg-mf-op"><span>segue</span><i class="ph-bold ph-arrow-right"></i><b class="' + seg.cls + '">' + _lcfgEsc(seg.t) + '</b></div>') + '</div>';
+            }).join('<div class="lcfg-mf-seta"><i class="ph-bold ph-arrow-down"></i></div>');
+            _lcfgModal('lcfgMapaModal', '<div class="hd"><h3>Mapa do fluxo</h3><p>O caminho que o cliente faz, etapa por etapa, e para onde cada opção leva. As setas mudam quando você escolhe a rota de uma opção.</p></div><div class="bd lcfg-mf">' + blocos + '</div><div class="ft"><span></span><button type="button" class="lcfg-btn lcfg-btn-pri" onclick="_lcfgModalFecha(\'lcfgMapaModal\')">Fechar</button></div>');
+        }
         function _lcfgPintaCatalogo(c) {
             const necs = c.necessidades || [];
             const bases = necs.filter(n => !n.base);
@@ -8281,8 +8421,9 @@
                     (n.base ? '<div class="lcfg-op-base"><span>Funciona como</span><select data-lcfg-lista="necessidades" data-i="' + i + '" data-f="base" onchange="_lcfgPinta()">' +
                         bases.map(b => '<option value="' + _lcfgEsc(b.key) + '"' + (b.key === n.base ? ' selected' : '') + '>' + _lcfgEsc(b.titulo) + '</option>').join('') + '</select>' +
                         '<small>' + (_lcfgSemGrau(n.base) ? 'Sem grau: pula tratamento e receita.' : 'Segue o caminho dessa opção e ganha uma grade própria em "Lente indicada".') + '</small></div>' : '') +
-                '</div>' + (n.base ? '<button type="button" class="lcfg-lixo" onclick="_lcfgDelOpcao(' + i + ')" title="Apagar opção" aria-label="Apagar opção"><i class="ph-bold ph-trash"></i></button>'
-                    : '<button type="button" class="lcfg-lixo" onclick="_lcfgRemoveOpcao(\'nec\',\'\',\'' + _lcfgEsc(n.key) + '\',\'' + _lcfgEsc(String(n.titulo || '').replace(/'/g, '')) + '\')" title="Remover do fluxo" aria-label="Remover do fluxo"><i class="ph-bold ph-trash"></i></button>') + '</div>').join('') +
+                    _lcfgRegraPainel('tipo', n.key) +
+                '</div><div class="lcfg-item-acoes">' + _lcfgRegraBtn('tipo', n.key) + (n.base ? '<button type="button" class="lcfg-lixo" onclick="_lcfgDelOpcao(' + i + ')" title="Apagar opção" aria-label="Apagar opção"><i class="ph-bold ph-trash"></i></button>'
+                    : '<button type="button" class="lcfg-lixo" onclick="_lcfgRemoveOpcao(\'nec\',\'\',\'' + _lcfgEsc(n.key) + '\',\'' + _lcfgEsc(String(n.titulo || '').replace(/'/g, '')) + '\')" title="Remover do fluxo" aria-label="Remover do fluxo"><i class="ph-bold ph-trash"></i></button>') + '</div></div>').join('') +
                 _lcfgRemovidasHtml(necs.filter(n => n.removida).map(n => ({ k: n.key, nome: n.titulo })), k => "_lcfgRestauraOpcao('nec','','" + _lcfgEsc(k) + "')") +
                 '<button type="button" class="lcfg-link-btn" style="margin-top:6px" onclick="_lcfgNovaOpcao()"><i class="ph-bold ph-plus"></i> Nova opção</button>';
             const grupos = [];
@@ -8420,6 +8561,21 @@
             if (ce) { _lcfgCEGrava(ce.dataset.lcfgCe, ce.textContent.replace(/\s+/g, ' ')); _lcfgAtualizaBarraEPrevia(); _lcfgMapaParcial(true); return; }
             const val = el.type === 'checkbox' ? el.checked : el.value;
             let repinta = false;
+            if (el.dataset.lcfgRegra) {   // rota/produtos por opção (19/10)
+                const pr = el.dataset.lcfgRegra.split('|');
+                if (/^(esf_min|esf_max|cil_max)$/.test(pr[2])) { const n = _lcfgNumBR(val); el.classList.toggle('erro', String(val).trim() !== '' && n == null); _lcfgRegraSet(pr[0], pr[1], pr[2], n == null ? '' : n); }
+                else _lcfgRegraSet(pr[0], pr[1], pr[2], String(val).trim());
+                if (pr[2] === 'acao') _lcfgPinta(); else _lcfgAtualizaBarraEPrevia();
+                return;
+            }
+            if (el.dataset.lcfgRx) {   // regras da receita (19/10)
+                const f = el.dataset.lcfgRx, g = c.receita_regras = c.receita_regras || {};
+                if (f === 'exigir_dnp') { if (val) g.exigir_dnp = true; else delete g.exigir_dnp; if (!Object.keys(g).length) delete c.receita_regras; _lcfgPinta(); return; }
+                else if (/^(esf_min|esf_max|cil_max|add_max)$/.test(f)) { const n = _lcfgNumBR(val); el.classList.toggle('erro', String(val).trim() !== '' && n == null); if (n == null) delete g[f]; else g[f] = n; }
+                else { const v = String(val).trim(); if (v) g[f] = v; else delete g[f]; }
+                if (!Object.keys(g).length) delete c.receita_regras;
+                _lcfgAtualizaBarraEPrevia(); return;
+            }
             if (el.dataset.lcfgGeral) { c.geral[el.dataset.lcfgGeral] = el.dataset.lcfgGeral === 'whatsapp' ? String(val).replace(/\D/g, '') : val; repinta = el.type === 'checkbox'; }
             else if (el.dataset.lcfgEtapa) {
                 const k = el.dataset.lcfgEtapa, f = el.dataset.f;
@@ -8472,7 +8628,7 @@
             else if (el.dataset.lcfgXo) {
                 const [i, j] = el.dataset.lcfgXo.split(':').map(Number), x = _lcfgExtras()[i];
                 if (!x || !x.opcoes || !x.opcoes[j]) return;
-                x.opcoes[j][el.dataset.f] = String(val);
+                if (el.dataset.f === 'acao' && !val) delete x.opcoes[j].acao; else x.opcoes[j][el.dataset.f] = String(val);
             }
             else if (el.dataset.lcfgLente != null) {
                 const l = c.lentes[+el.dataset.lcfgLente], f = el.dataset.f;
