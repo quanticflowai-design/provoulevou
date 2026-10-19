@@ -4539,6 +4539,63 @@
                     .lcfg-x-rota { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 8px; align-items: center; }
                     .lcfg-x-rota b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
                     #lentesViewConfig .lcfg-x-rota select { height: 32px; font-size: 12.5px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--l-line); background: var(--l-card); color: var(--l-ink); font-family: inherit; width: 100%; }
+                    /* modo lista (19/10/2026) */
+                    .lls { display: grid; gap: 12px; }
+                    .lls-tabs { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+                    .lls-bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-end; justify-content: space-between; }
+                    .lls-bar-t { display: grid; gap: 2px; min-width: 0; flex: 1 1 280px; } .lls-bar-t b { font-size: 17px; color: var(--l-ink); } .lls-bar-t small { color: var(--l-muted); font-size: 12.5px; line-height: 1.45; }
+                    .lls-bar-a { display: flex; gap: 8px; flex-wrap: wrap; }
+                    .lls-filtros { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; color: var(--l-muted); font-weight: 600; }
+                    .lls-chip { border: 1px solid var(--l-line); background: var(--l-card); color: var(--l-muted); border-radius: 999px; padding: 4px 11px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+                    .lls-chip.on { background: var(--l-ink); border-color: var(--l-ink); color: var(--l-card); }
+                    .lls-lista { display: grid; gap: 8px; }
+                    .lls-et { border: 1px solid var(--l-line); border-radius: 14px; background: var(--l-card); transition: border-color .15s, box-shadow .15s; }
+                    .lls-et.aberta { border-color: var(--l-accent); box-shadow: 0 0 0 1px var(--l-accent); }
+                    .lls-et.off .lls-et-tx b { color: var(--l-muted); text-decoration: line-through; }
+                    .lls-et.alvo { border-color: var(--l-accent); border-style: dashed; }
+                    .lls-et-cab { display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; }
+                    .lls-alca { color: var(--l-muted); cursor: grab; display: flex; padding: 4px 2px; font-size: 18px; }
+                    .lls-ic { width: 34px; height: 34px; border-radius: 10px; background: var(--l-soft); color: var(--l-accent); display: flex; align-items: center; justify-content: center; flex: none; font-size: 17px; }
+                    .lls-ic.rec { background: rgba(34,197,94,.14); color: var(--l-ok); }
+                    .lls-et-tx { flex: 1; min-width: 0; display: grid; gap: 1px; } .lls-et-tx small { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--l-muted); } .lls-et-tx small em { font-style: normal; color: var(--l-accent); } .lls-et-tx small em.prod { color: var(--l-warn); }
+                    .lls-et-tx b { font-size: 14.5px; color: var(--l-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+                    .lls-car { color: var(--l-muted); transition: transform .15s; } .lls-et.aberta .lls-car { transform: rotate(180deg); }
+                    .lls-preco { font-weight: 800; font-size: 13px; color: var(--l-ink); white-space: nowrap; }
+                    .lls-et-corpo { border-top: 1px solid var(--l-line); padding: 14px; display: grid; gap: 12px; }
+                    .lls-f { display: grid; gap: 5px; min-width: 0; font-size: 12px; font-weight: 700; color: var(--l-ink); } .lls-f > span small { font-weight: 400; color: var(--l-muted); }
+                    .lls-f.inline { grid-template-columns: auto 1fr; align-items: center; }
+                    #lentesViewConfig .lls input[type=text], #lentesViewConfig .lls select, #lentesViewConfig .lls textarea { width: 100%; box-sizing: border-box; min-height: 36px; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--l-line); background: var(--l-field); color: var(--l-ink); font: inherit; font-size: 13px; font-weight: 400; }
+                    #lentesViewConfig .lls textarea { resize: vertical; line-height: 1.45; }
+                    #lentesViewConfig .lls input.erro { border-color: #dc2626; }
+                    #lentesViewConfig .lls input[disabled] { opacity: .7; }
+                    .lls-g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; } .lls-g3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: end; }
+                    .lls-g2s { display: grid; grid-template-columns: 130px 1fr; gap: 8px; margin-top: 6px; }
+                    .lls-vis { display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; background: var(--l-sub); border: 1px solid var(--l-line-soft); font-size: 12.5px; } .lls-vis > span { font-weight: 700; color: var(--l-ink); display: flex; gap: 6px; align-items: center; }
+                    .lls-rad, .lls-chk { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--l-ink); cursor: pointer; margin-right: 14px; }
+                    .lls-chk input, .lls-rad input { accent-color: var(--l-accent); width: 16px; height: 16px; }
+                    .lls-ops { display: grid; gap: 8px; padding: 12px; border-radius: 12px; background: rgba(245,158,11,.07); border: 1px solid rgba(245,158,11,.25); }
+                    .lls-ops-t { font-size: 12.5px; font-weight: 800; color: var(--l-ink); display: flex; gap: 6px; align-items: center; }
+                    .lls-op { border: 1px solid var(--l-line); border-radius: 11px; background: var(--l-card); }
+                    .lls-op.aberta { border-color: var(--l-accent); }
+                    .lls-op-cab { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 9px 10px; cursor: pointer; }
+                    .lls-op-cab b { font-size: 13.5px; color: var(--l-ink); }
+                    .lls-rota { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--l-accent); background: var(--l-soft); border-radius: 999px; padding: 2px 8px; }
+                    .lls-rota.finalizar, .lls-rota.so_armacao { color: var(--l-ok); background: rgba(34,197,94,.12); } .lls-rota.aviso { color: #16a34a; background: rgba(37,211,102,.14); }
+                    .lls-tag { font-size: 10.5px; font-weight: 800; border-radius: 6px; padding: 2px 6px; background: var(--l-sub); border: 1px solid var(--l-line); color: var(--l-muted); text-transform: uppercase; } .lls-tag.dnp { color: #dc2626; border-color: rgba(220,38,38,.3); background: rgba(220,38,38,.08); }
+                    .lls-op-a { margin-left: auto; display: flex; gap: 2px; } .lls-op-a button { border: 0; background: none; color: var(--l-muted); width: 28px; height: 28px; border-radius: 7px; cursor: pointer; } .lls-op-a button:hover:not([disabled]) { background: var(--l-sub); color: var(--l-ink); } .lls-op-a button[disabled] { opacity: .3; cursor: default; } .lls-op-a .del:hover { color: #dc2626 !important; }
+                    .lls-op-corpo { border-top: 1px solid var(--l-line); padding: 12px; display: grid; gap: 10px; }
+                    .lls-rota-box { padding: 10px; border-radius: 10px; background: var(--l-soft); }
+                    .lls-add { border: 1.5px dashed var(--l-line); background: none; border-radius: 11px; padding: 10px; color: var(--l-accent); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; } .lls-add:hover { border-color: var(--l-accent); }
+                    .lls-sec { display: grid; gap: 8px; padding: 12px; border-radius: 12px; border: 1px solid var(--l-line); background: var(--l-card); } .lls-sec > b { font-size: 13px; color: var(--l-ink); }
+                    .lls-chks { display: flex; flex-wrap: wrap; gap: 8px 4px; }
+                    .lls-nota { color: var(--l-muted); font-size: 12px; line-height: 1.45; }
+                    .lls-col { display: grid; grid-template-columns: minmax(0, 1.4fr) 1fr 1fr; gap: 8px; align-items: center; } .lls-col label { display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: center; font-size: 12px; color: var(--l-muted); font-weight: 600; }
+                    .lls-et-pe { display: flex; justify-content: flex-end; }
+                    .lls-tg { display: grid; gap: 6px; } .lls-tg > span { font-size: 11.5px; font-weight: 800; color: var(--l-muted); text-transform: uppercase; letter-spacing: .04em; } .lls-tg > div { display: flex; flex-wrap: wrap; gap: 6px; }
+                    .lls-pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--l-line); border-radius: 999px; padding: 4px 10px; font-size: 12.5px; cursor: pointer; color: var(--l-ink); background: var(--l-card); } .lls-pill input { accent-color: var(--l-accent); margin: 0; } .lls-pill.on { border-color: var(--l-accent); background: var(--l-soft); }
+                    .lls-cores { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+                    .lls-cor { display: flex; align-items: center; gap: 8px; border: 1px solid var(--l-line); border-radius: 10px; padding: 6px 8px; cursor: pointer; } .lls-cor input { width: 30px; height: 30px; border: 0; padding: 0; background: none; cursor: pointer; } .lls-cor span { display: grid; font-size: 12.5px; font-weight: 600; color: var(--l-ink); } .lls-cor small { color: var(--l-muted); font-weight: 400; font-family: ui-monospace, monospace; }
+                    @media (max-width: 760px) { .lls-g2, .lls-g3 { grid-template-columns: 1fr; } .lls-col { grid-template-columns: 1fr 1fr; } .lls-col > span { grid-column: 1 / -1; } }
                     #lcfgMapaModal .lcfg-modal-box { width: 640px; }
                     .lcfg-mf { display: grid; gap: 4px; max-height: 64vh; overflow: auto; }
                     .lcfg-mf-et { border: 1px solid var(--l-line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; background: var(--l-card); }
@@ -8380,6 +8437,7 @@
         }
         // Mapa do fluxo: caixas e setas a partir das etapas e das rotas de cada opção
         function _lcfgMapaFluxo() {
+            if ((_lcfgEdit || {}).modo === 'lista') return _llsMapa();
             const c = _lcfgEdit || {}, R = c.op_regras || {};
             const passos = _lcfgPassosLista().filter(p => _lcfgPassoInfo(p).on !== false);
             const nome = p => _lcfgPassoInfo(p).nome || p;
@@ -8453,6 +8511,286 @@
             _lcfgPreviaIr();
             _lcfgAtualizaBarraEPrevia();
         }
+        /* ---- Modo lista (19/10/2026): fluxo igual ao Lente Ideal Pro — perguntas em cartões, na ordem, cada opção com rota
+           ("pula para"), etiqueta e "exige DNP"; módulo de receita; lentes ligadas por etiquetas + limites de grau.
+           config.modo = 'lista', tudo em config.lista = { etapas, lentes, textos, visual, whatsapp }. Widget: lentes-lista.js. ---- */
+        let _llsTab = 'fluxo', _llsAberta = '', _llsOpAberta = '', _llsFiltro = 'todas', _llsLenteAberta = '', _llsArrasto = null;
+        const _LLS_ACOES = [['seguir', 'Seguir para a próxima pergunta (abaixo)'], ['ir_para', 'Pular para uma pergunta…'], ['finalizar', 'Encerrar e buscar as lentes'], ['so_armacao', 'Encerrar e levar só a armação'], ['aviso', 'Mostrar aviso (WhatsApp)']];
+        const _LLS_SELOS = [['ph-shield-check', 'Escudo'], ['ph-truck', 'Caminhão'], ['ph-credit-card', 'Cartão']];
+        const _LLS_FONTES = ['Onest', 'Montserrat', 'Poppins', 'Inter', 'Roboto', 'Open Sans', 'Lato', 'Nunito', 'Playfair Display', 'Rubik', 'Ubuntu', 'Outfit', 'Raleway', 'Quicksand', 'Mulish', 'DM Sans', 'Sora', 'Work Sans', 'Manrope', 'Jost'];
+        function _llsL() { const c = _lcfgEdit; c.lista = c.lista || {}; ['etapas', 'lentes'].forEach(k => { if (!Array.isArray(c.lista[k])) c.lista[k] = []; }); c.lista.textos = c.lista.textos || {}; c.lista.visual = c.lista.visual || {}; return c.lista; }
+        const _llsId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+        const _llsSlug = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 40);
+        // descrição: o widget aceita HTML simples; no painel vira texto com uma linha por parágrafo
+        const _llsTxt = h => String(h || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>\s*<p>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\n{3,}/g, '\n\n').trim();
+        const _llsHtml = t => String(t || '').split(/\n/).map(s => s.trim()).filter(Boolean).map(s => '<p>' + _lcfgEsc(s).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>') + '</p>').join('');
+        function _llsEtNome(e) { return String(e.nome || '').trim() || String(e.titulo || '').trim() || 'Pergunta sem nome'; }
+        function _llsDestinoTxt(o, i) {
+            const es = _llsL().etapas, a = o.acao || 'seguir';
+            if (a === 'ir_para') { const d = es.find(x => String(x.id) === String(o.destino)); return d ? 'Pula para: ' + _llsEtNome(d) : 'Pula para: (escolha a pergunta)'; }
+            if (a === 'finalizar') return 'Finaliza e busca as lentes';
+            if (a === 'so_armacao') return 'Só a armação';
+            if (a === 'aviso') return 'Aviso + WhatsApp';
+            const prox = es.slice(i + 1).find(x => x.ativo !== false); return prox ? 'Segue para: ' + _llsEtNome(prox) : 'Finaliza e busca as lentes';
+        }
+        function _llsCampo(rot, html, dica) { return '<label class="lls-f"><span>' + rot + (dica ? ' <small>' + dica + '</small>' : '') + '</span>' + html + '</label>'; }
+        const _llsIn = (path, v, attrs) => '<input type="text" data-lls="' + path + '" value="' + _lcfgEsc(v == null ? '' : v) + '"' + (attrs || '') + '>';
+        const _llsTa = (path, v, rows) => '<textarea rows="' + (rows || 2) + '" data-lls="' + path + '" data-lls-html="1">' + _lcfgEsc(_llsTxt(v)) + '</textarea>';
+        const _llsChk = (path, on, rot) => '<label class="lls-chk"><input type="checkbox" data-lls="' + path + '"' + (on ? ' checked' : '') + '><span>' + rot + '</span></label>';
+
+        function _llsTopo() {
+            const L = _llsL(), n = L.etapas.length, nl = L.lentes.length;
+            const tab = (k, ic, t, s) => '<button type="button" class="lcfg-pp-st' + (_llsTab === k ? ' on' : '') + '" onclick="_llsVai(\'' + k + '\')"><span class="n"><i class="ph-bold ' + ic + '"></i></span><span class="tx"><b>' + t + '</b><small>' + s + '</small></span></button>';
+            return '<div class="lls-tabs">' + tab('fluxo', 'ph-list-checks', 'Fluxo de perguntas', n + ' etapas') + '<span class="lcfg-pp-l"></span>' + tab('lentes', 'ph-eyeglasses', 'Catálogo de lentes', nl + ' lentes') + '<span class="lcfg-pp-l"></span>' + tab('visual', 'ph-paint-brush', 'Design e textos', 'cores, botão, avisos') + '</div>';
+        }
+        function _llsVai(k) { _llsTab = k; _lcfgPinta(); }
+
+        /* ----- aba Fluxo ----- */
+        function _llsFluxo() {
+            const L = _llsL();
+            const filtro = k => '<button type="button" class="lls-chip' + (_llsFiltro === k[0] ? ' on' : '') + '" onclick="_llsFiltro=\'' + k[0] + '\';_lcfgPinta()">' + k[1] + '</button>';
+            let h = '<div class="lls-bar"><div class="lls-bar-t"><b>Configurador de fluxo</b><small>Crie e organize a jornada de perguntas do seu cliente. Arraste os cartões para mudar a ordem.</small></div>' +
+                '<div class="lls-bar-a"><button type="button" class="lcfg-btn" onclick="_llsNovaEtapa(\'opcoes\')"><i class="ph-bold ph-list-plus"></i> Módulo de opções</button><button type="button" class="lcfg-btn" onclick="_llsNovaEtapa(\'receita\')"><i class="ph-bold ph-file-text"></i> Módulo de receita</button></div></div>' +
+                '<div class="lls-filtros"><span>Mostrar:</span>' + [['todas', 'Todas'], ['gerais', 'Só gerais'], ['produto', 'Só por produto']].map(filtro).join('') + '</div><div class="lls-lista" id="llsLista">';
+            L.etapas.forEach((e, i) => {
+                const geral = e.todos_produtos !== false;
+                if ((_llsFiltro === 'gerais' && !geral) || (_llsFiltro === 'produto' && geral)) return;
+                const aberta = _llsAberta === String(e.id), rec = e.tipo === 'receita';
+                h += '<div class="lls-et' + (aberta ? ' aberta' : '') + (e.ativo === false ? ' off' : '') + '" data-lls-et="' + i + '">' +
+                    '<div class="lls-et-cab" onclick="_llsAbre(\'' + _lcfgEsc(e.id) + '\', event)">' +
+                        '<span class="lls-alca" draggable="true" data-lls-drag="' + i + '" title="Arraste para mudar a ordem" onclick="event.stopPropagation()"><i class="ph-bold ph-dots-six-vertical"></i></span>' +
+                        '<span class="lls-ic' + (rec ? ' rec' : '') + '"><i class="ph-bold ' + (rec ? 'ph-file-text' : 'ph-list-bullets') + '"></i></span>' +
+                        '<span class="lls-et-tx"><small>' + (i + 1) + ' · ' + (rec ? 'Módulo de receita' : 'Módulo de escolha') + ' · <em class="' + (geral ? '' : 'prod') + '">' + (geral ? 'Geral' : 'Por produto') + '</em></small><b>' + _lcfgEsc(e.titulo || _llsEtNome(e)) + '</b></span>' +
+                        '<span onclick="event.stopPropagation()">' + _lcfgSwitch('data-lls="e.' + i + '.ativo"', e.ativo !== false) + '</span>' +
+                        '<i class="ph-bold ph-caret-down lls-car"></i></div>' +
+                    (aberta ? '<div class="lls-et-corpo">' + (rec ? _llsCorpoReceita(e, i) : _llsCorpoOpcoes(e, i)) + '</div>' : '') + '</div>';
+            });
+            return h + '</div>';
+        }
+        function _llsCorpoComum(e, i) {
+            const geral = e.todos_produtos !== false;
+            return '<div class="lls-g2">' + _llsCampo('Título da pergunta <small>(o cliente vê)</small>', _llsIn('e.' + i + '.titulo', e.titulo, ' maxlength="140"')) + _llsCampo('Nome de controle <small>(interno)</small>', _llsIn('e.' + i + '.nome', e.nome, ' maxlength="60"')) + '</div>' +
+                _llsCampo('Subtítulo explicativo <small>(opcional)</small>', _llsIn('e.' + i + '.subtitulo', e.subtitulo, ' maxlength="240"')) +
+                '<div class="lls-vis"><span><i class="ph-bold ph-eye"></i> Essa etapa aparece para…</span>' +
+                    '<label class="lls-rad"><input type="radio" name="llsvis' + i + '" data-lls="e.' + i + '.todos_produtos" value="1"' + (geral ? ' checked' : '') + '> Todos os produtos</label>' +
+                    '<label class="lls-rad"><input type="radio" name="llsvis' + i + '" data-lls="e.' + i + '.todos_produtos" value="0"' + (geral ? '' : ' checked') + '> Produtos selecionados</label>' +
+                    (geral ? '' : _llsCampo('Produtos <small>palavras do nome ou IDs, separados por vírgula</small>', _llsIn('e.' + i + '.produtos', e.produtos, ' maxlength="400" placeholder="Ex.: sem aro, 333200546"'))) + '</div>';
+        }
+        function _llsCorpoOpcoes(e, i) {
+            const L = _llsL(), ops = Array.isArray(e.opcoes) ? e.opcoes : (e.opcoes = []);
+            let h = _llsCorpoComum(e, i) +
+                '<div class="lls-g2">' + _llsChk('e.' + i + '.fotos', !!e.fotos, 'Mostrar fotos nas opções') +
+                (e.fotos ? '<label class="lls-f inline"><span>Formato</span><select data-lls="e.' + i + '.formato"><option value="quadrado"' + (e.formato !== 'circulo' ? ' selected' : '') + '>Quadrado</option><option value="circulo"' + (e.formato === 'circulo' ? ' selected' : '') + '>Círculo</option></select></label>' : '<span></span>') + '</div>' +
+                '<div class="lls-ops"><div class="lls-ops-t"><i class="ph-bold ph-cards"></i> Suas opções (mini-cards)</div>';
+            ops.forEach((o, j) => {
+                const ab = _llsOpAberta === e.id + ':' + o.id, p = 'e.' + i + '.opcoes.' + j + '.';
+                h += '<div class="lls-op' + (ab ? ' aberta' : '') + '"><div class="lls-op-cab" onclick="_llsOpAbre(\'' + _lcfgEsc(e.id) + ':' + _lcfgEsc(o.id) + '\')">' +
+                    '<b>' + _lcfgEsc(o.nome || 'Opção sem nome') + '</b><span class="lls-rota ' + (o.acao || 'seguir') + '"><i class="ph-bold ph-arrow-elbow-down-right"></i> ' + _lcfgEsc(_llsDestinoTxt(o, i)) + '</span>' +
+                    (o.dnp ? '<span class="lls-tag dnp">DNP</span>' : '') + (String(o.selo || '').trim() ? '<span class="lls-tag">' + _lcfgEsc(o.selo) + '</span>' : '') +
+                    '<span class="lls-op-a"><button type="button" title="Subir" onclick="event.stopPropagation();_llsOpMove(' + i + ',' + j + ',-1)"' + (j ? '' : ' disabled') + '><i class="ph-bold ph-caret-up"></i></button><button type="button" title="Descer" onclick="event.stopPropagation();_llsOpMove(' + i + ',' + j + ',1)"' + (j < ops.length - 1 ? '' : ' disabled') + '><i class="ph-bold ph-caret-down"></i></button>' +
+                    '<button type="button" class="del" title="Remover" onclick="event.stopPropagation();_llsOpDel(' + i + ',' + j + ')"><i class="ph-bold ph-trash"></i></button></span></div>';
+                if (ab) {
+                    const dests = L.etapas.map(x => '<option value="' + _lcfgEsc(x.id) + '"' + (String(x.id) === String(o.destino) ? ' selected' : '') + '>' + _lcfgEsc(_llsEtNome(x)) + '</option>').join('');
+                    h += '<div class="lls-op-corpo">' +
+                        '<div class="lls-g3">' + _llsCampo('Nome da opção', _llsIn(p + 'nome', o.nome, ' maxlength="90"')) + _llsCampo('Info. de preço <small>(livre)</small>', _llsIn(p + 'preco', o.preco, ' maxlength="40" placeholder="Ex.: + R$ 50"')) + _llsCampo('Prazo extra <small>(informativo)</small>', _llsIn(p + 'prazo', o.prazo, ' maxlength="60" placeholder="Ex.: +5 dias úteis"')) + '</div>' +
+                        _llsCampo('Descrição da opção <small>uma linha por parágrafo · **negrito**</small>', _llsTa(p + 'desc', o.desc, 3)) +
+                        '<div class="lls-g3">' + _llsCampo('Foto <small>(link da imagem)</small>', _llsIn(p + 'img', o.img, ' placeholder="https://…"')) + _llsCampo('Selo de destaque', _llsIn(p + 'selo', o.selo, ' maxlength="24" placeholder="Ex.: Mais vendido"')) +
+                            '<div class="lls-f"><span>Exigir DNP?</span>' + _llsChk(p + 'dnp', !!o.dnp, 'Sim, pede a DNP na receita') + '</div></div>' +
+                        '<div class="lls-rota-box"><div class="lls-g2">' + _llsCampo('Rota: para onde o cliente vai ao clicar?', '<select data-lls="' + p + 'acao">' + _LLS_ACOES.map(a => '<option value="' + a[0] + '"' + ((o.acao || 'seguir') === a[0] ? ' selected' : '') + '>' + a[1] + '</option>').join('') + '</select>') +
+                            ((o.acao === 'ir_para') ? _llsCampo('Escolha a pergunta de destino', '<select data-lls="' + p + 'destino"><option value="">Selecione…</option>' + dests + '</select>') : '<span></span>') + '</div></div>' +
+                        _llsCampo('Etiqueta <small>liga esta resposta às lentes (aba Catálogo de lentes)</small>', _llsIn(p + 'tag', o.tag, ' maxlength="60"')) +
+                        '</div>';
+                }
+                h += '</div>';
+            });
+            h += '<button type="button" class="lls-add" onclick="_llsOpNova(' + i + ')"><i class="ph-bold ph-plus-circle"></i> Criar nova opção neste módulo</button></div>';
+            return h + _llsRodapeEt(i);
+        }
+        function _llsCorpoReceita(e, i) {
+            const r = e.receita || (e.receita = {}), col = r.colunas || (r.colunas = {}), p = 'e.' + i + '.receita.';
+            const linha = (k, rot, mn, mx) => { const c = col[k] || {}; return '<div class="lls-col"><span>' + _llsChk(p + 'colunas.' + k + '.ativo', c.ativo !== false, rot) + '</span>' +
+                '<label>Mín.<input type="text" inputmode="decimal" data-lls="' + p + 'colunas.' + k + '.min" data-lls-num="1" value="' + _lcfgEsc(c.min != null ? c.min : mn) + '"></label>' +
+                '<label>Máx.<input type="text" inputmode="decimal" data-lls="' + p + 'colunas.' + k + '.max" data-lls-num="1" value="' + _lcfgEsc(c.max != null ? c.max : mx) + '"></label></div>'; };
+            return _llsCorpoComum(e, i) +
+                '<div class="lls-sec"><b>Funções do módulo</b><div class="lls-chks">' + _llsChk(p + 'manual', r.manual !== false, 'Tabela de grau (preencher manualmente)') + _llsChk(p + 'upload', r.upload !== false, 'Anexar foto da receita') +
+                    _llsChk(p + 'whatsapp', r.whatsapp !== false, 'Botão "enviar depois por WhatsApp"') + _llsChk(p + 'pular', r.pular !== false, 'Botão "pular esta etapa"') + '</div></div>' +
+                '<div class="lls-sec"><b>Travas</b><div class="lls-chks">' + _llsChk(p + 'grau_obrigatorio', !!r.grau_obrigatorio, 'Obrigar a tabela de graus') + _llsChk(p + 'upload_obrigatorio', !!r.upload_obrigatorio, 'Obrigar a foto da receita') + '</div>' +
+                    '<small class="lls-nota">Quando o cliente escolhe uma opção com "Exigir DNP", a foto da receita + DNP vira obrigatória e somem o WhatsApp e o pular.</small></div>' +
+                '<div class="lls-sec"><b>Colunas da tabela de grau</b>' + linha('esf', 'Esférico', -20, 20) + linha('cil', 'Cilíndrico', -10, 0) + linha('eixo', 'Eixo', 0, 180) + linha('add', 'Adição', 0.75, 4) + '</div>' +
+                _llsRodapeEt(i);
+        }
+        function _llsRodapeEt(i) { return '<div class="lls-et-pe"><button type="button" class="lcfg-link-btn perigo" onclick="_llsEtDel(' + i + ')"><i class="ph-bold ph-trash"></i> Excluir etapa</button></div>'; }
+        function _llsAbre(id, ev) { if (ev && ev.target.closest('.lcfg-switch,.lls-alca')) return; _llsAberta = _llsAberta === id ? '' : id; _llsOpAberta = ''; _lcfgPinta(); if (_llsAberta) _llsPreviaIr(_llsAberta); }
+        function _llsOpAbre(k) { _llsOpAberta = _llsOpAberta === k ? '' : k; _lcfgPinta(); }
+        function _llsMudou(repinta) { if (repinta) _lcfgPinta(); else _lcfgAtualizaBarraEPrevia(); }
+        function _llsNovaEtapa(tipo) {
+            const L = _llsL(), id = _llsId('e');
+            const e = tipo === 'receita' ? { id, nome: 'Sua receita', titulo: 'Como deseja enviar sua receita?', subtitulo: '', tipo: 'receita', ativo: true, todos_produtos: true, receita: { manual: true, upload: true, whatsapp: true, pular: true, colunas: {} } }
+                : { id, nome: 'Nova pergunta', titulo: 'Nova pergunta', subtitulo: '', tipo: 'opcoes', fotos: false, formato: 'quadrado', ativo: true, todos_produtos: true, opcoes: [{ id: _llsId('o'), nome: 'Opção 1', desc: '', tag: _llsSlug(id + '_opcao_1'), acao: 'seguir' }] };
+            const rec = L.etapas.findIndex(x => x.tipo === 'receita');   // pergunta nova entra antes da receita
+            if (tipo !== 'receita' && rec !== -1) L.etapas.splice(rec, 0, e); else L.etapas.push(e);
+            _llsAberta = id; _llsMudou(true);
+            setTimeout(() => { const el = document.querySelector('#llsLista .lls-et.aberta'); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 50);
+        }
+        async function _llsEtDel(i) {
+            const L = _llsL(), e = L.etapas[i]; if (!e) return;
+            const usam = L.etapas.filter(x => (x.opcoes || []).some(o => o.acao === 'ir_para' && String(o.destino) === String(e.id))).map(_llsEtNome);
+            if (!(await _lcfgConfirma((usam.length ? 'Opções de ' + usam.join(', ') + ' pulam para ela; vão passar a seguir para a próxima. ' : '') + 'Dá para desfazer em Versões depois de salvar.', { titulo: 'Excluir "' + _llsEtNome(e) + '"?', ok: 'Excluir', perigo: true }))) return;
+            L.etapas.forEach(x => (x.opcoes || []).forEach(o => { if (o.acao === 'ir_para' && String(o.destino) === String(e.id)) { o.acao = 'seguir'; o.destino = ''; } }));
+            L.etapas.splice(i, 1); _llsAberta = ''; _llsMudou(true);
+        }
+        function _llsOpNova(i) {
+            const e = _llsL().etapas[i]; e.opcoes = e.opcoes || [];
+            const n = e.opcoes.length + 1, o = { id: _llsId('o'), nome: 'Opção ' + n, desc: '', tag: _llsSlug(e.id + '_opcao_' + n), acao: 'seguir' };
+            e.opcoes.push(o); _llsOpAberta = e.id + ':' + o.id; _llsMudou(true);
+        }
+        function _llsOpMove(i, j, d) { const ops = _llsL().etapas[i].opcoes, k = j + d; if (k < 0 || k >= ops.length) return; const t = ops[j]; ops[j] = ops[k]; ops[k] = t; _llsMudou(true); }
+        async function _llsOpDel(i, j) {
+            const o = _llsL().etapas[i].opcoes[j]; if (!o) return;
+            if (!(await _lcfgConfirma('As lentes que usam a etiqueta "' + (o.tag || '') + '" continuam no catálogo.', { titulo: 'Remover "' + (o.nome || 'opção') + '"?', ok: 'Remover', perigo: true }))) return;
+            _llsL().etapas[i].opcoes.splice(j, 1); _llsMudou(true);
+        }
+        // arrastar cartões (alça)
+        document.addEventListener('dragstart', ev => { const h = ev.target.closest && ev.target.closest('[data-lls-drag]'); if (!h) return; _llsArrasto = +h.dataset.llsDrag; ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', 'lls'); } catch (_) {} });
+        document.addEventListener('dragover', ev => { if (_llsArrasto == null) return; const c = ev.target.closest && ev.target.closest('[data-lls-et]'); if (!c) return; ev.preventDefault(); document.querySelectorAll('.lls-et.alvo').forEach(x => x.classList.remove('alvo')); c.classList.add('alvo'); });
+        document.addEventListener('drop', ev => {
+            if (_llsArrasto == null) return; const c = ev.target.closest && ev.target.closest('[data-lls-et]'); const de = _llsArrasto; _llsArrasto = null;
+            document.querySelectorAll('.lls-et.alvo').forEach(x => x.classList.remove('alvo')); if (!c) return; ev.preventDefault();
+            const para = +c.dataset.llsEt, es = _llsL().etapas; if (para === de) return;
+            const [m] = es.splice(de, 1); es.splice(para, 0, m); _llsMudou(true);
+        });
+        document.addEventListener('dragend', () => { _llsArrasto = null; document.querySelectorAll('.lls-et.alvo').forEach(x => x.classList.remove('alvo')); });
+
+        /* ----- aba Lentes ----- */
+        function _llsTagsPorEtapa() {   // etiquetas agrupadas pela pergunta de onde vêm (motor de compatibilidade)
+            const vistos = {}, out = [];
+            _llsL().etapas.forEach(e => { if (e.tipo === 'receita') return; const ts = (e.opcoes || []).filter(o => o.tag && !vistos[o.tag]).map(o => { vistos[o.tag] = 1; return o; }); if (ts.length) out.push({ e, ts }); });
+            return out;
+        }
+        function _llsLentes() {
+            const L = _llsL(), grupos = _llsTagsPorEtapa(), nomeTag = {};
+            grupos.forEach(g => g.ts.forEach(o => { nomeTag[o.tag] = o.nome; }));
+            let h = '<div class="lls-bar"><div class="lls-bar-t"><b>Catálogo de lentes</b><small>A lente aparece no fim quando tem <b>todas</b> as etiquetas que o cliente escolheu e o grau da receita cabe nos limites dela. Etiqueta que nenhuma lente usa é ignorada.</small></div>' +
+                '<div class="lls-bar-a"><button type="button" class="lcfg-btn" onclick="_llsLenteNova()"><i class="ph-bold ph-plus"></i> Lente</button></div></div><div class="lls-lista">';
+            L.lentes.forEach((l, i) => {
+                const ab = _llsLenteAberta === String(l.id), p = 'l.' + i + '.';
+                const lim = (a, b) => (l[a] != null || l[b] != null) ? (l[a] != null ? l[a] : '…') + ' a ' + (l[b] != null ? l[b] : '…') : '—';
+                h += '<div class="lls-et' + (ab ? ' aberta' : '') + (l.ativo === false ? ' off' : '') + '"><div class="lls-et-cab" onclick="_llsLenteAbre(\'' + _lcfgEsc(l.id) + '\', event)">' +
+                    '<span class="lls-ic"><i class="ph-bold ph-eyeglasses"></i></span><span class="lls-et-tx"><small>' + (l.tags || []).length + ' etiquetas · ESF ' + lim('esf_min', 'esf_max') + ' · CIL ' + lim('cil_min', 'cil_max') + ' · ADD ' + lim('add_min', 'add_max') + '</small><b>' + _lcfgEsc(l.nome || 'Lente sem nome') + '</b></span>' +
+                    '<span class="lls-preco">' + (Number(l.preco) > 0 ? Number(l.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—') + '</span>' +
+                    '<span onclick="event.stopPropagation()">' + _lcfgSwitch('data-lls="' + p + 'ativo"', l.ativo !== false) + '</span><i class="ph-bold ph-caret-down lls-car"></i></div>';
+                if (ab) {
+                    const tem = {}; (l.tags || []).forEach(t => { tem[t] = 1; });
+                    const soltas = (l.tags || []).filter(t => !nomeTag[t]);
+                    h += '<div class="lls-et-corpo">' +
+                        '<div class="lls-g2">' + _llsCampo('Nome comercial da lente', _llsIn(p + 'nome', l.nome, ' maxlength="140"')) + _llsCampo('Prazo de produção <small>(opcional)</small>', _llsIn(p + 'prazo', l.prazo, ' maxlength="60"')) + '</div>' +
+                        '<div class="lls-g3">' + _llsCampo('Preço <small>(o da loja)</small>', '<input type="text" value="' + (Number(l.preco) > 0 ? Number(l.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '') + '" disabled>') +
+                            _llsCampo('ID do produto <small>Nuvemshop</small>', _llsIn(p + 'produto_id', l.produto_id, ' inputmode="numeric"')) + _llsCampo('ID da variante', _llsIn(p + 'variante_id', l.variante_id, ' inputmode="numeric"')) + '</div>' +
+                        _llsCampo('Foto da lente <small>(link, opcional)</small>', _llsIn(p + 'img', l.img, ' placeholder="https://…"')) +
+                        _llsCampo('Descrição <small>(opcional)</small>', _llsTa(p + 'desc', l.desc, 2)) +
+                        '<div class="lls-sec"><b>Motor de compatibilidade (etiquetas)</b><small class="lls-nota">Marque as respostas que levam a esta lente.</small>' +
+                        grupos.map(g => '<div class="lls-tg"><span>' + _lcfgEsc(_llsEtNome(g.e)) + '</span><div>' + g.ts.map(o => '<label class="lls-pill' + (tem[o.tag] ? ' on' : '') + '"><input type="checkbox" data-lls-tag="' + i + '" value="' + _lcfgEsc(o.tag) + '"' + (tem[o.tag] ? ' checked' : '') + '>' + _lcfgEsc(o.nome) + '</label>').join('') + '</div></div>').join('') +
+                        (soltas.length ? '<div class="lls-tg"><span>Etiquetas sem pergunta</span><div>' + soltas.map(t => '<label class="lls-pill on"><input type="checkbox" data-lls-tag="' + i + '" value="' + _lcfgEsc(t) + '" checked>' + _lcfgEsc(t) + '</label>').join('') + '</div></div>' : '') + '</div>' +
+                        '<div class="lls-sec"><b>Limites de produção (grau)</b><div class="lls-g3">' +
+                        [['esf_min', 'Esférico mín.'], ['esf_max', 'Esférico máx.'], ['cil_min', 'Cilíndrico mín.'], ['cil_max', 'Cilíndrico máx.'], ['add_min', 'Adição mín.'], ['add_max', 'Adição máx.']].map(k => _llsCampo(k[1], '<input type="text" inputmode="decimal" data-lls="' + p + k[0] + '" data-lls-num="1" value="' + _lcfgEsc(l[k[0]] == null ? '' : l[k[0]]) + '" placeholder="sem limite">')).join('') + '</div></div>' +
+                        '<div class="lls-et-pe"><button type="button" class="lcfg-link-btn perigo" onclick="_llsLenteDel(' + i + ')"><i class="ph-bold ph-trash"></i> Excluir lente</button></div></div>';
+                }
+                h += '</div>';
+            });
+            return h + '</div>';
+        }
+        function _llsLenteAbre(id, ev) { if (ev && ev.target.closest('.lcfg-switch')) return; _llsLenteAberta = _llsLenteAberta === id ? '' : id; _lcfgPinta(); }
+        function _llsLenteNova() { const l = { id: _llsId('l'), nome: 'Nova lente', preco: 0, prazo: '', produto_id: '', variante_id: '', tags: [], ativo: false }; _llsL().lentes.push(l); _llsLenteAberta = l.id; _llsMudou(true); }
+        async function _llsLenteDel(i) { const l = _llsL().lentes[i]; if (!l || !(await _lcfgConfirma('O produto continua na sua loja.', { titulo: 'Excluir "' + (l.nome || 'lente') + '" do fluxo?', ok: 'Excluir', perigo: true }))) return; _llsL().lentes.splice(i, 1); _llsMudou(true); }
+
+        /* ----- aba Design e textos ----- */
+        function _llsVisual() {
+            const L = _llsL(), v = L.visual, t = L.textos;
+            const cor = (k, rot, d) => { const val = _lcfgHex(v[k]) || d; return '<label class="lls-cor"><input type="color" data-lls="v.' + k + '" value="' + val + '"><span>' + rot + '<small>' + val + '</small></span></label>'; };
+            const tx = (k, rot, area) => _llsCampo(rot, area ? _llsTa('t.' + k, t[k], 3) : _llsIn('t.' + k, t[k], ' maxlength="160"'));
+            return '<div class="lls-bar"><div class="lls-bar-t"><b>Design do widget</b><small>Cores, botão na página do produto, selos de confiança e os textos das telas especiais.</small></div></div>' +
+                '<div class="lls-sec"><b>Botão na loja</b><div class="lls-g2">' + tx('botao_abrir', 'O que está escrito no botão') + _llsCampo('WhatsApp da loja <small>DDD + número</small>', _llsIn('whatsapp', L.whatsapp, ' inputmode="numeric" maxlength="13"')) + '</div></div>' +
+                '<div class="lls-sec"><b>Cores e fonte</b><div class="lls-cores">' + cor('cor_primaria', 'Cor principal', '#303030') + cor('cor_fundo', 'Fundo da janela', '#ffffff') + cor('cor_borda', 'Bordas', '#e2e8f0') + cor('cor_texto_botao', 'Texto do botão', '#ffffff') + '</div>' +
+                    _llsCampo('Fonte', '<select data-lls="v.fonte">' + _LLS_FONTES.map(f => '<option' + ((v.fonte || 'Onest') === f ? ' selected' : '') + '>' + f + '</option>').join('') + '</select>') + '</div>' +
+                '<div class="lls-sec"><b>Selos de confiança</b>' + _llsChk('v.selos_ativo', v.selos_ativo !== false, 'Mostrar no rodapé da janela') +
+                    [0, 1, 2].map(k => { const s = (v.selos || [])[k] || {}; return '<div class="lls-g2s"><select data-lls="v.selos.' + k + '.icone">' + _LLS_SELOS.map(o => '<option value="' + o[0] + '"' + (s.icone === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' + _llsIn('v.selos.' + k + '.texto', s.texto, ' maxlength="50" placeholder="Ex.: Compra segura"') + '</div>'; }).join('') +
+                    _llsChk('v.whatsapp_flutuante', v.whatsapp_flutuante !== false, 'Botão flutuante do WhatsApp dentro da janela') + '</div>' +
+                '<div class="lls-sec"><b>Resultado</b>' + tx('sucesso', 'Aviso de sucesso ao achar a lente', true) + tx('botao_carrinho', 'Botão final (adiciona ao carrinho)') + tx('falha_titulo', 'Título: lente não encontrada') + tx('falha_sub', 'Explicação: lente não encontrada', true) + '</div>' +
+                '<div class="lls-sec"><b>DNP obrigatória</b>' + tx('dnp_titulo', 'Título') + tx('dnp_sub', 'Instruções: como enviar a DNP', true) + '</div>' +
+                '<div class="lls-sec"><b>Tela "só armação"</b>' + tx('armacao_titulo', 'Título') + tx('armacao_sub', 'Subtítulo', true) + tx('armacao_btn', 'Botão final') + '</div>' +
+                '<div class="lls-sec"><b>Tela de aviso</b>' + tx('aviso_titulo', 'Título') + tx('aviso_sub', 'Texto do aviso', true) + '</div>';
+        }
+
+        /* ----- pintura, edição, mapa ----- */
+        function _llsPinta() {
+            const stp = document.getElementById('lcfgStepTop'), mp = document.getElementById('lcfgMapa'), cp = document.getElementById('lcfgCorpo'), eb = document.getElementById('lcfgEdBar');
+            if (stp) stp.innerHTML = _llsTopo();
+            if (cp) cp.innerHTML = ''; if (eb) eb.innerHTML = '';
+            if (!mp) return;
+            const foco = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.lls;
+            mp.innerHTML = '<div class="lls">' + (_llsTab === 'lentes' ? _llsLentes() : _llsTab === 'visual' ? _llsVisual() : _llsFluxo()) + '</div>';
+            if (foco) { const el = mp.querySelector('[data-lls="' + foco + '"]'); if (el && el.type !== 'radio' && el.type !== 'checkbox') { el.focus(); try { const n = el.value.length; el.setSelectionRange(n, n); } catch (_) {} } }
+            _lcfgAtualizaBarraEPrevia();
+        }
+        function _llsPath(path) {   // 'e.3.opcoes.2.nome' -> [objeto, chave]
+            const L = _llsL(), ps = String(path).split('.'), raiz = { e: L.etapas, l: L.lentes, v: L.visual, t: L.textos };
+            let o = ps[0] === 'whatsapp' ? L : raiz[ps[0]], i = ps[0] === 'whatsapp' ? 0 : 1;
+            for (; i < ps.length - 1; i++) { const k = /^\d+$/.test(ps[i]) ? +ps[i] : ps[i]; if (o[k] == null) o[k] = /^\d+$/.test(ps[i + 1]) ? [] : {}; o = o[k]; }
+            return [o, /^\d+$/.test(ps[ps.length - 1]) ? +ps[ps.length - 1] : ps[ps.length - 1]];
+        }
+        function _llsOnInput(el) {
+            if (el.dataset.llsTag != null) {   // etiqueta marcada na lente
+                const l = _llsL().lentes[+el.dataset.llsTag]; if (!l) return true;
+                l.tags = (l.tags || []).filter(t => t !== el.value); if (el.checked) l.tags.push(el.value);
+                const pl = el.closest('.lls-pill'); if (pl) pl.classList.toggle('on', el.checked);
+                _llsMudou(false); return true;
+            }
+            const path = el.dataset.lls; if (!path) return false;
+            const [o, k] = _llsPath(path);
+            let v = el.type === 'checkbox' ? el.checked : el.value, repinta = false;
+            if (el.type === 'radio') { v = el.value === '1'; repinta = true; }
+            else if (el.dataset.llsNum) { const s = String(v).trim().replace(',', '.'); const n = s === '' ? null : Number(s); el.classList.toggle('erro', s !== '' && !isFinite(n)); if (s !== '' && !isFinite(n)) return true; v = n; }
+            else if (el.dataset.llsHtml) v = _llsHtml(v);
+            else if (path === 'whatsapp') v = String(v).replace(/\D/g, '');
+            else if (el.type === 'color') { const sm = el.parentNode.querySelector('small'); if (sm) sm.textContent = v; }
+            if (/\.(acao|fotos)$/.test(path) || /^e\.\d+\.ativo$/.test(path) || /^l\.\d+\.ativo$/.test(path) || /\.destino$/.test(path)) repinta = true;
+            if (k === 'nome' && /^e\.\d+\.opcoes\.\d+\.nome$/.test(path)) _llsTagSegue(o, v);
+            o[k] = v;
+            if (k === 'tag') delete o._tagAuto;
+            if (/\.acao$/.test(path) && v !== 'ir_para') o.destino = '';
+            if (el.type === 'checkbox' && !/\.ativo$/.test(path)) repinta = repinta || /\.(fotos)$/.test(path);
+            _llsMudou(repinta); return true;
+        }
+        function _llsTagSegue(o, novo) {   // opção nova: a etiqueta acompanha o nome até alguém mexer nela
+            if (o && o.tag && (o._tagAuto || /_opcao_\d+$/.test(o.tag))) { const e = _llsL().etapas.find(x => (x.opcoes || []).indexOf(o) !== -1); if (e) { o.tag = _llsSlug(e.id + '_' + novo); o._tagAuto = true; } }
+        }
+        function _llsPreviaIr(etapaId) { try { if (typeof _lcfgPreviaPost === 'function') _lcfgPreviaPost({ type: 'pl-lentes-ir', etapa: String(etapaId) }); } catch (_) {} }
+        function _llsMapa() {
+            const es = _llsL().etapas.filter(e => e.ativo !== false);
+            const blocos = es.map(e => {
+                const i = _llsL().etapas.indexOf(e), geral = e.todos_produtos !== false;
+                const ops = e.tipo === 'receita' ? [{ nome: 'Receita enviada, pulada ou por WhatsApp', d: 'Buscar as lentes', cls: 'fim' }]
+                    : (e.opcoes || []).map(o => { const t = _llsDestinoTxt(o, i).replace(/^(Pula para|Segue para): /, ''); return { nome: o.nome + (o.dnp ? ' · DNP' : ''), d: t, cls: /lentes/.test(t) || o.acao === 'so_armacao' ? 'fim' : o.acao === 'aviso' ? 'wa' : '' }; });
+                return '<div class="lcfg-mf-et"><div class="lcfg-mf-cab"><b>' + _lcfgEsc(_llsEtNome(e)) + '</b>' + (geral ? '' : ' <em style="font-size:11.5px;color:var(--l-muted);font-style:normal">só em: ' + _lcfgEsc(e.produtos || 'produtos selecionados') + '</em>') + '</div>' +
+                    ops.map(o => '<div class="lcfg-mf-op"><span>' + _lcfgEsc(o.nome || '') + '</span><i class="ph-bold ph-arrow-right"></i><b class="' + o.cls + '">' + _lcfgEsc(o.d) + '</b></div>').join('') + '</div>';
+            }).join('<div class="lcfg-mf-seta"><i class="ph-bold ph-arrow-down"></i></div>');
+            _lcfgModal('lcfgMapaModal', '<div class="hd"><h3>Mapa do fluxo</h3><p>Cada pergunta, na ordem, e para onde cada opção leva.</p></div><div class="bd lcfg-mf">' + blocos + '</div><div class="ft"><span></span><button type="button" class="lcfg-btn lcfg-btn-pri" onclick="_lcfgModalFecha(\'lcfgMapaModal\')">Fechar</button></div>');
+        }
+        function _llsValida(c) {
+            const erros = [], L = c.lista || {};
+            if (!(L.etapas || []).some(e => e.ativo !== false)) erros.push('Deixe pelo menos uma pergunta ligada.');
+            (L.etapas || []).forEach(e => {
+                if (e.ativo === false) return; const nm = '"' + _llsEtNome(e) + '"';
+                if (!String(e.titulo || '').trim()) erros.push('Pergunta ' + nm + ': escreva o título.');
+                if (e.tipo !== 'receita') {
+                    if (!(e.opcoes || []).some(o => String(o.nome || '').trim())) erros.push('Pergunta ' + nm + ': coloque pelo menos uma opção.');
+                    (e.opcoes || []).forEach(o => { if (o.acao === 'ir_para' && !(L.etapas || []).some(x => String(x.id) === String(o.destino))) erros.push('Pergunta ' + nm + ', opção "' + (o.nome || '') + '": escolha a pergunta de destino.'); });
+                }
+            });
+            (L.lentes || []).forEach(l => { if (l.ativo === false) return; const nm = String(l.nome || '').trim() || '(sem nome)'; if (!/^\d+$/.test(String(l.produto_id || '')) || !/^\d+$/.test(String(l.variante_id || ''))) erros.push('Lente ' + nm + ': ID de produto/variante inválido.'); });
+            const wa = String(L.whatsapp || ''); if (wa && (wa.length < 10 || wa.length > 13)) erros.push('WhatsApp da loja: use DDD + número.');
+            return Array.from(new Set(erros));
+        }
         function _lcfgPinta() {
             const c = _lcfgEdit || {};
             const prev = document.getElementById('lcfgPrevia');
@@ -8464,6 +8802,7 @@
             const stp = document.getElementById('lcfgStepTop'); if (stp && c.modo !== 'catalogo') stp.innerHTML = '';
             const eb = document.getElementById('lcfgEdBar'); if (eb && c.modo !== 'catalogo') eb.innerHTML = '';
             if (c.modo === 'catalogo') { _lcfgPintaCatalogo(c); return; }
+            if (c.modo === 'lista') { _llsPinta(); return; }   // igual ao Lente Ideal Pro (19/10/2026)
             const g = c.geral || (c.geral = {});
             const usados = new Set([].concat(_LCFG_TEXTOS_ETAPA1, _LCFG_TEXTOS_RECEITA, _LCFG_TEXTOS_RESULTADO));
             const necs = c.necessidades || [];
@@ -8557,6 +8896,7 @@
         function _lcfgOnInput(ev) {
             const el = ev.target, c = _lcfgEdit;
             if (!c || !el || !el.closest || !el.closest('#lentesViewConfig')) return;
+            if (c.modo === 'lista' && (el.dataset.lls || el.dataset.llsTag != null)) { if (ev.type === 'input' && (el.type === 'checkbox' || el.type === 'radio' || el.tagName === 'SELECT')) return; _llsOnInput(el); return; }
             const ce = el.closest('[data-lcfg-ce]');
             if (ce) { _lcfgCEGrava(ce.dataset.lcfgCe, ce.textContent.replace(/\s+/g, ' ')); _lcfgAtualizaBarraEPrevia(); _lcfgMapaParcial(true); return; }
             const val = el.type === 'checkbox' ? el.checked : el.value;
@@ -8689,6 +9029,7 @@
             _lcfgPinta();
         }
         function _lcfgValida(c) {
+            if (c.modo === 'lista') return _llsValida(c);
             const erros = [];
             if (!(c.necessidades || []).some(n => n.ativo !== false)) erros.push('Deixe pelo menos um tipo de lente ligado.');
             (c.necessidades || []).forEach(n => { if (n.base && !String(n.titulo || '').trim()) erros.push('Dê um nome para a opção nova do tipo de lente.'); });
