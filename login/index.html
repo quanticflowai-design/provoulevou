@@ -32570,6 +32570,266 @@
         if (mq.addEventListener) mq.addEventListener('change', onMq); else if (mq.addListener) mq.addListener(onMq);
     })();
     </script>
+    <!-- ============================================================
+         ── MOBILE v1 (19/10/2026) ──
+         Conversas igual WhatsApp no celular (lista → conversa em tela cheia
+         com voltar, campo de mensagem fixo acima do teclado, painel do
+         cliente em gaveta) + ajustes gerais (zoom do iOS, modais, Levi).
+         Tudo dentro de @media (max-width: 760px) — desktop intocado.
+         ============================================================ -->
+    <style id="plMobileV1">
+      /* botões injetados no cabeçalho da conversa: só existem visualmente no celular */
+      .chat-m-back, .chat-m-infobtn, #chatMInfoClose { display: none; }
+
+      @media (max-width: 760px) {
+        /* ---------- Conversas: lista ocupa a largura toda ---------- */
+        #dispChatCard .chat-wrap {
+          display: block !important; height: auto !important; min-height: 0 !important;
+          grid-template-columns: 1fr !important; overflow: visible !important;
+        }
+        #dispChatCard .chat-a-col { display: flex; flex-direction: column; min-width: 0; }
+        #dispChatCard .chat-list { max-height: none !important; overflow: visible !important; border-right: none !important; }
+        #dispChatCard .chat-conv { padding: 12px 14px 12px 11px; min-height: 64px; box-sizing: border-box; }
+        /* sem conversa aberta: a coluna da conversa e o painel do cliente somem (só a lista) */
+        #dispChatCard #chatThread { display: none !important; }
+        #dispChatCard #chatLeadPanel { display: none !important; }
+
+        /* filtros: busca na linha de cima, filtros em 2 colunas */
+        #dispChatCard .chat-a-filters { gap: 8px !important; padding: 10px !important; }
+        #dispChatCard .chat-a-search { flex: 1 1 100% !important; min-width: 0; box-sizing: border-box; }
+        #dispChatCard .chat-a-filter-sel, #dispChatCard .chat-a-fbtn {
+          flex: 1 1 calc(50% - 4px) !important; min-width: 0 !important; max-width: none !important;
+          min-height: 40px; box-sizing: border-box; justify-content: center;
+        }
+
+        /* ---------- Conversa aberta = tela cheia (só com a aba Conversas ativa) ---------- */
+        body.chat-m-thread[data-active-tab="disparos"] #dispSubConversas.active #chatThread {
+          display: flex !important; flex-direction: column !important;
+          position: fixed !important; left: 0 !important; right: 0 !important;
+          top: var(--pl-vvtop, 0px) !important; bottom: auto !important;
+          width: 100% !important; height: 100vh !important; height: var(--pl-vvh, 100dvh) !important;
+          max-height: none !important; min-height: 0 !important;
+          z-index: 1200 !important; margin: 0 !important; border: 0 !important; border-radius: 0 !important;
+          box-sizing: border-box; overflow: hidden !important;
+        }
+        /* o painel tem z-index 1 (abaixo do menu fixo, 1000): sobe enquanto a conversa está aberta */
+        body.chat-m-thread[data-active-tab="disparos"] #dashboardSection { z-index: 1100 !important; }
+        /* Levi não cobre o botão de enviar */
+        body.chat-m-thread[data-active-tab="disparos"] #plAssist { display: none !important; }
+
+        /* cabeçalho: [voltar] [avatar] [nome] [info] / linha 2: etapa, responsável, etiquetas, excluir (rola de lado) */
+        #chatThread .chat-thread-head {
+          flex: 0 0 auto; flex-wrap: wrap !important; gap: 6px 8px !important;
+          padding: 8px 10px !important; padding-top: calc(8px + env(safe-area-inset-top, 0px)) !important;
+        }
+        #chatThread .chat-thread-head > .chat-conv-av { order: -1; width: 36px !important; height: 36px !important; font-size: 13px !important; }
+        #chatThread .chat-m-back { order: -2; }
+        #chatThread .chat-a-th-info { order: 0; flex: 1 1 0 !important; min-width: 0 !important; }
+        #chatThread .chat-a-th-nm { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #chatThread .chat-a-th-name { min-width: 0; flex-wrap: wrap; }
+        #chatThread .chat-m-infobtn { order: 1; }
+        #chatThread .chat-a-th-actions {
+          order: 2; flex: 1 0 100% !important; margin-left: 0 !important;
+          flex-wrap: nowrap !important; justify-content: flex-start !important;
+          overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 2px;
+        }
+        #chatThread .chat-a-th-actions::-webkit-scrollbar { display: none; }
+        #chatThread .chat-a-th-actions > * { flex: 0 0 auto; }
+        #chatThread .chat-a-th-actions select { font-size: 16px !important; min-height: 40px; max-width: 70vw; }
+        #chatThread .chat-a-del { min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; }
+        #chatThread .chat-m-back, #chatThread .chat-m-infobtn {
+          display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
+          width: 40px; height: 40px; padding: 0; border: none; border-radius: 10px;
+          background: transparent; color: var(--a-ink, var(--text-main)); font-size: 22px; cursor: pointer;
+        }
+        #chatThread .chat-m-infobtn { color: var(--a-accent, #7c3aed); }
+        body.dark-mode #chatThread .chat-m-back { color: #edebe7; }
+        body.dark-mode #chatThread .chat-m-infobtn { color: #a78bfa; }
+
+        /* mensagens: rolam sozinhas, ocupam o meio */
+        #chatThread .chat-thread-body {
+          flex: 1 1 auto !important; min-height: 0 !important; overflow-y: auto !important;
+          overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 12px !important; gap: 8px !important;
+        }
+        #dispChatCard .chat-msg { max-width: 85% !important; }
+
+        /* campo de mensagem: sempre no rodapé, acima do teclado */
+        #chatThread .chat-thread-foot {
+          flex: 0 0 auto !important; padding: 8px !important;
+          padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+        }
+        #chatThread .chat-input-row { gap: 6px !important; align-items: flex-end !important; }
+        #chatThread .chat-tools { gap: 0 !important; }
+        #chatThread .chat-tool-btn { width: 40px !important; height: 40px !important; font-size: 20px !important; }
+        #chatThread .chat-input, #chatThread textarea.chat-input { font-size: 16px !important; min-width: 0; padding: 9px 12px !important; max-height: 120px; }
+        #chatThread .chat-send-btn {
+          flex: 0 0 auto; width: 44px !important; height: 44px !important; padding: 0 !important;
+          display: inline-flex !important; align-items: center; justify-content: center; border-radius: 12px !important;
+        }
+        #chatThread .chat-send-btn i { font-size: 19px !important; }
+        #chatThread .chat-send-btn .chat-a-send-txt { display: none !important; }
+        #chatThread .chat-window-warn { font-size: 12.5px; }
+        #chatThread .chat-composer > .chat-pop { left: 0; right: 0; width: auto !important; max-width: none !important; }
+        #chatThread .chat-pop-list { max-height: min(260px, calc(var(--pl-vvh, 100dvh) * .4)) !important; }
+        #chatThread .chat-emoji-grid { max-height: min(210px, calc(var(--pl-vvh, 100dvh) * .32)) !important; }
+        #chatThread .chat-qr-search input { font-size: 16px !important; }
+
+        /* painel do cliente (provas, compras, etiquetas) = gaveta por cima da conversa */
+        body.chat-m-thread.chat-m-info[data-active-tab="disparos"] #dispSubConversas.active #chatLeadPanel {
+          display: flex !important; position: fixed !important; left: 0 !important; right: 0 !important;
+          top: var(--pl-vvtop, 0px) !important; height: 100vh !important; height: var(--pl-vvh, 100dvh) !important;
+          width: 100% !important; z-index: 1250 !important; box-sizing: border-box;
+          border: 0 !important; overflow-y: auto !important; overscroll-behavior: contain;
+          padding: calc(64px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+          background: #fcfbfe;
+        }
+        body.dark-mode.chat-m-thread.chat-m-info #chatLeadPanel { background: #0e0e12 !important; }
+        body.chat-m-thread.chat-m-info[data-active-tab="disparos"] #chatMInfoClose {
+          display: inline-flex; position: fixed; z-index: 1260; left: 0; right: 0;
+          top: var(--pl-vvtop, 0px); height: 56px; padding: env(safe-area-inset-top, 0px) 12px 0;
+          align-items: center; gap: 10px; border: none; border-bottom: 1px solid var(--a-line, rgba(0,0,0,.08));
+          background: #fff; color: var(--a-ink, #1c1826); font: 600 15px/1 inherit; font-family: inherit; cursor: pointer; text-align: left;
+        }
+        body.dark-mode.chat-m-thread.chat-m-info #chatMInfoClose { background: #15151f; color: #edebe7; border-bottom-color: rgba(255,255,255,.08); }
+        #chatMInfoClose i { font-size: 22px; }
+
+        /* modais do chat (etiquetas, respostas rápidas, anexo) cabem com teclado aberto */
+        .chat-x-modal { padding: 10px !important; align-items: flex-start !important; padding-top: max(10px, env(safe-area-inset-top, 0px)) !important; }
+        .chat-x-card { max-height: calc(var(--pl-vvh, 100dvh) - 20px) !important; }
+        .chat-x-input { font-size: 16px !important; }
+
+        /* ---------- Geral ---------- */
+        /* iOS dá zoom em campo com fonte < 16px: todo campo de digitar fica com 16px no celular */
+        input[type="text"], input[type="search"], input[type="email"], input[type="tel"], input[type="number"],
+        input[type="password"], input[type="url"], input[type="date"], input[type="datetime-local"], input[type="time"],
+        input:not([type]), select, textarea { font-size: 16px !important; }
+
+        /* modais: nunca mais altos que a tela visível; rolam por dentro */
+        .plan-modal, .credits-modal, .autom-modal, .mpp-box, .lcfg-modal-box, .pd-wrap.pd-modal, .dd-detail-modal {
+          max-height: calc(100dvh - 24px) !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+        }
+        .autom-modal { width: 100% !important; box-sizing: border-box; }
+
+        /* Levi (assistente) em tela cheia acompanha o teclado */
+        #plAssist .pa-chat.on { top: var(--pl-vvtop, 0px) !important; bottom: auto !important; height: 100vh !important; height: var(--pl-vvh, 100dvh) !important; }
+
+        /* área de toque mínima nos botões pequenos mais usados */
+        .disp-btn, .crm-btn, .chat-a-fbtn { min-height: 40px; }
+      }
+    </style>
+    <button type="button" id="chatMInfoClose" aria-label="Voltar para a conversa"><i class="ph-bold ph-arrow-left" aria-hidden="true"></i> Dados do cliente</button>
+    <script>
+    // ── MOBILE v1 (19/10/2026): Conversas em tela cheia no celular ──
+    (function () {
+        var mq = window.matchMedia('(max-width: 760px)');
+        var B = document.body;
+        function isMob() { return mq.matches; }
+        function threadBody() { return document.getElementById('chatThreadBody'); }
+        function nearBottom(el) { return el && (el.scrollHeight - el.scrollTop - el.clientHeight) < 120; }
+        function toBottom() { var b = threadBody(); if (b) b.scrollTop = b.scrollHeight; }
+
+        // Altura/posição da área VISÍVEL (desconta o teclado) → --pl-vvh / --pl-vvtop
+        var vv = window.visualViewport;
+        function syncVV() {
+            if (!vv) return;
+            var b = threadBody(), stick = B.classList.contains('chat-m-thread') && nearBottom(b);
+            var r = document.documentElement.style;
+            r.setProperty('--pl-vvh', Math.round(vv.height) + 'px');
+            r.setProperty('--pl-vvtop', Math.round(vv.offsetTop) + 'px');
+            if (stick) requestAnimationFrame(toBottom);
+        }
+        if (vv) { vv.addEventListener('resize', syncVV); vv.addEventListener('scroll', syncVV); syncVV(); }
+
+        // Abrir / fechar a conversa em tela cheia (+ botão voltar do Android/iOS)
+        function abrir() {
+            if (!isMob()) return;
+            if (!B.classList.contains('chat-m-thread')) {
+                B.classList.add('chat-m-thread');
+                try { history.pushState({ plChatM: 1 }, ''); } catch (e) {}
+            }
+            syncVV();
+        }
+        function fechar(viaHistory) {
+            B.classList.remove('chat-m-info');
+            if (!B.classList.contains('chat-m-thread')) return;
+            B.classList.remove('chat-m-thread');
+            if (!viaHistory && history.state && history.state.plChatM) { try { history.back(); } catch (e) {} }
+        }
+        window.chatMobileFechar = function () { fechar(false); };
+        window.addEventListener('popstate', function () {
+            if (B.classList.contains('chat-m-info')) { B.classList.remove('chat-m-info'); return; }
+            if (B.classList.contains('chat-m-thread')) fechar(true);
+        });
+        // toque numa conversa da lista abre em tela cheia
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest) return;
+            if (e.target.closest('#chatList .chat-conv, #chatList [data-chatphone]')) abrir();
+            else if (e.target.closest('.tab-btn, #dispSubnav button')) fechar(false);   // trocou de aba/menu
+        }, true);
+
+        // Cabeçalho da conversa é redesenhado a cada atualização: recoloca voltar + info
+        function decorar() {
+            var head = document.querySelector('#chatThread .chat-thread-head');
+            if (!head) { fechar(false); return; }   // conversa excluída / vazia → volta pra lista
+            if (head.querySelector('.chat-m-back')) return;
+            var back = document.createElement('button');
+            back.type = 'button'; back.className = 'chat-m-back';
+            back.setAttribute('aria-label', 'Voltar para a lista de conversas');
+            back.innerHTML = '<i class="ph-bold ph-arrow-left" aria-hidden="true"></i>';
+            back.addEventListener('click', function () { fechar(false); });
+            head.insertBefore(back, head.firstChild);
+            var info = document.createElement('button');
+            info.type = 'button'; info.className = 'chat-m-infobtn';
+            info.setAttribute('aria-label', 'Ver dados do cliente');
+            info.title = 'Dados do cliente';
+            info.innerHTML = '<i class="ph-bold ph-info" aria-hidden="true"></i>';
+            info.addEventListener('click', function () { B.classList.add('chat-m-info'); try { history.pushState({ plChatM: 1 }, ''); } catch (e) {} });
+            var acts = head.querySelector('.chat-a-th-actions');
+            head.insertBefore(info, acts || null);
+            var b = threadBody();
+            if (b && b !== tb && window.MutationObserver) { tb = b; new MutationObserver(function () { if (isMob()) toBottom(); }).observe(b, { childList: true }); }
+            var f = document.getElementById('chatThreadFoot');
+            if (f && f !== tf && window.MutationObserver) { tf = f; new MutationObserver(ajustarCampo).observe(f, { childList: true }); ajustarCampo(); }
+            if (isMob()) setTimeout(toBottom, 0);
+        }
+        // placeholder longo quebra em 3 linhas no celular e o campo nasce alto → texto curto
+        function ajustarCampo() {
+            var i = document.getElementById('chatReplyInput');
+            if (!i || !isMob()) return;
+            if (!i.dataset.phDesk) i.dataset.phDesk = i.placeholder;
+            i.placeholder = 'Mensagem';
+            try { if (typeof chatAutoGrow === 'function') chatAutoGrow(i); } catch (e) {}
+        }
+        // mensagens chegam depois (await do banco) → observa o corpo da conversa e desce pra última
+        var tb = null, tf = null;
+        var th = document.getElementById('chatThread');
+        if (th && window.MutationObserver) new MutationObserver(decorar).observe(th, { childList: true });
+
+        var fecharInfo = document.getElementById('chatMInfoClose');
+        if (fecharInfo) fecharInfo.addEventListener('click', function () {
+            if (history.state && history.state.plChatM && B.classList.contains('chat-m-info')) { try { history.back(); return; } catch (e) {} }
+            B.classList.remove('chat-m-info');
+        });
+
+        // Teclado abriu no campo: garante a última mensagem visível.
+        // No celular (toque), Enter quebra linha como no WhatsApp; enviar é no botão.
+        document.addEventListener('focusin', function (e) {
+            if (isMob() && e.target && e.target.id === 'chatReplyInput') setTimeout(toBottom, 350);
+        });
+        var touch = window.matchMedia('(pointer: coarse)');
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter' || e.shiftKey || !isMob() || !touch.matches) return;
+            if (!e.target || e.target.id !== 'chatReplyInput') return;
+            var qr = document.getElementById('chatQrPop');
+            if (qr && !qr.hidden) return;          // Enter escolhe a resposta rápida
+            e.stopPropagation();                   // não chama o envio; o navegador quebra a linha
+        }, true);
+
+        // saiu do celular (girou/redimensionou) → volta ao layout normal
+        var onMq = function () { if (!isMob()) { B.classList.remove('chat-m-thread', 'chat-m-info'); } };
+        if (mq.addEventListener) mq.addEventListener('change', onMq); else if (mq.addListener) mq.addListener(onMq);
+    })();
+    </script>
 </body>
 
 </html>
