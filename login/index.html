@@ -11142,6 +11142,16 @@
             return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
         }
 
+        // 20/10/2026: o mesmo cliente vem com e sem o 9 (envio sai com 9; a Meta devolve a resposta sem o 9).
+        // Toda busca da conversa usa as duas grafias, senão disparos/automações somem do histórico.
+        function chatFoneVariantes(phone) {
+            const p = String(phone || '');
+            const m = p.match(/^55(\d{2})(\d{8,9})$/);
+            if (!m) return [p];
+            const loc8 = m[2].slice(-8);
+            return Array.from(new Set([p, '55' + m[1] + loc8, '55' + m[1] + '9' + loc8]));
+        }
+        function chatMesmoFone(a, b) { return chatFoneVariantes(a).indexOf(String(b || '')) !== -1; }
         async function loadConversas() {
             if (!supabaseClient || !activeUser) return;
             const listEl = document.getElementById('chatList');
@@ -11395,7 +11405,7 @@
             if (isUnread) { await chatMarkRead(phone); return; }
             try {
                 const { data } = await supabaseClient.from('whatsapp_mensagens')
-                    .select('id').in('email', plScopeEmails()).eq('lead_phone', phone)
+                    .select('id').in('email', plScopeEmails()).in('lead_phone', chatFoneVariantes(phone))
                     .eq('direction', 'in').order('created_at', { ascending: false }).limit(1);
                 if (data && data[0]) {
                     await supabaseClient.from('whatsapp_mensagens').update({ read_by_lojista: false }).eq('id', data[0].id);
@@ -11485,7 +11495,7 @@
                     .from('whatsapp_mensagens')
                     .select('direction, body, msg_type, media_id, template_name, btn_label, btn_url, status, wa_timestamp, created_at')
                     .in('email', plScopeEmails())
-                    .eq('lead_phone', phone)
+                    .in('lead_phone', chatFoneVariantes(phone))
                     .order('created_at', { ascending: true })
                     .limit(500);
                 chatRenderThread(data || []);
@@ -11767,7 +11777,7 @@
             try {
                 await supabaseClient.from('whatsapp_mensagens')
                     .update({ read_by_lojista: true })
-                    .eq('email', activeUser.email).eq('lead_phone', phone).eq('direction', 'in').eq('read_by_lojista', false);
+                    .eq('email', activeUser.email).in('lead_phone', chatFoneVariantes(phone)).eq('direction', 'in').eq('read_by_lojista', false);
                 const c = _chatConvs.find(x => x.phone === phone);
                 if (c) { c.unread = 0; chatRenderList(); }
             } catch (e) {}
@@ -12493,7 +12503,7 @@
                             const m = payload.new;
                             if (!m) return;
                             loadConversas();
-                            if (m.lead_phone === _chatActivePhone) openConversa(_chatActivePhone);
+                            if (chatMesmoFone(_chatActivePhone, m.lead_phone)) openConversa(_chatActivePhone);
                         })
                     .subscribe();
             } catch (e) { /* realtime opcional */ }
