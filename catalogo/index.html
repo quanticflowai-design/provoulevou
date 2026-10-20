@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=154">
+  <link rel="stylesheet" href="styles.css?v=155">
 </head>
 <body>
   <div id="app">
@@ -452,7 +452,11 @@
             <!-- Tamanho do logo: a prévia muda na hora, o catálogo só muda ao salvar. -->
             <div class="tema-logo-tamanho" id="tema-logo-tamanho">
               <label class="tema-logo-tamanho-tit" for="tema-logo-escala">Tamanho do logo: <b id="tema-logo-escala-valor">100%</b></label>
-              <input type="range" id="tema-logo-escala" min="50" max="250" step="5" value="100">
+              <input type="range" id="tema-logo-escala" min="50" max="400" step="5" value="100">
+              <div class="tema-logo-layout">
+                <label class="tema-check"><input type="checkbox" id="tema-logo-centro"> Centralizar o logo</label>
+                <label class="tema-check"><input type="checkbox" id="tema-logo-cheio"> Logo grande, ocupando o topo inteiro</label>
+              </div>
               <p class="tema-sub">Prévia — é assim que o topo do catálogo vai ficar:</p>
               <div class="tema-logo-previas" id="tema-logo-previas">
                 <div class="tema-logo-previa tema-logo-previa-cel">
@@ -465,7 +469,7 @@
                 </div>
               </div>
               <div class="tema-acoes">
-                <button type="button" class="btn-primary" id="btn-logo-escala-salvar">Salvar tamanho do logo</button>
+                <button type="button" class="btn-primary" id="btn-logo-escala-salvar">Salvar logo</button>
                 <button type="button" class="btn-outline" id="btn-logo-escala-voltar">Voltar ao salvo</button>
               </div>
             </div>
@@ -665,6 +669,6 @@
   <div id="toast"></div>
 
   <script src="lentes.js?v=152"></script>
-  <script src="app.js?v=172"></script>
+  <script src="app.js?v=173"></script>
 </body>
 </html>

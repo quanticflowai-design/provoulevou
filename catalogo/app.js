@@ -641,12 +641,18 @@
   // Tamanho do logo salvo pelo lojista (tema.logoEscala). Fora da faixa = padrão.
   function escalaLogoSalva() {
     const v = Number(storeRow && storeRow.tema && storeRow.tema.logoEscala);
-    return v >= 0.5 && v <= 2.5 ? v : 1;
+    return v >= 0.5 && v <= 4 ? v : 1;
   }
 
+  // 20/10/2026: posição do logo (esquerda/centro) e logo ocupando o topo inteiro, escolhidos no painel.
+  function logoLayoutSalvo() {
+    const t = (storeRow && storeRow.tema) || {};
+    return { centro: t.logoPos === 'centro', cheio: t.logoCheio === true };
+  }
   function aplicaTema(cor) {
     const el = document.documentElement;
     el.style.setProperty('--logo-escala', String(escalaLogoSalva()));
+    { const ly = logoLayoutSalvo(); el.classList.toggle('logo-centro', ly.centro); el.classList.toggle('logo-cheio', ly.cheio); }
     const ac0 = temaEfetivo();
     // Quem manda no tema é o FUNDO, não a cor da marca. O vermelho da Valter é
     // escuro, mas o catálogo dela é branco — sem isto entrava o tema escuro e,
@@ -1152,6 +1158,8 @@
     if (bloco) bloco.hidden = !url;
     ['#tema-logo-previa-cel', '#tema-logo-previa-pc'].forEach(s => { const im = $(s); if (im && url) im.src = url; });
     const rng = $('#tema-logo-escala');
+    { const ly = logoLayoutSalvo(), cen = $('#tema-logo-centro'), che = $('#tema-logo-cheio');
+      if (cen) cen.checked = ly.centro; if (che) che.checked = ly.cheio; }
     if (rng) { rng.value = String(Math.round(escalaLogoSalva() * 100)); previaLogoEscala(); }
   }
 
@@ -1161,13 +1169,19 @@
     if (!rng) return;
     if (val) val.textContent = rng.value + '%';
     if (box) box.style.setProperty('--logo-escala', String(Number(rng.value) / 100));
+    const cen = $('#tema-logo-centro'), che = $('#tema-logo-cheio');
+    if (box) { box.classList.toggle('logo-centro', !!(cen && cen.checked)); box.classList.toggle('logo-cheio', !!(che && che.checked)); }
+    if (rng) rng.disabled = !!(che && che.checked);
   }
   {
     const rng = $('#tema-logo-escala');
     if (rng) rng.addEventListener('input', previaLogoEscala);
+    ['#tema-logo-centro', '#tema-logo-cheio'].forEach(s => { const e = $(s); if (e) e.addEventListener('change', previaLogoEscala); });
     const bv = $('#btn-logo-escala-voltar');
     if (bv) bv.addEventListener('click', () => {
       if (rng) rng.value = String(Math.round(escalaLogoSalva() * 100));
+      { const ly = logoLayoutSalvo(), cen = $('#tema-logo-centro'), che = $('#tema-logo-cheio');
+        if (cen) cen.checked = ly.centro; if (che) che.checked = ly.cheio; }
       previaLogoEscala();
     });
     const bs = $('#btn-logo-escala-salvar');
@@ -1176,8 +1190,10 @@
       bs.disabled = true; bs.textContent = 'Salvando…';
       try {
         // Guarda o que já estava no tema (cores) e só troca o tamanho.
-        const escala = Math.min(2.5, Math.max(0.5, Number(rng.value) / 100));
-        const tema = Object.assign({}, (storeRow && storeRow.tema) || {}, { logoEscala: escala });
+        const escala = Math.min(4, Math.max(0.5, Number(rng.value) / 100));
+        const cen = $('#tema-logo-centro'), che = $('#tema-logo-cheio');
+        const tema = Object.assign({}, (storeRow && storeRow.tema) || {}, { logoEscala: escala,
+          logoPos: cen && cen.checked ? 'centro' : 'esquerda', logoCheio: !!(che && che.checked) });
         const r = await fetch(WH_THEME, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ store_slug: STORE_SLUG, tema })
@@ -1185,7 +1201,7 @@
         if (!r.ok) throw new Error('HTTP ' + r.status);
         if (storeRow) storeRow.tema = tema;
         aplicaTema(storeRow && storeRow.primary_color);
-        toast('Tamanho do logo salvo ✓');
+        toast('Logo salvo ✓');
       } catch (e) {
         console.warn('[Provou Catálogo] erro ao salvar tamanho do logo:', e);
         toast('Não consegui salvar. Tente de novo.');
@@ -1308,6 +1324,9 @@
         // as cores não levam o tamanho do logo: sem isto, salvar cor zerava o tamanho
         const esc = storeRow && storeRow.tema && storeRow.tema.logoEscala;
         if (esc) tema.logoEscala = esc;
+        const t0 = (storeRow && storeRow.tema) || {};
+        if (t0.logoPos) tema.logoPos = t0.logoPos;
+        if (t0.logoCheio) tema.logoCheio = t0.logoCheio;
         const r = await fetch(WH_THEME, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ store_slug: STORE_SLUG, tema })
