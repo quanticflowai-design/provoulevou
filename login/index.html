@@ -7955,12 +7955,22 @@
         const _lcfgIxCls = ix => 'lcfg-ix' + String(ix || 'x').replace('.', '');
         function _lcfgGAddOk(f, add) { return add == null || ((f.addMin == null || add >= Number(f.addMin) - 1e-9) && (f.addMax == null || add <= Number(f.addMax) + 1e-9)); }
         function _lcfgGAddNome(f) { const n = v => Number(v).toFixed(2).replace('.', ','); return f.addMin == null && f.addMax == null ? 'qualquer adição' : 'adição ' + (f.addMin != null ? n(f.addMin) : '…') + ' a ' + (f.addMax != null ? n(f.addMax) : '…'); }
-        function _lcfgGFaixaNome(f) { const n = v => Number(v).toFixed(2).replace('.', ','); return (Number(f.de) ? n(f.de) + ' a ' : 'até ') + n(f.ate); }
+        // Faixa positiva separada da negativa (Julio/Sirena 20/10/2026): pde/pate = grau positivo. Sem os campos (faixa antiga) o positivo
+        // usa a mesma faixa do negativo; pde/pate = null = a faixa não vale para grau positivo.
+        function _lcfgGPos(f) { return !('pde' in f) && !('pate' in f) ? { de: f.de, ate: f.ate } : (f.pde == null || f.pate == null ? null : { de: f.pde, ate: f.pate }); }
+        function _lcfgGNoGrau(f, esf, sinal) { const r = sinal > 0 ? _lcfgGPos(f) : { de: f.de, ate: f.ate }; return !!r && esf >= Number(r.de) - 1e-9 && esf <= Number(r.ate) + 1e-9; }
+        function _lcfgGFaixaNome(f) {
+            const n = v => Number(v).toFixed(2).replace('.', ','), fx = (s, a, b) => (Number(a) ? s + n(a) + ' a ' : 'até ') + s + n(b);
+            if (!('pde' in f) && !('pate' in f)) return fx('±', f.de, f.ate);
+            const p = _lcfgGPos(f);
+            return fx('−', f.de, f.ate) + (p ? ' · ' + fx('+', p.de, p.ate) : '');
+        }
         function _lcfgGSimula(g) {
             const esf = Math.max(Math.abs(_lcfgSim.esfOD), Math.abs(_lcfgSim.esfOE)), cil = Math.max(Math.abs(_lcfgSim.cilOD), Math.abs(_lcfgSim.cilOE));
+            const sinal = (Math.abs(_lcfgSim.esfOD) >= Math.abs(_lcfgSim.esfOE) ? Number(_lcfgSim.esfOD) : Number(_lcfgSim.esfOE)) > 0 ? 1 : -1;   // olho de maior grau decide se é positivo ou negativo
             const fs = (g && g.faixas) || [];
             const add = _lcfgGEhMulti() ? Math.abs(Number(_lcfgSim.add) || 0) : null;   // multifocal: a faixa também tem adição (13/10/2026)
-            return { esf, cil, add, fi: fs.findIndex(f => esf >= Number(f.de) - 1e-9 && esf <= Number(f.ate) + 1e-9 && cil <= Number(f.cil) + 1e-9 && _lcfgGAddOk(f, add)) };
+            return { esf, cil, add, fi: fs.findIndex(f => _lcfgGNoGrau(f, esf, sinal) && cil <= Number(f.cil) + 1e-9 && _lcfgGAddOk(f, add)) };
         }
         function _lcfgGrade() {
             if (!_lcfgGradeOk()) return '<div class="lcfg-g-aviso"><i class="ph-bold ph-info"></i> Nesta loja, a lente indicada segue a regra configurada pela Provou Levou. A grade de indicação por grau chega aqui em breve.</div>';
@@ -7999,7 +8009,7 @@
             h += '</tbody></table></div><div class="lcfg-g-rod"><button type="button" class="lcfg-link-btn" onclick="_lcfgGAddFaixa()"><i class="ph-bold ph-plus"></i> Faixa de grau</button>' +
                 '<span class="leg">' + [['1.56', 'grossa'], ['1.59', 'policarb.'], ['1.61', 'fina'], ['1.67', 'ultrafina'], ['1.74', 'extra']].map(x => '<span><span class="lcfg-ix ' + _lcfgIxCls(x[0]) + '">' + x[0] + '</span>' + x[1] + '</span>').join('') + '</span>' +
                 '<label class="fora">Fora da grade ou célula vazia: <select onchange="_lcfgGSet(\'fora\',this.value)"><option value="whatsapp"' + (g.fora !== 'auto' ? ' selected' : '') + '>levar ao WhatsApp</option><option value="auto"' + (g.fora === 'auto' ? ' selected' : '') + '>usar a regra de sempre</option></select></label></div>' +
-                '<p class="lcfg-ed-nota">A faixa usa o maior grau entre os dois olhos. A 1ª lente da célula é a indicada; as outras aparecem como opções. Armação que pede policarbonato segue a regra de sempre. O teste mostra o resultado na prévia ao lado.</p></div>';
+                '<p class="lcfg-ed-nota">A faixa usa o olho de maior grau, com faixa própria para grau negativo e positivo. A 1ª lente da célula é a indicada; as outras aparecem como opções. Armação que pede policarbonato segue a regra de sempre. O teste mostra o resultado na prévia ao lado.</p></div>';
             return h;
         }
         function _lcfgGMuda() { _lcfgAtualizaBarraEPrevia(); _lcfgGRepinta(true); }
@@ -8040,12 +8050,15 @@
             const v2 = v => v == null || v === '' ? '' : Number(v).toFixed(2);
             const inp = (k, v) => '<input type="number" step="0.25" value="' + v2(v) + '" aria-label="' + k + '" onchange="_lcfgGAtual(true).faixas[_lcfgGFx].' + k + '=+this.value;_lcfgGMuda()">';
             const inpN = (k, v) => '<input type="number" step="0.25" min="0" value="' + v2(v) + '" placeholder="—" aria-label="' + k + '" onchange="_lcfgGAtual(true).faixas[_lcfgGFx].' + k + '=(this.value===\'\'?null:Math.abs(+this.value));_lcfgGMuda()">';
-            _lcfgModal('lcfgFxModal', '<div class="hd"><h3>Faixa de grau</h3><p>Vale o maior grau entre os dois olhos (sem o sinal).</p></div>' +
+            const inpA = (k, v) => '<input type="number" step="0.25" value="' + v2(v) + '" aria-label="' + k + '" onchange="_lcfgGAtual(true).faixas[_lcfgGFx].' + k + '=Math.abs(+this.value);_lcfgGMuda()">';   // digita -4,75 ou 4,75: vale o módulo
+            if (!('pde' in f) && !('pate' in f)) { f.pde = f.de; f.pate = f.ate; }   // faixa antiga: positivo começa igual ao negativo (mesmo comportamento)
+            _lcfgModal('lcfgFxModal', '<div class="hd"><h3>Faixa de grau</h3><p>Vale o olho de maior grau. Se ele for negativo (miopia), usa a faixa negativa; se for positivo (hipermetropia), a positiva.</p></div>' +
                 '<div class="bd"><div class="lcfg-fx-grid">' +
-                    '<span class="l">Grau</span>' + inp('de', f.de) + '<span class="a">até</span>' + inp('ate', f.ate) +
+                    '<span class="l">Grau negativo</span>' + inpA('de', f.de) + '<span class="a">até</span>' + inpA('ate', f.ate) +
+                    '<span class="l">Grau positivo</span>' + inpN('pde', f.pde) + '<span class="a">até</span>' + inpN('pate', f.pate) +
                     '<span class="l">Cilíndrico</span><span class="fixo">0,00</span><span class="a">até</span>' + inp('cil', f.cil) +
                     (_lcfgGEhMulti() ? '<span class="l">Adição</span>' + inpN('addMin', f.addMin) + '<span class="a">até</span>' + inpN('addMax', f.addMax) : '') +
-                '</div>' + (_lcfgGEhMulti() ? '<p class="lcfg-fx-nota">Deixe a adição em branco para valer qualquer adição.</p>' : '') + '</div>' +
+                '</div><p class="lcfg-fx-nota">Digite os graus sem o sinal. Grau positivo em branco = esta faixa não atende grau positivo.' + (_lcfgGEhMulti() ? ' Adição em branco = qualquer adição.' : '') + '</p></div>' +
                 '<div class="ft"><button type="button" class="lcfg-link-btn perigo" onclick="_lcfgGAtual(true).faixas.splice(_lcfgGFx,1);_lcfgModalFecha(\'lcfgFxModal\');_lcfgGMuda()"><i class="ph-bold ph-trash"></i> Remover faixa</button><button type="button" class="lcfg-btn lcfg-btn-pri" onclick="_lcfgModalFecha(\'lcfgFxModal\')">Pronto</button></div>');
         }
         let _lcfgGPk = null;
@@ -9039,7 +9052,8 @@
                 if (!vis) erros.push('Deixe pelo menos um tratamento no fluxo (ou desligue a etapa Tratamento).');
             }
             Object.keys(c.indicacao || {}).forEach(tp => ((c.indicacao[tp] || {}).faixas || []).forEach(f => {
-                if (!(Number(f.ate) >= Number(f.de))) erros.push('Grade de indicação: a faixa ' + f.de + ' a ' + f.ate + ' está invertida.');
+                if (!(Number(f.ate) >= Number(f.de))) erros.push('Grade de indicação: a faixa negativa ' + f.de + ' a ' + f.ate + ' está invertida.');
+                if (f.pde != null && f.pate != null && !(Number(f.pate) >= Number(f.pde))) erros.push('Grade de indicação: a faixa positiva ' + f.pde + ' a ' + f.pate + ' está invertida.');
             }));
             (Array.isArray(c.etapas_extra) ? c.etapas_extra : []).forEach(x => {
                 if (x.ativo === false) return;
