@@ -26599,16 +26599,41 @@
         function _lentesEtapaRot(id) { const e = _lentesEtapaInfo(id); return e ? e.rot : (id || '—'); }
 
         // Etapa automática (pelos passos reais da jornada), ignorando a etapa manual do CRM.
+        // Até onde a pessoa chegou. Fluxo em modo lista (etapas da loja, ex.: Barch/Transitions) grava 'opcao'/'etapa_extra'
+        // em vez de 'visao': escolher uma opção já conta como "escolheu a lente" (20/10/2026).
+        function _lentesAvanco(p) {
+            const ordem = ['recomendou', 'receita_lida', 'receita_metodo', 'tratamento', 'visao', 'telefone', 'pediu_telefone', 'abriu'];
+            return ordem.find(id => p[id] || (id === 'visao' && (p.opcao || p.etapa_extra))) || 'abriu';
+        }
         function _lentesEtapaAuto(v) {
             if (v.venda) return 'comprou';
             const p = v.passos || {};
             if (p.so_armacao) return 'so_armacao';
-            if (p.sem_receita_whatsapp) return 'sem_receita_whatsapp';
+            if (p.sem_receita_whatsapp || p.whatsapp) return 'sem_receita_whatsapp';   // 'whatsapp' = botão flutuante do fluxo
             if (p.carrinho) return 'carrinho';
-            if (p.saiu) return 'saiu';
-            const ordem = ['recomendou', 'receita_lida', 'receita_metodo',
-                'tratamento', 'visao', 'telefone', 'pediu_telefone', 'abriu'];
-            return ordem.find(id => p[id]) || 'abriu';
+            const av = _lentesAvanco(p);
+            // Saiu: fica na etapa a que chegou (o card mostra que saiu). Só vai pra "Saiu" quem saiu antes de escolher a lente.
+            if (p.saiu && ['abriu', 'pediu_telefone', 'telefone'].indexOf(av) !== -1) return 'saiu';
+            return av;
+        }
+        const _LENTES_RANK = ['abriu', 'pediu_telefone', 'telefone', 'saiu', 'visao', 'tratamento', 'receita_metodo', 'receita_lida', 'recomendou', 'sem_receita_whatsapp', 'so_armacao', 'carrinho', 'comprou'];
+        // 1 card por cliente: junta as jornadas do mesmo WhatsApp e fica com a que foi mais longe (empate: a mais recente).
+        function _lentesJuntaPorTelefone(lista) {
+            const grupos = {};
+            lista.forEach(v => { const k = _lentesLeadKey(v) || v.sid; (grupos[k] = grupos[k] || []).push(v); });
+            return Object.keys(grupos).map(k => {
+                const g = grupos[k]; if (g.length === 1) return g[0];
+                const rk = v => _LENTES_RANK.indexOf(_lentesEtapaAuto(v));
+                const rep = g.slice().sort((a, b) => (rk(b) - rk(a)) || ((b.fim || 0) - (a.fim || 0)))[0];
+                const out = Object.assign({}, rep, { jornadas: g.length });
+                g.forEach(x => {
+                    out.inicio = Math.min(out.inicio, x.inicio); out.fim = Math.max(out.fim, x.fim);
+                    if (x.etapaCrm && (x.etapaCrmMs || 0) > (out.etapaCrmMs || 0)) { out.etapaCrm = x.etapaCrm; out.etapaCrmMs = x.etapaCrmMs; }   // vale a marcação manual mais recente
+                    ['nome', 'produtoUrl', 'arq', 'grau', 'obs', 'lente', 'produto'].forEach(f => { if (!out[f] && x[f]) out[f] = x[f]; });
+                    if (x.extras) out.extras = Object.assign({}, x.extras, out.extras || {});
+                });
+                return out;
+            }).sort((a, b) => b.inicio - a.inicio);
         }
         // Etapa atual no CRM: a manual (se a coluna ainda existe) vence a automática.
         // Coluna personalizada apagada → o lead volta pra etapa automática.
@@ -26664,10 +26689,8 @@
         }
 
         function _lentesCrmSessoesVisiveis(sessoes) {
-            const origem = String((activeUser && activeUser.origem) || '').toLowerCase();
-            // Koros e Maxilook: esconde do CRM de lentes quem está SEM WhatsApp (não dá pra acionar).
-            if (!origem.includes('korosoculos.com.br') && !origem.includes('oticamaxilook.com.br')) return sessoes;
-            return sessoes.filter(v => String(v.telefone || '').replace(/\D/g, '').length > 0);
+            // Todas as lojas (20/10/2026): o fluxo exige o WhatsApp pra avançar, então card sem número não existe; e 1 card por cliente.
+            return _lentesJuntaPorTelefone(sessoes.filter(v => String(v.telefone || '').replace(/\D/g, '').length > 0));
         }
 
         function _lentesUltimaEtapaAntesDeSair(v) {
@@ -26878,6 +26901,16 @@
                     if (item.obs) {
                         const obs = document.createElement('div'); obs.className = 'lentes-obs';
                         obs.textContent = '📝 ' + item.obs; card.appendChild(obs);
+                    }
+                    if (etapa.id !== 'saiu' && item.passos && item.passos.saiu && !item.passos.carrinho && !item.venda) {
+                        const sx = document.createElement('div'); sx.className = 'crm-card-meta';
+                        sx.appendChild(metaSpan('ph-sign-out', 'Saiu do fluxo nesta etapa'));
+                        card.appendChild(sx);
+                    }
+                    if (item.jornadas > 1) {
+                        const jx = document.createElement('div'); jx.className = 'crm-card-meta';
+                        jx.appendChild(metaSpan('ph-arrows-clockwise', 'Voltou ao fluxo ' + item.jornadas + ' vezes'));
+                        card.appendChild(jx);
                     }
                     if (etapa.id === 'saiu') {
                         const antes = _lentesUltimaEtapaAntesDeSair(item);
