@@ -9775,6 +9775,12 @@
             if (subEl) subEl.textContent = linhas.length.toLocaleString('pt-BR')
                 + (linhas.length === 1 ? ' cliente' : ' clientes') + ' no período';
             const _d = ms => new Date(ms).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+            // Nome do cliente: pedido ligado ao fluxo > nome dado no fluxo > nome que o CRM já conhece pelo telefone
+            const _nomeLz = x => {
+                const k = (typeof _lentesLeadKey === 'function') ? _lentesLeadKey(x) : '';
+                const n = (x.venda && x.venda.nome) || x.nome || (k && typeof crmLeadMapCache !== 'undefined' && crmLeadMapCache && crmLeadMapCache[k] && crmLeadMapCache[k].name) || '';
+                return (typeof masterMaskName === 'function') ? masterMaskName(String(n).trim()) : String(n).trim();
+            };
             const _brl = v => v ? v.toLocaleString(PL_LOC, { style: 'currency', currency: PL_CUR }) : '—';
             document.getElementById('lentesLista').innerHTML = linhas.length
                 ? '<div class="lentes-tab-wrap"><table class="lentes-tab"><thead><tr>'
@@ -9789,7 +9795,8 @@
                         : s.pediuWhats ? '<span class="lentes-tag">foi pro WhatsApp</span>'
                         : '<span class="lentes-tag no">parou no meio</span>';
                     return '<tr><td>' + _d(s.inicio) + '</td>'
-                        + '<td>' + (s.telefone ? _fmtTelBR(s.telefone) : '<span style="color:var(--text-muted)">sem telefone</span>') + '</td>'
+                        + '<td>' + (_nomeLz(s) ? '<b style="display:block;font-weight:600">' + _lesc(_nomeLz(s)) + '</b>' : '')
+                            + (s.telefone ? _fmtTelBR(s.telefone) : '<span style="color:var(--text-muted)">sem telefone</span>') + '</td>'
                         + '<td>' + (_lesc(s.produto) || '—') + '</td>'
                         + '<td>' + [(_LENTES_VISAO[s.visao] || ''), (_LENTES_TRAT[s.trat] || '')].filter(Boolean).join(' · ') + '</td>'
                         + '<td>' + rec + '</td>'
