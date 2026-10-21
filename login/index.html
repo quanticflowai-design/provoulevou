@@ -5010,6 +5010,9 @@
                     .lentes-ver { font-size:11px; padding:3px 10px; border-radius:999px; border:1px solid var(--border-color); background:transparent; color:var(--text-main); cursor:pointer; }
                     .lentes-ver:hover { background:var(--border-color); }
                     .lentes-ver:disabled { opacity:.5; cursor:default; }
+                    .lentes-ver.lentes-ver-lg { display:inline-flex; align-items:center; gap:8px; margin-top:4px; font-size:14px; font-weight:600; padding:9px 18px; border-radius:10px; border:1px solid var(--primary, #7c3aed); color:var(--primary, #7c3aed); }
+                    .lentes-ver.lentes-ver-lg i { font-size:17px; }
+                    .lentes-ver.lentes-ver-lg:hover { background:var(--primary, #7c3aed); color:#fff; }
                     .lentes-grau { white-space:nowrap; font-variant-numeric:tabular-nums; }
                     .lentes-olho { display:block; font-size:12px; line-height:1.5; }
                     .lentes-olho b { color:var(--text-muted); font-weight:600; margin-right:3px; }
@@ -25637,7 +25640,7 @@
                     + f('Visão', escapeHtml((_LENTES_VISAO[_lz.visao] || _lz.visao) || '—'))
                     + f('Tratamento', escapeHtml((_LENTES_TRAT[_lz.trat] || _lz.trat) || '—'))
                     + f('Receita', _lz.arq
-                        ? '<button type="button" class="lentes-ver" data-arq="' + escapeHtml(_lz.arq) + '" onclick="_lentesAbreReceita(this)"><i class="ph-bold ph-file-text"></i> Ver receita</button>'
+                        ? '<button type="button" class="lentes-ver lentes-ver-lg" data-arq="' + escapeHtml(_lz.arq) + '" onclick="_lentesAbreReceita(this)"><i class="ph-bold ph-file-text"></i> Ver receita</button>'
                         : '<span style="color:var(--text-muted);font-weight:500;">Não enviada</span>')
                     + f('Entrou no fluxo', escapeHtml(_clmFmtDT(new Date(_lz.inicio).toISOString())))
                     + (_lz.venda ? f('Pedido', escapeHtml('#' + (_lz.venda.numero || _lz.venda.id || '—') + ' · ' + _brl(_lz.venda.total || 0))) : '')) : '')
