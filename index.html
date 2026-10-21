@@ -2,6 +2,16 @@
 <html lang="pt-BR">
 
 <head>
+<script>
+/* Instalação do app Shopify (21/10/2026): a Shopify abre o app em provoulevou.com.br?shop&hmac&host&timestamp.
+   Manda pro n8n (shopify-install-start), que confere o HMAC e redireciona pra autorização; o code volta no shopify-oauth-callback.
+   Trava de 2 tentativas por sessão pra não entrar em laço. */
+(function(){try{var p=new URLSearchParams(location.search);
+ if(p.get('shop')&&p.get('hmac')&&!p.get('code')&&/\.myshopify\.com$/.test(p.get('shop'))){
+  var k='pl_shopify_install',n=+(sessionStorage.getItem(k)||0);
+  if(n<2){sessionStorage.setItem(k,n+1);location.replace('https://n8n.segredosdodrop.com/webhook/shopify-install-start'+location.search);}
+ }}catch(e){}})();
+</script>
   <script>
     // Inicio do OAuth da instalacao gerenciada da Shopify. O link oficial do
     // Dev Dashboard abre primeiro a App URL com shop/host/hmac; daqui seguimos
