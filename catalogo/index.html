@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=156">
+  <link rel="stylesheet" href="styles.css?v=157">
 </head>
 <body>
   <div id="app">
@@ -346,6 +346,7 @@
         <nav class="admin-menu" id="admin-menu" role="tablist" aria-label="Seções do painel">
           <button type="button" class="admin-menu-btn" data-aba="produtos" role="tab">Produtos</button>
           <button type="button" class="admin-menu-btn" data-aba="cadastrar" role="tab">Cadastrar</button>
+          <button type="button" class="admin-menu-btn" data-aba="plano" role="tab">Meu plano</button>
           <button type="button" class="admin-menu-btn" data-aba="aparencia" role="tab">Aparência</button>
           <button type="button" class="admin-menu-btn" data-aba="estoque" role="tab">Estoque</button>
           <button type="button" class="admin-menu-btn" data-aba="categorias" role="tab">Categorias</button>
@@ -544,6 +545,68 @@
         </div>
         </div>
 
+        <!-- Meu plano (22/10/2026): plano, uso do ciclo e compra de provas avulsas por PIX
+             (rpc pl_catalog_meu_plano + webhooks pl-avulsas-pix / pl-avulsas-pix-status). -->
+        <div class="admin-aba" data-aba="plano" role="tabpanel" hidden>
+        <div class="prov-card plano-card">
+          <div class="plano-topo">
+            <div>
+              <span class="plano-rot">Seu plano</span>
+              <h3 class="plano-nome" id="plano-nome">—</h3>
+              <span class="plano-valor" id="plano-valor"></span>
+            </div>
+            <span class="plano-status" id="plano-status"></span>
+          </div>
+          <div class="plano-uso">
+            <div class="plano-uso-num"><strong id="plano-usadas">0</strong> de <span id="plano-franquia">0</span> provas usadas</div>
+            <div class="plano-barra"><span id="plano-barra-fill"></span></div>
+            <div class="plano-uso-sub" id="plano-restam"></div>
+          </div>
+          <div class="plano-grade">
+            <div><span>Provas avulsas</span><strong id="plano-avulsas">0</strong></div>
+            <div><span>Último pagamento</span><strong id="plano-pago">—</strong></div>
+            <div><span>Próximo vencimento</span><strong id="plano-venc">—</strong></div>
+          </div>
+          <p class="prov-conta" id="plano-msg" role="status"></p>
+        </div>
+
+        <div class="prov-card" id="avulsa-card">
+          <div class="prov-head">
+            <span class="prov-ico" aria-hidden="true">⚡</span>
+            <div>
+              <h3 class="prov-tit">Comprar provas avulsas</h3>
+              <p class="prov-sub">Acabaram as provas do mês? Compre mais por PIX, sem mudar de plano. Entram na hora em que o pagamento é aprovado. Mínimo de 50.</p>
+            </div>
+          </div>
+          <div class="avulsa-opcoes" id="avulsa-opcoes">
+            <button type="button" class="avulsa-chip" data-q="50">50</button>
+            <button type="button" class="avulsa-chip" data-q="100">100</button>
+            <button type="button" class="avulsa-chip" data-q="200">200</button>
+            <button type="button" class="avulsa-chip" data-q="500">500</button>
+          </div>
+          <div class="prov-limite">
+            <div class="prov-stepper">
+              <button type="button" class="prov-step" id="avulsa-menos" aria-label="Diminuir">−</button>
+              <input type="number" id="avulsa-qtd" min="50" step="10" value="50" inputmode="numeric" aria-label="Quantidade de provas">
+              <button type="button" class="prov-step" id="avulsa-mais" aria-label="Aumentar">+</button>
+            </div>
+            <span class="prov-unid">provas</span>
+          </div>
+          <div class="avulsa-total"><span id="avulsa-preco"></span><strong id="avulsa-valor">—</strong></div>
+          <div class="prov-acoes">
+            <span class="prov-conta" id="avulsa-msg" role="status"></span>
+            <button class="btn-primary" id="btn-avulsa-pix" type="button">Gerar PIX</button>
+          </div>
+          <div class="avulsa-pix" id="avulsa-pix" hidden>
+            <img id="avulsa-qr" alt="QR Code do PIX">
+            <label class="prov-label" for="avulsa-copia">PIX copia e cola</label>
+            <textarea id="avulsa-copia" class="prov-input" rows="3" readonly></textarea>
+            <button class="btn-primary" id="btn-avulsa-copiar" type="button">Copiar código</button>
+            <p class="avulsa-espera" id="avulsa-espera">Aguardando o pagamento… esta tela atualiza sozinha.</p>
+          </div>
+        </div>
+        </div>
+
         <div class="admin-aba" data-aba="conta" role="tabpanel" hidden>
         <div class="prov-card">
           <div class="prov-head">
@@ -669,6 +732,6 @@
   <div id="toast"></div>
 
   <script src="lentes.js?v=152"></script>
-  <script src="app.js?v=175"></script>
+  <script src="app.js?v=176"></script>
 </body>
 </html>
