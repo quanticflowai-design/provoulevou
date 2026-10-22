@@ -2101,17 +2101,17 @@
 
     .solutions-grid {
       display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 14px;
       text-align: left;
-      max-width: 1500px;
+      max-width: 1240px;
       margin: 0 auto;
     }
 
     @media (max-width: 1280px) {
       .solutions-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        max-width: 900px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        max-width: 1040px;
       }
     }
 
@@ -2250,33 +2250,8 @@
       flex: 1;
     }
 
-    .sol-card-custom {
-      grid-column: 1 / -1;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      grid-template-areas:
-        "label label"
-        "title price"
-        "title limit"
-        "features button";
-      column-gap: 32px;
-      align-items: center;
-      padding: 32px 40px;
-    }
-    .sol-card-custom .sol-card-label { grid-area: label; margin-bottom: 12px; }
-    .sol-card-custom .sol-card-title-wrap { grid-area: title; min-height: 0; margin-bottom: 18px; }
-    .sol-card-custom .sol-card-title,
-    .sol-card-custom .sol-card-subtitle { font-size: clamp(1.65rem, 2.5vw, 2.2rem); }
-    .sol-card-custom .sol-card-price { grid-area: price; font-size: 1.7rem; margin-bottom: 0; }
-    .sol-card-custom .sol-card-limit { grid-area: limit; margin-bottom: 0; }
-    .sol-card-custom .sol-card-btn { grid-area: button; margin-bottom: 0; }
-    .sol-card-custom .sol-card-divider { display: none; }
-    .sol-card-custom .sol-card-features {
-      grid-area: features;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px 24px;
-    }
+    /* 22/10/2026: 7 planos + Custom = 2 linhas de 4 — o Custom virou um card igual aos outros (8º espaço). */
+    .sol-card-custom .sol-card-price { font-size: 1.7rem; line-height: 1.15; }
 
     @media (min-width: 1281px) {
       .solutions-grid > .sol-card:not(.sol-card-custom),
@@ -3464,8 +3439,8 @@
       }
 
       .solutions-grid {
-        grid-template-columns: repeat(3, 1fr);
-        max-width: 900px
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 620px
       }
 
       .met-row {
@@ -5889,107 +5864,125 @@
             <div class="sol-card-title">Começando agora?</div>
             <div class="sol-card-subtitle">Provador Virtual com IA.</div>
           </div>
-          <div class="sol-card-price">R$97<small>/mês</small></div>
+          <div class="sol-card-price">R$39<small>/mês</small></div>
           <div class="sol-card-limit">50 fotos/mês</div>
           <a href="https://wa.me/5511938034714?text=Ol&aacute;! Tenho interesse no Provador Virtual." class="sol-card-btn"
-            target="_blank" data-fb-event="Contact" data-fb-label="Plano Essencial" data-fb-value="97">Implementar Agora</a>
+            target="_blank" data-fb-event="Contact" data-fb-label="Plano Essencial" data-fb-value="39">Implementar Agora</a>
           <div class="sol-card-divider"></div>
           <ul class="sol-card-features">
             <li>Provador Virtual com IA</li>
             <li>Painel do Lojista (ROI)</li>
             <li>Captura de Leads</li>
-            <li>Suporte por e-mail</li>
+            <li>CRM incluso</li>
           </ul>
         </div>
         <div class="sol-card rv d1">
           <div class="sol-card-label">Crescimento</div>
           <div class="sol-card-title-wrap">
             <div class="sol-card-title">Hora de crescer?</div>
-            <div class="sol-card-subtitle">Mais volume e suporte.</div>
+            <div class="sol-card-subtitle">O dobro de volume.</div>
           </div>
-          <div class="sol-card-price">R$147<small>/mês</small></div>
+          <div class="sol-card-price">R$79<small>/mês</small></div>
           <div class="sol-card-limit">100 fotos/mês</div>
           <a href="https://wa.me/5511938034714?text=Ol&aacute;! Tenho interesse no Provador Virtual." class="sol-card-btn"
-            target="_blank" data-fb-event="Contact" data-fb-label="Plano Crescimento" data-fb-value="147">Implementar Agora</a>
+            target="_blank" data-fb-event="Contact" data-fb-label="Plano Crescimento" data-fb-value="79">Implementar Agora</a>
           <div class="sol-card-divider"></div>
           <ul class="sol-card-features">
             <li>Tudo do Essencial</li>
-            <li>Suporte prioritário</li>
             <li>Dobro de volume mensal</li>
             <li>Painel do Lojista (ROI)</li>
+            <li>Suporte prioritário</li>
           </ul>
         </div>
         <div class="sol-card rv d2">
-          <div class="sol-card-label">Acelerador</div>
+          <div class="sol-card-label">Profissional</div>
           <div class="sol-card-title-wrap">
-            <div class="sol-card-title">Pronto pra escalar?</div>
-            <div class="sol-card-subtitle">Volume médio com economia.</div>
+            <div class="sol-card-title">Loja ganhando tração?</div>
+            <div class="sol-card-subtitle">Mais volume com economia.</div>
           </div>
-          <div class="sol-card-price">R$347<small>/mês</small></div>
-          <div class="sol-card-limit">300 fotos/mês</div>
+          <div class="sol-card-price">R$159<small>/mês</small></div>
+          <div class="sol-card-limit">200 fotos/mês</div>
           <a href="https://wa.me/5511938034714?text=Ol&aacute;! Tenho interesse no Provador Virtual." class="sol-card-btn"
-            target="_blank" data-fb-event="Contact" data-fb-label="Plano Acelerador" data-fb-value="347">Implementar Agora</a>
+            target="_blank" data-fb-event="Contact" data-fb-label="Plano Profissional" data-fb-value="159">Implementar Agora</a>
           <div class="sol-card-divider"></div>
           <ul class="sol-card-features">
             <li>Tudo do Crescimento</li>
-            <li>3x mais volume mensal</li>
-            <li>Suporte prioritário</li>
+            <li>2x mais volume mensal</li>
             <li>Painel do Lojista completo</li>
+            <li>Suporte prioritário</li>
           </ul>
         </div>
         <div class="sol-enterprise-wrap rv d3">
           <span class="sol-enterprise-tag">Mais Vendido</span>
           <div class="sol-card sol-enterprise">
             <div class="sol-enterprise-bg"></div>
-            <div class="sol-card-label">Performance</div>
-            <div class="sol-card-title-wrap">
-              <div class="sol-card-title">Pronto para escalar?</div>
-              <div class="sol-card-subtitle">Escale suas vendas.</div>
-            </div>
-            <div class="sol-card-price">R$547<small>/mês</small></div>
-            <div class="sol-card-limit">500 fotos/mês</div>
-            <a href="https://wa.me/5511938034714?text=Ol&aacute;! Tenho interesse no Provador Virtual." class="sol-card-btn"
-              target="_blank" data-fb-event="Contact" data-fb-label="Plano Performance" data-fb-value="547">Implementar Agora</a>
-            <div class="sol-card-divider"></div>
-            <ul class="sol-card-features">
-              <li>Tudo do Crescimento</li>
-              <li>Painel do Lojista completo</li>
-              <li>Captura de Leads Premium</li>
-              <li>Suporte prioritário</li>
-            </ul>
+          <div class="sol-card-label">Escala</div>
+          <div class="sol-card-title-wrap">
+            <div class="sol-card-title">Pronto para escalar?</div>
+            <div class="sol-card-subtitle">Escale suas vendas.</div>
+          </div>
+          <div class="sol-card-price">R$369<small>/mês</small></div>
+          <div class="sol-card-limit">500 fotos/mês</div>
+          <a href="https://wa.me/5511938034714?text=Ol&aacute;! Tenho interesse no Provador Virtual." class="sol-card-btn"
+            target="_blank" data-fb-event="Contact" data-fb-label="Plano Escala" data-fb-value="369">Implementar Agora</a>
+          <div class="sol-card-divider"></div>
+          <ul class="sol-card-features">
+            <li>Tudo do Profissional</li>
+            <li>Painel do Lojista completo</li>
+            <li>Captura de Leads Premium</li>
+            <li>Suporte prioritário</li>
+          </ul>
           </div>
         </div>
         <div class="sol-card rv d4">
-          <div class="sol-card-label">Expansão</div>
+          <div class="sol-card-label">Volume 1.000</div>
           <div class="sol-card-title-wrap">
-            <div class="sol-card-title">Mais espaço para crescer?</div>
-            <div class="sol-card-subtitle">800 provas por mês.</div>
+            <div class="sol-card-title">Tráfego alto?</div>
+            <div class="sol-card-subtitle">1.000 provas por mês.</div>
           </div>
-          <div class="sol-card-price">R$749<small>/mês</small></div>
-          <div class="sol-card-limit">800 fotos/mês</div>
-          <a href="https://wa.me/5511938034714?text=Ol%C3%A1%2C%20quero%20o%20plano%20Expans%C3%A3o." class="sol-card-btn"
-            target="_blank" data-fb-event="Contact" data-fb-label="Plano Expansão" data-fb-value="749">Implementar Agora</a>
+          <div class="sol-card-price">R$699<small>/mês</small></div>
+          <div class="sol-card-limit">1.000 fotos/mês</div>
+          <a href="https://wa.me/5511938034714?text=Ol&aacute;! Tenho interesse no Provador Virtual." class="sol-card-btn"
+            target="_blank" data-fb-event="Contact" data-fb-label="Plano Volume 1.000" data-fb-value="699">Implementar Agora</a>
           <div class="sol-card-divider"></div>
           <ul class="sol-card-features">
-            <li>Tudo do Performance</li>
-            <li>300 fotos a mais por mês</li>
+            <li>Tudo do Escala</li>
+            <li>Menor custo por foto</li>
             <li>Painel do Lojista completo</li>
             <li>Suporte prioritário</li>
           </ul>
         </div>
-        <div class="sol-card rv d4">
-          <div class="sol-card-label">Escala</div>
+        <div class="sol-card rv d5">
+          <div class="sol-card-label">Volume 1.500</div>
+          <div class="sol-card-title-wrap">
+            <div class="sol-card-title">Mais espaço para crescer?</div>
+            <div class="sol-card-subtitle">1.500 provas por mês.</div>
+          </div>
+          <div class="sol-card-price">R$959<small>/mês</small></div>
+          <div class="sol-card-limit">1.500 fotos/mês</div>
+          <a href="https://wa.me/5511938034714?text=Ol&aacute;! Tenho interesse no Provador Virtual." class="sol-card-btn"
+            target="_blank" data-fb-event="Contact" data-fb-label="Plano Volume 1.500" data-fb-value="959">Implementar Agora</a>
+          <div class="sol-card-divider"></div>
+          <ul class="sol-card-features">
+            <li>Tudo do Volume 1.000</li>
+            <li>500 fotos a mais por mês</li>
+            <li>Painel do Lojista VIP</li>
+            <li>Suporte dedicado</li>
+          </ul>
+        </div>
+        <div class="sol-card rv d5">
+          <div class="sol-card-label">Volume 2.500</div>
           <div class="sol-card-title-wrap">
             <div class="sol-card-title">Volume máximo?</div>
             <div class="sol-card-subtitle">Para lojas de alto tráfego.</div>
           </div>
-          <div class="sol-card-price">R$997<small>/mês</small></div>
-          <div class="sol-card-limit">1.200 fotos/mês</div>
+          <div class="sol-card-price">R$1.499<small>/mês</small></div>
+          <div class="sol-card-limit">2.500 fotos/mês</div>
           <a href="https://wa.me/5511938034714?text=Ol&aacute;! Tenho interesse no Provador Virtual." class="sol-card-btn"
-            target="_blank" data-fb-event="Contact" data-fb-label="Plano Escala" data-fb-value="997">Implementar Agora</a>
+            target="_blank" data-fb-event="Contact" data-fb-label="Plano Volume 2.500" data-fb-value="1499">Implementar Agora</a>
           <div class="sol-card-divider"></div>
           <ul class="sol-card-features">
-            <li>Tudo do Expansão</li>
+            <li>Tudo do Volume 1.500</li>
             <li>Fotos ilimitadas por produto</li>
             <li>Painel do Lojista VIP</li>
             <li>Suporte dedicado</li>
@@ -6007,7 +6000,7 @@
             target="_blank" data-fb-event="Contact" data-fb-label="Plano Custom">Falar com especialista</a>
           <div class="sol-card-divider"></div>
           <ul class="sol-card-features">
-            <li>Tudo do Escala</li>
+            <li>Acima de 2.500 fotos/mês</li>
             <li>Volume de fotos customizado</li>
             <li>SLA dedicado</li>
             <li>Integração personalizada</li>
@@ -6019,7 +6012,7 @@
         <div class="calc-card">
           <div class="calc-label">Calcule seu plano ideal</div>
           <div class="calc-value" id="calc-subs">50 fotos/mês</div>
-          <input type="range" min="0" max="6" step="1" value="0" class="calc-slider" id="calc-range">
+          <input type="range" min="0" max="7" step="1" value="0" class="calc-slider" id="calc-range">
           <div class="calc-bottom">
             <span>Precisa de mais volume?</span>
             <a href="https://wa.me/5511938034714?text=Ol&aacute;! Tenho interesse no Provador Virtual." target="_blank" data-fb-event="Contact" data-fb-label="Calculadora - Plano Personalizado">Fale
@@ -6029,7 +6022,7 @@
         <div class="calc-card calc-card-alt">
           <div class="calc-label">Seu plano</div>
           <div class="calc-plan-name" id="calc-plan-name">ESSENCIAL</div>
-          <div class="calc-price" id="calc-price">R$97<small>/mês</small></div>
+          <div class="calc-price" id="calc-price">R$39<small>/mês</small></div>
           <p class="calc-desc" id="calc-desc">Provador Virtual com IA, Painel do Lojista com ROI e Captura de Leads.
             Ideal para quem está começando.</p>
           <a href="https://wa.me/5511938034714?text=Ol&aacute;! Tenho interesse no Provador Virtual." class="calc-cta" id="calc-cta"
@@ -6343,13 +6336,14 @@
 
     // Pricing Calculator — PRESERVED EXACTLY
     const calcPlans = [
-      { name: 'ESSENCIAL', photos: '50 fotos/mês', price: 'R$97', desc: 'Provador Virtual com IA, Painel do Lojista com ROI e Captura de Leads. Ideal para quem está começando.', wa: 'Olá, quero o plano Essencial.' },
-      { name: 'CRESCIMENTO', photos: '100 fotos/mês', price: 'R$147', desc: 'Tudo do Essencial com suporte prioritário e o dobro de volume. Perfeito para lojas em crescimento que precisam de mais capacidade.', wa: 'Olá, quero o plano Crescimento.' },
-      { name: 'ACELERADOR', photos: '300 fotos/mês', price: 'R$347', desc: 'Tudo do Crescimento com 3x mais volume mensal e painel completo. Ideal para lojas que estouram o Crescimento mas ainda não chegaram em 500+ fotos.', wa: 'Olá, quero o plano Acelerador.' },
-      { name: 'PERFORMANCE', photos: '500 fotos/mês', price: 'R$547', desc: 'Painel completo e Captura de Leads Premium. O plano mais vendido para quem quer escalar de verdade.', wa: 'Olá, quero o plano Performance.' },
-      { name: 'EXPANSÃO', photos: '800 fotos/mês', price: 'R$749', desc: 'Tudo do Performance com 300 fotos a mais por mês. Para lojas que já precisam de mais volume, mas ainda não chegaram ao Escala.', wa: 'Olá, quero o plano Expansão.' },
-      { name: 'ESCALA', photos: '1.200 fotos/mês', price: 'R$997', desc: 'Volume máximo com fotos ilimitadas por produto e Painel VIP. Para lojas com alto tráfego que exigem performance total.', wa: 'Olá, quero o plano Escala.' },
-      { name: 'CUSTOM', photos: 'Volume personalizado', price: 'Entre em contato', desc: 'Volume e recursos totalmente sob medida. SLA dedicado, integração personalizada e gerente de conta exclusivo.', wa: 'Olá, quero um plano personalizado.' },
+      { name: 'ESSENCIAL', photos: '50 fotos/mês', price: 'R$39', desc: 'Provador Virtual com IA, Painel do Lojista com ROI, Captura de Leads e CRM. Ideal para quem está começando.', wa: 'Olá, quero o plano Essencial.' },
+      { name: 'CRESCIMENTO', photos: '100 fotos/mês', price: 'R$79', desc: 'Tudo do Essencial com o dobro de volume e suporte prioritário. Para lojas que já estão crescendo.', wa: 'Olá, quero o plano Crescimento.' },
+      { name: 'PROFISSIONAL', photos: '200 fotos/mês', price: 'R$159', desc: 'Tudo do Crescimento com 200 fotos por mês e painel completo. Para lojas ganhando tração.', wa: 'Olá, quero o plano Profissional.' },
+      { name: 'ESCALA', photos: '500 fotos/mês', price: 'R$369', desc: 'Painel completo e Captura de Leads Premium. O plano mais vendido para quem quer escalar de verdade.', wa: 'Olá, quero o plano Escala.' },
+      { name: 'VOLUME 1.000', photos: '1.000 fotos/mês', price: 'R$699', desc: '1.000 fotos por mês com menor custo por foto. Para lojas de tráfego alto.', wa: 'Olá, quero o plano Volume 1.000.' },
+      { name: 'VOLUME 1.500', photos: '1.500 fotos/mês', price: 'R$959', desc: '1.500 fotos por mês, Painel VIP e suporte dedicado.', wa: 'Olá, quero o plano Volume 1.500.' },
+      { name: 'VOLUME 2.500', photos: '2.500 fotos/mês', price: 'R$1.499', desc: 'Volume máximo com fotos ilimitadas por produto e Painel VIP. Para lojas com alto tráfego que exigem performance total.', wa: 'Olá, quero o plano Volume 2.500.' },
+      { name: 'CUSTOM', photos: 'Acima de 2.500 fotos/mês', price: 'Entre em contato', desc: 'Volume e recursos totalmente sob medida. SLA dedicado, integração personalizada e gerente de conta exclusivo.', wa: 'Olá, quero um plano personalizado.' },
     ];
     const calcRange = document.getElementById('calc-range');
     const calcSubs = document.getElementById('calc-subs');
@@ -6372,7 +6366,7 @@
       calcDesc.textContent = p.desc;
       calcCta.href = 'https://wa.me/5511938034714?text=' + encodeURIComponent('Olá! Tenho interesse no Provador Virtual.');
       calcCta.textContent = p.name === 'CUSTOM' ? 'Falar com especialista' : 'Implementar Agora';
-      const pct = (i / 4) * 100;
+      const pct = (i / (calcPlans.length - 1)) * 100;
       calcRange.style.background = 'linear-gradient(to right, #7c3aed 0%, #a78bfa ' + pct + '%, rgba(255,255,255,0.08) ' + pct + '%, rgba(255,255,255,0.08) 100%)';
     }
     calcRange.addEventListener('input', updateCalc);
