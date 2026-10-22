@@ -2596,6 +2596,7 @@
     });
     atualizaVaziosAbas();
     if (nome === 'bloqueios' && storeRow && sessao) { bloqueios('listar').catch(() => {}); limiteCatalogo().catch(() => {}); }
+    if (nome === 'plano' && storeRow && sessao) meuPlano().catch(() => {});
     try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
   }
   function atualizaVaziosAbas() {
@@ -2634,6 +2635,117 @@
       } catch (e) { diz('Sem conexão. Tente de novo.', true); }
       finally { btn.disabled = false; }
     });
+  }
+  // ─────────── Aba Meu plano: plano + provas avulsas por PIX (22/10/2026) ───────────
+  // O plano vem da rpc pl_catalog_meu_plano (só o dono). A compra usa o mesmo fluxo
+  // de avulsas da dash (n8n ZHsrPGMFvxbemVkT), que confere o token e o preço no servidor.
+  const AVULSA_URL = 'https://n8n.segredosdodrop.com/webhook/pl-avulsas-pix';
+  let planoInfo = null, avulsaTimer = null;
+  const brlP = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const dataBr = d => { if (!d) return '—'; const x = new Date(String(d).slice(0, 10) + 'T12:00:00'); return isNaN(x) ? '—' : x.toLocaleDateString('pt-BR'); };
+  async function meuPlano() {
+    const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_meu_plano', {
+      method: 'POST', headers: { apikey: SB_ANON, Authorization: 'Bearer ' + (sessao && sessao.token), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_slug: storeRow.slug })
+    });
+    const d = await r.json().catch(() => ({}));
+    const msg = $('#plano-msg');
+    if (!r.ok || !d || !d.ok) { if (msg) msg.textContent = 'Não consegui carregar o seu plano agora. Tente de novo em instantes.'; return; }
+    if (msg) msg.textContent = '';
+    planoInfo = d;
+    // o preço por prova vem da simulação do próprio fluxo de cobrança (mesma regra do PIX)
+    try {
+      const rs = await fetch(AVULSA_URL, { method: 'POST', headers: { Authorization: 'Bearer ' + (sessao && sessao.token), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantidade: 50, store_id: d.store_id, simular: true }) });
+      const s = await rs.json().catch(() => ({}));
+      if (s && s.ok) { d.preco_prova = s.preco_prova; if (d.provas == null) d.provas = s.provas_plano; if (d.valor == null) d.valor = s.valor_plano; }
+    } catch (e) {}
+    const prov = Number(d.provas || 0), usadas = Number(d.usadas || 0), avul = Number(d.avulsas || 0);
+    const total = prov + avul, resta = Math.max(0, total - usadas);
+    const set = (id, t) => { const el = $(id); if (el) el.textContent = t; };
+    set('#plano-nome', d.plano || 'Plano');
+    set('#plano-valor', Number(d.valor) > 0 ? brlP(d.valor) + ' por mês' : '');
+    set('#plano-usadas', usadas.toLocaleString('pt-BR'));
+    set('#plano-franquia', total.toLocaleString('pt-BR'));
+    set('#plano-restam', usadas >= total && total > 0 ? 'Suas provas acabaram — compre avulsas abaixo para o provador continuar.' : 'Restam ' + resta.toLocaleString('pt-BR') + ' provas neste ciclo.');
+    set('#plano-avulsas', avul.toLocaleString('pt-BR'));
+    set('#plano-pago', dataBr(d.ultimo_pagamento));
+    set('#plano-venc', dataBr(d.vencimento));
+    const st = $('#plano-status');
+    if (st) {
+      const venc = d.vencimento && new Date(String(d.vencimento).slice(0, 10) + 'T23:59:59') < new Date();
+      st.textContent = venc ? 'Vencido' : (d.status || 'Ativo');
+      st.classList.toggle('alerta', !!venc);
+    }
+    const fill = $('#plano-barra-fill');
+    if (fill) { const pct = total > 0 ? Math.min(100, usadas / total * 100) : 0; fill.style.width = pct + '%'; fill.classList.toggle('cheio', pct >= 90); }
+    avulsaPreco();
+  }
+  function avulsaQtd() { const el = $('#avulsa-qtd'); return Math.max(50, Math.round(Number(el && el.value) || 50)); }
+  function avulsaPreco() {
+    const q = avulsaQtd(), p = planoInfo && Number(planoInfo.preco_prova);
+    const pr = $('#avulsa-preco'), vl = $('#avulsa-valor');
+    if (pr) pr.textContent = p ? q + ' provas × ' + brlP(p) + ' = ' : '';
+    if (vl) vl.textContent = p ? brlP(Math.round(q * p * 100) / 100) : '—';
+    $$('.avulsa-chip').forEach(c => c.classList.toggle('ativo', Number(c.dataset.q) === q));
+  }
+  {
+    const inp = $('#avulsa-qtd');
+    const muda = v => { if (inp) { inp.value = Math.max(50, v); avulsaPreco(); } };
+    $$('.avulsa-chip').forEach(c => c.addEventListener('click', () => muda(Number(c.dataset.q))));
+    const m = $('#avulsa-menos'), p = $('#avulsa-mais');
+    if (m) m.addEventListener('click', () => muda(avulsaQtd() - 10));
+    if (p) p.addEventListener('click', () => muda(avulsaQtd() + 10));
+    if (inp) { inp.addEventListener('input', avulsaPreco); inp.addEventListener('change', () => muda(avulsaQtd())); }
+    const cp = $('#btn-avulsa-copiar');
+    if (cp) cp.addEventListener('click', async () => {
+      const t = ($('#avulsa-copia') || {}).value || '';
+      try { await navigator.clipboard.writeText(t); } catch (e) { const ta = $('#avulsa-copia'); if (ta) { ta.select(); try { document.execCommand('copy'); } catch (_) {} } }
+      toast('Código PIX copiado ✓');
+    });
+    const btn = $('#btn-avulsa-pix'), msg = $('#avulsa-msg');
+    const diz = (t, erro) => { if (msg) { msg.textContent = t; msg.style.color = erro ? '#c0392b' : ''; } };
+    if (btn) btn.addEventListener('click', async () => {
+      if (!planoInfo || !planoInfo.store_id) { diz('Abra de novo a aba Meu plano.', true); return; }
+      const q = avulsaQtd();
+      btn.disabled = true; diz('Gerando o PIX…');
+      try {
+        const r = await fetch(AVULSA_URL, {
+          method: 'POST', headers: { Authorization: 'Bearer ' + (sessao && sessao.token), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quantidade: q, store_id: planoInfo.store_id })
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || !d.ok || !d.qr_code) { diz((d && (d.erro || d.error || d.message)) || 'Não consegui gerar o PIX. Tente de novo.', true); return; }
+        diz('PIX de ' + brlP(d.valor_cobrado) + ' para ' + q + ' provas.');
+        const box = $('#avulsa-pix'), img = $('#avulsa-qr'), ta = $('#avulsa-copia'), esp = $('#avulsa-espera');
+        if (img) { img.hidden = !d.qr_code_base64; if (d.qr_code_base64) img.src = 'data:image/png;base64,' + d.qr_code_base64; }
+        if (ta) ta.value = d.qr_code;
+        if (esp) { esp.textContent = 'Aguardando o pagamento… esta tela atualiza sozinha.'; esp.classList.remove('ok'); }
+        if (box) box.hidden = false;
+        avulsaAcompanha(d.payment_id);
+      } catch (e) { diz('Sem conexão. Tente de novo.', true); }
+      finally { btn.disabled = false; }
+    });
+  }
+  function avulsaAcompanha(pid) {
+    clearInterval(avulsaTimer);
+    const ini = Date.now();
+    avulsaTimer = setInterval(async () => {
+      if (Date.now() - ini > 30 * 60 * 1000) { clearInterval(avulsaTimer); return; }
+      try {
+        const r = await fetch(AVULSA_URL + '-status?payment_id=' + encodeURIComponent(pid), { headers: { Authorization: 'Bearer ' + (sessao && sessao.token) } });
+        const d = await r.json().catch(() => ({}));
+        if (d.status === 'approved' && d.aplicado) {
+          clearInterval(avulsaTimer);
+          const esp = $('#avulsa-espera'); if (esp) { esp.textContent = 'Pagamento aprovado ✓ As provas já estão na sua conta.'; esp.classList.add('ok'); }
+          toast('Provas avulsas adicionadas ✓');
+          meuPlano().catch(() => {});
+        } else if (d.status === 'rejected' || d.status === 'cancelled') {
+          clearInterval(avulsaTimer);
+          const esp = $('#avulsa-espera'); if (esp) esp.textContent = 'Este PIX expirou ou foi cancelado. Gere um novo.';
+        }
+      } catch (e) {}
+    }, 5000);
   }
   $$('.admin-menu-btn').forEach(b => b.addEventListener('click', () => mostraAba(b.dataset.aba)));
   {
