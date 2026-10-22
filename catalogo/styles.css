@@ -999,3 +999,34 @@ html.logo-cheio #btn-admin { position: absolute; top: 12px; right: 12px; transfo
   background: var(--card, #fff); color: inherit; border: 1.5px solid var(--line, #ddd); transition: .15s; }
 .tipo-chip:hover { border-color: var(--brand); }
 .tipo-chip.sel { background: var(--brand); border-color: var(--brand); color: var(--brand-on, #fff); }
+
+/* ─── Meu plano (22/10/2026) ─── */
+.plano-card { padding: 20px; }
+.plano-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.plano-rot { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.plano-nome { margin: 2px 0 2px; font-size: 20px; font-weight: 800; line-height: 1.2; }
+.plano-valor { font-size: 13px; color: var(--muted); }
+.plano-status { flex-shrink: 0; padding: 4px 10px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); font-size: 12px; font-weight: 700; }
+.plano-status.alerta { background: rgba(192,57,43,.12); color: #c0392b; }
+.plano-uso { margin: 18px 0 14px; }
+.plano-uso-num { font-size: 14px; margin-bottom: 8px; }
+.plano-uso-num strong { font-size: 22px; font-weight: 800; }
+.plano-barra { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.plano-barra span { display: block; height: 100%; width: 0; background: var(--brand); border-radius: inherit; transition: width .4s ease; }
+.plano-barra span.cheio { background: #c0392b; }
+.plano-uso-sub { margin-top: 6px; font-size: 12.5px; color: var(--muted); }
+.plano-grade { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.plano-grade div { padding: 10px; border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+.plano-grade span { display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 2px; }
+.plano-grade strong { font-size: 14px; }
+@media (max-width: 480px) { .plano-grade { grid-template-columns: 1fr 1fr; } .plano-grade div:last-child { grid-column: 1 / -1; } }
+.avulsa-opcoes { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+.avulsa-chip { padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: inherit; font: inherit; font-weight: 700; cursor: pointer; }
+.avulsa-chip.ativo { border-color: var(--brand); background: var(--brand-soft); color: var(--brand); }
+.avulsa-total { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; margin: 6px 0 2px; font-size: 13px; color: var(--muted); }
+.avulsa-total strong { font-size: 20px; color: var(--ink); }
+.avulsa-pix { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); text-align: center; }
+.avulsa-pix img { width: 200px; height: 200px; max-width: 100%; background: #fff; padding: 8px; border-radius: 10px; }
+.avulsa-pix .prov-label { text-align: left; }
+.avulsa-espera { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+.avulsa-espera.ok { color: #16a34a; font-weight: 700; }
