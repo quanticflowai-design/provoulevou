@@ -1010,10 +1010,43 @@
     return ordenadas;
   }
 
+  // Catálogo de exemplo (22/10/2026, Lucas): o visitante escolhe o que quer provar — óculos, roupa ou boné.
+  // Cada tipo vai pro gerador certo (categoriaDe). Só aparece nas lojas listadas aqui.
+  const LOJAS_TIPOS = new Set(['provoulevou']);
+  const TIPOS = [['oculos', 'Óculos'], ['roupa', 'Roupa'], ['bone', 'Boné']];
+  let tipoFiltro = 'oculos';
+  try { const _t = new URLSearchParams(location.search).get('tipo'); if (TIPOS.some(x => x[0] === _t)) tipoFiltro = _t; } catch (e) {}
+  const usaTipos = () => LOJAS_TIPOS.has(STORE_SLUG);
+  const doTipo = p => !usaTipos() || categoriaDe(p) === tipoFiltro;
+  function renderTipos() {
+    const box = $('#cat-filtros');
+    if (!box) return;
+    let bar = $('#tipo-filtros');
+    if (!usaTipos()) { if (bar) bar.remove(); return; }
+    if (!bar) {
+      bar = document.createElement('div'); bar.id = 'tipo-filtros'; bar.className = 'tipo-filtros';
+      box.parentNode.insertBefore(bar, box);
+    }
+    bar.textContent = '';
+    const tit = document.createElement('div'); tit.className = 'tipo-tit'; tit.textContent = 'O que você quer provar?';
+    const linha = document.createElement('div'); linha.className = 'tipo-linha';
+    TIPOS.forEach(([k, rot]) => {
+      if (!catalog.some(p => categoriaDe(p) === k)) return;
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'tipo-chip' + (k === tipoFiltro ? ' sel' : ''); b.textContent = rot;
+      b.addEventListener('click', () => { tipoFiltro = k; catFiltro = ''; renderCatalog(); });
+      linha.appendChild(b);
+    });
+    bar.appendChild(tit); bar.appendChild(linha);
+  }
+
   function renderFiltros() {
     const box = $('#cat-filtros');
     if (!box) return;
-    const cats = categoriasDaLoja();
+    renderTipos();
+    const cats = usaTipos()
+      ? categoriasDaLoja().filter(c => catalog.some(p => doTipo(p) && produtoTemCategoria(p, c)))
+      : categoriasDaLoja();
     // uma categoria só não é filtro: não há o que separar
     if (cats.length < 2) { box.hidden = true; box.textContent = ''; return; }
     if (cats.indexOf(catFiltro) === -1) catFiltro = '';
@@ -1045,6 +1078,7 @@
     // 7 de 10 produtos dos dois links.
     if (slugFixa && !catalog.some(p => p.unit && slugUnidade(p.unit) === slugFixa)) slugFixa = null;
     const visiveis = catalog.filter(p =>
+      doTipo(p) &&
       (!catFiltro || produtoTemCategoria(p, catFiltro)) &&
       (!termo || textoBusca(p.name).includes(termo)) &&
       (!slugFixa || !p.unit || slugUnidade(p.unit) === slugFixa)
@@ -1888,8 +1922,12 @@
   // óculos e a exceção é declarada. Quando entrar uma loja de roupa, o slug
   // dela entra aqui — até existir coluna de categoria na loja (é DDL).
   const LOJAS_ROUPA = ['lojateste', 'provoulevou', 'ayzo'];
+  // Boné (22/10/2026): vai pro gerador de ROUPA com product_type 'bone', que troca o prompt de roupa
+  // pelo de boné (mesmo boné/logo na cabeça; rosto, cabelo e fundo intactos).
+  const RE_BONE = /\bbon[eé]s?\b|\bcap\b|trucker|snapback|aba reta|aba curva/i;
   function categoriaDe(row) {
     const t = ((row && row.name) || '') + ' ' + ((row && row.description) || '');
+    if (String(row && row.categoria || '').toLowerCase().trim() === 'bone' || RE_BONE.test(t)) return 'bone';
     if (RE_OCULOS.test(t)) return 'oculos';
     if (STORE_SLUG === 'prevedelloacessorios') return 'oculos'; // joias: usa o gerador de óculos (prompt) c/ bloco de joia por título
     const c = String(row && row.categoria || '').toLowerCase().trim();
