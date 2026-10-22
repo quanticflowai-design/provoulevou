@@ -576,7 +576,31 @@
     // Ótica Visali (Ubá/MG, DV9) — logo faixa azul #2E3092 com 'ÓTICA' verde e 'VISALI' branco -> bg igual ao logo, tema escuro;
     // botão verde da marca com texto preto (~10:1)
     visali: { bg: '#2E3092', card: '#363BA3', line: 'rgba(166,206,56,.28)',
-              brand: '#A6CE38', dark: '#8DB52A', soft: 'rgba(166,206,56,.14)', on: '#111111' }
+              brand: '#A6CE38', dark: '#8DB52A', soft: 'rgba(166,206,56,.14)', on: '#111111' },
+    // Ótica Prattis — dourado sobre preto texturizado -> fundo preto, tema escuro; dourado com texto preto (~12:1)
+    oticaprattis: { bg: '#0D0D0D', card: '#151412', line: 'rgba(228,195,118,.22)',
+                brand: '#E4C376', dark: '#C9A55A', soft: 'rgba(228,195,118,.12)', on: '#000000' },
+    // Grau Ótica e Laboratório — traço preto sobre branco -> tema claro, preto com texto branco
+    grauotica: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EAEAEA',
+                brand: '#1C1C1C', dark: '#000000', soft: 'rgba(28,28,28,.07)', on: '#ffffff' },
+    // Use Essencial — preto + laranja sobre branco -> tema claro; laranja fechado p/ texto branco (~5,2:1)
+    useessencial: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F3E2D9',
+                brand: '#C43F0A', dark: '#9E3308', soft: 'rgba(196,63,10,.08)', on: '#ffffff' },
+    // Essenz Ótica — dourado sobre marrom chapado; marrom do logo (#613319) tem luminância 62 -> fundo #5E3117 (59) e logo recolorido no mesmo tom; dourado com texto marrom
+    essenzotica: { bg: '#5E3117', card: '#6A3A1F', line: 'rgba(232,201,138,.22)',
+                brand: '#E8C98A', dark: '#D9B46B', soft: 'rgba(232,201,138,.12)', on: '#5E3117' },
+    // Amadeuza — preto com toque rosa sobre creme -> fundo creme igual ao logo; rosa fechado p/ texto branco (~5,2:1)
+    amadeuza: { bg: '#F6F5F0', card: '#FFFFFF', line: '#E8E4DA',
+                brand: '#B8406E', dark: '#963358', soft: 'rgba(184,64,110,.08)', on: '#ffffff', cta: '#1C1C1C', ctaDark: '#000000', onCta: '#ffffff' },
+    // Santa Óptica — olho azul + letra laranja sobre branco -> tema claro; azul p/ botões (~5,5:1), laranja fechado no preço
+    santaoptica: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E3EEF5',
+                brand: '#B5602A', dark: '#954E21', soft: 'rgba(10,111,166,.08)', on: '#ffffff', cta: '#0A6FA6', ctaDark: '#08557F', onCta: '#ffffff' },
+    // Ótica Versatti — selo dourado sobre preto (cantos do logo pintados de preto) -> fundo preto, tema escuro; dourado com texto preto
+    oticaversatti: { bg: '#000000', card: '#111111', line: 'rgba(201,163,90,.26)',
+                brand: '#C9A35A', dark: '#A8863F', soft: 'rgba(201,163,90,.14)', on: '#000000' },
+    // Carlos Ótica — faixa verde + preto sobre branco -> tema claro; verde fechado p/ texto branco (~5,4:1)
+    carlosotica: { bg: '#FFFFFF', card: '#FFFFFF', line: '#DCEFE2',
+                brand: '#0F7A38', dark: '#0B5E2B', soft: 'rgba(15,122,56,.08)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
