@@ -7,6 +7,7 @@
   <meta name="description" content="Provador virtual com IA para moda e óculos. Seu cliente prova a peça na própria foto, direto na página do produto, e cada prova vira lead no WhatsApp. Teste grátis por 7 dias.">
   <meta name="theme-color" content="#ffffff">
   <link rel="icon" type="image/jpeg" href="assets/favicon.jpg">
+  <script>if (/[?&]tema=escuro\b/.test(location.search)) document.documentElement.classList.add('escuro');</script>
 
   <link rel="preload" as="font" type="font/ttf" href="assets/fonts/helvetica-light.ttf" crossorigin>
   <link rel="preload" as="font" type="font/ttf" href="helveticanowdisplay-medium.ttf" crossorigin>
@@ -55,8 +56,24 @@
       --container: 1280px;
       --gutter-l: max(24px, env(safe-area-inset-left, 0px));
       --gutter-r: max(24px, env(safe-area-inset-right, 0px));
+      --accent-text: #7c3aed;
       color-scheme: light;
     }
+    /* versao com fundo preto: ?tema=escuro na URL (ou classe .escuro no <html>) */
+    html.escuro {
+      --paper: #000000;
+      --mist: #0d0a13;
+      --ink: #f5f2fb;
+      --ink-soft: #aaa3ba;
+      --line: #2a2337;
+      --ok: #4ade80;
+      --ok-soft: rgba(74,222,128,.14);
+      --accent-text: #9f7aff;
+      color-scheme: dark;
+    }
+    .logo-escuro { display: none; }
+    html.escuro .logo-claro { display: none; }
+    html.escuro .logo-escuro { display: block; }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     html { -webkit-text-size-adjust: 100%; }
@@ -123,8 +140,8 @@
     .nav-actions { margin-left: auto; display: flex; align-items: center; gap: 14px; }
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      font-family: var(--sans); font-weight: 300; font-size: 17px; line-height: 1;
-      padding: 15px 20px; border-radius: 8px; border: 1px solid transparent;
+      font-family: var(--sans); font-weight: 300; font-size: 14px; line-height: 1;
+      padding: 11px 16px; border-radius: 8px; border: 1px solid transparent;
       text-decoration: none; white-space: nowrap; cursor: pointer;
       transition: background .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease;
     }
@@ -135,10 +152,10 @@
     .btn-primary:hover { background: var(--violet-dark); box-shadow: 0 10px 24px -12px rgba(109,40,217,.7); }
     .btn-outline { background: var(--paper); color: var(--ink); border-color: var(--line); box-shadow: 0 2px 0 var(--line); }
     .btn-outline:hover { border-color: var(--lilac); color: var(--violet-dark); }
-    .btn-lg { font-size: 20px; padding: 19px 26px; }
+    .btn-lg { font-size: 16px; padding: 14px 22px; }
 
     .nav-toggle {
-      display: none; width: 46px; height: 46px; border: 1px solid var(--line); border-radius: 8px;
+      display: none; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 8px;
       background: var(--paper); cursor: pointer; align-items: center; justify-content: center;
     }
     .nav-toggle span, .nav-toggle span::before, .nav-toggle span::after {
@@ -179,8 +196,8 @@
       font-family: 'BT Circuit', var(--sans);
       font-weight: 100;
       letter-spacing: -0.035em;
-      -webkit-text-stroke: 0.012em var(--violet);
-      color: var(--violet);
+      -webkit-text-stroke: 0.012em var(--accent-text);
+      color: var(--accent-text);
     }
     .hero-sub {
       font-size: clamp(1.1rem, 1.55vw, 1.5rem);
@@ -349,10 +366,10 @@
       .nav { height: 76px; gap: 12px; }
       .nav-brand img { height: 25px; }
       .nav-actions { gap: 8px; }
-      .nav-actions .btn-primary { font-size: 15px; padding: 12px 14px; }
+      .nav-actions .btn-primary { font-size: 13px; padding: 10px 12px; }
       .mob-panel { top: 70px; }
       .hero-ctas { flex-direction: column; align-items: stretch; }
-      .btn-lg { font-size: 18px; padding: 17px 22px; }
+      .btn-lg { font-size: 16px; padding: 14px 20px; }
       .hero-checks { flex-direction: column; align-items: center; }
       .stage-frame { border-radius: 20px; padding: 8px; }
       .stage-inner { border-radius: 14px; }
@@ -387,7 +404,8 @@
     <div class="container">
       <nav class="nav" aria-label="Principal">
         <a href="#" class="nav-brand" aria-label="Provou Levou, início">
-          <img src="assets/logo-provou-colorido.png" alt="Provou Levou" width="2469" height="431">
+          <img class="logo-claro" src="assets/logo-provou-colorido.png" alt="Provou Levou" width="2469" height="431">
+          <img class="logo-escuro" src="assets/logo-provou-branco.png" alt="Provou Levou" width="2469" height="431">
         </a>
 
         <ul class="nav-links">
