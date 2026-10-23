@@ -4197,6 +4197,13 @@
                             style="padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text-main);font-size:13px;cursor:pointer;outline:none;">
                             <option value="">Todas as campanhas</option>
                         </select>
+                        <select id="crmEtqFilter" onchange="crmFilterEtq(this.value)" title="Filtrar por etiqueta"
+                            style="display:none;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);color:var(--text-main);font-size:13px;cursor:pointer;outline:none;">
+                            <option value="">Todas as etiquetas</option>
+                        </select>
+                        <button id="crmSelBtn" class="btn-download" onclick="crmSelToggleMode()" title="Selecionar vários leads para etiquetar">
+                            <i class="ph-bold ph-check-square"></i> Selecionar
+                        </button>
                         <button id="crmBulkMoveBtn" class="btn-download" onclick="openCrmBulkMoveModal()" title="Mover vários leads de uma etapa para outra">
                             <i class="ph-bold ph-arrows-left-right"></i> Mover em massa
                         </button>
@@ -11890,6 +11897,7 @@
         let _chatQR = [];             // respostas rápidas [{id,email,titulo,texto}]
         let _chatTags = [];           // etiquetas [{id,email,nome,cor}]
         let _chatConvTags = {};       // últimos 8 dígitos do telefone → Set(etiqueta_id)
+        let _chatConvTagTel = {};     // últimos 8 dígitos → telefone completo gravado (pra Segmentação por etiqueta)
         let _chatExtrasKey = '';
         let _chatFilterTag = '';
         const _chatDrafts = {};       // rascunho por conversa (sobrevive ao re-render da conversa)
@@ -11919,8 +11927,10 @@
             _chatQR = qr;
             _chatTags = tags;
             const map = {};
-            ct.forEach(r => { const k = chatL8(r.lead_phone); if (!k) return; (map[k] || (map[k] = new Set())).add(Number(r.etiqueta_id)); });
+            const tel = {};
+            ct.forEach(r => { const k = chatL8(r.lead_phone); if (!k) return; (map[k] || (map[k] = new Set())).add(Number(r.etiqueta_id)); const d = String(r.lead_phone || '').replace(/\D/g, ''); if (!tel[k] || d.length > tel[k].length) tel[k] = d; });
             _chatConvTags = map;
+            _chatConvTagTel = tel;
             chatPopulateTagFilter();
             try { chatRenderList(); } catch (e) {}
             chatRefreshThTags();
@@ -12009,6 +12019,7 @@
                     const { error } = await supabaseClient.from('pl_conversa_etiquetas').insert({ email: chatCanonEmail(), lead_phone: normalizeFull(phone), etiqueta_id: tagId });
                     if (error && String(error.code) !== '23505') throw error;
                     set.add(tagId);
+                    if (!_chatConvTagTel[l8]) _chatConvTagTel[l8] = normalizeFull(phone);
                 } else {
                     const { error } = await supabaseClient.from('pl_conversa_etiquetas').delete().in('email', plScopeEmails()).eq('etiqueta_id', tagId).ilike('lead_phone', '%' + l8);
                     if (error) throw error;
@@ -14569,9 +14580,11 @@
             { key: 'clicou_comprar_nao_comprou',   label: '🛍️ Clicou em comprar e não comprou',  desc: 'Dispara quando o cliente, dentro do provador, clica em comprar / adiciona ao carrinho, mas não finaliza a compra.' },
             // 14/10/2026: atalho para a etapa automática do CRM "Voltou outro dia para provar" — grava como crm_etapa/voltou-outro-dia (o motor já trata)
             { key: 'voltou_outro_dia',             label: '🔁 Voltou para provar em outro dia',  desc: 'Dispara quando o cliente volta ao provador em outro dia e prova de novo, sem ter comprado. É a etapa automática "Voltou outro dia para provar" do seu CRM.' },
-            { key: 'crm_etapa',                    label: '📋 Entrou numa etapa do CRM',          desc: 'Dispara quando você move um cliente para a etapa escolhida no seu CRM (aba CRM). Escolha a etapa ao lado.' }
+            { key: 'crm_etapa',                    label: '📋 Entrou numa etapa do CRM',          desc: 'Dispara quando você move um cliente para a etapa escolhida no seu CRM (aba CRM). Escolha a etapa ao lado.' },
+            // 23/10/2026: etiqueta manual (CRM ou Conversas) — grava gatilho 'etiqueta' + gatilho_etapa = id da etiqueta
+            { key: 'etiqueta',                     label: '🏷️ Recebeu uma etiqueta',             desc: 'Dispara quando você coloca a etiqueta escolhida num cliente (no CRM ou na conversa). Escolha a etiqueta ao lado.' }
         ];
-        const AUTOM_GATILHO_LABEL = (k, etapa) => (k === 'crm_etapa' && etapa === 'voltou-outro-dia') ? AUTOM_GATILHO_LABEL('voltou_outro_dia') : ((AUTOM_GATILHOS.find(g => g.key === k) || {}).label || k || '—');
+        const AUTOM_GATILHO_LABEL = (k, etapa) => (k === 'etiqueta') ? ('🏷️ Etiqueta "' + (((typeof crmEtqPorId === 'function') && crmEtqPorId(etapa)) || { nome: '?' }).nome + '"') : (k === 'crm_etapa' && etapa === 'voltou-outro-dia') ? AUTOM_GATILHO_LABEL('voltou_outro_dia') : ((AUTOM_GATILHOS.find(g => g.key === k) || {}).label || k || '—');
         // Chaves de contexto que o motor entende (qualquer outra string vai literal).
         const AUTOM_CTX_KEYS = [
             { key: 'nome',    label: 'Nome do cliente' },
@@ -14674,12 +14687,18 @@
               + '      <span style="font-size:12.5px;color:var(--text-muted);">na etapa</span>'
               + '      <select id="automGatilhoEtapa" class="autom-input" style="min-width:170px;"></select>'
               + '    </span>'
+              + '    <span id="automEtqWrap" style="display:none;align-items:center;gap:6px;">'
+              + '      <i class="ph-bold ph-arrow-right" style="color:var(--text-muted);"></i>'
+              + '      <select id="automGatilhoEtq" class="autom-input" style="min-width:190px;"></select>'
+              + '    </span>'
               + '  </div>'
               + '  <div id="automGatilhoDesc" class="autom-trigger-desc"></div>'
               + '</div>'
               + '<div class="autom-ed-exits">'
               + '  <label class="autom-check"><input type="checkbox" id="automExitComprou"><span>Parar se o cliente comprar</span></label>'
               + '  <label class="autom-check"><input type="checkbox" id="automExitRespondeu"><span>Parar se o cliente responder</span></label>'
+              + '  <span class="autom-check" style="cursor:default;flex-wrap:wrap;"><span style="white-space:nowrap;"><i class="ph-bold ph-tag"></i> Só para quem tem</span> <select id="automFiltroInc" class="autom-input" style="width:auto;min-width:150px;padding:5px 8px;font-size:12.5px;"></select></span>'
+              + '  <span class="autom-check" style="cursor:default;flex-wrap:wrap;"><span style="white-space:nowrap;">Pular quem tem</span> <select id="automFiltroExc" class="autom-input" style="width:auto;min-width:150px;padding:5px 8px;font-size:12.5px;"></select></span>'
               + '  <span id="automEdMsg" class="autom-edmsg"></span>'
               + '</div>'
               + '<div class="autom-ed-grid">'
@@ -14717,6 +14736,29 @@
             const isCrm = gatEl.value === 'crm_etapa';
             if (wrap) wrap.style.display = isCrm ? 'inline-flex' : 'none';
             if (isCrm) automPopulateCrmStages();
+            const ew = document.getElementById('automEtqWrap'); if (ew) ew.style.display = gatEl.value === 'etiqueta' ? 'inline-flex' : 'none';
+        }
+        // Selects de etiqueta do editor (gatilho + filtro "só para quem tem" / "pular quem tem").
+        function automPopulateEtq(flow) {
+            const tags = _chatTags || [];
+            const opts = tags.map(t => '<option value="' + Number(t.id) + '">' + escapeHtml(t.nome) + '</option>').join('');
+            const fl = (flow && flow.filtro_etiquetas) || {};
+            const fill = (id, first, val) => {
+                const el = document.getElementById(id); if (!el) return;
+                const cur = el.value;
+                el.innerHTML = first + opts;
+                el.value = cur || (val != null ? String(val) : '');
+                if (el.value !== (cur || (val != null ? String(val) : ''))) el.value = '';
+            };
+            fill('automGatilhoEtq', '<option value="">' + (tags.length ? '— escolha a etiqueta —' : '— crie etiquetas no CRM —') + '</option>', (flow && flow.gatilho === 'etiqueta') ? flow.gatilho_etapa : '');
+            fill('automFiltroInc', '<option value="">qualquer cliente</option>', (fl.inc || [])[0]);
+            fill('automFiltroExc', '<option value="">ninguém</option>', (fl.exc || [])[0]);
+        }
+        function automLerFiltroEtq() {
+            const inc = (document.getElementById('automFiltroInc') || {}).value || '';
+            const exc = (document.getElementById('automFiltroExc') || {}).value || '';
+            if (!inc && !exc) return null;
+            return { inc: inc ? [Number(inc)] : [], exc: exc ? [Number(exc)] : [] };
         }
         function automPopulateCrmStages() {
             const etEl = document.getElementById('automGatilhoEtapa'); if (!etEl) return;
@@ -14834,6 +14876,7 @@
                     .order('id', { ascending: true });
                 if (error) throw error;
                 AUTOM.flows = data || [];
+                try { if (AUTOM.flows.some(f => f.gatilho === 'etiqueta')) await crmEtqGarante(); } catch (e) {}
                 if (!AUTOM.flows.length) {
                     box.innerHTML = '<div class="autom-empty">'
                         + '<h4><i class="ph-bold ph-flow-arrow"></i> Crie sua primeira automação</h4>'
@@ -15018,7 +15061,8 @@
                     definicao: f.definicao,
                     passos: f.passos,
                     janela_envio: f.janela_envio || AUTOM_JANELA_DEFAULT(),
-                    exits: f.exits || AUTOM_EXITS_DEFAULT()
+                    exits: f.exits || AUTOM_EXITS_DEFAULT(),
+                    filtro_etiquetas: f.filtro_etiquetas || null
                 };
                 const { error } = await supabaseClient.from('flows').insert(row);
                 if (error) throw error;
@@ -15059,6 +15103,7 @@
             const pipeEl = document.getElementById('automGatilhoPipeline');
             if (pipeEl) pipeEl.value = decodedEtapa.pipeline;
             automOnGatilhoChange();   // popula/mostra o seletor de etapa se gatilho = crm_etapa
+            automPopulateEtq(flow); crmEtqGarante().then(() => automPopulateEtq(flow)).catch(() => {});
             const etEl = document.getElementById('automGatilhoEtapa');
             if (etEl && decodedEtapa.stage) etEl.value = decodedEtapa.stage;
             if (decodedEtapa.pipeline === 'rfm') rfmPipeGaranta().then(() => { automPopulateCrmStages(); const e2 = document.getElementById('automGatilhoEtapa'); if (e2) e2.value = decodedEtapa.stage; }).catch(() => {});
@@ -15755,6 +15800,8 @@
             }
             if (!gatilho) { automSetEdMsg('Escolha um gatilho.', true); return; }
             if (_gatUi === 'crm_etapa' && !gatilhoEtapa) { automSetEdMsg('Escolha qual etapa do CRM dispara o fluxo.', true); return; }
+            const _etqGat = (document.getElementById('automGatilhoEtq') || {}).value || '';
+            if (_gatUi === 'etiqueta' && !_etqGat) { automSetEdMsg('Escolha qual etiqueta dispara o fluxo.', true); return; }
 
             let passos, definicao;
             try {
@@ -15770,11 +15817,12 @@
                 nome: nome,
                 ativo: ativo,
                 gatilho: gatilho,
-                gatilho_etapa: _gatUi === 'voltou_outro_dia' ? 'voltou-outro-dia' : ((gatilho === 'crm_etapa') ? waPipelineStageKey(gatilhoPipeline, gatilhoEtapa) : null),
+                gatilho_etapa: _gatUi === 'etiqueta' ? String(_etqGat) : (_gatUi === 'voltou_outro_dia' ? 'voltou-outro-dia' : ((gatilho === 'crm_etapa') ? waPipelineStageKey(gatilhoPipeline, gatilhoEtapa) : null)),
                 definicao: definicao,
                 passos: passos,
                 janela_envio: AUTOM.janela || AUTOM_JANELA_DEFAULT(),
-                exits: exits
+                exits: exits,
+                filtro_etiquetas: automLerFiltroEtq()
             };
 
             const btnMsgEl = document.getElementById('automEdMsg');
@@ -18889,6 +18937,7 @@
             if (!id) { CAMP.audience = null; if (box) box.innerHTML = ''; campRevealLimit(); return; }
             if (box) box.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> calculando…';
             try { if (!allOrdersCache || !allOrdersCache.length) await loadSharedData(); } catch (e) {}
+            await crmEtqGarante();
             const seg = segAllList().find(s => String(s.id) === String(id));
             let targets = []; try { targets = seg ? segEval(seg.regras) : []; } catch (e) {}
             CAMP.audience = seg ? { name: seg.nome, regras: seg.regras, targets: targets } : null;
@@ -19122,7 +19171,15 @@
         }
 
         // Avalia uma regra → lista de destinatários [{name, phone, product}] (phone com DDD, sem 55).
+        // 23/10/2026: tipo 'etiqueta' (leads etiquetados no CRM/Conversas) e filtro opcional regras.etq
+        // ({inc, modo, exc}) que vale para qualquer tipo — ex.: "gastou +R$ 350 E tem a etiqueta Revendedor".
         function segEval(regras) {
+            regras = regras || {};
+            let out = regras.tipo === 'etiqueta' ? _segEvalEtiqueta(regras) : _segEvalBase(regras);
+            if (regras.tipo !== 'etiqueta' && _segEtqAtivo(regras.etq)) out = out.filter(t => _segEtqMatch(t.phone, regras.etq));
+            return out;
+        }
+        function _segEvalBase(regras) {
             regras = regras || {};
             const out = [];
             if (regras.tipo === 'provou_nao_comprou') {
@@ -19193,6 +19250,7 @@
             pane.innerHTML = _aPageHead('Segmentações', 'públicos para usar nas campanhas', '<button class="camp-btn primary" onclick="segOpenBuilder()"><i class="ph-bold ph-plus"></i> Novo público</button>')
                 + '<div id="segBody"><div class="seg-a-card"><div class="camp-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Calculando seus públicos…</div></div></div>';
             try { if (!allOrdersCache || !allOrdersCache.length) await loadSharedData(); } catch (e) {}
+            await crmEtqGarante();
             let custom = [];
             try {
                 const { data } = await supabaseClient.from('segmentacoes').select('*').in('lojista_email', plScopeEmails()).order('created_at', { ascending: true });
@@ -19204,6 +19262,12 @@
 
         // Regra de um público em texto (pra coluna "Regra" de Seus públicos).
         function _segRegraTxt(r) {
+            r = r || {};
+            if (r.tipo === 'etiqueta') return 'Etiqueta: ' + (_segEtqTxt(r.etq) || '—') + (r.excluir_compradores ? ' · só quem não comprou' : '');
+            const base = _segRegraTxtBase(r), extra = _segEtqTxt(r.etq);
+            return extra ? (base + ' · ' + extra) : base;
+        }
+        function _segRegraTxtBase(r) {
             r = r || {};
             const opTxt = { '>=': 'maior ou igual a', '<=': 'menor ou igual a', '==': 'igual a', '>': 'maior que', '<': 'menor que' }[r.op] || (r.op || '');
             const v = Number(r.valor);
@@ -19279,7 +19343,10 @@
         }
 
         function segBuilderTipo(t) {
-            const p = document.getElementById('segRuleParams'); if (p) p.style.display = (t === 'provou_nao_comprou' || t === 'provou_produto') ? 'none' : 'flex';
+            const p = document.getElementById('segRuleParams'); if (p) p.style.display = (t === 'provou_nao_comprou' || t === 'provou_produto' || t === 'etiqueta') ? 'none' : 'flex';
+            const et = document.getElementById('segEtqTit'); if (et) et.textContent = t === 'etiqueta' ? 'Etiquetas' : 'Filtrar também por etiqueta (opcional)';
+            const eo = document.getElementById('segEtqOpts'); if (eo) eo.style.display = t === 'etiqueta' ? 'block' : 'none';
+            segBuilderPreview();
             const q = document.getElementById('segProdParams'); if (q) q.style.display = (t === 'provou_produto') ? 'block' : 'none';
         }
 
@@ -19287,7 +19354,7 @@
             _segInjectCSS();
             const R = (existing && existing.regras) || { tipo: 'gasto_total', op: '>=', valor: 350 };
             const ov = document.createElement('div'); ov.className = 'camp-confirm-ov';
-            ov.innerHTML = '<div class="camp-confirm" style="max-width:460px;text-align:left;">'
+            ov.innerHTML = '<div class="camp-confirm" style="max-width:460px;text-align:left;max-height:calc(100vh - 40px);overflow-y:auto;box-sizing:border-box;">'
                 + '<h4 style="text-align:center;">' + (existing ? 'Editar público' : 'Novo público personalizado') + '</h4>'
                 + '<label class="camp-lbl">Nome do público</label><input id="segNome" class="camp-inp" placeholder="Ex.: VIPs (gastaram +R$ 500)" value="' + escapeHtml(existing ? existing.nome : '') + '">'
                 + '<label class="camp-lbl" style="margin-top:10px;">Descrição (opcional)</label><input id="segDesc" class="camp-inp" value="' + escapeHtml(existing ? (existing.descricao || '') : '') + '">'
@@ -19298,6 +19365,7 @@
                 + '<option value="dias_sem_comprar">Dias sem comprar</option>'
                 + '<option value="provou_nao_comprou">Provou e não comprou</option>'
                 + '<option value="provou_produto">Provou um produto específico</option>'
+                + '<option value="etiqueta">Tem etiqueta (marcada no CRM)</option>'
                 + '</select>'
                 + '<div id="segProdParams" style="display:none;margin-top:8px;">'
                 + '<input id="segProduto" class="camp-inp" list="segProdList" placeholder="Digite ou escolha o produto" value="' + escapeHtml(R.produto || '') + '">'
@@ -19309,26 +19377,71 @@
                 + '<select id="segOp" class="camp-sel" style="flex:0 0 150px;"><option value=">=">maior ou igual</option><option value="<=">menor ou igual</option><option value="==">igual a</option></select>'
                 + '<input id="segVal" class="camp-inp" type="number" style="flex:1;" value="' + (R.valor != null ? R.valor : '') + '">'
                 + '</div>'
+                + _segEtqBuilderHtml(R)
+                + '<div id="segPreview" class="etq-hint" style="margin-top:12px;font-weight:700;"></div>'
                 + '<div class="camp-confirm-foot" style="margin-top:18px;"><button class="camp-btn" data-cancel>Cancelar</button><button class="camp-btn primary" data-ok>Salvar público</button></div>'
                 + '</div>';
             document.body.appendChild(ov);
-            document.getElementById('segTipo').value = R.tipo; segBuilderTipo(R.tipo);
+            document.getElementById('segTipo').value = R.tipo;
             if (R.op) document.getElementById('segOp').value = R.op;
+            segBuilderTipo(R.tipo);
+            ov.addEventListener('input', segBuilderPreview);
+            ov.addEventListener('change', segBuilderPreview);
             ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
             ov.querySelector('[data-cancel]').onclick = () => ov.remove();
             ov.querySelector('[data-ok]').onclick = () => segSaveCustom(existing, ov);
         }
 
+        // Lê o construtor de público (inclui etiquetas) — usado pra salvar e pra prévia da contagem.
+        function _segLerRegras() {
+            const tipo = (document.getElementById('segTipo') || {}).value || 'gasto_total';
+            const regras = { tipo };
+            if (tipo === 'provou_produto') {
+                regras.produto = ((document.getElementById('segProduto') || {}).value || '').trim();
+                regras.excluir_compradores = !!(document.getElementById('segExcluiComp') || {}).checked;
+            } else if (tipo === 'etiqueta') {
+                regras.excluir_compradores = !!(document.getElementById('segEtqSoNaoComprou') || {}).checked;
+                regras.pular_contatados = !!(document.getElementById('segEtqPula') || {}).checked;
+            } else if (tipo !== 'provou_nao_comprou') { regras.op = (document.getElementById('segOp') || {}).value; regras.valor = Number((document.getElementById('segVal') || {}).value || 0); }
+            const etq = _segEtqLer(); if (_segEtqAtivo(etq)) regras.etq = etq;
+            return regras;
+        }
+        function segBuilderPreview() {
+            const el = document.getElementById('segPreview'); if (!el) return;
+            try {
+                const r = _segLerRegras();
+                if (r.tipo === 'etiqueta' && !((r.etq && r.etq.inc) || []).length) { el.textContent = 'Marque uma ou mais etiquetas.'; return; }
+                if (r.tipo === 'provou_produto' && !r.produto) { el.textContent = ''; return; }
+                const n = segEval(r).length;
+                el.textContent = n.toLocaleString('pt-BR') + (n === 1 ? ' cliente' : ' clientes') + ' neste público agora';
+            } catch (e) { el.textContent = ''; }
+        }
+        function _segEtqBuilderHtml(R) {
+            _crmEtqCss();
+            const E = R.etq || {};
+            const tem = (_chatTags || []).length;
+            let h = '<div id="segEtqBox" style="margin-top:14px;">'
+                + '<label class="camp-lbl" id="segEtqTit">Filtrar também por etiqueta (opcional)</label>';
+            if (!tem) return h + _segEtqPickHtml('segEtqInc', []) + '<div id="segEtqOpts" style="display:none;"></div></div>';
+            h += '<div style="font-size:12.5px;font-weight:700;color:var(--text-main);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">Tem a etiqueta'
+                + '<select id="segEtqModo" class="camp-sel" style="width:auto;padding:5px 8px;font-size:12.5px;"><option value="qualquer"' + (E.modo === 'todas' ? '' : ' selected') + '>qualquer uma das marcadas</option><option value="todas"' + (E.modo === 'todas' ? ' selected' : '') + '>todas as marcadas</option></select></div>'
+                + _segEtqPickHtml('segEtqInc', E.inc)
+                + '<div style="font-size:12.5px;font-weight:700;color:var(--text-main);margin-top:12px;">Não tem a etiqueta</div>'
+                + _segEtqPickHtml('segEtqExc', E.exc)
+                + '<div id="segEtqOpts" style="display:none;margin-top:12px;">'
+                + '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-main);cursor:pointer;"><input id="segEtqSoNaoComprou" type="checkbox"' + (R.excluir_compradores ? ' checked' : '') + '> Só quem ainda não comprou</label>'
+                + '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-main);cursor:pointer;margin-top:6px;"><input id="segEtqPula" type="checkbox"' + (R.pular_contatados === false ? '' : ' checked') + '> Pular quem já recebeu disparo ou está em atendimento</label>'
+                + '<div class="etq-hint">Desmarque para mandar de novo para o mesmo grupo (ex.: revendedores que já receberam uma campanha).</div>'
+                + '</div></div>';
+            return h;
+        }
+
         async function segSaveCustom(existing, ov) {
             const nome = (document.getElementById('segNome').value || '').trim();
             if (!nome) { crmToast && crmToast('Dê um nome ao público.', true); return; }
-            const tipo = document.getElementById('segTipo').value;
-            const regras = { tipo };
-            if (tipo === 'provou_produto') {
-                regras.produto = (document.getElementById('segProduto').value || '').trim();
-                if (!regras.produto) { crmToast && crmToast('Escolha o produto.', true); return; }
-                regras.excluir_compradores = document.getElementById('segExcluiComp').checked;
-            } else if (tipo !== 'provou_nao_comprou') { regras.op = document.getElementById('segOp').value; regras.valor = Number(document.getElementById('segVal').value || 0); }
+            const regras = _segLerRegras(), tipo = regras.tipo;
+            if (tipo === 'provou_produto' && !regras.produto) { crmToast && crmToast('Escolha o produto.', true); return; }
+            if (tipo === 'etiqueta' && !((regras.etq && regras.etq.inc) || []).length) { crmToast && crmToast('Marque pelo menos uma etiqueta em "Tem a etiqueta".', true); return; }
             const row = { lojista_email: activeUser.email, nome: nome, descricao: (document.getElementById('segDesc').value || '').trim(), regras: regras };
             try {
                 let r;
@@ -25702,6 +25815,7 @@
                 +   '<div class="clm-sec"><h4>Detalhes</h4><div class="clm-grid">' + details + '</div></div>'
                 +   _crmComprasHtml(lead)
                 +   (lead.provaCount ? '<div class="clm-sec"><h4>Produtos provados <span class="clm-sum">' + provados.length + (provados.length === 1 ? ' produto' : ' produtos') + '</span></h4>' + provadosHtml + '</div>' : '')
+                +   '<div class="clm-sec"><h4>Etiquetas</h4><div id="clmEtiquetas"></div></div>'
                 +   '<div class="clm-sec"><h4>Tarefas</h4><div id="clmTarefas"></div></div>'
                 +   '<div class="clm-sec"><h4>Campanhas e automações</h4>' + tagsHtml + '</div>'
                 +   '<div class="clm-sec"><h4>Histórico de disparos <span id="clmHistSum" class="clm-sum"></span></h4><div id="clmHistory"><div class="clm-empty">Carregando histórico…</div></div></div>'
@@ -25712,6 +25826,7 @@
                 + '</div>') : '')
                 + '</div>';
             ov.style.display = 'flex';
+            try { crmEtqRenderLeadBox(lead); if (!_crmEtqLoaded) crmEtqGarante().then(() => crmEtqRenderLeadBox(lead)); } catch (e) { console.warn('[crm] etiquetas:', e); }
             try {
                 if (_hasPh) crmRenderLeadTarefas(lead);
                 else {
@@ -27762,6 +27877,376 @@
         }
 
         // Preenche o filtro de responsável (toolbar) com o time atual
+        // ===== Etiquetas manuais nos leads do CRM (23/10/2026 — pedido do João, Penélope Cabelos) =====
+        // Usa as MESMAS tabelas das etiquetas da aba Conversas (pl_etiquetas + pl_conversa_etiquetas):
+        // etiqueta posta no CRM aparece na conversa e vice-versa. Chave do lead = últimos 8 dígitos
+        // (chatL8), igual às conversas. Lê a união dos logins da loja (plScopeEmails) e grava no
+        // e-mail canônico (chatCanonEmail). Segmentações (tipo 'etiqueta' / filtro regras.etq) e
+        // Automações (gatilho 'etiqueta' + flows.filtro_etiquetas) usam a mesma base.
+        let _crmEtqFilter = '';
+        let _crmSelMode = false;
+        const _crmSel = new Set();
+        let _crmVisiblePhones = [];
+        let _crmEtqLoaded = false;
+        function _crmEtqCss() {
+            try { _campInjectCSS(); } catch (e) {}
+            if (document.getElementById('crmEtqCss')) return;
+            const s = document.createElement('style'); s.id = 'crmEtqCss';
+            s.textContent = [
+                '.crm-etq-row{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;}',
+                '.crm-etq-chip{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:99px;border:1px solid;max-width:100%;}',
+                '.crm-etq-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;}',
+                '.crm-card.crm-card-sel{border-color:#7c3aed !important;box-shadow:0 0 0 2px rgba(124,58,237,.35) !important;}',
+                '.crm-card-chk{position:absolute;top:9px;right:9px;width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border);background:var(--card-bg);display:grid;place-items:center;font-size:11px;color:transparent;z-index:2;}',
+                '.crm-card-sel .crm-card-chk{background:#7c3aed;border-color:#7c3aed;color:#fff;}',
+                '#crmSelBtn.on{border-color:#7c3aed;color:#7c3aed;}',
+                '#crmSelBar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:900;background:var(--card-bg);color:var(--text-main);border:1px solid var(--border);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.25);padding:10px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px);box-sizing:border-box;}',
+                '#crmSelBar .crm-sel-n{font-size:13px;font-weight:700;padding:0 6px;white-space:nowrap;}',
+                '#crmSelBar .camp-btn{padding:8px 13px;font-size:12.5px;}',
+                '.clm-etq{display:flex;flex-direction:column;gap:9px;}',
+                '.clm-etq-chips{display:flex;flex-wrap:wrap;gap:6px;}',
+                '.clm-etq-chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 6px 5px 11px;border-radius:99px;border:1px solid;max-width:100%;}',
+                '.clm-etq-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+                '.clm-etq-chip button{background:transparent;border:0;color:inherit;cursor:pointer;font-size:13px;line-height:1;padding:0 3px;opacity:.7;}',
+                '.clm-etq-chip button:hover{opacity:1;}',
+                '.clm-etq-add{display:flex;gap:8px;}',
+                '.clm-etq-add input{flex:1;min-width:0;background:var(--card-bg);border:1px solid var(--border);color:var(--text-main);border-radius:10px;padding:8px 11px;font-family:inherit;font-size:13px;outline:none;}',
+                '.clm-etq-add input:focus{border-color:#7c3aed;}',
+                '.clm-etq-add button{border-radius:10px;padding:8px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;background:rgba(124,58,237,.08);color:#7c3aed;border:1px solid rgba(124,58,237,.25);white-space:nowrap;}',
+                '.clm-etq-sug{display:flex;flex-wrap:wrap;gap:5px;}',
+                '.clm-etq-sug button{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:99px;border:1px dashed var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-family:inherit;}',
+                '.clm-etq-sug button:hover{border-color:#7c3aed;color:#7c3aed;}',
+                '.etq-pick{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}',
+                '.etq-pick label{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:99px;border:1px solid var(--border);cursor:pointer;color:var(--text-main);user-select:none;}',
+                '.etq-pick label input{accent-color:#7c3aed;margin:0;}',
+                '.etq-pick .etq-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}',
+                '.etq-hint{font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.5;}',
+                '@media (max-width:600px){#crmSelBar{bottom:10px;left:16px;right:16px;transform:none;max-width:none;}#crmSelBar .camp-btn{flex:1 1 auto;justify-content:center;}}'
+            ].join('\n');
+            document.head.appendChild(s);
+        }
+        async function crmEtqGarante(force) {
+            try { await chatExtrasEnsure(!!force); } catch (e) { console.warn('[crm] etiquetas:', e); }
+            _crmEtqLoaded = true;
+        }
+        function crmEtqIdsDo(phone) { return _chatConvTags[chatL8(phone)] || null; }
+        function crmEtqDoLead(phone) { try { return chatTagsFor(phone); } catch (e) { return []; } }
+        function crmEtqPorId(id) { return (_chatTags || []).find(t => Number(t.id) === Number(id)) || null; }
+        function crmEtqChip(t, cls) {
+            const c = chatSafeColor(t.cor);
+            const b = document.createElement('span');
+            b.className = cls || 'crm-etq-chip';
+            b.style.cssText = 'color:' + c + ';background:' + c + '1a;border-color:' + c + '44;';
+            b.title = 'Etiqueta: ' + (t.nome || '');
+            const ic = document.createElement('i'); ic.className = 'ph-bold ph-tag';
+            const tx = document.createElement('span'); tx.textContent = t.nome || '';
+            b.append(ic, tx);
+            return b;
+        }
+        // Telefone completo (com DDD, sem 55) pra gravar — o mesmo formato que a aba Conversas usa.
+        function crmEtqTelCompleto(ph) {
+            const lead = (crmLeadMapCache && crmLeadMapCache[ph]) || null;
+            const raw = normalizeFull((lead && lead.rawPhone) || ph);
+            return raw || normalizeFull(ph);
+        }
+        async function crmEtqObterOuCriar(nome) {
+            nome = String(nome || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+            if (!nome) return null;
+            const achou = (_chatTags || []).find(t => String(t.nome).toLowerCase() === nome.toLowerCase());
+            if (achou) return achou;
+            const cor = CHAT_TAG_CORES[(_chatTags || []).length % CHAT_TAG_CORES.length];
+            const { data, error } = await supabaseClient.from('pl_etiquetas').insert({ email: chatCanonEmail(), nome, cor }).select('id,email,nome,cor').single();
+            if (error) {
+                if (String(error.code) === '23505') { await crmEtqGarante(true); return (_chatTags || []).find(t => String(t.nome).toLowerCase() === nome.toLowerCase()) || null; }
+                throw error;
+            }
+            _chatTags.push(data);
+            _chatTags.sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
+            try { chatPopulateTagFilter(); } catch (e) {}
+            return data;
+        }
+        // Põe a etiqueta (por nome; cria se não existir) em vários leads. Retorna quantos receberam.
+        async function crmEtqAplicar(phones, nome) {
+            const t = await crmEtqObterOuCriar(nome);
+            if (!t) return 0;
+            const id = Number(t.id), email = chatCanonEmail();
+            const rows = [], seen = new Set();
+            (phones || []).forEach(ph => {
+                const l8 = chatL8(ph); if (!l8 || seen.has(l8)) return; seen.add(l8);
+                const s = _chatConvTags[l8]; if (s && s.has(id)) return;   // já tem
+                rows.push({ email, lead_phone: crmEtqTelCompleto(ph), etiqueta_id: id });
+            });
+            for (let i = 0; i < rows.length; i += 500) {
+                const { error } = await supabaseClient.from('pl_conversa_etiquetas')
+                    .upsert(rows.slice(i, i + 500), { onConflict: 'email,lead_phone,etiqueta_id', ignoreDuplicates: true });
+                if (error) throw error;
+            }
+            rows.forEach(r => {
+                const l8 = chatL8(r.lead_phone);
+                (_chatConvTags[l8] || (_chatConvTags[l8] = new Set())).add(id);
+                if (typeof _chatConvTagTel !== 'undefined' && !_chatConvTagTel[l8]) _chatConvTagTel[l8] = r.lead_phone;
+            });
+            try { chatRefreshThTags(); } catch (e) {}
+            return rows.length;
+        }
+        // Tira a etiqueta de vários leads (todas as variações de telefone gravadas para eles).
+        async function crmEtqRemover(phones, id) {
+            id = Number(id);
+            const alvo = new Set((phones || []).map(chatL8).filter(Boolean));
+            if (!alvo.size) return 0;
+            const linhas = await fetchPagesParallel(() => supabaseClient.from('pl_conversa_etiquetas')
+                .select('id,lead_phone').in('email', plScopeEmails()).eq('etiqueta_id', id).order('id', { ascending: true }), 1000, 3);
+            const ids = (linhas || []).filter(r => alvo.has(chatL8(r.lead_phone))).map(r => r.id);
+            for (let i = 0; i < ids.length; i += 200) {
+                const { error } = await supabaseClient.from('pl_conversa_etiquetas').delete().in('id', ids.slice(i, i + 200));
+                if (error) throw error;
+            }
+            alvo.forEach(l8 => { const s = _chatConvTags[l8]; if (s) s.delete(id); });
+            try { chatRefreshThTags(); } catch (e) {}
+            return alvo.size;
+        }
+
+        // ---- Filtro do quadro por etiqueta ----
+        function populateCrmEtqControls() {
+            const sel = document.getElementById('crmEtqFilter');
+            if (!sel) return;
+            const tags = _chatTags || [];
+            if (_crmEtqFilter && _crmEtqFilter !== '__none__' && !tags.some(t => String(t.id) === String(_crmEtqFilter))) _crmEtqFilter = '';
+            let h = '<option value="">Todas as etiquetas</option>';
+            tags.forEach(t => { h += '<option value="' + escapeHtml(String(t.id)) + '">' + escapeHtml(t.nome) + '</option>'; });
+            if (tags.length) h += '<option value="__none__">Sem etiqueta</option>';
+            sel.innerHTML = h;
+            sel.value = _crmEtqFilter || '';
+            sel.style.display = tags.length ? '' : 'none';
+        }
+        function crmFilterEtq(val) { _crmEtqFilter = val || ''; renderCrmBoard(); }
+        function crmEtqPassaFiltro(ph) {
+            if (!_crmEtqFilter) return true;
+            const s = crmEtqIdsDo(ph);
+            if (_crmEtqFilter === '__none__') return !(s && s.size);
+            return !!(s && s.has(Number(_crmEtqFilter)));
+        }
+
+        // ---- Seleção de vários leads no quadro ----
+        function crmSelToggleMode(on) {
+            if (typeof _crmPipelineMode !== 'undefined' && _crmPipelineMode === 'lentes' && on !== false) { crmToast('A seleção de leads funciona no quadro do provador e na Matriz RFM.', true); return; }
+            _crmSelMode = (on === undefined) ? !_crmSelMode : !!on;
+            if (!_crmSelMode) _crmSel.clear();
+            const b = document.getElementById('crmSelBtn'); if (b) b.classList.toggle('on', _crmSelMode);
+            renderCrmBoard();
+            crmSelBarRender();
+        }
+        function crmSelToggle(ph, card) {
+            if (_crmSel.has(ph)) _crmSel.delete(ph); else _crmSel.add(ph);
+            if (card) card.classList.toggle('crm-card-sel', _crmSel.has(ph));
+            crmSelBarRender();
+        }
+        function crmSelTodosVisiveis() {
+            const todos = _crmVisiblePhones.length && _crmVisiblePhones.every(ph => _crmSel.has(ph));
+            if (todos) _crmVisiblePhones.forEach(ph => _crmSel.delete(ph));
+            else _crmVisiblePhones.forEach(ph => _crmSel.add(ph));
+            renderCrmBoard();
+            crmSelBarRender();
+        }
+        function crmSelBarRender() {
+            _crmEtqCss();
+            let bar = document.getElementById('crmSelBar');
+            if (!_crmSelMode) { if (bar) bar.remove(); return; }
+            // Fica dentro do #crmContent: ao sair do CRM (aba escondida) a barra some junto.
+            if (!bar) { bar = document.createElement('div'); bar.id = 'crmSelBar'; (document.getElementById('crmContent') || document.body).appendChild(bar); }
+            bar.textContent = '';
+            const n = _crmSel.size;
+            const nEl = document.createElement('span'); nEl.className = 'crm-sel-n';
+            nEl.textContent = n ? (n + (n === 1 ? ' lead selecionado' : ' leads selecionados')) : 'Toque nos cards para selecionar';
+            const mk = (txt, icon, fn, cls, dis) => {
+                const b = document.createElement('button'); b.type = 'button'; b.className = 'camp-btn' + (cls ? ' ' + cls : '');
+                const i = document.createElement('i'); i.className = 'ph-bold ' + icon; b.append(i, document.createTextNode(' ' + txt));
+                b.disabled = !!dis; b.addEventListener('click', fn); return b;
+            };
+            const todos = _crmVisiblePhones.length && _crmVisiblePhones.every(ph => _crmSel.has(ph));
+            bar.append(nEl,
+                mk(todos ? 'Limpar seleção' : ('Selecionar todos (' + _crmVisiblePhones.length + ')'), 'ph-checks', crmSelTodosVisiveis),
+                mk('Adicionar etiqueta', 'ph-tag', () => crmEtqAbrirMassa('add'), 'primary', !n),
+                mk('Remover etiqueta', 'ph-tag-simple', () => crmEtqAbrirMassa('del'), '', !n),
+                mk('Fechar', 'ph-x', () => crmSelToggleMode(false)));
+        }
+        // Modal de etiqueta em massa (adicionar: escolhe/cria; remover: escolhe entre as que os selecionados têm).
+        function crmEtqAbrirMassa(modo) {
+            _crmEtqCss();
+            const phones = [..._crmSel];
+            if (!phones.length) return;
+            const ov = document.createElement('div'); ov.className = 'camp-confirm-ov';
+            const box = document.createElement('div'); box.className = 'camp-confirm'; box.style.cssText = 'max-width:440px;text-align:left;';
+            const h = document.createElement('h4'); h.style.textAlign = 'center';
+            h.textContent = (modo === 'add' ? 'Adicionar etiqueta' : 'Remover etiqueta') + ' · ' + phones.length + (phones.length === 1 ? ' lead' : ' leads');
+            box.appendChild(h);
+            const fechar = () => ov.remove();
+            ov.addEventListener('click', e => { if (e.target === ov) fechar(); });
+            const foot = document.createElement('div'); foot.className = 'camp-confirm-foot'; foot.style.marginTop = '18px';
+            const bC = document.createElement('button'); bC.className = 'camp-btn'; bC.textContent = 'Cancelar'; bC.onclick = fechar;
+            if (modo === 'add') {
+                const inp = document.createElement('input'); inp.className = 'camp-inp'; inp.maxLength = 40;
+                inp.placeholder = 'Ex.: Cabeleireiro, Revendedor…'; inp.setAttribute('list', 'crmEtqMassaList');
+                inp.style.cssText = 'width:100%;box-sizing:border-box;background:var(--card-bg);border:1px solid var(--border);color:var(--text-main);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:14px;outline:none;margin-top:6px;';
+                const dl = document.createElement('datalist'); dl.id = 'crmEtqMassaList';
+                (_chatTags || []).forEach(t => { const o = document.createElement('option'); o.value = t.nome; dl.appendChild(o); });
+                const sug = document.createElement('div'); sug.className = 'clm-etq-sug'; sug.style.marginTop = '10px';
+                (_chatTags || []).forEach(t => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t.nome; b.onclick = () => { inp.value = t.nome; inp.focus(); }; sug.appendChild(b); });
+                const hint = document.createElement('div'); hint.className = 'etq-hint';
+                hint.textContent = (_chatTags || []).length ? 'Escolha uma etiqueta que a loja já usa ou digite um nome novo para criar.' : 'Digite o nome da etiqueta. Ela fica salva para usar de novo.';
+                box.append(inp, dl, sug, hint);
+                const bOk = document.createElement('button'); bOk.className = 'camp-btn primary'; bOk.textContent = 'Adicionar';
+                const ir = async () => {
+                    const nome = inp.value.trim();
+                    if (!nome) { crmToast('Digite o nome da etiqueta.', true); inp.focus(); return; }
+                    bOk.disabled = true; bOk.textContent = 'Salvando…';
+                    try { const n = await crmEtqAplicar(phones, nome); fechar(); crmToast(n ? ('Etiqueta "' + nome + '" adicionada em ' + n + (n === 1 ? ' lead.' : ' leads.')) : 'Esses leads já tinham essa etiqueta.'); crmSelToggleMode(false); }
+                    catch (e) { bOk.disabled = false; bOk.textContent = 'Adicionar'; crmToast('Não consegui salvar a etiqueta: ' + ((e && e.message) || e), true); }
+                };
+                bOk.onclick = ir;
+                inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ir(); } });
+                foot.append(bC, bOk);
+                box.appendChild(foot); ov.appendChild(box); document.body.appendChild(ov);
+                setTimeout(() => inp.focus(), 30);
+            } else {
+                const cont = {};
+                phones.forEach(ph => { const s = crmEtqIdsDo(ph); if (s) s.forEach(id => { cont[id] = (cont[id] || 0) + 1; }); });
+                const ids = Object.keys(cont);
+                const lista = document.createElement('div'); lista.className = 'etq-pick';
+                if (!ids.length) { const p = document.createElement('div'); p.className = 'etq-hint'; p.textContent = 'Nenhum dos leads selecionados tem etiqueta.'; lista.appendChild(p); }
+                ids.forEach(id => {
+                    const t = crmEtqPorId(id); if (!t) return;
+                    const lb = document.createElement('label');
+                    const r = document.createElement('input'); r.type = 'radio'; r.name = 'crmEtqDel'; r.value = id;
+                    const dot = document.createElement('span'); dot.className = 'etq-dot'; dot.style.background = chatSafeColor(t.cor);
+                    const tx = document.createElement('span'); tx.textContent = t.nome + ' (' + cont[id] + ')';
+                    lb.append(r, dot, tx); lista.appendChild(lb);
+                });
+                box.appendChild(lista);
+                const bOk = document.createElement('button'); bOk.className = 'camp-btn danger'; bOk.textContent = 'Remover';
+                bOk.onclick = async () => {
+                    const r = box.querySelector('input[name="crmEtqDel"]:checked');
+                    if (!r) { crmToast('Escolha qual etiqueta remover.', true); return; }
+                    const t = crmEtqPorId(r.value);
+                    bOk.disabled = true; bOk.textContent = 'Removendo…';
+                    try { const n = await crmEtqRemover(phones, r.value); fechar(); crmToast('Etiqueta "' + (t ? t.nome : '') + '" removida de ' + n + (n === 1 ? ' lead.' : ' leads.')); crmSelToggleMode(false); }
+                    catch (e) { bOk.disabled = false; bOk.textContent = 'Remover'; crmToast('Não consegui remover: ' + ((e && e.message) || e), true); }
+                };
+                foot.append(bC, bOk);
+                box.appendChild(foot); ov.appendChild(box); document.body.appendChild(ov);
+            }
+        }
+
+        // ---- Seção "Etiquetas" no detalhe do lead ----
+        function crmEtqRenderLeadBox(lead) {
+            _crmEtqCss();
+            const host = document.getElementById('clmEtiquetas'); if (!host) return;
+            host.textContent = '';
+            const ph = lead.phone;
+            if (!chatL8(lead.rawPhone || ph)) { const e = document.createElement('div'); e.className = 'clm-empty'; e.textContent = 'Lead sem WhatsApp — não dá pra etiquetar.'; host.appendChild(e); return; }
+            const wrap = document.createElement('div'); wrap.className = 'clm-etq';
+            const chips = document.createElement('div'); chips.className = 'clm-etq-chips';
+            const minhas = crmEtqDoLead(lead.rawPhone || ph);
+            if (!minhas.length) { const e = document.createElement('div'); e.className = 'clm-empty'; e.textContent = 'Sem etiqueta. Ex.: Cabeleireiro, Revendedor, Salão.'; chips.appendChild(e); }
+            minhas.forEach(t => {
+                const c = crmEtqChip(t, 'clm-etq-chip');
+                const x = document.createElement('button'); x.type = 'button'; x.title = 'Tirar esta etiqueta'; x.setAttribute('aria-label', 'Tirar a etiqueta ' + t.nome); x.textContent = '×';
+                x.onclick = async () => {
+                    x.disabled = true;
+                    try { await crmEtqRemover([lead.rawPhone || ph], t.id); } catch (e) { crmToast('Não consegui tirar a etiqueta.', true); }
+                    crmEtqRenderLeadBox(lead); renderCrmBoard();
+                };
+                c.appendChild(x); chips.appendChild(c);
+            });
+            const add = document.createElement('div'); add.className = 'clm-etq-add';
+            const inp = document.createElement('input'); inp.maxLength = 40; inp.placeholder = 'Adicionar etiqueta…'; inp.setAttribute('list', 'clmEtqList');
+            const dl = document.createElement('datalist'); dl.id = 'clmEtqList';
+            const temIds = new Set(minhas.map(t => Number(t.id)));
+            const outras = (_chatTags || []).filter(t => !temIds.has(Number(t.id)));
+            outras.forEach(t => { const o = document.createElement('option'); o.value = t.nome; dl.appendChild(o); });
+            const bt = document.createElement('button'); bt.type = 'button';
+            const bi = document.createElement('i'); bi.className = 'ph-bold ph-plus'; bt.append(bi, document.createTextNode(' Adicionar'));
+            const ir = async (nome) => {
+                nome = String(nome || inp.value || '').trim();
+                if (!nome) { inp.focus(); return; }
+                bt.disabled = true;
+                try { await crmEtqAplicar([lead.rawPhone || ph], nome); populateCrmEtqControls(); }
+                catch (e) { crmToast('Não consegui salvar a etiqueta: ' + ((e && e.message) || e), true); }
+                crmEtqRenderLeadBox(lead); renderCrmBoard();
+            };
+            bt.onclick = () => ir();
+            inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ir(); } });
+            add.append(inp, dl, bt);
+            wrap.append(chips, add);
+            if (outras.length) {
+                const sug = document.createElement('div'); sug.className = 'clm-etq-sug';
+                outras.slice(0, 12).forEach(t => { const b = document.createElement('button'); b.type = 'button'; b.textContent = '+ ' + t.nome; b.onclick = () => ir(t.nome); sug.appendChild(b); });
+                wrap.appendChild(sug);
+            }
+            host.appendChild(wrap);
+        }
+
+        // ---- Segmentação por etiqueta (usado por segEval) ----
+        // etq = { inc:[id], modo:'qualquer'|'todas', exc:[id] }
+        function _segEtqAtivo(etq) { return !!(etq && (((etq.inc || []).length) || ((etq.exc || []).length))); }
+        function _segEtqMatch(phone, etq) {
+            const s = _chatConvTags[chatL8(phone)] || new Set();
+            const inc = (etq.inc || []).map(Number), exc = (etq.exc || []).map(Number);
+            if (inc.length && !(etq.modo === 'todas' ? inc.every(i => s.has(i)) : inc.some(i => s.has(i)))) return false;
+            if (exc.length && exc.some(i => s.has(i))) return false;
+            return true;
+        }
+        // Público "Tem etiqueta": todo lead etiquetado que bate com a regra. Por padrão pula quem já
+        // está em atendimento/recebeu disparo (Mensagem 1/2/3, Em contato, Negociando, Perdido) — a
+        // mesma trava anti-repetição das outras segmentações; quem COMPROU só sai se marcar "Só quem
+        // ainda não comprou" (revendedor/salão normalmente já é cliente).
+        const SEG_ETQ_ETAPAS_PULA = ['msg-1', 'msg-2', 'msg-3', 'em-contato', 'negociando', 'perdido'];
+        function _segEvalEtiqueta(regras) {
+            const etq = regras.etq || {}, out = [];
+            if (!(etq.inc || []).length) return out;
+            const buyers = regras.excluir_compradores ? segBuildAgg() : null;
+            const pula = regras.pular_contatados !== false;
+            const config = (typeof getCrmConfig === 'function') ? getCrmConfig() : { columns: [] };
+            const overrides = (typeof getCrmOverrides === 'function') ? getCrmOverrides() : {};
+            Object.keys(_chatConvTags || {}).forEach(l8 => {
+                const s = _chatConvTags[l8]; if (!s || !s.size) return;
+                const tel = (typeof _chatConvTagTel !== 'undefined' && _chatConvTagTel[l8]) || '';
+                const full = normalizeFull(tel);
+                if (!full || full.length < 10) return;
+                if (!_segEtqMatch(full, etq)) return;
+                const key = normalize(full);
+                if (buyers && buyers.has(key)) return;
+                const lead = (crmLeadMapCache && crmLeadMapCache[key]) || crmLeadBy8(full);
+                if (pula) {
+                    let st = overrides[key];
+                    try { if (lead && config.columns && config.columns.length) st = waLeadStageKey(key, lead, config, overrides); } catch (e) {}
+                    if (SEG_ETQ_ETAPAS_PULA.indexOf(st) !== -1) return;
+                }
+                out.push({ name: (lead && lead.name) || '', phone: full, product: (lead && lead.lastProduct) || '' });
+            });
+            return out;
+        }
+        function _segEtqTxt(etq) {
+            if (!_segEtqAtivo(etq)) return '';
+            const nm = ids => (ids || []).map(id => { const t = crmEtqPorId(id); return '"' + (t ? t.nome : '#' + id) + '"'; });
+            const inc = nm(etq.inc), exc = nm(etq.exc);
+            let s = '';
+            if (inc.length) s += 'tem ' + (inc.length > 1 ? (etq.modo === 'todas' ? 'todas: ' : 'qualquer uma: ') : 'a etiqueta ') + inc.join(', ');
+            if (exc.length) s += (s ? ' e ' : '') + 'não tem ' + exc.join(', ');
+            return s;
+        }
+        function _segEtqPickHtml(nome, sel) {
+            const tags = _chatTags || [];
+            if (!tags.length) return '<div class="etq-hint">A loja ainda não tem etiquetas. Abra um lead no CRM e use <b>Etiquetas</b> (ou selecione vários leads e clique em <b>Adicionar etiqueta</b>).</div>';
+            const set = new Set((sel || []).map(Number));
+            return '<div class="etq-pick">' + tags.map(t => '<label><input type="checkbox" name="' + nome + '" value="' + Number(t.id) + '"' + (set.has(Number(t.id)) ? ' checked' : '') + ' onchange="segBuilderPreview()">'
+                + '<span class="etq-dot" style="background:' + chatSafeColor(t.cor) + ';"></span><span>' + escapeHtml(t.nome) + '</span></label>').join('') + '</div>';
+        }
+        function _segEtqLer() {
+            const ids = n => [...document.querySelectorAll('input[name="' + n + '"]:checked')].map(i => Number(i.value));
+            return { inc: ids('segEtqInc'), modo: ((document.getElementById('segEtqModo') || {}).value === 'todas') ? 'todas' : 'qualquer', exc: ids('segEtqExc') };
+        }
+
         function populateCrmRespControls() {
             const sel = document.getElementById('crmRespFilter');
             if (!sel) return;
@@ -27815,6 +28300,7 @@
                     if (tagKey === '__none__') { if (has) continue; }
                     else if (!tset || !tset[tagKey]) continue;
                 }
+                if (!crmEtqPassaFiltro(ph)) continue;
                 if (stageKey === '__any__' || waLeadStageKey(ph, d, config, ov) === stageKey) out.push(ph);
             }
             return out;
@@ -28018,10 +28504,15 @@
 
         function renderCrmBoard() {
             if (typeof _crmPipelineMode !== 'undefined' && _crmPipelineMode === 'lentes') {
+                try { const ef = document.getElementById('crmEtqFilter'); if (ef) ef.style.display = 'none'; const sb = document.getElementById('crmSelBtn'); if (sb) sb.style.display = 'none'; if (_crmSelMode) { _crmSelMode = false; _crmSel.clear(); crmSelBarRender(); } } catch (e) {}
                 renderLentesCrmPipeline();
                 return;
             }
             if (!crmLeadMapCache) return;
+            _crmEtqCss();
+            try { const sb = document.getElementById('crmSelBtn'); if (sb) sb.style.display = ''; } catch (e) {}
+            if (!_crmEtqLoaded) { _crmEtqLoaded = true; crmEtqGarante().then(() => { try { renderCrmBoard(); } catch (e) {} }); }
+            const _vis = [];
             const leadMap = crmLeadMapCache;
             const phoneList = Object.keys(leadMap);
             const config = getCrmConfig();
@@ -28064,7 +28555,10 @@
                     const tset = _crmCampaignTags[ph];
                     if (!tset || !tset[_crmCampFilter]) return;
                 }
+                // Filtro por etiqueta manual (23/10/2026)
+                if (!crmEtqPassaFiltro(ph)) return;
                 matchCount++;
+                _vis.push(ph);
                 let targetKey;
                 // Regra: quem COMPROU vai SEMPRE pra Convertido — mesmo que tenha sido movido à
                 // mão pra outra coluna antes de comprar (ex.: o disparo move pra "Em contato" e
@@ -28090,6 +28584,7 @@
             if (cntEl) cntEl.textContent = q ? (matchCount + ' resultado' + (matchCount === 1 ? '' : 's')) : '';
 
             Object.values(buckets).forEach(arr => arr.sort((a,b) => (b.lastDate||'').localeCompare(a.lastDate||'')));
+            _crmVisiblePhones = _vis;
 
             const board = document.getElementById('crmBoard');
             board.textContent = '';
@@ -28163,10 +28658,18 @@
                         card.draggable = true;
                         card.dataset.phone = lead.phone;
                         card.style.cursor = 'pointer';
+                        if (_crmSelMode) {
+                            card.draggable = false;
+                            if (_crmSel.has(lead.phone)) card.classList.add('crm-card-sel');
+                            const ck = document.createElement('span'); ck.className = 'crm-card-chk';
+                            const cki = document.createElement('i'); cki.className = 'ph-bold ph-check'; ck.appendChild(cki);
+                            card.appendChild(ck);
+                        }
 
                         // Clique no card abre os detalhes do cliente (ignora cliques em links/botões)
                         card.addEventListener('click', (e) => {
                             if (e.target.closest('a, button')) return;
+                            if (_crmSelMode) { crmSelToggle(lead.phone, card); return; }
                             openCrmLeadModal(lead, col.key);
                         });
 
@@ -28241,6 +28744,14 @@
                                 tagsWrap.appendChild(b);
                             });
                             card.appendChild(tagsWrap);
+                        }
+
+                        // Etiquetas manuais (23/10/2026)
+                        const _etqs = crmEtqDoLead(lead.rawPhone || lead.phone);
+                        if (_etqs.length) {
+                            const ew = document.createElement('div'); ew.className = 'crm-etq-row';
+                            _etqs.slice(0, 6).forEach(t => ew.appendChild(crmEtqChip(t)));
+                            card.appendChild(ew);
                         }
 
                         // Seletor de responsável (atribuição rápida ao time comercial)
@@ -28345,6 +28856,8 @@
 
             try { populateCrmRespControls(); } catch(e) {}
             try { populateCrmCampControls(); } catch(e) {}
+            try { populateCrmEtqControls(); } catch(e) {}
+            try { crmSelBarRender(); } catch(e) {}
             const _tp = document.getElementById('crmTeamPanel');
             if (_tp && _tp.style.display && _tp.style.display !== 'none') { try { renderCrmTeamPanel(); } catch(e) {} }
         }
