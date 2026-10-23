@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>API do Lojista — Provou Levou</title>
+<meta name="robots" content="noindex">
+<style>
+  :root { --bg:#fafaf9; --card:#fff; --ink:#18181b; --muted:#6b6b76; --line:#e7e5e4; --brand:#7c3aed; --code:#f4f2fb; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 Inter, system-ui, -apple-system, sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 40px 16px 80px; }
+  h1 { font-size: 28px; margin: 0 0 6px; letter-spacing: -.02em; }
+  h2 { font-size: 19px; margin: 40px 0 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+  h3 { font-size: 15px; margin: 22px 0 6px; }
+  p, li { color: #3f3f46; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  code { background: var(--code); padding: 1px 6px; border-radius: 5px; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre { background: #18181b; color: #f4f4f5; padding: 14px 16px; border-radius: 12px; overflow-x: auto; font: 12.5px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre code { background: none; padding: 0; color: inherit; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 8px 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: #f5f5f4; font-weight: 600; white-space: nowrap; }
+  td:first-child { white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+  .tag { display: inline-block; background: var(--brand); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-right: 6px; vertical-align: 2px; }
+  .nota { background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--brand); border-radius: 10px; padding: 12px 14px; margin: 14px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>API do Lojista</h1>
+  <p class="sub">Provou Levou · leitura dos dados do provador, dos disparos e dos pedidos com a atribuição já calculada. Versão 1 — 23/10/2026.</p>
+
+  <h2>Acesso</h2>
+  <p>Todas as chamadas são <b>GET</b> (ou POST com JSON) para:</p>
+  <pre><code>https://quantic-supabase.k5jwra.easypanel.host/rest/v1/rpc/&lt;endpoint&gt;</code></pre>
+  <p>Envie sempre:</p>
+  <ul>
+    <li>Header <code>apikey</code> com a chave pública abaixo (é a mesma para todas as lojas, só libera o acesso ao servidor):
+      <pre><code>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.pCFnSnrlSUM2EwXi9gxAegpoC-9U0Mjx3iAtROR-E20</code></pre></li>
+    <li>Parâmetro <code>p_chave</code> com a <b>chave da sua loja</b> (começa com <code>plk_live_</code>, enviada à parte pelo Provou Levou). É ela que identifica a loja: guarde como senha.</li>
+  </ul>
+  <p>Parâmetros de período (todos os endpoints): <code>p_inicio</code> e <code>p_fim</code> no formato <code>AAAA-MM-DD</code>, dias no horário de Brasília, inclusive. Sem eles, vêm os últimos 30 dias.</p>
+  <p>Paginação: <code>p_limite</code> (padrão 1000, máximo 5000) e <code>p_offset</code>. Formato: JSON por padrão; para CSV envie o header <code>Accept: text/csv</code>.</p>
+
+  <h2><span class="tag">GET</span>pl_api_resumo</h2>
+  <p>Uma linha por dia com os números do painel. O jeito mais simples de alimentar a planilha.</p>
+  <pre><code>curl "https://quantic-supabase.k5jwra.easypanel.host/rest/v1/rpc/pl_api_resumo?p_chave=SUA_CHAVE&amp;p_inicio=2026-10-01&amp;p_fim=2026-10-31" \
+  -H "apikey: CHAVE_PUBLICA" -H "Accept: text/csv"</code></pre>
+  <table>
+    <tr><th>Campo</th><th>O que é</th></tr>
+    <tr><td>dia</td><td>Data (Brasília)</td></tr>
+    <tr><td>pedidos_pagos / faturamento</td><td>Todos os pedidos pagos da loja no dia</td></tr>
+    <tr><td>pedidos_pos_prova / faturamento_pos_prova</td><td>Pedidos de clientes que usaram o provador <b>antes</b> de comprar (mesmo telefone), sem limite de tempo</td></tr>
+    <tr><td>faturamento_pos_prova_24h</td><td>Idem, só quando a última prova foi até 24 h antes do pedido</td></tr>
+    <tr><td>faturamento_pos_prova_7d</td><td>Idem, até 7 dias</td></tr>
+    <tr><td>pedidos_recuperados_disparo / faturamento_recuperado_disparo</td><td>Pedidos de quem recebeu (entregue ou lida) uma mensagem de WhatsApp da loja até 30 dias antes</td></tr>
+    <tr><td>provas / clientes_que_provaram</td><td>Provas feitas no dia e telefones distintos</td></tr>
+    <tr><td>disparos_enviados / disparos_entregues</td><td>Mensagens de campanha e automação enviadas no dia e quantas foram entregues ou lidas</td></tr>
+  </table>
+  <div class="nota">Um mesmo pedido pode estar em <b>pós-prova</b> e em <b>recuperado por disparo</b> ao mesmo tempo: as duas colunas não devem ser somadas. Para modelos de atribuição próprios, use o endpoint de pedidos, que traz os tempos de cada contato.</div>
+
+  <h2><span class="tag">GET</span>pl_api_pedidos</h2>
+  <p>Cada pedido da loja com a jornada no Provou Levou. Use para montar a sua própria janela ou ponderação de atribuição.</p>
+  <p>Parâmetro extra: <code>p_so_pagos</code> (padrão <code>true</code>; <code>false</code> traz todos os status).</p>
+  <table>
+    <tr><th>Campo</th><th>O que é</th></tr>
+    <tr><td>pedido_id, data, valor, status, pago</td><td>Dados do pedido na plataforma da loja</td></tr>
+    <tr><td>cliente_nome, cliente_email, telefone</td><td>Cliente (telefone só com dígitos)</td></tr>
+    <tr><td>provou_antes</td><td>O cliente usou o provador antes desse pedido</td></tr>
+    <tr><td>primeira_prova / ultima_prova</td><td>Data da primeira e da última prova antes do pedido</td></tr>
+    <tr><td>horas_desde_ultima_prova</td><td>Tempo entre a última prova e o pedido, em horas</td></tr>
+    <tr><td>ultimo_produto_provado</td><td>Produto da última prova</td></tr>
+    <tr><td>recuperado_disparo</td><td>Recebeu mensagem entregue ou lida até 30 dias antes do pedido</td></tr>
+    <tr><td>ultimo_disparo / ultimo_disparo_tipo / dias_desde_ultimo_disparo</td><td>A mensagem mais recente antes do pedido (tipo: <code>campanha</code>, <code>automacao</code> ou <code>individual</code>)</td></tr>
+  </table>
+
+  <h2><span class="tag">GET</span>pl_api_provas</h2>
+  <p>Cada prova feita no provador: <code>prova_id, data, telefone, nome, email, produto, produto_url</code>. A <code>produto_url</code> mantém os parâmetros de campanha da visita (gclid, utm…), útil para cruzar com a mídia.</p>
+
+  <h2><span class="tag">GET</span>pl_api_disparos</h2>
+  <p>Cada mensagem de WhatsApp enviada: <code>disparo_id, data, telefone, tipo, template, status, erro</code>. Status: <code>sent</code>, <code>delivered</code>, <code>read</code>, <code>failed</code>.</p>
+
+  <h2>Google Sheets (Apps Script)</h2>
+  <p>Na planilha: Extensões → Apps Script, cole o código, troque a chave e rode <code>atualizarResumo</code>. Para atualizar sozinho, crie um acionador diário.</p>
+  <pre><code>const URL = 'https://quantic-supabase.k5jwra.easypanel.host/rest/v1/rpc/';
+const PUBLICA = 'COLE_A_CHAVE_PUBLICA';
+const CHAVE = 'COLE_A_CHAVE_DA_LOJA';
+
+function buscar(endpoint, inicio, fim) {
+  const url = URL + endpoint + '?p_chave=' + encodeURIComponent(CHAVE) + '&amp;p_inicio=' + inicio + '&amp;p_fim=' + fim + '&amp;p_limite=5000';
+  const r = UrlFetchApp.fetch(url, { headers: { apikey: PUBLICA, Accept: 'text/csv' }, muteHttpExceptions: true });
+  if (r.getResponseCode() !== 200) throw new Error(r.getContentText());
+  return Utilities.parseCsv(r.getContentText());
+}
+
+function atualizarResumo() {
+  const hoje = new Date(), ini = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  const f = d =&gt; Utilities.formatDate(d, 'America/Sao_Paulo', 'yyyy-MM-dd');
+  const linhas = buscar('pl_api_resumo', f(ini), f(hoje));
+  const aba = SpreadsheetApp.getActive().getSheetByName('Provou Levou') || SpreadsheetApp.getActive().insertSheet('Provou Levou');
+  aba.clearContents();
+  aba.getRange(1, 1, linhas.length, linhas[0].length).setValues(linhas);
+}</code></pre>
+
+  <h2>Erros</h2>
+  <table>
+    <tr><th>HTTP</th><th>Quando</th></tr>
+    <tr><td>403</td><td>Chave da loja errada ou desativada</td></tr>
+    <tr><td>401</td><td>Faltou o header <code>apikey</code></td></tr>
+    <tr><td>400</td><td>Data em formato errado (use AAAA-MM-DD)</td></tr>
+  </table>
+  <p style="margin-top:32px;color:var(--muted)">Dúvidas: contato@provoulevou.com.br · WhatsApp (11) 93803-4714</p>
+</main>
+</body>
+</html>
