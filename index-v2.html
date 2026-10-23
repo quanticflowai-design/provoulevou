@@ -223,13 +223,29 @@
       position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .15; mix-blend-mode: overlay;
       background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.5 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
     }
-    .stage-shot {
-      max-width: 1100px; margin: 0 auto;
-      border-radius: 14px 14px 0 0; overflow: hidden;
-      box-shadow: 0 -2px 0 rgba(255,255,255,.18), 0 30px 80px -20px rgba(8,3,20,.7);
-      background: #fff;
+    /* depoimento em video, em pe, no centro do palco */
+    .stage-video {
+      position: relative;
+      width: min(340px, 78%); aspect-ratio: 9 / 16;
+      margin: 0 auto clamp(28px, 5vw, 72px);
+      border-radius: 18px; overflow: hidden; background: #0d0b16;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.18), 0 30px 80px -20px rgba(8,3,20,.75);
     }
-    .stage-shot img { width: 100%; height: auto; }
+    .stage-video video { width: 100%; height: 100%; object-fit: cover; }
+    .som {
+      position: absolute; left: 12px; bottom: 12px;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 14px; border-radius: 100px; cursor: pointer;
+      border: 1px solid rgba(255,255,255,.26); background: rgba(10,10,10,.55);
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+      color: #fff; font-size: 14px; -webkit-text-stroke-width: 0;
+      transition: background .25s ease, border-color .25s ease;
+    }
+    .som:hover { background: rgba(124,58,237,.65); border-color: rgba(167,139,250,.6); }
+    .som svg { width: 15px; height: 15px; }
+    .som .off { display: none; }
+    .som[aria-pressed="true"] .on { display: none; }
+    .som[aria-pressed="true"] .off { display: block; }
 
     .rise { animation: rise .8s cubic-bezier(.22,1,.36,1) both; }
     .rise.d1 { animation-delay: .06s; } .rise.d2 { animation-delay: .14s; } .rise.d3 { animation-delay: .22s; } .rise.d4 { animation-delay: .32s; }
@@ -354,8 +370,13 @@
             <span class="blob b3" aria-hidden="true"></span>
             <span class="blob b4" aria-hidden="true"></span>
             <span class="grain" aria-hidden="true"></span>
-            <div class="stage-shot">
-              <img src="assets/demo/dashboard-painel-lojista.png" alt="Painel do lojista Provou Levou com faturamento atribuído ao provador, provas e leads" width="1896" height="897" loading="eager">
+            <div class="stage-video">
+              <video id="depoVideo" src="assets/videos/depoimento.mp4" poster="assets/videos/depoimento.webp" muted loop playsinline autoplay preload="metadata"></video>
+              <button type="button" class="som" id="depoSom" aria-pressed="false" aria-label="Ativar som do depoimento">
+                <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M23 9l-6 6M17 9l6 6"/></svg>
+                <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19.5 5.5a9 9 0 0 1 0 13"/></svg>
+                <span>Ouvir depoimento</span>
+              </button>
             </div>
           </div>
         </div>
@@ -376,6 +397,20 @@
         btn.addEventListener('click', function () { set(!panel.classList.contains('open')); });
         panel.addEventListener('click', function (e) { if (e.target.closest('a')) set(false); });
         document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
+      }
+
+      var v = document.getElementById('depoVideo');
+      var som = document.getElementById('depoSom');
+      if (v && som) {
+        som.addEventListener('click', function () {
+          var ligar = v.muted;
+          v.muted = !ligar;
+          if (ligar) { v.volume = 0.5; v.currentTime = 0; }
+          som.setAttribute('aria-pressed', ligar ? 'true' : 'false');
+          som.setAttribute('aria-label', ligar ? 'Desativar som do depoimento' : 'Ativar som do depoimento');
+          som.querySelector('span').textContent = ligar ? 'Som ligado' : 'Ouvir depoimento';
+          var p = v.play(); if (p && p.catch) p.catch(function () {});
+        });
       }
 
       var bar = document.getElementById('announce');
