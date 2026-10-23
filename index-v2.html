@@ -324,7 +324,7 @@
     @media (prefers-reduced-motion: reduce) { .pl-depo { transition: none; } }
 
     /* ─── LOGOS DAS MARCAS ─── */
-    .marcas { padding: clamp(80px, 8.5vw, 128px) 0 clamp(64px, 7vw, 104px); text-align: center; }
+    .marcas { padding: clamp(80px, 8.5vw, 128px) 0 clamp(24px, 3vw, 40px); text-align: center; }
     .marcas-cap { font-size: clamp(15px, 1.2vw, 17px); color: var(--ink-soft); }
     .marcas-faixa {
       position: relative; overflow: hidden; margin-top: clamp(28px, 3vw, 44px);
@@ -344,6 +344,55 @@
     @media (prefers-reduced-motion: reduce) {
       .marcas-trilho { animation: none; flex-wrap: wrap; justify-content: center; width: auto; row-gap: 28px; }
       .marcas-trilho [aria-hidden="true"] { display: none; }
+    }
+
+    /* ─── NUMEROS (inspirado no BoldStats) ─── */
+    .numeros-wrap { display: flex; flex-direction: column; gap: clamp(48px, 6vw, 80px); padding-block: clamp(48px, 5vw, 64px) clamp(72px, 8vw, 112px); }
+    .numeros-topo {
+      display: flex; justify-content: space-between; align-items: center; gap: 32px;
+      padding-bottom: 20px; border-bottom: 1px solid var(--line);
+    }
+    .numeros-destaque { display: flex; align-items: baseline; gap: 20px 28px; min-width: 0; }
+    .numeros-grande {
+      font-size: clamp(5rem, 9.5vw, 8.25rem); line-height: .9; letter-spacing: -0.06em;
+      -webkit-text-stroke-width: 0.012em; color: var(--ink); white-space: nowrap;
+    }
+    .numeros-grande small { font-size: .45em; letter-spacing: -0.03em; margin-right: .06em; }
+    .numeros-texto { max-width: 21rem; }
+    .numeros-texto h2 {
+      font-family: var(--strong); font-weight: 500; font-size: 20px; line-height: 1.25;
+      letter-spacing: -0.02em; -webkit-text-stroke-width: 0; color: var(--ink);
+    }
+    .numeros-texto p { margin-top: 8px; font-size: 14.5px; line-height: 1.55; color: var(--ink-soft); text-wrap: pretty; }
+    .numeros-foto { margin: 0; flex-shrink: 0; width: min(384px, 34%); }
+    .numeros-foto img { width: 100%; height: 208px; object-fit: cover; border-radius: 10px; }
+    .numeros-foto figcaption { margin-top: 8px; font-size: 12.5px; color: var(--ink-soft); }
+
+    .numeros-linha { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+    .numeros-linha div { display: grid; gap: 10px; align-content: start; }
+    .numeros-linha div:nth-child(2) { justify-self: center; }
+    .numeros-linha div:nth-child(3) { justify-self: end; }
+    .numeros-linha strong {
+      font-weight: 300; font-size: clamp(2.25rem, 3.6vw, 3rem); line-height: 1; letter-spacing: -0.05em;
+      -webkit-text-stroke-width: 0.012em; color: var(--ink); font-variant-numeric: tabular-nums;
+    }
+    .numeros-linha span {
+      font-family: var(--strong); font-weight: 500; font-size: 11.5px; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--ink-soft); -webkit-text-stroke-width: 0;
+    }
+    .numeros-nota { font-size: 12.5px; color: var(--ink-soft); margin-top: -32px; }
+
+    @media (max-width: 900px) {
+      .numeros-topo { flex-direction: column; align-items: stretch; }
+      .numeros-foto { width: 100%; }
+      .numeros-foto img { height: 240px; }
+    }
+    @media (max-width: 640px) {
+      .numeros-destaque { flex-direction: column; gap: 16px; }
+      .numeros-grande { font-size: clamp(4rem, 21vw, 5.5rem); }
+      .numeros-linha { grid-template-columns: 1fr; gap: 28px; }
+      .numeros-linha div:nth-child(n) { justify-self: start; }
+      .numeros-nota { margin-top: -16px; }
     }
 
     .rise { animation: rise .8s cubic-bezier(.22,1,.36,1) both; }
@@ -547,6 +596,41 @@
           <img src="assets/marcas-mono/oculosemfoco.webp" alt="" loading="lazy" decoding="async">
           </span>
         </div>
+      </div>
+    </section>
+
+    <!-- ─── NUMEROS ─── -->
+    <section class="numeros" id="cases" aria-labelledby="numerosTitulo">
+      <div class="container numeros-wrap">
+        <div class="numeros-topo">
+          <div class="numeros-destaque">
+            <span class="numeros-grande">+<small>R$</small>2,5 mi</span>
+            <div class="numeros-texto">
+              <h2 id="numerosTitulo">Faturamento atribuído ao provador</h2>
+              <p>Somando todas as lojas. Cada venda só entra quando o pedido acontece depois da prova do mesmo cliente.</p>
+            </div>
+          </div>
+          <figure class="numeros-foto">
+            <img src="assets/placa-100k.webp" alt="Acessórios Style e Cacife Brand recebendo a placa de R$ 100 mil em vendas pelo provador" width="640" height="427" loading="lazy" decoding="async">
+            <figcaption>Entrega das placas de R$ 100 mil · julho de 2026</figcaption>
+          </figure>
+        </div>
+
+        <div class="numeros-linha">
+          <div>
+            <strong>14,32%</strong>
+            <span>Conversão de quem prova</span>
+          </div>
+          <div>
+            <strong>51%</strong>
+            <span>Compram em até 1 hora</span>
+          </div>
+          <div>
+            <strong>+10 mil</strong>
+            <span>Clientes provaram</span>
+          </div>
+        </div>
+        <p class="numeros-nota">Conversão medida na Cacife Brand, 7,5x o benchmark de moda online no Brasil (1,9%). Compra em até 1 hora: clientes de óticas.</p>
       </div>
     </section>
   </main>
