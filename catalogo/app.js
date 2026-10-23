@@ -606,7 +606,10 @@
                 brand: '#DDBB80', dark: '#C49A5E', soft: 'rgba(221,187,128,.12)', on: '#000000' },
     // Ótica Flávia — dourado sobre marrom texturizado -> fundo marrom do logo (tema escuro); dourado com texto preto (~9,9:1)
     oticaflavia: { bg: '#3D2410', card: '#4A2E17', line: 'rgba(217,172,69,.28)',
-                brand: '#D9AC45', dark: '#B88E2E', soft: 'rgba(217,172,69,.12)', on: '#000000' }
+                brand: '#D9AC45', dark: '#B88E2E', soft: 'rgba(217,172,69,.12)', on: '#000000' },
+    // Domna Eyewear — dourado sobre bordô texturizado chapado -> fundo = bordô do logo (#460A23, tema escuro); dourado com texto preto
+    domnaeyewear: { bg: '#460A23', card: '#53112D', line: 'rgba(232,197,129,.28)',
+                brand: '#E8C581', dark: '#CDA764', soft: 'rgba(232,197,129,.12)', on: '#000000' }
   };
 
   // ─────────── Tema ───────────
