@@ -60,6 +60,9 @@
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
+    /* a Helvetica Light so tem um peso: o contorno fino engrossa o traco sem trocar a fonte,
+       e o espacamento negativo deixa as letras mais juntas */
+    body * { letter-spacing: -0.015em; -webkit-text-stroke: 0.02em currentColor; }
     img, video { max-width: 100%; display: block; }
     a { color: inherit; }
     button { font: inherit; }
@@ -157,7 +160,8 @@
       font-weight: 300;
       font-size: clamp(2.6rem, 5.4vw, 5.25rem);
       line-height: 1.12;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.04em;
+      -webkit-text-stroke-width: 0.016em;
       color: var(--ink);
       max-width: 14em;
       margin: 0 auto;
