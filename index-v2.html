@@ -364,15 +364,6 @@
       letter-spacing: -0.02em; -webkit-text-stroke-width: 0; color: var(--ink);
     }
     .numeros-texto p { margin-top: 8px; font-size: 14.5px; line-height: 1.55; color: var(--ink-soft); text-wrap: pretty; }
-    /* degrade quente: azul-gelo embaixo a esquerda, lilas e magenta no meio, vermelho-laranja no canto */
-    .numeros-foto {
-      flex-shrink: 0; width: min(384px, 34%); height: 208px; border-radius: 10px;
-      background:
-        radial-gradient(95% 85% at 100% 0%, #ff3b0f 0%, rgba(255,59,15,.55) 30%, rgba(255,59,15,0) 62%),
-        radial-gradient(120% 95% at 0% 100%, #dbe8f3 0%, rgba(219,232,243,.85) 30%, rgba(219,232,243,0) 68%),
-        linear-gradient(205deg, #ff1e66 0%, #f02aa8 24%, #e05ae0 46%, #cfa8ef 70%, #d6e2f2 100%);
-    }
-
     .numeros-linha { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
     .numeros-linha div { display: grid; gap: 10px; align-content: start; }
     .numeros-linha div:nth-child(2) { justify-self: center; }
@@ -389,8 +380,6 @@
 
     @media (max-width: 900px) {
       .numeros-topo { flex-direction: column; align-items: stretch; }
-      .numeros-foto { width: 100%; }
-      .numeros-foto { height: 240px; }
     }
     @media (max-width: 640px) {
       .numeros-destaque { flex-direction: column; gap: 16px; }
@@ -615,7 +604,6 @@
               <p>Somando todas as lojas. Cada venda só entra quando o pedido acontece depois da prova do mesmo cliente.</p>
             </div>
           </div>
-          <div class="numeros-foto" aria-hidden="true"></div>
         </div>
 
         <div class="numeros-linha">
