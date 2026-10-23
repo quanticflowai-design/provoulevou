@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Provador Virtual com IA para Moda e Óculos | Provou Levou</title>
+  <meta name="description" content="Provador virtual com IA para moda e óculos. Seu cliente prova a peça na própria foto, direto na página do produto, e cada prova vira lead no WhatsApp. Teste grátis por 7 dias.">
+  <meta name="theme-color" content="#140a2e">
+  <link rel="icon" type="image/jpeg" href="assets/favicon.jpg">
+
+  <link rel="preload" as="font" type="font/ttf" href="helveticanowdisplay-medium.ttf" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    @font-face {
+      font-family: 'HelveticaNow';
+      src: url('helveticanowdisplay-medium.ttf') format('truetype');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    /* Layout: nav branca em container de 1280px; abaixo, um cartao de palco com degrade roxo vivo
+       que ocupa quase a tela inteira, titulo serifado centralizado e duas ancoras no rodape do cartao. */
+    :root {
+      --paper: #ffffff;
+      --ink: #0e0b18;
+      --ink-soft: #4a4560;
+      --chip: #f2eff8;
+      --night: #140a2e;
+      --violet: #7c3aed;
+      --lilac: #a78bfa;
+      --deep: #6d28d9;
+
+      --display: 'Instrument Serif', 'Times New Roman', Georgia, serif;
+      --sans: 'HelveticaNow', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+      --container: 1280px;
+      --gutter-l: max(24px, env(safe-area-inset-left, 0px));
+      --gutter-r: max(24px, env(safe-area-inset-right, 0px));
+      color-scheme: light;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: var(--sans);
+      font-weight: 500;
+      background: var(--paper);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    img, video { max-width: 100%; display: block; }
+    a { color: inherit; }
+    :focus-visible { outline: 2px solid var(--violet); outline-offset: 3px; border-radius: 6px; }
+
+    .container {
+      width: 100%;
+      max-width: calc(var(--container) + 48px);
+      margin: 0 auto;
+      padding-left: var(--gutter-l);
+      padding-right: var(--gutter-r);
+    }
+
+    /* ─── HEADER ─── */
+    .site-header { position: relative; z-index: 20; background: var(--paper); }
+    .nav {
+      height: 84px;
+      display: flex;
+      align-items: center;
+      gap: 40px;
+    }
+    .nav-brand { display: flex; align-items: center; flex-shrink: 0; }
+    .nav-brand img { height: 32px; width: auto; }
+
+    .nav-links { display: flex; align-items: center; gap: 30px; list-style: none; }
+    .nav-links a {
+      font-size: 15px;
+      color: var(--ink);
+      text-decoration: none;
+      letter-spacing: -0.01em;
+      transition: color .2s ease;
+    }
+    .nav-links a:hover { color: var(--violet); }
+
+    .nav-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .nav-login {
+      font-size: 15px; color: var(--ink); text-decoration: none;
+      padding: 12px 16px; letter-spacing: -0.01em; transition: color .2s ease;
+    }
+    .nav-login:hover { color: var(--violet); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--sans); font-size: 15px; font-weight: 500; letter-spacing: -0.01em;
+      padding: 13px 22px; border-radius: 8px; border: 0;
+      text-decoration: none; white-space: nowrap; cursor: pointer;
+      transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+    .btn-soft { background: var(--chip); color: var(--ink); }
+    .btn-soft:hover { background: #e7e1f4; }
+    .btn-dark { background: var(--night); color: #fff; }
+    .btn-dark:hover { background: var(--deep); box-shadow: 0 10px 24px -12px rgba(109,40,217,.8); }
+
+    .nav-toggle {
+      display: none; width: 44px; height: 44px; border: 0; border-radius: 8px;
+      background: var(--chip); cursor: pointer; align-items: center; justify-content: center;
+    }
+    .nav-toggle span, .nav-toggle span::before, .nav-toggle span::after {
+      content: ''; display: block; width: 18px; height: 1.6px; background: var(--ink); position: relative;
+      transition: transform .25s ease, background .25s ease;
+    }
+    .nav-toggle span::before { position: absolute; top: -6px; }
+    .nav-toggle span::after { position: absolute; top: 6px; }
+    .nav-toggle[aria-expanded="true"] span { background: transparent; }
+    .nav-toggle[aria-expanded="true"] span::before { transform: translateY(6px) rotate(45deg); }
+    .nav-toggle[aria-expanded="true"] span::after { transform: translateY(-6px) rotate(-45deg); }
+
+    .mob-panel {
+      display: none;
+      position: absolute; left: 12px; right: 12px; top: 76px;
+      background: var(--paper); border-radius: 16px; padding: 12px;
+      box-shadow: 0 24px 60px -20px rgba(20,10,46,.35), 0 0 0 1px rgba(14,11,24,.06);
+    }
+    .mob-panel.open { display: grid; gap: 4px; }
+    .mob-panel a:not(.btn) {
+      font-size: 17px; text-decoration: none; padding: 14px 12px; border-radius: 10px;
+    }
+    .mob-panel a:not(.btn):hover { background: var(--chip); }
+    .mob-panel .btn { justify-content: center; margin-top: 6px; padding: 15px 22px; }
+
+    /* ─── HERO ─── */
+    .hero { padding: 0 12px 12px; }
+    .hero-card {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      border-radius: 28px;
+      min-height: clamp(600px, calc(100svh - 96px), 920px);
+      display: flex;
+      flex-direction: column;
+      color: #fff;
+      background: #2a0f6b;
+    }
+
+    /* fundo: base em diagonal + manchas de luz que derivam devagar */
+    .hero-bg {
+      position: absolute; inset: 0; z-index: -1; overflow: hidden;
+      background: linear-gradient(118deg, #6a2ae0 0%, #4c1d95 30%, #24104f 58%, #120828 82%, #0c0619 100%);
+    }
+    .blob { position: absolute; border-radius: 50%; will-change: transform; }
+    .b1 { /* luz lilas no canto de cima */
+      width: 78%; aspect-ratio: 1; left: -26%; top: -52%;
+      background: radial-gradient(circle, rgba(196,170,255,.95) 0%, rgba(167,139,250,.55) 30%, rgba(167,139,250,0) 66%);
+      animation: drift-1 22s ease-in-out infinite alternate;
+    }
+    .b2 { /* violeta saturado no meio-esquerda */
+      width: 72%; aspect-ratio: 1; left: -8%; top: 18%;
+      background: radial-gradient(circle, rgba(124,58,237,.95) 0%, rgba(124,58,237,.45) 34%, rgba(124,58,237,0) 66%);
+      animation: drift-2 27s ease-in-out infinite alternate;
+    }
+    .b3 { /* brilho magenta baixo, o "acento quente" */
+      width: 56%; aspect-ratio: 1; left: 30%; bottom: -62%;
+      background: radial-gradient(circle, rgba(232,121,249,.62) 0%, rgba(192,38,211,.28) 36%, rgba(192,38,211,0) 66%);
+      animation: drift-3 19s ease-in-out infinite alternate;
+    }
+    .b4 { /* indigo profundo a direita, segura o contraste */
+      width: 84%; aspect-ratio: 1; right: -36%; top: -24%;
+      background: radial-gradient(circle, rgba(10,4,26,.9) 0%, rgba(14,6,34,.55) 40%, rgba(14,6,34,0) 68%);
+      animation: drift-4 31s ease-in-out infinite alternate;
+    }
+    .b5 { /* reflexo lilas pequeno que cruza a direita */
+      width: 34%; aspect-ratio: 1; right: 6%; top: 8%;
+      background: radial-gradient(circle, rgba(167,139,250,.38) 0%, rgba(167,139,250,0) 64%);
+      animation: drift-5 24s ease-in-out infinite alternate;
+    }
+    @keyframes drift-1 { to { transform: translate(22%, 14%) scale(1.16); } }
+    @keyframes drift-2 { to { transform: translate(14%, -18%) scale(1.22); } }
+    @keyframes drift-3 { to { transform: translate(-26%, -14%) scale(1.12); } }
+    @keyframes drift-4 { to { transform: translate(-10%, 16%) scale(1.08); } }
+    @keyframes drift-5 { to { transform: translate(-60%, 70%) scale(1.3); } }
+
+    .hero-grain {
+      position: absolute; inset: 0; pointer-events: none; opacity: .16; mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.5 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+    }
+    .hero-shade { /* escurece a base pra leitura do rodape do cartao */
+      position: absolute; inset: auto 0 0 0; height: 42%; pointer-events: none;
+      background: linear-gradient(to top, rgba(12,6,25,.45), rgba(12,6,25,0));
+    }
+
+    .hero-center {
+      flex: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: clamp(72px, 11vh, 132px) var(--gutter-r) 48px var(--gutter-l);
+    }
+    .hero-eyebrow {
+      font-family: var(--sans);
+      font-size: clamp(12px, 1.08vw, 16px);
+      font-weight: 500;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.88);
+      margin-bottom: clamp(28px, 4.6vw, 72px);
+      text-wrap: balance;
+    }
+    .hero-title {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: clamp(3.4rem, 7.6vw, 9.25rem);
+      line-height: .92;
+      letter-spacing: -0.035em;
+      color: #fff;
+      text-wrap: balance;
+    }
+    .hero-title em {
+      font-style: italic;
+      background: linear-gradient(100deg, #ffffff 10%, #e4d9ff 55%, #f5c9ff 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      padding-right: .06em;
+    }
+
+    .hero-bottom {
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 32px;
+      padding-bottom: clamp(32px, 5vw, 72px);
+    }
+    .hero-proof { max-width: 30rem; display: grid; gap: 16px; justify-items: start; }
+    .rating {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 10px; border-radius: 7px;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.22);
+      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+      font-family: 'Inter', var(--sans); font-size: 12.5px; font-weight: 500; color: rgba(255,255,255,.9);
+    }
+    .rating svg { width: 13px; height: 13px; fill: #fff; }
+    .rating .stars { display: inline-flex; gap: 2px; }
+    .hero-lede {
+      font-family: 'Inter', var(--sans);
+      font-size: clamp(15px, 1.12vw, 17px);
+      font-weight: 400;
+      line-height: 1.6;
+      color: rgba(255,255,255,.88);
+    }
+
+    .demo-card {
+      display: grid; grid-template-columns: minmax(0,1fr) 58px; align-items: center; gap: 18px;
+      width: min(340px, 100%);
+      padding: 12px 12px 12px 20px;
+      border-radius: 14px;
+      text-decoration: none; color: #fff;
+      background: rgba(20,10,46,.5);
+      border: 1px solid rgba(255,255,255,.14);
+      -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+      box-shadow: 0 20px 40px -24px rgba(0,0,0,.7);
+      transition: transform .3s ease, background .3s ease, border-color .3s ease;
+    }
+    .demo-card:hover { transform: translateY(-3px); background: rgba(40,18,90,.6); border-color: rgba(167,139,250,.45); }
+    .demo-card strong { display: block; font-size: 19px; font-weight: 500; line-height: 1.2; letter-spacing: -0.015em; }
+    .demo-card small {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 8px;
+      font-family: 'Inter', var(--sans); font-size: 12.5px; font-weight: 400; color: rgba(255,255,255,.66);
+    }
+    .demo-card small svg { width: 12px; height: 12px; transition: transform .3s ease; }
+    .demo-card:hover small svg { transform: translateX(3px); }
+    .demo-thumb {
+      width: 58px; aspect-ratio: 9 / 16; border-radius: 9px; overflow: hidden; background: #0d0b16;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.18);
+    }
+    .demo-thumb video { width: 100%; height: 100%; object-fit: cover; }
+
+    /* entrada: o conteudo ja esta visivel em repouso, so sobe suave */
+    .rise { animation: rise .9s cubic-bezier(.22,1,.36,1) both; }
+    .rise.d1 { animation-delay: .08s; } .rise.d2 { animation-delay: .18s; } .rise.d3 { animation-delay: .3s; }
+    @keyframes rise { from { opacity: .001; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .blob, .rise { animation: none; }
+      .demo-card, .demo-card small svg { transition: none; }
+    }
+
+    /* ─── RESPONSIVO ─── */
+    @media (max-width: 1080px) {
+      .nav { gap: 28px; }
+      .nav-links { gap: 22px; }
+      .nav-login { display: none; }
+    }
+    @media (max-width: 900px) {
+      .nav-links, .nav-actions .btn-soft { display: none; }
+      .nav-toggle { display: inline-flex; }
+    }
+    @media (max-width: 640px) {
+      :root { --gutter-l: max(16px, env(safe-area-inset-left, 0px)); --gutter-r: max(16px, env(safe-area-inset-right, 0px)); }
+      .nav { height: 72px; gap: 12px; }
+      .nav-brand img { height: 26px; }
+      .nav-actions .btn-dark { padding: 11px 16px; font-size: 14px; }
+      .mob-panel { top: 66px; }
+      .hero { padding: 0 8px 8px; }
+      .hero-card { border-radius: 22px; min-height: calc(100svh - 80px); }
+      .hero-center { padding-top: 64px; }
+      .hero-title { font-size: clamp(2.9rem, 13.5vw, 4.4rem); }
+      .hero-bottom { flex-direction: column; align-items: stretch; gap: 24px; }
+      .demo-card { width: 100%; }
+      .b1 { width: 130%; left: -50%; top: -30%; }
+      .b2 { width: 120%; left: -30%; top: 30%; }
+      .b3 { width: 110%; left: 10%; bottom: -40%; }
+      .b4 { width: 130%; right: -70%; top: -10%; }
+    }
+    @media (max-width: 380px) {
+      .nav-actions .btn-dark { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ─── HEADER ─── -->
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav" aria-label="Principal">
+        <a href="#" class="nav-brand" aria-label="Provou Levou, início">
+          <img src="assets/logo-provou-colorido.png" alt="Provou Levou" width="2469" height="431">
+        </a>
+
+        <ul class="nav-links">
+          <li><a href="#como-funciona">Como funciona</a></li>
+          <li><a href="#cases">Cases</a></li>
+          <li><a href="#whatsapp">WhatsApp &amp; CRM</a></li>
+          <li><a href="#planos">Planos</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+
+        <div class="nav-actions">
+          <a href="login/" class="nav-login">Entrar</a>
+          <a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener" class="btn btn-soft">Falar com especialista</a>
+          <a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener" class="btn btn-dark">Testar grátis</a>
+          <button type="button" class="nav-toggle" id="navToggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobPanel"><span></span></button>
+        </div>
+      </nav>
+    </div>
+
+    <div class="mob-panel" id="mobPanel">
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#cases">Cases</a>
+      <a href="#whatsapp">WhatsApp &amp; CRM</a>
+      <a href="#planos">Planos</a>
+      <a href="#faq">FAQ</a>
+      <a href="login/">Entrar</a>
+      <a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener" class="btn btn-soft">Falar com especialista</a>
+      <a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener" class="btn btn-dark">Testar grátis por 7 dias</a>
+    </div>
+  </header>
+
+  <!-- ─── HERO ─── -->
+  <main>
+    <section class="hero" aria-labelledby="heroTitle">
+      <div class="hero-card">
+        <div class="hero-bg" aria-hidden="true">
+          <span class="blob b1"></span>
+          <span class="blob b2"></span>
+          <span class="blob b3"></span>
+          <span class="blob b4"></span>
+          <span class="blob b5"></span>
+          <div class="hero-grain"></div>
+          <div class="hero-shade"></div>
+        </div>
+
+        <div class="hero-center">
+          <p class="hero-eyebrow rise">Provador virtual com IA para e‑commerce de moda e óticas</p>
+          <h1 class="hero-title rise d1" id="heroTitle">Provador virtual<br>para <em>moda &amp;&nbsp;óculos.</em></h1>
+        </div>
+
+        <div class="container">
+          <div class="hero-bottom">
+            <div class="hero-proof rise d2">
+              <span class="rating" aria-label="Nota 4,9 de 5 por mais de 200 lojistas">
+                <span class="stars" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+                  <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+                  <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+                  <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+                  <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+                </span>
+                4,9 · +200 lojistas
+              </span>
+              <p class="hero-lede">O provador virtual que materializa o desejo de compra. Seu cliente prova a peça na própria foto, direto na página do produto, e cada prova vira um lead no seu WhatsApp.</p>
+            </div>
+
+            <a class="demo-card rise d3" href="loja-teste.html">
+              <span>
+                <strong>Teste o provador agora</strong>
+                <small>Roupas, óculos e calçados
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+                </small>
+              </span>
+              <span class="demo-thumb">
+                <video src="assets/videos/provador-2.mp4" poster="assets/videos/provador-2.webp" muted loop playsinline autoplay preload="metadata" aria-hidden="true"></video>
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var btn = document.getElementById('navToggle');
+      var panel = document.getElementById('mobPanel');
+      if (!btn || !panel) return;
+      function set(open) {
+        panel.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
+      }
+      btn.addEventListener('click', function () { set(!panel.classList.contains('open')); });
+      panel.addEventListener('click', function (e) { if (e.target.closest('a')) set(false); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
+    })();
+  </script>
+</body>
+</html>
