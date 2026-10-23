@@ -4208,6 +4208,7 @@
                             <i class="ph-bold ph-arrows-left-right"></i> Mover em massa
                         </button>
                     </div>
+                    <div id="crmResumo" style="display:none;margin-bottom:16px;"></div>
                     <div id="crmTeamPanel" style="display:none;margin-bottom:18px;"></div>
                     <div class="crm-board" id="crmBoard"></div>
                 </div>
@@ -28520,10 +28521,55 @@
             panel.appendChild(grid);
         }
 
+        // ── Resumo do CRM (23/10/2026, pedido da Barch) ──────────────────────────────────────
+        // Cada telefone é UMA pessoa, mesmo que tenha provado, abandonado carrinho e virado lead.
+        // Mostra quantos contatos únicos chegaram no período, de onde vieram e quantos compraram.
+        // Usa os leads visíveis no board (respeita busca e filtros).
+        let _crmResumoDias = 30;
+        function crmResumoPeriodo(d) { _crmResumoDias = d; crmRenderResumo(); }
+        function crmRenderResumo() {
+            const box = document.getElementById('crmResumo');
+            if (!box) return;
+            if (_crmPipelineMode !== 'provador' || !crmLeadMapCache) { box.style.display = 'none'; return; }
+            const lm = crmLeadMapCache;
+            const corte = _crmResumoDias ? new Date(Date.now() - _crmResumoDias * 86400000).toISOString().slice(0, 10) : '';
+            let tot = 0, prov = 0, car = 0, imp = 0, pend = 0, multi = 0, comp = 0, compProv = 0, compCar = 0, compAmbos = 0;
+            (_crmVisiblePhones || []).forEach(ph => {
+                const d = lm[ph]; if (!d) return;
+                const entrou = d.firstDate || d.lastDate || d.pendingPaymentDate || '';
+                if (corte && entrou && entrou < corte) return;
+                tot++;
+                const p = (d.provaCount || 0) > 0, c = !!d.checkoutUrl;
+                if (p) prov++; if (c) car++; if (d.imported) imp++; if (d.pendingPayment) pend++;
+                if ([p, c, !!d.imported, !!d.pendingPayment].filter(Boolean).length > 1) multi++;
+                if (d.bought) { comp++; if (p && c) compAmbos++; else if (p) compProv++; else if (c) compCar++; }
+            });
+            const pct = (n, t) => t ? (100 * n / t).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%' : '0%';
+            const n = v => v.toLocaleString('pt-BR');
+            const chip = (d, t) => `<button type="button" onclick="crmResumoPeriodo(${d})" style="border:1px solid var(--border-color,rgba(0,0,0,.12));background:${_crmResumoDias === d ? 'var(--primary,#7c3aed)' : 'transparent'};color:${_crmResumoDias === d ? '#fff' : 'var(--text-muted)'};border-radius:8px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;">${t}</button>`;
+            const tile = (rot, val, sub, destaque) => `<div style="flex:1 1 140px;min-width:130px;background:var(--card-bg,#fff);border:1px solid var(--border-color,rgba(0,0,0,.08));border-radius:12px;padding:12px 14px;${destaque ? 'border-color:rgba(22,163,74,.35);' : ''}">
+                <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;">${rot}</div>
+                <div style="font-size:24px;font-weight:800;margin-top:2px;${destaque ? 'color:#16a34a;' : ''}">${val}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${sub}</div></div>`;
+            box.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+                    <div style="font-size:13px;font-weight:700;">Resumo dos contatos <span style="font-weight:500;color:var(--text-muted);">· cada pessoa contada uma vez</span></div>
+                    <div style="display:flex;gap:6px;">${chip(7, '7 dias')}${chip(30, '30 dias')}${chip(90, '90 dias')}${chip(0, 'Tudo')}</div>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    ${tile('Contatos únicos', n(tot), `${n(multi)} aparecem em mais de uma origem`)}
+                    ${tile('Provaram', n(prov), pct(prov, tot) + ' dos contatos')}
+                    ${tile('Carrinho abandonado', n(car), pct(car, tot) + ' dos contatos')}
+                    ${imp || pend ? tile('Outras origens', n(imp + pend), `${n(imp)} importados · ${n(pend)} pagamento pendente`) : ''}
+                    ${tile('Compraram', n(comp), `${pct(comp, tot)} de conversão geral`, true)}
+                </div>
+                ${comp ? `<div style="font-size:12px;color:var(--text-muted);margin-top:8px;">Quem comprou veio de: <b>${n(compProv)}</b> só do provador · <b>${n(compCar)}</b> só do carrinho · <b>${n(compAmbos)}</b> dos dois</div>` : ''}`;
+            box.style.display = '';
+        }
         function renderCrmBoard() {
             if (typeof _crmPipelineMode !== 'undefined' && _crmPipelineMode === 'lentes') {
                 try { const ef = document.getElementById('crmEtqFilter'); if (ef) ef.style.display = 'none'; const sb = document.getElementById('crmSelBtn'); if (sb) sb.style.display = 'none'; if (_crmSelMode) { _crmSelMode = false; _crmSel.clear(); crmSelBarRender(); } } catch (e) {}
                 renderLentesCrmPipeline();
+                try { crmRenderResumo(); } catch (e) {}
                 return;
             }
             if (!crmLeadMapCache) return;
@@ -28603,6 +28649,7 @@
 
             Object.values(buckets).forEach(arr => arr.sort((a,b) => (b.lastDate||'').localeCompare(a.lastDate||'')));
             _crmVisiblePhones = _vis;
+            try { crmRenderResumo(); } catch (e) { console.warn('[crm] resumo', e); }
 
             const board = document.getElementById('crmBoard');
             board.textContent = '';
