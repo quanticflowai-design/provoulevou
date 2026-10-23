@@ -609,7 +609,10 @@
                 brand: '#D9AC45', dark: '#B88E2E', soft: 'rgba(217,172,69,.12)', on: '#000000' },
     // Domna Eyewear — dourado sobre bordô texturizado chapado -> fundo = bordô do logo (#460A23, tema escuro); dourado com texto preto
     domnaeyewear: { bg: '#460A23', card: '#53112D', line: 'rgba(232,197,129,.28)',
-                brand: '#E8C581', dark: '#CDA764', soft: 'rgba(232,197,129,.12)', on: '#000000' }
+                brand: '#E8C581', dark: '#CDA764', soft: 'rgba(232,197,129,.12)', on: '#000000' },
+    // Óticas Andreia — armação dourada e texto creme sobre preto chapado -> fundo = preto do logo (#0E0C0D, tema escuro); dourado com texto preto
+    oticasandreia: { bg: '#0E0C0D', card: '#1A1718', line: 'rgba(208,162,102,.26)',
+                brand: '#D0A266', dark: '#B8884C', soft: 'rgba(208,162,102,.12)', on: '#000000' }
   };
 
   // ─────────── Tema ───────────
