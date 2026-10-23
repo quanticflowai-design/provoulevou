@@ -8704,7 +8704,7 @@
             const L = _llsL(), grupos = _llsTagsPorEtapa(), nomeTag = {};
             grupos.forEach(g => g.ts.forEach(o => { nomeTag[o.tag] = o.nome; }));
             let h = '<div class="lls-bar"><div class="lls-bar-t"><b>Catálogo de lentes</b><small>A lente aparece no fim quando tem <b>todas</b> as etiquetas que o cliente escolheu e o grau da receita cabe nos limites dela. Etiqueta que nenhuma lente usa é ignorada.</small></div>' +
-                '<div class="lls-bar-a"><button type="button" class="lcfg-btn" onclick="_llsLenteNova()"><i class="ph-bold ph-plus"></i> Lente</button></div></div><div class="lls-lista">';
+                '<div class="lls-bar-a"><button type="button" class="lcfg-btn" onclick="_llsAtuPrecos(this)" title="Relê na sua loja o preço de cada lente"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar preços da loja</button><button type="button" class="lcfg-btn" onclick="_llsLenteNova()"><i class="ph-bold ph-plus"></i> Lente</button></div></div><div class="lls-lista">';
             L.lentes.forEach((l, i) => {
                 const ab = _llsLenteAberta === String(l.id), p = 'l.' + i + '.';
                 const lim = (a, b) => (l[a] != null || l[b] != null) ? (l[a] != null ? l[a] : '…') + ' a ' + (l[b] != null ? l[b] : '…') : '—';
@@ -8733,6 +8733,24 @@
             return h + '</div>';
         }
         function _llsLenteAbre(id, ev) { if (ev && ev.target.closest('.lcfg-switch')) return; _llsLenteAberta = _llsLenteAberta === id ? '' : id; _lcfgPinta(); }
+        // Atualizar preços da loja — modo lista (23/10/2026, Barch): relê o preço de cada lente na Nuvemshop
+        // (n8n pl-lentes-atualizar); entra no rascunho e vale ao Salvar.
+        async function _llsAtuPrecos(btn) {
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-spinner"></i> Buscando…'; }
+            try {
+                const s = (await supabaseClient.auth.getSession()).data.session;
+                if (!s) throw new Error('Sua sessão expirou. Entre de novo na dashboard.');
+                const r = await fetch('https://n8n.segredosdodrop.com/webhook/pl-lentes-atualizar', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify({ dominio: _lcfgDominio }) });
+                let j = null; try { j = await r.json(); } catch (e) {}
+                if (!r.ok || !j || !j.ok) throw new Error((j && j.erro) || 'Não consegui buscar os preços agora. Tente de novo em instantes.');
+                const ps = j.precos || [];
+                if (!ps.length) { crmToast('Tudo em dia: os preços das lentes já são os da loja.'); return; }
+                ps.forEach(p => { const l = (_llsL().lentes || []).find(x => String(x.id) === String(p.key)); if (l) l.preco = p.preco; });
+                _llsMudou(true);
+                crmToast(ps.length + (ps.length > 1 ? ' preços atualizados' : ' preço atualizado') + ' com o valor da loja. Clique em Salvar alterações para valer no site.');
+            } catch (e) { crmToast(e.message, true); }
+            finally { if (btn && btn.isConnected) { btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-arrows-clockwise"></i> Atualizar preços da loja'; } }
+        }
         function _llsLenteNova() { const l = { id: _llsId('l'), nome: 'Nova lente', preco: 0, prazo: '', produto_id: '', variante_id: '', tags: [], ativo: false }; _llsL().lentes.push(l); _llsLenteAberta = l.id; _llsMudou(true); }
         async function _llsLenteDel(i) { const l = _llsL().lentes[i]; if (!l || !(await _lcfgConfirma('O produto continua na sua loja.', { titulo: 'Excluir "' + (l.nome || 'lente') + '" do fluxo?', ok: 'Excluir', perigo: true }))) return; _llsL().lentes.splice(i, 1); _llsMudou(true); }
 
