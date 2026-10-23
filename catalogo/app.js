@@ -600,7 +600,13 @@
                 brand: '#C9A35A', dark: '#A8863F', soft: 'rgba(201,163,90,.14)', on: '#000000' },
     // Carlos Ótica — faixa verde + preto sobre branco -> tema claro; verde fechado p/ texto branco (~5,4:1)
     carlosotica: { bg: '#FFFFFF', card: '#FFFFFF', line: '#DCEFE2',
-                brand: '#0F7A38', dark: '#0B5E2B', soft: 'rgba(15,122,56,.08)', on: '#ffffff' }
+                brand: '#0F7A38', dark: '#0B5E2B', soft: 'rgba(15,122,56,.08)', on: '#ffffff' },
+    // Ótica Apoema — dourado sobre verde petróleo chapado -> fundo = verde do logo (#00554E, tema escuro); dourado com texto preto
+    oticaapoema: { bg: '#00554E', card: '#004A44', line: 'rgba(221,187,128,.28)',
+                brand: '#DDBB80', dark: '#C49A5E', soft: 'rgba(221,187,128,.12)', on: '#000000' },
+    // Ótica Flávia — dourado sobre marrom texturizado -> fundo marrom do logo (tema escuro); dourado com texto preto (~9,9:1)
+    oticaflavia: { bg: '#3D2410', card: '#4A2E17', line: 'rgba(217,172,69,.28)',
+                brand: '#D9AC45', dark: '#B88E2E', soft: 'rgba(217,172,69,.12)', on: '#000000' }
   };
 
   // ─────────── Tema ───────────
