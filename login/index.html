@@ -8307,7 +8307,8 @@
             const a = _lcfgAtu;
             if (a && !_lcfgAtuBusy) {
                 if (a.erro) h += '<p class="lcfg-ed-aviso" style="margin:8px 0 0">' + _lcfgEsc(a.erro) + '</p>';
-                else if (!a.novas.length && !a.sairam.length) h += '<p class="lcfg-atu-ok"><i class="ph-bold ph-check-circle"></i> Tudo em dia: as ' + a.total + ' lentes da loja já estão no fluxo.</p>';
+                else if (!a.novas.length && !a.sairam.length && !(a.precos || []).length) h += '<p class="lcfg-atu-ok"><i class="ph-bold ph-check-circle"></i> Tudo em dia: as ' + a.total + ' lentes da loja já estão no fluxo, com o preço da loja.</p>';
+                if (!a.erro && (a.precos || []).length) h += '<div class="lcfg-bloco-tit">' + a.precos.length + (a.precos.length > 1 ? ' preços atualizados' : ' preço atualizado') + ' com o valor da sua loja — clique em Salvar alterações para valer no site</div>' + a.precos.map(p => '<div class="lcfg-atu-saiu"><span>' + _lcfgEsc(p.nome) + '</span><span>' + (p.de ? _lcfgBrl(p.de) + ' → ' : '') + '<b>' + _lcfgBrl(p.preco) + '</b>' + (p.precoDe ? ' (de ' + _lcfgBrl(p.precoDe) + ')' : '') + '</span></div>').join('');
                 if (a.novas.length) {
                     h += '<div class="lcfg-bloco-tit">' + a.novas.length + (a.novas.length > 1 ? ' lentes novas' : ' lente nova') + ' — confira os dados lidos da descrição</div>' + a.novas.map((l, i) => {
                         const num = (f, j, k, v) => '<input type="number" step="0.25" value="' + (v == null ? '' : v) + '" onchange="_lcfgAtuSet(' + i + ',\'' + f + '\',' + j + ',\'' + k + '\',this.value)">';
@@ -8340,9 +8341,18 @@
                 const r = await fetch('https://n8n.segredosdodrop.com/webhook/pl-lentes-atualizar', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify({ dominio: _lcfgDominio }) });
                 let j = null; try { j = await r.json(); } catch (e) {}
                 if (!r.ok || !j || !j.ok) throw new Error((j && j.erro) || 'Não consegui buscar as lentes agora. Tente de novo em instantes.');
-                _lcfgAtu = { total: j.total_loja || 0, esquema: j.esquema || 'sirena', grupos: j.grupos || [], novas: (j.novas || []).map(l => Object.assign({}, l)), sairam: j.sairam || [] };
+                _lcfgAtu = { total: j.total_loja || 0, esquema: j.esquema || 'sirena', grupos: j.grupos || [], novas: (j.novas || []).map(l => Object.assign({}, l)), sairam: j.sairam || [], precos: j.precos || [] };
+                _lcfgAtuPrecos(_lcfgAtu.precos);
             } catch (e) { _lcfgAtu = { erro: e.message, novas: [], sairam: [] }; }
             _lcfgAtuBusy = false; _lcfgPinta();
+        }
+        // preço que mudou na loja (23/10/2026): entra no rascunho; vale ao Salvar
+        function _lcfgAtuPrecos(lista) {
+            const c = _lcfgEdit; if (!c || !(lista || []).length) return;
+            lista.forEach(p => {
+                (c.lentes || []).forEach(l => { if (String(l.key) === String(p.key)) { l.preco = p.preco; l.precoDe = p.precoDe == null ? null : p.precoDe; } });
+                (c.lentes_extra || []).forEach(l => { if (String(l.id) === String(p.key)) { l.preco = p.preco; l.precoDe = p.precoDe == null ? null : p.precoDe; } });
+            });
         }
         function _lcfgAtuSet(i, f, j, k, v) {
             const l = _lcfgAtu && _lcfgAtu.novas[i]; if (!l) return;
