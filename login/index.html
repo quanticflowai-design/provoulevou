@@ -5215,6 +5215,7 @@
                     <button data-sub="jornada" onclick="dispSwitchSub('jornada')"><i class="ph-bold ph-path"></i> <span class="disp-nav-txt">Jornada</span></button>
                     <button data-sub="conversas" onclick="dispSwitchSub('conversas')"><i class="ph-bold ph-chats-circle"></i> <span class="disp-nav-txt">Conversas</span> <span class="disp-sub-badge" id="dispUnreadBadge">0</span></button>
                     <button data-sub="disparar" onclick="dispSwitchSub('disparar')"><i class="ph-bold ph-megaphone"></i> <span class="disp-nav-txt">Campanhas</span></button>
+                    <button data-sub="email" onclick="dispSwitchSub('email')"><i class="ph-bold ph-envelope-simple"></i> <span class="disp-nav-txt">E-mail</span></button>
                     <button data-sub="segmentacoes" onclick="dispSwitchSub('segmentacoes')"><i class="ph-bold ph-users-four"></i> <span class="disp-nav-txt">Segmentações</span></button>
                     <button data-sub="automacoes" onclick="dispSwitchSub('automacoes')"><i class="ph-bold ph-flow-arrow"></i> <span class="disp-nav-txt">Automações</span></button>
                     <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> <span class="disp-nav-txt">Conexão</span></button>
@@ -5227,6 +5228,7 @@
                 <div class="disp-subpane" id="dispSubConversas"></div>
                 <div class="disp-subpane" id="dispSubComercial"></div>
                 <div class="disp-subpane" id="dispSubDisparar"></div>
+                <div class="disp-subpane" id="dispSubEmail"></div>
                 <div class="disp-subpane" id="dispSubSegmentacoes"></div>
                 <div class="disp-subpane" id="dispSubTemplates"></div>
                 <div class="disp-subpane" id="dispSubHistorico"></div>
@@ -11193,6 +11195,177 @@
             }
         }
 
+
+        // ============== E-MAIL MARKETING (Resend) — 24/10/2026 ==============
+        // Envio pelo n8n (pl-email-enviar): a chave do Resend fica só no servidor. Público sai da tabela de pedidos da loja.
+        const PL_EMAIL_URL = 'https://n8n.segredosdodrop.com/webhook/pl-email-enviar';
+        let _emailInit = false, _emailPublico = [], _emailPubKey = '';
+        function emailInit() {
+            const host = document.getElementById('dispSubEmail');
+            if (!host) return;
+            try { _campInjectCSS(); } catch (e) {}
+            if (!_emailInit) {
+                _emailInit = true;
+                const loja = (activeUser && (activeUser.nome_loja || activeUser.nome)) || '';
+                host.innerHTML = `
+                <style>
+                  .em-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+                  @media(max-width:980px){.em-grid{grid-template-columns:1fr}}
+                  .em-f{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+                  .em-f label{font-size:12px;font-weight:700;color:var(--text-muted)}
+                  .em-f input,.em-f select,.em-f textarea{background:var(--card-bg);border:1px solid var(--border);color:var(--text-main);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:14px;outline:none;box-sizing:border-box;width:100%}
+                  .em-f textarea{min-height:150px;resize:vertical;line-height:1.5}
+                  .em-row{display:grid;grid-template-columns:1fr 1fr 70px;gap:10px}
+                  .em-hint{font-size:11.5px;color:var(--text-muted);line-height:1.45}
+                  .em-count{font-size:13px;font-weight:700;color:#7c3aed;margin:-6px 0 14px}
+                  .em-prev{width:100%;height:560px;border:1px solid var(--border);border-radius:12px;background:#f4f4f5}
+                  .em-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+                  .em-tbl{width:100%;border-collapse:collapse;font-size:13px}
+                  .em-tbl th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);padding:8px 10px;border-bottom:1px solid var(--border)}
+                  .em-tbl td{padding:10px;border-bottom:1px solid var(--border)}
+                </style>
+                <div class="disp-card" style="margin-bottom:20px;">
+                  <h3 style="margin:0 0 4px;"><i class="ph-bold ph-envelope-simple" style="color:#7c3aed;"></i> E-mail marketing</h3>
+                  <p class="desc" style="margin:0 0 18px;">Monte o e-mail, mande um teste pra você e depois dispare para os clientes da loja. Quem clicar em "não quero mais receber" sai da lista sozinho.</p>
+                  <div class="em-grid">
+                    <div>
+                      <div class="em-f"><label>Nome da campanha (só pra você)</label><input id="emNome" maxlength="120" placeholder="Ex.: Novidades de novembro"></div>
+                      <div class="em-f"><label>Para quem</label>
+                        <select id="emPublico" onchange="emailPublicoMudou()">
+                          <option value="compradores">Clientes que já compraram</option>
+                          <option value="todos">Todos os clientes com e-mail nos pedidos</option>
+                          <option value="lista">Colar uma lista de e-mails</option>
+                        </select></div>
+                      <div class="em-f" id="emListaBox" style="display:none;"><label>E-mails (um por linha ou separados por vírgula)</label><textarea id="emLista" style="min-height:90px" oninput="emailPublicoMudou()"></textarea></div>
+                      <div class="em-count" id="emCount">Calculando…</div>
+                      <div class="em-f"><label>Nome do remetente</label><input id="emRem" maxlength="60" value="${escapeHtml(loja)}"></div>
+                      <div class="em-f"><label>Assunto</label><input id="emAssunto" maxlength="150" placeholder="Ex.: Chegou coleção nova 🕶️" oninput="emailPreview()"></div>
+                      <div class="em-f"><label>Texto</label><textarea id="emTexto" oninput="emailPreview()" placeholder="Oi, {nome}!&#10;&#10;Escreva aqui a sua mensagem."></textarea>
+                        <div class="em-hint">{nome} vira o primeiro nome do cliente · *texto* fica em negrito · linha em branco separa parágrafos</div></div>
+                      <div class="em-row">
+                        <div class="em-f"><label>Texto do botão</label><input id="emBtn" maxlength="40" placeholder="Ver a coleção" oninput="emailPreview()"></div>
+                        <div class="em-f"><label>Link do botão</label><input id="emLink" placeholder="https://sualoja.com.br" oninput="emailPreview()"></div>
+                        <div class="em-f"><label>Cor</label><input id="emCor" type="color" value="#111111" style="padding:4px;height:42px" oninput="emailPreview()"></div>
+                      </div>
+                      <div class="em-f"><label>Enviar teste para</label><input id="emTesteEmail" type="email" value="${escapeHtml((activeUser && activeUser.email) || '')}"></div>
+                      <div class="em-acts">
+                        <button class="camp-btn" id="emBtnTeste" onclick="emailEnviar(true)"><i class="ph-bold ph-paper-plane-tilt"></i> Enviar teste</button>
+                        <button class="camp-btn primary" id="emBtnEnviar" onclick="emailEnviar(false)"><i class="ph-bold ph-megaphone"></i> Enviar campanha</button>
+                      </div>
+                    </div>
+                    <div><div class="em-f"><label>Pré-visualização</label></div><iframe id="emPrev" class="em-prev" title="Pré-visualização do e-mail"></iframe></div>
+                  </div>
+                </div>
+                <div class="disp-card" style="margin-bottom:20px;">
+                  <h3 style="margin:0 0 12px;"><i class="ph-bold ph-chart-bar" style="color:#7c3aed;"></i> E-mails enviados</h3>
+                  <div id="emHist" class="em-hint">Carregando…</div>
+                </div>`;
+            }
+            emailPreview();
+            emailPublicoMudou();
+            emailCarregaHist();
+        }
+        function emailEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+        // Mesmo modelo do servidor (fluxo pl-email-enviar), só pra pré-visualizar.
+        function emailHtml(nome) {
+            const v = id => (document.getElementById(id) || {}).value || '';
+            const rem = v('emRem') || 'Loja', txt = v('emTexto') || 'Oi, {nome}!\n\nEscreva aqui a sua mensagem.', cor = v('emCor') || '#111111';
+            let link = v('emLink').trim(); if (link && !/^https?:\/\//i.test(link)) link = 'https://' + link;
+            const corpo = emailEsc(txt.replace(/\{nome\}/gi, nome || '').replace(/^,\s*/, '')).split(/\n{2,}/)
+                .map(p => '<p style="margin:0 0 16px;line-height:1.6">' + p.replace(/\n/g, '<br>').replace(/\*([^*\n]+)\*/g, '<b>$1</b>') + '</p>').join('');
+            const btn = v('emBtn') && link ? '<p style="margin:24px 0 8px"><a href="' + emailEsc(link) + '" target="_blank" style="display:inline-block;background:' + emailEsc(cor) + ';color:#fff;text-decoration:none;font-weight:600;padding:13px 26px;border-radius:8px">' + emailEsc(v('emBtn')) + '</a></p>' : '';
+            return '<!doctype html><html><body style="margin:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#18181b"><div style="max-width:560px;margin:0 auto;padding:28px 16px">'
+                + (v('emAssunto') ? '<div style="font-size:12px;color:#71717a;margin:0 4px 10px">Assunto: <b>' + emailEsc(v('emAssunto')) + '</b></div>' : '')
+                + '<div style="background:#fff;border-radius:12px;padding:32px 28px"><div style="font-size:18px;font-weight:700;margin-bottom:22px">' + emailEsc(rem) + '</div>' + corpo + btn + '</div>'
+                + '<p style="font-size:12px;color:#71717a;text-align:center;line-height:1.5;margin:18px 8px 0">Você recebeu este e-mail porque é cliente da ' + emailEsc(rem) + '.<br><u>Não quero mais receber e-mails</u></p></div></body></html>';
+        }
+        function emailPreview() { const f = document.getElementById('emPrev'); if (f) f.srcdoc = emailHtml('Maria'); }
+        function emailParseLista(t) {
+            return String(t || '').split(/[\s,;]+/).map(x => x.trim().toLowerCase()).filter(x => /^[^\s@<>]+@[^\s@<>]+\.[a-z]{2,}$/i.test(x)).map(email => ({ email, nome: '' }));
+        }
+        async function emailCarregaPublico(tipo) {
+            const tab = activeUser && activeUser.tabela_pedidos;
+            if (!tab) return [];
+            const key = tab + '|' + tipo;
+            if (_emailPubKey === key) return _emailPublico;
+            let col = 'customer_email';
+            let t = await supabaseClient.from(tab).select('customer_email').limit(1);
+            if (t.error) { col = 'cliente_email'; t = await supabaseClient.from(tab).select('cliente_email').limit(1); if (t.error) return []; }
+            const fNome = activeUser.campo_nome_pedido || (col === 'customer_email' ? 'customer_name' : 'cliente_nome');
+            const fSt = activeUser.campo_status_pedido, pagos = activeUser.valores_status_pago;
+            let cols = col + (fNome ? ',' + fNome : '');
+            const rows = await fetchPagesParallel(() => {
+                let q = supabaseClient.from(tab).select(cols).not(col, 'is', null).order(col, { ascending: true });
+                if (tipo === 'compradores' && fSt && Array.isArray(pagos) && pagos.length) q = q.in(fSt, pagos);
+                return q;
+            }, 1000, 4).catch(() => []);
+            const vis = new Map();
+            (rows || []).forEach(r => {
+                const e = String(r[col] || '').trim().toLowerCase();
+                if (!/^[^\s@<>]+@[^\s@<>]+\.[a-z]{2,}$/i.test(e) || vis.has(e)) return;
+                vis.set(e, { email: e, nome: String((fNome && r[fNome]) || '').trim() });
+            });
+            _emailPublico = [...vis.values()]; _emailPubKey = key;
+            return _emailPublico;
+        }
+        async function emailPublicoMudou() {
+            const tipo = (document.getElementById('emPublico') || {}).value || 'compradores';
+            const box = document.getElementById('emListaBox'); if (box) box.style.display = tipo === 'lista' ? '' : 'none';
+            const c = document.getElementById('emCount'); if (!c) return;
+            if (tipo === 'lista') { const n = emailParseLista((document.getElementById('emLista') || {}).value).length; c.textContent = n + (n === 1 ? ' e-mail válido' : ' e-mails válidos'); return; }
+            c.textContent = 'Calculando…';
+            const l = await emailCarregaPublico(tipo);
+            if ((document.getElementById('emPublico') || {}).value !== tipo) return;
+            c.textContent = l.length ? (l.length.toLocaleString('pt-BR') + ' clientes com e-mail') : 'Nenhum e-mail encontrado nos pedidos desta loja.';
+        }
+        async function emailEnviar(teste) {
+            const v = id => ((document.getElementById(id) || {}).value || '').trim();
+            if (!v('emAssunto') || !v('emTexto')) { crmToast('Preencha o assunto e o texto.', true); return; }
+            const tipo = v('emPublico');
+            let dest;
+            if (teste) {
+                dest = emailParseLista(v('emTesteEmail'));
+                if (!dest.length) { crmToast('Coloque um e-mail válido para o teste.', true); return; }
+                dest[0].nome = ((activeUser && (activeUser.nome || '')) || '').split(' ')[0];
+            } else {
+                dest = tipo === 'lista' ? emailParseLista(v('emLista')) : await emailCarregaPublico(tipo);
+                if (!dest.length) { crmToast('Nenhum e-mail para enviar.', true); return; }
+                if (!confirm('Enviar "' + v('emAssunto') + '" para ' + dest.length.toLocaleString('pt-BR') + ' e-mails agora?')) return;
+            }
+            const btn = document.getElementById(teste ? 'emBtnTeste' : 'emBtnEnviar'); const txt0 = btn ? btn.innerHTML : '';
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-circle-notch ph-spin"></i> Enviando…'; }
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (!session || !session.access_token) throw new Error('Sua sessão expirou. Entre de novo na dashboard.');
+                const r = await fetch(PL_EMAIL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                    body: JSON.stringify({ lojista_email: activeUser.email, teste, publico: teste ? 'teste' : tipo, nome: v('emNome'), remetente: v('emRem'), assunto: v('emAssunto'), texto: (document.getElementById('emTexto') || {}).value || '',
+                        cta_texto: v('emBtn'), cta_link: v('emLink'), cor: v('emCor'), destinatarios: dest }) });
+                const d = await r.json().catch(() => ({}));
+                if (!r.ok || d.ok === false) throw new Error(d.erro || ('Falha no envio (HTTP ' + r.status + ').'));
+                crmToast(teste ? 'Teste enviado para ' + dest[0].email + '.' : (d.enviados + ' e-mails enviados' + (d.descadastrados ? ' · ' + d.descadastrados + ' descadastrados ficaram de fora' : '') + (d.erros ? ' · ' + d.erros + ' com erro' : '') + '.'));
+                emailCarregaHist();
+            } catch (e) { crmToast((e && e.message) || 'Falha no envio.', true); }
+            finally { if (btn) { btn.disabled = false; btn.innerHTML = txt0; } }
+        }
+        async function emailCarregaHist() {
+            const el = document.getElementById('emHist'); if (!el) return;
+            const { data: camps, error } = await supabaseClient.from('pl_email_campanhas').select('id,nome,assunto,teste,total,enviados,erros,criado_em')
+                .in('email_lojista', plScopeEmails()).order('criado_em', { ascending: false }).limit(20);
+            if (error) { el.textContent = 'Não consegui carregar o histórico.'; return; }
+            if (!camps || !camps.length) { el.textContent = 'Nenhum e-mail enviado ainda.'; return; }
+            const ids = camps.map(c => c.id);
+            const env = await fetchPagesParallel(() => supabaseClient.from('pl_email_envios').select('id,campanha_id,entregue_em,aberto_em,clicado_em,status').in('campanha_id', ids).order('id', { ascending: true }), 1000, 3).catch(() => []);
+            const st = {};
+            (env || []).forEach(e => { const s = st[e.campanha_id] || (st[e.campanha_id] = { ent: 0, ab: 0, cl: 0, dev: 0 });
+                if (e.entregue_em || e.aberto_em || e.clicado_em) s.ent++; if (e.aberto_em || e.clicado_em) s.ab++; if (e.clicado_em) s.cl++; if (e.status === 'devolvido' || e.status === 'spam') s.dev++; });
+            const pct = (a, b) => b ? Math.round(a * 100 / b) + '%' : '—';
+            el.innerHTML = '<table class="em-tbl"><thead><tr><th>Data</th><th>Campanha</th><th>Enviados</th><th>Entregues</th><th>Abertos</th><th>Cliques</th><th>Devolvidos</th></tr></thead><tbody>'
+                + camps.map(c => { const s = st[c.id] || { ent: 0, ab: 0, cl: 0, dev: 0 }; const n = c.enviados || 0;
+                    return '<tr><td>' + new Date(c.criado_em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + '</td><td><b>' + emailEsc(c.nome || c.assunto) + '</b>' + (c.teste ? ' <span style="font-size:10px;font-weight:700;color:#b45309;background:rgba(245,158,11,.15);border-radius:99px;padding:1px 7px">TESTE</span>' : '') + '<div class="em-hint">' + emailEsc(c.assunto) + '</div></td>'
+                        + '<td>' + n + (c.erros ? ' <span class="em-hint">(' + c.erros + ' erro)</span>' : '') + '</td><td>' + s.ent + ' · ' + pct(s.ent, n) + '</td><td>' + s.ab + ' · ' + pct(s.ab, s.ent) + '</td><td>' + s.cl + ' · ' + pct(s.cl, s.ent) + '</td><td>' + s.dev + '</td></tr>'; }).join('')
+                + '</tbody></table>';
+        }
+
         // ============== CAIXA DE ENTRADA / CHAT ==============
         let _chatConvs = [];          // [{phone, name, lastBody, lastAt, unread, lastInAt}]
         let _chatSearch = '';         // busca por nome ou número na caixa de entrada
@@ -14628,7 +14801,7 @@
             if (isComercial() && name !== 'crm' && name !== 'conversas') name = 'crm';
             if (isSoConversas()) name = 'conversas';
             document.querySelectorAll('#dispSubnav button[data-sub]').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
-            const map = { dashboard: 'dispSubDashboard', crm: 'dispSubCrm', jornada: 'dispSubJornada', conversas: 'dispSubConversas', comercial: 'dispSubComercial', disparar: 'dispSubDisparar', segmentacoes: 'dispSubSegmentacoes', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao', automacoes: 'dispSubAutomacoes' };
+            const map = { dashboard: 'dispSubDashboard', crm: 'dispSubCrm', jornada: 'dispSubJornada', conversas: 'dispSubConversas', comercial: 'dispSubComercial', disparar: 'dispSubDisparar', email: 'dispSubEmail', segmentacoes: 'dispSubSegmentacoes', templates: 'dispSubTemplates', historico: 'dispSubHistorico', conexao: 'dispSubConexao', automacoes: 'dispSubAutomacoes' };
             Object.entries(map).forEach(([k, id]) => {
                 const p = document.getElementById(id);
                 if (p) p.classList.toggle('active', k === name);
@@ -14654,6 +14827,7 @@
                 // Mensagens modelo vive dentro de Campanhas — carrega os templates aqui.
                 if (typeof waLoadTemplates === 'function') { try { waLoadTemplates(); } catch (e) {} }
             }
+            if (name === 'email') { try { emailInit(); } catch (e) { console.error('[email]', e); } }
             if (name === 'segmentacoes') { try { initSegmentacoes(); } catch (e) { console.error(e); } }
             if (name === 'automacoes') { try { initAutomacoes(); } catch (e) { console.error(e); } }
             if (name === 'dashboard') { try { initDispDashboard(); } catch (e) { console.error(e); } }
