@@ -28020,6 +28020,8 @@
             const s = document.createElement('style'); s.id = 'crmEtqCss';
             s.textContent = [
                 '.crm-etq-row{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;}',
+                '.crm-col-selall{margin-left:auto;margin-right:6px;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:7px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-main);cursor:pointer;font-family:inherit;white-space:nowrap;}',
+                '.crm-col-selall:hover{border-color:#7c3aed;color:#7c3aed;}',
                 '.crm-etq-chip{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:99px;border:1px solid;max-width:100%;}',
                 '.crm-etq-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;}',
                 '.crm-card.crm-card-sel{border-color:#7c3aed !important;box-shadow:0 0 0 2px rgba(124,58,237,.35) !important;}',
@@ -28167,6 +28169,12 @@
             if (card) card.classList.toggle('crm-card-sel', _crmSel.has(ph));
             crmSelBarRender();
         }
+        function crmSelEtapa(phs) {
+            const tudo = phs.length && phs.every(ph => _crmSel.has(ph));
+            if (tudo) phs.forEach(ph => _crmSel.delete(ph)); else phs.forEach(ph => _crmSel.add(ph));
+            renderCrmBoard();
+            crmSelBarRender();
+        }
         function crmSelTodosVisiveis() {
             const todos = _crmVisiblePhones.length && _crmVisiblePhones.every(ph => _crmSel.has(ph));
             if (todos) _crmVisiblePhones.forEach(ph => _crmSel.delete(ph));
@@ -28191,7 +28199,7 @@
             };
             const todos = _crmVisiblePhones.length && _crmVisiblePhones.every(ph => _crmSel.has(ph));
             bar.append(nEl,
-                mk(todos ? 'Limpar seleção' : ('Selecionar todos (' + _crmVisiblePhones.length + ')'), 'ph-checks', crmSelTodosVisiveis),
+                mk('Limpar seleção', 'ph-x-square', () => { _crmSel.clear(); renderCrmBoard(); crmSelBarRender(); }, '', !n),
                 mk('Adicionar etiqueta', 'ph-tag', () => crmEtqAbrirMassa('add'), 'primary', !n),
                 mk('Remover etiqueta', 'ph-tag-simple', () => crmEtqAbrirMassa('del'), '', !n),
                 mk('Fechar', 'ph-x', () => crmSelToggleMode(false)));
@@ -28815,6 +28823,18 @@
                 cnt.className = 'crm-col-count';
                 cnt.textContent = buckets[col.key].length;
                 header.append(title, cnt);
+                // Modo seleção: "Selecionar etapa" marca TODOS os leads só desta coluna (João/Penélope 24/10/2026).
+                if (_crmSelMode && buckets[col.key].length) {
+                    const phs = buckets[col.key].map(l => l.phone);
+                    const tudo = phs.every(ph => _crmSel.has(ph));
+                    const sb = document.createElement('button'); sb.type = 'button'; sb.className = 'crm-col-selall';
+                    sb.title = tudo ? 'Desmarcar todos desta etapa' : 'Selecionar todos os ' + phs.length + ' leads desta etapa';
+                    const si = document.createElement('i'); si.className = 'ph-bold ' + (tudo ? 'ph-check-square' : 'ph-square');
+                    sb.append(si, document.createTextNode(tudo ? ' Desmarcar' : ' Selecionar etapa'));
+                    sb.addEventListener('click', (e) => { e.stopPropagation(); crmSelEtapa(phs); });
+                    header.style.flexWrap = 'wrap';
+                    header.appendChild(sb);
+                }
 
                 const body = document.createElement('div');
                 body.className = 'crm-col-body';
