@@ -612,7 +612,13 @@
                 brand: '#E8C581', dark: '#CDA764', soft: 'rgba(232,197,129,.12)', on: '#000000' },
     // Óticas Andreia — armação dourada e texto creme sobre preto chapado -> fundo = preto do logo (#0E0C0D, tema escuro); dourado com texto preto
     oticasandreia: { bg: '#0E0C0D', card: '#1A1718', line: 'rgba(208,162,102,.26)',
-                brand: '#D0A266', dark: '#B8884C', soft: 'rgba(208,162,102,.12)', on: '#000000' }
+                brand: '#D0A266', dark: '#B8884C', soft: 'rgba(208,162,102,.12)', on: '#000000' },
+    // Ella Sun Acessórios — dourado e marrom sobre creme chapado -> fundo = creme do logo (tema claro); dourado fechado p/ 5,2:1 com branco
+    ellasun: { bg: '#F8F4EB', card: '#FFFDF8', line: '#EADFCB',
+                brand: '#9A5F12', dark: '#74371A', soft: 'rgba(154,95,18,.10)', on: '#ffffff' },
+    // Pytaia & Pytanga Collection — creme sobre bordô chapado -> fundo = bordô do logo (#5E1F28, tema escuro); creme com texto preto
+    pytaiaepytanga: { bg: '#5E1F28', card: '#6B2631', line: 'rgba(235,207,180,.25)',
+                brand: '#EBCFB4', dark: '#D9B796', soft: 'rgba(235,207,180,.12)', on: '#000000' }
   };
 
   // ─────────── Tema ───────────
