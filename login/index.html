@@ -9971,32 +9971,35 @@
             const usados = new Set();
             const antigasPrimeiro = ses.slice().sort((a, b) => a.inicio - b.inicio);
 
-            // 1a passada: armacao + lente + janela curta
+            // 1a passada (24/10/2026): TELEFONE primeiro. Antes a armacao+lente vinha antes e casava o pedido com a
+            // jornada de OUTRA cliente (Barch #3660: pedido da Julia ligado a jornada de outro telefone, sem a receita dela).
+            const porTel = {};
+            comLenteNoPedido.forEach(o => { if (o.tel) (porTel[o.tel] = porTel[o.tel] || []).push(o); });
             antigasPrimeiro.forEach(v => {
+                const k = _lentesSo9(v.telefone);
+                if (!k) return;
+                const cand = (porTel[k] || []).filter(o => !usados.has(o.id) && (o.ms - v.inicio) / 36e5 >= -0.1)
+                                              .sort((a, b) => a.ms - b.ms);
+                if (cand.length) { usados.add(cand[0].id); v.venda = cand[0]; }
+            });
+
+            // 2a passada: armacao + lente + janela curta, para quem o telefone nao pegou (nunca com telefone diferente)
+            antigasPrimeiro.forEach(v => {
+                if (v.venda) return;
                 if (!v.lente || !v.produto) return;
+                const meuTel = _lentesSo9(v.telefone);
                 const lente = _lentesNorm(v.lente).slice(0, 25);
                 const chave = _lentesChave(v.produto);
                 if (!lente || !chave.length) return;
                 for (const o of comLenteNoPedido) {
                     if (usados.has(o.id)) continue;
+                    if (meuTel && o.tel && o.tel !== meuTel) continue;
                     const h = (o.ms - v.inicio) / 36e5;
                     if (h < -0.1 || h > _LENTES_JANELA_H) continue;
                     if (o.prod.indexOf(lente) === -1) continue;
                     if (!chave.every(k => o.prod.indexOf(k) !== -1)) continue;
                     usados.add(o.id); v.venda = o; break;
                 }
-            });
-
-            // 2a passada: telefone, para quem a 1a nao pegou
-            const porTel = {};
-            comLenteNoPedido.forEach(o => { if (o.tel) (porTel[o.tel] = porTel[o.tel] || []).push(o); });
-            antigasPrimeiro.forEach(v => {
-                if (v.venda) return;
-                const k = _lentesSo9(v.telefone);
-                if (!k) return;
-                const cand = (porTel[k] || []).filter(o => !usados.has(o.id) && o.ms >= v.inicio)
-                                              .sort((a, b) => a.ms - b.ms);
-                if (cand.length) { usados.add(cand[0].id); v.venda = cand[0]; }
             });
 
             const vendidas = ses.filter(v => v.venda);
