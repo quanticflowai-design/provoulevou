@@ -5466,6 +5466,17 @@
                     .chat-conv { display:flex; gap:10px; padding:12px 14px; cursor:pointer; border-bottom:1px solid var(--border); transition:background .12s; }
                     .chat-conv:hover { background:rgba(124,58,237,.05); }
                     .chat-conv.active { background:rgba(124,58,237,.10); }
+                    .chat-conv.chat-sel { background:rgba(124,58,237,.16) !important; }
+                    .chat-conv-ck { font-size:18px; color:var(--text-muted,#999); align-self:center; }
+                    .chat-conv.chat-sel .chat-conv-ck { color:#7c3aed; }
+                    .chat-conv-hit { display:block; margin-top:3px; font-size:11.5px; color:var(--text-muted,#888); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+                    .chat-conv-hit mark { background:rgba(250,204,21,.45); color:inherit; border-radius:3px; padding:0 1px; }
+                    .chat-sel-bar { display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); background:rgba(124,58,237,.06); }
+                    .chat-sel-bar .chat-sel-n { font-size:12.5px; font-weight:600; margin-right:auto; }
+                    .chat-sel-bar button { padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--card-bg); color:var(--text-main); cursor:pointer; font-size:12px; font-family:inherit; display:inline-flex; gap:5px; align-items:center; }
+                    .chat-sel-bar button.primary { background:#7c3aed; color:#fff; border-color:#7c3aed; }
+                    .chat-sel-bar button:disabled { opacity:.5; cursor:default; }
+                    #chatSelBtn.active { background:rgba(124,58,237,.12); color:#7c3aed; }
                     .chat-conv-av { width:40px; height:40px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,#25D366,#128C7E); color:#fff; display:grid; place-items:center; font-weight:700; font-size:15px; }
                     .chat-conv-main { flex:1; min-width:0; }
                     .chat-conv-name { font-weight:600; font-size:13.5px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -5513,7 +5524,7 @@
                     <div class="chat-inbox-head chat-a-filters">
                         <label class="chat-a-search">
                             <i class="ph-bold ph-magnifying-glass" aria-hidden="true"></i>
-                            <input id="chatSearchInput" type="search" placeholder="Buscar nome ou número…" oninput="chatSetSearch(this.value)" aria-label="Buscar conversa por nome ou número">
+                            <input id="chatSearchInput" type="search" placeholder="Buscar nome, número ou mensagem…" oninput="chatSetSearch(this.value)" aria-label="Buscar conversa por nome, número ou texto da mensagem">
                         </label>
                         <select id="chatFilterCatSel" onchange="chatSetCatFilter(this.value)" class="chat-a-filter-sel" aria-label="Categoria">
                             <option value="">Todas as categorias</option>
@@ -5532,11 +5543,13 @@
                             <option value="__manage__">＋ Gerenciar etiquetas…</option>
                         </select>
                         <button class="disp-btn ghost chat-a-fbtn" id="chatFilterUnreadBtn" onclick="chatToggleUnreadFilter()"><span class="chat-a-dot" aria-hidden="true"></span> Não lidas</button>
+                        <button class="disp-btn ghost chat-a-fbtn" id="chatSelBtn" onclick="chatSelToggle()" title="Selecionar várias conversas para etiquetar"><i class="ph-bold ph-check-square"></i> Selecionar</button>
                         <button class="disp-btn ghost chat-a-fbtn" onclick="loadConversas()"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
                     </div>
                     <div class="chat-wrap">
                         <div class="chat-a-col">
                             <div class="chat-a-listhead"><span class="chat-a-listtitle">Caixa de entrada</span><span class="chat-a-listcount" id="chatListCount"></span></div>
+                            <div class="chat-sel-bar" id="chatSelBar" style="display:none;"></div>
                             <div class="chat-list" id="chatList">
                                 <div class="chat-list-empty"><i class="ph-bold ph-circle-notch ph-spin"></i> Carregando…</div>
                             </div>
@@ -11184,7 +11197,50 @@
         // ============== CAIXA DE ENTRADA / CHAT ==============
         let _chatConvs = [];          // [{phone, name, lastBody, lastAt, unread, lastInAt}]
         let _chatSearch = '';         // busca por nome ou número na caixa de entrada
-        function chatSetSearch(v) { _chatSearch = (v || '').trim().toLowerCase(); chatRenderList(); }
+        function chatSetSearch(v) {
+            _chatSearch = (v || '').trim().toLowerCase();
+            if (_chatSearch.length >= 3) chatMsgIdxEnsure();
+            chatRenderList();
+        }
+        // Busca no TEXTO das mensagens que o cliente mandou (João/Penélope 24/10/2026: achar quem falou "salão" p/ etiquetar).
+        // Baixa as mensagens recebidas uma vez e filtra no navegador, sem acento e sem maiúscula.
+        let _chatMsgIdx = null, _chatMsgIdxKey = '', _chatMsgIdxLoading = null;
+        function chatFold(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+        function chatMsgIdxEnsure() {
+            if (!supabaseClient || !activeUser) return null;
+            const key = plScopeEmails().join(',');
+            if (_chatMsgIdx && _chatMsgIdxKey === key) return null;
+            if (_chatMsgIdxLoading) return _chatMsgIdxLoading;
+            _chatMsgIdxLoading = fetchPagesParallel(() => supabaseClient.from('whatsapp_mensagens')
+                    .select('id,lead_phone,body').in('email', plScopeEmails()).eq('direction', 'in').not('body', 'is', null)
+                    .order('id', { ascending: true }), 1000, 4)
+                .then(rows => {
+                    const idx = {};
+                    (rows || []).forEach(r => {
+                        const b = r.body || ''; if (!b || b.charAt(0) === '[') return;
+                        const k = chatL8(r.lead_phone); if (!k) return;
+                        (idx[k] || (idx[k] = [])).push(b);
+                    });
+                    _chatMsgIdx = idx; _chatMsgIdxKey = key;
+                })
+                .catch(e => console.warn('[chat] busca por texto:', e))
+                .finally(() => { _chatMsgIdxLoading = null; try { chatRenderList(); } catch (e) {} });
+            return _chatMsgIdxLoading;
+        }
+        // Primeira mensagem do cliente que contém o termo (ou null).
+        function chatMsgHit(phone, qf) {
+            if (!_chatMsgIdx || qf.length < 3) return null;
+            const msgs = _chatMsgIdx[chatL8(phone)];
+            if (!msgs) return null;
+            for (let i = msgs.length - 1; i >= 0; i--) { if (chatFold(msgs[i]).includes(qf)) return msgs[i]; }
+            return null;
+        }
+        function chatHitHtml(body, qf) {
+            const f = chatFold(body), i = f.indexOf(qf);
+            if (i < 0) return escapeHtml(body.slice(0, 80));
+            const ini = Math.max(0, i - 30), fim = Math.min(body.length, i + qf.length + 40);
+            return (ini > 0 ? '…' : '') + escapeHtml(body.slice(ini, i)) + '<mark>' + escapeHtml(body.slice(i, i + qf.length)) + '</mark>' + escapeHtml(body.slice(i + qf.length, fim)) + (fim < body.length ? '…' : '');
+        }
         let _chatActivePhone = null;
         let _chatRealtimeSub = null;
 
@@ -11353,13 +11409,22 @@
             }
             if (_chatFilterTag) convs = convs.filter(c => chatConvHasTag(c.phone, _chatFilterTag));
             if (_chatSearch) {
-                const q = _chatSearch, qd = q.replace(/\D/g, '');
-                convs = convs.filter(c => (c.name || '').toLowerCase().includes(q) || (qd && String(c.phone).replace(/\D/g, '').includes(qd)));
+                const q = _chatSearch, qd = q.replace(/\D/g, ''), qf = chatFold(q);
+                _chatHits = {};
+                convs = convs.filter(c => {
+                    if (chatFold(c.name).includes(qf) || (qd && String(c.phone).replace(/\D/g, '').includes(qd))) return true;
+                    const h = chatMsgHit(c.phone, qf);
+                    if (h) { _chatHits[c.phone] = h; return true; }
+                    return false;
+                });
             }
             _setCount(convs.length);
+            _chatVisiblePhones = convs.map(c => c.phone);
+            chatSelBarRender();
             if (!convs.length) {
                 if (_chatSearch) {
-                    listEl.innerHTML = '<div class="chat-list-empty"><i class="ph-bold ph-magnifying-glass" style="font-size:24px;opacity:.4;"></i><br><br>Nada encontrado para "' + escapeHtml(_chatSearch) + '".</div>';
+                    const carregando = _chatSearch.length >= 3 && _chatMsgIdxLoading;
+                    listEl.innerHTML = '<div class="chat-list-empty"><i class="ph-bold ' + (carregando ? 'ph-circle-notch ph-spin' : 'ph-magnifying-glass') + '" style="font-size:24px;opacity:.4;"></i><br><br>' + (carregando ? 'Procurando nas mensagens…' : ('Nada encontrado para "' + escapeHtml(_chatSearch) + '".' + (_chatSearch.length < 3 ? '<br><span style="font-size:11px;">Digite 3 letras ou mais para buscar no texto das mensagens.</span>' : ''))) + '</div>';
                     return;
                 }
                 if (_chatFilterTag) {
@@ -11370,11 +11435,11 @@
                 return;
             }
             listEl.innerHTML = convs.map(c => `
-                <div class="chat-conv ${c.phone === _chatActivePhone ? 'active' : ''}${c.unread > 0 ? ' unread' : ''}" data-chatphone="${escapeHtml(c.phone)}">
-                    <div class="chat-conv-av">${escapeHtml(chatInitials(c.name, c.phone))}</div>
+                <div class="chat-conv ${c.phone === _chatActivePhone ? 'active' : ''}${c.unread > 0 ? ' unread' : ''}${_chatSelMode && _chatSel.has(c.phone) ? ' chat-sel' : ''}" data-chatphone="${escapeHtml(c.phone)}">
+                    ${_chatSelMode ? '<i class="ph-bold ' + (_chatSel.has(c.phone) ? 'ph-check-square' : 'ph-square') + ' chat-conv-ck" aria-hidden="true"></i>' : '<div class="chat-conv-av">' + escapeHtml(chatInitials(c.name, c.phone)) + '</div>'}
                     <div class="chat-conv-main">
                         <div class="chat-conv-name">${escapeHtml(c.name || ('+' + c.phone))}</div>
-                        <div class="chat-conv-last">${escapeHtml(c.lastBody || '')}</div>
+                        ${_chatHits[c.phone] ? '<span class="chat-conv-hit">💬 ' + chatHitHtml(_chatHits[c.phone], chatFold(_chatSearch)) + '</span>' : '<div class="chat-conv-last">' + escapeHtml(c.lastBody || '') + '</div>'}
                         ${(() => { const t = chatLeadCategory(c.phone); return t ? '<span style="display:inline-block;margin-top:3px;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:' + t.bg + ';color:' + t.fg + ';">' + escapeHtml(t.label) + '</span>' : ''; })()}
                         ${(() => { const r = chatLeadResp(c.phone); if (!r) return ''; const col = (typeof crmRespColor === 'function') ? crmRespColor(r) : '#7c3aed'; return '<span style="display:inline-block;margin-top:3px;margin-left:4px;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:' + col + '22;color:' + col + ';">👤 ' + escapeHtml(r) + '</span>'; })()}
                         ${chatTagsHtml(c.phone)}
@@ -11386,9 +11451,51 @@
                 </div>
             `).join('');
             listEl.querySelectorAll('[data-chatphone]').forEach(el => {
-                el.addEventListener('click', () => openConversa(el.dataset.chatphone));
+                el.addEventListener('click', () => { if (_chatSelMode) chatSelClick(el.dataset.chatphone); else openConversa(el.dataset.chatphone); });
                 el.addEventListener('contextmenu', (e) => chatShowCtxMenu(e, el.dataset.chatphone));
             });
+        }
+
+        // ── Seleção em massa (etiquetar várias conversas de uma vez) ──
+        let _chatHits = {};
+        let _chatSelMode = false, _chatSel = new Set(), _chatVisiblePhones = [];
+        function chatSelToggle(on) {
+            _chatSelMode = (on === undefined) ? !_chatSelMode : !!on;
+            if (!_chatSelMode) _chatSel.clear();
+            const b = document.getElementById('chatSelBtn'); if (b) b.classList.toggle('active', _chatSelMode);
+            chatRenderList();
+        }
+        function chatSelClick(phone) {
+            if (_chatSel.has(phone)) _chatSel.delete(phone); else _chatSel.add(phone);
+            chatRenderList();
+        }
+        function chatSelTodos() {
+            const todos = _chatVisiblePhones.length && _chatVisiblePhones.every(ph => _chatSel.has(ph));
+            if (todos) _chatVisiblePhones.forEach(ph => _chatSel.delete(ph));
+            else _chatVisiblePhones.forEach(ph => _chatSel.add(ph));
+            chatRenderList();
+        }
+        function chatSelBarRender() {
+            const bar = document.getElementById('chatSelBar');
+            if (!bar) return;
+            if (!_chatSelMode) { bar.style.display = 'none'; return; }
+            bar.style.display = 'flex';
+            bar.textContent = '';
+            const n = _chatSel.size;
+            const nEl = document.createElement('span'); nEl.className = 'chat-sel-n';
+            nEl.textContent = n ? (n + (n === 1 ? ' conversa selecionada' : ' conversas selecionadas')) : 'Clique nas conversas para selecionar';
+            const mk = (txt, icon, fn, cls, dis) => {
+                const b = document.createElement('button'); b.type = 'button'; if (cls) b.className = cls;
+                const i = document.createElement('i'); i.className = 'ph-bold ' + icon; b.append(i, document.createTextNode(txt));
+                b.disabled = !!dis; b.addEventListener('click', fn); return b;
+            };
+            const todos = _chatVisiblePhones.length && _chatVisiblePhones.every(ph => _chatSel.has(ph));
+            const fim = () => { chatSelToggle(false); };
+            bar.append(nEl,
+                mk(todos ? 'Limpar seleção' : ('Selecionar todas (' + _chatVisiblePhones.length + ')'), 'ph-checks', chatSelTodos),
+                mk('Adicionar etiqueta', 'ph-tag', () => crmEtqAbrirMassa('add', [..._chatSel], fim), 'primary', !n),
+                mk('Remover etiqueta', 'ph-tag-simple', () => crmEtqAbrirMassa('del', [..._chatSel], fim), '', !n),
+                mk('Fechar', 'ph-x', () => chatSelToggle(false)));
         }
 
         // ── Filtro de não lidas ──
@@ -28090,9 +28197,10 @@
                 mk('Fechar', 'ph-x', () => crmSelToggleMode(false)));
         }
         // Modal de etiqueta em massa (adicionar: escolhe/cria; remover: escolhe entre as que os selecionados têm).
-        function crmEtqAbrirMassa(modo) {
+        function crmEtqAbrirMassa(modo, lista, aoFim) {
             _crmEtqCss();
-            const phones = [..._crmSel];
+            const phones = lista || [..._crmSel];
+            const concluir = aoFim || (() => crmSelToggleMode(false));
             if (!phones.length) return;
             const ov = document.createElement('div'); ov.className = 'camp-confirm-ov';
             const box = document.createElement('div'); box.className = 'camp-confirm'; box.style.cssText = 'max-width:440px;text-align:left;';
@@ -28119,7 +28227,7 @@
                     const nome = inp.value.trim();
                     if (!nome) { crmToast('Digite o nome da etiqueta.', true); inp.focus(); return; }
                     bOk.disabled = true; bOk.textContent = 'Salvando…';
-                    try { const n = await crmEtqAplicar(phones, nome); fechar(); crmToast(n ? ('Etiqueta "' + nome + '" adicionada em ' + n + (n === 1 ? ' lead.' : ' leads.')) : 'Esses leads já tinham essa etiqueta.'); crmSelToggleMode(false); }
+                    try { const n = await crmEtqAplicar(phones, nome); fechar(); crmToast(n ? ('Etiqueta "' + nome + '" adicionada em ' + n + (n === 1 ? ' lead.' : ' leads.')) : 'Esses leads já tinham essa etiqueta.'); concluir(); }
                     catch (e) { bOk.disabled = false; bOk.textContent = 'Adicionar'; crmToast('Não consegui salvar a etiqueta: ' + ((e && e.message) || e), true); }
                 };
                 bOk.onclick = ir;
@@ -28148,7 +28256,7 @@
                     if (!r) { crmToast('Escolha qual etiqueta remover.', true); return; }
                     const t = crmEtqPorId(r.value);
                     bOk.disabled = true; bOk.textContent = 'Removendo…';
-                    try { const n = await crmEtqRemover(phones, r.value); fechar(); crmToast('Etiqueta "' + (t ? t.nome : '') + '" removida de ' + n + (n === 1 ? ' lead.' : ' leads.')); crmSelToggleMode(false); }
+                    try { const n = await crmEtqRemover(phones, r.value); fechar(); crmToast('Etiqueta "' + (t ? t.nome : '') + '" removida de ' + n + (n === 1 ? ' lead.' : ' leads.')); concluir(); }
                     catch (e) { bOk.disabled = false; bOk.textContent = 'Remover'; crmToast('Não consegui remover: ' + ((e && e.message) || e), true); }
                 };
                 foot.append(bC, bOk);
