@@ -378,9 +378,11 @@
             <input type="text" id="admin-name" placeholder="Nome do produto">
             <!-- decimal, nao numeric: o teclado "numeric" do Android nao tem virgula,
                  e o lojista so conseguia digitar preco inteiro. -->
-            <input type="text" id="admin-price" inputmode="decimal" placeholder="Preço promocional (opcional, ex.: 99,90)">
+            <!-- Original (maior) primeiro e promocional (menor) depois: na ordem invertida o lojista
+                 digitava o preço cheio no 1º campo e levava "preço original deve ser maior" (Pytaia & Pytanga, 25/10/2026). -->
             <input type="text" id="admin-original-price" inputmode="decimal"
                    placeholder="Preço original (ex.: 149,90)">
+            <input type="text" id="admin-price" inputmode="decimal" placeholder="Preço promocional (opcional, menor que o original — ex.: 99,90)">
             <div class="admin-categorias">
               <p class="admin-categorias-tit">Categorias do produto</p>
               <p class="admin-categorias-sub">Selecione quantas quiser.</p>
