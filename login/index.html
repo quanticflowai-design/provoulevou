@@ -5164,7 +5164,7 @@
                     <button data-sub="automacoes" onclick="dispSwitchSub('automacoes')"><i class="ph-bold ph-flow-arrow"></i> <span class="disp-nav-txt">Automações</span></button>
                     <button data-sub="conexao" onclick="dispSwitchSub('conexao')"><i class="ph-bold ph-plug"></i> <span class="disp-nav-txt">Conexão</span></button>
                   </div>
-                  <button type="button" class="disp-nav-burger" onclick="dispToggleNav()" title="Esconder/mostrar o menu" aria-label="Esconder ou mostrar o menu"><i class="ph-bold ph-caret-double-left"></i> <span class="q-esc">Esconder menu</span><span class="q-mos">Menu</span></button>
+                  <button type="button" class="disp-nav-burger" onclick="dispToggleNav()" title="Esconder ou mostrar o menu do Disparos" aria-label="Esconder ou mostrar o menu"><i class="ph-bold ph-caret-double-left"></i> <span class="q-esc">Esconder menu</span><span class="q-mos">Menu</span></button>
                 </div>
                 <div class="disp-subpane active" id="dispSubDashboard"></div>
                 <div class="disp-subpane" id="dispSubCrm"></div>
@@ -10887,40 +10887,60 @@
     <script>(function(){var t=window.matchMedia("(max-width: 760px)");var e=document.body;function a(){return t.matches}function n(){return document.getElementById("chatThreadBody")}function i(t){return t&&t.scrollHeight-t.scrollTop-t.clientHeight<120}function r(){var t=n();if(t)t.scrollTop=t.scrollHeight}var c=window.visualViewport;function o(){if(!c)return;var t=n(),a=e.classList.contains("chat-m-thread")&&i(t);var o=document.documentElement.style;o.setProperty("--pl-vvh",Math.round(c.height)+"px");o.setProperty("--pl-vvtop",Math.round(c.offsetTop)+"px");if(a)requestAnimationFrame(r)}if(c){c.addEventListener("resize",o);c.addEventListener("scroll",o);o()}function s(){if(!a())return;if(!e.classList.contains("chat-m-thread")){e.classList.add("chat-m-thread");try{history.pushState({plChatM:1},"")}catch(t){}}o()}function d(t){e.classList.remove("chat-m-info");if(!e.classList.contains("chat-m-thread"))return;e.classList.remove("chat-m-thread");if(!t&&history.state&&history.state.plChatM){try{history.back()}catch(t){}}}window.chatMobileFechar=function(){d(false)};window.addEventListener("popstate",(function(){if(e.classList.contains("chat-m-info")){e.classList.remove("chat-m-info");return}if(e.classList.contains("chat-m-thread"))d(true)}));document.addEventListener("click",(function(t){if(!t.target.closest)return;if(t.target.closest("#chatList .chat-conv, #chatList [data-chatphone]"))s();else if(t.target.closest(".tab-btn, #dispSubnav button"))d(false)}),true);function h(){var t=document.querySelector("#chatThread .chat-thread-head");if(!t){d(false);return}if(t.querySelector(".chat-m-back"))return;var i=document.createElement("button");i.type="button";i.className="chat-m-back";i.setAttribute("aria-label","Voltar para a lista de conversas");i.innerHTML='<i class="ph-bold ph-arrow-left" aria-hidden="true"></i>';i.addEventListener("click",(function(){d(false)}));t.insertBefore(i,t.firstChild);var c=document.createElement("button");c.type="button";c.className="chat-m-infobtn";c.setAttribute("aria-label","Ver dados do cliente");c.title="Dados do cliente";c.innerHTML='<i class="ph-bold ph-info" aria-hidden="true"></i>';c.addEventListener("click",(function(){e.classList.add("chat-m-info");try{history.pushState({plChatM:1},"")}catch(t){}}));var o=t.querySelector(".chat-a-th-actions");t.insertBefore(c,o||null);var s=n();if(s&&s!==l&&window.MutationObserver){l=s;new MutationObserver((function(){if(a())r()})).observe(s,{childList:true})}var h=document.getElementById("chatThreadFoot");if(h&&h!==f&&window.MutationObserver){f=h;new MutationObserver(u).observe(h,{childList:true});u()}if(a())setTimeout(r,0)}function u(){var t=document.getElementById("chatReplyInput");if(!t||!a())return;if(!t.dataset.phDesk)t.dataset.phDesk=t.placeholder;t.placeholder="Mensagem";try{if(typeof chatAutoGrow==="function")chatAutoGrow(t)}catch(t){}}var l=null,f=null;var m=document.getElementById("chatThread");if(m&&window.MutationObserver)new MutationObserver(h).observe(m,{childList:true});var v=document.getElementById("chatMInfoClose");if(v)v.addEventListener("click",(function(){if(history.state&&history.state.plChatM&&e.classList.contains("chat-m-info")){try{history.back();return}catch(t){}}e.classList.remove("chat-m-info")}));document.addEventListener("focusin",(function(t){if(a()&&t.target&&t.target.id==="chatReplyInput")setTimeout(r,350)}));var p=window.matchMedia("(pointer: coarse)");document.addEventListener("keydown",(function(t){if(t.key!=="Enter"||t.shiftKey||!a()||!p.matches)return;if(!t.target||t.target.id!=="chatReplyInput")return;var e=document.getElementById("chatQrPop");if(e&&!e.hidden)return;t.stopPropagation()}),true);var y=function(){if(!a()){e.classList.remove("chat-m-thread","chat-m-info")}};if(t.addEventListener)t.addEventListener("change",y);else if(t.addListener)t.addListener(y)})();</script>
     <style id="dispMedidasPrevia">
       
-      :root { --dispNavW: 200px; }
-      body.disp-nav-mini { --dispNavW: 0px; }
+      :root { --dispNavW: 208px; }
+      body.disp-nav-mini { --dispNavW: 28px; }
       @media (min-width: 981px) {
-        body[data-active-tab="disparos"] .dashboard-content { padding-left: calc(var(--dispNavW) + 28px) !important; padding-right: 28px !important; transition: padding-left .18s ease; }
+        body[data-active-tab="disparos"] .dashboard-content { padding-left: calc(var(--dispNavW) + 32px) !important; padding-right: 32px !important; transition: padding-left .18s ease; }
         .disp-layout { display: block !important; min-height: 0 !important; }
-        .disp-subnav, .disp-subnav.mini {
-          position: fixed !important; left: 0 !important; top: var(--plHeadH, 64px) !important; bottom: 0 !important; z-index: 30;
-          width: var(--dispNavW) !important; margin: 0 !important; padding: 14px 12px 12px !important; box-sizing: border-box;
-          display: flex !important; flex-direction: column !important; align-items: stretch !important; gap: 0 !important; overflow: hidden auto !important;
-          background: var(--plHeadBg, #fff) !important; border: none !important; border-right: 1px solid var(--plHeadLine, var(--border, #ecebe6)) !important;
-          box-shadow: none !important; transition: width .18s ease;
-        }
-        .disp-subnav-inner { display: flex !important; flex-direction: column !important; gap: 2px !important; padding: 0 !important; position: static !important;
-          background: transparent !important; border: none !important; box-shadow: none !important; overflow: visible !important; flex: 1 1 auto; }
-        .disp-subnav-inner::before { content: 'Disparos' !important; display: block !important; font-size: 11px !important; font-weight: 700 !important; letter-spacing: .08em; text-transform: uppercase;
-          color: var(--text-muted) !important; padding: 2px 12px 10px !important; }
-        .disp-subnav button, .disp-subnav-inner button { width: 100% !important; display: flex !important; align-items: center !important; justify-content: flex-start !important; gap: 10px !important;
-          padding: 9px 12px !important; font-size: 14px !important; border-radius: 9px !important; white-space: nowrap !important; position: relative; }
-        .disp-subnav button i { font-size: 16px !important; flex-shrink: 0; }
-        .disp-subnav .disp-nav-txt { display: inline !important; }
-        .disp-subnav .disp-sub-badge { position: static !important; margin-left: auto !important; }
-        .disp-nav-burger { display: flex !important; margin-top: 8px !important; color: var(--text-muted) !important; font-size: 13px !important; border-top: 1px solid var(--plHeadLine, var(--border, #ecebe6)) !important; border-radius: 0 !important; padding-top: 12px !important; background: transparent !important; }
-        .disp-nav-burger .q-mos { display: none; }
-        .disp-nav-burger i { transition: transform .18s ease; }
         
-        .disp-subnav.mini { width: 0 !important; padding: 0 !important; border-right: none !important; overflow: visible !important; }
-        .disp-subnav.mini .disp-subnav-inner { display: none !important; }
-        .disp-subnav.mini .disp-nav-burger { position: fixed !important; left: 0 !important; top: calc(var(--plHeadH, 64px) + 14px) !important; width: auto !important; margin: 0 !important;
-          padding: 9px 12px 9px 10px !important; border: 1px solid var(--plHeadLine, var(--border, #ecebe6)) !important; border-left: none !important; border-radius: 0 10px 10px 0 !important;
-          background: var(--plHeadBg, #fff) !important; color: var(--text-main) !important; box-shadow: 0 4px 14px rgba(0,0,0,.08) !important; z-index: 31; }
-        .disp-subnav.mini .disp-nav-burger .q-esc { display: none !important; }
-        .disp-subnav.mini .disp-nav-burger .q-mos { display: inline !important; }
-        .disp-subnav.mini .disp-nav-burger i { transform: rotate(180deg); }
-        .disp-layout > .disp-subpane.active { padding: 4px 0 60px !important; min-width: 0 !important; }
+        #dispSubnav {
+          position: fixed !important; left: 0 !important; top: var(--plHeadH, 64px) !important; bottom: 0 !important; z-index: 30;
+          width: var(--dispNavW) !important; margin: 0 !important; padding: 18px 12px 12px !important; box-sizing: border-box;
+          display: flex !important; flex-direction: column !important; align-items: stretch !important; gap: 0 !important; overflow: hidden auto !important;
+          background: #fff !important; border: none !important; border-right: 1px solid #ecebe6 !important; border-radius: 0 !important; box-shadow: none !important;
+          transition: width .18s ease, padding .18s ease;
+        }
+        #dispSubnav .disp-subnav-inner { display: flex !important; flex-direction: column !important; gap: 3px !important; padding: 0 !important; margin: 0 !important; position: static !important;
+          background: transparent !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; flex: 1 1 auto; }
+        #dispSubnav .disp-subnav-inner::before { content: 'Disparos' !important; display: block !important; font-size: 10.5px !important; font-weight: 600 !important; letter-spacing: .9px !important;
+          text-transform: uppercase !important; color: #6b6577 !important; padding: 0 11px 10px !important; }
+        #dispSubnav .disp-subnav-inner button {
+          width: 100% !important; display: flex !important; align-items: center !important; justify-content: flex-start !important; gap: 10px !important;
+          padding: 8px 11px !important; margin: 0 !important; border: none !important; border-radius: 8px !important; background: transparent !important; box-shadow: none !important;
+          color: #1c1826 !important; font-size: 14px !important; font-weight: 500 !important; line-height: 1.3 !important; white-space: nowrap !important; text-align: left; position: relative; cursor: pointer;
+        }
+        #dispSubnav .disp-subnav-inner button i { font-size: 15px !important; color: #4a4458 !important; flex-shrink: 0; }
+        #dispSubnav .disp-subnav-inner button:hover { background: #f6f5f1 !important; }
+        #dispSubnav .disp-subnav-inner button.active { background: #f1ebfb !important; color: #630ed4 !important; font-weight: 600 !important; }
+        #dispSubnav .disp-subnav-inner button.active i { color: #630ed4 !important; }
+        #dispSubnav .disp-nav-txt { display: inline !important; }
+        #dispSubnav .disp-sub-badge { position: static !important; margin-left: auto !important; }
+        
+        #dispSubnav .disp-nav-burger { display: flex !important; align-items: center !important; gap: 10px !important; width: 100% !important; margin: 8px 0 0 !important;
+          padding: 12px 11px 2px !important; border: none !important; border-top: 1px solid #ecebe6 !important; border-radius: 0 !important; background: transparent !important;
+          color: #6b6577 !important; font-size: 13px !important; font-weight: 500 !important; cursor: pointer; }
+        #dispSubnav .disp-nav-burger:hover { color: #1c1826 !important; }
+        #dispSubnav .disp-nav-burger i { font-size: 14px !important; transition: transform .18s ease; }
+        #dispSubnav .disp-nav-burger .q-mos { display: none; }
+        
+        #dispSubnav.mini { width: 0 !important; padding: 0 !important; border-right: none !important; overflow: visible !important; }
+        #dispSubnav.mini .disp-subnav-inner { display: none !important; }
+        #dispSubnav.mini .disp-nav-burger { position: fixed !important; left: 0 !important; top: calc(var(--plHeadH, 64px) + 18px) !important; width: auto !important; margin: 0 !important;
+          padding: 9px 9px 9px 7px !important; gap: 0 !important; border: 1px solid #ecebe6 !important; border-left: none !important; border-radius: 0 10px 10px 0 !important;
+          background: #fff !important; color: #1c1826 !important; font-weight: 600 !important; box-shadow: 0 4px 14px rgba(28,24,38,.08) !important; z-index: 31; }
+        #dispSubnav.mini .disp-nav-burger .q-esc { display: none !important; }
+        #dispSubnav.mini .disp-nav-burger .q-mos { display: none !important; }
+        #dispSubnav.mini .disp-nav-burger i { transform: rotate(180deg); color: #630ed4 !important; }
+        
+        body.dark-mode #dispSubnav, body.dark-mode #dispSubnav.mini .disp-nav-burger { background: var(--plHeadBg, #0e0e12) !important; border-color: rgba(255,255,255,.08) !important; }
+        body.dark-mode #dispSubnav .disp-nav-burger { border-top-color: rgba(255,255,255,.08) !important; color: #a19cab !important; }
+        body.dark-mode #dispSubnav .disp-subnav-inner::before { color: #a19cab !important; }
+        body.dark-mode #dispSubnav .disp-subnav-inner button { color: #edebe7 !important; }
+        body.dark-mode #dispSubnav .disp-subnav-inner button i { color: #a19cab !important; }
+        body.dark-mode #dispSubnav .disp-subnav-inner button:hover { background: rgba(255,255,255,.05) !important; }
+        body.dark-mode #dispSubnav .disp-subnav-inner button.active { background: rgba(167,139,250,.16) !important; color: #c4b5fd !important; }
+        body.dark-mode #dispSubnav .disp-subnav-inner button.active i { color: #c4b5fd !important; }
+        .disp-layout > .disp-subpane.active { padding: 6px 0 60px !important; min-width: 0 !important; }
       }
       @media (max-width: 980px) {
         .disp-layout { flex-direction: column !important; gap: 12px !important; min-height: 0 !important; }
