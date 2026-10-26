@@ -305,12 +305,12 @@
     @media (prefers-reduced-motion: reduce) { .pl-depo { transition: none; } }
 
     /* ─── LOGOS DAS MARCAS ─── */
-    .marcas { padding: clamp(80px, 8.5vw, 128px) 0 clamp(64px, 7vw, 104px); text-align: center; }
+    .marcas { padding: clamp(80px, 8.5vw, 128px) 0 clamp(24px, 3vw, 40px); text-align: center; }
     .marcas-cap { font-size: clamp(15px, 1.2vw, 17px); color: var(--ink-soft); }
     /* faixa estreita: ~4 logos a vista, cada um num espaco igual e com altura ajustada ao "peso" visual */
     .marcas-faixa {
-      --slot: 250px; --k: 1.1;
-      position: relative; overflow: hidden; margin: clamp(28px, 3vw, 44px) auto 0; max-width: 1200px;
+      --slot: 200px; --k: 1.1;
+      position: relative; overflow: hidden; margin: clamp(28px, 3vw, 44px) auto 0; max-width: 960px;
       -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.25) 6%, rgba(0,0,0,.7) 13%, #000 22%, #000 78%, rgba(0,0,0,.7) 87%, rgba(0,0,0,.25) 94%, transparent 100%);
       mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.25) 6%, rgba(0,0,0,.7) 13%, #000 22%, #000 78%, rgba(0,0,0,.7) 87%, rgba(0,0,0,.25) 94%, transparent 100%);
     }
@@ -320,7 +320,7 @@
     .marca img { height: calc(var(--h) * var(--k)); width: auto; max-width: 78%; object-fit: contain; user-select: none; }
     @keyframes marcas-desliza { to { transform: translate3d(-50%, 0, 0); } }
     @media (max-width: 640px) {
-      .marcas-faixa { --slot: calc((100vw - 32px) / 3); --k: .62; }
+      .marcas-faixa { --slot: calc((100vw - 32px) / 3.3); --k: .62; }
       .marcas-trilho { animation-duration: 90s; }
       .marca { height: 48px; }
     }
@@ -328,6 +328,127 @@
       .marcas-trilho { animation: none; flex-wrap: wrap; justify-content: center; width: auto; }
       .marcas-trilho [aria-hidden="true"] { display: none; }
     }
+
+    /* ─── BLOCOS EDITORIAIS (intro, manifesto, cartao escuro, placas) ─── */
+    .rotulo {
+      font-family: var(--strong); font-weight: 500; font-size: 12px; letter-spacing: 0;
+      color: var(--ink); -webkit-text-stroke-width: 0;
+    }
+    .cinza { color: rgba(34,21,50,.34); }
+
+    .intro { padding-block: clamp(72px, 8vw, 120px) 0; }
+    .intro-grade { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px clamp(32px, 5vw, 80px); }
+    .intro h2 { font-weight: 300; font-size: clamp(2.2rem, 3.6vw, 3.25rem); line-height: 1.08; letter-spacing: -0.035em; max-width: 11ch; }
+    .intro-texto { display: grid; gap: 14px; justify-items: start; max-width: 26rem; }
+    .intro-texto p { font-size: clamp(1.1rem, 1.5vw, 1.35rem); line-height: 1.35; color: var(--ink-soft); letter-spacing: -0.02em; }
+    .btn-pill { border-radius: 100px; padding: 11px 22px; margin-top: 10px; }
+    .intro-legenda { align-self: end; font-size: 12px; color: var(--ink-soft); }
+    .intro-fotos { display: grid; grid-template-columns: 1.35fr 1fr; gap: 14px; }
+    .intro-fotos figure { position: relative; margin: 0; border-radius: 18px; overflow: hidden; height: clamp(180px, 17vw, 240px); background: var(--mist); }
+    .intro-fotos img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s cubic-bezier(.22,1,.36,1); }
+    .intro-fotos figure:hover img { transform: scale(1.04); }
+    .intro-fotos figcaption {
+      position: absolute; left: 12px; bottom: 12px; padding: 6px 11px; border-radius: 100px;
+      font-size: 12px; color: #fff; background: rgba(14,8,30,.45);
+      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); -webkit-text-stroke-width: 0;
+    }
+    .linha { height: 1px; background: var(--line); margin-top: clamp(48px, 6vw, 80px); }
+
+    .manifesto { padding-block: clamp(56px, 6vw, 88px) clamp(64px, 7vw, 104px); }
+    .manifesto-grade { display: grid; grid-template-columns: minmax(0, 1fr) 200px; gap: 32px; align-items: start; }
+    .manifesto p { font-size: clamp(1.5rem, 2.5vw, 2.15rem); line-height: 1.22; letter-spacing: -0.03em; max-width: 30em; }
+    .manifesto .rotulo { justify-self: end; color: var(--ink-soft); }
+
+    .palco-escuro { padding-bottom: clamp(72px, 8vw, 120px); }
+    .ceu {
+      position: relative; isolation: isolate; overflow: hidden; border-radius: 28px;
+      min-height: clamp(560px, 46vw, 680px); color: #fff;
+      display: grid; grid-template-rows: auto 1fr auto; padding: clamp(28px, 4vw, 56px);
+      background:
+        radial-gradient(60% 16% at 50% 82%, rgba(196,181,253,.55) 0%, rgba(167,139,250,0) 70%),
+        radial-gradient(120% 55% at 50% 112%, rgba(124,58,237,.6) 0%, rgba(76,29,149,.32) 34%, rgba(76,29,149,0) 62%),
+        linear-gradient(180deg, #04030a 0%, #0b0719 50%, #1a0e3a 100%);
+    }
+    /* estrelas */
+    .ceu::before {
+      content: ''; position: absolute; inset: 0; z-index: -1; opacity: .7;
+      background-image:
+        radial-gradient(1px 1px at 12% 18%, #fff 50%, transparent 51%),
+        radial-gradient(1px 1px at 28% 42%, #fff 50%, transparent 51%),
+        radial-gradient(1.5px 1.5px at 46% 12%, #fff 50%, transparent 51%),
+        radial-gradient(1px 1px at 63% 30%, #fff 50%, transparent 51%),
+        radial-gradient(1px 1px at 78% 8%, #fff 50%, transparent 51%),
+        radial-gradient(1px 1px at 88% 36%, #fff 50%, transparent 51%),
+        radial-gradient(1px 1px at 36% 64%, rgba(255,255,255,.7) 50%, transparent 51%),
+        radial-gradient(1px 1px at 92% 58%, rgba(255,255,255,.7) 50%, transparent 51%),
+        radial-gradient(1px 1px at 6% 52%, rgba(255,255,255,.6) 50%, transparent 51%);
+    }
+    /* feixe de luz diagonal */
+    .feixe {
+      position: absolute; z-index: -1; top: -30%; right: 18%; width: 18%; height: 150%;
+      background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(221,214,254,.32) 38%, rgba(255,255,255,.08) 70%, rgba(255,255,255,0) 100%);
+      transform: rotate(26deg); filter: blur(18px); mix-blend-mode: screen;
+      animation: feixe 9s ease-in-out infinite alternate;
+    }
+    .feixe.fino { width: 3%; right: 30%; filter: blur(4px); opacity: .7; animation-duration: 7s; }
+    @keyframes feixe { from { opacity: .65; transform: rotate(26deg) translateX(0); } to { opacity: 1; transform: rotate(26deg) translateX(-4%); } }
+    /* curva do planeta e uma lua pequena */
+    .horizonte {
+      position: absolute; z-index: -1; left: -30%; right: -30%; top: 89%; height: 120%; border-radius: 50%;
+      background: radial-gradient(60% 40% at 50% 0%, #170d33 0%, #07050f 70%);
+      box-shadow: 0 -2px 0 rgba(221,214,254,.55), 0 -18px 60px rgba(167,139,250,.55), 0 -60px 140px rgba(124,58,237,.35);
+    }
+    .lua { position: absolute; z-index: -1; left: 44%; top: 38%; width: 12px; height: 12px; border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fff, #b9b2cc 60%, #5f5878); box-shadow: 0 0 18px rgba(255,255,255,.35); }
+
+    .ceu h2 { font-weight: 300; font-size: clamp(2.1rem, 3.8vw, 3.4rem); line-height: 1.08; letter-spacing: -0.035em; max-width: 13ch; -webkit-text-stroke-color: #fff; }
+    .ceu-numeros { grid-row: 3; justify-self: end; display: grid; grid-template-columns: repeat(3, minmax(0, 200px)); align-items: end; }
+    .ceu-num {
+      position: relative; padding: 0 18px 0 16px; display: flex; flex-direction: column; gap: 8px;
+      min-height: 220px;
+    }
+    .ceu-num:first-child { min-height: 300px; }
+    .ceu-num::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 1px;
+      background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.35) 30%, rgba(255,255,255,.12));
+    }
+    .ceu-num strong { font-weight: 300; font-size: clamp(1.8rem, 2.6vw, 2.4rem); line-height: 1; letter-spacing: -0.04em; -webkit-text-stroke-color: #fff; white-space: nowrap; }
+    .ceu-num span { font-family: var(--strong); font-weight: 500; font-size: 12px; line-height: 1.35; -webkit-text-stroke-width: 0; margin-top: auto; }
+    .ceu-num small { font-size: 12px; line-height: 1.4; color: rgba(255,255,255,.55); -webkit-text-stroke-width: 0; }
+    .ceu-num a {
+      margin-top: 18px; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+      border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.08); color: #fff;
+      transition: background .25s ease, border-color .25s ease, transform .25s ease;
+    }
+    .ceu-num a:hover { background: var(--violet); border-color: var(--violet); transform: translateX(2px); }
+    .ceu-num a svg { width: 14px; height: 14px; }
+    .ceu-legenda { grid-row: 3; grid-column: 1; align-self: end; font-size: 12px; color: rgba(255,255,255,.6); -webkit-text-stroke-width: 0; }
+
+    .placas { padding-bottom: clamp(80px, 9vw, 128px); }
+    .placas-grade { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 32px clamp(32px, 6vw, 96px); align-items: start; }
+    .placas h2 { font-weight: 300; font-size: clamp(2.6rem, 4.4vw, 3.9rem); line-height: 1.02; letter-spacing: -0.04em; }
+    .placas p { font-size: clamp(1.35rem, 2vw, 1.8rem); line-height: 1.25; letter-spacing: -0.03em; }
+    .placas small { display: block; margin-top: 22px; font-size: 13px; color: var(--ink-soft); -webkit-text-stroke-width: 0; }
+
+    @media (max-width: 900px) {
+      .intro-grade, .placas-grade { grid-template-columns: 1fr; }
+      .intro-legenda { display: none; }
+      .manifesto-grade { grid-template-columns: 1fr; }
+      .manifesto .rotulo { justify-self: start; grid-row: 1; }
+      .ceu { grid-template-rows: auto auto auto; gap: 48px; }
+      .ceu-numeros { justify-self: stretch; grid-row: 2; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .ceu-num, .ceu-num:first-child { min-height: 0; }
+      .ceu-num span { margin-top: 20px; }
+      .ceu-legenda { grid-row: 3; }
+    }
+    @media (max-width: 560px) {
+      .intro-fotos { grid-template-columns: 1fr 1fr; }
+      .ceu-numeros { grid-template-columns: 1fr; gap: 28px; }
+      .lua { display: none; }
+      .horizonte { left: -90%; right: -90%; top: 93%; }
+      .ceu-num { padding-left: 16px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .feixe { animation: none; } .intro-fotos img { transition: none; } }
 
     .rise { animation: rise .8s cubic-bezier(.22,1,.36,1) both; }
     .rise.d1 { animation-delay: .06s; } .rise.d2 { animation-delay: .14s; } .rise.d3 { animation-delay: .22s; } .rise.d4 { animation-delay: .32s; }
@@ -523,6 +644,86 @@
       </div>
     </section>
 
+    <!-- ─── INTRO ─── -->
+    <section class="intro" id="como-funciona" aria-labelledby="introTitulo">
+      <div class="container">
+        <div class="intro-grade">
+          <h2 id="introTitulo">Provador virtual para moda &amp; óculos</h2>
+          <div class="intro-texto">
+            <span class="rotulo">Provador virtual com IA</span>
+            <p>Seu cliente prova a peça na própria foto, direto na página do produto, sem app e sem cadastro.</p>
+            <a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener" class="btn btn-primary btn-pill">Testar grátis</a>
+          </div>
+          <span class="intro-legenda">Roupas, óculos e calçados</span>
+          <div class="intro-fotos">
+            <figure>
+              <img src="assets/demo/oculos-resultado.jpg" alt="Cliente usando óculos escuros gerados pelo provador virtual" width="597" height="799" loading="lazy" decoding="async">
+              <figcaption>Óculos</figcaption>
+            </figure>
+            <figure>
+              <img src="assets/demo/roupa-produto.jpg" alt="Blusa de alfaiataria em cabide" width="651" height="905" loading="lazy" decoding="async">
+              <figcaption>Roupas</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="linha"></div>
+      </div>
+    </section>
+
+    <!-- ─── MANIFESTO ─── -->
+    <section class="manifesto" aria-label="Sobre a Provou Levou">
+      <div class="container manifesto-grade">
+        <p>Mais de 1.000 marcas brasileiras já usam o provador para vender moda e óculos online com mais segurança. <span class="cinza">Cada prova vira um lead no seu WhatsApp, e cada venda é atribuída ao provador, prova a prova, no seu painel.</span></p>
+        <span class="rotulo">Vendendo com mais certeza</span>
+      </div>
+    </section>
+
+    <!-- ─── CARTÃO ESCURO COM NÚMEROS ─── -->
+    <section class="palco-escuro" aria-labelledby="ceuTitulo">
+      <div class="container">
+        <div class="ceu">
+          <span class="feixe" aria-hidden="true"></span>
+          <span class="feixe fino" aria-hidden="true"></span>
+          <span class="lua" aria-hidden="true"></span>
+          <span class="horizonte" aria-hidden="true"></span>
+
+          <h2 id="ceuTitulo">Cada prova é uma venda em potencial, medida do clique ao pedido</h2>
+
+          <div class="ceu-numeros">
+            <div class="ceu-num">
+              <strong>+R$ 2,5 mi</strong>
+              <span>Faturamento atribuído ao provador</span>
+              <small>somando todas as lojas</small>
+              <a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener" aria-label="Falar com especialista"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+            </div>
+            <div class="ceu-num">
+              <strong>14,32%</strong>
+              <span>Conversão de quem prova</span>
+              <small>caso Cacife Brand</small>
+              <a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener" aria-label="Falar com especialista"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+            </div>
+            <div class="ceu-num">
+              <strong>51%</strong>
+              <span>Compram em até 1 hora</span>
+              <small>clientes de óticas</small>
+              <a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener" aria-label="Falar com especialista"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+            </div>
+          </div>
+          <span class="ceu-legenda">Dados do painel de atribuição</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── PLACAS ─── -->
+    <section class="placas" aria-labelledby="placasTitulo">
+      <div class="container placas-grade">
+        <h2 id="placasTitulo">Placas de<br>R$ 100 mil</h2>
+        <div>
+          <p>Quando uma loja cruza R$ 100 mil vendidos pelo provador, a gente entrega a placa pessoalmente. <span class="cinza">Não é meta nem projeção: é faturamento fechado, atribuído prova a prova.</span></p>
+          <small>Acessórios Style e Cacife Brand · julho de 2026</small>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- ─── DEPOIMENTO FLUTUANTE ─── -->
