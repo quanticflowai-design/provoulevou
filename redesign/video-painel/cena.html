@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+  @font-face { font-family: 'HN'; src: url('fonts/helveticanowdisplay-medium.ttf'); font-weight: 500; }
+  @font-face { font-family: 'HL'; src: url('fonts/helvetica-light.ttf'); font-weight: 300; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1600px; height: 758px; overflow: hidden; background: #f7f6f3; }
+  body { font-family: 'HN', 'Helvetica Neue', Arial, sans-serif; color: #17131f; -webkit-font-smoothing: antialiased; }
+
+  /* "camera": a cena inteira (1896x897) e escalada/movida dentro do quadro 1600x758 */
+  #lente { position: absolute; inset: 0; overflow: hidden; }
+  #cena { position: absolute; left: 0; top: 0; width: 1896px; height: 897px; transform-origin: 0 0; background: #f7f6f3; }
+
+  .top { height: 62px; border-bottom: 1px solid #ebe8f0; display: flex; align-items: center; padding: 0 22px; gap: 34px; background: #fbfaf8; }
+  .top img { height: 28px; }
+  .top nav { display: flex; gap: 33px; font-size: 15px; color: #5d5a68; margin-left: 30px; }
+  .top nav b { color: #6d28d9; font-weight: 500; }
+  .top .dir { margin-left: auto; display: flex; gap: 14px; align-items: center; font-size: 14px; }
+  .pill { border: 1px solid #e6e2ee; border-radius: 99px; padding: 8px 14px; background: #fff; }
+  .master { background: #f1ecfd; border-color: #ddd0fb; color: #6d28d9; font-size: 12px; letter-spacing: .04em; display: flex; gap: 10px; align-items: center; }
+  .master span { background: #fff; color: #17131f; border-radius: 99px; padding: 3px 10px; font-size: 13px; letter-spacing: 0; }
+
+  h1 { position: absolute; left: 126px; top: 132px; font-size: 32px; font-weight: 500; letter-spacing: -0.02em; color: #1d1530; }
+  .cota { position: absolute; right: 134px; top: 134px; display: flex; gap: 14px; align-items: center; padding: 9px 18px; border: 1px solid #e3dfea; border-radius: 99px; background: #fff; font-size: 14px; }
+  .cota i { width: 8px; height: 8px; border-radius: 50%; background: #10b981; }
+  .cota em { font-style: normal; color: #8a8696; }
+  .cota u { display: block; width: 60px; height: 3px; border-radius: 3px; background: #e5dcfb; }
+
+  .card { position: absolute; background: #fbfaf9; border: 1px solid #ece9f1; border-radius: 16px; overflow: hidden; }
+  .c1 { left: 126px; top: 202px; width: 657px; height: 447px; }
+  .c1::after { content: ''; position: absolute; right: -40px; top: 10px; width: 330px; height: 330px; border-radius: 50%; background: radial-gradient(circle, rgba(167,139,250,.14), rgba(167,139,250,0) 65%); }
+  .c1 .ic { position: absolute; left: 26px; top: 35px; width: 42px; height: 42px; border-radius: 10px; background: #dcf7e6; border: 1px solid #b8ecca; display: grid; place-items: center; color: #16a34a; font-size: 18px; }
+  .c1 h2 { position: absolute; left: 82px; top: 38px; font-size: 27px; font-weight: 500; letter-spacing: -0.02em; }
+  .c1 .lbl { position: absolute; left: 27px; top: 118px; font-size: 15px; color: #6b6777; }
+  .valor { position: absolute; left: 26px; top: 158px; font-size: 46px; font-weight: 500; letter-spacing: -0.02em; -webkit-text-stroke: .6px currentColor; white-space: nowrap; }
+  .valor small { font-size: 1em; color: #8a8696; -webkit-text-stroke: 0; margin-right: 10px; }
+  .linha2 { position: absolute; left: 27px; top: 230px; font-size: 18px; color: #4b4757; white-space: nowrap; }
+  .linha2 b { color: #6d28d9; font-weight: 500; }
+  .linha3 { position: absolute; left: 27px; top: 266px; font-size: 15px; color: #4b4757; display: flex; gap: 12px; align-items: center; }
+  .linha3 span { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: #6d28d9; background: #efe9fd; border: 1px solid #ddd0fb; border-radius: 5px; padding: 3px 9px; }
+
+  .c2 { left: 810px; top: 202px; width: 953px; height: 447px; }
+  .c2::before { content: ''; position: absolute; right: -60px; top: -80px; width: 360px; height: 260px; border-radius: 50%; background: radial-gradient(ellipse, rgba(167,139,250,.22), rgba(167,139,250,0) 65%); }
+  .c2 h2 { position: absolute; left: 27px; top: 33px; font-size: 27px; font-weight: 500; letter-spacing: -0.02em; }
+  .tog { position: absolute; right: 26px; top: 28px; display: flex; background: #f1eef6; border: 1px solid #e3dfea; border-radius: 9px; padding: 3px; font-size: 14px; z-index: 2; }
+  .tog b { background: #7c3aed; color: #fff; border-radius: 7px; padding: 7px 16px; font-weight: 500; }
+  .tog span { padding: 7px 16px; color: #6b6777; }
+  .barras { position: absolute; left: 31px; right: 31px; bottom: 58px; height: 300px; display: flex; align-items: flex-end; gap: 10px; }
+  .barras div { flex: 1; border-radius: 6px 6px 2px 2px; background: #f0ebfb; height: 0; position: relative; }
+  .barras div.mar { background: #e2d6fb; }
+  .barras div.mar::after { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1.5px dashed #f0b45d; }
+  .meses { position: absolute; left: 31px; right: 31px; bottom: 30px; display: flex; gap: 10px; font-size: 13px; color: #9a96a6; }
+  .meses span { flex: 1; text-align: center; }
+  .meses span.mar { color: #17131f; }
+  .instalou { position: absolute; font-size: 11px; letter-spacing: .03em; color: #8a5a00; background: #fff4d6; border: 1px solid #f3cf72; border-radius: 99px; padding: 3px 11px; transform: translateX(-50%); }
+  .instalou::after { content: '★'; position: absolute; left: 50%; top: 24px; transform: translateX(-50%); color: #f0a830; font-size: 12px; }
+
+  .c3 { left: 126px; top: 676px; width: 1637px; height: 189px; }
+  .c3 h2 { position: absolute; left: 27px; top: 30px; font-size: 27px; font-weight: 500; letter-spacing: -0.02em; }
+  .fun { position: absolute; top: 88px; width: 486px; }
+  .fun p { display: flex; justify-content: space-between; font-size: 15px; color: #6b6777; margin-bottom: 10px; }
+  .fun p b { color: #17131f; font-weight: 500; }
+  .fun .trilho { height: 44px; border-radius: 7px; background: #f0eff2; overflow: hidden; }
+  .fun .trilho i { display: block; height: 100%; width: 0; border-radius: 7px; }
+  .f1 { left: 27px; } .f2 { left: 575px; } .f3 { left: 1123px; }
+  .seta { position: absolute; top: 122px; color: #b4b0bd; font-size: 20px; }
+
+  /* cursor do mouse (gravacao de tela) */
+  #mouse { position: absolute; left: 0; top: 0; width: 22px; height: 22px; z-index: 50; pointer-events: none; transform-origin: 0 0; }
+  .hover { outline: 2px solid rgba(124,58,237,.0); }
+  .tip { position: absolute; z-index: 5; background: #1d1530; color: #fff; border-radius: 8px; padding: 8px 11px; font-size: 13px; white-space: nowrap; opacity: 0; }
+  .tip b { font-weight: 500; color: #c4b5fd; }
+
+  #vinheta { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 62%, rgba(20,10,40,.10) 100%); }
+</style>
+</head>
+<body>
+<div id="lente">
+  <div id="cena">
+    <div class="top">
+      <img src="logo.png" alt="">
+      <nav><b>Visão Geral</b><span>Disparos</span><span>Clientes &amp; LTV</span><span>Provas</span><span>Meu Plano</span></nav>
+      <div class="dir">
+        <span class="pill master">♛ MASTER <span>Cliente ⌄</span></span>
+        <span class="pill">◎ Tour</span>
+        <span style="color:#6b6777">☾</span>
+        <span class="pill">↦ Sair</span>
+      </div>
+    </div>
+
+    <h1>Visão Geral</h1>
+    <div class="cota"><i></i><b>374</b><em>/3.000</em><u></u><b>2.626</b><em>disponíveis</em></div>
+
+    <div class="card c1">
+      <div class="ic">$</div>
+      <h2>Impacto do Provador na sua Loja</h2>
+      <div class="lbl">Faturamento atribuído</div>
+      <div class="valor"><small>R$</small><span id="vValor">0,00</span></div>
+      <div class="linha2" id="l2"><b id="vComp">0</b> compradores · ticket médio <b>R$ 130,58</b></div>
+      <div class="linha3" id="l3"><span>20,4%</span> do faturamento total da loja</div>
+    </div>
+
+    <div class="card c2">
+      <h2>Faturamento Mensal</h2>
+      <div class="tog"><b>Mês</b><span>Semana</span></div>
+      <div class="barras" id="barras">
+        <div data-h="133"></div><div data-h="151"></div><div data-h="227"></div><div data-h="273"></div>
+        <div data-h="162"></div><div data-h="135"></div><div data-h="164" class="mar"></div><div data-h="188"></div>
+        <div data-h="164"></div><div data-h="158"></div><div data-h="3"></div>
+      </div>
+      <div class="meses">
+        <span>Set/25</span><span>Out/25</span><span>Nov/25</span><span>Dez/25</span><span>Jan/26</span><span>Fev/26</span>
+        <span class="mar">Mar/26</span><span>Abr/26</span><span>Mai/26</span><span>Jun/26</span><span>Jul/26</span>
+      </div>
+      <div class="instalou" id="instalou">INSTALOU</div>
+      <div class="tip" id="tip" hidden></div>
+    </div>
+
+    <div class="card c3">
+      <h2>Jornada do cliente</h2>
+      <div class="fun f1"><p><span><b>9.160</b> clientes provaram</span><b>100%</b></p><div class="trilho"><i id="t1" style="background:linear-gradient(90deg,#7c3aed,#8b5cf6)"></i></div></div>
+      <span class="seta" style="left:539px">›</span>
+      <div class="fun f2"><p><span><b>5.144</b> voltaram</span><b>56%</b></p><div class="trilho"><i id="t2" style="background:linear-gradient(90deg,#6d28d9,#7c3aed)"></i></div></div>
+      <span class="seta" style="left:1087px">›</span>
+      <div class="fun f3"><p><span><b>1.562</b> compraram</span><b>20,4%</b></p><div class="trilho"><i id="t3" style="background:linear-gradient(90deg,#45d4f5,#67e3fb)"></i></div></div>
+    </div>
+
+    <svg id="mouse" viewBox="0 0 22 22"><path d="M3 2 L3 18 L7.5 14 L10.5 20.5 L13 19.4 L10 13 L16 13 Z" fill="#111" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>
+  </div>
+  <div id="vinheta"></div>
+</div>
+
+<script>
+  const W = 1600, H = 758, SW = 1896, SH = 897;
+  const cena = document.getElementById('cena');
+  const barras = [...document.querySelectorAll('#barras div')];
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const easeIO = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;   // cubic in-out
+  const easeO = t => 1 - Math.pow(1 - t, 3);
+  const easeO5 = t => 1 - Math.pow(1 - t, 5);
+  const seg = (t, a, b) => clamp((t - a) / (b - a));
+
+  // posicao da instalou acima da barra de marco
+  const c2 = document.querySelector('.c2');
+  function posInstalou() {
+    const b = barras[6], r = b.getBoundingClientRect(), rc = c2.getBoundingClientRect(), k = rc.width / 953;
+    return { x: (r.left + r.width / 2 - rc.left) / k };
+  }
+
+  // tremor de mao: soma de senos lentos (sem aleatoriedade, pra ser deterministico)
+  function mao(t, amp) {
+    return {
+      x: amp * (Math.sin(t * 1.3 + .4) * .6 + Math.sin(t * 2.9 + 1.7) * .3 + Math.sin(t * 5.1) * .1),
+      y: amp * (Math.sin(t * 1.1 + 2.1) * .6 + Math.sin(t * 2.3 + .2) * .3 + Math.sin(t * 4.7 + 1) * .1),
+      r: amp * .0009 * Math.sin(t * .9 + .5)
+    };
+  }
+
+  // camera: ponto focal (cx, cy na cena) + zoom. Quadro mostra W/zoom x H/zoom da cena.
+  const P = {
+    valor:  { cx: 360, cy: 395, z: 2.05 },
+    valor2: { cx: 400, cy: 385, z: 2.22 },
+    graf:   { cx: 1300, cy: 450, z: 1.45 },
+    graf2:  { cx: 1390, cy: 440, z: 1.52 },
+    geral:  { cx: SW / 2, cy: 470, z: W / SW * 0.99 },
+  };
+  function cam(t) {
+    let a, b, k;
+    if (t < 2.5) { a = P.valor; b = P.valor2; k = easeIO(seg(t, 0, 2.5)); }
+    else if (t < 3.15) { a = P.valor2; b = P.graf; k = easeIO(seg(t, 2.5, 3.15)); }
+    else if (t < 5.6) { a = P.graf; b = P.graf2; k = easeIO(seg(t, 3.15, 5.6)); }
+    else if (t < 6.7) { a = P.graf2; b = P.geral; k = easeIO(seg(t, 5.6, 6.7)); }
+    else { a = P.geral; b = { ...P.geral, z: P.geral.z * 1.025 }; k = easeO(seg(t, 6.7, 8)); }
+    return { cx: lerp(a.cx, b.cx, k), cy: lerp(a.cy, b.cy, k), z: lerp(a.z, b.z, k) };
+  }
+
+  function brl(v) {
+    return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  let anterior = null;
+  window.quadro = function (t) {
+    // ── camera
+    const c = cam(t), m = mao(t, 3.2 / c.z);
+    const tx = W / 2 - (c.cx + m.x) * c.z, ty = H / 2 - (c.cy + m.y) * c.z;
+    cena.style.transform = `translate(${tx}px, ${ty}px) scale(${c.z}) rotate(${m.r}rad)`;
+    // borrão de movimento so nos cortes rapidos
+    let vel = 0;
+    if (anterior) vel = Math.hypot(c.cx - anterior.cx, c.cy - anterior.cy) * c.z + Math.abs(c.z - anterior.z) * 900;
+    anterior = c;
+    cena.style.filter = vel > 6 ? `blur(${Math.min(2.4, (vel - 6) * 0.06)}px)` : 'none';
+
+    // ── card 1: contador
+    const kv = easeO5(seg(t, 0.15, 2.0));
+    document.getElementById('vValor').textContent = brl(203969.77 * kv);
+    document.getElementById('vComp').textContent = Math.round(1562 * kv).toLocaleString('pt-BR');
+    const l2 = document.getElementById('l2'), l3 = document.getElementById('l3');
+    l2.style.opacity = easeO(seg(t, .5, 1.1)); l2.style.transform = `translateY(${(1 - easeO(seg(t, .5, 1.1))) * 8}px)`;
+    l3.style.opacity = easeO(seg(t, .8, 1.4)); l3.style.transform = `translateY(${(1 - easeO(seg(t, .8, 1.4))) * 8}px)`;
+
+    // ── card 2: barras crescendo em sequencia
+    barras.forEach((b, i) => {
+      const k = easeO(seg(t, 2.8 + i * .09, 3.6 + i * .09));
+      b.style.height = (+b.dataset.h * k) + 'px';
+    });
+    const ins = document.getElementById('instalou'), pi = posInstalou();
+    const ki = easeO5(seg(t, 3.75, 4.2));
+    ins.style.left = pi.x + 'px';
+    ins.style.top = (447 - 58 - 164 - 62 - (1 - ki) * 14) + 'px';
+    ins.style.opacity = ki;
+
+    // ── cursor: entra pela direita, para na barra de abril e mostra o valor
+    const mouse = document.getElementById('mouse');
+    const p0 = { x: 1840, y: 640 }, p1 = { x: 1400, y: 470 }, p2 = { x: 1425, y: 520 };
+    let mp, km = seg(t, 3.9, 4.8);
+    if (t < 4.8) { const e = easeIO(km); mp = { x: lerp(p0.x, p1.x, e) + Math.sin(e * Math.PI) * -30, y: lerp(p0.y, p1.y, e) + Math.sin(e * Math.PI) * 25 }; }
+    else { const e = easeIO(seg(t, 5.3, 6.6)); mp = { x: lerp(p1.x, p2.x, e), y: lerp(p1.y, p2.y, e) }; }
+    mouse.style.transform = `translate(${mp.x}px, ${mp.y}px) scale(${1 / Math.max(1, c.z * .8)})`;
+    mouse.style.opacity = clamp(seg(t, 3.9, 4.1)) * (1 - seg(t, 6.2, 6.6));
+    const tip = document.getElementById('tip'), kt = seg(t, 4.85, 5.05) * (1 - seg(t, 5.9, 6.1));
+    const abr = barras[7], ra = abr.getBoundingClientRect(), rc = c2.getBoundingClientRect(), kk = rc.width / 953;
+    tip.style.left = ((ra.right - rc.left) / kk + 10) + 'px';
+    tip.style.top = ((ra.top - rc.top) / kk + 46) + 'px';
+    tip.style.opacity = kt;
+    abr.style.background = kt > .05 ? '#ddd0fb' : '';
+
+    // ── card 3: funil enche quando a camera abre
+    [['t1', 100, 6.2], ['t2', 56, 6.35], ['t3', 20.4, 6.5]].forEach(([id, w, a]) => {
+      document.getElementById(id).style.width = (w * easeO(seg(t, a, a + .9))) + '%';
+    });
+  };
+  window.quadro(0);
+</script>
+</body>
+</html>
