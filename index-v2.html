@@ -21,6 +21,13 @@
       font-display: swap;
     }
     @font-face {
+      font-family: 'New Icon Serif PL';
+      src: url('assets/fonts/new-icon-serif-pl.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
       font-family: 'HelveticaNow';
       src: url('helveticanowdisplay-medium.ttf') format('truetype');
       font-weight: 500;
@@ -44,6 +51,7 @@
 
       --sans: 'Helvetica PL', 'Helvetica Neue', Helvetica, Arial, sans-serif;
       --strong: 'HelveticaNow', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      --serif: 'New Icon Serif PL', 'Times New Roman', Georgia, serif;
 
       --container: 1280px;
       --gutter-l: max(24px, env(safe-area-inset-left, 0px));
@@ -329,6 +337,72 @@
       .marcas-trilho [aria-hidden="true"] { display: none; }
     }
 
+    /* ─── SECOES EDITORIAIS (problema / solucao) ─── */
+    .kicker {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--strong); font-weight: 500; font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+      -webkit-text-stroke-width: 0;
+    }
+    .kicker svg { width: 14px; height: 14px; }
+    .titulo-serif {
+      font-family: var(--serif); font-weight: 400;
+      font-size: clamp(2.4rem, 4.6vw, 3.9rem); line-height: 1.02; letter-spacing: 0;
+      -webkit-text-stroke-width: 0.012em; text-wrap: balance;
+      max-width: 18em; margin: 22px auto 0;
+    }
+
+    .problema { background: #07060a; color: #fff; padding-block: clamp(88px, 10vw, 140px); text-align: center; }
+    .problema .kicker { color: #a78bfa; }
+    .problema .titulo-serif { -webkit-text-stroke-color: #fff; }
+    .problema .titulo-serif span { color: rgba(255,255,255,.34); -webkit-text-stroke-color: rgba(255,255,255,.34); }
+    .dores {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: clamp(56px, 6vw, 88px); text-align: left;
+      border: 1px solid rgba(255,255,255,.1); border-radius: 4px;
+    }
+    .dor {
+      position: relative; min-height: 300px; padding: 30px 28px 32px;
+      display: flex; flex-direction: column; justify-content: space-between; gap: 40px;
+      transition: background .35s ease;
+    }
+    .dor + .dor { border-left: 1px solid rgba(255,255,255,.1); }
+    .dor:hover { background: rgba(124,58,237,.07); }
+    .dor-icone { width: 64px; height: 64px; }
+    .dor h3 { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.1; -webkit-text-stroke: .3px #fff; }
+    .dor p {
+      margin-top: 10px; font-size: 14px; line-height: 1.55; color: rgba(255,255,255,.55); max-width: 30ch;
+      max-height: 0; opacity: 0; overflow: hidden; transform: translateY(6px);
+      transition: max-height .45s ease, opacity .35s ease, transform .35s ease;
+    }
+    .dor:hover p, .dor:focus-within p { max-height: 8em; opacity: 1; transform: none; }
+    @media (hover: none), (max-width: 900px) { .dor p { max-height: none; opacity: 1; transform: none; } }
+
+    .solucao { padding-block: clamp(96px, 10vw, 150px) clamp(96px, 10vw, 140px); text-align: center; }
+    .solucao .kicker { color: var(--violet); }
+    .solucao .titulo-serif { color: var(--ink); -webkit-text-stroke-color: var(--ink); max-width: 20em; }
+    .passos {
+      list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0;
+      margin-top: clamp(56px, 6vw, 88px); text-align: left; border-top: 1px solid var(--line);
+    }
+    .passos li { padding: 26px 24px 0 0; }
+    .passos li + li { padding-left: 24px; border-left: 1px solid var(--line); }
+    .passos small { display: block; font-family: var(--strong); font-weight: 500; font-size: 12px; letter-spacing: .1em; color: var(--violet); -webkit-text-stroke-width: 0; }
+    .passos h3 { margin-top: 14px; font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.1; color: var(--ink); -webkit-text-stroke: .3px var(--ink); }
+    .passos p { margin-top: 10px; font-size: 14.5px; line-height: 1.55; color: var(--ink-soft); }
+
+    @media (max-width: 900px) {
+      .dores { grid-template-columns: 1fr; }
+      .dor { min-height: 0; }
+      .dor + .dor { border-left: 0; border-top: 1px solid rgba(255,255,255,.1); }
+      .passos { grid-template-columns: 1fr 1fr; row-gap: 32px; }
+      .passos li:nth-child(3) { padding-left: 0; border-left: 0; }
+    }
+    @media (max-width: 560px) {
+      .passos { grid-template-columns: 1fr; }
+      .passos li, .passos li + li { padding: 22px 0 0; border-left: 0; }
+      .passos li + li { border-top: 1px solid var(--line); }
+    }
+
     .rise { animation: rise .8s cubic-bezier(.22,1,.36,1) both; }
     .rise.d1 { animation-delay: .06s; } .rise.d2 { animation-delay: .14s; } .rise.d3 { animation-delay: .22s; } .rise.d4 { animation-delay: .32s; }
     @keyframes rise { from { opacity: .001; transform: translateY(12px); } to { opacity: 1; transform: none; } }
@@ -523,6 +597,71 @@
       </div>
     </section>
 
+    <!-- ─── O PROBLEMA ─── -->
+    <section class="problema" aria-labelledby="problemaTitulo">
+      <div class="container">
+        <span class="kicker"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 11.5 8 4l6 7.5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M5.5 11.5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>O problema</span>
+        <h2 class="titulo-serif" id="problemaTitulo">De cada 100 visitas, 2 compram. <span>As outras 98 saem sem nome, sem telefone, sem volta.</span></h2>
+
+        <div class="dores">
+          <article class="dor" tabindex="0">
+            <svg class="dor-icone" viewBox="0 0 64 64" aria-hidden="true">
+              <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#6d28d9"/></linearGradient></defs>
+              <path d="M10 16h4v40h30v4H10z" fill="#3b1a78"/>
+              <path d="M18 10h22l8 8v36H18z" fill="url(#g1)"/><path d="M40 10v8h8z" fill="#4c1d95"/>
+              <path d="M28.5 29a4.5 4.5 0 1 1 6.6 4c-1.5.8-2.1 1.6-2.1 3.2" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+              <circle cx="33" cy="42" r="1.6" fill="#fff"/>
+            </svg>
+            <div>
+              <h3>Dúvida na página do produto</h3>
+              <p>Sem ver a peça ou a armação no próprio corpo e rosto, o cliente fica inseguro e fecha a aba.</p>
+            </div>
+          </article>
+          <article class="dor" tabindex="0">
+            <svg class="dor-icone" viewBox="0 0 64 64" aria-hidden="true">
+              <defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#6d28d9"/></linearGradient></defs>
+              <path d="M32 8 54 19v26L32 56 10 45V19z" fill="#3b1a78"/>
+              <path d="M32 8 54 19 32 30 10 19z" fill="url(#g2)"/>
+              <path d="M32 30v26L54 45V19z" fill="#5b21b6"/>
+              <path d="M40 42h-9a5 5 0 0 1 0-10h5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+              <path d="m33 28.5 3.5 3.5-3.5 3.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div>
+              <h3>Devoluções que comem a margem</h3>
+              <p>Quem compra sem provar devolve mais. Estudos globais mostram que o provador virtual reduz de 23% a 78% das devoluções.</p>
+            </div>
+          </article>
+          <article class="dor" tabindex="0">
+            <svg class="dor-icone" viewBox="0 0 64 64" aria-hidden="true">
+              <defs><linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#6d28d9"/></linearGradient></defs>
+              <circle cx="20" cy="20" r="7" fill="url(#g3)"/><path d="M8 46c0-8 5.4-13 12-13s12 5 12 13z" fill="url(#g3)"/>
+              <circle cx="38" cy="22" r="6" fill="#6d28d9" opacity=".75"/><path d="M28 46c.5-7 4.8-11 10-11s9.5 4 10 11z" fill="#6d28d9" opacity=".75"/>
+              <circle cx="53" cy="26" r="4.5" fill="#5b21b6" opacity=".4"/><path d="M45 46c.4-5.5 3.6-8.5 8-8.5s7.6 3 8 8.5z" fill="#5b21b6" opacity=".4"/>
+              <path d="M6 52h52" stroke="#3b1a78" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <div>
+              <h3>Visitas que evaporam</h3>
+              <p>98 de cada 100 visitas saem sem deixar nome nem telefone. Não tem como chamar de volta quem só olhou.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── A SOLUÇÃO ─── -->
+    <section class="solucao" id="como-funciona" aria-labelledby="solucaoTitulo">
+      <div class="container">
+        <span class="kicker"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>A solução</span>
+        <h2 class="titulo-serif" id="solucaoTitulo">Converta mais, devolva menos e transforme cada prova em venda, com provador, CRM e WhatsApp num só painel</h2>
+
+        <ol class="passos">
+          <li><small>01</small><h3>Cliente prova</h3><p>Na página do produto, sem app e sem cadastro.</p></li>
+          <li><small>02</small><h3>Vira lead no CRM</h3><p>Telefone e peça provada caem no painel na hora.</p></li>
+          <li><small>03</small><h3>Recebe o disparo</h3><p>Mensagem oficial pela Meta, com o produto que ele provou.</p></li>
+          <li><small>04</small><h3>Volta e compra</h3><p>O fluxo insiste sozinho até a venda fechar.</p></li>
+        </ol>
+      </div>
+    </section>
   </main>
 
   <!-- ─── DEPOIMENTO FLUTUANTE ─── -->
