@@ -6,12 +6,13 @@
   @font-face { font-family: 'HN'; src: url('fonts/helveticanowdisplay-medium.ttf'); font-weight: 500; }
   @font-face { font-family: 'HL'; src: url('fonts/helvetica-light.ttf'); font-weight: 300; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 1600px; height: 758px; overflow: hidden; background: #f7f6f3; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: #f7f6f3; }
   body { font-family: 'HN', 'Helvetica Neue', Arial, sans-serif; color: #17131f; -webkit-font-smoothing: antialiased; }
 
   /* "camera": a cena inteira (1896x897) e escalada/movida dentro do quadro 1600x758 */
-  #lente { position: absolute; inset: 0; overflow: hidden; }
-  #cena { position: absolute; left: 0; top: 0; width: 1896px; height: 897px; transform-origin: 0 0; background: #f7f6f3; }
+  #lente { position: absolute; inset: 0; overflow: hidden; perspective: 1500px; perspective-origin: 50% 50%; background: #f1eff4; }
+  #cena { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  #zoom { position: relative; width: 1896px; height: 897px; background: #f7f6f3; }
 
   .top { height: 62px; border-bottom: 1px solid #ebe8f0; display: flex; align-items: center; padding: 0 22px; gap: 34px; background: #fbfaf8; }
   .top img { height: 28px; }
@@ -28,7 +29,7 @@
   .cota em { font-style: normal; color: #8a8696; }
   .cota u { display: block; width: 60px; height: 3px; border-radius: 3px; background: #e5dcfb; }
 
-  .card { position: absolute; background: #fbfaf9; border: 1px solid #ece9f1; border-radius: 16px; overflow: hidden; }
+  .card { position: absolute; background: #fbfaf9; border: 1px solid #ece9f1; border-radius: 16px; overflow: hidden; box-shadow: 0 14px 40px -24px rgba(40,20,80,.25); }
   .c1 { left: 126px; top: 202px; width: 657px; height: 447px; }
   .c1::after { content: ''; position: absolute; right: -40px; top: 10px; width: 330px; height: 330px; border-radius: 50%; background: radial-gradient(circle, rgba(167,139,250,.14), rgba(167,139,250,0) 65%); }
   .c1 .ic { position: absolute; left: 26px; top: 35px; width: 42px; height: 42px; border-radius: 10px; background: #dcf7e6; border: 1px solid #b8ecca; display: grid; place-items: center; color: #16a34a; font-size: 18px; }
@@ -78,7 +79,7 @@
 </head>
 <body>
 <div id="lente">
-  <div id="cena">
+  <div id="cena"><div id="zoom">
     <div class="top">
       <img src="logo.png" alt="">
       <nav><b>Visão Geral</b><span>Disparos</span><span>Clientes &amp; LTV</span><span>Provas</span><span>Meu Plano</span></nav>
@@ -128,13 +129,13 @@
     </div>
 
     <svg id="mouse" viewBox="0 0 22 22"><path d="M3 2 L3 18 L7.5 14 L10.5 20.5 L13 19.4 L10 13 L16 13 Z" fill="#111" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>
-  </div>
+  </div></div>
   <div id="vinheta"></div>
 </div>
 
 <script>
-  const W = 1600, H = 758, SW = 1896, SH = 897;
-  const cena = document.getElementById('cena');
+  const W = 1920, H = 1080, SW = 1896, SH = 897;
+  const cena = document.getElementById('cena'), zoomEl = document.getElementById('zoom');
   const barras = [...document.querySelectorAll('#barras div')];
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -145,10 +146,8 @@
 
   // posicao da instalou acima da barra de marco
   const c2 = document.querySelector('.c2');
-  function posInstalou() {
-    const b = barras[6], r = b.getBoundingClientRect(), rc = c2.getBoundingClientRect(), k = rc.width / 953;
-    return { x: (r.left + r.width / 2 - rc.left) / k };
-  }
+  const instX = (() => { const b = barras[6]; return b.offsetLeft + b.parentElement.offsetLeft + b.offsetWidth / 2; })();
+  function posInstalou() { return { x: instX }; }
 
   // tremor de mao: soma de senos lentos (sem aleatoriedade, pra ser deterministico)
   function mao(t, amp) {
@@ -159,22 +158,28 @@
     };
   }
 
-  // camera: ponto focal (cx, cy na cena) + zoom. Quadro mostra W/zoom x H/zoom da cena.
-  const P = {
-    valor:  { cx: 360, cy: 395, z: 2.05 },
-    valor2: { cx: 400, cy: 385, z: 2.22 },
-    graf:   { cx: 1300, cy: 450, z: 1.45 },
-    graf2:  { cx: 1390, cy: 440, z: 1.52 },
-    geral:  { cx: SW / 2, cy: 470, z: W / SW * 0.99 },
-  };
+  // camera com planos: cada plano vai de um enquadramento a outro; 'chicote' = panoramica rapida vinda do plano anterior
+  const FIT = W / SW * 0.96;
+  const PLANOS = [
+    { t0: 0.00, t1: 1.25, de: { cx: 290, cy: 392, z: 3.0, rx: 14, ry: -22, rz: -2 },  para: { cx: 335, cy: 386, z: 3.35, rx: 10, ry: -15, rz: -1.2 } },
+    { t0: 1.25, t1: 2.35, de: { cx: 250, cy: 458, z: 2.7, rx: -9, ry: 18, rz: 2 },    para: { cx: 430, cy: 452, z: 2.8, rx: -6, ry: 11, rz: 1.2 } },
+    { t0: 2.35, t1: 3.55, chicote: .2, de: { cx: 1130, cy: 470, z: 1.65, rx: 6, ry: -32, rz: 0 }, para: { cx: 1370, cy: 450, z: 1.8, rx: 3, ry: -18, rz: 0 } },
+    { t0: 3.55, t1: 4.55, de: { cx: 1367, cy: 352, z: 3.6, rx: -10, ry: 9, rz: -3 },  para: { cx: 1385, cy: 345, z: 3.05, rx: -5, ry: 4, rz: -2 } },
+    { t0: 4.55, t1: 5.65, chicote: .2, de: { cx: 420, cy: 800, z: 2.15, rx: 32, ry: -7, rz: -3 }, para: { cx: 1320, cy: 800, z: 2.15, rx: 27, ry: 7, rz: -2 } },
+    { t0: 5.65, t1: 6.45, de: { cx: 330, cy: 158, z: 2.7, rx: -13, ry: -12, rz: 0 },  para: { cx: 270, cy: 152, z: 2.95, rx: -8, ry: -6, rz: 0 } },
+    { t0: 6.45, t1: 8.00, chicote: .25, de: { cx: 948, cy: 500, z: 1.4, rx: 24, ry: -16, rz: -2 }, para: { cx: 948, cy: 462, z: FIT, rx: 0, ry: 0, rz: 0 }, saida: true },
+  ];
+  const mix = (a, b, k) => Object.fromEntries(Object.keys(a).map(n => [n, lerp(a[n], b[n], k)]));
   function cam(t) {
-    let a, b, k;
-    if (t < 2.5) { a = P.valor; b = P.valor2; k = easeIO(seg(t, 0, 2.5)); }
-    else if (t < 3.15) { a = P.valor2; b = P.graf; k = easeIO(seg(t, 2.5, 3.15)); }
-    else if (t < 5.6) { a = P.graf; b = P.graf2; k = easeIO(seg(t, 3.15, 5.6)); }
-    else if (t < 6.7) { a = P.graf2; b = P.geral; k = easeIO(seg(t, 5.6, 6.7)); }
-    else { a = P.geral; b = { ...P.geral, z: P.geral.z * 1.025 }; k = easeO(seg(t, 6.7, 8)); }
-    return { cx: lerp(a.cx, b.cx, k), cy: lerp(a.cy, b.cy, k), z: lerp(a.z, b.z, k) };
+    let i = PLANOS.findIndex(p => t < p.t1); if (i < 0) i = PLANOS.length - 1;
+    const p = PLANOS[i], k = seg(t, p.t0, p.t1);
+    const dentro = mix(p.de, p.para, p.saida ? easeO5(k) : easeIO(k) * .85 + k * .15);
+    if (p.chicote && i > 0 && t < p.t0 + p.chicote) {
+      // panoramica rapida: parte do fim do plano anterior e chega no inicio deste
+      const q = PLANOS[i - 1], kc = easeIO(seg(t, p.t0, p.t0 + p.chicote));
+      return mix(q.para, dentro, kc);
+    }
+    return dentro;
   }
 
   function brl(v) {
@@ -185,29 +190,34 @@
   window.quadro = function (t) {
     // ── camera
     const c = cam(t), m = mao(t, 3.2 / c.z);
-    const tx = W / 2 - (c.cx + m.x) * c.z, ty = H / 2 - (c.cy + m.y) * c.z;
-    cena.style.transform = `translate(${tx}px, ${ty}px) scale(${c.z}) rotate(${m.r}rad)`;
-    // borrão de movimento so nos cortes rapidos
+    zoomEl.style.zoom = c.z;
+    cena.style.transform = `translate(${W / 2}px, ${H / 2}px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.rz + m.r * 57}deg) translate(${-(c.cx + m.x) * c.z}px, ${-(c.cy + m.y) * c.z}px)`;
+    // borrao de movimento so quando a camera anda rapido (nao nos cortes secos)
     let vel = 0;
-    if (anterior) vel = Math.hypot(c.cx - anterior.cx, c.cy - anterior.cy) * c.z + Math.abs(c.z - anterior.z) * 900;
-    anterior = c;
-    cena.style.filter = vel > 6 ? `blur(${Math.min(2.4, (vel - 6) * 0.06)}px)` : 'none';
+    if (anterior && Math.abs(anterior.t - t) < .05) {
+      const d = Math.hypot(c.cx - anterior.c.cx, c.cy - anterior.c.cy) * c.z + Math.abs(c.z - anterior.c.z) * 900
+              + (Math.abs(c.rx - anterior.c.rx) + Math.abs(c.ry - anterior.c.ry)) * 18;
+      const corte = PLANOS.some(p => !p.chicote && anterior.t < p.t0 && t >= p.t0);
+      vel = corte ? 0 : d;
+    }
+    anterior = { t, c };
+    cena.style.filter = vel > 28 ? `blur(${Math.min(2.2, (vel - 28) * 0.03)}px)` : 'none';
 
     // ── card 1: contador
-    const kv = easeO5(seg(t, 0.15, 2.0));
+    const kv = easeO5(seg(t, 0.05, 1.9));
     document.getElementById('vValor').textContent = brl(203969.77 * kv);
     document.getElementById('vComp').textContent = Math.round(1562 * kv).toLocaleString('pt-BR');
     const l2 = document.getElementById('l2'), l3 = document.getElementById('l3');
-    l2.style.opacity = easeO(seg(t, .5, 1.1)); l2.style.transform = `translateY(${(1 - easeO(seg(t, .5, 1.1))) * 8}px)`;
-    l3.style.opacity = easeO(seg(t, .8, 1.4)); l3.style.transform = `translateY(${(1 - easeO(seg(t, .8, 1.4))) * 8}px)`;
+    l2.style.opacity = easeO(seg(t, 1.2, 1.6)); l2.style.transform = `translateY(${(1 - easeO(seg(t, 1.2, 1.6))) * 8}px)`;
+    l3.style.opacity = easeO(seg(t, 1.45, 1.85)); l3.style.transform = `translateY(${(1 - easeO(seg(t, 1.45, 1.85))) * 8}px)`;
 
     // ── card 2: barras crescendo em sequencia
     barras.forEach((b, i) => {
-      const k = easeO(seg(t, 2.8 + i * .09, 3.6 + i * .09));
+      const k = easeO(seg(t, 2.45 + i * .06, 3.05 + i * .06));
       b.style.height = (+b.dataset.h * k) + 'px';
     });
     const ins = document.getElementById('instalou'), pi = posInstalou();
-    const ki = easeO5(seg(t, 3.75, 4.2));
+    const ki = easeO5(seg(t, 3.7, 4.05));
     ins.style.left = pi.x + 'px';
     ins.style.top = (447 - 58 - 164 - 62 - (1 - ki) * 14) + 'px';
     ins.style.opacity = ki;
@@ -215,20 +225,17 @@
     // ── cursor: entra pela direita, para na barra de abril e mostra o valor
     const mouse = document.getElementById('mouse');
     const p0 = { x: 1840, y: 640 }, p1 = { x: 1400, y: 470 }, p2 = { x: 1425, y: 520 };
-    let mp, km = seg(t, 3.9, 4.8);
-    if (t < 4.8) { const e = easeIO(km); mp = { x: lerp(p0.x, p1.x, e) + Math.sin(e * Math.PI) * -30, y: lerp(p0.y, p1.y, e) + Math.sin(e * Math.PI) * 25 }; }
-    else { const e = easeIO(seg(t, 5.3, 6.6)); mp = { x: lerp(p1.x, p2.x, e), y: lerp(p1.y, p2.y, e) }; }
+    let mp, km = seg(t, 3.0, 3.5);
+    if (t < 3.5) { const e = easeIO(km); mp = { x: lerp(p0.x, p1.x, e) + Math.sin(e * Math.PI) * -30, y: lerp(p0.y, p1.y, e) + Math.sin(e * Math.PI) * 25 }; }
+    else { const e = easeIO(seg(t, 3.6, 4.5)); mp = { x: lerp(p1.x, p2.x, e), y: lerp(p1.y, p2.y, e) }; }
     mouse.style.transform = `translate(${mp.x}px, ${mp.y}px) scale(${1 / Math.max(1, c.z * .8)})`;
-    mouse.style.opacity = clamp(seg(t, 3.9, 4.1)) * (1 - seg(t, 6.2, 6.6));
-    const tip = document.getElementById('tip'), kt = seg(t, 4.85, 5.05) * (1 - seg(t, 5.9, 6.1));
-    const abr = barras[7], ra = abr.getBoundingClientRect(), rc = c2.getBoundingClientRect(), kk = rc.width / 953;
-    tip.style.left = ((ra.right - rc.left) / kk + 10) + 'px';
-    tip.style.top = ((ra.top - rc.top) / kk + 46) + 'px';
-    tip.style.opacity = kt;
+    mouse.style.opacity = clamp(seg(t, 3.0, 3.15)) * (1 - seg(t, 4.5, 4.55));
+    const tip = document.getElementById('tip'), kt = seg(t, 3.5, 3.6) * (1 - seg(t, 4.5, 4.55));
+    const abr = barras[7];
     abr.style.background = kt > .05 ? '#ddd0fb' : '';
 
     // ── card 3: funil enche quando a camera abre
-    [['t1', 100, 6.2], ['t2', 56, 6.35], ['t3', 20.4, 6.5]].forEach(([id, w, a]) => {
+    [['t1', 100, 4.6], ['t2', 56, 4.85], ['t3', 20.4, 5.1]].forEach(([id, w, a]) => {
       document.getElementById(id).style.width = (w * easeO(seg(t, a, a + .9))) + '%';
     });
   };

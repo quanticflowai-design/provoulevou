@@ -205,47 +205,15 @@
     }
     .hero-checks svg { width: 13px; height: 13px; }
 
-    /* moldura do produto: degrade roxo animado + painel real do lojista */
+    /* moldura do produto: o video do painel ocupa o retangulo inteiro */
     .stage { padding-top: clamp(48px, 5vw, 72px); padding-bottom: 8px; }
     .stage-frame {
       border: 1px solid var(--line); border-radius: 28px; padding: 12px;
       background: var(--mist);
       box-shadow: 0 2px 0 var(--line), 0 40px 80px -48px rgba(34,21,50,.35);
     }
-    .stage-inner {
-      position: relative; isolation: isolate; overflow: hidden;
-      border-radius: 18px;
-      padding: clamp(28px, 5vw, 72px) clamp(16px, 5vw, 72px) 0;
-      background: linear-gradient(118deg, #6a2ae0 0%, #4c1d95 32%, #24104f 60%, #120828 100%);
-    }
-    .blob { position: absolute; border-radius: 50%; will-change: transform; z-index: -1; }
-    .b1 { width: 70%; aspect-ratio: 1; left: -24%; top: -60%;
-      background: radial-gradient(circle, rgba(196,170,255,.9) 0%, rgba(167,139,250,.5) 30%, rgba(167,139,250,0) 66%);
-      animation: drift-1 22s ease-in-out infinite alternate; }
-    .b2 { width: 64%; aspect-ratio: 1; left: -6%; top: 24%;
-      background: radial-gradient(circle, rgba(124,58,237,.95) 0%, rgba(124,58,237,.42) 34%, rgba(124,58,237,0) 66%);
-      animation: drift-2 27s ease-in-out infinite alternate; }
-    .b3 { width: 52%; aspect-ratio: 1; left: 32%; bottom: -70%;
-      background: radial-gradient(circle, rgba(232,121,249,.6) 0%, rgba(192,38,211,.26) 36%, rgba(192,38,211,0) 66%);
-      animation: drift-3 19s ease-in-out infinite alternate; }
-    .b4 { width: 80%; aspect-ratio: 1; right: -34%; top: -30%;
-      background: radial-gradient(circle, rgba(10,4,26,.85) 0%, rgba(14,6,34,.5) 40%, rgba(14,6,34,0) 68%);
-      animation: drift-4 31s ease-in-out infinite alternate; }
-    @keyframes drift-1 { to { transform: translate(24%, 16%) scale(1.16); } }
-    @keyframes drift-2 { to { transform: translate(16%, -20%) scale(1.22); } }
-    @keyframes drift-3 { to { transform: translate(-28%, -16%) scale(1.12); } }
-    @keyframes drift-4 { to { transform: translate(-10%, 18%) scale(1.08); } }
-    .grain {
-      position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .15; mix-blend-mode: overlay;
-      background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.5 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
-    }
-    .stage-shot {
-      max-width: 1100px; margin: 0 auto;
-      border-radius: 14px 14px 0 0; overflow: hidden;
-      box-shadow: 0 -2px 0 rgba(255,255,255,.18), 0 30px 80px -20px rgba(8,3,20,.7);
-      background: #fff;
-    }
-    .stage-shot img, .stage-shot video { width: 100%; height: auto; display: block; }
+    .stage-inner { overflow: hidden; border-radius: 18px; background: #f1eff4; aspect-ratio: 16 / 9; }
+    .stage-inner video { width: 100%; height: 100%; object-fit: cover; display: block; }
 
     /* depoimento flutuante no canto inferior esquerdo (mesmo da pagina antiga) */
     .pl-depo {
@@ -281,6 +249,24 @@
     }
     .pl-depo-x:hover { background: rgba(255,255,255,.18); }
     .pl-depo-som span { display: none; }
+    .pl-depo:not(.aberto) { cursor: zoom-in; }
+    .pl-depo.aberto {
+      z-index: 1001; inset: 0; margin: auto;
+      height: min(84vh, 760px, calc(88vw * 16 / 9)); width: calc(min(84vh, 760px, calc(88vw * 16 / 9)) * 9 / 16);
+      border-radius: 22px;
+      box-shadow: 0 40px 120px -30px rgba(10,4,26,.7), 0 0 0 1px rgba(255,255,255,.18);
+    }
+    .pl-depo.aberto .pl-depo-som { left: 14px; bottom: 14px; padding: 10px 16px; font-size: 14px; }
+    .pl-depo.aberto .pl-depo-som span { display: inline; }
+    .pl-depo.aberto .pl-depo-x { top: 14px; right: 14px; width: 36px; height: 36px; font-size: 20px; }
+    .depo-fundo {
+      position: fixed; inset: 0; z-index: 1000; cursor: zoom-out;
+      background: rgba(20,10,40,.28);
+      -webkit-backdrop-filter: blur(18px) saturate(120%); backdrop-filter: blur(18px) saturate(120%);
+      opacity: 0; transition: opacity .35s ease;
+    }
+    .depo-fundo.on { opacity: 1; }
+    .depo-fundo[hidden] { display: none; }
     @media (max-width: 900px) { .pl-depo { width: 96px; left: calc(12px + env(safe-area-inset-left, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); } }
 
     /* cartao "demonstracao ao vivo", espelhando o video no canto direito */
@@ -351,7 +337,7 @@
     @keyframes rise { from { opacity: .001; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
     @media (prefers-reduced-motion: reduce) {
-      .blob, .rise { animation: none; }
+      .rise { animation: none; }
       .btn { transition: none; }
     }
 
@@ -382,9 +368,6 @@
       .hero-checks { flex-direction: column; align-items: center; }
       .stage-frame { border-radius: 20px; padding: 8px; }
       .stage-inner { border-radius: 14px; }
-      .b1 { width: 120%; left: -50%; top: -40%; }
-      .b2 { width: 110%; left: -30%; top: 30%; }
-      .b4 { width: 130%; right: -70%; }
     }
     @media (max-width: 380px) {
       .nav-actions .btn-primary { display: none; }
@@ -465,14 +448,8 @@
       <div class="container stage rise d4">
         <div class="stage-frame">
           <div class="stage-inner">
-            <span class="blob b1" aria-hidden="true"></span>
-            <span class="blob b2" aria-hidden="true"></span>
-            <span class="blob b3" aria-hidden="true"></span>
-            <span class="blob b4" aria-hidden="true"></span>
-            <span class="grain" aria-hidden="true"></span>
-            <div class="stage-shot">
-              <video src="assets/videos/painel-visao-geral.mp4" poster="assets/videos/painel-visao-geral.webp" width="1600" height="758" muted loop playsinline autoplay preload="auto" aria-label="Painel do lojista Provou Levou: faturamento atribuído ao provador, faturamento mensal e jornada do cliente"></video>
-            </div>
+              <video src="assets/videos/painel-visao-geral.mp4" poster="assets/videos/painel-visao-geral.webp" width="1920" height="1080" muted loop playsinline autoplay preload="auto" aria-label="Painel do lojista Provou Levou: faturamento atribuído ao provador, faturamento mensal e jornada do cliente"></video>
+            
           </div>
         </div>
       </div>
@@ -561,6 +538,7 @@
     </button>
     <button type="button" class="pl-depo-x" id="depoFechar" aria-label="Fechar depoimento">&times;</button>
   </div>
+  <div class="depo-fundo" id="depoFundo" hidden></div>
 
   <!-- ─── DEMONSTRACAO AO VIVO ─── -->
   <a class="demo-live" id="demoLive" href="loja-teste.html">
@@ -599,12 +577,50 @@
           if (document.readyState === 'complete') setTimeout(comeca, 1200);
           else window.addEventListener('load', function () { setTimeout(comeca, 1200); });
 
+          // clique no video: ele vai pro centro da tela, com o resto embacado
+          var fundo = document.getElementById('depoFundo'), aberto = false;
+          var reduz = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          var flip = function (antes) {
+            if (reduz) return;
+            var depois = cx.getBoundingClientRect();
+            cx.animate([
+              { transform: 'translate(' + (antes.left - depois.left) + 'px,' + (antes.top - depois.top) + 'px) scale(' + (antes.width / depois.width) + ')', transformOrigin: '0 0' },
+              { transform: 'none', transformOrigin: '0 0' }
+            ], { duration: 520, easing: 'cubic-bezier(.22,1,.36,1)' });
+          };
+          var abrir = function () {
+            if (aberto) return;
+            aberto = true;
+            var antes = cx.getBoundingClientRect();
+            fundo.hidden = false; requestAnimationFrame(function () { fundo.classList.add('on'); });
+            cx.classList.add('aberto'); cx.setAttribute('role', 'dialog'); cx.setAttribute('aria-modal', 'true');
+            flip(antes);
+            v.muted = false; v.volume = 0.5; v.currentTime = 0;
+            som.setAttribute('aria-label', 'Desativar som do depoimento');
+            var p = v.play(); if (p && p.catch) p.catch(function () {});
+            document.body.style.overflow = 'hidden';
+          };
+          var recolher = function () {
+            if (!aberto) return;
+            aberto = false;
+            var antes = cx.getBoundingClientRect();
+            fundo.classList.remove('on'); setTimeout(function () { if (!aberto) fundo.hidden = true; }, 350);
+            cx.classList.remove('aberto'); cx.removeAttribute('role'); cx.removeAttribute('aria-modal');
+            flip(antes);
+            v.muted = true; som.setAttribute('aria-label', 'Ativar som do depoimento');
+            document.body.style.overflow = '';
+          };
+          cx.addEventListener('click', function (e) { if (!e.target.closest('button')) abrir(); });
+          fundo.addEventListener('click', recolher);
+          document.addEventListener('keydown', function (e) { if (e.key === 'Escape') recolher(); });
+
           som.addEventListener('click', function () {
             if (v.muted) { v.muted = false; v.volume = 0.35; som.setAttribute('aria-label', 'Desativar som do depoimento'); }
             else { v.muted = true; som.setAttribute('aria-label', 'Ativar som do depoimento'); }
             var p = v.play(); if (p && p.catch) p.catch(function () {});
           });
           fechar.addEventListener('click', function () {
+            if (aberto) { recolher(); return; }   // aberto no centro: o X so devolve pro canto
             v.pause(); cx.hidden = true;
             try { sessionStorage.setItem('pl-depo-fechado', '1'); } catch (e) {}
           });

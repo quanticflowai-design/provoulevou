@@ -3,11 +3,11 @@ const path = require('path');
 (async () => {
   const [,, modo, out] = process.argv;   // modo: "teste" ou "tudo"
   const b = await chromium.launch();
-  const p = await b.newPage({ viewport: { width: 1600, height: 758 }, deviceScaleFactor: 1 });
+  const p = await b.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
   await p.goto('file://' + path.join(__dirname, 'cena.html'));
   await p.evaluate(() => document.fonts.ready);
   const fps = 30, total = 8 * fps;
-  const tempos = modo === 'teste' ? [0.4, 1.4, 2.3, 2.85, 3.5, 4.4, 5.2, 6.0, 6.4, 7.9]
+  const tempos = modo === 'teste' ? [0.5, 1.8, 2.45, 3.2, 3.9, 4.65, 5.3, 6.0, 6.6, 7.95]
                                   : Array.from({ length: total }, (_, i) => i / fps);
   for (let i = 0; i < tempos.length; i++) {
     // passa por todos os quadros anteriores pra o borrao de movimento ter a velocidade certa

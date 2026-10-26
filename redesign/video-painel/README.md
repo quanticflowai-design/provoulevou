@@ -15,4 +15,4 @@ ffmpeg -framerate 30 -i frames/%04d.png -vf "noise=alls=3:allf=t,format=yuv420p"
 ffmpeg -i frames/0239.png -quality 82 ../../assets/videos/painel-visao-geral.webp
 ```
 
-Os números da cena são os mesmos do print `assets/demo/dashboard-painel-lojista.png`.
+7 planos com ângulos em 3D; renderizado em 1920x1080. Os números da cena são os mesmos do print `assets/demo/dashboard-painel-lojista.png`.
