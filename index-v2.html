@@ -340,28 +340,38 @@
     @media (prefers-reduced-motion: reduce) { .demo-live { transition: none; } .demo-orb::before { animation: none; } }
     @media (prefers-reduced-motion: reduce) { .pl-depo { transition: none; } }
 
-    /* ─── LOGOS DAS MARCAS ─── */
-    .marcas { padding: clamp(80px, 8.5vw, 128px) 0 clamp(24px, 3vw, 40px); text-align: center; }
-    .marcas-cap { font-size: clamp(15px, 1.2vw, 17px); color: var(--ink-soft); }
-    /* faixa estreita: ~4 logos a vista, cada um num espaco igual e com altura ajustada ao "peso" visual */
+    /* ─── LOGOS DAS MARCAS: titulo a esquerda, apoio a direita, grade de celulas com linhas finas ─── */
+    .marcas { padding: clamp(80px, 8.5vw, 128px) 0 clamp(40px, 5vw, 72px); }
+    .marcas-topo { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; }
+    .marcas-topo h2 { font-weight: 300; font-size: clamp(1.9rem, 2.7vw, 2.6rem); line-height: 1.15; letter-spacing: -0.03em; max-width: 15em; }
+    .marcas-topo p { font-size: 15px; line-height: 1.6; color: var(--ink-soft); text-align: right; max-width: 24em; }
     .marcas-faixa {
-      --slot: 200px; --k: 1.1;
-      position: relative; overflow: hidden; margin: clamp(28px, 3vw, 44px) auto 0; max-width: 960px;
-      -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.25) 6%, rgba(0,0,0,.7) 13%, #000 22%, #000 78%, rgba(0,0,0,.7) 87%, rgba(0,0,0,.25) 94%, transparent 100%);
-      mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.25) 6%, rgba(0,0,0,.7) 13%, #000 22%, #000 78%, rgba(0,0,0,.7) 87%, rgba(0,0,0,.25) 94%, transparent 100%);
+      --cel: calc(min(1328px, 100vw) / 6); --k: 1;
+      position: relative; overflow: hidden; margin-top: clamp(36px, 4vw, 56px);
+      border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+      -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+      mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
     }
-    .marcas-trilho { display: flex; align-items: center; width: max-content; animation: marcas-desliza 160s linear infinite; }
+    .marcas-trilho { display: flex; width: max-content; animation: marcas-desliza 150s linear infinite; }
     .marcas-faixa:hover .marcas-trilho { animation-play-state: paused; }
-    .marca { flex: 0 0 var(--slot); height: 64px; display: flex; align-items: center; justify-content: center; }
-    .marca img { height: calc(var(--h) * var(--k)); width: auto; max-width: 78%; object-fit: contain; user-select: none; }
+    .marca {
+      flex: 0 0 var(--cel); height: clamp(120px, 9.5vw, 180px);
+      display: flex; align-items: center; justify-content: center;
+      border-right: 1px solid var(--line); transition: background .3s ease;
+    }
+    .marca:hover { background: var(--mist); }
+    .marca img { height: calc(var(--h) * var(--k)); width: auto; max-width: 66%; object-fit: contain; user-select: none; opacity: .62; transition: opacity .3s ease; }
+    .marca:hover img { opacity: 1; }
     @keyframes marcas-desliza { to { transform: translate3d(-50%, 0, 0); } }
-    @media (max-width: 640px) {
-      .marcas-faixa { --slot: calc((100vw - 32px) / 3.3); --k: .62; }
+    @media (max-width: 760px) {
+      .marcas-topo { flex-direction: column; align-items: flex-start; }
+      .marcas-topo p { text-align: left; }
+      .marcas-faixa { --cel: calc(100vw / 2.6); --k: .7; }
       .marcas-trilho { animation-duration: 90s; }
-      .marca { height: 48px; }
+      .marca { height: 104px; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .marcas-trilho { animation: none; flex-wrap: wrap; justify-content: center; width: auto; }
+      .marcas-trilho { animation: none; flex-wrap: wrap; width: auto; }
       .marcas-trilho [aria-hidden="true"] { display: none; }
     }
 
@@ -604,7 +614,10 @@
     </section>
     <!-- ─── LOGOS DAS MARCAS ─── -->
     <section class="marcas" aria-labelledby="marcasCap">
-      <p class="marcas-cap container" id="marcasCap">Usado por mais de 1.000 marcas no Brasil, de lojas que estão começando a grandes óticas</p>
+      <div class="container marcas-topo">
+        <h2 id="marcasCap">Com a confiança de mais de 1.000 marcas no Brasil</h2>
+        <p>De lojas que estão começando a grandes óticas, todas vendendo com o provador.</p>
+      </div>
       <div class="marcas-faixa">
         <div class="marcas-trilho">
           <span class="marca"><img src="assets/marcas-mono/arcsunglasses.webp" alt="ARC Sunglasses" style="--h:28.0px" decoding="async"></span>
