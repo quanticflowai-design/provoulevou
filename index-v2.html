@@ -194,6 +194,11 @@
     .abertura-titulo .t1 { display: block; white-space: nowrap; }
     /* tablet e celular: 3 linhas em piramide, todas do mesmo tamanho
        ("...com inteligencia" / "artificial para moda" / "e oculos.") */
+    /* so computador: titulo um pouco menor e mais alto, longe das laminas */
+    @media (min-width: 1025px) {
+      .abertura-titulo { font-size: min(4.3vw, 78px); }
+      .abertura > .container { padding-bottom: 19vh; }
+    }
     @media (max-width: 1024px) {
       .abertura-titulo { font-size: 6.3vw; }
       .abertura-titulo .t2, .abertura-titulo .t3 { display: block; }
