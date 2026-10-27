@@ -184,36 +184,48 @@
     }
     .abertura > .container { align-self: center; padding-top: 60px; padding-bottom: 12vh; }
     .abertura-titulo {
-      /* mesma fonte do "O provador virtual que materializa..." (Helvetica Light com traco reforcado) */
-      font-family: var(--sans); font-weight: 300;
-      font-size: min(4.8vw, 86px); line-height: 1.1; letter-spacing: -0.04em;
-      -webkit-text-stroke-width: 0.016em; color: #222222;
+      font-family: var(--recoleta); font-weight: 400;
+      font-size: min(4.8vw, 86px); line-height: 1.06; letter-spacing: -0.01em;
+      -webkit-text-stroke-width: 0; color: #222222;
       margin: 0 auto;
     }
     /* computador: sempre 2 linhas ("...com inteligencia" / "artificial para moda e oculos.");
        o tamanho e limitado pela largura da tela, entao a 1a linha nunca quebra */
-    .abertura-titulo .t1 { display: block; white-space: nowrap; }
+    .abertura-titulo .t1, .abertura-titulo .t2 { display: block; white-space: nowrap; }
     /* tablet e celular: 3 linhas em piramide, todas do mesmo tamanho
        ("...com inteligencia" / "artificial para moda" / "e oculos.") */
     /* so computador: titulo um pouco menor e mais alto, longe das laminas */
     @media (min-width: 1025px) {
-      .abertura-titulo { font-size: min(3.7vw, 68px); }
-      .abertura > .container { padding-bottom: 27vh; }
+      .abertura-titulo { font-size: min(4.6vw, 80px); }
+      .abertura > .container { padding-top: 90px; padding-bottom: 30vh; }
     }
     @media (max-width: 1024px) {
       .abertura-titulo { font-size: min(8.6vw, 60px); }
       .abertura-titulo .t1 { white-space: normal; }
       .abertura-titulo .t2 { display: block; }
     }
-    /* selo acima do titulo: so contorno */
-    .abertura-titulo .selo-ia {
-      display: table; margin: 0 auto .7em;
-      font-family: var(--sans); font-weight: 300; font-size: max(13px, .24em); line-height: 1;
-      letter-spacing: .08em; text-transform: uppercase; color: #222222;
-      padding: .7em 1.1em; border: 1px solid #222222; border-radius: 4px;
-      -webkit-text-stroke-width: 0 !important; letter-spacing: .08em !important;
+    /* bloco central no estilo da referencia: selo em pilula, titulo, apoio e botao */
+    .abertura-centro { display: grid; justify-items: center; gap: 0; }
+    .selo-ia {
+      display: inline-block; margin-bottom: 28px;
+      font-family: var(--sans); font-weight: 300; font-size: 14px; line-height: 1; color: #222222;
+      padding: 11px 20px; border-radius: 100px; -webkit-text-stroke-width: 0;
+      border: 1.5px solid transparent;
+      background: linear-gradient(#fff, #fff) padding-box,
+                  linear-gradient(110deg, #f5d0fe, #c4b5fd 40%, #a78bfa 60%, #e9d5ff) border-box;
     }
-    .abertura-titulo span { -webkit-text-stroke-width: 0.016em; letter-spacing: -0.04em; }
+    .abertura-apoio {
+      margin-top: 24px; max-width: 34em;
+      font-size: clamp(15px, 1.15vw, 18px); line-height: 1.55; color: #5e566e; -webkit-text-stroke-width: 0;
+    }
+    .abertura-cta {
+      margin-top: 32px; display: inline-flex; align-items: center;
+      padding: 14px 28px; border-radius: 100px; background: #222222; color: #fff;
+      font-family: var(--strong); font-weight: 500; font-size: 15px; text-decoration: none; -webkit-text-stroke-width: 0;
+      transition: background .2s ease, transform .2s ease;
+    }
+    .abertura-cta:hover { background: var(--violet-dark); transform: translateY(-1px); }
+    .abertura-titulo span { -webkit-text-stroke-width: 0; letter-spacing: -0.01em; }
     .abertura-titulo em { font-style: normal; color: #222222; letter-spacing: -0.01em; -webkit-text-stroke-width: 0; }
     /* 70% da altura da foto, no meio dela, e sempre faixa roxa (medido: roxo de 43% a 98%) */
     .abertura-assina {
@@ -225,9 +237,9 @@
     /* computador: a foto continua do mesmo ponto, mas mostra a altura inteira,
        descendo alem do fim da secao; a margem embaixo reserva esse espaco */
     @media (min-width: 641px) {
-      .abertura { overflow: visible; margin-bottom: max(0px, calc(100vw * 794 / 1981 - 47svh)); }
+      .abertura { overflow: visible; margin-bottom: max(0px, calc(100vw * 794 / 1981 - 34svh)); }
       .abertura-fundo { overflow: visible; }
-      .onda { left: 0; width: 100%; top: 53svh; }
+      .onda { left: 0; width: 100%; top: 66svh; }
       .onda img {
         -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh);
         mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh);
@@ -235,9 +247,10 @@
     }
     @media (max-width: 640px) {
       .abertura { min-height: max(600px, 92svh); }
-      .abertura > .container { padding-top: 60px; padding-bottom: 12vh; }
+      .abertura > .container { padding-top: 70px; padding-bottom: 26vh; }
+      .abertura-apoio br { display: none; }
       /* mesma montagem de antes: caixa com 40% da altura, ponto 46,5% da foto alinhado a 46,5% da tela */
-      .onda { bottom: 0; height: 40%; left: 46.5%; transform: translateX(-46.5%); }
+      .onda { bottom: 0; height: 30%; left: 46.5%; transform: translateX(-46.5%); }
       .abertura-assina { left: calc(46.5% + 3.5vw); }
     }
 
@@ -623,7 +636,12 @@
         </div></div></div>
 
       <div class="container">
-        <h1 class="abertura-titulo rise" id="aberturaTitulo"><span class="selo-ia">Inteligência artificial</span><span class="t1">Provador virtual <span class="t2">para moda e óculos.</span></span></h1>
+        <div class="abertura-centro rise">
+          <span class="selo-ia">Inteligência artificial</span>
+          <h1 class="abertura-titulo" id="aberturaTitulo"><span class="t1">Provador virtual</span> <span class="t2">para moda e óculos.</span></h1>
+          <p class="abertura-apoio">Seu cliente prova a peça na própria foto, <br>direto na página do produto. Sem app e sem cadastro.</p>
+          <a class="abertura-cta" href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener">Testar grátis por 7 dias</a>
+        </div>
       </div>
     </section>
 
