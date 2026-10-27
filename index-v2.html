@@ -244,9 +244,11 @@
     /* computador: a foto continua do mesmo ponto, mas mostra a altura inteira,
        descendo alem do fim da secao; a margem embaixo reserva esse espaco */
     @media (min-width: 641px) {
-      .abertura { overflow: visible; margin-bottom: max(0px, calc(100vw * 794 / 1981 - 34svh)); }
+      .abertura { overflow: visible; margin-bottom: max(0px, calc(20.3vw - 42svh)); }
       .abertura-fundo { overflow: visible; }
-      .onda { left: 0; width: 100%; top: 66svh; }
+      /* largura 115% => altura 46,1vw; o roxo comeca a 56% dela, entao fica sempre a 58% da tela */
+      .onda { left: -7.5%; width: 115%; top: calc(58svh - 25.8vw); }
+      .abertura-fundo { overflow-x: clip; }
       .onda img {
         -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh);
         mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh);
@@ -258,8 +260,8 @@
       .abertura-apoio br { display: none; }
       /* mesma montagem de antes: caixa com 40% da altura, ponto 46,5% da foto alinhado a 46,5% da tela */
       /* celular: zoom na foto (a assinatura esta dentro e acompanha) */
-      .onda { bottom: 0; height: 33%; left: 46.5%; transform: translateX(-46.5%) scale(1.3); transform-origin: 46.5% 100%; }
-      .abertura-assina { left: calc(46.5% + 3.5vw); transform: translate(-50%, -50%) scale(.77); }
+      .onda { bottom: 13%; height: 40%; left: 46.5%; transform: translateX(-46.5%) scale(1.6); transform-origin: 46.5% 100%; }
+      .abertura-assina { left: calc(46.5% + 3.5vw); transform: translate(-50%, -50%) scale(.63); }
     }
 
     /* ─── HERO ─── */
@@ -957,6 +959,27 @@
         var p = v.play(); if (p && p.catch) p.catch(function () {});
       }
       escolhe(); mq.addEventListener ? mq.addEventListener('change', escolhe) : mq.addListener(escolhe);
+    })();
+  </script>
+  <script>
+    // computador/tablet: a foto e posicionada pelo fim do texto da abertura, nao pela altura da tela.
+    // O roxo comeca a 56% da altura da foto; ele fica sempre ~28px abaixo de "O futuro do e-commerce."
+    (function () {
+      var sec = document.querySelector('.abertura'), centro = document.querySelector('.abertura-centro'),
+          onda = document.querySelector('.onda');
+      if (!sec || !centro || !onda) return;
+      function posiciona() {
+        if (innerWidth <= 640) { onda.style.top = ''; sec.style.marginBottom = ''; return; }
+        var y = centro.offsetTop + centro.offsetHeight + 28;
+        var h = onda.getBoundingClientRect().width * 794 / 1981;
+        var top = y - 0.56 * h;
+        onda.style.top = top + 'px';
+        sec.style.marginBottom = Math.max(0, top + h - sec.offsetHeight) + 'px';
+      }
+      posiciona();
+      addEventListener('resize', posiciona);
+      addEventListener('load', posiciona);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(posiciona);
     })();
   </script>
   <script src="assets/js/lenis-1.1.13.min.js"></script>
