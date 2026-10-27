@@ -193,7 +193,7 @@
     .abertura-titulo {
       font-family: 'Stratford', 'Times New Roman', Georgia, serif; font-weight: 400;
       font-size: min(4.8vw, 86px); line-height: .9; letter-spacing: -0.01em;
-      -webkit-text-stroke-width: 0; color: #a19e99;
+      -webkit-text-stroke: 0.014em #fff; color: #161614; /* contorno branco por cima afina o traco (a fonte so tem um peso) */
       margin: 0 auto;
     }
     /* computador: sempre 2 linhas ("...com inteligencia" / "artificial para moda e oculos.");
@@ -231,12 +231,12 @@
       transition: background .2s ease, transform .2s ease;
     }
     .abertura-cta:hover { background: var(--violet-dark); transform: translateY(-1px); }
-    .abertura-titulo span { -webkit-text-stroke-width: 0; letter-spacing: -0.01em; }
+    .abertura-titulo span { letter-spacing: -0.01em; -webkit-text-stroke: 0.014em #fff; }
     .abertura-titulo .t1, .abertura-titulo .t2 { letter-spacing: -0.03em; word-spacing: -.04em; }
-    .abertura-titulo em { font-style: normal; color: #a19e99; letter-spacing: -0.01em; -webkit-text-stroke-width: 0; }
-    /* 76% da altura da foto, no meio dela, e sempre faixa roxa (medido: roxo de 58% a 94%) */
+    .abertura-titulo em { font-style: normal; color: #161614; letter-spacing: -0.01em; -webkit-text-stroke-width: 0; }
+    /* 70% da altura da foto, no meio dela, e sempre faixa roxa (medido: roxo de 43% a 98%) */
     .abertura-assina {
-      position: absolute; left: 50%; top: 76%; transform: translate(-50%, -50%); width: max-content;
+      position: absolute; left: 50%; top: 70%; transform: translate(-50%, -50%); width: max-content;
       display: grid; gap: 2px; color: #fff; text-align: center; text-shadow: 0 1px 14px rgba(36,14,80,.45);
     }
     .abertura-assina strong { font-family: var(--recoleta); font-weight: 400; font-size: clamp(24px, 2vw, 32px); letter-spacing: 0; -webkit-text-stroke-width: 0; }
@@ -255,7 +255,8 @@
       }
     }
     @media (max-width: 640px) {
-      .abertura { min-height: max(600px, 92svh); }
+      .abertura { min-height: max(600px, 92svh); overflow: visible; }
+      .abertura-fundo { overflow: visible; overflow-x: clip; }
       .abertura > .container { padding-top: 70px; padding-bottom: 26vh; }
       .abertura-apoio br { display: none; }
       /* mesma montagem de antes: caixa com 40% da altura, ponto 46,5% da foto alinhado a 46,5% da tela */
@@ -963,16 +964,26 @@
   </script>
   <script>
     // computador/tablet: a foto e posicionada pelo fim do texto da abertura, nao pela altura da tela.
-    // O roxo comeca a 56% da altura da foto; ele fica sempre ~28px abaixo de "O futuro do e-commerce."
+    // O topo da foto fica logo abaixo de "O futuro do e-commerce."; o roxo aparece um pouco mais abaixo.
     (function () {
       var sec = document.querySelector('.abertura'), centro = document.querySelector('.abertura-centro'),
           onda = document.querySelector('.onda');
       if (!sec || !centro || !onda) return;
       function posiciona() {
-        if (innerWidth <= 640) { onda.style.top = ''; sec.style.marginBottom = ''; return; }
-        var y = centro.offsetTop + centro.offsetHeight + 28;
+        var fim = centro.offsetTop + centro.offsetHeight;
+        if (innerWidth <= 640) {
+          // celular: caixa com zoom 1.6 a partir da base; o topo visivel fica 24px abaixo do texto
+          var hc = onda.offsetHeight;
+          onda.style.bottom = 'auto';
+          var topo = fim + 24 + 0.6 * hc;
+          onda.style.top = topo + 'px';
+          /* a foto desce alem da secao; a margem embaixo reserva o espaco (assinatura inteira) */
+          sec.style.marginBottom = Math.max(0, Math.ceil(topo + hc - sec.offsetHeight)) + 'px';
+          return;
+        }
+        // computador/tablet: o topo da foto (que some no branco) comeca 40px abaixo do texto
         var h = onda.getBoundingClientRect().width * 794 / 1981;
-        var top = y - 0.56 * h;
+        var top = fim + 40;
         onda.style.top = top + 'px';
         sec.style.marginBottom = Math.max(0, top + h - sec.offsetHeight) + 'px';
       }
