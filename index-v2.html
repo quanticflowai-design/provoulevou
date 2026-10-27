@@ -187,6 +187,7 @@
       -webkit-text-stroke-width: 0; color: #222222;
       max-width: 17em; margin: 0 auto; text-wrap: balance;
     }
+    .abertura-titulo span { -webkit-text-stroke-width: 0; letter-spacing: -0.01em; }
     .abertura-titulo em { font-style: normal; color: #222222; letter-spacing: -0.01em; -webkit-text-stroke-width: 0; }
     .abertura-assina {
       position: absolute; left: 0; right: 0; bottom: clamp(24px, 4.5vh, 44px);
@@ -197,7 +198,12 @@
     @media (max-width: 640px) {
       .abertura { min-height: max(600px, 92svh); }
       .abertura > .container { padding-top: 60px; padding-bottom: 12vh; }
-      .abertura-titulo { font-size: clamp(1.75rem, 7.6vw, 2.25rem); }
+      /* piramide invertida: cada linha menor que a de cima */
+      .abertura-titulo { font-size: clamp(1.75rem, 7.6vw, 2.25rem); line-height: 1.12; }
+      .abertura-titulo span { display: block; }
+      .abertura-titulo .l1 { font-size: 1.12em; }
+      .abertura-titulo .l2 { font-size: .9em; }
+      .abertura-titulo .l3 { font-size: .68em; margin-top: .15em; }
       .abertura-fundo img { height: 40%; }
     }
 
@@ -578,7 +584,7 @@
 <div class="abertura-fundo" aria-hidden="true"><img src="assets/hero-ondas.webp" alt="" width="1981" height="794" fetchpriority="high" decoding="async"></div>
 
       <div class="container">
-        <h1 class="abertura-titulo rise" id="aberturaTitulo">Provador virtual com inteligência artificial para <em>moda e óculos.</em></h1>
+        <h1 class="abertura-titulo rise" id="aberturaTitulo"><span class="l1">Provador virtual com</span> <span class="l2">inteligência artificial</span> <span class="l3">para <em>moda e óculos.</em></span></h1>
       </div>
       <div class="abertura-assina rise d2">
         <strong>Provou Levou</strong>
