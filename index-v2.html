@@ -486,6 +486,12 @@
     }
     @media (prefers-reduced-motion: reduce) { .feixe { animation: none; } .intro-fotos img { transition: none; } }
 
+    /* rolagem suave (Lenis) */
+    html.lenis, html.lenis body { height: auto; }
+    .lenis.lenis-smooth { scroll-behavior: auto !important; }
+    .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+    .lenis.lenis-stopped { overflow: hidden; }
+
     .rise { animation: rise .8s cubic-bezier(.22,1,.36,1) both; }
     .rise.d1 { animation-delay: .06s; } .rise.d2 { animation-delay: .14s; } .rise.d3 { animation-delay: .22s; } .rise.d4 { animation-delay: .32s; }
     @keyframes rise { from { opacity: .001; transform: translateY(12px); } to { opacity: 1; transform: none; } }
@@ -829,7 +835,7 @@
             v.muted = false; v.volume = 0.5; v.currentTime = 0;
             som.setAttribute('aria-label', 'Desativar som do depoimento');
             var p = v.play(); if (p && p.catch) p.catch(function () {});
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden'; if (window.plLenis) window.plLenis.stop();
           };
           var recolher = function () {
             if (!aberto) return;
@@ -839,7 +845,7 @@
             cx.classList.remove('aberto'); cx.removeAttribute('role'); cx.removeAttribute('aria-modal');
             flip(antes);
             v.muted = true; som.setAttribute('aria-label', 'Ativar som do depoimento');
-            document.body.style.overflow = '';
+            document.body.style.overflow = ''; if (window.plLenis) window.plLenis.start();
           };
           cx.addEventListener('click', function (e) { if (!e.target.closest('button')) abrir(); });
           fundo.addEventListener('click', recolher);
@@ -868,6 +874,26 @@
         if (document.readyState === 'complete') mostra(); else window.addEventListener('load', mostra);
       }
 
+    })();
+  </script>
+  <script src="assets/js/lenis-1.1.13.min.js"></script>
+  <script>
+    // Rolagem mais lenta e suave. Quem pediu menos movimento no sistema fica com a rolagem normal.
+    (function () {
+      if (typeof Lenis === 'undefined' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var lenis = new Lenis({ duration: 1.5, easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); }, wheelMultiplier: 0.85, smoothWheel: true });
+      window.plLenis = lenis;
+      function raf(t) { lenis.raf(t); requestAnimationFrame(raf); }
+      requestAnimationFrame(raf);
+      // links internos (#secao) tambem deslizam suave
+      document.addEventListener('click', function (e) {
+        var a = e.target.closest && e.target.closest('a[href^="#"]');
+        if (!a) return;
+        var id = a.getAttribute('href');
+        if (id.length < 2) { e.preventDefault(); lenis.scrollTo(0); return; }
+        var alvo = document.querySelector(id);
+        if (alvo) { e.preventDefault(); lenis.scrollTo(alvo, { offset: -16 }); }
+      });
     })();
   </script>
 </body>
