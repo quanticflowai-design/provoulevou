@@ -166,26 +166,28 @@
     .mob-panel .btn { margin-top: 6px; }
 
     /* ─── ABERTURA (estilo Pareto) ─── */
+    /* fundo branco; a foto das laminas ocupa a parte de baixo, com o "vale" branco dela
+       centralizado sob o titulo e o topo da foto se dissolvendo no branco */
     .abertura {
       position: relative; isolation: isolate; overflow: hidden;
-      min-height: max(660px, 100svh); background: #f2f1f5;
-      display: grid; place-items: center; text-align: center;
+      min-height: max(660px, 100svh); background: #fff;
+      display: grid; grid-template-rows: 1fr auto; text-align: center;
     }
-    /* foto de laminas roxas; um veu branco no centro garante a leitura do titulo */
-    .abertura-fundo { position: absolute; inset: 0; z-index: -1; overflow: hidden; background: #fff url('assets/hero-ondas.webp') center / cover no-repeat; }
-    .abertura-fundo::after {
-      content: ''; position: absolute; inset: 0;
-      background: radial-gradient(ellipse 52% 34% at 50% 50%, rgba(46,20,96,.42) 0%, rgba(46,20,96,.18) 55%, rgba(46,20,96,0) 100%);
+    .abertura-fundo { position: absolute; inset: 0; z-index: -1; overflow: hidden; background: #fff; }
+    .abertura-fundo img {
+      position: absolute; left: 0; bottom: 0; width: 100%; height: 66%;
+      max-width: none; object-fit: cover; object-position: 46.5% 0;
+      -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.35) 14%, #000 34%);
+      mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.35) 14%, #000 34%);
     }
-    @media (max-width: 640px) { .abertura-fundo { background-image: url('assets/hero-ondas-mobile.webp'); } .abertura-fundo::after { background: radial-gradient(ellipse 85% 30% at 50% 46%, rgba(46,20,96,.45) 0%, rgba(46,20,96,.2) 60%, rgba(46,20,96,0) 100%); } }
+    .abertura > .container { align-self: start; padding-top: calc(110px + 11vh); }
     .abertura-titulo {
       font-family: var(--recoleta); font-weight: 400;
-      font-size: clamp(2.3rem, 3.7vw, 4.4rem); line-height: 1.08; letter-spacing: -0.01em;
-      -webkit-text-stroke-width: 0; color: #fff;
-      text-shadow: 0 2px 24px rgba(36,14,80,.35);
-      max-width: 19em; margin: 0 auto; padding-bottom: 6vh; text-wrap: balance;
+      font-size: clamp(2.6rem, 4.8vw, 5.9rem); line-height: 1.06; letter-spacing: -0.01em;
+      -webkit-text-stroke-width: 0; color: #222222;
+      max-width: 17em; margin: 0 auto; text-wrap: balance;
     }
-    .abertura-titulo em { font-style: normal; color: #fff; letter-spacing: -0.01em; -webkit-text-stroke-width: 0; }
+    .abertura-titulo em { font-style: normal; color: #222222; letter-spacing: -0.01em; -webkit-text-stroke-width: 0; }
     .abertura-assina {
       position: absolute; left: 0; right: 0; bottom: clamp(24px, 4.5vh, 44px);
       display: grid; gap: 2px; color: #fff; text-align: center; text-shadow: 0 1px 14px rgba(36,14,80,.45);
@@ -194,7 +196,9 @@
     .abertura-assina span { font-size: clamp(15px, 1.15vw, 19px); -webkit-text-stroke-width: 0; color: rgba(255,255,255,.9); }
     @media (max-width: 640px) {
       .abertura { min-height: max(600px, 92svh); }
-      .abertura-titulo { font-size: clamp(2.1rem, 9.4vw, 2.7rem); padding-bottom: 14vh; }
+      .abertura > .container { padding-top: calc(76px + 13vh); }
+      .abertura-titulo { font-size: clamp(1.75rem, 7.6vw, 2.25rem); }
+      .abertura-fundo img { height: 58%; }
     }
 
     /* ─── HERO ─── */
@@ -571,7 +575,7 @@
       </div>
     </header>
 
-<div class="abertura-fundo" aria-hidden="true"></div>
+<div class="abertura-fundo" aria-hidden="true"><img src="assets/hero-ondas.webp" alt="" width="1981" height="794" fetchpriority="high" decoding="async"></div>
 
       <div class="container">
         <h1 class="abertura-titulo rise" id="aberturaTitulo">Provador virtual com inteligência artificial para <em>moda e óculos.</em></h1>
