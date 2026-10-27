@@ -134,7 +134,12 @@
 </div>
 
 <script>
-  const W = 1920, H = 1080, SW = 1896, SH = 897;
+  // tamanho do quadro vem da URL (?w=1080&h=1350 gera a versao em pe do celular)
+  const Q = new URLSearchParams(location.search);
+  const W = +(Q.get('w') || 1920), H = +(Q.get('h') || 1080), SW = 1896, SH = 897;
+  const EM_PE = H > W;
+  document.documentElement.style.width = document.body.style.width = W + 'px';
+  document.documentElement.style.height = document.body.style.height = H + 'px';
   const cena = document.getElementById('cena'), zoomEl = document.getElementById('zoom');
   const barras = [...document.querySelectorAll('#barras div')];
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
@@ -169,6 +174,14 @@
     { t0: 5.65, t1: 6.45, de: { cx: 330, cy: 158, z: 2.7, rx: -13, ry: -12, rz: 0 },  para: { cx: 270, cy: 152, z: 2.95, rx: -8, ry: -6, rz: 0 } },
     { t0: 6.45, t1: 8.00, chicote: .25, de: { cx: 948, cy: 500, z: 1.4, rx: 24, ry: -16, rz: -2 }, para: { cx: 948, cy: 462, z: FIT, rx: 0, ry: 0, rz: 0 }, saida: true },
   ];
+  // quadro em pe: mesmos planos, com o zoom reduzido pra caber a mesma informacao na largura menor;
+  // o plano final para nos dois cartoes de cima em vez de mostrar o painel inteiro bem pequeno
+  if (EM_PE) {
+    const K = W / 1920 * 1.15;
+    PLANOS.forEach(p => { p.de.z *= K; p.para.z *= K; });
+    const ult = PLANOS[PLANOS.length - 1];
+    ult.para = { cx: 560, cy: 470, z: H / SH * 0.92, rx: 0, ry: 0, rz: 0 };
+  }
   const mix = (a, b, k) => Object.fromEntries(Object.keys(a).map(n => [n, lerp(a[n], b[n], k)]));
   function cam(t) {
     let i = PLANOS.findIndex(p => t < p.t1); if (i < 0) i = PLANOS.length - 1;

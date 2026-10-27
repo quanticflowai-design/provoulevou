@@ -185,9 +185,18 @@
     .abertura > .container { align-self: center; padding-top: 60px; padding-bottom: 12vh; }
     .abertura-titulo {
       font-family: var(--recoleta); font-weight: 400;
-      font-size: clamp(2.6rem, 4.8vw, 5.9rem); line-height: 1.06; letter-spacing: -0.01em;
+      font-size: min(4.8vw, 86px); line-height: 1.06; letter-spacing: -0.01em;
       -webkit-text-stroke-width: 0; color: #222222;
-      max-width: 17em; margin: 0 auto; text-wrap: balance;
+      margin: 0 auto;
+    }
+    /* computador: sempre 2 linhas ("...com inteligencia" / "artificial para moda e oculos.");
+       o tamanho e limitado pela largura da tela, entao a 1a linha nunca quebra */
+    .abertura-titulo .t1 { display: block; white-space: nowrap; }
+    /* tablet e celular: 3 linhas em piramide, todas do mesmo tamanho
+       ("...com inteligencia" / "artificial para moda" / "e oculos.") */
+    @media (max-width: 1024px) {
+      .abertura-titulo { font-size: 6.3vw; }
+      .abertura-titulo .t2, .abertura-titulo .t3 { display: block; }
     }
     .abertura-titulo span { -webkit-text-stroke-width: 0; letter-spacing: -0.01em; }
     .abertura-titulo em { font-style: normal; color: #222222; letter-spacing: -0.01em; -webkit-text-stroke-width: 0; }
@@ -212,10 +221,6 @@
     @media (max-width: 640px) {
       .abertura { min-height: max(600px, 92svh); }
       .abertura > .container { padding-top: 60px; padding-bottom: 12vh; }
-      /* piramide invertida: mesma fonte e tamanho, so a quebra das linhas muda
-         (larguras medidas: 267 / 254 / ~167 / ~95 px) */
-      .abertura-titulo { font-size: clamp(1.75rem, 7.6vw, 2.25rem); }
-      .abertura-titulo span { display: block; }
       /* mesma montagem de antes: caixa com 40% da altura, ponto 46,5% da foto alinhado a 46,5% da tela */
       .onda { bottom: 0; height: 40%; left: 46.5%; transform: translateX(-46.5%); }
       .abertura-assina { left: calc(46.5% + 3.5vw); }
@@ -257,7 +262,8 @@
 
     /* moldura do produto: o video do painel ocupa o retangulo inteiro */
     .stage { padding-top: clamp(96px, 12vw, 190px); padding-bottom: 8px; }
-    .stage-inner { overflow: hidden; border-radius: 24px; background: #f1eff4; aspect-ratio: 16 / 9; }
+    .stage { max-width: none; }
+    .stage-inner { overflow: hidden; border-radius: 0; background: #f1eff4; aspect-ratio: 16 / 9; }
     .stage-inner video { width: 100%; height: 100%; object-fit: cover; display: block; }
 
     /* depoimento flutuante no canto inferior esquerdo (mesmo da pagina antiga) */
@@ -545,7 +551,7 @@
       .hero-ctas { flex-direction: column; align-items: stretch; }
       .btn-lg { font-size: 16px; padding: 14px 20px; }
       .hero-checks { flex-direction: column; align-items: center; }
-      .stage-inner { border-radius: 18px; }
+      .stage-inner { aspect-ratio: 4 / 5; }
     }
     @media (max-width: 380px) {
       .nav-actions .btn-primary { display: none; }
@@ -602,7 +608,7 @@
         </div></div></div>
 
       <div class="container">
-        <h1 class="abertura-titulo rise" id="aberturaTitulo"><span class="l1">Provador virtual com</span> <span class="l2">inteligência artificial</span> <span class="l3">para <em>moda e</em></span> <span class="l4"><em>óculos.</em></span></h1>
+        <h1 class="abertura-titulo rise" id="aberturaTitulo"><span class="t1">Provador virtual com inteligência</span> <span class="t2">artificial para moda</span> <span class="t3">e óculos.</span></h1>
       </div>
     </section>
 
@@ -626,7 +632,7 @@
       <div class="container stage rise d4">
         <div class="stage-frame">
           <div class="stage-inner">
-              <video src="assets/videos/painel-visao-geral.mp4" poster="assets/videos/painel-visao-geral.webp" width="1920" height="1080" muted loop playsinline autoplay preload="auto" aria-label="Painel do lojista Provou Levou: faturamento atribuído ao provador, faturamento mensal e jornada do cliente"></video>
+              <video id="painelVideo" data-pc="assets/videos/painel-visao-geral.mp4" data-pc-poster="assets/videos/painel-visao-geral.webp" data-cel="assets/videos/painel-visao-geral-mobile.mp4" data-cel-poster="assets/videos/painel-visao-geral-mobile.webp" width="1920" height="1080" muted loop playsinline autoplay preload="auto" aria-label="Painel do lojista Provou Levou: faturamento atribuído ao provador, faturamento mensal e jornada do cliente"></video>
             
           </div>
         </div>
@@ -898,6 +904,19 @@
         if (document.readyState === 'complete') mostra(); else window.addEventListener('load', mostra);
       }
 
+    })();
+  </script>
+  <script>
+    // video do painel: versao em pe (4:5) no celular, deitada (16:9) no resto
+    (function () {
+      var v = document.getElementById('painelVideo'); if (!v) return;
+      var mq = matchMedia('(max-width: 640px)'), atual = '';
+      function escolhe() {
+        var k = mq.matches ? 'cel' : 'pc'; if (k === atual) return; atual = k;
+        v.poster = v.getAttribute('data-' + k + '-poster'); v.src = v.getAttribute('data-' + k);
+        var p = v.play(); if (p && p.catch) p.catch(function () {});
+      }
+      escolhe(); mq.addEventListener ? mq.addEventListener('change', escolhe) : mq.addListener(escolhe);
     })();
   </script>
   <script src="assets/js/lenis-1.1.13.min.js"></script>
