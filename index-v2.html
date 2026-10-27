@@ -117,8 +117,9 @@
     .nav-brand img { height: 30px; width: auto; }
 
     .nav-links { display: flex; align-items: center; gap: 40px; list-style: none; }
-    .nav-links a { font-size: 17px; color: #fff; text-decoration: none; text-shadow: 0 1px 10px rgba(36,14,80,.35); transition: opacity .2s ease; }
-    .nav-links a:hover { color: #fff; opacity: .75; }
+    /* o topo da foto nova e branco: menu preto pra aparecer */
+    .nav-links a { font-size: 17px; color: #000; text-decoration: none; transition: opacity .2s ease; }
+    .nav-links a:hover { opacity: .65; }
 
     .nav-actions { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 10px; }
     .nav-actions .btn-primary { background: #1b1528; border-color: #1b1528; box-shadow: none; border-radius: 6px; padding: 11px 18px; }
@@ -171,9 +172,7 @@
       display: grid; place-items: center; text-align: center;
     }
     /* foto de laminas roxas; um veu branco no centro garante a leitura do titulo */
-    .abertura-fundo { position: absolute; inset: 0; z-index: -1; overflow: hidden; background: #d9cbf7 url('assets/hero-ondas.webp') center / cover no-repeat; }
-    /* veu branco: deixa a foto ~35% mais clara */
-    .abertura-fundo::before { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,.35); }
+    .abertura-fundo { position: absolute; inset: 0; z-index: -1; overflow: hidden; background: #fff url('assets/hero-ondas.webp') center / cover no-repeat; }
     .abertura-fundo::after {
       content: ''; position: absolute; inset: 0;
       background: radial-gradient(ellipse 52% 34% at 50% 50%, rgba(46,20,96,.42) 0%, rgba(46,20,96,.18) 55%, rgba(46,20,96,0) 100%);
