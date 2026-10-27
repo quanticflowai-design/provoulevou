@@ -174,9 +174,11 @@
       display: grid; grid-template-rows: 1fr auto; text-align: center;
     }
     .abertura-fundo { position: absolute; inset: 0; z-index: -1; overflow: hidden; background: #fff; }
-    .abertura-fundo img {
-      position: absolute; left: 0; bottom: 0; width: 100%; height: 47%;
-      max-width: none; object-fit: cover; object-position: 46.5% 0;
+    /* a foto fica numa caixa com a proporcao dela; a assinatura mora dentro da caixa,
+       entao acompanha o trecho roxo em qualquer tela */
+    .onda { position: absolute; aspect-ratio: 1981 / 794; }
+    .onda img {
+      display: block; width: 100%; height: 100%; max-width: none;
       -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.35) 14%, #000 34%);
       mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.35) 14%, #000 34%);
     }
@@ -189,8 +191,9 @@
     }
     .abertura-titulo span { -webkit-text-stroke-width: 0; letter-spacing: -0.01em; }
     .abertura-titulo em { font-style: normal; color: #222222; letter-spacing: -0.01em; -webkit-text-stroke-width: 0; }
+    /* 68% da altura da foto, no meio dela, e sempre faixa roxa (medido na imagem) */
     .abertura-assina {
-      position: absolute; left: 0; right: 0; bottom: clamp(24px, 4.5vh, 44px);
+      position: absolute; left: 50%; top: 68%; transform: translate(-50%, -50%); width: max-content;
       display: grid; gap: 2px; color: #fff; text-align: center; text-shadow: 0 1px 14px rgba(36,14,80,.45);
     }
     .abertura-assina strong { font-family: var(--recoleta); font-weight: 400; font-size: clamp(24px, 2vw, 32px); letter-spacing: 0; -webkit-text-stroke-width: 0; }
@@ -200,8 +203,8 @@
     @media (min-width: 641px) {
       .abertura { overflow: visible; margin-bottom: max(0px, calc(100vw * 794 / 1981 - 47svh)); }
       .abertura-fundo { overflow: visible; }
-      .abertura-fundo img {
-        top: 53svh; bottom: auto; height: auto;
+      .onda { left: 0; width: 100%; top: 53svh; }
+      .onda img {
         -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh);
         mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh);
       }
@@ -213,7 +216,9 @@
          (larguras medidas: 267 / 254 / ~167 / ~95 px) */
       .abertura-titulo { font-size: clamp(1.75rem, 7.6vw, 2.25rem); }
       .abertura-titulo span { display: block; }
-      .abertura-fundo img { height: 40%; }
+      /* mesma montagem de antes: caixa com 40% da altura, ponto 46,5% da foto alinhado a 46,5% da tela */
+      .onda { bottom: 0; height: 40%; left: 46.5%; transform: translateX(-46.5%); }
+      .abertura-assina { left: calc(46.5% + 3.5vw); }
     }
 
     /* ─── HERO ─── */
@@ -590,14 +595,14 @@
       </div>
     </header>
 
-<div class="abertura-fundo" aria-hidden="true"><img src="assets/hero-ondas.webp" alt="" width="1981" height="794" fetchpriority="high" decoding="async"></div>
+<div class="abertura-fundo"><div class="onda"><img src="assets/hero-ondas.webp" alt="" width="1981" height="794" fetchpriority="high" decoding="async">
+        <div class="abertura-assina">
+          <strong>Provou Levou</strong>
+          <span>Tecnologia by Quantic</span>
+        </div></div></div>
 
       <div class="container">
         <h1 class="abertura-titulo rise" id="aberturaTitulo"><span class="l1">Provador virtual com</span> <span class="l2">inteligência artificial</span> <span class="l3">para <em>moda e</em></span> <span class="l4"><em>óculos.</em></span></h1>
-      </div>
-      <div class="abertura-assina rise d2">
-        <strong>Provou Levou</strong>
-        <span>Tecnologia by Quantic</span>
       </div>
     </section>
 
