@@ -257,8 +257,9 @@
       .abertura > .container { padding-top: 70px; padding-bottom: 26vh; }
       .abertura-apoio br { display: none; }
       /* mesma montagem de antes: caixa com 40% da altura, ponto 46,5% da foto alinhado a 46,5% da tela */
-      .onda { bottom: 0; height: 41%; left: 46.5%; transform: translateX(-46.5%); }
-      .abertura-assina { left: calc(46.5% + 3.5vw); }
+      /* celular: zoom na foto (a assinatura esta dentro e acompanha) */
+      .onda { bottom: 0; height: 33%; left: 46.5%; transform: translateX(-46.5%) scale(1.3); transform-origin: 46.5% 100%; }
+      .abertura-assina { left: calc(46.5% + 3.5vw); transform: translate(-50%, -50%) scale(.77); }
     }
 
     /* ─── HERO ─── */
