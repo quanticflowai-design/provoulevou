@@ -172,6 +172,8 @@
     }
     /* foto de laminas roxas; um veu branco no centro garante a leitura do titulo */
     .abertura-fundo { position: absolute; inset: 0; z-index: -1; overflow: hidden; background: #d9cbf7 url('assets/hero-ondas.webp') center / cover no-repeat; }
+    /* veu branco: deixa a foto ~35% mais clara */
+    .abertura-fundo::before { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,.35); }
     .abertura-fundo::after {
       content: ''; position: absolute; inset: 0;
       background: radial-gradient(ellipse 52% 34% at 50% 50%, rgba(46,20,96,.42) 0%, rgba(46,20,96,.18) 55%, rgba(46,20,96,0) 100%);
