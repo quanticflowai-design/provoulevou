@@ -35,6 +35,7 @@
     '.va-stories button span{max-width:68px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.va-stories .r{width:64px;height:64px;border-radius:50%;padding:2.5px;background:linear-gradient(45deg,var(--brand-dark),var(--brand))}',
     '.va-stories .r img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2.5px solid #fff;background:#fff}',
+    '.va-stories .mosaico{display:grid;grid-template-columns:1fr 1fr;width:100%;height:100%;border-radius:50%;overflow:hidden;border:2.5px solid #fff;background:#fff}.va-stories .mosaico img{width:100%;height:100%;border:0;border-radius:0;object-fit:cover}',
     'body.va-ed .va-stories button.ed-foto .r{position:relative;outline:2px dashed var(--brand);outline-offset:3px;cursor:pointer}',
     'body.va-ed .va-stories button.ed-foto .r:after{content:"Trocar";position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);background:#111;color:#fff;font-size:9.5px;font-weight:700;border-radius:999px;padding:2px 7px}',
     '.va-stories button.on .r{background:#111827}.va-stories button.on{font-weight:800}',
@@ -352,14 +353,25 @@
     if (!l.length) return '';
     return l.slice().sort(function (a, b) { return provas(b) - provas(a); })[0].img;
   }
+  // "Todas" sem foto escolhida = mosaico de 4 armações de categorias diferentes (não repete a capa de Novidades)
+  function mosaicoTodas() {
+    var vistos = {}, out = [], capas = {}, nv = novidades()[0];
+    if (nv) capas[nv.img] = 1;
+    X.catalog.forEach(function (p) { if (out.length < 4 && p.img && !capas[p.img] && !vistos[p.cat || p.id]) { vistos[p.cat || p.id] = 1; out.push(p.img); } });
+    X.catalog.forEach(function (p) { if (out.length < 4 && p.img && out.indexOf(p.img) < 0 && !capas[p.img]) out.push(p.img); });
+    while (out.length < 4 && out.length) out.push(out[out.length % out.length]);
+    return out;
+  }
   function pintaStories() {
     var a = maisProvados(), n = novidades(), pr = promo();
     // 28/10 (Lucas): todo catálogo tem "Todas" como 1ª categoria (mostra todas as armações)
-    var mT = (X.tema && X.tema.catImgs) || {}, capaTodas = (ED.catImgs && ED.catImgs['']) || mT[''] || mT['Todas'] || (X.catalog[0] && X.catalog[0].img);
+    var mT = (X.tema && X.tema.catImgs) || {}, capaTodas = (ED.catImgs && ED.catImgs['']) || mT[''] || mT['Todas'] || (X.catalog.length ? '__mosaico' : '');
     var itens = [['', 'Todas', capaTodas], ['__alta', 'Em alta', a[0] && a[0].img], ['__novos', 'Novidades', n[0] && n[0].img], ['__promo', 'Promoções', pr[0] && pr[0].img]]
       .concat(X.cats.map(function (c) { return [c, c, capaCategoria(c)]; })).filter(function (s) { return s[2]; });
     root.querySelector('.va-stories').innerHTML = itens.map(function (s) {
-      return '<button type="button" class="' + (estado.cat === s[0] ? 'on' : '') + (s[0].indexOf('__') ? ' ed-foto' : '') + '" data-cat="' + esc(s[0]) + '"><i class="r"><img loading="lazy" decoding="async" src="' + esc(MINI(s[2], 160)) + '" alt=""></i><span>' + esc(s[1]) + '</span></button>';
+      var dentro = '<img loading="lazy" decoding="async" src="' + esc(MINI(s[2], 160)) + '" alt="">';
+      if (s[0] === '' && s[2] === '__mosaico') dentro = '<span class="mosaico">' + mosaicoTodas().map(function (u) { return '<img loading="lazy" decoding="async" src="' + esc(MINI(u, 80)) + '" alt="">'; }).join('') + '</span>';
+      return '<button type="button" class="' + (estado.cat === s[0] ? 'on' : '') + (s[0].indexOf('__') ? ' ed-foto' : '') + '" data-cat="' + esc(s[0]) + '"><i class="r">' + dentro + '</i><span>' + esc(s[1]) + '</span></button>';
     }).join('');
   }
   function pintaRank() {
@@ -507,7 +519,7 @@
     if (a === 'admin') return X.admin();
     X.irVitrine();
     if (a === 'inicio') { estado.cat = ''; estado.q = ''; var inp = root.querySelector('.va-busca input'); if (inp) inp.value = ''; pintaGrade(); setTimeout(function () { window.scrollTo({ top: 0 }); var ap = document.getElementById('app'); if (ap) ap.scrollTop = 0; }, 30); }
-    else if (a === 'busca') { var b = root.querySelector('.va-busca input'); if (b) setTimeout(function () { b.scrollIntoView({ block: 'center' }); b.focus(); }, 50); }
+    else if (a === 'busca') { var b = root.querySelector('.va-busca input'); if (b) { try { b.focus({ preventScroll: true }); } catch (e) { b.focus(); } b.scrollIntoView({ block: 'center' }); } }
     else if (a === 'cat') { estado.cat = el.getAttribute('data-c'); X.mudouCategoria(estado.cat); pintaGrade(); setTimeout(function () { root.querySelector('.va-grade').closest('.va-sec').scrollIntoView({ block: 'start' }); }, 50); }
   }
   function abreProvas() {
@@ -558,8 +570,16 @@
     else if (a === 'ed-logo-tam') { ED.logo = Number(el.getAttribute('data-v')); document.documentElement.style.setProperty('--logo-escala', String(ED.logo)); menuLogo(); }
     else if (a === 'ed-cancelar') { ED.cfg = null; ED.logo = null; ED.catImgs = {}; document.documentElement.style.setProperty('--logo-escala', String(X.escalaLogo())); ligaEdicao(false); monta(); }
     else if (a === 'inicio') { estado.cat = ''; estado.q = ''; root.querySelector('.va-busca input').value = ''; pintaGrade(); window.scrollTo({ top: 0, behavior: 'smooth' }); document.getElementById('app').scrollTop = 0; }
-    else if (a === 'busca') { var inp = root.querySelector('.va-busca input'); inp.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(function () { inp.focus(); }, 300); }
-    else if (a === 'alta') { var t = root.querySelector('.va-top'); if (!t.hidden) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); else { estado.cat = '__alta'; pintaGrade(); } }
+    // 28/10 (Lucas): a lupa do rodapé já abre o teclado na busca. O foco tem que ser no próprio toque
+    // (iPhone não abre teclado em focus() dentro de setTimeout).
+    else if (a === 'busca') { var inp = root.querySelector('.va-busca input'); try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); } inp.scrollIntoView({ block: 'center' }); }
+    // "Em alta" filtra a vitrine pelas armações mais provadas e leva até elas (o Top 10 fica escondido)
+    else if (a === 'alta') {
+      var t = root.querySelector('.va-top');
+      if (t && !t.hidden && !t.classList.contains('va-oculto')) { t.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+      estado.cat = '__alta'; estado.q = ''; var bi = root.querySelector('.va-busca input'); if (bi) bi.value = '';
+      pintaGrade(); pintaStories(); root.querySelector('.va-grade').closest('.va-sec').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   function buscaContagem() {
