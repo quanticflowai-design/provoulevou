@@ -1263,11 +1263,12 @@
       irVitrine: () => show('catalog'),
       aviso: m => toast(m),
       // salva só os blocos, sem mexer nas cores e no resto do tema
-      salvarBlocos: async cfg => {
-        const tema = Object.assign({}, (storeRow && storeRow.tema) || {}, { blocos: cfg });
+      salvarBlocos: async (cfg, extra) => {
+        const tema = Object.assign({}, (storeRow && storeRow.tema) || {}, { blocos: cfg }, extra || {});
         const r = await fetch(WH_THEME, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ store_slug: STORE_SLUG, tema }) });
         if (!r.ok) throw new Error('HTTP ' + r.status);
         if (storeRow) storeRow.tema = tema;
+        aplicaTema(storeRow && storeRow.primary_color);
       }
     });
   }
