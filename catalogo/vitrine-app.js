@@ -277,10 +277,20 @@
     pintaStories(); pintaRank(); pintaGrade(); ligaArrastar();
     aplicaBlocos(); if (ED.on) ferramentas();
   }
+  // Foto da bolinha: ícone escolhido pra loja (tema.catImgs) ou, sem ele, a armação DAQUELA categoria
+  // mais provada nos últimos 30 dias (sem provas, a primeira da vitrine).
+  function capaCategoria(c) {
+    var m = (X.tema && X.tema.catImgs) || {};
+    var k = Object.keys(m).find(function (x) { return norm(x) === norm(c); });
+    if (k) return m[k];
+    var l = X.catalog.filter(function (p) { return p.img && X.temCat(p, c); });
+    if (!l.length) return '';
+    return l.slice().sort(function (a, b) { return provas(b) - provas(a); })[0].img;
+  }
   function pintaStories() {
     var a = maisProvados(), n = novidades(), pr = promo();
     var itens = [['__alta', 'Em alta', a[0] && a[0].img], ['__novos', 'Novidades', n[0] && n[0].img], ['__promo', 'Promoções', pr[0] && pr[0].img]]
-      .concat(X.cats.map(function (c) { return [c, c, X.icone(c)]; })).filter(function (s) { return s[2]; });
+      .concat(X.cats.map(function (c) { return [c, c, capaCategoria(c)]; })).filter(function (s) { return s[2]; });
     root.querySelector('.va-stories').innerHTML = itens.map(function (s) {
       return '<button type="button" class="' + (estado.cat === s[0] ? 'on' : '') + '" data-cat="' + esc(s[0]) + '"><i class="r"><img src="' + esc(s[2]) + '" alt=""></i><span>' + esc(s[1]) + '</span></button>';
     }).join('');
