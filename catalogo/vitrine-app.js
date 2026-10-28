@@ -40,7 +40,7 @@
     '.va-stories button.on .r{background:#111827}.va-stories button.on{font-weight:800}',
     '.va-busca{position:sticky;top:0;z-index:10;background:#fff;padding:10px 16px;border-bottom:1px solid #eef0f3}',
     '.va-busca input{width:100%;border:0;background:#f3f4f6 no-repeat 13px center/17px url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%239ca3af\' stroke-width=\'2\' stroke-linecap=\'round\'%3E%3Ccircle cx=\'11\' cy=\'11\' r=\'8\'/%3E%3Cpath d=\'m21 21-4.3-4.3\'/%3E%3C/svg%3E");border-radius:12px;padding:12px 14px 12px 38px;font:inherit;font-size:14px;outline:0;color:#111827}',
-    '.va-chips{display:flex;gap:8px;overflow-x:auto;margin-top:10px;scrollbar-width:none}.va-chips::-webkit-scrollbar{display:none}',
+    '.va-chips{display:none !important;gap:8px;overflow-x:auto;margin-top:10px;scrollbar-width:none}.va-chips::-webkit-scrollbar{display:none}',
     '.va-chips button{border:0;background:#f3f4f6;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;white-space:nowrap;color:#111827}',
     '.va-chips button.on{background:#111827;color:#fff}',
     '.va-dest{margin:14px 16px 0;border-radius:18px;background:linear-gradient(135deg,var(--brand-dark),var(--brand));color:#fff;padding:16px;display:flex;gap:12px;align-items:center;cursor:pointer}',
@@ -175,7 +175,7 @@
     '.va-perfil.so-logo{padding:24px 80px 16px}.va-perfil{padding:28px 32px 18px;gap:18px}.va-av{flex-basis:92px;width:92px;height:92px}.va-perfil h1{font-size:26px}.va-perfil p{font-size:14px}.va-acoes{top:26px;right:28px}',
     '.va-banner{margin:18px 32px 14px}.va-slide{padding:0 48px;gap:24px}.va-slide b{font-size:34px}.va-slide small{font-size:16px}.va-slide .fs{gap:12px}.va-slide .fs img{width:150px;height:150px;border-radius:18px}',
     '.va-stories{gap:22px;padding:10px 0 20px;margin:0 32px}.va-stories button{width:84px}.va-stories button span{max-width:84px;font-size:12.5px}.va-stories .r{width:80px;height:80px}',
-    '.va-busca{padding:14px 32px;display:flex;gap:16px;align-items:center}.va-busca input{flex:0 0 340px;width:340px}.va-chips{margin-top:0;flex:1;min-width:0}',
+    '.va-busca{padding:14px 32px}.va-busca input{width:100%}',
     '.va-top{margin:22px 32px 0;padding:22px 0 18px}.va-top h2{font-size:22px;margin:0 24px 14px}.va-top .va-rank{padding:2px 24px 4px}',
     '.va-sec{padding:28px 32px 6px}.va-sec h2{font-size:22px}',
     '.va-rank{grid-auto-columns:220px;gap:14px}',
@@ -373,7 +373,7 @@
   // ─────────── Personalizar (só o dono da loja) ───────────
   // 27/10/2026 (Lucas): seção nunca é apagada — só escondida (olho) e reordenada (setas).
   // Fica salvo na loja em tema.blocos = { ordem: [...], ocultos: [...] }.
-  var BLOCOS = [['perfil', 'Perfil da loja'], ['banner', 'Banner'], ['categorias', 'Categorias'], ['busca', 'Busca e filtros'], ['top', 'Top 10 mais provados'], ['grade', 'Todas as armações']];
+  var BLOCOS = [['perfil', 'Perfil da loja'], ['banner', 'Banner'], ['busca', 'Busca'], ['categorias', 'Categorias'], ['top', 'Top 10 mais provados'], ['grade', 'Todas as armações']];
   var ED = { on: false, cfg: null, catImgs: {} };
   function cfgBlocos() {
     if (ED.cfg) return ED.cfg;
