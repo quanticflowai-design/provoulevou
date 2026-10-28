@@ -997,6 +997,20 @@
   }
 
   // ─────────── Router ───────────
+  const PROVA_MODAL = ['tryon', 'loading', 'result', 'lentes'];
+  // fundo + X do cartão do provador (catálogo App). Fechar volta pro produto; gerando não fecha.
+  {
+    const fundo = document.createElement('div'); fundo.className = 'pv-fundo';
+    fundo.addEventListener('click', () => { if (!document.documentElement.classList.contains('pv-modal-gerando')) show('product'); });
+    document.body.appendChild(fundo);
+    PROVA_MODAL.forEach(n => {
+      const tela = document.querySelector('.screen[data-screen="' + n + '"]'); if (!tela) return;
+      const x = document.createElement('button'); x.type = 'button'; x.className = 'pv-x'; x.setAttribute('aria-label', 'Fechar provador'); x.textContent = '×';
+      x.addEventListener('click', () => { clearTimeout(pixTimer); show('product'); });
+      tela.insertBefore(x, tela.firstChild);
+      if (n === 'tryon') { const tp = document.createElement('div'); tp.className = 'pv-topo'; tp.hidden = true; tp.innerHTML = '<img alt="">'; x.after(tp); }
+    });
+  }
   function show(name) {
     // sair do produto tira o ?p= da URL: senão o lojista copia da barra achando
     // que é o link do catálogo e manda o cliente pra um modelo só
@@ -1004,6 +1018,22 @@
       try { history.pushState({}, '', linkCategoria(catFiltro)); } catch (e) {}
     }
     if (name === 'catalog' && STORE.name) document.title = STORE.name;
+    // 28/10 (Lucas): no catálogo App a prova toda acontece EM CIMA da página do produto,
+    // num cartão arredondado como o provador das lojas online — a tela de baixo não sai.
+    if (layoutApp() && PROVA_MODAL.includes(name)) {
+      $$('.screen').forEach(s => { if (PROVA_MODAL.includes(s.dataset.screen)) s.classList.toggle('active', s.dataset.screen === name); });
+      document.documentElement.classList.add('pv-modal');
+      document.documentElement.classList.toggle('pv-modal-gerando', name === 'loading');
+      { // logo da loja no topo do cartão, como no provador das lojas
+        const tl = document.querySelector('#screen-tryon .pv-topo img'), t = storeRow && storeRow.tema;
+        const src = (t && typeof t.soLogo === 'string' && t.soLogo) || (storeRow && storeRow.logo_url) || '';
+        if (tl && src && tl.getAttribute('src') !== src) tl.src = src;
+        if (tl) tl.parentNode.hidden = !src;
+      }
+      const tela = document.querySelector('.screen[data-screen="' + name + '"]'); if (tela) tela.scrollTop = 0;
+      return;
+    }
+    document.documentElement.classList.remove('pv-modal', 'pv-modal-gerando');
     $$('.screen').forEach(s => s.classList.toggle('active', s.dataset.screen === name));
     document.getElementById('app').scrollTop = 0;
     window.scrollTo(0, 0);
@@ -2054,7 +2084,9 @@
     const cam = $('#photo-input'), gal = $('#photo-gallery');
     if (gal) gal.addEventListener('change', recebeFoto);
     const btnCam = $('#btn-tirar-foto'), btnGal = $('#btn-galeria');
-    if (btnCam && cam) btnCam.addEventListener('click', () => cam.click());
+    // 28/10 (Lucas): "Tirar foto" abre a câmera aqui dentro, com o contorno do rosto pro
+    // cliente se encaixar. Sem câmera (permissão negada, navegador velho) cai na câmera do sistema.
+    if (btnCam && cam) btnCam.addEventListener('click', () => abreCameraRosto(recebeFoto, () => cam.click(), () => (gal || cam).click()));
     if (btnGal) btnGal.addEventListener('click', () => (gal || cam).click());
     const area = $('#uploader');
     if (area) {
@@ -2065,6 +2097,40 @@
         if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); abre(); }
       });
     }
+  }
+
+  // ─────────── Câmera com contorno do rosto ───────────
+  function abreCameraRosto(entrega, semCamera, galeria) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { semCamera(); return; }
+    let stream = null;
+    const el = document.createElement('div');
+    el.className = 'cam-rosto';
+    el.innerHTML =
+      '<button type="button" class="cam-x" aria-label="Fechar">×</button>' +
+      '<div class="cam-palco"><video playsinline autoplay muted></video>' +
+        '<svg class="cam-mascara" viewBox="0 0 100 133" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
+          '<defs><mask id="cam-furo"><rect width="100" height="133" fill="#fff"/><ellipse cx="50" cy="58" rx="27" ry="36" fill="#000"/></mask></defs>' +
+          '<rect width="100" height="133" fill="rgba(0,0,0,.55)" mask="url(#cam-furo)"/>' +
+          '<ellipse class="cam-oval" cx="50" cy="58" rx="27" ry="36"/>' +
+        '</svg>' +
+        '<p class="cam-dica">Encaixe seu rosto no contorno<br><small>Olhe para a câmera, sem óculos e com boa luz</small></p>' +
+      '</div>' +
+      '<div class="cam-acoes"><button type="button" class="cam-disparo" aria-label="Tirar foto"><i></i></button>' +
+      '<button type="button" class="cam-galeria">Enviar foto da galeria</button></div>';
+    document.body.appendChild(el);
+    const video = el.querySelector('video');
+    const fecha = () => { if (stream) stream.getTracks().forEach(t => t.stop()); el.remove(); };
+    el.querySelector('.cam-x').onclick = fecha;
+    el.querySelector('.cam-galeria').onclick = () => { fecha(); galeria(); };
+    el.querySelector('.cam-disparo').onclick = () => {
+      if (!video.videoWidth) return;
+      const c = document.createElement('canvas'); c.width = video.videoWidth; c.height = video.videoHeight;
+      c.getContext('2d').drawImage(video, 0, 0);
+      c.toBlob(b => { fecha(); if (b) entrega({ target: { files: [new File([b], 'selfie.jpg', { type: 'image/jpeg' })] } }); }, 'image/jpeg', 0.92);
+    };
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 1280 } }, audio: false })
+      .then(s => { stream = s; video.srcObject = s; })
+      .catch(() => { fecha(); semCamera(); });
   }
 
   // ─────────── Geração (REAL) ───────────
