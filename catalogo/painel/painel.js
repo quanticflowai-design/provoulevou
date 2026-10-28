@@ -135,13 +135,16 @@
   (async () => {
     let s = null;
     try { s = JSON.parse(localStorage.getItem(SESSAO) || 'null'); } catch (e) {}
-    if (!s || !s.email) return;
+    // sem sessão (ou se der errado) o formulário aparece; com sessão ele fica escondido até redirecionar
+    const mostraLogin = () => document.documentElement.classList.remove('pc-checando');
+    if (!s || !s.email) { mostraLogin(); return; }
     try {
       s = await validarSessao(s);
       try { localStorage.setItem(SESSAO, JSON.stringify(s)); } catch (e) {}
       const lojas = await sbGet(caminhoLojas(s));
       if (lojas && lojas.length === 1) irPara(lojas[0].slug);
-      else if (lojas && lojas.length > 1) pedeEscolha(lojas);
-    } catch (e) { toast('Não consegui carregar seus catálogos'); }
+      else if (lojas && lojas.length > 1) { pedeEscolha(lojas); mostraLogin(); }
+      else mostraLogin();
+    } catch (e) { mostraLogin(); toast('Não consegui carregar seus catálogos'); }
   })();
 })();
