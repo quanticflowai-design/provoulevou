@@ -64,7 +64,7 @@
     '.va-card .bt{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:auto;width:100%;line-height:1.2;border:0;background:var(--cta,var(--brand));color:var(--on-cta,var(--on-brand,#fff));border-radius:10px;padding:8px;font-size:12.5px;font-weight:800}',
     '.va-card .in .bt{margin-top:8px}',
     '.va-vazio{grid-column:1/-1;text-align:center;color:#6b7280;font-size:14px;padding:30px 0}',
-    '.va-tab{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(560px,100%);background:#fff;border-top:1px solid #eef0f3;display:grid;grid-template-columns:repeat(4,1fr);padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:30}',
+    '.va-tab{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(560px,100%);background:#fff;border-top:1px solid #eef0f3;display:grid;grid-template-columns:repeat(3,1fr);padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:30}',
     '.va-tab a{text-align:center;text-decoration:none;color:#6b7280;font-size:11px;font-weight:600;cursor:pointer}.va-tab a.on{color:var(--brand)}',
     '.va-tab a svg,.va .va-tab a svg.i{width:22px;height:22px;display:block;margin:2px auto 1px}',
     '.va-tab a.wa i{display:block;background:#25d366;border-radius:50%;width:34px;height:34px;margin:0 auto}.va-tab a.wa svg{width:18px;height:18px;margin:0 auto;position:relative;top:8px;fill:#fff}',
@@ -332,7 +332,7 @@
       '<div class="va-top" data-bl="top"><h2><span>' + IC.trend + ' Top 10 mais provados</span><small>últimos 30 dias</small></h2><div class="va-rank"></div></div>' +
       '<div class="va-sec" data-bl="grade"><h2><span class="va-tit">Todas</span><small class="va-n"></small></h2><div class="va-grade"></div></div>' +
       '</div>' +
-      '<nav class="va-tab"><a class="on" data-acao="inicio">' + IC.home + 'Início</a><a data-acao="busca">' + IC.busca + 'Buscar</a><a data-acao="alta">' + IC.trend + 'Em alta</a>' +
+      '<nav class="va-tab"><a class="on" data-acao="inicio">' + IC.home + 'Início</a><a data-acao="busca">' + IC.busca + 'Buscar</a>' +
         (wa ? '<a class="wa" href="' + esc(wa) + '" target="_blank" rel="noopener"><i>' + IC.wa + '</i>WhatsApp</a>' : '<a data-acao="inicio"></a>') + '</nav>' +
       (wa ? '<a class="va-zap" href="' + esc(wa) + '" target="_blank" rel="noopener">' + IC.wa + ' Fale com a loja</a>' : '') +
       '<button type="button" class="va-ed-btn" data-acao="editar">' + IC.lapis + ' Personalizar</button>';
