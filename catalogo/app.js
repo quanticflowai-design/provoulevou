@@ -706,7 +706,7 @@
   // salvar/restaurar as cores no painel não pode apagar o layout escolhido
   function extrasDoTema() {
     const t0 = (storeRow && storeRow.tema) || {}, x = {};
-    ['layout', 'catImgs'].forEach(k => { if (t0[k] != null) x[k] = t0[k]; });
+    ['layout', 'catImgs', 'blocos', 'slides'].forEach(k => { if (t0[k] != null) x[k] = t0[k]; });
     return x;
   }
   function aplicaTema(cor) {
@@ -1243,7 +1243,16 @@
       provar: p => { if (ehKit(p)) openProduct(p); else startTryOn(p); },
       mudouCategoria: c => { catFiltro = c; try { history.pushState({ cat: c }, '', linkCategoria(c)); } catch (e) {} },
       admin: () => { const b = $('#btn-admin'); if (b) b.click(); },
-      sb: { url: SB_URL, key: SB_ANON }
+      sb: { url: SB_URL, key: SB_ANON },
+      podeEditar: () => ehDono(),
+      aviso: m => toast(m),
+      // salva só os blocos, sem mexer nas cores e no resto do tema
+      salvarBlocos: async cfg => {
+        const tema = Object.assign({}, (storeRow && storeRow.tema) || {}, { blocos: cfg });
+        const r = await fetch(WH_THEME, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ store_slug: STORE_SLUG, tema }) });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        if (storeRow) storeRow.tema = tema;
+      }
     });
   }
 
