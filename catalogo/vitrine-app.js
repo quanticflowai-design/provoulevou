@@ -72,7 +72,7 @@
     '.va-selo img{width:100%;height:100%;object-fit:contain}',
     '.vp-selo-pv{position:absolute;right:12px;top:12px;width:72px;height:72px;z-index:3;border:0;background:none;padding:0;cursor:pointer;filter:drop-shadow(0 3px 10px rgba(0,0,0,.22));animation:va-tremida 3s infinite}',
     '.vp-selo-pv img{width:100%;height:100%;object-fit:contain}',
-    '@media(min-width:900px){.va-selo{width:46px;height:46px}.vp-selo-pv{width:84px;height:84px;right:16px;top:16px}}',
+    '@media(min-width:900px){.va-selo{width:46px;height:46px}.vp-selo-pv{width:60px;height:60px;right:14px;top:14px}}',
     '.va-oculto{display:none!important}body.va-ed .va-oculto{display:block!important;opacity:.35}body.va-ed .va-stories.va-oculto{display:flex!important}body.va-ed .va-busca.va-oculto{display:block!important}',
     '.va-ed-btn{position:fixed;right:max(14px,calc(50% - 266px));bottom:calc(84px + env(safe-area-inset-bottom));z-index:31;border:0;background:#111;color:#fff;border-radius:999px;padding:10px 15px;font:700 13px/1 "Plus Jakarta Sans",system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.25);display:flex;align-items:center;gap:7px}',
     // só aparece pro dono logado (o app.js marca html.is-lojista quando valida a sessão)
