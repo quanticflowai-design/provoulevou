@@ -22,8 +22,8 @@
     '.va-acoes a,.va-acoes button{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;color:#6b7280;border:0;background:none;padding:0}',
     '.va-acoes a:hover,.va-acoes button:hover{background:#f3f4f6;color:#111827}.va-acoes svg{width:16px;height:16px}',
     '.va-banner{position:relative;margin:4px 16px 8px;border-radius:18px;overflow:hidden;aspect-ratio:3/1;background:#f6f7f9}',
-    '.va-trilho{display:flex;height:100%;transition:transform .5s ease}',
-    '.va-slide{flex:0 0 100%;height:100%;display:flex;align-items:center;gap:10px;padding:0 16px;color:#fff;background:linear-gradient(120deg,var(--brand-dark),var(--brand))}',
+    '.va-trilho{display:flex;height:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;cursor:grab}.va-trilho::-webkit-scrollbar{display:none}.va-trilho.arrastando{scroll-snap-type:none;cursor:grabbing;user-select:none}',
+    '.va-slide{flex:0 0 100%;height:100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;align-items:center;gap:10px;padding:0 16px;color:#fff;background:linear-gradient(120deg,var(--brand-dark),var(--brand))}',
     '.va-slide .t{flex:1;min-width:0}.va-slide b{display:block;font-family:"Bricolage Grotesque",sans-serif;font-size:17px;line-height:1.15}.va-slide small{opacity:.88;font-size:12px}',
     '.va-slide .fs{display:flex;gap:6px}.va-slide .fs img{width:60px;height:60px;border-radius:12px;object-fit:cover;background:#fff;box-shadow:0 4px 10px rgba(0,0,0,.2)}',
     '.va-slide.img{padding:0}.va-slide.img img{width:100%;height:100%;object-fit:cover}',
@@ -218,37 +218,43 @@
     var lado = x.img ? '<div class="fs"><img src="' + esc(x.img) + '" alt="" style="width:72px;height:72px"></div>' : '<div class="fs">' + fotos.map(function (p) { return '<img src="' + esc(p.img) + '" alt="">'; }).join('') + '</div>';
     return '<div class="va-slide"' + (x.fundo ? ' style="background:' + esc(x.fundo) + '"' : '') + '><div class="t"><b>' + esc(x.titulo) + '</b><small>' + esc(x.sub) + '</small></div>' + lado + '</div>';
   }
-  function vaiBanner(i) {
-    var tri = root.querySelector('.va-trilho'), pts = root.querySelector('.va-pts'); if (!tri) return;
-    ban.i = (i + ban.n) % ban.n; tri.style.transform = 'translateX(-' + ban.i * 100 + '%)';
+  // Banner = faixa com rolagem lateral nativa e "encaixe" (scroll-snap): no celular o dedo desliza como
+  // em qualquer carrossel, sem depender de evento de toque (o arrasto por pointer falhava no iPhone).
+  function pintaPts() {
+    var pts = root.querySelector('.va-pts'); if (!pts) return;
     pts.innerHTML = Array.apply(null, { length: ban.n }).map(function (_, j) { return '<i class="' + (j === ban.i ? 'on' : '') + '"></i>'; }).join('');
   }
-
-  function autoBanner() { clearInterval(ban.t); if (ban.n > 1 && !ED.on) ban.t = setInterval(function () { vaiBanner(ban.i + 1); }, 4000); }
-  // 27/10 (Lucas): arrastar o banner pro lado (dedo ou mouse) volta/avança o slide
+  function vaiBanner(i, instantaneo) {
+    var tri = root.querySelector('.va-trilho'); if (!tri) return;
+    ban.i = (i + ban.n) % ban.n;
+    tri.scrollTo({ left: ban.i * tri.clientWidth, behavior: instantaneo ? 'auto' : 'smooth' });
+    pintaPts();
+  }
+  function autoBanner() { clearInterval(ban.t); if (ban.n > 1 && !ED.on) ban.t = setInterval(function () { vaiBanner(ban.i + 1); }, 4500); }
   function arrastaBanner() {
-    var b = root.querySelector('.va-banner'), tri = b && b.querySelector('.va-trilho'); if (!b || ban.n < 2) return;
-    var x0 = 0, y0 = 0, dx = 0, ativo = false, horiz = null;
-    b.style.touchAction = 'pan-y'; b.style.cursor = 'grab';
-    b.addEventListener('pointerdown', function (e) {
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
-      ativo = true; horiz = null; dx = 0; x0 = e.clientX; y0 = e.clientY; clearInterval(ban.t);
+    var b = root.querySelector('.va-banner'), tri = b && b.querySelector('.va-trilho'); if (!b) return;
+    var fim = null;
+    // dedo ou rolagem: atualiza a bolinha e pausa a troca automática enquanto a pessoa mexe
+    tri.addEventListener('scroll', function () {
+      var i = Math.round(tri.scrollLeft / Math.max(1, tri.clientWidth));
+      if (i !== ban.i && i >= 0 && i < ban.n) { ban.i = i; pintaPts(); }
+      clearTimeout(fim); fim = setTimeout(autoBanner, 600);
+    }, { passive: true });
+    tri.addEventListener('touchstart', function () { clearInterval(ban.t); }, { passive: true });
+    window.addEventListener('resize', function () { vaiBanner(ban.i, true); });
+    // mouse (computador): arrasta e solta encaixando no slide mais perto
+    var x0 = 0, s0 = 0, ativo = false, moveu = false;
+    tri.addEventListener('mousedown', function (e) { if (e.button !== 0) return; ativo = true; moveu = false; x0 = e.clientX; s0 = tri.scrollLeft; clearInterval(ban.t); e.preventDefault(); });
+    window.addEventListener('mousemove', function (e) {
+      if (!ativo) return; var dx = e.clientX - x0;
+      if (!moveu && Math.abs(dx) > 5) { moveu = true; tri.classList.add('arrastando'); }
+      if (moveu) tri.scrollLeft = s0 - dx;
     });
-    b.addEventListener('pointermove', function (e) {
-      if (!ativo) return;
-      var mx = e.clientX - x0, my = e.clientY - y0;
-      if (horiz === null && (Math.abs(mx) > 6 || Math.abs(my) > 6)) { horiz = Math.abs(mx) > Math.abs(my); if (horiz) { try { b.setPointerCapture(e.pointerId); } catch (er) {} tri.style.transition = 'none'; b.style.cursor = 'grabbing'; } }
-      if (!horiz) return;
-      dx = mx; tri.style.transform = 'translateX(calc(-' + ban.i * 100 + '% + ' + dx + 'px))'; e.preventDefault();
-    });
-    var solta = function () {
-      if (!ativo) return; ativo = false; tri.style.transition = ''; b.style.cursor = 'grab';
-      if (horiz && Math.abs(dx) > Math.min(60, b.clientWidth * 0.15)) vaiBanner(ban.i + (dx < 0 ? 1 : -1)); else vaiBanner(ban.i);
+    window.addEventListener('mouseup', function (e) {
+      if (!ativo) return; ativo = false; tri.classList.remove('arrastando');
+      if (moveu) { var dx = e.clientX - x0, w = tri.clientWidth; vaiBanner(Math.abs(dx) > Math.min(60, w * 0.15) ? ban.i + (dx < 0 ? 1 : -1) : ban.i); }
       autoBanner();
-    };
-    b.addEventListener('pointerup', solta); b.addEventListener('pointercancel', solta); b.addEventListener('lostpointercapture', solta);
-    b.addEventListener('dragstart', function (e) { e.preventDefault(); });
-    // bolinhas de baixo também trocam o slide
+    });
     b.querySelector('.va-pts').addEventListener('click', function (e) { var i = [].indexOf.call(this.children, e.target); if (i >= 0) { vaiBanner(i); autoBanner(); } });
   }
   function monta() {
@@ -273,7 +279,7 @@
     root.querySelector('.va-busca input').value = estado.q;
     root.querySelector('.va-busca input').addEventListener('input', function () { estado.q = this.value; pintaGrade(); });
     root.addEventListener('click', clique);
-    vaiBanner(0); autoBanner(); arrastaBanner();
+    vaiBanner(0, true); autoBanner(); arrastaBanner();
     pintaStories(); pintaRank(); pintaGrade(); ligaArrastar();
     aplicaBlocos(); if (ED.on) ferramentas();
   }
