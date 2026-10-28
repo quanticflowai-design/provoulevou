@@ -67,6 +67,29 @@
     '.va-tab a.wa i{display:block;background:#25d366;border-radius:50%;width:34px;height:34px;margin:0 auto}.va-tab a.wa svg{width:18px;height:18px;margin:0 auto;position:relative;top:8px;fill:#fff}',
     'html.layout-app body:not(.va-na-vitrine) .va-tab{display:none}',
     '.va svg.i{width:1.05em;height:1.05em;flex-shrink:0}',
+    '.va-head{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px;padding:12px 10px 10px}',
+    '.va-marca{display:flex;align-items:center;justify-content:center;gap:10px;min-width:0}.va-marca h1{font-family:"Plus Jakarta Sans",sans-serif;font-size:18px;font-weight:800;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.va-marca .va-av{flex:0 0 40px;width:40px;height:40px;padding:2px}',
+    '.va-logo{height:calc(52px * var(--logo-escala,1));max-height:120px}',
+    '.va-ico{position:relative;width:44px;height:44px;border:0;background:none;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#111827;padding:0}.va-ico:hover{background:#f3f4f6}.va .va-ico svg.i{width:24px;height:24px}',
+    '.va-qtd{position:absolute;top:4px;right:3px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--brand);color:#fff;font-size:10.5px;font-weight:800;line-height:18px;text-align:center}',
+    '.va-menu{position:fixed;inset:0;z-index:80;display:none}.va-menu.on{display:block}.va-menu .fundo{position:absolute;inset:0;background:rgba(0,0,0,.4)}',
+    '.va-menu .caixa{position:absolute;left:0;top:0;bottom:0;width:min(320px,86vw);background:#fff;overflow:auto;padding:14px 14px 28px;font-family:"Plus Jakarta Sans",system-ui,sans-serif;animation:va-entra .2s ease}',
+    '@keyframes va-entra{from{transform:translateX(-30px);opacity:.4}}',
+    '.va-menu .topo{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.va-menu .topo img{height:40px;width:auto;max-width:200px;object-fit:contain}',
+    '.va-menu .it{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;text-align:left;padding:12px 8px;border-radius:10px;font:600 15px inherit;color:#111827;text-decoration:none;cursor:pointer}.va-menu .it:hover{background:#f3f4f6}.va-menu .it svg.i{width:20px;height:20px;color:var(--brand)}',
+    '.va-menu .it small{margin-left:auto;font-size:12px;color:#6b7280}',
+    '.va-menu .sep{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#9ca3af;margin:14px 8px 4px}',
+    '.va-menu .cat{padding:9px 8px;font-weight:500;font-size:14px}',
+    '.va-provas{position:fixed;inset:0;z-index:75;background:#fff;overflow:auto;display:none;font-family:"Plus Jakarta Sans",system-ui,sans-serif;color:#111827}.va-provas.on{display:block}',
+    '.va-provas .topo{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,.94);border-bottom:1px solid #eef0f3;backdrop-filter:blur(10px)}.va-provas .topo h2{flex:1;margin:0;font-size:17px}',
+    '.va-provas .lista{max-width:1120px;margin:0 auto;padding:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}',
+    '.va-pv{border:1px solid #eef0f3;border-radius:16px;overflow:hidden;background:#fff;display:flex;flex-direction:column}',
+    '.va-pv img{width:100%;aspect-ratio:3/4;object-fit:cover;background:#f6f7f9;cursor:pointer}.va-pv .in{padding:10px;display:flex;flex-direction:column;gap:2px;flex:1}',
+    '.va-pv .nm{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.va-pv .pr{font-size:15px;font-weight:800}.va-pv .qd{font-size:11.5px;color:#9ca3af}',
+    '.va-pv .comprar{margin-top:8px;border:0;border-radius:10px;padding:10px;background:#25d366;color:#fff;font:800 13.5px inherit;cursor:pointer}',
+    '.va-provas .vazio{text-align:center;color:#6b7280;padding:60px 24px;font-size:14.5px}.va-provas .vazio button{margin-top:14px;border:0;border-radius:999px;padding:11px 18px;background:var(--brand);color:#fff;font:800 14px inherit;cursor:pointer}',
+    '@media(min-width:900px){.va-head{padding:18px 26px 12px;grid-template-columns:48px 1fr 48px}.va-logo{height:calc(70px * var(--logo-escala,1));max-height:150px}.va-provas .lista{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;padding:24px}}',
     // selo "Provador Virtual" (o mesmo das lojas) sobre as fotos
     '@keyframes va-tremida{0%,50%,100%{transform:rotate(0)}10%,30%{transform:rotate(-10deg)}20%,40%{transform:rotate(10deg)}}',
     '.va-selo{position:absolute;right:7px;bottom:7px;width:40px;height:40px;z-index:2;pointer-events:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}',
@@ -97,9 +120,13 @@
     'html.layout-app #screen-product.va-pg>:not(#va-produto){display:none!important}',
     '.vp{font-family:"Plus Jakarta Sans","Hanken Grotesk",system-ui,sans-serif;color:#111827;background:#fff;min-height:100dvh}',
     '.vp *{box-sizing:border-box}.vp img{display:block;max-width:100%}.vp button{font:inherit;cursor:pointer}',
-    '.vp-topo{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(255,255,255,.92);border-bottom:1px solid #eef0f3;backdrop-filter:blur(10px)}',
+    '.vp-cab{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.95);border-bottom:1px solid #eef0f3;backdrop-filter:blur(10px)}',
+    '.vp-topo{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px;padding:8px 10px 4px}',
+    '.vp-marca{display:flex;justify-content:center;cursor:pointer}.vp-marca img{height:calc(40px * var(--logo-escala,1));max-height:90px;width:auto;max-width:100%;object-fit:contain}.vp-marca b{font-size:17px}',
+    '.vp .va-ico{position:relative;width:44px;height:44px;border:0;background:none;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#111827;padding:0}.vp .va-ico svg{width:24px;height:24px}',
+    '.vp-busca{padding:4px 16px 10px;margin:0}.vp-busca input{width:100%;border:0;background:#f3f4f6 no-repeat 13px center/17px url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%239ca3af\' stroke-width=\'2\' stroke-linecap=\'round\'%3E%3Ccircle cx=\'11\' cy=\'11\' r=\'8\'/%3E%3Cpath d=\'m21 21-4.3-4.3\'/%3E%3C/svg%3E");border-radius:12px;padding:11px 14px 11px 38px;font:inherit;font-size:14px;outline:0;color:#111827}',
+    '@media(min-width:900px){.vp-topo{padding:10px 24px 4px}.vp-busca{max-width:560px;margin:0 auto;padding:4px 24px 12px}.vp-marca img{height:calc(52px * var(--logo-escala,1))}}',
     '.vp-volta{display:flex;align-items:center;gap:4px;border:0;background:none;font-weight:700;font-size:14px;padding:6px 2px;color:inherit}.vp-volta svg{width:20px;height:20px}',
-    '.vp-topo img{height:30px;width:auto;margin-left:auto}',
     '.vp-corpo{max-width:1120px;margin:0 auto}',
     '.vp-trilha{font-size:12.5px;color:#6b7280;padding:12px 16px 0}.vp-trilha a{color:inherit;text-decoration:none;cursor:pointer}.vp-trilha span{margin:0 6px;opacity:.6}',
     '.vp-gal{padding:12px 16px 0}.vp-principal{position:relative;border-radius:18px;overflow:hidden;background:#f6f7f9}',
@@ -155,7 +182,7 @@
     '.va-ed-btn{right:28px;bottom:92px}.va-edt{margin:18px 32px 4px}',
     'html.layout-app body:not(.va-na-vitrine) .va-zap{display:none}',
     '.vp-corpo{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:44px;padding:8px 24px 40px;align-items:start}',
-    '.vp-trilha{grid-column:1/-1;padding:16px 0 0}.vp-gal{padding:0;position:sticky;top:70px}.vp-dir{padding:0}.vp-dir h1{font-size:30px}',
+    '.vp-trilha{grid-column:1/-1;padding:16px 0 0}.vp-gal{padding:0;position:sticky;top:150px}.vp-dir{padding:0}.vp-dir h1{font-size:30px}',
     '.vp-relw{padding:0 24px 60px}.vp-relg{grid-template-columns:repeat(4,minmax(0,1fr))}.vp-barra{display:none!important}',
     '}'
   ].join('\n');
@@ -168,6 +195,10 @@
     spark: I('<path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0l1.58 6.14a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96l-6.14 1.58a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z"/>'),
     trend: I('<path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/>'),
     home: I('<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .71-1.53l7-6a2 2 0 0 1 2.58 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),
+    menu: I('<path d="M4 6h16M4 12h16M4 18h16"/>'),
+    volta: I('<path d="m15 18-6-6 6-6"/>'),
+    sacola: I('<path d="M6 7h12l1 13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><path d="M9 7V6a3 3 0 0 1 6 0v1"/>'),
+    fechar: I('<path d="M18 6 6 18M6 6l12 12"/>'),
     lapis: I('<path d="M21.17 6.81a1 1 0 0 0-3.98-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z"/>'),
     olho: I('<path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>'),
     olhoX: I('<path d="M10.73 5.08a10.74 10.74 0 0 1 11.2 6.57 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-1.44 2.49"/><path d="M14.08 14.16a3 3 0 0 1-4.24-4.24"/><path d="M17.48 17.5a10.75 10.75 0 0 1-15.42-5.15 1 1 0 0 1 0-.7 10.75 10.75 0 0 1 4.45-5.14"/><path d="m2 2 20 20"/>'),
@@ -201,7 +232,7 @@
       return !q || norm(p.name).indexOf(q) >= 0 || (p.cats || []).some(function (c) { return norm(c).indexOf(q) >= 0; });
     });
   }
-  function titulo() { return { '': 'Todas', __promo: 'Promoções', __novos: 'Novidades', __alta: 'Em alta' }[estado.cat] || estado.cat; }
+  function titulo() { if (estado.q && !estado.cat) return 'Busca: “' + estado.q + '”'; return { '': 'Todas', __promo: 'Promoções', __novos: 'Novidades', __alta: 'Em alta' }[estado.cat] || estado.cat; }
 
   var SELO = 'selo-provador.png?v=1';
   var SELO_MINI = '<span class="va-selo"><img src="' + SELO + '" alt="Provador virtual" loading="lazy"></span>';
@@ -273,12 +304,14 @@
     var topo = maisProvados()[0] || X.catalog[0];
     root.innerHTML =
       '<div class="va-blocos">' +
-      (X.tema && X.tema.soLogo && L.logo
-        // 27/10 (Lucas): loja pode mostrar só o logo no topo (sem a bolinha e sem o nome ao lado)
-        ? '<div class="va-perfil so-logo" data-bl="perfil"><img class="va-logo" src="' + esc(typeof X.tema.soLogo === 'string' ? X.tema.soLogo : L.logo) + '" alt="' + esc(L.nome) + '">'
-        : '<div class="va-perfil" data-bl="perfil"><div class="va-av">' + (L.logo ? '<img src="' + esc(L.logo) + '" alt="">' : '') + '</div><div><h1>' + esc(L.nome) + '</h1>' + (L.bio && norm(L.bio) !== norm(L.nome) ? '<p>' + esc(L.bio) + '</p>' : '') + '</div>') +
-        '<div class="va-acoes">' + (wa ? '<a href="' + esc(wa) + '" target="_blank" rel="noopener" aria-label="WhatsApp da loja">' + IC.wa.replace('<svg', '<svg fill="currentColor"') + '</a>' : '') +
-        '<button type="button" data-acao="admin" aria-label="Gerenciar catálogo" title="Gerenciar catálogo">' + IC.gear + '</button></div></div>' +
+      // 27/10 (Lucas): topo = menu (esquerda) · logo (meio) · sacola com as provas do cliente (direita)
+      '<div class="va-head" data-bl="perfil">' +
+        '<button type="button" class="va-ico" data-acao="menu" aria-label="Abrir menu">' + IC.menu + '</button>' +
+        '<div class="va-marca">' + (X.tema && X.tema.soLogo && L.logo
+          ? '<img class="va-logo" src="' + esc(typeof X.tema.soLogo === 'string' ? X.tema.soLogo : L.logo) + '" alt="' + esc(L.nome) + '">'
+          : (L.logo ? '<span class="va-av"><img src="' + esc(L.logo) + '" alt=""></span>' : '') + '<h1>' + esc(L.nome) + '</h1>') + '</div>' +
+        '<button type="button" class="va-ico va-sacola" data-acao="provas" aria-label="Minhas provas">' + IC.sacola + '<b class="va-qtd" hidden></b></button>' +
+      '</div>' +
       (sl.length ? '<div class="va-banner" data-bl="banner"><div class="va-trilho">' + sl.join('') + '</div><div class="va-pts"></div></div>' : '') +
       '<div class="va-stories" data-bl="categorias"></div>' +
       '<div class="va-busca" data-bl="busca"><input type="search" placeholder="Buscar armação" aria-label="Buscar armação" autocomplete="off"><div class="va-chips"></div></div>' +
@@ -294,7 +327,7 @@
     root.addEventListener('click', clique);
     vaiBanner(0, true); autoBanner(); arrastaBanner();
     pintaStories(); pintaRank(); pintaGrade(); ligaArrastar();
-    aplicaBlocos(); if (ED.on) ferramentas();
+    aplicaBlocos(); if (ED.on) ferramentas(); pintaQtd();
   }
   // Foto da bolinha: ícone escolhido pra loja (tema.catImgs) ou, sem ele, a armação DAQUELA categoria
   // mais provada nos últimos 30 dias (sem provas, a primeira da vitrine).
@@ -394,6 +427,64 @@
     }).catch(function () { if (b) { b.disabled = false; b.textContent = 'Salvar'; } X.aviso('Não consegui salvar. Tente de novo.'); });
   }
 
+  // ─────────── Menu lateral e "Minhas provas" ───────────
+  function waLink() { var L = X.loja; return L.whatsapp ? 'https://wa.me/' + String(L.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent('Olá! Vim pelo catálogo da ' + L.nome + '.') : ''; }
+  function minhas() { try { return (X.minhasProvas && X.minhasProvas()) || []; } catch (e) { return []; } }
+  function pintaQtd() {
+    var n = minhas().length;
+    [].forEach.call(document.querySelectorAll('.va-qtd'), function (b) { b.textContent = n > 9 ? '9+' : String(n); b.hidden = !n; });
+  }
+  function abreMenu() {
+    var m = document.getElementById('va-menu'), L = X.loja, wa = waLink();
+    if (!m) { m = document.createElement('div'); m.id = 'va-menu'; m.className = 'va-menu'; document.body.appendChild(m); m.addEventListener('click', cliqueMenu); }
+    m.innerHTML = '<div class="fundo" data-m="fechar"></div><div class="caixa" role="dialog" aria-label="Menu">' +
+      '<div class="topo">' + (L.logo ? '<img src="' + esc(typeof X.tema.soLogo === 'string' ? X.tema.soLogo : L.logo) + '" alt="">' : '<b>' + esc(L.nome) + '</b>') + '<button type="button" class="va-ico" data-m="fechar" aria-label="Fechar">' + IC.fechar + '</button></div>' +
+      '<button type="button" class="it" data-m="inicio">' + IC.home + ' Início</button>' +
+      '<button type="button" class="it" data-m="provas">' + IC.sacola + ' Minhas provas <small>' + minhas().length + '</small></button>' +
+      '<button type="button" class="it" data-m="busca">' + IC.busca + ' Buscar armação</button>' +
+      (wa ? '<a class="it" href="' + esc(wa) + '" target="_blank" rel="noopener">' + IC.wa.replace('<svg', '<svg class="i" fill="currentColor"') + ' Falar com a loja</a>' : '') +
+      (X.cats.length ? '<div class="sep">Categorias</div>' + X.cats.map(function (c) { return '<button type="button" class="it cat" data-m="cat" data-c="' + esc(c) + '">' + esc(c) + '</button>'; }).join('') : '') +
+      '<div class="sep">Loja</div><button type="button" class="it cat" data-m="admin">' + IC.gear + ' Área do lojista</button>' +
+      '</div>';
+    m.classList.add('on'); document.body.style.overflow = 'hidden';
+  }
+  function fechaMenu() { var m = document.getElementById('va-menu'); if (m) m.classList.remove('on'); document.body.style.overflow = ''; }
+  function cliqueMenu(ev) {
+    var el = ev.target.closest('[data-m]'); if (!el) return;
+    var a = el.getAttribute('data-m');
+    if (a === 'fechar') return fechaMenu();
+    fechaMenu();
+    if (a === 'provas') return abreProvas();
+    if (a === 'admin') return X.admin();
+    X.irVitrine();
+    if (a === 'inicio') { estado.cat = ''; estado.q = ''; var inp = root.querySelector('.va-busca input'); if (inp) inp.value = ''; pintaGrade(); setTimeout(function () { window.scrollTo({ top: 0 }); var ap = document.getElementById('app'); if (ap) ap.scrollTop = 0; }, 30); }
+    else if (a === 'busca') { var b = root.querySelector('.va-busca input'); if (b) setTimeout(function () { b.scrollIntoView({ block: 'center' }); b.focus(); }, 50); }
+    else if (a === 'cat') { estado.cat = el.getAttribute('data-c'); X.mudouCategoria(estado.cat); pintaGrade(); setTimeout(function () { root.querySelector('.va-grade').closest('.va-sec').scrollIntoView({ block: 'start' }); }, 50); }
+  }
+  function abreProvas() {
+    var p = document.getElementById('va-provas');
+    if (!p) { p = document.createElement('div'); p.id = 'va-provas'; p.className = 'va-provas'; document.body.appendChild(p); p.addEventListener('click', cliqueProvas); }
+    var l = minhas();
+    p.innerHTML = '<div class="topo"><button type="button" class="va-ico" data-pv="fechar" aria-label="Voltar">' + IC.volta + '</button><h2>Minhas provas</h2></div>' +
+      (l.length ? '<div class="lista">' + l.map(function (x, i) {
+        var d = new Date(x.quando);
+        return '<div class="va-pv"><img src="' + esc(x.img) + '" alt="Prova de ' + esc(x.nome) + '" data-pv="ver" data-i="' + i + '"><div class="in"><span class="nm">' + esc(x.nome) + '</span>' +
+          (x.preco ? '<span class="pr">' + X.brl(x.preco) + '</span>' : '') + '<span class="qd">Provado em ' + d.toLocaleDateString('pt-BR') + '</span>' +
+          '<button type="button" class="comprar" data-pv="comprar" data-i="' + i + '">Comprar</button></div></div>';
+      }).join('') + '</div>'
+        : '<div class="vazio"><b>Você ainda não provou nenhuma armação.</b><br>Escolha uma armação e toque em Provar: suas provas ficam guardadas aqui.<br><button type="button" data-pv="fechar">Ver armações</button></div>');
+    p.classList.add('on'); p.scrollTop = 0; document.body.style.overflow = 'hidden';
+  }
+  function fechaProvas() { var p = document.getElementById('va-provas'); if (p) p.classList.remove('on'); document.body.style.overflow = ''; }
+  function cliqueProvas(ev) {
+    var el = ev.target.closest('[data-pv]'); if (!el) return;
+    var a = el.getAttribute('data-pv'), item = minhas()[Number(el.getAttribute('data-i'))];
+    if (a === 'fechar') return fechaProvas();
+    if (a === 'comprar' && item) return X.comprarProva(item);
+    if (a === 'ver' && item) { fechaProvas(); X.verProdutoProva(item); }
+  }
+  document.addEventListener('pl-minhas-provas', function () { pintaQtd(); });
+
   function produto(id) { return X.catalog.find(function (p) { return String(p.id) === String(id); }); }
   function clique(ev) {
     var el = ev.target.closest('[data-provar],[data-p],[data-cat],[data-acao]'); if (!el || !(root.contains(el) || el.closest('#va-ed-bar'))) return;
@@ -406,7 +497,9 @@
       pintaGrade(); root.querySelector('.va-grade').closest('.va-sec').scrollIntoView({ behavior: 'smooth', block: 'start' }); return;
     }
     var a = el.getAttribute('data-acao');
-    if (a === 'admin') X.admin();
+    if (a === 'admin') { fechaMenu(); X.admin(); }
+    else if (a === 'menu') abreMenu();
+    else if (a === 'provas') { fechaMenu(); abreProvas(); }
     else if (a === 'editar') { if (document.documentElement.classList.contains('is-lojista')) ligaEdicao(true); }
     else if (a === 'ed-sobe' || a === 'ed-desce') moveBloco(el.getAttribute('data-id'), a === 'ed-sobe' ? -1 : 1);
     else if (a === 'ed-olho') olhoBloco(el.getAttribute('data-id'));
@@ -456,7 +549,11 @@
                [IP.balao, 'Atendimento pelo WhatsApp', 'Tire dúvidas de medida, lente e entrega direto com a ótica.'],
                [IP.escudo, 'Compra direto com a ' + esc(L.nome), 'Você combina pagamento e entrega com a própria loja.']];
     el.innerHTML =
-      '<div class="vp-topo"><button type="button" class="vp-volta" data-vp="volta">' + IP.volta + ' Voltar</button>' + (L.logo ? '<img src="' + esc(L.logo) + '" alt="' + esc(L.nome) + '">' : '') + '</div>' +
+      '<div class="vp-cab"><div class="vp-topo"><button type="button" class="va-ico" data-vp="volta" aria-label="Voltar">' + IP.volta + '</button>' +
+        '<div class="vp-marca" data-vp="volta">' + (L.logo ? '<img src="' + esc(typeof X.tema.soLogo === 'string' ? X.tema.soLogo : L.logo) + '" alt="' + esc(L.nome) + '">' : '<b>' + esc(L.nome) + '</b>') + '</div>' +
+        '<button type="button" class="va-ico va-sacola" data-vp="provas" aria-label="Minhas provas">' + IC.sacola + '<b class="va-qtd" hidden></b></button></div>' +
+        // busca só na página do produto (27/10, Lucas): Enter leva pra vitrine filtrada
+        '<form class="vp-busca" data-vp-form><input type="search" enterkeyhint="search" placeholder="Buscar armação" aria-label="Buscar armação"></form></div>' +
       '<div class="vp-corpo">' +
         '<div class="vp-trilha"><a data-vp="volta">Início</a>' + (cat ? '<span>›</span><a data-vp="cat">' + esc(cat) + '</a>' : '') + '<span>›</span>' + esc(p.name) + '</div>' +
         '<div class="vp-gal"><div class="vp-principal"><img class="vp-foto" src="' + esc(fotos[0] ? fotos[0].url : p.img) + '" alt="' + esc(p.name) + '">' + (d ? '<span class="vp-selo">-' + d + '%</span>' : '') + '<button type="button" class="vp-selo-pv" data-vp="provar" aria-label="Abrir o provador virtual"><img src="' + SELO + '" alt="Provador virtual"></button></div>' +
@@ -485,6 +582,12 @@
       }).join('') + '</div></div>' : '') +
       '<div class="vp-barra"><div><small>' + (par > 1 ? par + 'x de ' + X.brl(ctx.valorParcela(p, par)) : esc(p.name)) + '</small><b>' + X.brl(X.preco(p)) + '</b></div><button type="button" class="vp-provar" data-vp="provar">' + IC.spark + ' Provar</button></div>';
     el.scrollTop = 0;
+    el.querySelector('[data-vp-form]').addEventListener('submit', function (e) {
+      e.preventDefault(); var q = this.querySelector('input').value.trim(); if (!q) return;
+      estado.q = q; estado.cat = ''; PG.ctx.voltar();
+      if (root) { var inp = root.querySelector('.va-busca input'); if (inp) inp.value = q; pintaGrade(); setTimeout(function () { root.querySelector('.va-grade').closest('.va-sec').scrollIntoView({ block: 'start' }); }, 60); }
+    });
+    pintaQtd();
     return true;
   }
   function cliqueProduto(ev) {
@@ -501,6 +604,7 @@
     var a = el.getAttribute('data-vp');
     if (a === 'provar') PG.ctx.provar();
     else if (a === 'comprar') PG.ctx.comprar();
+    else if (a === 'provas') abreProvas();
     else if (a === 'volta') PG.ctx.voltar();
     else if (a === 'cat') { var c = (PG.p.cats && PG.p.cats[0]) || PG.p.cat; estado.cat = c; X.mudouCategoria(c); PG.ctx.voltar(true); if (root) { pintaGrade(); setTimeout(function () { root.querySelector('.va-grade').closest('.va-sec').scrollIntoView({ block: 'start' }); }, 50); } }
   }
