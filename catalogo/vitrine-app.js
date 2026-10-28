@@ -208,7 +208,7 @@
     var d = desconto(p), n = provas(p);
     return '<button class="va-card" data-p="' + esc(p.id) + '"><div class="ft"><img loading="lazy" src="' + esc(p.img) + '" alt="">' +
       (i != null ? '<span class="pos">#' + (i + 1) + '</span>' : '') + (d ? '<span class="off">-' + d + '%</span>' : '') +
-      (n >= 3 ? '<span class="fire">' + IC.trend + ' ' + n + ' provaram</span>' : '') + SELO_MINI + '</div>' +
+      (n >= 3 ? '<span class="fire">' + IC.trend + ' ' + n + ' provaram</span>' : '') + '</div>' +
       '<div class="in"><div class="nm">' + esc(p.name) + '</div><div class="pr">' + X.brl(X.preco(p)) + (d ? '<span class="de">' + X.brl(p.originalPrice) + '</span>' : '') + '</div>' +
       '<span class="bt" data-provar="' + esc(p.id) + '">' + IC.spark + ' ' + (X.ehKit(p) ? 'Ver o kit' : 'Provar') + '</span></div></button>';
   }
