@@ -716,7 +716,7 @@
   // salvar/restaurar as cores no painel não pode apagar o layout escolhido
   function extrasDoTema() {
     const t0 = (storeRow && storeRow.tema) || {}, x = {};
-    ['layout', 'catImgs', 'blocos', 'slides'].forEach(k => { if (t0[k] != null) x[k] = t0[k]; });
+    ['layout', 'catImgs', 'blocos', 'slides', 'soLogo'].forEach(k => { if (t0[k] != null) x[k] = t0[k]; });
     return x;
   }
   function aplicaTema(cor) {
