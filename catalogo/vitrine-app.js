@@ -97,6 +97,10 @@
     '.vp-selo-pv{position:absolute;right:12px;top:12px;width:72px;height:72px;z-index:3;border:0;background:none;padding:0;cursor:pointer;filter:drop-shadow(0 3px 10px rgba(0,0,0,.22));animation:va-tremida 3s infinite}',
     '.vp-selo-pv img{width:100%;height:100%;object-fit:contain}',
     '@media(min-width:900px){.va-selo{width:46px;height:46px}.vp-selo-pv{width:72px;height:72px;right:16px;top:16px}}',
+    '.va-head{position:relative}body.va-ed .va-marca{cursor:pointer;outline:2px dashed var(--brand);outline-offset:4px;border-radius:10px}',
+    'body.va-ed .va-marca:after{content:"Toque para mudar o tamanho";position:absolute;left:50%;bottom:-2px;transform:translateX(-50%);font-size:10.5px;font-weight:700;color:var(--brand);white-space:nowrap}',
+    '.va-logo-tam{position:absolute;left:50%;top:100%;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:6px;background:#111;color:#fff;border-radius:999px;padding:6px 6px 6px 14px;box-shadow:0 10px 24px rgba(0,0,0,.25);font:700 12px "Plus Jakarta Sans",system-ui,sans-serif;white-space:nowrap}',
+    '.va-logo-tam button{border:0;border-radius:999px;padding:7px 12px;background:rgba(255,255,255,.14);color:#fff;font:700 12.5px inherit;cursor:pointer}.va-logo-tam button.sel{background:#fff;color:#111}',
     '.va-oculto{display:none!important}body.va-ed .va-oculto{display:block!important;opacity:.35}body.va-ed .va-stories.va-oculto{display:flex!important}body.va-ed .va-busca.va-oculto{display:block!important}',
     '.va-ed-btn{position:fixed;right:max(14px,calc(50% - 266px));bottom:calc(84px + env(safe-area-inset-bottom));z-index:31;border:0;background:#111;color:#fff;border-radius:999px;padding:10px 15px;font:700 13px/1 "Plus Jakarta Sans",system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.25);display:flex;align-items:center;gap:7px}',
     // só aparece pro dono logado (o app.js marca html.is-lojista quando valida a sessão)
@@ -307,7 +311,7 @@
       // 27/10 (Lucas): topo = menu (esquerda) · logo (meio) · sacola com as provas do cliente (direita)
       '<div class="va-head" data-bl="perfil">' +
         '<button type="button" class="va-ico" data-acao="menu" aria-label="Abrir menu">' + IC.menu + '</button>' +
-        '<div class="va-marca">' + (X.tema && X.tema.soLogo && L.logo
+        '<div class="va-marca" data-acao="ed-logo">' + (X.tema && X.tema.soLogo && L.logo
           ? '<img class="va-logo" src="' + esc(typeof X.tema.soLogo === 'string' ? X.tema.soLogo : L.logo) + '" alt="' + esc(L.nome) + '">'
           : (L.logo ? '<span class="va-av"><img src="' + esc(L.logo) + '" alt=""></span>' : '') + '<h1>' + esc(L.nome) + '</h1>') + '</div>' +
         '<button type="button" class="va-ico va-sacola" data-acao="provas" aria-label="Minhas provas">' + IC.sacola + '<b class="va-qtd" hidden></b></button>' +
@@ -396,6 +400,18 @@
       box.insertBefore(t, s);
     });
   }
+  // 27/10 (Lucas): no Personalizar, tocar no logo escolhe Pequeno / Médio / Grande (vale ao Salvar)
+  var TAM_LOGO = [['Pequeno', 0.75], ['Médio', 1], ['Grande', 1.5]];
+  function menuLogo() {
+    var head = root.querySelector('.va-head'); if (!head) return;
+    var m = head.querySelector('.va-logo-tam');
+    if (!m) { m = document.createElement('div'); m.className = 'va-logo-tam'; head.appendChild(m); }
+    var atual = ED.logo != null ? ED.logo : X.escalaLogo();
+    m.innerHTML = '<span>Tamanho do logo</span>' + TAM_LOGO.map(function (x) {
+      var sel = Math.abs(atual - x[1]) < 0.13 || (x[1] === 0.75 && atual < 0.85) || (x[1] === 1.5 && atual > 1.25);
+      return '<button type="button" class="' + (sel ? 'sel' : '') + '" data-acao="ed-logo-tam" data-v="' + x[1] + '">' + x[0] + '</button>';
+    }).join('');
+  }
   function ligaEdicao(on) {
     ED.on = on; if (on) ED.cfg = cfgBlocos();
     document.body.classList.toggle('va-ed', on);
@@ -406,7 +422,7 @@
       bar.addEventListener('click', clique); document.body.appendChild(bar);
     } else if (!on && bar) bar.remove();
     if (on) { ferramentas(); window.scrollTo({ top: 0 }); var a = document.getElementById('app'); if (a) a.scrollTop = 0; }
-    else [].forEach.call(root.querySelectorAll('.va-edt'), function (e) { e.remove(); });
+    else { [].forEach.call(root.querySelectorAll('.va-edt,.va-logo-tam'), function (e) { e.remove(); }); }
     autoBanner();
   }
   function moveBloco(id, d) {
@@ -422,8 +438,9 @@
   function salvaEdicao() {
     var cfg = { ordem: ED.cfg.ordem.slice(), ocultos: ED.cfg.ocultos.slice() };
     var b = document.querySelector('#va-ed-bar .ok'); if (b) { b.disabled = true; b.textContent = 'Salvando…'; }
-    Promise.resolve(X.salvarBlocos(cfg)).then(function () {
-      X.tema = Object.assign({}, X.tema, { blocos: cfg }); ED.cfg = null; ligaEdicao(false); aplicaBlocos(); X.aviso('Catálogo salvo ✓');
+    var extra = ED.logo != null ? { logoEscala: ED.logo } : null;
+    Promise.resolve(X.salvarBlocos(cfg, extra)).then(function () {
+      X.tema = Object.assign({}, X.tema, { blocos: cfg }, extra || {}); ED.cfg = null; ED.logo = null; ligaEdicao(false); aplicaBlocos(); X.aviso('Catálogo salvo ✓');
     }).catch(function () { if (b) { b.disabled = false; b.textContent = 'Salvar'; } X.aviso('Não consegui salvar. Tente de novo.'); });
   }
 
@@ -504,7 +521,9 @@
     else if (a === 'ed-sobe' || a === 'ed-desce') moveBloco(el.getAttribute('data-id'), a === 'ed-sobe' ? -1 : 1);
     else if (a === 'ed-olho') olhoBloco(el.getAttribute('data-id'));
     else if (a === 'ed-salvar') salvaEdicao();
-    else if (a === 'ed-cancelar') { ED.cfg = null; ligaEdicao(false); monta(); }
+    else if (a === 'ed-logo') { if (ED.on) menuLogo(); }
+    else if (a === 'ed-logo-tam') { ED.logo = Number(el.getAttribute('data-v')); document.documentElement.style.setProperty('--logo-escala', String(ED.logo)); menuLogo(); }
+    else if (a === 'ed-cancelar') { ED.cfg = null; ED.logo = null; document.documentElement.style.setProperty('--logo-escala', String(X.escalaLogo())); ligaEdicao(false); monta(); }
     else if (a === 'inicio') { estado.cat = ''; estado.q = ''; root.querySelector('.va-busca input').value = ''; pintaGrade(); window.scrollTo({ top: 0, behavior: 'smooth' }); document.getElementById('app').scrollTop = 0; }
     else if (a === 'busca') { var inp = root.querySelector('.va-busca input'); inp.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(function () { inp.focus(); }, 300); }
     else if (a === 'alta') { var t = root.querySelector('.va-top'); if (!t.hidden) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); else { estado.cat = '__alta'; pintaGrade(); } }
