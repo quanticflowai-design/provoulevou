@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=159">
+  <link rel="stylesheet" href="styles.css?v=160">
 </head>
 <body>
   <div id="app">
@@ -454,8 +454,13 @@
             <input type="file" id="input-logo" class="file-oculto" accept="image/*">
             <!-- Tamanho do logo: a prévia muda na hora, o catálogo só muda ao salvar. -->
             <div class="tema-logo-tamanho" id="tema-logo-tamanho">
-              <label class="tema-logo-tamanho-tit" for="tema-logo-escala">Tamanho do logo: <b id="tema-logo-escala-valor">100%</b></label>
-              <input type="range" id="tema-logo-escala" min="50" max="400" step="5" value="100">
+              <span class="tema-logo-tamanho-tit">Tamanho do logo: <b id="tema-logo-escala-valor">Médio</b></span>
+              <div class="tema-logo-tam" role="group" aria-label="Tamanho do logo">
+                <button type="button" data-tam="Pequeno" data-v="75">Pequeno</button>
+                <button type="button" data-tam="Médio" data-v="100">Médio</button>
+                <button type="button" data-tam="Grande" data-v="150">Grande</button>
+              </div>
+              <input type="range" id="tema-logo-escala" min="50" max="400" step="5" value="100" hidden>
               <div class="tema-logo-layout">
                 <label class="tema-check"><input type="checkbox" id="tema-logo-centro"> Centralizar o logo</label>
                 <label class="tema-check"><input type="checkbox" id="tema-logo-cheio"> Logo grande, ocupando o topo inteiro</label>
@@ -734,7 +739,7 @@
   <div id="toast"></div>
 
   <script src="lentes.js?v=152"></script>
-  <script src="vitrine-app.js?v=17"></script>
-  <script src="app.js?v=186"></script>
+  <script src="vitrine-app.js?v=18"></script>
+  <script src="app.js?v=187"></script>
 </body>
 </html>
