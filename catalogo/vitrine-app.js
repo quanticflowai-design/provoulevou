@@ -54,7 +54,7 @@
     '.va-top .va-rank{padding:2px 16px 4px;scroll-padding:0 16px}',
     '.va-grade{display:grid;grid-template-columns:1fr 1fr;gap:10px}',
     '.va-card{border:0;background:#fff;padding:0;text-align:left;border-radius:16px;overflow:hidden;box-shadow:0 0 0 1px var(--brand);color:#111827;display:flex;flex-direction:column}',
-    '.va-card .ft{position:relative;aspect-ratio:1;min-height:0;flex:0 0 auto;overflow:hidden;background:#fff}.va-card .ft img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:8%;box-sizing:border-box}',
+    '.va-card .ft{position:relative;aspect-ratio:1;min-height:0;flex:0 0 auto;overflow:hidden;background:#fff}.va-card .ft img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.va.foto-inteira .va-card .ft img{object-fit:contain;padding:8%;box-sizing:border-box}',
     '.va-card .pos{position:absolute;left:8px;top:8px;background:#111827;color:#fff;font-size:12px;font-weight:800;border-radius:8px;padding:3px 8px}',
     '.va-card .fire{position:absolute;left:8px;bottom:8px;background:rgba(17,24,39,.75);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:4px 8px;display:flex;align-items:center;gap:4px}',
     '.va-card .off{position:absolute;right:8px;top:8px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;border-radius:8px;padding:3px 7px}',
@@ -659,6 +659,8 @@
       if (!root) { root = document.createElement('div'); root.className = 'va'; root.id = 'vitrine-app'; tela.insertBefore(root, tela.firstChild); }
       if (ctx.catInicial && X.cats.indexOf(ctx.catInicial) >= 0 && !estado.tocou) estado.cat = ctx.catInicial;
       estado.tocou = true;
+      // 28/10 (Lucas): foto do produto inteira (menor) só nas lojas com tema.fotoInteira — hoje a Prime Magrini
+      root.classList.toggle('foto-inteira', !!(X.tema && X.tema.fotoInteira));
       monta(); buscaContagem();
     },
     produto: produtoPagina,
