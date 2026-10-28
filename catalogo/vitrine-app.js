@@ -70,6 +70,8 @@
     '.va-tab.c4{grid-template-columns:repeat(4,1fr)}',
     '.va-tab a.ig i{display:block;background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fd5949 45%,#d6249f 60%,#285aeb 90%);border-radius:50%;width:34px;height:34px;margin:0 auto}.va .va-tab a.ig svg.i{width:18px;height:18px;margin:0 auto;position:relative;top:8px;color:#fff}',
     '.va-tab a.wa i{display:block;background:#25d366;border-radius:50%;width:34px;height:34px;margin:0 auto}.va-tab a.wa svg{width:18px;height:18px;margin:0 auto;position:relative;top:8px;fill:#fff}',
+    // 28/10 (Lucas): com Instagram, Instagram e WhatsApp ficam cinza como Início/Buscar
+    '.va-tab.c4 a.ig i,.va-tab.c4 a.wa i{display:block;background:none;border-radius:0;width:auto;height:auto}.va .va-tab.c4 a.ig svg.i{width:22px;height:22px;margin:2px auto 1px;top:0;color:inherit}.va-tab.c4 a.wa svg{width:22px;height:22px;margin:2px auto 1px;top:0;fill:currentColor}',
     'html.layout-app body:not(.va-na-vitrine) .va-tab{display:none}',
     '.va svg.i{width:1.05em;height:1.05em;flex-shrink:0}',
     '.va-head{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px;padding:12px 10px 10px}',
