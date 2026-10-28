@@ -1256,6 +1256,11 @@
       admin: () => { const b = $('#btn-admin'); if (b) b.click(); },
       sb: { url: SB_URL, key: SB_ANON },
       podeEditar: () => ehDono(),
+      minhasProvas: minhasProvas,
+      comprarProva: comprarMinhaProva,
+      verProdutoProva: item => { const p = catalog.find(x => String(x.id) === String(item && item.pid)); if (p) openProduct(p); },
+      escalaLogo: escalaLogoSalva,
+      irVitrine: () => show('catalog'),
       aviso: m => toast(m),
       // salva só os blocos, sem mexer nas cores e no resto do tema
       salvarBlocos: async cfg => {
@@ -1369,7 +1374,9 @@
   function previaLogoEscala() {
     const rng = $('#tema-logo-escala'), val = $('#tema-logo-escala-valor'), box = $('#tema-logo-previas');
     if (!rng) return;
-    if (val) val.textContent = rng.value + '%';
+    const nomeTam = Number(rng.value) <= 85 ? 'Pequeno' : Number(rng.value) >= 125 ? 'Grande' : 'Médio';
+    if (val) val.textContent = nomeTam;
+    $$('.tema-logo-tam button').forEach(b => b.classList.toggle('sel', b.dataset.tam === nomeTam));
     if (box) box.style.setProperty('--logo-escala', String(Number(rng.value) / 100));
     const cen = $('#tema-logo-centro'), che = $('#tema-logo-cheio');
     if (box) { box.classList.toggle('logo-centro', !!(cen && cen.checked)); box.classList.toggle('logo-cheio', !!(che && che.checked)); }
@@ -1378,6 +1385,8 @@
   {
     const rng = $('#tema-logo-escala');
     if (rng) rng.addEventListener('input', previaLogoEscala);
+    // 27/10/2026 (Lucas): três tamanhos fixos em vez da barra deslizante
+    $$('.tema-logo-tam button').forEach(b => b.addEventListener('click', () => { if (rng) { rng.value = b.dataset.v; previaLogoEscala(); } }));
     ['#tema-logo-centro', '#tema-logo-cheio'].forEach(s => { const e = $(s); if (e) e.addEventListener('change', previaLogoEscala); });
     const bv = $('#btn-logo-escala-voltar');
     if (bv) bv.addEventListener('click', () => {
@@ -2381,12 +2390,43 @@
       // Só conta o que o gerador entregou: prova que falhou não foi usada.
       registraProva('55' + tel);
       clearInterval(iv); bar.style.width = '100%';
+      guardaMinhaProva(blob, current, fotoSel);
       showResult(URL.createObjectURL(blob));
     } catch (e) {
       clearInterval(iv);
       toast((e && e.message) || 'Não consegui gerar sua prova agora.');
       show('tryon');
     }
+  }
+
+  // 27/10/2026 (Lucas): "Minhas provas" — cada prova fica guardada no aparelho do cliente
+  // (foto reduzida, só neste navegador) pra ele rever e comprar depois pelo ícone da sacola.
+  const MINHAS_KEY = 'pl_minhas_provas:' + STORE_SLUG;
+  function minhasProvas() { try { return JSON.parse(localStorage.getItem(MINHAS_KEY) || '[]'); } catch (e) { return []; } }
+  function guardaMinhaProva(blob, prod, foto) {
+    if (!blob || !prod) return;
+    const url = URL.createObjectURL(blob), im = new Image();
+    im.onload = () => {
+      try {
+        const w = Math.min(540, im.naturalWidth), h = Math.round(im.naturalHeight * w / im.naturalWidth);
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(im, 0, 0, w, h);
+        const item = { id: Date.now(), pid: prod.id, nome: nomeProdutoAtual(), preco: precoProduto(prod), foto: Number(foto) || 0, img: c.toDataURL('image/jpeg', 0.72), quando: new Date().toISOString() };
+        let l = [item].concat(minhasProvas().filter(x => x && x.img)).slice(0, 15);
+        for (;;) {
+          try { localStorage.setItem(MINHAS_KEY, JSON.stringify(l)); break; }
+          catch (e) { if (l.length <= 1) break; l = l.slice(0, -1); }   // sem espaço: some a mais antiga
+        }
+        document.dispatchEvent(new CustomEvent('pl-minhas-provas'));
+      } catch (e) {} finally { URL.revokeObjectURL(url); }
+    };
+    im.src = url;
+  }
+  function comprarMinhaProva(item) {
+    const p = catalog.find(x => String(x.id) === String(item && item.pid));
+    if (!p) { toast('Essa armação não está mais no catálogo.'); return; }
+    current = p; fotoSel = Number(item.foto) || 0;
+    comprarNoWhatsapp();
   }
 
   function showResult(urlProva) {
