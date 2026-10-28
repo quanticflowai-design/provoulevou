@@ -60,7 +60,7 @@
     '.va-card .off{position:absolute;right:8px;top:8px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;border-radius:8px;padding:3px 7px}',
     '.va-card .in{padding:10px;display:flex;flex-direction:column;flex:1}.va-card .nm{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.va-card .pr{font-weight:800;font-size:15px;margin-top:3px}.va-card .de{font-size:11.5px;color:#6b7280;text-decoration:line-through;font-weight:500;margin-left:4px}',
-    '.va-card .bt{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:auto;width:100%;line-height:1.2;border:0;background:var(--brand-soft);color:var(--brand);border-radius:10px;padding:8px;font-size:12.5px;font-weight:800}',
+    '.va-card .bt{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:auto;width:100%;line-height:1.2;border:0;background:var(--cta,var(--brand));color:var(--on-cta,var(--on-brand,#fff));border-radius:10px;padding:8px;font-size:12.5px;font-weight:800}',
     '.va-card .in .bt{margin-top:8px}',
     '.va-vazio{grid-column:1/-1;text-align:center;color:#6b7280;font-size:14px;padding:30px 0}',
     '.va-tab{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(560px,100%);background:#fff;border-top:1px solid #eef0f3;display:grid;grid-template-columns:repeat(4,1fr);padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:30}',
@@ -147,8 +147,8 @@
     '.vp-precos{margin:16px 0 4px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.vp-p{font-size:30px;font-weight:800;letter-spacing:-.01em}',
     '.vp-d{font-size:15px;color:#6b7280;text-decoration:line-through}.vp-eco{font-size:12.5px;font-weight:800;color:#16a34a;background:#dcfce7;border-radius:6px;padding:3px 7px}',
     '.vp-parc{font-size:14px;color:#6b7280;margin-bottom:18px}.vp-parc b{color:#111827}',
-    '.vp-provar{width:100%;border:0;background:linear-gradient(135deg,var(--brand),#7c3aed);color:#fff;border-radius:14px;padding:16px;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px}.vp-provar svg{width:18px;height:18px}',
-    '.vp-wa{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;border:0;background:#25d366;color:#fff;border-radius:14px;padding:14px;font-weight:800;font-size:15px}',
+    '.vp-provar{width:100%;border:0;background:var(--cta,var(--brand));color:var(--on-cta,var(--on-brand,#fff));border-radius:14px;padding:16px;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px}.vp-provar svg{width:18px;height:18px}',
+    '.vp-wa{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;border:0;background:#25d366;color:#fff;border-radius:14px;padding:14px;font-weight:800;font-size:15px}.vp-wa svg{width:20px;height:20px;flex:0 0 auto}',
     '.vp-gar{display:grid;gap:10px;margin:20px 0 4px;padding:14px;border:1px solid #eef0f3;border-radius:14px}',
     '.vp-gar div{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#6b7280;line-height:1.35}.vp-gar b{display:block;color:#111827;font-size:13.5px}',
     '.vp-gar svg{flex:0 0 20px;width:20px;height:20px;color:var(--brand);margin-top:1px}',
@@ -607,7 +607,7 @@
           '<div class="vp-precos"><span class="vp-p">' + X.brl(X.preco(p)) + '</span>' + (d ? '<span class="vp-d">' + X.brl(p.originalPrice) + '</span><span class="vp-eco">Economize ' + X.brl(Number(p.originalPrice) - X.preco(p)) + '</span>' : '') + '</div>' +
           '<div class="vp-parc">' + parcTxt + '</div>' +
           '<button type="button" class="vp-provar" data-vp="provar">' + IC.spark + ' Provar no meu rosto</button>' +
-          (L.whatsapp ? '<button type="button" class="vp-wa" data-vp="comprar">Comprar pelo WhatsApp</button>' : '') +
+          (L.whatsapp ? '<button type="button" class="vp-wa" data-vp="comprar">Comprar pelo WhatsApp ' + IC.wa + '</button>' : '') +
           '<div class="vp-gar">' + GAR.map(function (g) { return '<div>' + g[0] + '<span><b>' + g[1] + '</b>' + g[2] + '</span></div>'; }).join('') + '</div>' +
           (p.desc ? '<details class="vp-sec" open><summary>Descrição</summary><div class="vp-txt">' + esc(p.desc) + '</div></details>' : '') +
           '<details class="vp-sec"' + (p.desc ? '' : ' open') + '><summary>Detalhes do produto</summary><table class="vp-tab">' +
