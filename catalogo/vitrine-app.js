@@ -66,6 +66,13 @@
     '.va-tab a.wa i{display:block;background:#25d366;border-radius:50%;width:34px;height:34px;margin:0 auto}.va-tab a.wa svg{width:18px;height:18px;margin:0 auto;position:relative;top:8px;fill:#fff}',
     'html.layout-app body:not(.va-na-vitrine) .va-tab{display:none}',
     '.va svg.i{width:1.05em;height:1.05em;flex-shrink:0}',
+    // selo "Provador Virtual" (o mesmo das lojas) sobre as fotos
+    '@keyframes va-tremida{0%,50%,100%{transform:rotate(0)}10%,30%{transform:rotate(-10deg)}20%,40%{transform:rotate(10deg)}}',
+    '.va-selo{position:absolute;right:7px;bottom:7px;width:40px;height:40px;z-index:2;pointer-events:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}',
+    '.va-selo img{width:100%;height:100%;object-fit:contain}',
+    '.vp-selo-pv{position:absolute;right:12px;top:12px;width:72px;height:72px;z-index:3;border:0;background:none;padding:0;cursor:pointer;filter:drop-shadow(0 3px 10px rgba(0,0,0,.22));animation:va-tremida 3s infinite}',
+    '.vp-selo-pv img{width:100%;height:100%;object-fit:contain}',
+    '@media(min-width:900px){.va-selo{width:46px;height:46px}.vp-selo-pv{width:84px;height:84px;right:16px;top:16px}}',
     '.va-oculto{display:none!important}body.va-ed .va-oculto{display:block!important;opacity:.35}body.va-ed .va-stories.va-oculto{display:flex!important}body.va-ed .va-busca.va-oculto{display:block!important}',
     '.va-ed-btn{position:fixed;right:max(14px,calc(50% - 266px));bottom:calc(84px + env(safe-area-inset-bottom));z-index:31;border:0;background:#111;color:#fff;border-radius:999px;padding:10px 15px;font:700 13px/1 "Plus Jakarta Sans",system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.25);display:flex;align-items:center;gap:7px}',
     // só aparece pro dono logado (o app.js marca html.is-lojista quando valida a sessão)
@@ -195,11 +202,13 @@
   }
   function titulo() { return { '': 'Todas', __promo: 'Promoções', __novos: 'Novidades', __alta: 'Em alta' }[estado.cat] || estado.cat; }
 
+  var SELO = 'selo-provador.png?v=1';
+  var SELO_MINI = '<span class="va-selo"><img src="' + SELO + '" alt="Provador virtual" loading="lazy"></span>';
   function card(p, i) {
     var d = desconto(p), n = provas(p);
     return '<button class="va-card" data-p="' + esc(p.id) + '"><div class="ft"><img loading="lazy" src="' + esc(p.img) + '" alt="">' +
       (i != null ? '<span class="pos">#' + (i + 1) + '</span>' : '') + (d ? '<span class="off">-' + d + '%</span>' : '') +
-      (n >= 3 ? '<span class="fire">' + IC.trend + ' ' + n + ' provaram</span>' : '') + '</div>' +
+      (n >= 3 ? '<span class="fire">' + IC.trend + ' ' + n + ' provaram</span>' : '') + SELO_MINI + '</div>' +
       '<div class="in"><div class="nm">' + esc(p.name) + '</div><div class="pr">' + X.brl(X.preco(p)) + (d ? '<span class="de">' + X.brl(p.originalPrice) + '</span>' : '') + '</div>' +
       '<span class="bt" data-provar="' + esc(p.id) + '">' + IC.spark + ' ' + (X.ehKit(p) ? 'Ver o kit' : 'Provar') + '</span></div></button>';
   }
@@ -446,7 +455,7 @@
       '<div class="vp-topo"><button type="button" class="vp-volta" data-vp="volta">' + IP.volta + ' Voltar</button>' + (L.logo ? '<img src="' + esc(L.logo) + '" alt="' + esc(L.nome) + '">' : '') + '</div>' +
       '<div class="vp-corpo">' +
         '<div class="vp-trilha"><a data-vp="volta">Início</a>' + (cat ? '<span>›</span><a data-vp="cat">' + esc(cat) + '</a>' : '') + '<span>›</span>' + esc(p.name) + '</div>' +
-        '<div class="vp-gal"><div class="vp-principal"><img class="vp-foto" src="' + esc(fotos[0] ? fotos[0].url : p.img) + '" alt="' + esc(p.name) + '">' + (d ? '<span class="vp-selo">-' + d + '%</span>' : '') + '</div>' +
+        '<div class="vp-gal"><div class="vp-principal"><img class="vp-foto" src="' + esc(fotos[0] ? fotos[0].url : p.img) + '" alt="' + esc(p.name) + '">' + (d ? '<span class="vp-selo">-' + d + '%</span>' : '') + '<button type="button" class="vp-selo-pv" data-vp="provar" aria-label="Abrir o provador virtual"><img src="' + SELO + '" alt="Provador virtual"></button></div>' +
           (fotos.length > 1 || temVar ? '<div class="vp-thumbs">' + fotos.map(function (f, i) { return '<button type="button" class="' + (i ? '' : 'on') + '" data-foto="' + i + '"><img src="' + esc(f.url) + '" alt="">' + (temVar ? '<small>' + esc(f.variantName || ('Foto ' + (i + 1))) + '</small>' : '') + '</button>'; }).join('') + '</div>' : '') +
         '</div>' +
         '<div class="vp-dir">' + (cat ? '<div class="vp-cat">' + esc(cat) + '</div>' : '') + '<h1>' + esc(p.name) + '</h1>' +
