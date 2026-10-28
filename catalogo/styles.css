@@ -1123,3 +1123,15 @@ html.pv-modal #uploader-empty svg { display: none; }
 html.pv-modal #uploader-empty span { position: absolute; bottom: 14px; font-size: 13px; }
 
 html.pv-modal .screen.active[data-screen="loading"] { height: 340px !important; min-height: 0; }
+/* cartão do provador é sempre claro, mesmo em loja de tema escuro (ESM, Matheus…) */
+html.tema-escuro.pv-modal .screen.active[data-screen] {
+  --ink: #14121a; --ink-2: #5b5566; --muted: #8d8798; --line: #ece9f1; --bg: #f6f4fb; --card: #ffffff;
+  --brand: var(--cta, #14121a); --brand-dark: var(--cta-dark, #000); --on-brand: var(--on-cta, #fff); --brand-soft: rgba(0,0,0,.05);
+  color: var(--ink);
+}
+html.tema-escuro.pv-modal .screen.active[data-screen] .btn-outline { border-color: #ddd; color: #14121a; background: #fff; }
+html.tema-escuro.pv-modal .screen.active[data-screen] input[type="tel"] { background: #fff; color: #14121a; border-color: #ddd; }
+html.tema-escuro.pv-modal .screen.active[data-screen] #uploader { border-color: #d6d3dc; }
+html.tema-escuro.pv-modal .screen.active[data-screen] #uploader-empty,
+html.tema-escuro.pv-modal .screen.active[data-screen] .terms-row,
+html.tema-escuro.pv-modal .screen.active[data-screen] .terms-row a { color: #5b5566; }
