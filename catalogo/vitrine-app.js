@@ -70,8 +70,8 @@
     'html.layout-app .screen:not(#screen-catalog):not(#screen-product){max-width:560px;margin-left:auto;margin-right:auto}',
     '.va-perfil{padding:28px 32px 18px;gap:18px}.va-av{flex-basis:92px;width:92px;height:92px}.va-perfil h1{font-size:26px}.va-perfil p{font-size:14px}.va-acoes{top:26px;right:28px}',
     '.va-banner{margin:4px 32px 14px;aspect-ratio:auto;height:240px}.va-slide{padding:0 48px;gap:24px}.va-slide b{font-size:34px}.va-slide small{font-size:16px}.va-slide .fs{gap:12px}.va-slide .fs img{width:150px;height:150px;border-radius:18px}',
-    '.va-stories{flex-wrap:wrap;overflow:visible;gap:18px 22px;padding:10px 32px 20px}.va-stories button{width:84px}.va-stories button span{max-width:84px;font-size:12.5px}.va-stories .r{width:80px;height:80px}',
-    '.va-busca{padding:14px 32px;display:flex;gap:16px;align-items:center}.va-busca input{flex:0 0 340px;width:340px}.va-chips{margin-top:0;flex-wrap:wrap;overflow:visible}',
+    '.va-stories{gap:22px;padding:10px 32px 20px}.va-stories button{width:84px}.va-stories button span{max-width:84px;font-size:12.5px}.va-stories .r{width:80px;height:80px}',
+    '.va-busca{padding:14px 32px;display:flex;gap:16px;align-items:center}.va-busca input{flex:0 0 340px;width:340px}.va-chips{margin-top:0;flex:1;min-width:0}',
     '.va-dest{margin:22px 32px 0;padding:22px 28px}.va-dest img{flex-basis:110px;width:110px;height:110px}.va-dest b{font-size:20px}.va-dest small{font-size:14px}',
     '.va-sec{padding:28px 32px 6px}.va-sec h2{font-size:22px}',
     '.va-rank{grid-auto-columns:220px;gap:14px}',
@@ -177,7 +177,7 @@
     root.querySelector('.va-busca input').addEventListener('input', function () { estado.q = this.value; pintaGrade(); });
     root.addEventListener('click', clique);
     vaiBanner(0); clearInterval(ban.t); if (ban.n > 1) ban.t = setInterval(function () { vaiBanner(ban.i + 1); }, 4000);
-    pintaStories(); pintaRank(); pintaGrade();
+    pintaStories(); pintaRank(); pintaGrade(); ligaArrastar();
   }
   function pintaStories() {
     var a = maisProvados(), n = novidades(), pr = promo();
@@ -243,6 +243,24 @@
     remove: function () { if (root) { root.remove(); root = null; } clearInterval(ban.t); }
   };
   // a barra de baixo só aparece na vitrine (some no produto, na prova e no painel)
+  // No computador não tem dedo: as faixas que rolam de lado (categorias, filtros, Top 10)
+  // passam a ser arrastadas com o mouse. Arrastou = não conta como clique no item.
+  function arrastavel(el) {
+    if (!el || el._arr) return; el._arr = true;
+    var x0 = 0, s0 = 0, ativo = false, moveu = false;
+    el.style.cursor = 'grab';
+    el.addEventListener('pointerdown', function (e) { if (e.pointerType !== 'mouse' || e.button !== 0) return; ativo = true; moveu = false; x0 = e.clientX; s0 = el.scrollLeft; });
+    window.addEventListener('pointermove', function (e) {
+      if (!ativo) return; var dx = e.clientX - x0;
+      if (!moveu && Math.abs(dx) > 5) { moveu = true; el.style.cursor = 'grabbing'; el.style.scrollBehavior = 'auto'; el.style.userSelect = 'none'; }
+      if (moveu) { el.scrollLeft = s0 - dx; e.preventDefault(); }
+    });
+    window.addEventListener('pointerup', function () { if (!ativo) return; ativo = false; el.style.cursor = 'grab'; el.style.userSelect = ''; });
+    el.addEventListener('click', function (e) { if (moveu) { e.preventDefault(); e.stopPropagation(); moveu = false; } }, true);
+    el.addEventListener('dragstart', function (e) { e.preventDefault(); });
+  }
+  function ligaArrastar() { ['.va-stories', '.va-chips', '.va-rank'].forEach(function (s) { arrastavel(root && root.querySelector(s)); }); }
+
   var olhaTela = function () { var c = document.getElementById('screen-catalog'); document.body.classList.toggle('va-na-vitrine', !!(c && c.classList.contains('active'))); };
   var appEl = document.getElementById('app');
   if (appEl) new MutationObserver(olhaTela).observe(appEl, { subtree: true, attributes: true, attributeFilter: ['class'] });
