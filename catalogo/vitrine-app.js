@@ -11,7 +11,7 @@
     'html.layout-app #screen-catalog>.store-head,html.layout-app #screen-catalog>.catalogo-painel{display:none!important}',
     'html.layout-app #screen-catalog>.admin-cta{margin:12px 16px 0}',
     'html.layout-app #screen-catalog>.powered-by{margin-top:28px}',
-    '.va{font-family:"Hanken Grotesk",system-ui,sans-serif;color:#111827;background:#fff}',
+    '.va{font-family:"Plus Jakarta Sans","Hanken Grotesk",system-ui,sans-serif;color:#111827;background:#fff}',
     '.va *{box-sizing:border-box}.va img{display:block;max-width:100%}.va button{font:inherit;cursor:pointer}',
     '.va-perfil{position:relative;padding:18px 16px 12px;display:flex;gap:14px;align-items:center}',
     '.va-av{flex:0 0 74px;width:74px;height:74px;border-radius:50%;padding:3px;background:linear-gradient(45deg,var(--brand-dark),var(--brand))}',
@@ -62,6 +62,49 @@
     '.va-tab a.wa i{display:block;background:#25d366;border-radius:50%;width:34px;height:34px;margin:0 auto}.va-tab a.wa svg{width:18px;height:18px;margin:0 auto;position:relative;top:8px;fill:#fff}',
     'html.layout-app body:not(.va-na-vitrine) .va-tab{display:none}',
     '.va svg.i{width:1.05em;height:1.05em;flex-shrink:0}',
+    // ── página do produto (igual à prévia) ──
+    'html.layout-app #screen-product.va-pg{padding:0}',
+    // a animação de entrada da tela deixa um transform que prende as barras fixas dentro dela
+    'html.layout-app #screen-product.va-pg,html.layout-app #screen-catalog{animation:none;transform:none}',
+    'html.layout-app #screen-product.va-pg>:not(#va-produto){display:none!important}',
+    '.vp{font-family:"Plus Jakarta Sans","Hanken Grotesk",system-ui,sans-serif;color:#111827;background:#fff;min-height:100dvh}',
+    '.vp *{box-sizing:border-box}.vp img{display:block;max-width:100%}.vp button{font:inherit;cursor:pointer}',
+    '.vp-topo{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(255,255,255,.92);border-bottom:1px solid #eef0f3;backdrop-filter:blur(10px)}',
+    '.vp-volta{display:flex;align-items:center;gap:4px;border:0;background:none;font-weight:700;font-size:14px;padding:6px 2px;color:inherit}.vp-volta svg{width:20px;height:20px}',
+    '.vp-topo img{height:30px;width:auto;margin-left:auto}',
+    '.vp-corpo{max-width:1120px;margin:0 auto}',
+    '.vp-trilha{font-size:12.5px;color:#6b7280;padding:12px 16px 0}.vp-trilha a{color:inherit;text-decoration:none;cursor:pointer}.vp-trilha span{margin:0 6px;opacity:.6}',
+    '.vp-gal{padding:12px 16px 0}.vp-principal{position:relative;border-radius:18px;overflow:hidden;background:#f6f7f9}',
+    '.vp-principal img{width:100%;aspect-ratio:1;object-fit:cover}',
+    '.vp-selo{position:absolute;left:12px;top:12px;background:#ef4444;color:#fff;font-weight:800;font-size:12.5px;border-radius:8px;padding:4px 9px}',
+    '.vp-thumbs{display:flex;gap:8px;margin-top:10px;overflow-x:auto;scrollbar-width:none}.vp-thumbs button{flex:0 0 64px;border:2px solid transparent;border-radius:12px;overflow:hidden;padding:0;background:none;opacity:.7}',
+    '.vp-thumbs button.on{border-color:var(--brand);opacity:1}.vp-thumbs img{width:100%;height:64px;object-fit:cover}.vp-thumbs small{display:block;font-size:10.5px;font-weight:700;padding:3px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.vp-dir{padding:18px 16px 0}',
+    '.vp-cat{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand)}',
+    '.vp-dir h1{font-size:24px;line-height:1.2;margin:6px 0 8px;font-weight:800}',
+    '.vp-prova{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:#6b7280;background:#f6f7f9;border-radius:999px;padding:5px 10px}.vp-prova svg{width:14px;height:14px}',
+    '.vp-precos{margin:16px 0 4px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.vp-p{font-size:30px;font-weight:800;letter-spacing:-.01em}',
+    '.vp-d{font-size:15px;color:#6b7280;text-decoration:line-through}.vp-eco{font-size:12.5px;font-weight:800;color:#16a34a;background:#dcfce7;border-radius:6px;padding:3px 7px}',
+    '.vp-parc{font-size:14px;color:#6b7280;margin-bottom:18px}.vp-parc b{color:#111827}',
+    '.vp-provar{width:100%;border:0;background:linear-gradient(135deg,var(--brand),#7c3aed);color:#fff;border-radius:14px;padding:16px;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px}.vp-provar svg{width:18px;height:18px}',
+    '.vp-wa{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;border:0;background:#25d366;color:#fff;border-radius:14px;padding:14px;font-weight:800;font-size:15px}',
+    '.vp-gar{display:grid;gap:10px;margin:20px 0 4px;padding:14px;border:1px solid #eef0f3;border-radius:14px}',
+    '.vp-gar div{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#6b7280;line-height:1.35}.vp-gar b{display:block;color:#111827;font-size:13.5px}',
+    '.vp-gar svg{flex:0 0 20px;width:20px;height:20px;color:var(--brand);margin-top:1px}',
+    '.vp-sec{border-top:1px solid #eef0f3;margin-top:18px}.vp-sec summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:16px 0;font-weight:800;font-size:15px}',
+    '.vp-sec summary::-webkit-details-marker{display:none}.vp-sec summary:after{content:"+";font-size:20px;font-weight:400;color:#6b7280}.vp-sec[open] summary:after{content:"−"}',
+    '.vp-txt{font-size:14px;line-height:1.6;color:#4b5563;white-space:pre-line;padding-bottom:14px}',
+    '.vp-tab{width:100%;border-collapse:collapse;font-size:13.5px;margin-bottom:14px}.vp-tab td{padding:9px 0;border-bottom:1px solid #eef0f3}.vp-tab td:first-child{color:#6b7280;width:45%}',
+    '.vp-passos{display:grid;gap:12px;padding-bottom:14px}.vp-passos div{display:flex;gap:12px;align-items:center;font-size:13.5px;color:#4b5563}',
+    '.vp-passos i{flex:0 0 28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;font-style:normal;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px}',
+    '.vp-relw{max-width:1120px;margin:0 auto;padding:8px 16px 110px}.vp-relw h3{font-size:18px;margin:18px 0 12px}',
+    '.vp-relg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}',
+    '.vp-relg button{border:1px solid #eef0f3;background:#fff;border-radius:14px;overflow:hidden;padding:0;text-align:left;color:inherit}',
+    '.vp-relg img{width:100%;aspect-ratio:1;object-fit:cover}.vp-relg span{display:block;padding:8px 10px 0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.vp-relg b{display:block;padding:2px 10px 10px;font-size:14px}',
+    '.vp-barra{position:fixed;left:50%;transform:translateX(-50%);width:min(560px,100%);bottom:0;z-index:6;display:flex;align-items:center;gap:12px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #eef0f3;box-shadow:0 -6px 20px rgba(0,0,0,.06)}',
+    '.vp-barra div{flex:1;min-width:0}.vp-barra small{display:block;font-size:11.5px;color:#6b7280}.vp-barra b{font-size:18px}',
+    '.vp-barra .vp-provar{width:auto;flex:0 0 auto;padding:13px 18px}',
+    'html.layout-app body:not(.va-no-produto) .vp-barra{display:none}',
     // ── modo computador (27/10, Lucas) ──
     '.va-zap{display:none}',
     '@media(min-width:900px){',
@@ -82,14 +125,14 @@
     '.va-zap{display:flex;position:fixed;right:28px;bottom:28px;z-index:30;align-items:center;gap:8px;background:#25d366;color:#fff;border-radius:999px;padding:13px 18px;font-weight:800;font-size:14px;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.18)}',
     '.va-zap svg{width:20px;height:20px;fill:#fff}',
     'html.layout-app body:not(.va-na-vitrine) .va-zap{display:none}',
-    'html.layout-app #screen-product{padding:24px 32px 48px}',
-    'html.layout-app .product-view{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:0 48px;align-items:start}',
-    'html.layout-app .product-view>.product-photo,html.layout-app .product-view>.p-variant-title,html.layout-app .product-view>.p-thumbs{grid-column:1}',
-    'html.layout-app .product-view>.product-info{grid-column:2;grid-row:1/span 3;padding-top:8px}',
-    'html.layout-app #p-name{font-size:32px}html.layout-app .p-price{font-size:34px}',
+    '.vp-corpo{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:44px;padding:8px 24px 40px;align-items:start}',
+    '.vp-trilha{grid-column:1/-1;padding:16px 0 0}.vp-gal{padding:0;position:sticky;top:70px}.vp-dir{padding:0}.vp-dir h1{font-size:30px}',
+    '.vp-relw{padding:0 24px 60px}.vp-relg{grid-template-columns:repeat(4,minmax(0,1fr))}.vp-barra{display:none!important}',
     '}'
   ].join('\n');
   var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
+  // fonte do tema App (a da prévia)
+  var fn = document.createElement('link'); fn.rel = 'stylesheet'; fn.href = 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap'; document.head.appendChild(fn);
 
   var I = function (d, fill) { return '<svg class="i" viewBox="0 0 24 24" fill="' + (fill ? 'currentColor' : 'none') + '" stroke="' + (fill ? 'none' : 'currentColor') + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
   var IC = {
@@ -231,6 +274,82 @@
     }).catch(function () {});
   }
 
+  // ─────────── Página do produto (igual à prévia) ───────────
+  var IP = {
+    volta: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+    olho: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+    balao: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-4-1L3 20l1.2-4.6A8.4 8.4 0 1 1 21 11.5z"/></svg>',
+    escudo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
+  };
+  var PG = null;   // { p, el, ctx }
+  function produtoPagina(p, ctx) {
+    if (!X) return false;
+    var tela = document.getElementById('screen-product'); if (!tela) return false;
+    var el = document.getElementById('va-produto');
+    if (!el) { el = document.createElement('div'); el.id = 'va-produto'; el.className = 'vp'; tela.appendChild(el); el.addEventListener('click', cliqueProduto); }
+    tela.classList.add('va-pg');
+    PG = { p: p, el: el, ctx: ctx };
+    var L = X.loja, d = desconto(p), n = provas(p);
+    var fotos = (p.imageMeta && p.imageMeta.length ? p.imageMeta : (p.imgs && p.imgs.length ? p.imgs : [p.img]).map(function (u) { return { url: u, variantName: '' }; })).filter(function (f) { return f.url; });
+    var temVar = fotos.some(function (f) { return f.variantName; });
+    var cat = (p.cats && p.cats[0]) || p.cat || '';
+    var par = Number(p.parcelas) || 0, juros = Number(p.installmentInterestRate) || 0;
+    var parcTxt = par > 1 ? 'ou <b>' + par + 'x de ' + X.brl(ctx.valorParcela(p, par)) + '</b> ' + (juros ? 'com juros' : 'sem juros') : (par === 1 ? 'à vista' : '&nbsp;');
+    var rel = X.catalog.filter(function (x) { return x.id !== p.id && x.img && cat && X.temCat(x, cat); }).slice(0, 8);
+    if (rel.length < 4) rel = rel.concat(X.catalog.filter(function (x) { return x.id !== p.id && x.img && rel.indexOf(x) < 0; }).slice(0, 8 - rel.length));
+    var GAR = [[IP.olho, 'Prove antes de comprar', 'Veja a armação no seu rosto com uma foto, sem sair de casa.'],
+               [IP.balao, 'Atendimento pelo WhatsApp', 'Tire dúvidas de medida, lente e entrega direto com a ótica.'],
+               [IP.escudo, 'Compra direto com a ' + esc(L.nome), 'Você combina pagamento e entrega com a própria loja.']];
+    el.innerHTML =
+      '<div class="vp-topo"><button type="button" class="vp-volta" data-vp="volta">' + IP.volta + ' Voltar</button>' + (L.logo ? '<img src="' + esc(L.logo) + '" alt="' + esc(L.nome) + '">' : '') + '</div>' +
+      '<div class="vp-corpo">' +
+        '<div class="vp-trilha"><a data-vp="volta">Início</a>' + (cat ? '<span>›</span><a data-vp="cat">' + esc(cat) + '</a>' : '') + '<span>›</span>' + esc(p.name) + '</div>' +
+        '<div class="vp-gal"><div class="vp-principal"><img class="vp-foto" src="' + esc(fotos[0] ? fotos[0].url : p.img) + '" alt="' + esc(p.name) + '">' + (d ? '<span class="vp-selo">-' + d + '%</span>' : '') + '</div>' +
+          (fotos.length > 1 || temVar ? '<div class="vp-thumbs">' + fotos.map(function (f, i) { return '<button type="button" class="' + (i ? '' : 'on') + '" data-foto="' + i + '"><img src="' + esc(f.url) + '" alt="">' + (temVar ? '<small>' + esc(f.variantName || ('Foto ' + (i + 1))) + '</small>' : '') + '</button>'; }).join('') + '</div>' : '') +
+        '</div>' +
+        '<div class="vp-dir">' + (cat ? '<div class="vp-cat">' + esc(cat) + '</div>' : '') + '<h1>' + esc(p.name) + '</h1>' +
+          (n ? '<span class="vp-prova">' + IC.trend + ' ' + n + (n === 1 ? ' pessoa já provou' : ' pessoas já provaram') + '</span>' : '') +
+          '<div class="vp-precos"><span class="vp-p">' + X.brl(X.preco(p)) + '</span>' + (d ? '<span class="vp-d">' + X.brl(p.originalPrice) + '</span><span class="vp-eco">Economize ' + X.brl(Number(p.originalPrice) - X.preco(p)) + '</span>' : '') + '</div>' +
+          '<div class="vp-parc">' + parcTxt + '</div>' +
+          '<button type="button" class="vp-provar" data-vp="provar">' + IC.spark + ' Provar no meu rosto</button>' +
+          (L.whatsapp ? '<button type="button" class="vp-wa" data-vp="comprar">Comprar pelo WhatsApp</button>' : '') +
+          '<div class="vp-gar">' + GAR.map(function (g) { return '<div>' + g[0] + '<span><b>' + g[1] + '</b>' + g[2] + '</span></div>'; }).join('') + '</div>' +
+          (p.desc ? '<details class="vp-sec" open><summary>Descrição</summary><div class="vp-txt">' + esc(p.desc) + '</div></details>' : '') +
+          '<details class="vp-sec"' + (p.desc ? '' : ' open') + '><summary>Detalhes do produto</summary><table class="vp-tab">' +
+            (cat ? '<tr><td>Categoria</td><td>' + esc((p.cats && p.cats.length ? p.cats : [cat]).join(', ')) + '</td></tr>' : '') +
+            '<tr><td>Preço</td><td>' + X.brl(X.preco(p)) + '</td></tr>' +
+            (par > 1 ? '<tr><td>Parcelamento</td><td>até ' + par + 'x ' + (juros ? 'com juros' : 'sem juros') + '</td></tr>' : '') +
+            (p.unit ? '<tr><td>Unidade</td><td>' + esc(p.unit) + '</td></tr>' : '') +
+            '<tr><td>Vendido por</td><td>' + esc(L.nome) + '</td></tr></table></details>' +
+          '<details class="vp-sec"><summary>Como funciona a prova virtual</summary><div class="vp-passos">' +
+            '<div><i>1</i>Toque em “Provar no meu rosto”.</div><div><i>2</i>Tire ou envie uma foto de frente.</div><div><i>3</i>Veja a armação em você e chame a loja no WhatsApp.</div></div></details>' +
+        '</div>' +
+      '</div>' +
+      (rel.length ? '<div class="vp-relw"><h3>Você também pode gostar</h3><div class="vp-relg">' + rel.map(function (r) {
+        return '<button type="button" data-rel="' + esc(r.id) + '"><img src="' + esc(r.img) + '" alt="" loading="lazy"><span>' + esc(r.name) + '</span><b>' + X.brl(X.preco(r)) + '</b></button>';
+      }).join('') + '</div></div>' : '') +
+      '<div class="vp-barra"><div><small>' + (par > 1 ? par + 'x de ' + X.brl(ctx.valorParcela(p, par)) : esc(p.name)) + '</small><b>' + X.brl(X.preco(p)) + '</b></div><button type="button" class="vp-provar" data-vp="provar">' + IC.spark + ' Provar</button></div>';
+    el.scrollTop = 0;
+    return true;
+  }
+  function cliqueProduto(ev) {
+    if (!PG) return;
+    var el = ev.target.closest('[data-vp],[data-foto],[data-rel]'); if (!el) return;
+    if (el.hasAttribute('data-foto')) {
+      var i = Number(el.getAttribute('data-foto'));
+      PG.ctx.setFoto(i);
+      PG.el.querySelector('.vp-foto').src = el.querySelector('img').src;
+      [].forEach.call(PG.el.querySelectorAll('.vp-thumbs button'), function (b, j) { b.classList.toggle('on', j === i); });
+      return;
+    }
+    if (el.hasAttribute('data-rel')) { var r = produto(el.getAttribute('data-rel')); if (r) X.abrir(r); return; }
+    var a = el.getAttribute('data-vp');
+    if (a === 'provar') PG.ctx.provar();
+    else if (a === 'comprar') PG.ctx.comprar();
+    else if (a === 'volta') PG.ctx.voltar();
+    else if (a === 'cat') { var c = (PG.p.cats && PG.p.cats[0]) || PG.p.cat; estado.cat = c; X.mudouCategoria(c); PG.ctx.voltar(true); if (root) { pintaGrade(); setTimeout(function () { root.querySelector('.va-grade').closest('.va-sec').scrollIntoView({ block: 'start' }); }, 50); } }
+  }
+
   window.PLVitrineApp = {
     render: function (ctx) {
       X = ctx;
@@ -240,7 +359,9 @@
       estado.tocou = true;
       monta(); buscaContagem();
     },
+    produto: produtoPagina,
     remove: function () { if (root) { root.remove(); root = null; } clearInterval(ban.t); }
+      
   };
   // a barra de baixo só aparece na vitrine (some no produto, na prova e no painel)
   // No computador não tem dedo: as faixas que rolam de lado (categorias, filtros, Top 10)
@@ -261,7 +382,11 @@
   }
   function ligaArrastar() { ['.va-stories', '.va-chips', '.va-rank'].forEach(function (s) { arrastavel(root && root.querySelector(s)); }); }
 
-  var olhaTela = function () { var c = document.getElementById('screen-catalog'); document.body.classList.toggle('va-na-vitrine', !!(c && c.classList.contains('active'))); };
+  var olhaTela = function () {
+    var c = document.getElementById('screen-catalog'), pr = document.getElementById('screen-product');
+    document.body.classList.toggle('va-na-vitrine', !!(c && c.classList.contains('active')));
+    document.body.classList.toggle('va-no-produto', !!(pr && pr.classList.contains('active') && pr.classList.contains('va-pg')));
+  };
   var appEl = document.getElementById('app');
   if (appEl) new MutationObserver(olhaTela).observe(appEl, { subtree: true, attributes: true, attributeFilter: ['class'] });
   olhaTela();
