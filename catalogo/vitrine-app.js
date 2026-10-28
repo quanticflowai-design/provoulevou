@@ -47,7 +47,7 @@
     '.va-sec{padding:20px 16px 4px}.va-sec h2{font-family:"Bricolage Grotesque",sans-serif;font-size:17px;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}',
     '.va-sec h2 span{display:flex;align-items:center;gap:6px}.va-sec h2 small{font-family:"Hanken Grotesk",sans-serif;font-size:12px;color:#6b7280;font-weight:600}',
     '.va-rank{display:grid;grid-auto-flow:column;grid-auto-columns:42%;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px}.va-rank::-webkit-scrollbar{display:none}',
-    '.va-top{margin:14px 16px 0;border-radius:18px;background:linear-gradient(135deg,var(--brand-dark),var(--brand));color:#fff;padding:16px 0 14px;overflow:hidden}',
+    '.va-top{margin:14px 16px 0;border-radius:18px;background:#F2F2F4;color:#1c1826;padding:16px 0 14px;overflow:hidden}.va-top h2 svg{color:var(--brand)}.va-top h2 small{color:#6b6577}',
     '.va-top h2{font-family:"Plus Jakarta Sans",sans-serif;font-size:17px;margin:0 16px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}.va-top h2 span{display:flex;align-items:center;gap:6px}.va-top h2 small{font-size:12px;font-weight:600;opacity:.85}',
     '.va-top .va-rank{padding:0 16px 2px;scroll-padding:0 16px}.va-top .va-card{box-shadow:none}',
     '.va-grade{display:grid;grid-template-columns:1fr 1fr;gap:10px}',
