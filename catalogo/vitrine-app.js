@@ -65,6 +65,18 @@
     '.va-tab a.wa i{display:block;background:#25d366;border-radius:50%;width:34px;height:34px;margin:0 auto}.va-tab a.wa svg{width:18px;height:18px;margin:0 auto;position:relative;top:8px;fill:#fff}',
     'html.layout-app body:not(.va-na-vitrine) .va-tab{display:none}',
     '.va svg.i{width:1.05em;height:1.05em;flex-shrink:0}',
+    '.va-oculto{display:none!important}body.va-ed .va-oculto{display:block!important;opacity:.35}body.va-ed .va-stories.va-oculto{display:flex!important}body.va-ed .va-busca.va-oculto{display:block!important}',
+    '.va-ed-btn{position:fixed;right:max(14px,calc(50% - 266px));bottom:calc(84px + env(safe-area-inset-bottom));z-index:31;border:0;background:#111;color:#fff;border-radius:999px;padding:10px 15px;font:700 13px/1 "Plus Jakarta Sans",system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.25);display:flex;align-items:center;gap:7px}',
+    // só aparece pro dono logado (o app.js marca html.is-lojista quando valida a sessão)
+    'html:not(.is-lojista) .va-ed-btn,html.layout-app body:not(.va-na-vitrine) .va-ed-btn,body.va-ed .va-ed-btn{display:none!important}',
+    'body.va-ed .va-tab,body.va-ed .va-zap{display:none!important}body.va-ed #screen-catalog{padding-top:56px}body.va-ed .va-busca{position:static}',
+    '.va-ed-bar{position:fixed;top:0;left:0;right:0;z-index:70;display:flex;align-items:center;gap:10px;background:#111;color:#fff;padding:10px 14px;font:13px/1.3 "Plus Jakarta Sans",system-ui,sans-serif}',
+    '.va-ed-bar span{flex:1;opacity:.75;font-size:12.5px}.va-ed-bar button{border:0;border-radius:999px;padding:8px 13px;font:700 12.5px/1 inherit;background:rgba(255,255,255,.15);color:#fff;cursor:pointer}.va-ed-bar .ok{background:#22c55e}',
+    '@media(max-width:600px){.va-ed-bar span{display:none}}',
+    '.va-edt{display:flex;align-items:center;gap:6px;margin:14px 16px 4px;padding:7px 8px 7px 12px;border:1px dashed #c7c9d9;border-radius:12px;background:#fafafa;font-size:12.5px;font-weight:700}',
+    '.va-edt .nm{flex:1;min-width:0}.va-edt em{font-style:normal;font-weight:600;color:#ef4444}',
+    '.va-edt button{display:flex;align-items:center;gap:5px;border:1px solid #e5e7eb;background:#fff;border-radius:8px;height:30px;min-width:30px;justify-content:center;padding:0 8px;font-size:12px;font-weight:700;color:#374151}',
+    '.va-edt button svg.i{width:15px;height:15px}.va-edt.oc .olho{border-color:var(--brand);color:var(--brand)}',
     // faixas que rolam de lado: somem num degradê na borda em vez de cortar o item seco
     '.va-stories.mais-dir,.va-chips.mais-dir,.va-rank.mais-dir{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 56px),transparent)}',
     '.va-stories.mais-esq.mais-dir,.va-chips.mais-esq.mais-dir,.va-rank.mais-esq.mais-dir{-webkit-mask-image:linear-gradient(to right,transparent,#000 56px,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to right,transparent,#000 56px,#000 calc(100% - 56px),transparent)}',
@@ -131,6 +143,7 @@
     '.va-tab{display:none!important}',
     '.va-zap{display:flex;position:fixed;right:28px;bottom:28px;z-index:30;align-items:center;gap:8px;background:#25d366;color:#fff;border-radius:999px;padding:13px 18px;font-weight:800;font-size:14px;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.18)}',
     '.va-zap svg{width:20px;height:20px;fill:#fff}',
+    '.va-ed-btn{right:28px;bottom:92px}.va-edt{margin:18px 32px 4px}',
     'html.layout-app body:not(.va-na-vitrine) .va-zap{display:none}',
     '.vp-corpo{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:44px;padding:8px 24px 40px;align-items:start}',
     '.vp-trilha{grid-column:1/-1;padding:16px 0 0}.vp-gal{padding:0;position:sticky;top:70px}.vp-dir{padding:0}.vp-dir h1{font-size:30px}',
@@ -146,6 +159,10 @@
     spark: I('<path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0l1.58 6.14a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96l-6.14 1.58a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z"/>'),
     trend: I('<path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/>'),
     home: I('<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .71-1.53l7-6a2 2 0 0 1 2.58 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),
+    lapis: I('<path d="M21.17 6.81a1 1 0 0 0-3.98-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z"/>'),
+    olho: I('<path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>'),
+    olhoX: I('<path d="M10.73 5.08a10.74 10.74 0 0 1 11.2 6.57 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-1.44 2.49"/><path d="M14.08 14.16a3 3 0 0 1-4.24-4.24"/><path d="M17.48 17.5a10.75 10.75 0 0 1-15.42-5.15 1 1 0 0 1 0-.7 10.75 10.75 0 0 1 4.45-5.14"/><path d="m2 2 20 20"/>'),
+    cima: I('<path d="m18 15-6-6-6 6"/>'), baixo: I('<path d="m6 9 6 6 6-6"/>'),
     busca: I('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'),
     gear: I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),
     wa: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 21.8c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.7 1 1-3.6-.2-.4A9.8 9.8 0 1 1 12 21.8zm8.4-18.2A11.8 11.8 0 0 0 1.7 17.8L0 24l6.3-1.7a11.8 11.8 0 0 0 5.7 1.5c6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.1-3.4-8.4z"/></svg>'
@@ -211,22 +228,26 @@
     var sl = slides().map(slideHTML).filter(Boolean); ban.n = Math.max(sl.length, 1);
     var topo = maisProvados()[0] || X.catalog[0];
     root.innerHTML =
-      '<div class="va-perfil"><div class="va-av">' + (L.logo ? '<img src="' + esc(L.logo) + '" alt="">' : '') + '</div><div><h1>' + esc(L.nome) + '</h1>' + (L.bio && norm(L.bio) !== norm(L.nome) ? '<p>' + esc(L.bio) + '</p>' : '') + '</div>' +
+      '<div class="va-blocos">' +
+      '<div class="va-perfil" data-bl="perfil"><div class="va-av">' + (L.logo ? '<img src="' + esc(L.logo) + '" alt="">' : '') + '</div><div><h1>' + esc(L.nome) + '</h1>' + (L.bio && norm(L.bio) !== norm(L.nome) ? '<p>' + esc(L.bio) + '</p>' : '') + '</div>' +
         '<div class="va-acoes">' + (wa ? '<a href="' + esc(wa) + '" target="_blank" rel="noopener" aria-label="WhatsApp da loja">' + IC.wa.replace('<svg', '<svg fill="currentColor"') + '</a>' : '') +
         '<button type="button" data-acao="admin" aria-label="Gerenciar catálogo" title="Gerenciar catálogo">' + IC.gear + '</button></div></div>' +
-      (sl.length ? '<div class="va-banner"><div class="va-trilho">' + sl.join('') + '</div><div class="va-pts"></div></div>' : '') +
-      '<div class="va-stories"></div>' +
-      '<div class="va-busca"><input type="search" placeholder="Buscar armação" aria-label="Buscar armação" autocomplete="off"><div class="va-chips"></div></div>' +
-      '<div class="va-top"><h2><span>' + IC.trend + ' Top 10 mais provados</span><small>últimos 30 dias</small></h2><div class="va-rank"></div></div>' +
-      '<div class="va-sec"><h2><span class="va-tit">Todas</span><small class="va-n"></small></h2><div class="va-grade"></div></div>' +
+      (sl.length ? '<div class="va-banner" data-bl="banner"><div class="va-trilho">' + sl.join('') + '</div><div class="va-pts"></div></div>' : '') +
+      '<div class="va-stories" data-bl="categorias"></div>' +
+      '<div class="va-busca" data-bl="busca"><input type="search" placeholder="Buscar armação" aria-label="Buscar armação" autocomplete="off"><div class="va-chips"></div></div>' +
+      '<div class="va-top" data-bl="top"><h2><span>' + IC.trend + ' Top 10 mais provados</span><small>últimos 30 dias</small></h2><div class="va-rank"></div></div>' +
+      '<div class="va-sec" data-bl="grade"><h2><span class="va-tit">Todas</span><small class="va-n"></small></h2><div class="va-grade"></div></div>' +
+      '</div>' +
       '<nav class="va-tab"><a class="on" data-acao="inicio">' + IC.home + 'Início</a><a data-acao="busca">' + IC.busca + 'Buscar</a><a data-acao="alta">' + IC.trend + 'Em alta</a>' +
         (wa ? '<a class="wa" href="' + esc(wa) + '" target="_blank" rel="noopener"><i>' + IC.wa + '</i>WhatsApp</a>' : '<a data-acao="inicio"></a>') + '</nav>' +
-      (wa ? '<a class="va-zap" href="' + esc(wa) + '" target="_blank" rel="noopener">' + IC.wa + ' Fale com a loja</a>' : '');
+      (wa ? '<a class="va-zap" href="' + esc(wa) + '" target="_blank" rel="noopener">' + IC.wa + ' Fale com a loja</a>' : '') +
+      '<button type="button" class="va-ed-btn" data-acao="editar">' + IC.lapis + ' Personalizar</button>';
     root.querySelector('.va-busca input').value = estado.q;
     root.querySelector('.va-busca input').addEventListener('input', function () { estado.q = this.value; pintaGrade(); });
     root.addEventListener('click', clique);
     vaiBanner(0); clearInterval(ban.t); if (ban.n > 1) ban.t = setInterval(function () { vaiBanner(ban.i + 1); }, 4000);
     pintaStories(); pintaRank(); pintaGrade(); ligaArrastar();
+    aplicaBlocos(); if (ED.on) ferramentas();
   }
   function pintaStories() {
     var a = maisProvados(), n = novidades(), pr = promo();
@@ -253,9 +274,73 @@
     [].forEach.call(root.querySelectorAll('.va-stories button'), function (b) { b.classList.toggle('on', b.getAttribute('data-cat') === estado.cat); });
     bordas(root.querySelector('.va-chips'));
   }
+  // ─────────── Personalizar (só o dono da loja) ───────────
+  // 27/10/2026 (Lucas): seção nunca é apagada — só escondida (olho) e reordenada (setas).
+  // Fica salvo na loja em tema.blocos = { ordem: [...], ocultos: [...] }.
+  var BLOCOS = [['perfil', 'Perfil da loja'], ['banner', 'Banner'], ['categorias', 'Categorias'], ['busca', 'Busca e filtros'], ['top', 'Top 10 mais provados'], ['grade', 'Todas as armações']];
+  var ED = { on: false, cfg: null };
+  function cfgBlocos() {
+    if (ED.cfg) return ED.cfg;
+    var b = (X.tema && X.tema.blocos) || {};
+    var ordem = (b.ordem || []).filter(function (id) { return BLOCOS.some(function (x) { return x[0] === id; }); });
+    BLOCOS.forEach(function (x) { if (ordem.indexOf(x[0]) < 0) ordem.push(x[0]); });
+    return { ordem: ordem, ocultos: (b.ocultos || []).slice() };
+  }
+  function aplicaBlocos() {
+    var box = root && root.querySelector('.va-blocos'); if (!box) return;
+    var c = cfgBlocos();
+    c.ordem.forEach(function (id) { var s = box.querySelector(':scope > [data-bl="' + id + '"]'); if (s) box.appendChild(s); });
+    [].forEach.call(box.querySelectorAll(':scope > [data-bl]'), function (s) { s.classList.toggle('va-oculto', c.ocultos.indexOf(s.getAttribute('data-bl')) >= 0); });
+  }
+  function ferramentas() {
+    var box = root.querySelector('.va-blocos'); if (!box) return;
+    [].forEach.call(box.querySelectorAll('.va-edt'), function (e) { e.remove(); });
+    var c = cfgBlocos();
+    [].forEach.call(box.querySelectorAll(':scope > [data-bl]'), function (s) {
+      var id = s.getAttribute('data-bl'), nome = (BLOCOS.find(function (x) { return x[0] === id; }) || [id, id])[1], oculto = c.ocultos.indexOf(id) >= 0;
+      var t = document.createElement('div'); t.className = 'va-edt' + (oculto ? ' oc' : '');
+      t.innerHTML = '<span class="nm">' + esc(nome) + (oculto ? ' <em>· escondida para os clientes</em>' : '') + '</span>' +
+        '<button type="button" data-acao="ed-sobe" data-id="' + id + '" title="Subir">' + IC.cima + '</button>' +
+        '<button type="button" data-acao="ed-desce" data-id="' + id + '" title="Descer">' + IC.baixo + '</button>' +
+        '<button type="button" class="olho" data-acao="ed-olho" data-id="' + id + '" title="' + (oculto ? 'Mostrar' : 'Esconder') + '">' + (oculto ? IC.olhoX + ' Mostrar' : IC.olho + ' Esconder') + '</button>';
+      box.insertBefore(t, s);
+    });
+  }
+  function ligaEdicao(on) {
+    ED.on = on; if (on) ED.cfg = cfgBlocos();
+    document.body.classList.toggle('va-ed', on);
+    var bar = document.getElementById('va-ed-bar');
+    if (on && !bar) {
+      bar = document.createElement('div'); bar.id = 'va-ed-bar'; bar.className = 'va-ed-bar';
+      bar.innerHTML = '<b>Personalizar</b><span>Use as setas para mudar a ordem e o olho para esconder uma seção.</span><button type="button" data-acao="ed-cancelar">Cancelar</button><button type="button" class="ok" data-acao="ed-salvar">Salvar</button>';
+      bar.addEventListener('click', clique); document.body.appendChild(bar);
+    } else if (!on && bar) bar.remove();
+    if (on) { ferramentas(); window.scrollTo({ top: 0 }); var a = document.getElementById('app'); if (a) a.scrollTop = 0; }
+    else [].forEach.call(root.querySelectorAll('.va-edt'), function (e) { e.remove(); });
+    clearInterval(ban.t); if (!on && ban.n > 1) ban.t = setInterval(function () { vaiBanner(ban.i + 1); }, 4000);
+  }
+  function moveBloco(id, d) {
+    var o = ED.cfg.ordem, i = o.indexOf(id), j = i + d; if (i < 0 || j < 0 || j >= o.length) return;
+    o.splice(i, 1); o.splice(j, 0, id); aplicaBlocos(); ferramentas();
+    var s = root.querySelector('.va-blocos > [data-bl="' + id + '"]'); if (s && s.previousElementSibling) s.previousElementSibling.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+  function olhoBloco(id) {
+    var oc = ED.cfg.ocultos, i = oc.indexOf(id);
+    if (i >= 0) oc.splice(i, 1); else oc.push(id);
+    aplicaBlocos(); ferramentas();
+  }
+  function salvaEdicao() {
+    var cfg = { ordem: ED.cfg.ordem.slice(), ocultos: ED.cfg.ocultos.slice() };
+    var b = document.querySelector('#va-ed-bar .ok'); if (b) { b.disabled = true; b.textContent = 'Salvando…'; }
+    Promise.resolve(X.salvarBlocos(cfg)).then(function () {
+      X.tema = Object.assign({}, X.tema, { blocos: cfg }); ED.cfg = null; ligaEdicao(false); aplicaBlocos(); X.aviso('Catálogo salvo ✓');
+    }).catch(function () { if (b) { b.disabled = false; b.textContent = 'Salvar'; } X.aviso('Não consegui salvar. Tente de novo.'); });
+  }
+
   function produto(id) { return X.catalog.find(function (p) { return String(p.id) === String(id); }); }
   function clique(ev) {
-    var el = ev.target.closest('[data-provar],[data-p],[data-cat],[data-acao]'); if (!el || !root.contains(el)) return;
+    var el = ev.target.closest('[data-provar],[data-p],[data-cat],[data-acao]'); if (!el || !(root.contains(el) || el.closest('#va-ed-bar'))) return;
+    if (ED.on && !/^(ed-|editar)/.test(el.getAttribute('data-acao') || '')) { ev.preventDefault(); return; }
     if (el.hasAttribute('data-provar')) { ev.preventDefault(); ev.stopPropagation(); var pp = produto(el.getAttribute('data-provar')); if (pp) X.provar(pp); return; }
     if (el.hasAttribute('data-p')) { var p = produto(el.getAttribute('data-p')); if (p) X.abrir(p); return; }
     if (el.hasAttribute('data-cat')) {
@@ -265,6 +350,11 @@
     }
     var a = el.getAttribute('data-acao');
     if (a === 'admin') X.admin();
+    else if (a === 'editar') { if (document.documentElement.classList.contains('is-lojista')) ligaEdicao(true); }
+    else if (a === 'ed-sobe' || a === 'ed-desce') moveBloco(el.getAttribute('data-id'), a === 'ed-sobe' ? -1 : 1);
+    else if (a === 'ed-olho') olhoBloco(el.getAttribute('data-id'));
+    else if (a === 'ed-salvar') salvaEdicao();
+    else if (a === 'ed-cancelar') { ED.cfg = null; ligaEdicao(false); monta(); }
     else if (a === 'inicio') { estado.cat = ''; estado.q = ''; root.querySelector('.va-busca input').value = ''; pintaGrade(); window.scrollTo({ top: 0, behavior: 'smooth' }); document.getElementById('app').scrollTop = 0; }
     else if (a === 'busca') { var inp = root.querySelector('.va-busca input'); inp.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(function () { inp.focus(); }, 300); }
     else if (a === 'alta') { var t = root.querySelector('.va-top'); if (!t.hidden) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); else { estado.cat = '__alta'; pintaGrade(); } }
