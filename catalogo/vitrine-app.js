@@ -45,6 +45,9 @@
     '.va-sec{padding:20px 16px 4px}.va-sec h2{font-family:"Bricolage Grotesque",sans-serif;font-size:17px;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}',
     '.va-sec h2 span{display:flex;align-items:center;gap:6px}.va-sec h2 small{font-family:"Hanken Grotesk",sans-serif;font-size:12px;color:#6b7280;font-weight:600}',
     '.va-rank{display:grid;grid-auto-flow:column;grid-auto-columns:42%;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px}.va-rank::-webkit-scrollbar{display:none}',
+    '.va-top{margin:14px 16px 0;border-radius:18px;background:linear-gradient(135deg,var(--brand-dark),var(--brand));color:#fff;padding:16px 0 14px;overflow:hidden}',
+    '.va-top h2{font-family:"Plus Jakarta Sans",sans-serif;font-size:17px;margin:0 16px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}.va-top h2 span{display:flex;align-items:center;gap:6px}.va-top h2 small{font-size:12px;font-weight:600;opacity:.85}',
+    '.va-top .va-rank{padding:0 16px 2px;scroll-padding:0 16px}.va-top .va-card{box-shadow:none}',
     '.va-grade{display:grid;grid-template-columns:1fr 1fr;gap:10px}',
     '.va-card{border:0;background:#fff;padding:0;text-align:left;border-radius:16px;overflow:hidden;box-shadow:0 0 0 1px #eef0f3;color:#111827;display:flex;flex-direction:column}',
     '.va-card .ft{position:relative;aspect-ratio:1;min-height:0;flex:0 0 auto;overflow:hidden;background:#f6f7f9}.va-card .ft img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}',
@@ -62,6 +65,10 @@
     '.va-tab a.wa i{display:block;background:#25d366;border-radius:50%;width:34px;height:34px;margin:0 auto}.va-tab a.wa svg{width:18px;height:18px;margin:0 auto;position:relative;top:8px;fill:#fff}',
     'html.layout-app body:not(.va-na-vitrine) .va-tab{display:none}',
     '.va svg.i{width:1.05em;height:1.05em;flex-shrink:0}',
+    // faixas que rolam de lado: somem num degradê na borda em vez de cortar o item seco
+    '.va-stories.mais-dir,.va-chips.mais-dir,.va-rank.mais-dir{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 56px),transparent)}',
+    '.va-stories.mais-esq.mais-dir,.va-chips.mais-esq.mais-dir,.va-rank.mais-esq.mais-dir{-webkit-mask-image:linear-gradient(to right,transparent,#000 56px,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to right,transparent,#000 56px,#000 calc(100% - 56px),transparent)}',
+    '.va-stories.mais-esq:not(.mais-dir),.va-chips.mais-esq:not(.mais-dir),.va-rank.mais-esq:not(.mais-dir){-webkit-mask-image:linear-gradient(to right,transparent,#000 56px);mask-image:linear-gradient(to right,transparent,#000 56px)}',
     // ── página do produto (igual à prévia) ──
     'html.layout-app #screen-product.va-pg{padding:0}',
     // a animação de entrada da tela deixa um transform que prende as barras fixas dentro dela
@@ -113,9 +120,9 @@
     'html.layout-app .screen:not(#screen-catalog):not(#screen-product){max-width:560px;margin-left:auto;margin-right:auto}',
     '.va-perfil{padding:28px 32px 18px;gap:18px}.va-av{flex-basis:92px;width:92px;height:92px}.va-perfil h1{font-size:26px}.va-perfil p{font-size:14px}.va-acoes{top:26px;right:28px}',
     '.va-banner{margin:4px 32px 14px;aspect-ratio:auto;height:240px}.va-slide{padding:0 48px;gap:24px}.va-slide b{font-size:34px}.va-slide small{font-size:16px}.va-slide .fs{gap:12px}.va-slide .fs img{width:150px;height:150px;border-radius:18px}',
-    '.va-stories{gap:22px;padding:10px 32px 20px}.va-stories button{width:84px}.va-stories button span{max-width:84px;font-size:12.5px}.va-stories .r{width:80px;height:80px}',
+    '.va-stories{gap:22px;padding:10px 0 20px;margin:0 32px}.va-stories button{width:84px}.va-stories button span{max-width:84px;font-size:12.5px}.va-stories .r{width:80px;height:80px}',
     '.va-busca{padding:14px 32px;display:flex;gap:16px;align-items:center}.va-busca input{flex:0 0 340px;width:340px}.va-chips{margin-top:0;flex:1;min-width:0}',
-    '.va-dest{margin:22px 32px 0;padding:22px 28px}.va-dest img{flex-basis:110px;width:110px;height:110px}.va-dest b{font-size:20px}.va-dest small{font-size:14px}',
+    '.va-top{margin:22px 32px 0;padding:22px 0 18px}.va-top h2{font-size:22px;margin:0 24px 14px}.va-top .va-rank{padding:0 24px 2px}',
     '.va-sec{padding:28px 32px 6px}.va-sec h2{font-size:22px}',
     '.va-rank{grid-auto-columns:220px;gap:14px}',
     '.va-grade{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}',
@@ -210,8 +217,7 @@
       (sl.length ? '<div class="va-banner"><div class="va-trilho">' + sl.join('') + '</div><div class="va-pts"></div></div>' : '') +
       '<div class="va-stories"></div>' +
       '<div class="va-busca"><input type="search" placeholder="Buscar armação" aria-label="Buscar armação" autocomplete="off"><div class="va-chips"></div></div>' +
-      (topo ? '<div class="va-dest" data-p="' + esc(topo.id) + '"><img src="' + esc(topo.img) + '" alt=""><div><b>' + IC.spark + ' Prove no seu rosto</b><small>Tire uma selfie e veja a armação em você em segundos.</small><span class="bt">Experimentar agora</span></div></div>' : '') +
-      '<div class="va-sec va-top"><h2><span>' + IC.trend + ' Top 10 mais provados</span><small>últimos 30 dias</small></h2><div class="va-rank"></div></div>' +
+      '<div class="va-top"><h2><span>' + IC.trend + ' Top 10 mais provados</span><small>últimos 30 dias</small></h2><div class="va-rank"></div></div>' +
       '<div class="va-sec"><h2><span class="va-tit">Todas</span><small class="va-n"></small></h2><div class="va-grade"></div></div>' +
       '<nav class="va-tab"><a class="on" data-acao="inicio">' + IC.home + 'Início</a><a data-acao="busca">' + IC.busca + 'Buscar</a><a data-acao="alta">' + IC.trend + 'Em alta</a>' +
         (wa ? '<a class="wa" href="' + esc(wa) + '" target="_blank" rel="noopener"><i>' + IC.wa + '</i>WhatsApp</a>' : '<a data-acao="inicio"></a>') + '</nav>' +
@@ -234,6 +240,7 @@
     var l = maisProvados(), box = root.querySelector('.va-top');
     box.hidden = l.length < 3;
     box.querySelector('.va-rank').innerHTML = l.map(card).join('');
+    bordas(box.querySelector('.va-rank'));
   }
   function pintaGrade() {
     var l = lista();
@@ -244,6 +251,7 @@
       return '<button type="button" class="' + (c === estado.cat ? 'on' : '') + '" data-cat="' + esc(c) + '">' + esc(c || 'Todas') + '</button>';
     }).join('');
     [].forEach.call(root.querySelectorAll('.va-stories button'), function (b) { b.classList.toggle('on', b.getAttribute('data-cat') === estado.cat); });
+    bordas(root.querySelector('.va-chips'));
   }
   function produto(id) { return X.catalog.find(function (p) { return String(p.id) === String(id); }); }
   function clique(ev) {
@@ -380,7 +388,13 @@
     el.addEventListener('click', function (e) { if (moveu) { e.preventDefault(); e.stopPropagation(); moveu = false; } }, true);
     el.addEventListener('dragstart', function (e) { e.preventDefault(); });
   }
-  function ligaArrastar() { ['.va-stories', '.va-chips', '.va-rank'].forEach(function (s) { arrastavel(root && root.querySelector(s)); }); }
+  function bordas(el) {
+    if (!el) return;
+    var f = function () { el.classList.toggle('mais-esq', el.scrollLeft > 4); el.classList.toggle('mais-dir', el.scrollLeft + el.clientWidth < el.scrollWidth - 4); };
+    if (!el._bd) { el._bd = true; el.addEventListener('scroll', f, { passive: true }); window.addEventListener('resize', f); }
+    f(); setTimeout(f, 300);
+  }
+  function ligaArrastar() { ['.va-stories', '.va-chips', '.va-rank'].forEach(function (s) { var el = root && root.querySelector(s); arrastavel(el); bordas(el); }); }
 
   var olhaTela = function () {
     var c = document.getElementById('screen-catalog'), pr = document.getElementById('screen-product');
