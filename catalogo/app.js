@@ -1940,6 +1940,15 @@
     $('#btn-buy-direct').hidden = !LOJAS_COMPRA_DIRETA.has(STORE_SLUG);
     renderKitDoProduto(p);
     montaMiniaturas(p);
+    // Layout App: a página do produto é a da prévia (vitrine-app.js). Kit segue na página antiga.
+    const pgApp = layoutApp() && !ehKit(p) && window.PLVitrineApp && window.PLVitrineApp.produto && window.PLVitrineApp.produto(p, {
+      setFoto: i => { fotoSel = i; },
+      provar: () => { resetUploader(); show('tryon'); },
+      comprar: () => comprarNoWhatsapp(),
+      voltar: () => show('catalog'),
+      valorParcela: valorParcela
+    });
+    if (!pgApp) { const sp = $('#screen-product'); if (sp) sp.classList.remove('va-pg'); }
     show('product');
     // troca a URL sem recarregar, pra quem chegou pelo catálogo poder copiar da
     // barra de endereço e o "voltar" do navegador funcionar
