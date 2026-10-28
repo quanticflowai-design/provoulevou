@@ -1210,6 +1210,7 @@
       }
     }
     renderSecoesApp(visiveis, termo);
+    renderVitrineApp();
     if (vazio) vazio.hidden = !(carregou && catalog.length === 0);
     if (buscaBox) buscaBox.hidden = !catalog.length;
     if (buscaVazia) buscaVazia.hidden = !(carregou && catalog.length > 0 && visiveis.length === 0);
@@ -1220,6 +1221,30 @@
     renderSugestoesCategoria();
     renderLinksCategoria();
     renderLinksUnidade();
+  }
+
+  // Layout App completo (vitrine-app.js): perfil, banner, bolinhas, Top 10 e barra de baixo.
+  // A vitrine clássica continua montada por baixo (o painel do lojista usa), só fica escondida.
+  function renderVitrineApp() {
+    if (!window.PLVitrineApp) return;
+    if (!layoutApp() || !storeRow) { window.PLVitrineApp.remove(); return; }
+    const fixa = unidadeFixa();
+    let slugFixa = fixa ? slugUnidade(fixa.rotulo) : null;
+    if (slugFixa && !catalog.some(p => p.unit && slugUnidade(p.unit) === slugFixa)) slugFixa = null;
+    window.PLVitrineApp.render({
+      loja: { slug: STORE_SLUG, nome: storeRow.display_name || STORE.name, logo: storeRow.logo_url || '', bio: storeRow.bio || '', whatsapp: storeRow.whatsapp || '' },
+      tema: storeRow.tema || {},
+      catalog: catalog.filter(p => doTipo(p) && (!slugFixa || !p.unit || slugUnidade(p.unit) === slugFixa))
+        .sort((a, b) => Number(b.featured) - Number(a.featured) || (a.position - b.position)),
+      cats: categoriasDaLoja(),
+      catInicial: catFiltro,
+      icone: iconeCategoria, temCat: produtoTemCategoria, preco: precoProduto, temOferta: temOferta, brl: brl, ehKit: ehKit,
+      abrir: p => openProduct(p),
+      provar: p => { if (ehKit(p)) openProduct(p); else startTryOn(p); },
+      mudouCategoria: c => { catFiltro = c; try { history.pushState({ cat: c }, '', linkCategoria(c)); } catch (e) {} },
+      admin: () => { const b = $('#btn-admin'); if (b) b.click(); },
+      sb: { url: SB_URL, key: SB_ANON }
+    });
   }
 
   // Layout App: carrossel "Ofertas" (só na vitrine inteira, sem busca) + título com a contagem.
@@ -1898,9 +1923,9 @@
     bindImg($('#p-img'), p.img, p.name);
     $('#p-name').textContent = p.name;
     const precoOriginal = $('#p-old-price');
-    precoOriginal.textContent = precoOriginalTxt(p);
+    precoOriginal.textContent = layoutApp() ? (temOferta(p) ? brl(p.originalPrice) : '') : precoOriginalTxt(p);
     precoOriginal.hidden = !precoOriginal.textContent;
-    $('#p-price').textContent = precoAtualTxt(p);
+    $('#p-price').textContent = layoutApp() ? brl(precoProduto(p)) : precoAtualTxt(p);
     $('#p-price').classList.toggle('offer', temOferta(p));
     // sem parcelamento informado o campo some, em vez de anunciar 12x que a
     // loja talvez não pratique
