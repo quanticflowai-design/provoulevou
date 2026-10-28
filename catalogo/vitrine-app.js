@@ -61,7 +61,33 @@
     '.va-tab a svg{width:22px;height:22px;display:block;margin:2px auto 1px}',
     '.va-tab a.wa i{display:block;background:#25d366;border-radius:50%;width:34px;height:34px;margin:0 auto}.va-tab a.wa svg{width:18px;height:18px;margin:0 auto;position:relative;top:8px;fill:#fff}',
     'html.layout-app body:not(.va-na-vitrine) .va-tab{display:none}',
-    '.va svg.i{width:1.05em;height:1.05em;flex-shrink:0}'
+    '.va svg.i{width:1.05em;height:1.05em;flex-shrink:0}',
+    // ── modo computador (27/10, Lucas) ──
+    '.va-zap{display:none}',
+    '@media(min-width:900px){',
+    'html.layout-app #app{max-width:1240px}',
+    'html.layout-app #screen-catalog{padding-bottom:40px}',
+    'html.layout-app .screen:not(#screen-catalog):not(#screen-product){max-width:560px;margin-left:auto;margin-right:auto}',
+    '.va-perfil{padding:28px 32px 18px;gap:18px}.va-av{flex-basis:92px;width:92px;height:92px}.va-perfil h1{font-size:26px}.va-perfil p{font-size:14px}.va-acoes{top:26px;right:28px}',
+    '.va-banner{margin:4px 32px 14px;aspect-ratio:auto;height:240px}.va-slide{padding:0 48px;gap:24px}.va-slide b{font-size:34px}.va-slide small{font-size:16px}.va-slide .fs{gap:12px}.va-slide .fs img{width:150px;height:150px;border-radius:18px}',
+    '.va-stories{flex-wrap:wrap;overflow:visible;gap:18px 22px;padding:10px 32px 20px}.va-stories button{width:84px}.va-stories button span{max-width:84px;font-size:12.5px}.va-stories .r{width:80px;height:80px}',
+    '.va-busca{padding:14px 32px;display:flex;gap:16px;align-items:center}.va-busca input{flex:0 0 340px;width:340px}.va-chips{margin-top:0;flex-wrap:wrap;overflow:visible}',
+    '.va-dest{margin:22px 32px 0;padding:22px 28px}.va-dest img{flex-basis:110px;width:110px;height:110px}.va-dest b{font-size:20px}.va-dest small{font-size:14px}',
+    '.va-sec{padding:28px 32px 6px}.va-sec h2{font-size:22px}',
+    '.va-rank{grid-auto-columns:220px;gap:14px}',
+    '.va-grade{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}',
+    '.va-card{transition:transform .15s,box-shadow .2s}.va-card:hover{transform:translateY(-3px);box-shadow:0 0 0 1px #e5e7eb,0 10px 24px rgba(0,0,0,.08)}',
+    '.va-card .nm{font-size:14px}.va-card .pr{font-size:16.5px}.va-card .bt{padding:10px;font-size:13.5px}.va-card .bt:hover{background:var(--brand);color:#fff}',
+    '.va-tab{display:none!important}',
+    '.va-zap{display:flex;position:fixed;right:28px;bottom:28px;z-index:30;align-items:center;gap:8px;background:#25d366;color:#fff;border-radius:999px;padding:13px 18px;font-weight:800;font-size:14px;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.18)}',
+    '.va-zap svg{width:20px;height:20px;fill:#fff}',
+    'html.layout-app body:not(.va-na-vitrine) .va-zap{display:none}',
+    'html.layout-app #screen-product{padding:24px 32px 48px}',
+    'html.layout-app .product-view{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:0 48px;align-items:start}',
+    'html.layout-app .product-view>.product-photo,html.layout-app .product-view>.p-variant-title,html.layout-app .product-view>.p-thumbs{grid-column:1}',
+    'html.layout-app .product-view>.product-info{grid-column:2;grid-row:1/span 3;padding-top:8px}',
+    'html.layout-app #p-name{font-size:32px}html.layout-app .p-price{font-size:34px}',
+    '}'
   ].join('\n');
   var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
 
@@ -145,7 +171,8 @@
       '<div class="va-sec va-top"><h2><span>' + IC.trend + ' Top 10 mais provados</span><small>últimos 30 dias</small></h2><div class="va-rank"></div></div>' +
       '<div class="va-sec"><h2><span class="va-tit">Todas</span><small class="va-n"></small></h2><div class="va-grade"></div></div>' +
       '<nav class="va-tab"><a class="on" data-acao="inicio">' + IC.home + 'Início</a><a data-acao="busca">' + IC.busca + 'Buscar</a><a data-acao="alta">' + IC.trend + 'Em alta</a>' +
-        (wa ? '<a class="wa" href="' + esc(wa) + '" target="_blank" rel="noopener"><i>' + IC.wa + '</i>WhatsApp</a>' : '<a data-acao="inicio"></a>') + '</nav>';
+        (wa ? '<a class="wa" href="' + esc(wa) + '" target="_blank" rel="noopener"><i>' + IC.wa + '</i>WhatsApp</a>' : '<a data-acao="inicio"></a>') + '</nav>' +
+      (wa ? '<a class="va-zap" href="' + esc(wa) + '" target="_blank" rel="noopener">' + IC.wa + ' Fale com a loja</a>' : '');
     root.querySelector('.va-busca input').value = estado.q;
     root.querySelector('.va-busca input').addEventListener('input', function () { estado.q = this.value; pintaGrade(); });
     root.addEventListener('click', clique);
