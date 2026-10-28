@@ -96,7 +96,7 @@
     '@keyframes va-tremida{0%,50%,100%{transform:rotate(0)}10%,30%{transform:rotate(-10deg)}20%,40%{transform:rotate(10deg)}}',
     '.va-selo{position:absolute;right:7px;bottom:7px;width:40px;height:40px;z-index:2;pointer-events:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}',
     '.va-selo img{width:100%;height:100%;object-fit:contain}',
-    '.vp-selo-pv{position:absolute;right:12px;top:12px;width:72px;height:72px;z-index:3;border:0;background:none;padding:0;cursor:pointer;filter:drop-shadow(0 3px 10px rgba(0,0,0,.22));animation:va-tremida 3s infinite}',
+    '.vp-selo-pv{position:absolute;right:12px;top:12px;width:88px;height:88px;z-index:3;border:0;background:none;padding:0;cursor:pointer;filter:drop-shadow(0 3px 10px rgba(0,0,0,.22));animation:va-tremida 3s infinite}',
     '.vp-selo-pv img{width:100%;height:100%;object-fit:contain}',
     '@media(min-width:900px){.va-selo{width:46px;height:46px}.vp-selo-pv{width:72px;height:72px;right:16px;top:16px}}',
     '.va-head{position:relative}body.va-ed .va-marca{cursor:pointer;outline:2px dashed var(--brand);outline-offset:4px;border-radius:10px}',
@@ -243,10 +243,15 @@
   function titulo() { if (estado.q && !estado.cat) return 'Busca: “' + estado.q + '”'; return { '': 'Todas', __promo: 'Promoções', __novos: 'Novidades', __alta: 'Em alta' }[estado.cat] || estado.cat; }
 
   var SELO = 'selo-provador.png?v=1';
+  // 28/10 (Lucas): foto pesada demorava a carregar — usa a versão redimensionada do Supabase (≈ 4x menor)
+  function MINI(u, w) {
+    u = String(u || ''); if (u.indexOf('/storage/v1/object/public/') < 0) return u;
+    return u.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + (u.indexOf('?') < 0 ? '?' : '&') + 'width=' + w + '&quality=72';
+  }
   var SELO_MINI = '<span class="va-selo"><img src="' + SELO + '" alt="Provador virtual" loading="lazy"></span>';
   function card(p, i) {
     var d = desconto(p), n = provas(p);
-    return '<button class="va-card" data-p="' + esc(p.id) + '"><div class="ft"><img loading="lazy" src="' + esc(p.img) + '" alt="">' +
+    return '<button class="va-card" data-p="' + esc(p.id) + '"><div class="ft"><img loading="lazy" decoding="async" src="' + esc(MINI(p.img, 480)) + '" alt="">' +
       (i != null ? '<span class="pos">#' + (i + 1) + '</span>' : '') + (d ? '<span class="off">-' + d + '%</span>' : '') +
       (n >= 3 ? '<span class="fire">' + IC.trend + ' ' + n + ' provaram</span>' : '') + '</div>' +
       '<div class="in"><div class="nm">' + esc(p.name) + '</div><div class="pr">' + X.brl(X.preco(p)) + (d ? '<span class="de">' + X.brl(p.originalPrice) + '</span>' : '') + '</div>' +
@@ -264,7 +269,7 @@
   function slideHTML(x) {
     if (x.tipo === 'img') return x.img ? '<div class="va-slide img"><img src="' + esc(x.img) + '" alt=""></div>' : '';
     var fotos = (x.auto === 'novos' ? novidades() : x.auto === 'promo' ? promo() : maisProvados()).slice(0, 2);
-    var lado = x.img ? '<div class="fs"><img src="' + esc(x.img) + '" alt="" style="width:72px;height:72px"></div>' : '<div class="fs">' + fotos.map(function (p) { return '<img src="' + esc(p.img) + '" alt="">'; }).join('') + '</div>';
+    var lado = x.img ? '<div class="fs"><img src="' + esc(x.img) + '" alt="" style="width:72px;height:72px"></div>' : '<div class="fs">' + fotos.map(function (p) { return '<img src="' + esc(MINI(p.img, 300)) + '" alt="">'; }).join('') + '</div>';
     return '<div class="va-slide"' + (x.fundo ? ' style="background:' + esc(x.fundo) + '"' : '') + '><div class="t"><b>' + esc(x.titulo) + '</b><small>' + esc(x.sub) + '</small></div>' + lado + '</div>';
   }
   // Banner = faixa com rolagem lateral nativa e "encaixe" (scroll-snap): no celular o dedo desliza como
@@ -349,10 +354,12 @@
   }
   function pintaStories() {
     var a = maisProvados(), n = novidades(), pr = promo();
-    var itens = [['__alta', 'Em alta', a[0] && a[0].img], ['__novos', 'Novidades', n[0] && n[0].img], ['__promo', 'Promoções', pr[0] && pr[0].img]]
+    // 28/10 (Lucas): todo catálogo tem "Todas" como 1ª categoria (mostra todas as armações)
+    var mT = (X.tema && X.tema.catImgs) || {}, capaTodas = (ED.catImgs && ED.catImgs['']) || mT[''] || mT['Todas'] || (X.catalog[0] && X.catalog[0].img);
+    var itens = [['', 'Todas', capaTodas], ['__alta', 'Em alta', a[0] && a[0].img], ['__novos', 'Novidades', n[0] && n[0].img], ['__promo', 'Promoções', pr[0] && pr[0].img]]
       .concat(X.cats.map(function (c) { return [c, c, capaCategoria(c)]; })).filter(function (s) { return s[2]; });
     root.querySelector('.va-stories').innerHTML = itens.map(function (s) {
-      return '<button type="button" class="' + (estado.cat === s[0] ? 'on' : '') + (s[0].indexOf('__') ? ' ed-foto' : '') + '" data-cat="' + esc(s[0]) + '"><i class="r"><img src="' + esc(s[2]) + '" alt=""></i><span>' + esc(s[1]) + '</span></button>';
+      return '<button type="button" class="' + (estado.cat === s[0] ? 'on' : '') + (s[0].indexOf('__') ? ' ed-foto' : '') + '" data-cat="' + esc(s[0]) + '"><i class="r"><img loading="lazy" decoding="async" src="' + esc(MINI(s[2], 160)) + '" alt=""></i><span>' + esc(s[1]) + '</span></button>';
     }).join('');
   }
   function pintaRank() {
@@ -601,8 +608,8 @@
         '<form class="vp-busca" data-vp-form><input type="search" enterkeyhint="search" placeholder="Buscar armação" aria-label="Buscar armação"></form></div>' +
       '<div class="vp-corpo">' +
         '<div class="vp-trilha"><a data-vp="volta">Início</a>' + (cat ? '<span>›</span><a data-vp="cat">' + esc(cat) + '</a>' : '') + '<span>›</span>' + esc(p.name) + '</div>' +
-        '<div class="vp-gal"><div class="vp-principal"><img class="vp-foto" src="' + esc(fotos[0] ? fotos[0].url : p.img) + '" alt="' + esc(p.name) + '">' + (d ? '<span class="vp-selo">-' + d + '%</span>' : '') + '<button type="button" class="vp-selo-pv" data-vp="provar" aria-label="Abrir o provador virtual"><img src="' + SELO + '" alt="Provador virtual"></button></div>' +
-          (fotos.length > 1 || temVar ? '<div class="vp-thumbs">' + fotos.map(function (f, i) { return '<button type="button" class="' + (i ? '' : 'on') + '" data-foto="' + i + '"><img src="' + esc(f.url) + '" alt="">' + (temVar ? '<small>' + esc(f.variantName || ('Foto ' + (i + 1))) + '</small>' : '') + '</button>'; }).join('') + '</div>' : '') +
+        '<div class="vp-gal"><div class="vp-principal"><img class="vp-foto" src="' + esc(MINI(fotos[0] ? fotos[0].url : p.img, 900)) + '" alt="' + esc(p.name) + '">' + (d ? '<span class="vp-selo">-' + d + '%</span>' : '') + '<button type="button" class="vp-selo-pv" data-vp="provar" aria-label="Abrir o provador virtual"><img src="' + SELO + '" alt="Provador virtual"></button></div>' +
+          (fotos.length > 1 || temVar ? '<div class="vp-thumbs">' + fotos.map(function (f, i) { return '<button type="button" class="' + (i ? '' : 'on') + '" data-foto="' + i + '"><img src="' + esc(MINI(f.url, 160)) + '" data-full="' + esc(MINI(f.url, 900)) + '" alt="">' + (temVar ? '<small>' + esc(f.variantName || ('Foto ' + (i + 1))) + '</small>' : '') + '</button>'; }).join('') + '</div>' : '') +
         '</div>' +
         '<div class="vp-dir">' + (cat ? '<div class="vp-cat">' + esc(cat) + '</div>' : '') + '<h1>' + esc(p.name) + '</h1>' +
           (n ? '<span class="vp-prova">' + IC.trend + ' ' + n + (n === 1 ? ' pessoa já provou' : ' pessoas já provaram') + '</span>' : '') +
@@ -623,7 +630,7 @@
         '</div>' +
       '</div>' +
       (rel.length ? '<div class="vp-relw"><h3>Você também pode gostar</h3><div class="vp-relg">' + rel.map(function (r) {
-        return '<button type="button" data-rel="' + esc(r.id) + '"><img src="' + esc(r.img) + '" alt="" loading="lazy"><span>' + esc(r.name) + '</span><b>' + X.brl(X.preco(r)) + '</b></button>';
+        return '<button type="button" data-rel="' + esc(r.id) + '"><img src="' + esc(MINI(r.img, 400)) + '" alt="" loading="lazy" decoding="async"><span>' + esc(r.name) + '</span><b>' + X.brl(X.preco(r)) + '</b></button>';
       }).join('') + '</div></div>' : '') +
       '<div class="vp-barra"><div><small>' + (par > 1 ? par + 'x de ' + X.brl(ctx.valorParcela(p, par)) : esc(p.name)) + '</small><b>' + X.brl(X.preco(p)) + '</b></div><button type="button" class="vp-provar" data-vp="provar">' + IC.oculos + ' Provar</button></div>';
     el.scrollTop = 0;
@@ -641,7 +648,7 @@
     if (el.hasAttribute('data-foto')) {
       var i = Number(el.getAttribute('data-foto'));
       PG.ctx.setFoto(i);
-      PG.el.querySelector('.vp-foto').src = el.querySelector('img').src;
+      var mi = el.querySelector('img'); PG.el.querySelector('.vp-foto').src = mi.getAttribute('data-full') || mi.src;
       [].forEach.call(PG.el.querySelectorAll('.vp-thumbs button'), function (b, j) { b.classList.toggle('on', j === i); });
       return;
     }
