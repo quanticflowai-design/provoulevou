@@ -35,6 +35,8 @@
     '.va-stories button span{max-width:68px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.va-stories .r{width:64px;height:64px;border-radius:50%;padding:2.5px;background:linear-gradient(45deg,var(--brand-dark),var(--brand))}',
     '.va-stories .r img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2.5px solid #fff;background:#fff}',
+    'body.va-ed .va-stories button.ed-foto .r{position:relative;outline:2px dashed var(--brand);outline-offset:3px;cursor:pointer}',
+    'body.va-ed .va-stories button.ed-foto .r:after{content:"Trocar";position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);background:#111;color:#fff;font-size:9.5px;font-weight:700;border-radius:999px;padding:2px 7px}',
     '.va-stories button.on .r{background:#111827}.va-stories button.on{font-weight:800}',
     '.va-busca{position:sticky;top:0;z-index:10;background:#fff;padding:10px 16px;border-bottom:1px solid #eef0f3}',
     '.va-busca input{width:100%;border:0;background:#f3f4f6 no-repeat 13px center/17px url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%239ca3af\' stroke-width=\'2\' stroke-linecap=\'round\'%3E%3Ccircle cx=\'11\' cy=\'11\' r=\'8\'/%3E%3Cpath d=\'m21 21-4.3-4.3\'/%3E%3C/svg%3E");border-radius:12px;padding:12px 14px 12px 38px;font:inherit;font-size:14px;outline:0;color:#111827}',
@@ -52,7 +54,7 @@
     '.va-top .va-rank{padding:0 16px 2px;scroll-padding:0 16px}.va-top .va-card{box-shadow:none}',
     '.va-grade{display:grid;grid-template-columns:1fr 1fr;gap:10px}',
     '.va-card{border:0;background:#fff;padding:0;text-align:left;border-radius:16px;overflow:hidden;box-shadow:0 0 0 1px #eef0f3;color:#111827;display:flex;flex-direction:column}',
-    '.va-card .ft{position:relative;aspect-ratio:1;min-height:0;flex:0 0 auto;overflow:hidden;background:#f6f7f9}.va-card .ft img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}',
+    '.va-card .ft{position:relative;aspect-ratio:1;min-height:0;flex:0 0 auto;overflow:hidden;background:#f6f7f9}.va-card .ft img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:8%;box-sizing:border-box}',
     '.va-card .pos{position:absolute;left:8px;top:8px;background:#111827;color:#fff;font-size:12px;font-weight:800;border-radius:8px;padding:3px 8px}',
     '.va-card .fire{position:absolute;left:8px;bottom:8px;background:rgba(17,24,39,.75);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:4px 8px;display:flex;align-items:center;gap:4px}',
     '.va-card .off{position:absolute;right:8px;top:8px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;border-radius:8px;padding:3px 7px}',
@@ -311,8 +313,8 @@
       // 27/10 (Lucas): topo = menu (esquerda) · logo (meio) · sacola com as provas do cliente (direita)
       '<div class="va-head" data-bl="perfil">' +
         '<button type="button" class="va-ico" data-acao="menu" aria-label="Abrir menu">' + IC.menu + '</button>' +
-        '<div class="va-marca" data-acao="ed-logo">' + (X.tema && X.tema.soLogo && L.logo
-          ? '<img class="va-logo" src="' + esc(typeof X.tema.soLogo === 'string' ? X.tema.soLogo : L.logo) + '" alt="' + esc(L.nome) + '">'
+        '<div class="va-marca" data-acao="ed-logo">' + (L.logo
+          ? '<img class="va-logo" src="' + esc(X.tema && typeof X.tema.soLogo === 'string' ? X.tema.soLogo : L.logo) + '" alt="' + esc(L.nome) + '">'
           : (L.logo ? '<span class="va-av"><img src="' + esc(L.logo) + '" alt=""></span>' : '') + '<h1>' + esc(L.nome) + '</h1>') + '</div>' +
         '<button type="button" class="va-ico va-sacola" data-acao="provas" aria-label="Minhas provas">' + IC.sacola + '<b class="va-qtd" hidden></b></button>' +
       '</div>' +
@@ -336,7 +338,7 @@
   // Foto da bolinha: ícone escolhido pra loja (tema.catImgs) ou, sem ele, a armação DAQUELA categoria
   // mais provada nos últimos 30 dias (sem provas, a primeira da vitrine).
   function capaCategoria(c) {
-    var m = (X.tema && X.tema.catImgs) || {};
+    var m = Object.assign({}, (X.tema && X.tema.catImgs) || {}, ED.catImgs || {});
     var k = Object.keys(m).find(function (x) { return norm(x) === norm(c); });
     if (k) return m[k];
     var l = X.catalog.filter(function (p) { return p.img && X.temCat(p, c); });
@@ -348,7 +350,7 @@
     var itens = [['__alta', 'Em alta', a[0] && a[0].img], ['__novos', 'Novidades', n[0] && n[0].img], ['__promo', 'Promoções', pr[0] && pr[0].img]]
       .concat(X.cats.map(function (c) { return [c, c, capaCategoria(c)]; })).filter(function (s) { return s[2]; });
     root.querySelector('.va-stories').innerHTML = itens.map(function (s) {
-      return '<button type="button" class="' + (estado.cat === s[0] ? 'on' : '') + '" data-cat="' + esc(s[0]) + '"><i class="r"><img src="' + esc(s[2]) + '" alt=""></i><span>' + esc(s[1]) + '</span></button>';
+      return '<button type="button" class="' + (estado.cat === s[0] ? 'on' : '') + (s[0].indexOf('__') ? ' ed-foto' : '') + '" data-cat="' + esc(s[0]) + '"><i class="r"><img src="' + esc(s[2]) + '" alt=""></i><span>' + esc(s[1]) + '</span></button>';
     }).join('');
   }
   function pintaRank() {
@@ -372,7 +374,7 @@
   // 27/10/2026 (Lucas): seção nunca é apagada — só escondida (olho) e reordenada (setas).
   // Fica salvo na loja em tema.blocos = { ordem: [...], ocultos: [...] }.
   var BLOCOS = [['perfil', 'Perfil da loja'], ['banner', 'Banner'], ['categorias', 'Categorias'], ['busca', 'Busca e filtros'], ['top', 'Top 10 mais provados'], ['grade', 'Todas as armações']];
-  var ED = { on: false, cfg: null };
+  var ED = { on: false, cfg: null, catImgs: {} };
   function cfgBlocos() {
     if (ED.cfg) return ED.cfg;
     var b = (X.tema && X.tema.blocos) || {};
@@ -418,7 +420,7 @@
     var bar = document.getElementById('va-ed-bar');
     if (on && !bar) {
       bar = document.createElement('div'); bar.id = 'va-ed-bar'; bar.className = 'va-ed-bar';
-      bar.innerHTML = '<b>Personalizar</b><span>Use as setas para mudar a ordem e o olho para esconder uma seção.</span><button type="button" data-acao="ed-cancelar">Cancelar</button><button type="button" class="ok" data-acao="ed-salvar">Salvar</button>';
+      bar.innerHTML = '<b>Personalizar</b><span>Setas mudam a ordem, o olho esconde a seção e tocar na bolinha da categoria troca a foto.</span><button type="button" data-acao="ed-cancelar">Cancelar</button><button type="button" class="ok" data-acao="ed-salvar">Salvar</button>';
       bar.addEventListener('click', clique); document.body.appendChild(bar);
     } else if (!on && bar) bar.remove();
     if (on) { ferramentas(); window.scrollTo({ top: 0 }); var a = document.getElementById('app'); if (a) a.scrollTop = 0; }
@@ -435,12 +437,33 @@
     if (i >= 0) oc.splice(i, 1); else oc.push(id);
     aplicaBlocos(); ferramentas();
   }
+  // 28/10 (Lucas): no Personalizar, tocar na bolinha da categoria troca a foto dela.
+  // A foto vai reduzida (240 px) direto no tema.catImgs, junto com o Salvar.
+  function escolheFotoCat(cat) {
+    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = function () {
+      var f = inp.files && inp.files[0]; if (!f) return;
+      var img = new Image(), url = URL.createObjectURL(f);
+      img.onload = function () {
+        var n = 240, c = document.createElement('canvas'); c.width = c.height = n;
+        var lado = Math.min(img.width, img.height), g = c.getContext('2d');
+        g.fillStyle = '#fff'; g.fillRect(0, 0, n, n);
+        g.drawImage(img, (img.width - lado) / 2, (img.height - lado) / 2, lado, lado, 0, 0, n, n);
+        URL.revokeObjectURL(url);
+        ED.catImgs[cat] = c.toDataURL('image/jpeg', 0.82); pintaStories();
+      };
+      img.onerror = function () { X.aviso('Não consegui abrir essa imagem.'); };
+      img.src = url;
+    };
+    inp.click();
+  }
   function salvaEdicao() {
     var cfg = { ordem: ED.cfg.ordem.slice(), ocultos: ED.cfg.ocultos.slice() };
     var b = document.querySelector('#va-ed-bar .ok'); if (b) { b.disabled = true; b.textContent = 'Salvando…'; }
     var extra = ED.logo != null ? { logoEscala: ED.logo } : null;
+    if (Object.keys(ED.catImgs).length) extra = Object.assign(extra || {}, { catImgs: Object.assign({}, (X.tema && X.tema.catImgs) || {}, ED.catImgs) });
     Promise.resolve(X.salvarBlocos(cfg, extra)).then(function () {
-      X.tema = Object.assign({}, X.tema, { blocos: cfg }, extra || {}); ED.cfg = null; ED.logo = null; ligaEdicao(false); aplicaBlocos(); X.aviso('Catálogo salvo ✓');
+      X.tema = Object.assign({}, X.tema, { blocos: cfg }, extra || {}); ED.cfg = null; ED.logo = null; ED.catImgs = {}; ligaEdicao(false); aplicaBlocos(); X.aviso('Catálogo salvo ✓');
     }).catch(function () { if (b) { b.disabled = false; b.textContent = 'Salvar'; } X.aviso('Não consegui salvar. Tente de novo.'); });
   }
 
@@ -505,6 +528,7 @@
   function produto(id) { return X.catalog.find(function (p) { return String(p.id) === String(id); }); }
   function clique(ev) {
     var el = ev.target.closest('[data-provar],[data-p],[data-cat],[data-acao]'); if (!el || !(root.contains(el) || el.closest('#va-ed-bar'))) return;
+    if (ED.on && el.hasAttribute('data-cat') && el.getAttribute('data-cat').indexOf('__')) { ev.preventDefault(); escolheFotoCat(el.getAttribute('data-cat')); return; }
     if (ED.on && !/^(ed-|editar)/.test(el.getAttribute('data-acao') || '')) { ev.preventDefault(); return; }
     if (el.hasAttribute('data-provar')) { ev.preventDefault(); ev.stopPropagation(); var pp = produto(el.getAttribute('data-provar')); if (pp) X.provar(pp); return; }
     if (el.hasAttribute('data-p')) { var p = produto(el.getAttribute('data-p')); if (p) X.abrir(p); return; }
@@ -523,7 +547,7 @@
     else if (a === 'ed-salvar') salvaEdicao();
     else if (a === 'ed-logo') { if (ED.on) menuLogo(); }
     else if (a === 'ed-logo-tam') { ED.logo = Number(el.getAttribute('data-v')); document.documentElement.style.setProperty('--logo-escala', String(ED.logo)); menuLogo(); }
-    else if (a === 'ed-cancelar') { ED.cfg = null; ED.logo = null; document.documentElement.style.setProperty('--logo-escala', String(X.escalaLogo())); ligaEdicao(false); monta(); }
+    else if (a === 'ed-cancelar') { ED.cfg = null; ED.logo = null; ED.catImgs = {}; document.documentElement.style.setProperty('--logo-escala', String(X.escalaLogo())); ligaEdicao(false); monta(); }
     else if (a === 'inicio') { estado.cat = ''; estado.q = ''; root.querySelector('.va-busca input').value = ''; pintaGrade(); window.scrollTo({ top: 0, behavior: 'smooth' }); document.getElementById('app').scrollTop = 0; }
     else if (a === 'busca') { var inp = root.querySelector('.va-busca input'); inp.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(function () { inp.focus(); }, 300); }
     else if (a === 'alta') { var t = root.querySelector('.va-top'); if (!t.hidden) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); else { estado.cat = '__alta'; pintaGrade(); } }
