@@ -263,6 +263,16 @@
     }
     if (storeRow) {
       STORE.name = storeRow.display_name || STORE.name;
+      // 27/10/2026 (Lucas): a aba do navegador mostra o nome e o logo da loja, não "Provou Catálogo"
+      document.title = STORE.name;
+      if (storeRow.logo_url) {
+        let ic = document.querySelector('link[rel="icon"]');
+        if (!ic) { ic = document.createElement('link'); ic.rel = 'icon'; document.head.appendChild(ic); }
+        ic.href = storeRow.logo_url;
+        let ap = document.querySelector('link[rel="apple-touch-icon"]');
+        if (!ap) { ap = document.createElement('link'); ap.rel = 'apple-touch-icon'; document.head.appendChild(ap); }
+        ap.href = storeRow.logo_url;
+      }
       pixelInit(storeRow.meta_pixel_id);
       aplicaTema(storeRow.primary_color);
       // O logo nasce escondido e sem src (ver index.html): só entra em cena o da
@@ -992,6 +1002,7 @@
     if (name === 'catalog' && new URLSearchParams(location.search).get('p')) {
       try { history.pushState({}, '', linkCategoria(catFiltro)); } catch (e) {}
     }
+    if (name === 'catalog' && STORE.name) document.title = STORE.name;
     $$('.screen').forEach(s => s.classList.toggle('active', s.dataset.screen === name));
     document.getElementById('app').scrollTop = 0;
     window.scrollTo(0, 0);
@@ -1928,6 +1939,7 @@
   function openProduct(p, semHistorico) {
     current = p;
     pixelEvento('ViewContent', _pxProduto(p));
+    if (STORE.name) document.title = p.name + ' · ' + STORE.name;
     fotoSel = 0;   // produto novo, galeria volta pra primeira foto
     bindImg($('#p-img'), p.img, p.name);
     $('#p-name').textContent = p.name;
