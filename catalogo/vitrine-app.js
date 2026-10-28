@@ -67,6 +67,8 @@
     '.va-tab{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(560px,100%);background:#fff;border-top:1px solid #eef0f3;display:grid;grid-template-columns:repeat(3,1fr);padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:30}',
     '.va-tab a{text-align:center;text-decoration:none;color:#6b7280;font-size:11px;font-weight:600;cursor:pointer}.va-tab a.on{color:var(--brand)}',
     '.va-tab a svg,.va .va-tab a svg.i{width:22px;height:22px;display:block;margin:2px auto 1px}',
+    '.va-tab.c4{grid-template-columns:repeat(4,1fr)}',
+    '.va-tab a.ig i{display:block;background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fd5949 45%,#d6249f 60%,#285aeb 90%);border-radius:50%;width:34px;height:34px;margin:0 auto}.va .va-tab a.ig svg.i{width:18px;height:18px;margin:0 auto;position:relative;top:8px;color:#fff}',
     '.va-tab a.wa i{display:block;background:#25d366;border-radius:50%;width:34px;height:34px;margin:0 auto}.va-tab a.wa svg{width:18px;height:18px;margin:0 auto;position:relative;top:8px;fill:#fff}',
     'html.layout-app body:not(.va-na-vitrine) .va-tab{display:none}',
     '.va svg.i{width:1.05em;height:1.05em;flex-shrink:0}',
@@ -108,7 +110,7 @@
     '.va-ed-btn{position:fixed;right:max(14px,calc(50% - 266px));bottom:calc(84px + env(safe-area-inset-bottom));z-index:31;border:0;background:#111;color:#fff;border-radius:999px;padding:10px 15px;font:700 13px/1 "Plus Jakarta Sans",system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.25);display:flex;align-items:center;gap:7px}',
     // só aparece pro dono logado (o app.js marca html.is-lojista quando valida a sessão)
     'html:not(.is-lojista) .va-ed-btn,html.layout-app body:not(.va-na-vitrine) .va-ed-btn,body.va-ed .va-ed-btn{display:none!important}',
-    'body.va-ed .va-tab,body.va-ed .va-zap{display:none!important}body.va-ed #screen-catalog{padding-top:56px}body.va-ed .va-busca{position:static}',
+    'body.va-ed .va-tab,body.va-ed .va-zap,body.va-ed .va-ig{display:none!important}body.va-ed #screen-catalog{padding-top:56px}body.va-ed .va-busca{position:static}',
     '.va-ed-bar{position:fixed;top:0;left:0;right:0;z-index:70;display:flex;align-items:center;gap:10px;background:#111;color:#fff;padding:10px 14px;font:13px/1.3 "Plus Jakarta Sans",system-ui,sans-serif}',
     '.va-ed-bar span{flex:1;opacity:.75;font-size:12.5px}.va-ed-bar button{border:0;border-radius:999px;padding:8px 13px;font:700 12.5px/1 inherit;background:rgba(255,255,255,.15);color:#fff;cursor:pointer}.va-ed-bar .ok{background:#22c55e}',
     '@media(max-width:600px){.va-ed-bar span{display:none}}',
@@ -169,7 +171,7 @@
     '.vp-barra .vp-provar{width:auto;flex:0 0 auto;padding:13px 18px}',
     'html.layout-app body:not(.va-no-produto) .vp-barra{display:none}',
     // ── modo computador (27/10, Lucas) ──
-    '.va-zap{display:none}',
+    '.va-zap,.va-ig{display:none}',
     '@media(min-width:900px){',
     'html.layout-app #app{max-width:1240px}',
     'html.layout-app #screen-catalog{padding-bottom:40px}',
@@ -187,7 +189,11 @@
     '.va-tab{display:none!important}',
     '.va-zap{display:flex;position:fixed;right:28px;bottom:28px;z-index:30;align-items:center;gap:8px;background:#25d366;color:#fff;border-radius:999px;padding:13px 18px;font-weight:800;font-size:14px;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.18)}',
     '.va-zap svg{width:20px;height:20px;fill:#fff}',
+    '.va-ig{display:flex;position:fixed;right:28px;bottom:92px;z-index:30;width:50px;height:50px;border-radius:50%;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fd5949 45%,#d6249f 60%,#285aeb 90%);color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.18)}',
+    '.va .va-ig svg.i{width:24px;height:24px}',
+    'html.layout-app body:not(.va-na-vitrine) .va-ig{display:none}',
     '.va-ed-btn{right:28px;bottom:92px}.va-edt{margin:18px 32px 4px}',
+    '.va-ig ~ .va-ed-btn{bottom:156px}',
     'html.layout-app body:not(.va-na-vitrine) .va-zap{display:none}',
     '.vp-corpo{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:44px;padding:8px 24px 40px;align-items:start}',
     '.vp-trilha{grid-column:1/-1;padding:16px 0 0}.vp-gal{padding:0;position:sticky;top:150px}.vp-dir{padding:0}.vp-dir h1{font-size:30px}',
@@ -212,6 +218,7 @@
     olho: I('<path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>'),
     olhoX: I('<path d="M10.73 5.08a10.74 10.74 0 0 1 11.2 6.57 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-1.44 2.49"/><path d="M14.08 14.16a3 3 0 0 1-4.24-4.24"/><path d="M17.48 17.5a10.75 10.75 0 0 1-15.42-5.15 1 1 0 0 1 0-.7 10.75 10.75 0 0 1 4.45-5.14"/><path d="m2 2 20 20"/>'),
     cima: I('<path d="m18 15-6-6-6 6"/>'), baixo: I('<path d="m6 9 6 6 6-6"/>'),
+    insta: I('<rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/>'),
     busca: I('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'),
     gear: I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),
     wa: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 21.8c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.7 1 1-3.6-.2-.4A9.8 9.8 0 1 1 12 21.8zm8.4-18.2A11.8 11.8 0 0 0 1.7 17.8L0 24l6.3-1.7a11.8 11.8 0 0 0 5.7 1.5c6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.1-3.4-8.4z"/></svg>'
@@ -314,6 +321,8 @@
   }
   function monta() {
     var L = X.loja, wa = L.whatsapp ? 'https://wa.me/' + String(L.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent('Olá! Vim pelo catálogo da ' + L.nome + '.') : '';
+    // 28/10 (Lucas): Instagram da loja no rodapé, antes do WhatsApp (tema.instagram)
+    var ig = X.tema && typeof X.tema.instagram === 'string' && /^https:\/\/(www\.)?instagram\.com\//.test(X.tema.instagram) ? X.tema.instagram : '';
     var sl = slides().map(slideHTML).filter(Boolean); ban.n = Math.max(sl.length, 1);
     var topo = maisProvados()[0] || X.catalog[0];
     root.innerHTML =
@@ -332,8 +341,10 @@
       '<div class="va-top" data-bl="top"><h2><span>' + IC.trend + ' Top 10 mais provados</span><small>últimos 30 dias</small></h2><div class="va-rank"></div></div>' +
       '<div class="va-sec" data-bl="grade"><h2><span class="va-tit">Todas</span><small class="va-n"></small></h2><div class="va-grade"></div></div>' +
       '</div>' +
-      '<nav class="va-tab"><a class="on" data-acao="inicio">' + IC.home + 'Início</a><a data-acao="busca">' + IC.busca + 'Buscar</a>' +
+      '<nav class="va-tab' + (ig ? ' c4' : '') + '"><a class="on" data-acao="inicio">' + IC.home + 'Início</a><a data-acao="busca">' + IC.busca + 'Buscar</a>' +
+        (ig ? '<a class="ig" href="' + esc(ig) + '" target="_blank" rel="noopener"><i>' + IC.insta + '</i>Instagram</a>' : '') +
         (wa ? '<a class="wa" href="' + esc(wa) + '" target="_blank" rel="noopener"><i>' + IC.wa + '</i>WhatsApp</a>' : '<a data-acao="inicio"></a>') + '</nav>' +
+      (ig ? '<a class="va-ig" href="' + esc(ig) + '" target="_blank" rel="noopener" aria-label="Instagram">' + IC.insta + '</a>' : '') +
       (wa ? '<a class="va-zap" href="' + esc(wa) + '" target="_blank" rel="noopener">' + IC.wa + ' Fale com a loja</a>' : '') +
       '<button type="button" class="va-ed-btn" data-acao="editar">' + IC.lapis + ' Personalizar</button>';
     root.querySelector('.va-busca input').value = estado.q;
