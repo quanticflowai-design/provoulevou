@@ -199,6 +199,7 @@
 
   var I = function (d, fill) { return '<svg class="i" viewBox="0 0 24 24" fill="' + (fill ? 'currentColor' : 'none') + '" stroke="' + (fill ? 'none' : 'currentColor') + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
   var IC = {
+    oculos: I('<circle cx="6" cy="14" r="3.5"/><circle cx="18" cy="14" r="3.5"/><path d="M9.5 14h5"/><path d="M2.5 14 4 7.5A1.5 1.5 0 0 1 5.5 6.5H7"/><path d="M21.5 14 20 7.5a1.5 1.5 0 0 0-1.5-1h-1.5"/>'),
     spark: I('<path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0l1.58 6.14a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96l-6.14 1.58a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z"/>'),
     trend: I('<path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/>'),
     home: I('<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .71-1.53l7-6a2 2 0 0 1 2.58 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),
@@ -607,7 +608,7 @@
           (n ? '<span class="vp-prova">' + IC.trend + ' ' + n + (n === 1 ? ' pessoa já provou' : ' pessoas já provaram') + '</span>' : '') +
           '<div class="vp-precos"><span class="vp-p">' + X.brl(X.preco(p)) + '</span>' + (d ? '<span class="vp-d">' + X.brl(p.originalPrice) + '</span><span class="vp-eco">Economize ' + X.brl(Number(p.originalPrice) - X.preco(p)) + '</span>' : '') + '</div>' +
           '<div class="vp-parc">' + parcTxt + '</div>' +
-          '<button type="button" class="vp-provar" data-vp="provar">' + IC.spark + ' Provar no meu rosto</button>' +
+          '<button type="button" class="vp-provar" data-vp="provar">' + IC.oculos + ' Provar no meu rosto</button>' +
           (L.whatsapp ? '<button type="button" class="vp-wa" data-vp="comprar">Comprar pelo WhatsApp ' + IC.wa + '</button>' : '') +
           '<div class="vp-gar">' + GAR.map(function (g) { return '<div>' + g[0] + '<span><b>' + g[1] + '</b>' + g[2] + '</span></div>'; }).join('') + '</div>' +
           (p.desc ? '<details class="vp-sec" open><summary>Descrição</summary><div class="vp-txt">' + esc(p.desc) + '</div></details>' : '') +
@@ -624,7 +625,7 @@
       (rel.length ? '<div class="vp-relw"><h3>Você também pode gostar</h3><div class="vp-relg">' + rel.map(function (r) {
         return '<button type="button" data-rel="' + esc(r.id) + '"><img src="' + esc(r.img) + '" alt="" loading="lazy"><span>' + esc(r.name) + '</span><b>' + X.brl(X.preco(r)) + '</b></button>';
       }).join('') + '</div></div>' : '') +
-      '<div class="vp-barra"><div><small>' + (par > 1 ? par + 'x de ' + X.brl(ctx.valorParcela(p, par)) : esc(p.name)) + '</small><b>' + X.brl(X.preco(p)) + '</b></div><button type="button" class="vp-provar" data-vp="provar">' + IC.spark + ' Provar</button></div>';
+      '<div class="vp-barra"><div><small>' + (par > 1 ? par + 'x de ' + X.brl(ctx.valorParcela(p, par)) : esc(p.name)) + '</small><b>' + X.brl(X.preco(p)) + '</b></div><button type="button" class="vp-provar" data-vp="provar">' + IC.oculos + ' Provar</button></div>';
     el.scrollTop = 0;
     el.querySelector('[data-vp-form]').addEventListener('submit', function (e) {
       e.preventDefault(); var q = this.querySelector('input').value.trim(); if (!q) return;
