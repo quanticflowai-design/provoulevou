@@ -27,6 +27,7 @@
     '.va-slide .t{flex:1;min-width:0}.va-slide b{display:block;font-family:"Bricolage Grotesque",sans-serif;font-size:17px;line-height:1.15}.va-slide small{opacity:.88;font-size:12px}',
     '.va-slide .fs{display:flex;gap:6px}.va-slide .fs img{width:60px;height:60px;border-radius:12px;object-fit:cover;background:#fff;box-shadow:0 4px 10px rgba(0,0,0,.2)}',
     '.va-slide.img{padding:0}.va-slide.img img{width:100%;height:100%;object-fit:cover}',
+    '.va-banner img{-webkit-user-drag:none;user-select:none;pointer-events:none}.va-pts i{cursor:pointer}',
     '.va-pts{position:absolute;bottom:7px;left:0;right:0;display:flex;justify-content:center;gap:5px}.va-pts i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.5)}.va-pts i.on{background:#fff;width:16px;border-radius:6px}',
     '.va-stories{display:flex;gap:14px;overflow-x:auto;padding:6px 16px 14px;scrollbar-width:none;border-bottom:1px solid #eef0f3}.va-stories::-webkit-scrollbar{display:none}',
     '.va-stories button{flex:0 0 auto;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11.5px;font-weight:600;width:68px;padding:0;color:#111827}',
@@ -223,6 +224,33 @@
     pts.innerHTML = Array.apply(null, { length: ban.n }).map(function (_, j) { return '<i class="' + (j === ban.i ? 'on' : '') + '"></i>'; }).join('');
   }
 
+  function autoBanner() { clearInterval(ban.t); if (ban.n > 1 && !ED.on) ban.t = setInterval(function () { vaiBanner(ban.i + 1); }, 4000); }
+  // 27/10 (Lucas): arrastar o banner pro lado (dedo ou mouse) volta/avança o slide
+  function arrastaBanner() {
+    var b = root.querySelector('.va-banner'), tri = b && b.querySelector('.va-trilho'); if (!b || ban.n < 2) return;
+    var x0 = 0, y0 = 0, dx = 0, ativo = false, horiz = null;
+    b.style.touchAction = 'pan-y'; b.style.cursor = 'grab';
+    b.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      ativo = true; horiz = null; dx = 0; x0 = e.clientX; y0 = e.clientY; clearInterval(ban.t);
+    });
+    b.addEventListener('pointermove', function (e) {
+      if (!ativo) return;
+      var mx = e.clientX - x0, my = e.clientY - y0;
+      if (horiz === null && (Math.abs(mx) > 6 || Math.abs(my) > 6)) { horiz = Math.abs(mx) > Math.abs(my); if (horiz) { try { b.setPointerCapture(e.pointerId); } catch (er) {} tri.style.transition = 'none'; b.style.cursor = 'grabbing'; } }
+      if (!horiz) return;
+      dx = mx; tri.style.transform = 'translateX(calc(-' + ban.i * 100 + '% + ' + dx + 'px))'; e.preventDefault();
+    });
+    var solta = function () {
+      if (!ativo) return; ativo = false; tri.style.transition = ''; b.style.cursor = 'grab';
+      if (horiz && Math.abs(dx) > Math.min(60, b.clientWidth * 0.15)) vaiBanner(ban.i + (dx < 0 ? 1 : -1)); else vaiBanner(ban.i);
+      autoBanner();
+    };
+    b.addEventListener('pointerup', solta); b.addEventListener('pointercancel', solta); b.addEventListener('lostpointercapture', solta);
+    b.addEventListener('dragstart', function (e) { e.preventDefault(); });
+    // bolinhas de baixo também trocam o slide
+    b.querySelector('.va-pts').addEventListener('click', function (e) { var i = [].indexOf.call(this.children, e.target); if (i >= 0) { vaiBanner(i); autoBanner(); } });
+  }
   function monta() {
     var L = X.loja, wa = L.whatsapp ? 'https://wa.me/' + String(L.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent('Olá! Vim pelo catálogo da ' + L.nome + '.') : '';
     var sl = slides().map(slideHTML).filter(Boolean); ban.n = Math.max(sl.length, 1);
@@ -245,7 +273,7 @@
     root.querySelector('.va-busca input').value = estado.q;
     root.querySelector('.va-busca input').addEventListener('input', function () { estado.q = this.value; pintaGrade(); });
     root.addEventListener('click', clique);
-    vaiBanner(0); clearInterval(ban.t); if (ban.n > 1) ban.t = setInterval(function () { vaiBanner(ban.i + 1); }, 4000);
+    vaiBanner(0); autoBanner(); arrastaBanner();
     pintaStories(); pintaRank(); pintaGrade(); ligaArrastar();
     aplicaBlocos(); if (ED.on) ferramentas();
   }
@@ -317,7 +345,7 @@
     } else if (!on && bar) bar.remove();
     if (on) { ferramentas(); window.scrollTo({ top: 0 }); var a = document.getElementById('app'); if (a) a.scrollTop = 0; }
     else [].forEach.call(root.querySelectorAll('.va-edt'), function (e) { e.remove(); });
-    clearInterval(ban.t); if (!on && ban.n > 1) ban.t = setInterval(function () { vaiBanner(ban.i + 1); }, 4000);
+    autoBanner();
   }
   function moveBloco(id, d) {
     var o = ED.cfg.ordem, i = o.indexOf(id), j = i + d; if (i < 0 || j < 0 || j >= o.length) return;
