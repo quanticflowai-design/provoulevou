@@ -16,6 +16,7 @@
     '.va-perfil{position:relative;padding:18px 16px 12px;display:flex;gap:14px;align-items:center}',
     '.va-av{flex:0 0 74px;width:74px;height:74px;border-radius:50%;padding:3px;background:linear-gradient(45deg,var(--brand-dark),var(--brand))}',
     '.va-av img{width:100%;height:100%;border-radius:50%;object-fit:contain;background:#fff;border:3px solid #fff}',
+    '.va-perfil.so-logo{justify-content:center;padding:14px 56px 10px}.va-logo{display:block;height:64px;width:auto;max-width:100%;object-fit:contain}',
     '.va-perfil h1{font-family:"Bricolage Grotesque",sans-serif;font-size:19px;margin:0;padding-right:70px;line-height:1.2}',
     '.va-perfil p{margin:3px 0 0;font-size:12.5px;color:#6b7280}',
     '.va-acoes{position:absolute;top:12px;right:10px;display:flex;gap:2px}',
@@ -138,7 +139,7 @@
     'html.layout-app #app{max-width:1240px}',
     'html.layout-app #screen-catalog{padding-bottom:40px}',
     'html.layout-app .screen:not(#screen-catalog):not(#screen-product){max-width:560px;margin-left:auto;margin-right:auto}',
-    '.va-perfil{padding:28px 32px 18px;gap:18px}.va-av{flex-basis:92px;width:92px;height:92px}.va-perfil h1{font-size:26px}.va-perfil p{font-size:14px}.va-acoes{top:26px;right:28px}',
+    '.va-perfil.so-logo{padding:22px 80px 14px}.va-logo{height:84px}.va-perfil{padding:28px 32px 18px;gap:18px}.va-av{flex-basis:92px;width:92px;height:92px}.va-perfil h1{font-size:26px}.va-perfil p{font-size:14px}.va-acoes{top:26px;right:28px}',
     '.va-banner{margin:4px 32px 14px}.va-slide{padding:0 48px;gap:24px}.va-slide b{font-size:34px}.va-slide small{font-size:16px}.va-slide .fs{gap:12px}.va-slide .fs img{width:150px;height:150px;border-radius:18px}',
     '.va-stories{gap:22px;padding:10px 0 20px;margin:0 32px}.va-stories button{width:84px}.va-stories button span{max-width:84px;font-size:12.5px}.va-stories .r{width:80px;height:80px}',
     '.va-busca{padding:14px 32px;display:flex;gap:16px;align-items:center}.va-busca input{flex:0 0 340px;width:340px}.va-chips{margin-top:0;flex:1;min-width:0}',
@@ -272,7 +273,10 @@
     var topo = maisProvados()[0] || X.catalog[0];
     root.innerHTML =
       '<div class="va-blocos">' +
-      '<div class="va-perfil" data-bl="perfil"><div class="va-av">' + (L.logo ? '<img src="' + esc(L.logo) + '" alt="">' : '') + '</div><div><h1>' + esc(L.nome) + '</h1>' + (L.bio && norm(L.bio) !== norm(L.nome) ? '<p>' + esc(L.bio) + '</p>' : '') + '</div>' +
+      (X.tema && X.tema.soLogo && L.logo
+        // 27/10 (Lucas): loja pode mostrar só o logo no topo (sem a bolinha e sem o nome ao lado)
+        ? '<div class="va-perfil so-logo" data-bl="perfil"><img class="va-logo" src="' + esc(L.logo) + '" alt="' + esc(L.nome) + '">'
+        : '<div class="va-perfil" data-bl="perfil"><div class="va-av">' + (L.logo ? '<img src="' + esc(L.logo) + '" alt="">' : '') + '</div><div><h1>' + esc(L.nome) + '</h1>' + (L.bio && norm(L.bio) !== norm(L.nome) ? '<p>' + esc(L.bio) + '</p>' : '') + '</div>') +
         '<div class="va-acoes">' + (wa ? '<a href="' + esc(wa) + '" target="_blank" rel="noopener" aria-label="WhatsApp da loja">' + IC.wa.replace('<svg', '<svg fill="currentColor"') + '</a>' : '') +
         '<button type="button" data-acao="admin" aria-label="Gerenciar catálogo" title="Gerenciar catálogo">' + IC.gear + '</button></div></div>' +
       (sl.length ? '<div class="va-banner" data-bl="banner"><div class="va-trilho">' + sl.join('') + '</div><div class="va-pts"></div></div>' : '') +
