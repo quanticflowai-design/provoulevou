@@ -705,7 +705,8 @@
   // cards com o botão "Provar" embaixo do preço. Liga por loja: tema.layout = 'app' (sem deploy).
   // Ícone de cada categoria em tema.catImgs { "Feminino": "assets/cat/rever/feminino.png" };
   // categoria sem ícone usa a foto do produto mais recente dela.
-  function layoutApp() { return !!(storeRow && storeRow.tema && storeRow.tema.layout === 'app'); }
+  // 28/10 (Lucas): App virou o padrão de todos os catálogos; tema.layout = 'classico' volta ao antigo.
+  function layoutApp() { return !!storeRow && !(storeRow.tema && storeRow.tema.layout === 'classico'); }
   function iconeCategoria(c) {
     const m = (storeRow && storeRow.tema && storeRow.tema.catImgs) || {};
     const k = Object.keys(m).find(x => x.localeCompare(c, 'pt-BR', { sensitivity: 'base' }) === 0);
