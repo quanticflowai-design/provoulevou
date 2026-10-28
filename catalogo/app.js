@@ -3961,7 +3961,9 @@
   // de mostrar um catalogo publico sem explicacao.
   else if (location.hash === '#admin' || location.hash === '#login') {
     Promise.all([cargaInicial || Promise.resolve(), sessaoPronta]).then(() => {
-      if (ehDono()) { renderAdmin(); show('admin'); mostraAba('produtos'); }
+      // 28/10 (Lucas): depois do login o lojista cai na home do catálogo (com o Personalizar);
+      // as configurações ficam no menu "Área do lojista".
+      if (ehDono()) show('catalog');
       else location.href = 'painel/';
     });
   }
