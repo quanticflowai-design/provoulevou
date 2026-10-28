@@ -137,6 +137,7 @@
     '.vp-trilha{font-size:12.5px;color:#6b7280;padding:12px 16px 0}.vp-trilha a{color:inherit;text-decoration:none;cursor:pointer}.vp-trilha span{margin:0 6px;opacity:.6}',
     '.vp-gal{padding:12px 16px 0}.vp-principal{position:relative;border-radius:18px;overflow:hidden;background:#f6f7f9}',
     '.vp-principal img{width:100%;aspect-ratio:1;object-fit:cover}',
+    'html.foto-inteira .vp-principal,html.foto-inteira .vp-relg img,html.foto-inteira .vp-thumbs img{background:#fff}html.foto-inteira .vp-principal img,html.foto-inteira .vp-relg img,html.foto-inteira .vp-thumbs img{object-fit:contain;padding:8%;box-sizing:border-box}',
     '.vp-selo{position:absolute;left:12px;top:12px;background:#ef4444;color:#fff;font-weight:800;font-size:12.5px;border-radius:8px;padding:4px 9px}',
     '.vp-thumbs{display:flex;gap:8px;margin-top:10px;overflow-x:auto;scrollbar-width:none}.vp-thumbs button{flex:0 0 64px;border:2px solid transparent;border-radius:12px;overflow:hidden;padding:0;background:none;opacity:.7}',
     '.vp-thumbs button.on{border-color:var(--brand);opacity:1}.vp-thumbs img{width:100%;height:64px;object-fit:cover}.vp-thumbs small{display:block;font-size:10.5px;font-weight:700;padding:3px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
@@ -661,6 +662,7 @@
       estado.tocou = true;
       // 28/10 (Lucas): foto do produto inteira (menor) só nas lojas com tema.fotoInteira — hoje a Prime Magrini
       root.classList.toggle('foto-inteira', !!(X.tema && X.tema.fotoInteira));
+      document.documentElement.classList.toggle('foto-inteira', !!(X.tema && X.tema.fotoInteira)); // página do produto também
       monta(); buscaContagem();
     },
     produto: produtoPagina,
