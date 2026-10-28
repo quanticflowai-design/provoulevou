@@ -691,8 +691,27 @@
     const t = (storeRow && storeRow.tema) || {};
     return { centro: t.logoPos === 'centro', cheio: t.logoCheio === true };
   }
+  // 27/10/2026 (Lucas): visual "App" — categorias em bolinhas com ícone, carrossel de ofertas e
+  // cards com o botão "Provar" embaixo do preço. Liga por loja: tema.layout = 'app' (sem deploy).
+  // Ícone de cada categoria em tema.catImgs { "Feminino": "assets/cat/rever/feminino.png" };
+  // categoria sem ícone usa a foto do produto mais recente dela.
+  function layoutApp() { return !!(storeRow && storeRow.tema && storeRow.tema.layout === 'app'); }
+  function iconeCategoria(c) {
+    const m = (storeRow && storeRow.tema && storeRow.tema.catImgs) || {};
+    const k = Object.keys(m).find(x => x.localeCompare(c, 'pt-BR', { sensitivity: 'base' }) === 0);
+    if (k) return m[k];
+    const p = catalog.find(x => produtoTemCategoria(x, c) && x.img);
+    return p ? p.img : '';
+  }
+  // salvar/restaurar as cores no painel não pode apagar o layout escolhido
+  function extrasDoTema() {
+    const t0 = (storeRow && storeRow.tema) || {}, x = {};
+    ['layout', 'catImgs'].forEach(k => { if (t0[k] != null) x[k] = t0[k]; });
+    return x;
+  }
   function aplicaTema(cor) {
     const el = document.documentElement;
+    el.classList.toggle('layout-app', layoutApp());
     el.style.setProperty('--logo-escala', String(escalaLogoSalva()));
     { const ly = logoLayoutSalvo(); el.classList.toggle('logo-centro', ly.centro); el.classList.toggle('logo-cheio', ly.cheio); }
     const ac0 = temaEfetivo();
@@ -1070,6 +1089,28 @@
     if (cats.indexOf(catFiltro) === -1) catFiltro = '';
     box.hidden = false;
     box.textContent = '';
+    box.classList.toggle('cat-stories', layoutApp());
+    if (layoutApp()) {
+      [''].concat(cats).forEach(c => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'cat-story' + (c === catFiltro ? ' sel' : '');
+        const r = document.createElement('span'); r.className = 'cs-r';
+        const img = document.createElement('img'); img.alt = '';
+        const src = c ? iconeCategoria(c) : (storeRow && storeRow.logo_url);
+        if (src) img.src = src; else r.classList.add('vazio');
+        if (!c) r.classList.add('todos');
+        r.appendChild(img);
+        const nome = document.createElement('span'); nome.className = 'cs-n'; nome.textContent = c || 'Todos';
+        b.append(r, nome);
+        b.addEventListener('click', () => {
+          catFiltro = c;
+          try { history.pushState({ cat: c }, '', linkCategoria(c)); } catch (e) {}
+          renderCatalog();
+        });
+        box.appendChild(b);
+      });
+      return;
+    }
     [''].concat(cats).forEach(c => {
       const b = document.createElement('button');
       b.className = 'cat-chip' + (c === catFiltro ? ' sel' : '');
@@ -1111,13 +1152,13 @@
       const nome = document.createElement('div'); nome.className = 'pc-name'; nome.textContent = p.name;
       const precos = document.createElement('div'); precos.className = 'pc-prices';
       if (temOferta(p)) {
-        const original = document.createElement('span'); original.className = 'pc-old-price'; original.textContent = precoOriginalTxt(p);
+        const original = document.createElement('span'); original.className = 'pc-old-price'; original.textContent = layoutApp() ? brl(p.originalPrice) : precoOriginalTxt(p);
         precos.appendChild(original);
       }
-      const preco = document.createElement('span'); preco.className = 'pc-price' + (temOferta(p) ? ' offer' : ''); preco.textContent = precoAtualTxt(p);
+      const preco = document.createElement('span'); preco.className = 'pc-price' + (temOferta(p) ? ' offer' : ''); preco.textContent = layoutApp() ? brl(precoProduto(p)) : precoAtualTxt(p);
       precos.appendChild(preco);
       const btn = document.createElement('button');
-      btn.type = 'button'; btn.className = 'pc-try'; btn.textContent = 'Provar virtualmente';
+      btn.type = 'button'; btn.className = 'pc-try'; btn.textContent = layoutApp() ? 'Provar' : 'Provar virtualmente';
       if (p.featured) {
         const selo = document.createElement('span'); selo.className = 'product-badge'; selo.textContent = 'Destaque'; body.appendChild(selo);
       }
@@ -1141,6 +1182,10 @@
         body.append(comprar);
       }
       card.append(thumb, body);
+      if (layoutApp() && temOferta(p)) {
+        const pct = Math.round((1 - precoProduto(p) / Number(p.originalPrice)) * 100);
+        if (pct > 0 && pct <= 85) { const off = document.createElement('span'); off.className = 'pc-off'; off.textContent = '-' + pct + '%'; card.appendChild(off); }
+      }
       bindImg(thumb, p.img, p.name);
       // Botão leva DIRETO pra prova (menos um passo pro cliente).
       card.querySelector('.pc-try').addEventListener('click', ev => {
@@ -1164,6 +1209,7 @@
         grid.appendChild(sk);
       }
     }
+    renderSecoesApp(visiveis, termo);
     if (vazio) vazio.hidden = !(carregou && catalog.length === 0);
     if (buscaBox) buscaBox.hidden = !catalog.length;
     if (buscaVazia) buscaVazia.hidden = !(carregou && catalog.length > 0 && visiveis.length === 0);
@@ -1174,6 +1220,41 @@
     renderSugestoesCategoria();
     renderLinksCategoria();
     renderLinksUnidade();
+  }
+
+  // Layout App: carrossel "Ofertas" (só na vitrine inteira, sem busca) + título com a contagem.
+  function renderSecoesApp(visiveis, termo) {
+    const grid = $('#catalog-grid');
+    let of = $('#app-ofertas'), tit = $('#app-titulo');
+    if (!layoutApp()) { if (of) of.remove(); if (tit) tit.remove(); return; }
+    if (!of) { of = document.createElement('section'); of.id = 'app-ofertas'; of.className = 'app-ofertas'; grid.parentNode.insertBefore(of, grid); }
+    if (!tit) { tit = document.createElement('div'); tit.id = 'app-titulo'; tit.className = 'app-titulo'; grid.parentNode.insertBefore(tit, grid); }
+    const ofertas = catalog.filter(p => doTipo(p) && temOferta(p) && !ehKit(p))
+      .sort((a, b) => (precoProduto(a) / a.originalPrice) - (precoProduto(b) / b.originalPrice)).slice(0, 12);
+    of.textContent = '';
+    of.hidden = !!(catFiltro || termo) || ofertas.length < 2;
+    if (!of.hidden) {
+      const h = document.createElement('div'); h.className = 'app-sec-tit'; h.textContent = 'Ofertas';
+      const lista = document.createElement('div'); lista.className = 'app-ofertas-lista';
+      ofertas.forEach(p => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'app-oferta';
+        const img = document.createElement('img'); img.alt = ''; img.loading = 'lazy';
+        const pct = Math.round((1 - precoProduto(p) / Number(p.originalPrice)) * 100);
+        const off = document.createElement('span'); off.className = 'pc-off'; off.textContent = '-' + pct + '%';
+        const nome = document.createElement('span'); nome.className = 'ao-n'; nome.textContent = p.name;
+        const pr = document.createElement('span'); pr.className = 'ao-p'; pr.textContent = brl(precoProduto(p));
+        b.append(img, nome, pr); if (pct > 0 && pct <= 85) b.appendChild(off);
+        bindImg(img, p.img, p.name);
+        b.addEventListener('click', () => openProduct(p));
+        lista.appendChild(b);
+      });
+      of.append(h, lista);
+    }
+    tit.textContent = '';
+    const t1 = document.createElement('span'); t1.textContent = catFiltro || (termo ? 'Resultado da busca' : 'Todos');
+    const t2 = document.createElement('small'); t2.textContent = visiveis.length + (visiveis.length === 1 ? ' item' : ' itens');
+    tit.append(t1, t2);
+    tit.hidden = !visiveis.length;
   }
 
   {
@@ -1403,6 +1484,7 @@
         const t0 = (storeRow && storeRow.tema) || {};
         if (t0.logoPos) tema.logoPos = t0.logoPos;
         if (t0.logoCheio) tema.logoCheio = t0.logoCheio;
+        Object.assign(tema, extrasDoTema());
         const r = await fetch(WH_THEME, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ store_slug: STORE_SLUG, tema })
@@ -1426,10 +1508,10 @@
       try {
         const r = await fetch(WH_THEME, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ store_slug: STORE_SLUG, tema: null })
+          body: JSON.stringify({ store_slug: STORE_SLUG, tema: Object.keys(extrasDoTema()).length ? extrasDoTema() : null })
         });
         if (!r.ok) throw new Error('HTTP ' + r.status);
-        if (storeRow) storeRow.tema = null;
+        if (storeRow) storeRow.tema = Object.keys(extrasDoTema()).length ? extrasDoTema() : null;
         aplicaTema(storeRow && storeRow.primary_color);
         renderTema();
         toast('Aparência restaurada ✓');
