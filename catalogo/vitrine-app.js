@@ -58,7 +58,7 @@
     '.va-vazio{grid-column:1/-1;text-align:center;color:#6b7280;font-size:14px;padding:30px 0}',
     '.va-tab{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(560px,100%);background:#fff;border-top:1px solid #eef0f3;display:grid;grid-template-columns:repeat(4,1fr);padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:30}',
     '.va-tab a{text-align:center;text-decoration:none;color:#6b7280;font-size:11px;font-weight:600;cursor:pointer}.va-tab a.on{color:var(--brand)}',
-    '.va-tab a svg{width:22px;height:22px;display:block;margin:2px auto 1px}',
+    '.va-tab a svg,.va .va-tab a svg.i{width:22px;height:22px;display:block;margin:2px auto 1px}',
     '.va-tab a.wa i{display:block;background:#25d366;border-radius:50%;width:34px;height:34px;margin:0 auto}.va-tab a.wa svg{width:18px;height:18px;margin:0 auto;position:relative;top:8px;fill:#fff}',
     'html.layout-app body:not(.va-na-vitrine) .va-tab{display:none}',
     '.va svg.i{width:1.05em;height:1.05em;flex-shrink:0}',
