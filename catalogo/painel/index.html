@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles.css?v=159">
+  <!-- 28/10 (Lucas): quem já está logado não pode ver o formulário piscar antes de ir pro catálogo -->
+  <style>html.pc-checando .login-box{visibility:hidden}html.pc-checando body:after{content:"Abrindo seu catálogo…";position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font:600 15px "Hanken Grotesk",system-ui,sans-serif;color:#6b6577}</style>
+  <script>try{var s=JSON.parse(localStorage.getItem('pc_sess_v1')||'null');if(s&&s.email&&s.token)document.documentElement.classList.add('pc-checando')}catch(e){}</script>
 </head>
 <body>
   <!-- Login único de todos os lojistas de catálogo, igual ao dashboard das lojas:
@@ -42,6 +45,6 @@
     </section>
   </div>
   <div id="toast"></div>
-  <script src="painel.js?v=146"></script>
+  <script src="painel.js?v=147"></script>
 </body>
 </html>
