@@ -628,7 +628,13 @@
                 brand: '#9A5F12', dark: '#74371A', soft: 'rgba(154,95,18,.10)', on: '#ffffff' },
     // Pytaia & Pytanga Collection — creme sobre bordô chapado -> fundo = bordô do logo (#5E1F28, tema escuro); creme com texto preto
     pytaiaepytanga: { bg: '#5E1F28', card: '#6B2631', line: 'rgba(235,207,180,.25)',
-                brand: '#EBCFB4', dark: '#D9B796', soft: 'rgba(235,207,180,.12)', on: '#000000' }
+                brand: '#EBCFB4', dark: '#D9B796', soft: 'rgba(235,207,180,.12)', on: '#000000' },
+    // Ótica Moon — branco e filete dourado sobre preto chapado -> fundo = preto do logo (tema escuro); dourado com texto preto
+    oticamoon: { bg: '#000000', card: '#111111', line: 'rgba(255,255,255,.14)',
+                brand: '#D9A93A', dark: '#C08F22', soft: 'rgba(217,169,58,.12)', on: '#000000' },
+    // Óticas Bernardo — azul-marinho e dourado sobre creme -> fundo = creme do logo (tema claro); marinho com texto branco
+    oticasbernardo: { bg: '#FAF7F1', card: '#FFFFFF', line: '#E9E1D2',
+                brand: '#14306B', dark: '#0B1F47', soft: 'rgba(20,48,107,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
