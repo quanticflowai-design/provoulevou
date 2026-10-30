@@ -200,7 +200,24 @@
     '.vp-corpo{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:44px;padding:8px 24px 40px;align-items:start}',
     '.vp-trilha{grid-column:1/-1;padding:16px 0 0}.vp-gal{padding:0;position:sticky;top:150px}.vp-dir{padding:0}.vp-dir h1{font-size:30px}',
     '.vp-relw{padding:0 24px 60px}.vp-relg{grid-template-columns:repeat(4,minmax(0,1fr))}.vp-barra{display:none!important}',
-    '}'
+    '}',
+    // ── tema escuro (fundo da loja com luminância < 60, ex.: oticaeva, oticamoon) ──
+    // o CSS acima é todo claro fixo; aqui ele passa a seguir as variáveis do tema (--bg/--card/--line/--ink)
+    'html.tema-escuro .va,html.tema-escuro .vp,html.tema-escuro .va-provas,html.tema-escuro .va-menu .caixa{background:var(--bg);color:var(--ink)}',
+    'html.tema-escuro .va-busca,html.tema-escuro .va-tab,html.tema-escuro .vp-barra{background:var(--bg);border-color:var(--line)}',
+    'html.tema-escuro .vp-cab,html.tema-escuro .va-provas .topo{background:var(--bg);background:color-mix(in srgb,var(--bg) 94%,transparent);border-color:var(--line)}',
+    'html.tema-escuro .va-stories,html.tema-escuro .vp-gar,html.tema-escuro .vp-sec,html.tema-escuro .vp-tab td{border-color:var(--line)}',
+    'html.tema-escuro .va-card,html.tema-escuro .va-pv,html.tema-escuro .vp-relg button,html.tema-escuro .va-top{background:var(--card);color:var(--ink);border-color:var(--line)}',
+    'html.tema-escuro .va-stories button,html.tema-escuro .va-ico,html.tema-escuro .vp .va-ico,html.tema-escuro .va-menu .it,html.tema-escuro .vp-parc b,html.tema-escuro .vp-gar b,html.tema-escuro .va-chips button,html.tema-escuro .va-busca input,html.tema-escuro .vp-busca input{color:var(--ink)}',
+    'html.tema-escuro .va-perfil p,html.tema-escuro .va-acoes a,html.tema-escuro .va-acoes button,html.tema-escuro .va-sec h2 small,html.tema-escuro .va-top h2 small,html.tema-escuro .va-card .de,html.tema-escuro .va-vazio,html.tema-escuro .va-tab a,html.tema-escuro .va-menu .it small,html.tema-escuro .va-provas .vazio,html.tema-escuro .vp-trilha,html.tema-escuro .vp-prova,html.tema-escuro .vp-d,html.tema-escuro .vp-parc,html.tema-escuro .vp-gar div,html.tema-escuro .vp-sec summary:after,html.tema-escuro .vp-tab td:first-child,html.tema-escuro .vp-barra small{color:var(--ink-2)}',
+    'html.tema-escuro .va-tab a.on{color:var(--brand)}',
+    'html.tema-escuro .va-busca input,html.tema-escuro .vp-busca input,html.tema-escuro .va-chips button,html.tema-escuro .va-acoes a:hover,html.tema-escuro .va-acoes button:hover,html.tema-escuro .va-ico:hover,html.tema-escuro .va-menu .it:hover,html.tema-escuro .va-banner,html.tema-escuro .vp-principal,html.tema-escuro .vp-prova,html.tema-escuro .va-pv img{background-color:rgba(255,255,255,.08)}',
+    'html.tema-escuro .va-chips button.on,html.tema-escuro .va-stories button.on .r{background:var(--ink);color:var(--bg)}',
+    'html.tema-escuro .va-av img,html.tema-escuro .va-stories .r img,html.tema-escuro .va-stories .mosaico{border-color:var(--bg)}',
+    'html.tema-escuro .va-slide,html.tema-escuro .va-dest,html.tema-escuro .va-card .bt:hover,html.tema-escuro .va-qtd,html.tema-escuro .vp-passos i,html.tema-escuro .va-provas .vazio button{color:var(--on-brand)}',
+    'html.tema-escuro .va-dest span.bt{background:var(--on-brand);color:var(--brand)}',
+    'html.tema-escuro .va-edt{background:var(--card);border-color:var(--line)}',
+    'html.tema-escuro .va-edt button{background:var(--bg);border-color:var(--line);color:var(--ink)}'
   ].join('\n');
   var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
   // fonte do tema App (a da prévia)
