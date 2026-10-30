@@ -634,7 +634,13 @@
                 brand: '#D9A93A', dark: '#C08F22', soft: 'rgba(217,169,58,.12)', on: '#000000' },
     // Óticas Bernardo — azul-marinho e dourado sobre creme -> fundo = creme do logo (tema claro); marinho com texto branco
     oticasbernardo: { bg: '#FAF7F1', card: '#FFFFFF', line: '#E9E1D2',
-                brand: '#14306B', dark: '#0B1F47', soft: 'rgba(20,48,107,.10)', on: '#ffffff' }
+                brand: '#14306B', dark: '#0B1F47', soft: 'rgba(20,48,107,.10)', on: '#ffffff' },
+    // A.mar — preto sobre branco -> fundo branco (tema claro); preto com texto branco
+    amar: { bg: '#FFFFFF', card: '#FFFFFF', line: '#ECECEC',
+                brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.06)', on: '#ffffff' },
+    // Ótica Eva — branco sobre preto chapado -> fundo = preto do logo (tema escuro); branco-gelo com texto preto
+    oticaeva: { bg: '#000000', card: '#111111', line: 'rgba(255,255,255,.14)',
+                brand: '#F2F2F2', dark: '#D6D6D6', soft: 'rgba(242,242,242,.10)', on: '#000000' }
   };
 
   // ─────────── Tema ───────────
