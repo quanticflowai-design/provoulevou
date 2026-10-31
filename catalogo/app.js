@@ -640,7 +640,10 @@
                 brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.06)', on: '#ffffff' },
     // Ótica Eva — branco sobre preto chapado -> fundo = preto do logo (tema escuro); branco-gelo com texto preto
     oticaeva: { bg: '#000000', card: '#111111', line: 'rgba(255,255,255,.14)',
-                brand: '#F2F2F2', dark: '#D6D6D6', soft: 'rgba(242,242,242,.10)', on: '#000000' }
+                brand: '#F2F2F2', dark: '#D6D6D6', soft: 'rgba(242,242,242,.10)', on: '#000000' },
+    // Rede Sua Ótica — rosa + roxo sobre branco -> fundo branco (tema claro); rosa fechado p/ 5,4:1 com branco; botão roxo do balão
+    redesuaotica: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F1E3EC',
+                brand: '#C8137F', dark: '#A50F69', soft: 'rgba(200,19,127,.08)', on: '#ffffff', cta: '#6218AB', ctaDark: '#4A1283', onCta: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
