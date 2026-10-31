@@ -431,7 +431,8 @@
     var b = (X.tema && X.tema.blocos) || {};
     var ordem = (b.ordem || []).filter(function (id) { return BLOCOS.some(function (x) { return x[0] === id; }); });
     BLOCOS.forEach(function (x) { if (ordem.indexOf(x[0]) < 0) ordem.push(x[0]); });
-    return { ordem: ordem, ocultos: (b.ocultos || []).slice() };
+    // 31/10/2026 (Lucas): padrão = banner, busca, categorias, todas (Top 10 escondido até o lojista ligar).
+    return { ordem: ordem, ocultos: (b.ocultos || ['top']).slice() };
   }
   function aplicaBlocos() {
     var box = root && root.querySelector('.va-blocos'); if (!box) return;
