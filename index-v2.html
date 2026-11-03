@@ -1041,6 +1041,8 @@
     .ab-linha1 { display: flex; justify-content: space-between; align-items: flex-start; gap: 32px; }
     .ab-novo .abertura-titulo { margin: 0; font-size: clamp(40px, 6.4vw, 104px); line-height: 1; letter-spacing: -0.05em; }
     .ab-novo .abertura-titulo .t1, .ab-novo .abertura-titulo .t2 { display: block; white-space: nowrap; letter-spacing: -0.05em; }
+    /* Helvetica Medium sem o contorno branco que afinava o traco */
+    .ab-novo .abertura-titulo, .ab-novo .abertura-titulo span { font-family: var(--strong); font-weight: 500; -webkit-text-stroke: 0 transparent; }
     .ab-icone {
       display: inline-grid; place-items: center; vertical-align: -0.08em; width: .82em; height: .82em; margin: 0 .04em;
       border-radius: 50%; background: #e4dcfb; color: #6d28d9;
@@ -1062,7 +1064,7 @@
     .ab-grande { font-family: var(--strong); font-weight: 400; font-size: clamp(30px, 4.6vw, 74px); line-height: 1; letter-spacing: -0.04em; color: #c9c4d4; -webkit-text-stroke-width: 0; }
     .ab-grande span { letter-spacing: -0.12em; margin-right: .1em; }
     .ab-grande b { font-weight: inherit; white-space: nowrap; }
-    .ab-rodape { margin-top: clamp(32px, 4.4vw, 64px); display: flex; justify-content: space-between; gap: 16px; font-family: var(--strong); font-weight: 500; font-size: 14px; color: #161614; }
+    .ab-rodape { padding-bottom: clamp(28px, 3vw, 48px); margin-top: clamp(32px, 4.4vw, 64px); display: flex; justify-content: space-between; gap: 16px; font-family: var(--strong); font-weight: 500; font-size: 14px; color: #161614; }
     .ab-rodape * , .ab-novo * { -webkit-text-stroke-width: 0; }
     @media (max-width: 900px) {
       .ab-linha1 { flex-direction: column; gap: 22px; }
@@ -1101,6 +1103,21 @@
     }
     /* telas bem baixas: a foto do submenu sai para o menu caber inteiro */
     @media (max-width: 920px) and (max-height: 600px) { .mob-sub .dd-card { display: none; } }
+
+    /* logos dos clientes no hero: brancas, rolagem infinita, bordas esmaecidas */
+    .topo-grade > * { min-width: 0; }
+    .topo-logos {
+      margin-top: 28px; overflow: hidden; max-width: 100%;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    }
+    .tl-trilho { display: flex; width: max-content; animation: marcas-desliza 90s linear infinite; }
+    .topo-logos:hover .tl-trilho { animation-play-state: paused; }
+    .tl-marca { flex: 0 0 auto; padding: 0 22px; height: 48px; display: flex; align-items: center; }
+    .tl-marca img { height: calc(var(--h) * .72); width: auto; max-width: 120px; object-fit: contain; filter: brightness(0) invert(1); opacity: .85; user-select: none; }
+    @keyframes marcas-desliza { to { transform: translate3d(-50%, 0, 0); } }
+    @media (max-width: 640px) { .tl-marca { padding: 0 16px; height: 42px; } .tl-marca img { height: calc(var(--h) * .62); } .tl-trilho { animation-duration: 70s; } }
+    @media (prefers-reduced-motion: reduce) { .tl-trilho { animation: none; } }
   </style>
 </head>
 
@@ -1172,6 +1189,74 @@
               </span>
               <span><b aria-hidden="true">★</b> 4,9 · +200 lojistas</span>
             </div>
+          </div>
+          <div class="topo-logos" aria-label="Marcas que usam o provador">
+            <div class="tl-trilho">
+          <span class="tl-marca"><img src="assets/marcas-mono/arcsunglasses.webp" alt="ARC Sunglasses" style="--h:28.0px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/acessoriostyle.webp" alt="Acessórios Style" style="--h:34.1px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/arantz.webp" alt="Arantz" style="--h:20.7px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/barch.webp" alt="Barch Ótica" style="--h:25.2px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/brecho.webp" alt="Brechó do Óculos" style="--h:30px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/cacife.webp" alt="Cacife Brand" style="--h:22.3px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/cicia.webp" alt="Cicia Eyewear" style="--h:22px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/dayone.webp" alt="Day One Store" style="--h:27.4px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/duoari.webp" alt="Duoari" style="--h:28.0px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/fortuna.webp" alt="Fortuna Sunglasses" style="--h:29.0px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/hazon.webp" alt="Hazon" style="--h:22.6px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/koros.webp" alt="Koros" style="--h:29.0px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/liuzzi.webp" alt="Liuzzi" style="--h:22.5px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/maho.webp" alt="Maho Sunglasses" style="--h:22.9px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/maxilook.webp" alt="Maxilook" style="--h:17.3px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/oculosmeninaflor.webp" alt="Menina Flor" style="--h:40px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/mipiace.webp" alt="Mi Piace Ottica" style="--h:32.9px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/mitani.webp" alt="Mitani" style="--h:26.6px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/mozaik.webp" alt="Mozaik" style="--h:20.7px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/nc.webp" alt="NC Conceito" style="--h:33.4px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/oss.webp" alt="OSS Glasses" style="--h:23.5px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/parislondon.webp" alt="Paris London" style="--h:22.5px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/programmoda.webp" alt="Program Moda" style="--h:23.6px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/santi.webp" alt="Santi Eyewear" style="--h:28.5px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/soucet.webp" alt="Soucet" style="--h:20.5px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/suarmacao.webp" alt="Sua Armação" style="--h:18.0px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/umut.webp" alt="Umut" style="--h:16px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/cand.webp" alt="Use Cand" style="--h:31.2px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/ves.webp" alt="VES" style="--h:28.5px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/vksolaris.webp" alt="VK Solaris" style="--h:36px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/oculosemfoco.webp" alt="Óculos em Foco" style="--h:30.2px" decoding="async"></span>
+          <span aria-hidden="true" style="display:contents">
+          <span class="tl-marca"><img src="assets/marcas-mono/arcsunglasses.webp" alt="" style="--h:28.0px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/acessoriostyle.webp" alt="" style="--h:34.1px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/arantz.webp" alt="" style="--h:20.7px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/barch.webp" alt="" style="--h:25.2px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/brecho.webp" alt="" style="--h:30px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/cacife.webp" alt="" style="--h:22.3px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/cicia.webp" alt="" style="--h:22px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/dayone.webp" alt="" style="--h:27.4px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/duoari.webp" alt="" style="--h:28.0px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/fortuna.webp" alt="" style="--h:29.0px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/hazon.webp" alt="" style="--h:22.6px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/koros.webp" alt="" style="--h:29.0px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/liuzzi.webp" alt="" style="--h:22.5px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/maho.webp" alt="" style="--h:22.9px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/maxilook.webp" alt="" style="--h:17.3px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/oculosmeninaflor.webp" alt="" style="--h:40px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/mipiace.webp" alt="" style="--h:32.9px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/mitani.webp" alt="" style="--h:26.6px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/mozaik.webp" alt="" style="--h:20.7px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/nc.webp" alt="" style="--h:33.4px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/oss.webp" alt="" style="--h:23.5px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/parislondon.webp" alt="" style="--h:22.5px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/programmoda.webp" alt="" style="--h:23.6px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/santi.webp" alt="" style="--h:28.5px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/soucet.webp" alt="" style="--h:20.5px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/suarmacao.webp" alt="" style="--h:18.0px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/umut.webp" alt="" style="--h:16px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/cand.webp" alt="" style="--h:31.2px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/ves.webp" alt="" style="--h:28.5px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/vksolaris.webp" alt="" style="--h:36px" decoding="async"></span>
+          <span class="tl-marca"><img src="assets/marcas-mono/oculosemfoco.webp" alt="" style="--h:30.2px" decoding="async"></span>
+          </span>
+        </div>
           </div>
         </div>
       </div>
