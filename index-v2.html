@@ -946,61 +946,58 @@
     .cl-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .cl-item h3 { margin-top: 20px; font-family: var(--strong); font-weight: 500; font-size: clamp(17px, 1.4vw, 21px); letter-spacing: -0.01em; color: #161614; }
     .cl-item > p { margin-top: 8px; font-size: 14.5px; line-height: 1.45; color: #9a94a6; max-width: 30em; }
-    .cl-card { position: relative; overflow: hidden; isolation: isolate; aspect-ratio: 4 / 5.3; display: grid; place-items: center; padding: 8%; }
-    /* granulado por cima do degrade */
-    .cl-card::after {
-      content: ""; position: absolute; inset: 0; z-index: -1; opacity: .38; mix-blend-mode: overlay; pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    }
-    .cl-c1 { background: radial-gradient(70% 55% at 8% 4%, #f6f2ff 0%, rgba(246,242,255,0) 70%), radial-gradient(90% 70% at 85% 45%, #c084fc 0%, rgba(192,132,252,0) 70%), linear-gradient(170deg, #b18cf5 0%, #8b5cf6 40%, #4c1d95 85%, #2a1150 100%); }
-    .cl-c2 { background: radial-gradient(80% 60% at 50% 20%, #8f88b8 0%, rgba(143,136,184,0) 70%), linear-gradient(180deg, #6f6a96 0%, #4a4675 55%, #2c2a4d 100%); }
-    .cl-c3 { background: radial-gradient(35% 28% at 30% 30%, #9d7ce8 0%, rgba(157,124,232,0) 100%), radial-gradient(40% 30% at 75% 70%, #6d3fd0 0%, rgba(109,63,208,0) 100%), radial-gradient(30% 25% at 70% 20%, #3b1b7a 0%, rgba(59,27,122,0) 100%), linear-gradient(160deg, #2d1460 0%, #4a2591 50%, #1c0d3d 100%); }
+    .cl-card { position: relative; overflow: hidden; aspect-ratio: 4 / 4.6; display: grid; place-items: center; padding: 7%; border-radius: 22px; font-family: var(--strong); }
+    .cl-c1 { background: #f4f2f8; }
+    .cl-c2 { background: #1b1130; }
+    .cl-c3 { background: #ece6fd; }
+    .cl-rotulo { display: block; margin-top: 22px; font-family: 'Fraunces PL', Georgia, serif; font-style: italic; font-size: 15px; color: var(--violet); }
+    .cl-item h3 { margin-top: 6px; }
 
-    /* widget 1 */
-    .cl-w1 { width: 100%; max-width: 300px; background: #fff; border-radius: 14px; padding: 18px 18px 16px; box-shadow: 0 24px 50px -24px rgba(34,21,50,.6); font-family: var(--strong); color: #161614; }
-    .cl-w1-topo { display: flex; justify-content: space-between; font-weight: 500; font-size: 13px; }
-    .cl-w1-topo b { color: #8a8496; font-weight: 500; }
-    .cl-w1-num { margin-top: 30px; display: flex; align-items: baseline; gap: 10px; }
-    .cl-w1-num strong { font-weight: 500; font-size: 28px; letter-spacing: -0.02em; }
-    .cl-w1-num span { font-size: 11px; color: #5e566e; }
-    .cl-w1-barra { margin-top: 10px; display: flex; gap: 1.5px; height: 12px; }
-    .cl-w1-barra i { flex: 1; border-radius: 1px; }
-    .cl-w1-barra .a { background: #6d28d9; } .cl-w1-barra .b { background: #c4b5fd; } .cl-w1-barra .c { background: #ece9f2; }
-    .cl-w1-leg { margin-top: 10px; display: flex; justify-content: space-between; gap: 8px; font-size: 10.5px; color: #3d3846; }
-    .cl-w1-leg span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
-    .cl-w1-leg i { width: 5px; height: 5px; border-radius: 50%; }
-    .cl-w1-leg .a { background: #6d28d9; } .cl-w1-leg .b { background: #c4b5fd; } .cl-w1-leg .c { background: #d6d2de; }
-    .cl-w1-leg { flex-wrap: wrap; }
+    /* 1: CRM em janela de navegador */
+    .cl-crm { width: 100%; background: #fff; border-radius: 14px; box-shadow: 0 24px 50px -28px rgba(34,21,50,.45), 0 0 0 1px #ebe7f2; overflow: hidden; }
+    .cl-crm-barra { display: flex; align-items: center; gap: 5px; padding: 10px 12px; background: #f7f6fa; border-bottom: 1px solid #ebe7f2; }
+    .cl-crm-barra i { width: 8px; height: 8px; border-radius: 50%; background: #ff5f57; }
+    .cl-crm-barra i:nth-child(2) { background: #febc2e; } .cl-crm-barra i:nth-child(3) { background: #28c840; }
+    .cl-crm-barra span { margin-left: 8px; flex: 1; background: #fff; border-radius: 6px; padding: 4px 8px; font-size: 10px; color: #8a8496; }
+    .cl-crm-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px; min-height: 190px; }
+    .cl-crm-cols b { display: block; font-weight: 500; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: #8a8496; margin-bottom: 8px; }
+    .cl-lead { background: #f7f5fb; border: 1px solid #eeeaf5; border-radius: 9px; padding: 8px; margin-bottom: 6px; display: grid; gap: 2px; }
+    .cl-lead strong { font-weight: 500; font-size: 11.5px; color: #161614; }
+    .cl-lead span { font-size: 10px; color: #8a8496; }
+    .cl-lead em { justify-self: start; margin-top: 5px; font-style: normal; font-size: 9.5px; color: #6d28d9; background: #ede9fe; border-radius: 100px; padding: 2px 7px; }
+    .cl-lead em.ok { color: #fff; background: #7c3aed; }
 
-    /* widget 2 */
-    .cl-w2-wrap { width: 100%; max-width: 230px; text-align: center; }
-    .cl-w2 { background: #161419; border-radius: 14px; padding: 14px 12px 10px; color: #fff; font-family: var(--strong); box-shadow: 0 24px 50px -24px rgba(0,0,0,.6); text-align: left; }
-    .cl-w2-topo { display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; }
-    .cl-w2-topo small { font-size: 8px; color: #aaa; }
-    .cl-w2-topo em { font-style: normal; color: #6b6676; font-size: 10.5px; }
-    .cl-w2-graf { position: relative; margin-top: 18px; height: 120px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-items: end; }
-    .cl-w2-linha { position: absolute; left: 0; right: 0; top: 30%; border-top: 1.5px dashed #b38bfa; opacity: .8; }
-    .cl-w2-col { position: relative; height: 100%; display: flex; align-items: flex-end; }
-    .cl-w2-col i { width: 100%; border-radius: 2px; background: repeating-linear-gradient(135deg, #3a3640 0 2px, #26232b 2px 6px); }
-    .cl-w2-col.apaga { opacity: .45; }
-    .cl-w2-col.on i { background: repeating-linear-gradient(135deg, #b9a4f5 0 2px, #9b7ff0 2px 6px); }
-    .cl-w2-tip { position: absolute; left: 50%; bottom: calc(86% + 8px); transform: translateX(-50%); white-space: nowrap; font-size: 10px; padding: 3px 7px; border-radius: 5px; background: #8b6cf0; color: #fff; z-index: 1; }
-    .cl-w2-dias { margin-top: 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; font-size: 10.5px; color: #6b6676; }
-    .cl-w2-dias .on { color: #fff; }
-    .cl-w2-leg { margin-top: 14px; font-family: var(--strong); font-weight: 500; font-size: 13px; color: #fff; }
+    /* 2: conversa no WhatsApp */
+    .cl-chat { width: 100%; max-width: 330px; border-radius: 20px; overflow: hidden; background: #120a22; box-shadow: 0 30px 60px -30px rgba(124,58,237,.6), 0 0 0 1px rgba(255,255,255,.06); color: #fff; }
+    .cl-chat-topo { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: #221638; }
+    .cl-chat-av { width: 32px; height: 32px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #c4b5fd, #7c3aed); flex: none; }
+    .cl-chat-topo strong { display: block; font-weight: 500; font-size: 13px; }
+    .cl-chat-topo small { font-size: 10.5px; color: #9ae6b4; }
+    .cl-chat-corpo { padding: 14px 12px; display: grid; gap: 8px; }
+    .cl-chat-corpo p { position: relative; padding: 9px 12px 18px; border-radius: 12px; font-size: 12.5px; line-height: 1.4; max-width: 86%; }
+    .cl-chat-corpo p b { font-weight: 500; }
+    .cl-chat-corpo small { position: absolute; right: 10px; bottom: 4px; font-size: 9px; color: rgba(255,255,255,.5); }
+    .cl-chat-corpo .eu { justify-self: end; background: #35206a; }
+    .cl-chat-corpo .ela { justify-self: start; background: #241a36; }
 
-    /* widget 3 */
-    .cl-w3 { display: grid; justify-items: center; gap: 10px; width: 100%; }
-    .cl-w3-tip { font-family: var(--strong); font-weight: 500; font-size: 11px; color: #161614; background: #fff; border-radius: 6px; padding: 5px 9px; position: relative; }
-    .cl-w3-tip::after { content: ""; position: absolute; left: 50%; bottom: -4px; width: 8px; height: 8px; background: #fff; transform: translateX(-50%) rotate(45deg); }
-    .cl-w3-rostos { display: flex; justify-content: center; }
-    .cl-w3-rostos img { width: clamp(56px, 6vw, 76px); height: clamp(56px, 6vw, 76px); border-radius: 50%; object-fit: cover; box-shadow: 0 10px 24px -10px rgba(0,0,0,.55); }
-    .cl-w3-rostos img + img { margin-left: -12px; }
-    .cl-w3-rostos img.on { position: relative; z-index: 1; outline: 2px solid #fff; }
+    /* 3: caixa de entrada segmentada */
+    .cl-inbox { width: 100%; max-width: 320px; background: #fff; border-radius: 16px; padding: 14px; box-shadow: 0 24px 50px -28px rgba(76,29,149,.5); color: #161614; }
+    .cl-inbox-topo { display: flex; justify-content: space-between; align-items: center; }
+    .cl-inbox-topo strong { font-weight: 500; font-size: 13.5px; }
+    .cl-inbox-topo span { font-size: 10px; color: #16a34a; background: #dcfce7; border-radius: 100px; padding: 2px 8px; }
+    .cl-chips { display: flex; gap: 6px; margin: 12px 0 8px; }
+    .cl-chips span { font-size: 10.5px; padding: 4px 10px; border-radius: 100px; background: #f4f2f8; color: #5e566e; }
+    .cl-chips span.on { background: #161614; color: #fff; }
+    .cl-conv { display: flex; align-items: center; gap: 10px; padding: 9px 4px; border-top: 1px solid #f0edf5; }
+    .cl-conv i { width: 30px; height: 30px; flex: none; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 12px; color: #6d28d9; background: #ede9fe; }
+    .cl-conv div { flex: 1; min-width: 0; display: grid; }
+    .cl-conv strong { font-weight: 500; font-size: 12px; }
+    .cl-conv span { font-size: 11px; color: #8a8496; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cl-conv em { font-style: normal; font-size: 10px; color: #fff; background: #7c3aed; border-radius: 100px; min-width: 18px; height: 18px; display: grid; place-items: center; }
     @media (max-width: 900px) {
       .cl-topo { grid-template-columns: 1fr; }
       .cl-grade { grid-template-columns: 1fr; gap: 40px; }
-      .cl-card { aspect-ratio: 4 / 4.2; }
+      .cl-card { aspect-ratio: auto; min-height: 380px; }
     }
   </style>
 </head>
@@ -1327,55 +1324,52 @@
       <div class="container">
         <div class="cl-topo">
           <h2 id="clarezaTitulo">Clareza em cada prova, do clique ao pedido</h2>
-          <p>A Provou Levou junta provador, leads no WhatsApp e atribuição de vendas num sistema só, feito para lojas de moda e óculos.</p>
+          <p>CRM próprio e disparos oficiais de WhatsApp já incluídos no plano, sem custo extra. Cada prova vira um lead, e cada lead vira conversa.</p>
         </div>
         <div class="cl-grade">
           <article class="cl-item">
             <div class="cl-card cl-c1">
-              <div class="cl-w1">
-                <div class="cl-w1-topo"><span>Faturamento atribuído</span><b aria-hidden="true">⋮</b></div>
-                <div class="cl-w1-num"><strong>R$ 2,5 mi</strong><span>↗ somando todas as lojas</span></div>
-                <div class="cl-w1-barra" aria-hidden="true"><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i></div>
-                <div class="cl-w1-leg"><span><i class="a"></i>Cacife 300 mil</span><span><i class="b"></i>Acessórios Style 200 mil</span><span><i class="c"></i>Outras</span></div>
+              <div class="cl-crm">
+                <div class="cl-crm-barra"><i></i><i></i><i></i><span>gestao.provoulevou.com.br</span></div>
+                <div class="cl-crm-cols">
+                  <div><b>Provou</b><div class="cl-lead"><strong>Marina</strong><span>Óculos Aspen</span></div><div class="cl-lead"><strong>Paula</strong><span>Vestido midi</span></div></div>
+                  <div><b>Em contato</b><div class="cl-lead"><strong>Júlia</strong><span>Blazer linho</span><em>respondeu</em></div></div>
+                  <div><b>Convertido</b><div class="cl-lead"><strong>Carla</strong><span>Óculos Lisboa</span><em class="ok">R$ 289</em></div></div>
+                </div>
               </div>
             </div>
-            <h3>Atribuição prova a prova</h3>
-            <p>Cada venda que veio de uma prova entra no painel, separada por loja e comparada aos 3 meses antes do provador.</p>
+            <span class="cl-rotulo">CRM próprio · já incluído</span>
+            <h3>Cada prova vira um lead no funil</h3>
+            <p>Telefone e produto provado caem no CRM na hora, e você move cada cliente de provou para em contato e convertido num painel só.</p>
           </article>
           <article class="cl-item">
             <div class="cl-card cl-c2">
-              <div class="cl-w2-wrap">
-                <div class="cl-w2">
-                  <div class="cl-w2-topo"><span>Conversão <small>▾</small></span><em>Cacife Brand</em></div>
-                  <div class="cl-w2-graf">
-                    <span class="cl-w2-linha" aria-hidden="true"></span>
-                    <div class="cl-w2-col apaga"><i style="height:28%"></i></div>
-                    <div class="cl-w2-col on"><span class="cl-w2-tip">14,32%</span><i style="height:86%"></i></div>
-                    <div class="cl-w2-col"><i style="height:12%"></i></div>
-                    <div class="cl-w2-col apaga"><i style="height:34%"></i></div>
-                  </div>
-                  <div class="cl-w2-dias"><span></span><span class="on">Provador</span><span>Média</span><span></span></div>
+              <div class="cl-chat">
+                <div class="cl-chat-topo"><span class="cl-chat-av" aria-hidden="true"></span><div><strong>Ótica Provou Levou</strong><small>conta comercial · online</small></div></div>
+                <div class="cl-chat-corpo">
+                  <p class="eu">Oi, Marina! Vi que você provou o <b>Óculos Aspen</b> aqui na loja 😍<small>14:02 ✓✓</small></p>
+                  <p class="eu">Separei ele pra você com <b>10% OFF</b> hoje. Quer que eu garanta?<small>14:02 ✓✓</small></p>
+                  <p class="ela">Quero sim! Como faço? 💜<small>14:09</small></p>
                 </div>
-                <p class="cl-w2-leg">7,5x a média da moda online</p>
               </div>
             </div>
-            <h3>Conversão de quem prova</h3>
-            <p>Na Cacife Brand, quem usa o provador converte 14,32%: 7,5 vezes a média da moda online no Brasil, de 1,9%.</p>
+            <span class="cl-rotulo">Disparos de WhatsApp</span>
+            <h3>Plataforma de disparo completa</h3>
+            <p>WhatsApp Business Platform da Meta: número oficial verificado, templates aprovados e mensagem com o nome e o produto que o cliente provou.</p>
           </article>
           <article class="cl-item">
             <div class="cl-card cl-c3">
-              <div class="cl-w3">
-                <span class="cl-w3-tip">Entrega da placa de R$ 100 mil</span>
-                <div class="cl-w3-rostos">
-                  <img src="assets/recursos/rosto-1.webp" alt="" width="180" height="180" loading="lazy">
-                  <img src="assets/recursos/rosto-2.webp" alt="" width="180" height="180" loading="lazy">
-                  <img src="assets/recursos/rosto-3.webp" alt="" width="180" height="180" loading="lazy" class="on">
-                  <img src="assets/recursos/rosto-4.webp" alt="" width="180" height="180" loading="lazy">
-                </div>
+              <div class="cl-inbox">
+                <div class="cl-inbox-topo"><strong>Caixa de entrada</strong><span>WhatsApp</span></div>
+                <div class="cl-chips"><span class="on">Provou</span><span>Clicou</span><span>Abandonou</span></div>
+                <div class="cl-conv"><i>M</i><div><strong>Marina</strong><span>Quero sim! Como faço?</span></div><em>2</em></div>
+                <div class="cl-conv"><i>J</i><div><strong>Júlia</strong><span>Tem no tamanho 38?</span></div></div>
+                <div class="cl-conv"><i>P</i><div><strong>Paula</strong><span>Provou · Vestido midi</span></div></div>
               </div>
             </div>
-            <h3>Atendimento de perto</h3>
-            <p>Nossa equipe instala, acompanha os números com você e entrega a placa pessoalmente quando a loja cruza R$ 100 mil.</p>
+            <span class="cl-rotulo">Tudo num lugar só</span>
+            <h3>Segmente e responda pelo painel</h3>
+            <p>Separe quem provou, clicou ou abandonou e responda pela caixa de entrada do WhatsApp dentro do painel, sem trocar de ferramenta.</p>
           </article>
         </div>
       </div>
