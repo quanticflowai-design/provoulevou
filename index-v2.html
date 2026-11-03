@@ -124,7 +124,7 @@
     .nav-brand { display: flex; align-items: center; flex-shrink: 0; }
     .nav-brand img { height: 30px; width: auto; }
 
-    .nav-links { display: flex; align-items: center; gap: 40px; list-style: none; }
+    .nav-links { display: flex; align-items: center; gap: 14px; list-style: none; }
     /* header por cima do fundo roxo: tudo branco */
     .nav-links a { font-size: 16px; color: #fff; text-decoration: none; transition: opacity .2s ease; }
     .nav-links a:hover { opacity: .65; }
@@ -187,7 +187,7 @@
     .mob-sub .dd-card { margin: 4px 8px 12px; }
 
     /* dropdowns do menu (computador) */
-    .tem-dd { position: relative; }
+    .tem-dd { position: static; }
     .nav-item {
       display: inline-flex; align-items: center; gap: 6px; padding: 8px 0; background: none; border: 0; cursor: pointer;
       font: inherit; font-size: 16px; color: #fff; transition: opacity .2s ease;
@@ -200,9 +200,7 @@
       box-shadow: 0 30px 70px -24px rgba(12,7,22,.55), 0 0 0 1px rgba(34,21,50,.06);
       opacity: 0; visibility: hidden; transform: translate(-50%, -8px); transition: opacity .22s ease, transform .22s ease, visibility .22s;
     }
-    .dropdown.dd-direita { left: auto; right: -60px; transform: translateY(-8px); }
     .dropdown.open { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
-    .dropdown.dd-direita.open { transform: none; }
     .dd-lista { display: grid; align-content: start; gap: 2px; }
     .dd-lista a { display: grid; gap: 3px; padding: 12px 14px; border-radius: 12px; text-decoration: none; color: #161614; transition: background .2s ease; }
     .dd-lista a:hover { background: var(--mist); }
@@ -216,6 +214,58 @@
       background: rgba(255,255,255,.92); color: #161614; font-family: var(--strong); font-weight: 500; font-size: 13.5px; -webkit-text-stroke-width: 0;
     }
     .mob-sub .dd-card { height: 150px; }
+
+    /* menu: fonte Helvetica Medium e paineis de vidro embacado */
+    .nav-item, .nav-links a, .site-header .nav-actions .btn-primary, .mob-item, .mob-panel .mob-link, .mob-panel .btn {
+      font-family: var(--strong); font-weight: 500; -webkit-text-stroke-width: 0;
+    }
+    .site-header .nav-actions .btn-primary { -webkit-text-stroke-width: 0; }
+    .dropdown, .mob-panel {
+      background: rgba(22, 12, 44, .42); color: #fff;
+      -webkit-backdrop-filter: blur(22px) saturate(1.4); backdrop-filter: blur(22px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: 0 30px 70px -24px rgba(5,2,12,.6), inset 0 1px 0 rgba(255,255,255,.12);
+    }
+    .dd-lista a, .mob-item, .mob-panel .mob-link { color: #fff; }
+    .dd-lista a:hover, .mob-item:hover, .mob-item[aria-expanded="true"], .mob-panel .mob-link:hover { background: rgba(255,255,255,.1); }
+    .dd-lista span { color: rgba(255,255,255,.68); }
+    .dd-card { background: rgba(255,255,255,.08); }
+    .dd-card span { background: rgba(22,12,44,.5); color: #fff; border: 1px solid rgba(255,255,255,.16);
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+    .mob-panel .btn-primary { background: #fff; color: #161614; border-color: #fff; box-shadow: none; border-radius: 100px; }
+
+    /* menu no estilo da referencia: painel largo, rotulo pequeno e itens grandes em Helvetica Medium */
+    .nav-item { padding: 8px 16px; border-radius: 100px; transition: background .2s ease, color .2s ease, opacity .2s ease; }
+    .nav-item[aria-expanded="true"] { background: #fff; color: #161614; opacity: 1; }
+    .dropdown {
+      top: calc(100% - 6px); width: min(980px, 100%); grid-template-columns: 1fr 300px; gap: 24px;
+      padding: 18px 18px 18px 44px; border-radius: 22px;
+    }
+    .dd-lista { align-content: center; gap: 14px; padding: 28px 0; }
+    .dd-rotulo { font-family: var(--strong); font-weight: 500; font-size: 13px; color: rgba(255,255,255,.55); -webkit-text-stroke-width: 0; }
+    .dd-links { display: grid; grid-template-columns: repeat(2, minmax(0, max-content)); grid-auto-flow: column; grid-template-rows: repeat(3, auto); gap: 6px 64px; }
+    .dd-lista .dd-links a {
+      display: inline-flex; align-items: baseline; gap: 10px; padding: 2px 0; border-radius: 0; background: none;
+      font-family: var(--strong); font-weight: 500; font-size: 24px; line-height: 1.25; letter-spacing: -0.02em; color: #fff; -webkit-text-stroke-width: 0;
+      transition: opacity .2s ease;
+    }
+    .dd-lista .dd-links a:hover { background: none; opacity: .6; }
+    .dd-links small { font-size: 14px; letter-spacing: 0; color: rgba(255,255,255,.55); }
+    .dropdown .dd-card { min-height: 230px; border-radius: 14px; }
+    .dd-card span { left: 12px; right: auto; bottom: 12px; border-radius: 100px; padding: 10px 16px; background: rgba(12,7,22,.82); }
+    /* celular: mesma lista grande, em uma coluna */
+    .mob-sub .dd-lista { padding: 6px 12px 12px; gap: 10px; }
+    .mob-sub .dd-links { grid-template-columns: 1fr; grid-auto-flow: row; grid-template-rows: none; gap: 4px; }
+    .mob-sub .dd-lista .dd-links a { font-size: 21px; }
+
+    /* computador: menu aberto embaca e escurece o resto do site */
+    .menu-veu {
+      position: fixed; inset: 0; z-index: 15; pointer-events: none; opacity: 0; transition: opacity .3s ease;
+      background: rgba(10,6,20,.35); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    }
+    html.menu-aberto .topo { z-index: 60; }
+    html.menu-aberto .menu-veu { opacity: 1; pointer-events: auto; }
+    @media (max-width: 920px) { .menu-veu { display: none; } }
     .mob-panel .btn { margin-top: 6px; }
 
     /* ─── TOPO (hero roxo, inspirado no degrade escuro da referencia) ─── */
@@ -226,6 +276,15 @@
         radial-gradient(130% 88% at 50% 115%, #f4efff 0%, #cdbcff 14%, #9a6bff 30%, #6d28d9 47%, #3a1580 64%, #160b2c 82%, #0c0716 100%);
     }
     .topo * { -webkit-text-stroke-width: 0; }
+    /* fundo animado (WebGL) por cima do degrade roxo; o veu escurece o topo e o lado do texto e traz o brilho roxo embaixo */
+    .topo-canvas { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 1.2s ease; }
+    .topo-canvas.pronto { opacity: 1; }
+    .topo-veu {
+      position: absolute; inset: 0; z-index: -1; pointer-events: none;
+      background:
+        radial-gradient(120% 70% at 50% 118%, rgba(205,188,255,.55) 0%, rgba(124,58,237,.35) 35%, rgba(12,7,22,0) 70%),
+        linear-gradient(180deg, rgba(12,7,22,.55) 0%, rgba(12,7,22,.15) 45%, rgba(12,7,22,.25) 100%);
+    }
     .topo-grade {
       width: 100%; padding-top: 120px; padding-bottom: clamp(120px, 24vh, 280px);
       display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 32px clamp(32px, 6vw, 110px); align-items: end;
@@ -794,6 +853,9 @@
   <main>
     <!-- ─── TOPO (hero roxo com o header por cima) ─── -->
     <section class="topo" aria-labelledby="topoTitulo">
+      <canvas class="topo-canvas" id="topoCanvas" aria-hidden="true"></canvas>
+      <span class="topo-veu" aria-hidden="true"></span>
+      <div class="menu-veu" aria-hidden="true"></div>
     <!-- ─── HEADER ─── -->
     <header class="site-header">
       <div class="container">
@@ -806,13 +868,13 @@
           <div class="nav-direita">
           <ul class="nav-links">
             <li class="tem-dd"><button type="button" class="nav-item" aria-expanded="false" aria-controls="dd-como">Como funciona<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-              <div class="dropdown" id="dd-como"><div class="dd-lista"><a href="#como-funciona"><strong>Provador com IA</strong><span>O cliente prova a peça na própria foto, sem app e sem cadastro.</span></a><a href="#como-funciona"><strong>Instalação em 1 hora</strong><span>Nossa equipe instala. Você não mexe em código.</span></a><a href="#como-funciona"><strong>Plataformas</strong><span>Shopify, Nuvemshop, Tray, Bagy, VTEX, WooCommerce e Loja Integrada.</span></a></div><a class="dd-card" href="loja-teste.html"><img src="assets/menu/como-funciona.webp" alt="Cliente provando óculos de lentes verdes" width="480" height="340" loading="lazy"><span>Teste o provador agora →</span></a></div></li>
+              <div class="dropdown" id="dd-como"><div class="dd-lista"><span class="dd-rotulo">O provador</span><div class="dd-links"><a href="#como-funciona">Provador com IA</a><a href="#como-funciona">Sem app e sem cadastro</a><a href="#como-funciona">Instalação em 1 hora</a><a href="#como-funciona">Plataformas</a><a href="loja-teste.html">Teste ao vivo</a></div></div><a class="dd-card" href="loja-teste.html"><img src="assets/menu/como-funciona.webp" alt="Cliente provando óculos de lentes verdes" width="480" height="340" loading="lazy"><span>Teste o provador agora →</span></a></div></li>
             <li class="tem-dd"><button type="button" class="nav-item" aria-expanded="false" aria-controls="dd-cases">Cases<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-              <div class="dropdown" id="dd-cases"><div class="dd-lista"><a href="#cases"><strong>Cacife Brand</strong><span>+R$ 300 mil atribuídos ao provador</span></a><a href="#cases"><strong>Acessórios Style</strong><span>+R$ 200 mil atribuídos ao provador</span></a><a href="#cases"><strong>Use Cand</strong><span>+R$ 200 mil atribuídos ao provador</span></a><a href="#cases"><strong>Mariana Cardoso</strong><span>+R$ 100 mil atribuídos ao provador</span></a></div><a class="dd-card" href="#cases"><img src="assets/menu/cases.webp" alt="Entrega das placas de R$ 100 mil" width="480" height="340" loading="lazy"><span>Placas de R$ 100 mil →</span></a></div></li>
+              <div class="dropdown" id="dd-cases"><div class="dd-lista"><span class="dd-rotulo">Faturamento atribuído ao provador</span><div class="dd-links"><a href="#cases">Cacife Brand <small>+R$ 300 mil</small></a><a href="#cases">Acessórios Style <small>+R$ 200 mil</small></a><a href="#cases">Use Cand <small>+R$ 200 mil</small></a><a href="#cases">Mariana Cardoso <small>+R$ 100 mil</small></a><a href="#cases">Paris London <small>+R$ 40 mil</small></a></div></div><a class="dd-card" href="#cases"><img src="assets/menu/cases.webp" alt="Entrega das placas de R$ 100 mil" width="480" height="340" loading="lazy"><span>Placas de R$ 100 mil →</span></a></div></li>
             <li class="tem-dd"><button type="button" class="nav-item" aria-expanded="false" aria-controls="dd-whats">WhatsApp &amp; CRM<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-              <div class="dropdown" id="dd-whats"><div class="dd-lista"><a href="#whatsapp"><strong>CRM próprio</strong><span>Telefone e peça provada caem no painel na hora.</span></a><a href="#whatsapp"><strong>Disparos oficiais</strong><span>WhatsApp Business Platform da Meta, número verificado.</span></a><a href="#whatsapp"><strong>Funil de vendas</strong><span>Provou, em contato, convertido: tudo num só lugar.</span></a></div><a class="dd-card" href="#whatsapp"><img src="assets/menu/whatsapp.webp" alt="Painel do lojista da Provou Levou" width="480" height="340" loading="lazy"><span>Painel do lojista →</span></a></div></li>
+              <div class="dropdown" id="dd-whats"><div class="dd-lista"><span class="dd-rotulo">WhatsApp &amp; CRM</span><div class="dd-links"><a href="#whatsapp">CRM próprio</a><a href="#whatsapp">Disparos oficiais</a><a href="#whatsapp">Funil de vendas</a><a href="#whatsapp">Painel do lojista</a></div></div><a class="dd-card" href="#whatsapp"><img src="assets/menu/whatsapp.webp" alt="Painel do lojista da Provou Levou" width="480" height="340" loading="lazy"><span>Painel do lojista →</span></a></div></li>
             <li class="tem-dd"><button type="button" class="nav-item" aria-expanded="false" aria-controls="dd-planos">Planos<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-              <div class="dropdown dd-direita" id="dd-planos"><div class="dd-lista"><a href="#planos"><strong>Essencial</strong><span>R$ 39 · 50 fotos/mês</span></a><a href="#planos"><strong>Crescimento</strong><span>R$ 79 · 100 fotos/mês</span></a><a href="#planos"><strong>Escala</strong><span>R$ 369 · 500 fotos/mês · mais vendido</span></a><a href="#planos"><strong>Custom</strong><span>Acima de 2.500 fotos, sob medida</span></a></div><a class="dd-card" href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener"><img src="assets/menu/planos.webp" alt="" width="480" height="340" loading="lazy"><span>7 dias grátis para testar →</span></a></div></li>
+              <div class="dropdown" id="dd-planos"><div class="dd-lista"><span class="dd-rotulo">Planos por fotos/mês</span><div class="dd-links"><a href="#planos">Essencial <small>R$ 39</small></a><a href="#planos">Crescimento <small>R$ 79</small></a><a href="#planos">Profissional <small>R$ 159</small></a><a href="#planos">Escala <small>R$ 369</small></a><a href="#planos">Volume <small>a partir de R$ 699</small></a><a href="#planos">Custom <small>sob medida</small></a></div></div><a class="dd-card" href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener"><img src="assets/menu/planos.webp" alt="" width="480" height="340" loading="lazy"><span>7 dias grátis para testar →</span></a></div></li>
           </ul>
 
           <div class="nav-actions">
@@ -825,13 +887,13 @@
 
       <div class="mob-panel" id="mobPanel" data-lenis-prevent>
         <div class="mob-grupo"><button type="button" class="mob-item" aria-expanded="false" aria-controls="m-dd-como">Como funciona<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <div class="mob-sub" id="m-dd-como"><div class="mob-sub-in"><div class="dd-lista"><a href="#como-funciona"><strong>Provador com IA</strong><span>O cliente prova a peça na própria foto, sem app e sem cadastro.</span></a><a href="#como-funciona"><strong>Instalação em 1 hora</strong><span>Nossa equipe instala. Você não mexe em código.</span></a><a href="#como-funciona"><strong>Plataformas</strong><span>Shopify, Nuvemshop, Tray, Bagy, VTEX, WooCommerce e Loja Integrada.</span></a></div><a class="dd-card" href="loja-teste.html"><img src="assets/menu/como-funciona.webp" alt="Cliente provando óculos de lentes verdes" width="480" height="340" loading="lazy"><span>Teste o provador agora →</span></a></div></div></div>
+          <div class="mob-sub" id="m-dd-como"><div class="mob-sub-in"><div class="dd-lista"><span class="dd-rotulo">O provador</span><div class="dd-links"><a href="#como-funciona">Provador com IA</a><a href="#como-funciona">Sem app e sem cadastro</a><a href="#como-funciona">Instalação em 1 hora</a><a href="#como-funciona">Plataformas</a><a href="loja-teste.html">Teste ao vivo</a></div></div><a class="dd-card" href="loja-teste.html"><img src="assets/menu/como-funciona.webp" alt="Cliente provando óculos de lentes verdes" width="480" height="340" loading="lazy"><span>Teste o provador agora →</span></a></div></div></div>
         <div class="mob-grupo"><button type="button" class="mob-item" aria-expanded="false" aria-controls="m-dd-cases">Cases<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <div class="mob-sub" id="m-dd-cases"><div class="mob-sub-in"><div class="dd-lista"><a href="#cases"><strong>Cacife Brand</strong><span>+R$ 300 mil atribuídos ao provador</span></a><a href="#cases"><strong>Acessórios Style</strong><span>+R$ 200 mil atribuídos ao provador</span></a><a href="#cases"><strong>Use Cand</strong><span>+R$ 200 mil atribuídos ao provador</span></a><a href="#cases"><strong>Mariana Cardoso</strong><span>+R$ 100 mil atribuídos ao provador</span></a></div><a class="dd-card" href="#cases"><img src="assets/menu/cases.webp" alt="Entrega das placas de R$ 100 mil" width="480" height="340" loading="lazy"><span>Placas de R$ 100 mil →</span></a></div></div></div>
+          <div class="mob-sub" id="m-dd-cases"><div class="mob-sub-in"><div class="dd-lista"><span class="dd-rotulo">Faturamento atribuído ao provador</span><div class="dd-links"><a href="#cases">Cacife Brand <small>+R$ 300 mil</small></a><a href="#cases">Acessórios Style <small>+R$ 200 mil</small></a><a href="#cases">Use Cand <small>+R$ 200 mil</small></a><a href="#cases">Mariana Cardoso <small>+R$ 100 mil</small></a><a href="#cases">Paris London <small>+R$ 40 mil</small></a></div></div><a class="dd-card" href="#cases"><img src="assets/menu/cases.webp" alt="Entrega das placas de R$ 100 mil" width="480" height="340" loading="lazy"><span>Placas de R$ 100 mil →</span></a></div></div></div>
         <div class="mob-grupo"><button type="button" class="mob-item" aria-expanded="false" aria-controls="m-dd-whats">WhatsApp &amp; CRM<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <div class="mob-sub" id="m-dd-whats"><div class="mob-sub-in"><div class="dd-lista"><a href="#whatsapp"><strong>CRM próprio</strong><span>Telefone e peça provada caem no painel na hora.</span></a><a href="#whatsapp"><strong>Disparos oficiais</strong><span>WhatsApp Business Platform da Meta, número verificado.</span></a><a href="#whatsapp"><strong>Funil de vendas</strong><span>Provou, em contato, convertido: tudo num só lugar.</span></a></div><a class="dd-card" href="#whatsapp"><img src="assets/menu/whatsapp.webp" alt="Painel do lojista da Provou Levou" width="480" height="340" loading="lazy"><span>Painel do lojista →</span></a></div></div></div>
+          <div class="mob-sub" id="m-dd-whats"><div class="mob-sub-in"><div class="dd-lista"><span class="dd-rotulo">WhatsApp &amp; CRM</span><div class="dd-links"><a href="#whatsapp">CRM próprio</a><a href="#whatsapp">Disparos oficiais</a><a href="#whatsapp">Funil de vendas</a><a href="#whatsapp">Painel do lojista</a></div></div><a class="dd-card" href="#whatsapp"><img src="assets/menu/whatsapp.webp" alt="Painel do lojista da Provou Levou" width="480" height="340" loading="lazy"><span>Painel do lojista →</span></a></div></div></div>
         <div class="mob-grupo"><button type="button" class="mob-item" aria-expanded="false" aria-controls="m-dd-planos">Planos<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <div class="mob-sub" id="m-dd-planos"><div class="mob-sub-in"><div class="dd-lista"><a href="#planos"><strong>Essencial</strong><span>R$ 39 · 50 fotos/mês</span></a><a href="#planos"><strong>Crescimento</strong><span>R$ 79 · 100 fotos/mês</span></a><a href="#planos"><strong>Escala</strong><span>R$ 369 · 500 fotos/mês · mais vendido</span></a><a href="#planos"><strong>Custom</strong><span>Acima de 2.500 fotos, sob medida</span></a></div><a class="dd-card" href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener"><img src="assets/menu/planos.webp" alt="" width="480" height="340" loading="lazy"><span>7 dias grátis para testar →</span></a></div></div></div>
+          <div class="mob-sub" id="m-dd-planos"><div class="mob-sub-in"><div class="dd-lista"><span class="dd-rotulo">Planos por fotos/mês</span><div class="dd-links"><a href="#planos">Essencial <small>R$ 39</small></a><a href="#planos">Crescimento <small>R$ 79</small></a><a href="#planos">Profissional <small>R$ 159</small></a><a href="#planos">Escala <small>R$ 369</small></a><a href="#planos">Volume <small>a partir de R$ 699</small></a><a href="#planos">Custom <small>sob medida</small></a></div></div><a class="dd-card" href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener"><img src="assets/menu/planos.webp" alt="" width="480" height="340" loading="lazy"><span>7 dias grátis para testar →</span></a></div></div></div>
         <a class="mob-link" href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener">Falar com especialista</a>
         <a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener" class="btn btn-primary">Testar grátis por 7 dias</a>
       </div>
@@ -1074,6 +1136,7 @@
           if (o === exceto) return;
           o.setAttribute('aria-expanded', 'false'); document.getElementById(o.getAttribute('aria-controls')).classList.remove('open');
         });
+        if (!exceto) document.documentElement.classList.remove('menu-aberto');
       };
       itens.forEach(function (b) {
         b.addEventListener('click', function (e) {
@@ -1082,6 +1145,7 @@
           var abre = !dd.classList.contains('open');
           fechaTudo(b);
           dd.classList.toggle('open', abre); b.setAttribute('aria-expanded', abre ? 'true' : 'false');
+          document.documentElement.classList.toggle('menu-aberto', abre);
         });
       });
       document.addEventListener('click', function (e) { if (!e.target.closest('.dropdown')) fechaTudo(null); });
@@ -1212,6 +1276,7 @@
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(posiciona);
     })();
   </script>
+  <script src="assets/js/fundo-animado.js"></script>
   <script src="assets/js/lenis-1.1.13.min.js"></script>
   <script>
     // Rolagem mais lenta e suave. Quem pediu menos movimento no sistema fica com a rolagem normal.
