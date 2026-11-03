@@ -934,7 +934,7 @@
     .met-num { display: block; margin-top: 46px; font-family: var(--sans); font-weight: 300; font-size: clamp(42px, 4.2vw, 62px); line-height: 1; letter-spacing: -0.02em; color: #fff; -webkit-text-stroke: .012em #fff; }
     .met-dots { margin-top: 36px; width: min(100%, 260px); display: grid; grid-template-columns: repeat(10, 1fr); gap: 7px; }
     .met-dots i { aspect-ratio: 1; border-radius: 50%; background: #2a2a2a; transition: background .35s ease var(--d); }
-    .met-grade[data-in="true"] .met-dots i.on { background: var(--cor); }
+    .met-col[data-in="true"] .met-dots i.on { background: var(--cor); }
     @media (max-width: 900px) {
       .met-grade { grid-template-columns: 1fr; gap: 64px; }
       .met-txt { min-height: 0; max-width: none; margin-top: 22px; }
@@ -1625,23 +1625,26 @@
       var g = document.getElementById('metGrade');
       if (!g) return;
       var reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var nums = g.querySelectorAll('.met-num');
-      var vai = function () {
-        g.setAttribute('data-in', 'true');
+      // cada coluna anima sozinha quando a grade de pontos dela aparece na tela (no celular elas ficam uma embaixo da outra)
+      var vai = function (col) {
+        col.setAttribute('data-in', 'true');
         if (reduz) return;
-        nums.forEach(function (el) {
-          var n = +el.getAttribute('data-n'), t0 = performance.now(), dur = n * 18 + 400;
-          var passo = function (t) {
-            var k = Math.min(1, (t - t0) / dur);
-            el.textContent = Math.round(n * k) + '%';
-            if (k < 1) requestAnimationFrame(passo);
-          };
-          el.textContent = '0%'; requestAnimationFrame(passo);
-        });
+        var el = col.querySelector('.met-num'), n = +el.getAttribute('data-n'), t0 = performance.now(), dur = n * 18 + 400;
+        var passo = function (t) {
+          var k = Math.min(1, (t - t0) / dur);
+          el.textContent = Math.round(n * k) + '%';
+          if (k < 1) requestAnimationFrame(passo);
+        };
+        el.textContent = '0%'; requestAnimationFrame(passo);
       };
-      if (!('IntersectionObserver' in window)) { vai(); return; }
-      var io = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { vai(); io.disconnect(); } }, { threshold: .3 });
-      io.observe(g);
+      var cols = g.querySelectorAll('.met-col');
+      if (!('IntersectionObserver' in window)) { cols.forEach(vai); return; }
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          if (e.isIntersecting) { var col = e.target.closest('.met-col'); io.unobserve(e.target); vai(col); }
+        });
+      }, { threshold: .6 });
+      cols.forEach(function (c) { io.observe(c.querySelector('.met-dots')); });
     })();
   </script>
   <script src="assets/js/lenis-1.1.13.min.js"></script>
