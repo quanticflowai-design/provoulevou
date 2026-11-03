@@ -14,7 +14,7 @@
     .demo-passos li { margin: 3px 0; }
     .demo-extra { display: block; margin-top: 4px; font-size: .92em; }
     .demo-acoes { display: grid; gap: 10px; margin: 18px 0 0; }
-    .demo-acoes .btn-so-armacao { background: #fff; color: #111; border: 1.5px solid #111; }
+    .btn-medir-dp { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 0; background: #fff; color: #111; border: 1.5px solid #111; text-decoration: none; }
   </style>
 </head>
 <body>
@@ -51,7 +51,7 @@
       <li>Na receita, <b>tire uma foto da sua receita</b>: a IA l&ecirc; os graus e indica a lente certa.</li>
       <li>Escolha <b>Multifocal</b> para ver a <b>medi&ccedil;&atilde;o da DNP pela c&acirc;mera</b> (precisa de um cart&atilde;o de banco).</li>
     </ol>
-    <span class="demo-extra">Quer testar s&oacute; a medi&ccedil;&atilde;o de DP? <a href="https://quantic-dnp-medicao.k5jwra.easypanel.host" target="_blank" rel="noopener">Abrir o medidor de DP</a> &middot; Nada aqui &eacute; vendido de verdade.</span>
+    <span class="demo-extra">Para testar s&oacute; a medi&ccedil;&atilde;o, use o bot&atilde;o <b>Medir minha DP</b>. Nada aqui &eacute; vendido de verdade.</span>
   </div>
 
   <main class="wrap">
@@ -93,8 +93,13 @@
         <form id="product_form" class="product-actions demo-acoes" onsubmit="return false">
           <input type="hidden" name="add_to_cart" value="demo">
           <input type="hidden" name="quantity" value="1">
-          <button type="button" class="btn-comprar btn-so-armacao js-addtocart" data-pl-comprar>Comprar s&oacute; a arma&ccedil;&atilde;o</button>
+          <!-- escondido: so serve de ancora pro fluxo de lentes e pro provador (a demo nao vende a armacao avulsa) -->
+          <button type="button" class="btn-comprar js-addtocart" data-pl-comprar hidden>Comprar</button>
         </form>
+        <a class="btn-comprar btn-medir-dp" href="https://quantic-dnp-medicao.k5jwra.easypanel.host/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h18v8H3z"/><path d="M7 8v3M11 8v4M15 8v3M19 8v4"/></svg>
+          Medir minha DP
+        </a>
 
         <div class="vantagens">
           <div class="vantagem">
