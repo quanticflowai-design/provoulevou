@@ -901,6 +901,30 @@
       .ib-line-draw{transition:none;stroke-dashoffset:0}
       .wf-mov{display:none}
     }
+
+    /* workflow em fundo preto */
+    .ib-root[data-theme="dark"]{--ib-page:#000;--ib-hatch:transparent;--ib-paper:#000;--ib-card:#141414;--ib-raise:#1c1c1c;--ib-ink:#eeeeee;--ib-soft:#c9c9c9;--ib-muted:#8d8d8d;--ib-faint:#5d5d5d;--ib-line:#262626;--ib-line-strong:#363636;--ib-bracket:#444444;--ib-inv:#efefef;--ib-inv-ink:#121212;--ib-shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7)}
+    .workflow .ib-sec{border-color:transparent}
+
+    /* ─── METRICAS (grade de 100 pontos por numero) ─── */
+    .metricas { background: #000; color: #fff; padding: clamp(40px, 5vw, 72px) 0 clamp(96px, 10vw, 150px); }
+    .metricas * { -webkit-text-stroke-width: 0; }
+    .met-titulo {
+      font-family: var(--strong); font-weight: 500; color: #fff;
+      font-size: clamp(2.4rem, 4.6vw, 4.4rem); line-height: 1.02; letter-spacing: -0.04em;
+      text-shadow: .06em .04em 0 #3a3a3a; margin-bottom: clamp(72px, 10vw, 150px);
+    }
+    .met-titulo span { display: block; letter-spacing: -0.04em; }
+    .met-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 56px clamp(32px, 6vw, 96px); }
+    .met-tag { display: inline-block; padding: 5px 11px; border-radius: 5px; background: var(--cor); color: #111; font-family: var(--strong); font-weight: 500; font-size: 12px; }
+    .met-txt { margin-top: 34px; max-width: 15em; min-height: 4.4em; font-size: clamp(19px, 1.75vw, 25px); line-height: 1.3; letter-spacing: -0.02em; color: #b5b5b5; }
+    .met-txt strong { font-family: var(--strong); font-weight: 500; color: #fff; }
+    .met-num { display: block; margin-top: 46px; font-family: var(--sans); font-weight: 300; font-size: clamp(42px, 4.2vw, 62px); line-height: 1; letter-spacing: -0.02em; color: #fff; -webkit-text-stroke: .012em #fff; }
+    .met-dots { margin-top: 36px; width: min(100%, 260px); display: grid; grid-template-columns: repeat(10, 1fr); gap: 7px; }
+    .met-dots i { aspect-ratio: 1; border-radius: 50%; background: #2a2a2a; transition: background .35s ease var(--d); }
+    .met-grade[data-in="true"] .met-dots i.on { background: var(--cor); }
+    @media (max-width: 900px) { .met-grade { grid-template-columns: 1fr; gap: 72px; } .met-txt { min-height: 0; } }
+    @media (prefers-reduced-motion: reduce) { .met-dots i { transition: none; } }
   </style>
 </head>
 
@@ -1130,7 +1154,7 @@
 
     <!-- ─── WORKFLOW (conexoes da Provou Levou) ─── -->
     <section class="workflow" id="whatsapp" aria-labelledby="wfTitulo">
-      <div class="ib-root" data-theme="light">
+      <div class="ib-root" data-theme="dark">
         <div class="ib-shell">
           <div class="ib-sec">
             <div class="ib-reveal" id="wfReveal" data-in="false">
@@ -1184,6 +1208,33 @@
           </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── METRICAS ─── -->
+    <section class="metricas" id="cases" aria-labelledby="metTitulo">
+      <div class="container">
+        <h2 class="met-titulo" id="metTitulo"><span>Resultados que</span> <span>falam por si</span></h2>
+        <div class="met-grade" id="metGrade" data-in="false">
+          <div class="met-col" style="--cor:#7c6cff">
+            <span class="met-tag">Métrica 1</span>
+            <p class="met-txt"><strong>Compram em até 1 hora</strong> depois de provar: clientes de óticas que usam o provador</p>
+            <strong class="met-num" data-n="51">51%</strong>
+            <div class="met-dots" role="img" aria-label="51 de 100"><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i class="on" style="--d:900ms"></i><i class="on" style="--d:882ms"></i><i class="on" style="--d:864ms"></i><i class="on" style="--d:846ms"></i><i class="on" style="--d:828ms"></i><i class="on" style="--d:810ms"></i><i class="on" style="--d:792ms"></i><i class="on" style="--d:774ms"></i><i class="on" style="--d:756ms"></i><i class="on" style="--d:738ms"></i><i class="on" style="--d:720ms"></i><i class="on" style="--d:702ms"></i><i class="on" style="--d:684ms"></i><i class="on" style="--d:666ms"></i><i class="on" style="--d:648ms"></i><i class="on" style="--d:630ms"></i><i class="on" style="--d:612ms"></i><i class="on" style="--d:594ms"></i><i class="on" style="--d:576ms"></i><i class="on" style="--d:558ms"></i><i class="on" style="--d:540ms"></i><i class="on" style="--d:522ms"></i><i class="on" style="--d:504ms"></i><i class="on" style="--d:486ms"></i><i class="on" style="--d:468ms"></i><i class="on" style="--d:450ms"></i><i class="on" style="--d:432ms"></i><i class="on" style="--d:414ms"></i><i class="on" style="--d:396ms"></i><i class="on" style="--d:378ms"></i><i class="on" style="--d:360ms"></i><i class="on" style="--d:342ms"></i><i class="on" style="--d:324ms"></i><i class="on" style="--d:306ms"></i><i class="on" style="--d:288ms"></i><i class="on" style="--d:270ms"></i><i class="on" style="--d:252ms"></i><i class="on" style="--d:234ms"></i><i class="on" style="--d:216ms"></i><i class="on" style="--d:198ms"></i><i class="on" style="--d:180ms"></i><i class="on" style="--d:162ms"></i><i class="on" style="--d:144ms"></i><i class="on" style="--d:126ms"></i><i class="on" style="--d:108ms"></i><i class="on" style="--d:90ms"></i><i class="on" style="--d:72ms"></i><i class="on" style="--d:54ms"></i><i class="on" style="--d:36ms"></i><i class="on" style="--d:18ms"></i><i class="on" style="--d:0ms"></i></div>
+          </div>
+          <div class="met-col" style="--cor:#b6f23a">
+            <span class="met-tag">Métrica 2</span>
+            <p class="met-txt"><strong>Vendas de óticas</strong> atribuídas ao provador podem chegar a</p>
+            <strong class="met-num" data-n="30">30%</strong>
+            <div class="met-dots" role="img" aria-label="30 de 100"><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i class="on" style="--d:522ms"></i><i class="on" style="--d:504ms"></i><i class="on" style="--d:486ms"></i><i class="on" style="--d:468ms"></i><i class="on" style="--d:450ms"></i><i class="on" style="--d:432ms"></i><i class="on" style="--d:414ms"></i><i class="on" style="--d:396ms"></i><i class="on" style="--d:378ms"></i><i class="on" style="--d:360ms"></i><i class="on" style="--d:342ms"></i><i class="on" style="--d:324ms"></i><i class="on" style="--d:306ms"></i><i class="on" style="--d:288ms"></i><i class="on" style="--d:270ms"></i><i class="on" style="--d:252ms"></i><i class="on" style="--d:234ms"></i><i class="on" style="--d:216ms"></i><i class="on" style="--d:198ms"></i><i class="on" style="--d:180ms"></i><i class="on" style="--d:162ms"></i><i class="on" style="--d:144ms"></i><i class="on" style="--d:126ms"></i><i class="on" style="--d:108ms"></i><i class="on" style="--d:90ms"></i><i class="on" style="--d:72ms"></i><i class="on" style="--d:54ms"></i><i class="on" style="--d:36ms"></i><i class="on" style="--d:18ms"></i><i class="on" style="--d:0ms"></i></div>
+          </div>
+          <div class="met-col" style="--cor:#ffb55c">
+            <span class="met-tag">Métrica 3</span>
+            <p class="met-txt"><strong>Atribuição da Cacife Brand</strong> no 2º mês com o provador (4,3% no mês da instalação)</p>
+            <strong class="met-num" data-n="22">22%</strong>
+            <div class="met-dots" role="img" aria-label="22 de 100"><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i class="on" style="--d:378ms"></i><i class="on" style="--d:360ms"></i><i class="on" style="--d:342ms"></i><i class="on" style="--d:324ms"></i><i class="on" style="--d:306ms"></i><i class="on" style="--d:288ms"></i><i class="on" style="--d:270ms"></i><i class="on" style="--d:252ms"></i><i class="on" style="--d:234ms"></i><i class="on" style="--d:216ms"></i><i class="on" style="--d:198ms"></i><i class="on" style="--d:180ms"></i><i class="on" style="--d:162ms"></i><i class="on" style="--d:144ms"></i><i class="on" style="--d:126ms"></i><i class="on" style="--d:108ms"></i><i class="on" style="--d:90ms"></i><i class="on" style="--d:72ms"></i><i class="on" style="--d:54ms"></i><i class="on" style="--d:36ms"></i><i class="on" style="--d:18ms"></i><i class="on" style="--d:0ms"></i></div>
           </div>
         </div>
       </div>
@@ -1496,6 +1547,31 @@
       });
       chart.addEventListener('pointerleave', function () { marca(P.length - 1, true); });
       visto(card, .3, function () { card.setAttribute('data-in', 'true'); });
+    })();
+  </script>
+  <script>
+    /* metricas: pontos acendem e numeros contam quando a secao aparece */
+    (function () {
+      var g = document.getElementById('metGrade');
+      if (!g) return;
+      var reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var nums = g.querySelectorAll('.met-num');
+      var vai = function () {
+        g.setAttribute('data-in', 'true');
+        if (reduz) return;
+        nums.forEach(function (el) {
+          var n = +el.getAttribute('data-n'), t0 = performance.now(), dur = n * 18 + 400;
+          var passo = function (t) {
+            var k = Math.min(1, (t - t0) / dur);
+            el.textContent = Math.round(n * k) + '%';
+            if (k < 1) requestAnimationFrame(passo);
+          };
+          el.textContent = '0%'; requestAnimationFrame(passo);
+        });
+      };
+      if (!('IntersectionObserver' in window)) { vai(); return; }
+      var io = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { vai(); io.disconnect(); } }, { threshold: .3 });
+      io.observe(g);
     })();
   </script>
   <script src="assets/js/lenis-1.1.13.min.js"></script>
