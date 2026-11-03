@@ -119,18 +119,21 @@
 
     /* ─── HEADER ─── */
     .site-header { position: absolute; top: 0; left: 0; right: 0; z-index: 20; background: transparent; }
-    .nav { position: relative; height: 110px; display: flex; align-items: center; justify-content: center; gap: 44px; }
+    .nav { position: relative; height: 110px; display: flex; align-items: center; justify-content: space-between; gap: 44px; }
+    .nav-direita { display: flex; align-items: center; gap: 44px; }
     .nav-brand { display: flex; align-items: center; flex-shrink: 0; }
     .nav-brand img { height: 30px; width: auto; }
 
     .nav-links { display: flex; align-items: center; gap: 40px; list-style: none; }
-    /* o topo da foto nova e branco: menu preto pra aparecer */
-    .nav-links a { font-size: 17px; color: #161614; text-decoration: none; transition: opacity .2s ease; }
+    /* header por cima do fundo roxo: tudo branco */
+    .nav-links a { font-size: 16px; color: #fff; text-decoration: none; transition: opacity .2s ease; }
     .nav-links a:hover { opacity: .65; }
 
-    .nav-actions { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 10px; }
-    .nav-actions .btn-primary { background: #161614; border-color: #161614; box-shadow: none; border-radius: 6px; padding: 11px 18px; }
-    .nav-actions .btn-primary:hover { background: var(--violet-dark); border-color: var(--violet-dark); }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .nav-actions .btn-primary { background: #fff; color: #161614; border-color: #fff; box-shadow: none; border-radius: 100px; padding: 11px 20px; }
+    .nav-actions .btn-primary:hover { background: #ede9fe; border-color: #ede9fe; }
+    .site-header .logo-claro { display: none; }
+    .site-header .logo-escuro { display: block; }
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
       font-family: var(--sans); font-weight: 300; font-size: 14px; line-height: 1;
@@ -148,11 +151,11 @@
     .btn-lg { font-size: 16px; padding: 14px 22px; }
 
     .nav-toggle {
-      display: none; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 8px;
-      background: var(--paper); cursor: pointer; align-items: center; justify-content: center;
+      display: none; width: 40px; height: 40px; border: 1px solid rgba(255,255,255,.35); border-radius: 8px;
+      background: transparent; cursor: pointer; align-items: center; justify-content: center;
     }
     .nav-toggle span, .nav-toggle span::before, .nav-toggle span::after {
-      content: ''; display: block; width: 18px; height: 1.5px; background: var(--ink); position: relative;
+      content: ''; display: block; width: 18px; height: 1.5px; background: #fff; position: relative;
       transition: transform .25s ease, background .25s ease;
     }
     .nav-toggle span::before { position: absolute; top: -6px; }
@@ -171,6 +174,53 @@
     .mob-panel a:not(.btn) { font-size: 18px; text-decoration: none; padding: 14px 12px; border-radius: 10px; }
     .mob-panel a:not(.btn):hover { background: var(--mist); }
     .mob-panel .btn { margin-top: 6px; }
+
+    /* ─── TOPO (hero roxo, inspirado no degrade escuro da referencia) ─── */
+    .topo {
+      position: relative; isolation: isolate; overflow: hidden; color: #fff;
+      min-height: max(640px, 100svh); display: flex; align-items: flex-end;
+      background:
+        radial-gradient(130% 88% at 50% 115%, #f4efff 0%, #cdbcff 14%, #9a6bff 30%, #6d28d9 47%, #3a1580 64%, #160b2c 82%, #0c0716 100%);
+    }
+    .topo * { -webkit-text-stroke-width: 0; }
+    .topo-grade {
+      width: 100%; padding-bottom: clamp(56px, 11vh, 120px);
+      display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 32px clamp(32px, 6vw, 110px); align-items: end;
+    }
+    .topo-selo {
+      display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 8px;
+      font-family: var(--strong); font-weight: 500; font-size: 13px; color: #fff;
+      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.18);
+      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    }
+    .topo-selo::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #fff; }
+    .topo-titulo {
+      margin-top: 22px; max-width: 12em;
+      font-family: var(--sans); font-weight: 300; color: #fff;
+      font-size: clamp(44px, 5.6vw, 86px); line-height: 1.04; letter-spacing: -0.035em;
+      -webkit-text-stroke: 0.012em #fff;
+    }
+    .topo-dir p { font-size: clamp(16px, 1.25vw, 19px); line-height: 1.5; color: rgba(255,255,255,.88); max-width: 30em; letter-spacing: -0.01em; }
+    .topo-acoes { margin-top: 26px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 22px; }
+    .topo-cta {
+      display: inline-flex; align-items: center; padding: 14px 26px; border-radius: 100px;
+      background: #fff; color: #161614; text-decoration: none;
+      font-family: var(--strong); font-weight: 500; font-size: 15px; transition: background .2s ease, transform .2s ease;
+    }
+    .topo-cta:hover { background: #ede9fe; transform: translateY(-1px); }
+    .topo-prova { display: flex; align-items: center; gap: 10px; font-family: var(--strong); font-weight: 500; font-size: 14px; color: #fff; }
+    .topo-prova b { color: #fcd34d; font-weight: 400; }
+    .topo-avatares { display: flex; }
+    .topo-avatares img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,.9); }
+    .topo-avatares img + img { margin-left: -10px; }
+    @media (max-width: 900px) {
+      .topo-grade { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .topo { min-height: max(600px, 100svh); }
+      .topo-titulo { font-size: clamp(38px, 10.5vw, 48px); }
+      .topo-grade { gap: 24px; padding-bottom: 48px; }
+    }
 
     /* ─── ABERTURA (estilo Pareto) ─── */
     /* fundo branco; a foto das laminas ocupa a parte de baixo, com o "vale" branco dela
@@ -665,7 +715,7 @@
 
     /* ─── RESPONSIVO ─── */
     @media (max-width: 1100px) {
-      .nav { gap: 30px; justify-content: flex-start; }
+      .nav-direita { gap: 28px; }
       .nav-links { gap: 24px; }
       .nav-links a { font-size: 15px; }
     }
@@ -675,7 +725,7 @@
     }
     @media (max-width: 640px) {
       :root { --gutter-l: max(16px, env(safe-area-inset-left, 0px)); --gutter-r: max(16px, env(safe-area-inset-right, 0px)); }
-      .nav { height: 76px; gap: 12px; justify-content: flex-start; }
+      .nav { height: 76px; gap: 12px; }
       .nav-brand img { height: 25px; }
       .nav-actions { gap: 8px; }
       .nav-actions .btn-primary { font-size: 13px; padding: 10px 12px; }
@@ -696,8 +746,8 @@
 
 
   <main>
-    <!-- ─── ABERTURA ─── -->
-    <section class="abertura" aria-labelledby="aberturaTitulo">
+    <!-- ─── TOPO (hero roxo com o header por cima) ─── -->
+    <section class="topo" aria-labelledby="topoTitulo">
     <!-- ─── HEADER ─── -->
     <header class="site-header">
       <div class="container">
@@ -707,6 +757,7 @@
             <img class="logo-escuro" src="assets/logo-provou-branco.png" alt="Provou Levou" width="2469" height="431">
           </a>
 
+          <div class="nav-direita">
           <ul class="nav-links">
             <li><a href="#como-funciona">Como funciona</a></li>
             <li><a href="#cases">Cases</a></li>
@@ -718,6 +769,7 @@
           <div class="nav-actions">
             <a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener" class="btn btn-primary">Testar grátis</a>
             <button type="button" class="nav-toggle" id="navToggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobPanel"><span></span></button>
+          </div>
           </div>
         </nav>
       </div>
@@ -733,6 +785,31 @@
       </div>
     </header>
 
+      <div class="container topo-grade">
+        <div class="topo-esq rise">
+          <span class="topo-selo">Provador virtual com IA</span>
+          <h1 class="topo-titulo" id="topoTitulo">Seu cliente prova, sua loja vende com mais certeza</h1>
+        </div>
+        <div class="topo-dir rise d1">
+          <p>Provador virtual com IA para moda e óculos. Seu cliente prova a peça na própria foto, sem app e sem cadastro, e cada prova vira um lead no seu WhatsApp.</p>
+          <div class="topo-acoes">
+            <a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener" class="topo-cta">Testar grátis</a>
+            <div class="topo-prova">
+              <span class="topo-avatares" aria-hidden="true">
+                <img src="assets/recursos/cliente-1.webp" alt="" width="120" height="120">
+                <img src="assets/recursos/cliente-2.webp" alt="" width="120" height="120">
+                <img src="assets/recursos/cliente-3.webp" alt="" width="120" height="120">
+              </span>
+              <span><b aria-hidden="true">★</b> 4,9 · +200 lojistas</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── ABERTURA ─── -->
+    <section class="abertura" aria-labelledby="aberturaTitulo">
+
 <div class="abertura-fundo"><div class="onda"><img src="assets/hero-ondas.webp" alt="" width="1981" height="794" fetchpriority="high" decoding="async">
         <div class="abertura-assina">
           <strong>Provou Levou</strong>
@@ -742,7 +819,7 @@
       <div class="container">
         <div class="abertura-centro rise">
           <span class="selo-ia">Inteligência artificial</span>
-          <h1 class="abertura-titulo" id="aberturaTitulo"><span class="t1">Provador virtual</span> <span class="t2">para moda e óculos.</span></h1>
+          <h2 class="abertura-titulo" id="aberturaTitulo"><span class="t1">Provador virtual</span> <span class="t2">para moda e óculos.</span></h2>
           <p class="abertura-apoio">O futuro do e-commerce.</p>
         </div>
       </div>
