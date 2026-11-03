@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ótica Demo — Fluxo de Lentes e DNP | Provou Levou</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:image" content="https://provoulevou.com.br/loja-demo/oculos-1.jpg">
+  <link rel="icon" type="image/png" href="/assets/favicon-icon.png">
+  <link rel="stylesheet" href="loja.css">
+  <style>
+    .demo-passos { text-align: left; }
+    .demo-passos ol { margin: 8px 0 6px 18px; padding: 0; }
+    .demo-passos li { margin: 3px 0; }
+    .demo-extra { display: block; margin-top: 4px; font-size: .92em; }
+    .demo-acoes { display: grid; gap: 10px; margin: 18px 0 0; }
+    .demo-acoes .btn-so-armacao { background: #fff; color: #111; border: 1.5px solid #111; }
+  </style>
+</head>
+<body>
+
+  <div class="faixa">Frete gr&aacute;tis acima de R$ 199 &middot; Troca f&aacute;cil em 30 dias</div>
+
+  <header class="topo">
+    <div class="topo-in">
+      <a class="topo-logo" href="otica.html">
+        <img src="https://i.ibb.co/MD3B4FQf/Logo-provou-preto-1.png" alt="Provou Levou">
+      </a>
+      <nav class="topo-nav">
+        <a href="oculos.html">&Oacute;culos</a>
+        <a href="roupa.html">Roupas</a>
+        <a href="oculos.html">Novidades</a>
+        <a href="oculos.html">Contato</a>
+      </nav>
+      <div class="topo-icones">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <p class="trilha"><a href="oculos.html">In&iacute;cio</a> / <a href="oculos.html">&Oacute;culos</a> / <span id="trilha-nome">Paris</span></p>
+  </div>
+
+  <div class="demo-nota wrap demo-passos">
+    <b>&Oacute;tica de demonstra&ccedil;&atilde;o da Provou Levou.</b> Teste como o seu cliente vai comprar os &oacute;culos com lente:
+    <ol>
+      <li>Clique em <b>Escolher lentes e comprar</b> e responda as perguntas, como um cliente faria.</li>
+      <li>Na receita, <b>tire uma foto da sua receita</b>: a IA l&ecirc; os graus e indica a lente certa.</li>
+      <li>Escolha <b>Multifocal</b> para ver a <b>medi&ccedil;&atilde;o da DNP pela c&acirc;mera</b> (precisa de um cart&atilde;o de banco).</li>
+    </ol>
+    <span class="demo-extra">Quer testar s&oacute; a medi&ccedil;&atilde;o de DP? <a href="https://quantic-dnp-medicao.k5jwra.easypanel.host" target="_blank" rel="noopener">Abrir o medidor de DP</a> &middot; Nada aqui &eacute; vendido de verdade.</span>
+  </div>
+
+  <main class="wrap">
+    <div class="produto">
+
+      <!-- data-pl-galeria: o selo do provador e injetado aqui -->
+      <div class="galeria" data-pl-galeria>
+        <div class="galeria-principal">
+          <img id="foto-principal" src="" data-inicial alt="Óculos de Grau Feminino Acetato Paris">
+        </div>
+        <p class="galeria-legenda">Outros modelos</p>
+        <div class="galeria-thumbs" id="modelos"></div>
+      </div>
+
+      <div class="info">
+        <p class="marca">Provou Levou Eyewear</p>
+        <h1 class="titulo" id="p-nome">Óculos de Grau Feminino Acetato Paris</h1>
+        <div class="avaliacao">
+          <span class="estrelas">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+          <span>4,8 &middot; 212 avalia&ccedil;&otilde;es</span>
+        </div>
+
+        <p class="preco-antigo" id="p-antigo">R$ 289,86</p>
+        <p class="preco" id="p-preco">R$ 199,90 <span class="desconto" id="p-desc">-31%</span></p>
+        <p class="parcela" id="p-parcela">ou 6x de R$ 33,32 sem juros</p>
+        <p class="pix-linha" id="p-pix">R$ 189,91 no PIX (5% de desconto)</p>
+
+        <div class="opcao">
+          <p class="opcao-label">Cor</p>
+          <div class="opcao-itens" data-grupo="cor">
+            <button type="button" class="cor-bola is-on" style="background:#c9a227" aria-label="Dourado"></button>
+            <button type="button" class="cor-bola" style="background:#111111" aria-label="Preto"></button>
+            <button type="button" class="cor-bola" style="background:#7b4b2a" aria-label="Tartaruga"></button>
+          </div>
+        </div>
+
+        <!-- fluxo de lentes (lentes-lista.js) procura #product_form + .js-addtocart e entra no topo do form;
+             o botao "Provador Virtual" (provador-demo.js) entra logo ACIMA do data-pl-comprar -->
+        <form id="product_form" class="product-actions demo-acoes" onsubmit="return false">
+          <input type="hidden" name="add_to_cart" value="demo">
+          <input type="hidden" name="quantity" value="1">
+          <button type="button" class="btn-comprar btn-so-armacao js-addtocart" data-pl-comprar>Comprar s&oacute; a arma&ccedil;&atilde;o</button>
+        </form>
+
+        <div class="vantagens">
+          <div class="vantagem">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            <span><b>Frete gr&aacute;tis</b> acima de R$ 199 para todo o Brasil</span>
+          </div>
+          <div class="vantagem">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 109-9"/><polyline points="3 3 3 9 9 9"/></svg>
+            <span><b>30 dias</b> para trocar ou devolver</span>
+          </div>
+          <div class="vantagem">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span><b>1 ano de garantia</b> contra defeitos de f&aacute;brica</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="descricao">
+      <h2>Descri&ccedil;&atilde;o</h2>
+      <p>Arma&ccedil;&atilde;o leve em acetato, com hastes de mola flex e ponte confort&aacute;vel para uso o dia inteiro.</p>
+      <p>Acompanha estojo r&iacute;gido e flanela de limpeza. Modelos de grau e de sol, com prote&ccedil;&atilde;o UV400.</p>
+      <table class="ficha">
+        <tr><td>Material</td><td>Acetato</td></tr>
+        <tr><td>Hastes</td><td>Mola flex</td></tr>
+        <tr><td>Largura da frente</td><td>138 mm</td></tr>
+        <tr><td>Inclui</td><td>Estojo e flanela</td></tr>
+      </table>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <img src="https://i.ibb.co/MD3B4FQf/Logo-provou-preto-1.png" alt="Provou Levou">
+    <p>Loja demonstrativa &middot; provoulevou.com.br</p>
+  </footer>
+
+  <script src="produtos.js"></script>
+  <script>
+    // Catalogo com as fotos EMBUTIDAS (produtos.js): funciona tambem
+    // quando a pasta e aberta direto por file://.
+    // só armações de grau (as 4 primeiras); as de sol ficam na página de óculos
+    var PRODUTOS = window.PL_CATALOGO['oculos'].slice(0, 4);
+    var FOTOS = ['oculos-1.jpg', 'oculos-2.jpg', 'oculos-3.jpg', 'oculos-4.jpg'];
+
+    window.PL_DEMO = { tipo: 'oculos', imagem: PRODUTOS[0].img };
+
+    var brl = function (v) { return 'R$ ' + v.toFixed(2).replace('.', ','); };
+
+    function aplicaProduto(i) {
+      var p = PRODUTOS[i];
+      var antigo = p.preco * 1.45;
+      document.getElementById('foto-principal').src = p.img;
+      document.getElementById('foto-principal').alt = p.nome;
+      document.getElementById('p-nome').textContent = p.nome;
+      document.getElementById('trilha-nome').textContent = p.nome.split(' ').pop();
+      document.getElementById('p-antigo').textContent = brl(antigo);
+      document.getElementById('p-preco').childNodes[0].nodeValue = brl(p.preco) + ' ';
+      document.getElementById('p-desc').textContent = '-' + Math.round((1 - p.preco / antigo) * 100) + '%';
+      document.getElementById('p-parcela').textContent = 'ou 6x de ' + brl(p.preco / 6) + ' sem juros';
+      document.getElementById('p-pix').textContent = brl(p.preco * 0.95) + ' no PIX (5% de desconto)';
+
+      // É isto que faz o provador gerar com o modelo escolhido.
+      window.PL_DEMO.imagem = p.img;
+      // o fluxo de lentes mostra a foto e o nome da armação escolhida
+      document.querySelector('meta[property="og:image"]').content = 'https://provoulevou.com.br/loja-demo/' + FOTOS[i];
+      window.LS = { product: { name: p.nome, id: 'demo-' + i }, variants: [{ price_number: p.preco }] };
+
+      var botoes = document.querySelectorAll('#modelos button');
+      for (var k = 0; k < botoes.length; k++) botoes[k].classList.toggle('is-on', k === i);
+    }
+
+    (function montaModelos() {
+      var alvo = document.getElementById('modelos');
+      PRODUTOS.forEach(function (p, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.title = p.nome;
+        if (i === 0) b.className = 'is-on';
+        var im = document.createElement('img');
+        im.src = p.img;
+        im.alt = p.nome;
+        b.appendChild(im);
+        b.addEventListener('click', function () { aplicaProduto(i); });
+        alvo.appendChild(b);
+      });
+      aplicaProduto(0);
+    })();
+
+    document.querySelectorAll('.opcao-itens').forEach(function (grupo) {
+      grupo.addEventListener('click', function (e) {
+        var b = e.target.closest('button');
+        if (!b) return;
+        grupo.querySelectorAll('button').forEach(function (x) { x.classList.remove('is-on'); });
+        b.classList.add('is-on');
+      });
+    });
+  </script>
+  <script src="provador-demo.js"></script>
+  <!-- Fluxo de lentes de exemplo: modo prévia (nada vai pro carrinho nem pro CRM; a leitura da receita é de verdade)
+       + medidor de DNP pela câmera (abre em outra aba e devolve a medida pro fluxo) -->
+  <script>
+    window.PL_LENTES_PREVIEW = true;
+    window.PL_MEDIDOR_DNP_URL = 'https://quantic-dnp-medicao.k5jwra.easypanel.host/';
+    if (/[?&]motor=local/.test(location.search)) window.PL_MEDIDOR_DNP_URL = 'http://localhost:18796/?previa=resultado';   // teste local: medidor do Mac com resultado de exemplo
+  </script>
+  <script src="lentes-demo-config.js"></script>
+  <script>
+    (function () {
+      var s = document.createElement('script');
+      s.src = (/[?&]motor=local/.test(location.search) ? 'lentes-lista.js?v=' + Date.now() : 'https://lucasdecamargosilva.github.io/nuvemshopbarch/lentes-lista.js?v=' + Math.floor(Date.now() / 300000));   // ?motor=local = teste com a cópia local
+      document.body.appendChild(s);
+    })();
+  </script>
+</body>
+</html>
