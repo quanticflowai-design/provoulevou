@@ -440,11 +440,11 @@
       .onda { left: -7.5%; width: 115%; top: calc(58svh - 25.8vw); }
       .abertura-fundo { overflow-x: clip; }
       .onda img {
-        /* computador: alem do esmaecido no topo, a parte que sobe pela direita se apaga (fica uma ponte, nao uma cauda) */
-        -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh), radial-gradient(ellipse 27% 54% at 85% 4%, transparent 0%, transparent 42%, rgba(0,0,0,.35) 62%, rgba(0,0,0,.8) 85%, #000 100%);
-        -webkit-mask-composite: source-in;
-        mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh), radial-gradient(ellipse 27% 54% at 85% 4%, transparent 0%, transparent 42%, rgba(0,0,0,.35) 62%, rgba(0,0,0,.8) 85%, #000 100%);
-        mask-composite: intersect;
+        /* computador: esmaecido no topo, ponta direita dissolvendo e um apagado suave (degrade) no alto da subida da direita */
+        -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh), linear-gradient(270deg, transparent 6.5%, rgba(0,0,0,.25) 11%, rgba(0,0,0,.7) 17%, #000 24%), radial-gradient(ellipse 27% 40% at 95% -6%, rgba(0,0,0,.3) 0%, rgba(0,0,0,.42) 35%, rgba(0,0,0,.68) 65%, rgba(0,0,0,.9) 86%, #000 100%);
+        -webkit-mask-composite: source-in, source-in;
+        mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh), linear-gradient(270deg, transparent 6.5%, rgba(0,0,0,.25) 11%, rgba(0,0,0,.7) 17%, #000 24%), radial-gradient(ellipse 27% 40% at 95% -6%, rgba(0,0,0,.3) 0%, rgba(0,0,0,.42) 35%, rgba(0,0,0,.68) 65%, rgba(0,0,0,.9) 86%, #000 100%);
+        mask-composite: intersect, intersect;
       }
     }
     @media (max-width: 640px) {
