@@ -643,7 +643,13 @@
                 brand: '#F2F2F2', dark: '#D6D6D6', soft: 'rgba(242,242,242,.10)', on: '#000000' },
     // Rede Sua Ótica — rosa + roxo sobre branco -> fundo branco (tema claro); rosa fechado p/ 5,4:1 com branco; botão roxo do balão
     redesuaotica: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F1E3EC',
-                brand: '#C8137F', dark: '#A50F69', soft: 'rgba(200,19,127,.08)', on: '#ffffff', cta: '#6218AB', ctaDark: '#4A1283', onCta: '#ffffff' }
+                brand: '#C8137F', dark: '#A50F69', soft: 'rgba(200,19,127,.08)', on: '#ffffff', cta: '#6218AB', ctaDark: '#4A1283', onCta: '#ffffff' },
+    // Vitta Prime — dourado sobre preto chapado -> fundo = preto do logo (tema escuro); dourado com texto preto
+    vittaprime: { bg: '#000000', card: '#111111', line: 'rgba(255,255,255,.14)',
+                brand: '#D4AF37', dark: '#B8962E', soft: 'rgba(212,175,55,.12)', on: '#000000' },
+    // Studio GP Academy — cobre sobre grafite chapado -> fundo = grafite do logo (tema escuro); cobre com texto preto
+    studiogpacademy: { bg: '#313131', card: '#3B3B3B', line: 'rgba(255,255,255,.14)',
+                brand: '#C99059', dark: '#B07A44', soft: 'rgba(201,144,89,.14)', on: '#000000' }
   };
 
   // ─────────── Tema ───────────
