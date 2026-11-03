@@ -274,7 +274,7 @@
     }
     .topo * { -webkit-text-stroke-width: 0; }
     .topo-grade {
-      width: 100%; padding-top: 120px; padding-bottom: clamp(120px, 24vh, 280px);
+      width: 100%; padding-top: 120px; padding-bottom: clamp(160px, 32vh, 360px);
       display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 32px clamp(32px, 6vw, 110px); align-items: end;
     }
     .topo-selo {
@@ -285,10 +285,10 @@
     }
     .topo-selo::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #fff; }
     .topo-titulo {
-      margin-top: 22px; max-width: 12em; text-wrap: balance;
-      font-family: var(--sans); font-weight: 300; color: #fff;
+      margin-top: 0; max-width: 12em; text-wrap: balance;
+      font-family: var(--strong); font-weight: 500; color: #fff;
       font-size: clamp(44px, 5.6vw, 86px); line-height: 1.04; letter-spacing: -0.035em;
-      -webkit-text-stroke: 0.012em #fff;
+      -webkit-text-stroke-width: 0; letter-spacing: -0.045em;
     }
     .topo-titulo span { display: block; text-wrap: balance; }
     /* texto escuro no botao branco parece mais fino que o branco no fundo escuro: um contorno leve iguala */
@@ -312,7 +312,7 @@
     @media (max-width: 640px) {
       .topo { min-height: max(600px, 100svh); }
       .topo-titulo { font-size: clamp(38px, 10.5vw, 48px); }
-      .topo-grade { gap: 24px; padding-top: 96px; padding-bottom: clamp(96px, 20svh, 200px); }
+      .topo-grade { gap: 24px; padding-top: 96px; padding-bottom: clamp(130px, 28svh, 270px); }
     }
 
     /* ─── ABERTURA (estilo Pareto) ─── */
@@ -1055,7 +1055,6 @@
 
       <div class="container topo-grade">
         <div class="topo-esq rise">
-          <span class="topo-selo">Provador virtual com IA</span>
           <h1 class="topo-titulo" id="topoTitulo"><span>Quem prova, leva.</span> <span>Quem não leva,</span> <span>vira lead.</span></h1>
         </div>
         <div class="topo-dir rise d1">
