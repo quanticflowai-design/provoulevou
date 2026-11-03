@@ -1130,6 +1130,30 @@
     @keyframes marcas-desliza { to { transform: translate3d(-50%, 0, 0); } }
     @media (max-width: 640px) { .tl-marca { padding: 0 16px; height: 42px; } .tl-marca img { height: calc(var(--h) * .62); } .tl-trilho { animation-duration: 70s; } }
     @media (prefers-reduced-motion: reduce) { .tl-trilho { animation: none; } }
+
+    /* cartaozinho da marca ao clicar num logo do hero */
+    .tl-marca { cursor: pointer; }
+    .tl-marca:hover img, .tl-marca:focus-visible img { opacity: 1; }
+    .marca-card {
+      position: fixed; z-index: 80; width: 260px; padding: 16px; border-radius: 16px;
+      background: #fff; color: #161614; font-family: var(--strong);
+      box-shadow: 0 24px 60px -20px rgba(12,7,22,.6), 0 0 0 1px rgba(34,21,50,.06);
+      opacity: 0; transform: translateY(8px) scale(.98); pointer-events: none;
+      transition: opacity .25s ease, transform .3s cubic-bezier(.22,1,.36,1);
+    }
+    .marca-card.on { opacity: 1; transform: none; pointer-events: auto; }
+    .marca-card * { -webkit-text-stroke-width: 0; }
+    .mc-topo { display: flex; align-items: center; gap: 12px; }
+    .mc-logo { width: 52px; height: 52px; flex: none; border-radius: 12px; background: #f4f2f8; display: grid; place-items: center; }
+    .mc-logo img { max-width: 80%; max-height: 60%; object-fit: contain; }
+    .mc-nome { font-weight: 500; font-size: 15px; line-height: 1.2; }
+    .mc-arroba { display: block; margin-top: 2px; font-size: 12.5px; color: #8a8496; text-decoration: none; }
+    .mc-arroba:hover { color: var(--violet); }
+    .mc-num { display: flex; gap: 18px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #f0edf5; }
+    .mc-num div { display: grid; gap: 2px; }
+    .mc-num strong { font-weight: 500; font-size: 18px; letter-spacing: -0.02em; }
+    .mc-num span { font-size: 11.5px; color: #8a8496; }
+    .mc-x { position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border: 0; border-radius: 50%; background: #f4f2f8; color: #5e566e; cursor: pointer; font-size: 15px; line-height: 1; }
   </style>
 </head>
 
@@ -1863,6 +1887,65 @@
       };
       addEventListener('scroll', function () { if (!pend) { pend = true; requestAnimationFrame(checa); } }, { passive: true });
       checa();
+    })();
+  </script>
+  <script>
+    /* clique num logo do hero: abre um cartaozinho com a marca.
+       Preencha "seguidores" (texto, ex.: "120 mil") e "ig" (usuario do Instagram) em cada marca. */
+    (function () {
+      var MARCAS = {
+        acessoriostyle: { ig: 'acessoriostyle', seguidores: '', faturamento: '+R$ 200 mil' },
+        cacife: { ig: 'cacifebrand', seguidores: '', faturamento: '+R$ 300 mil' },
+        cand: { ig: 'use.cand', seguidores: '', faturamento: '+R$ 200 mil' },
+        parislondon: { ig: 'parislondoneyewear', seguidores: '', faturamento: '+R$ 40 mil' }
+      };
+      var trilho = document.querySelector('.tl-trilho');
+      if (!trilho) return;
+      var card = document.createElement('div');
+      card.className = 'marca-card'; card.setAttribute('role', 'dialog'); card.setAttribute('aria-live', 'polite');
+      document.body.appendChild(card);
+      var nomes = {};
+      trilho.querySelectorAll('.tl-marca img').forEach(function (im) {
+        var k = im.getAttribute('src').split('/').pop().replace(/\.\w+$/, '');
+        if (im.alt) nomes[k] = im.alt;
+      });
+      trilho.querySelectorAll('.tl-marca').forEach(function (m) {
+        var im = m.querySelector('img');
+        if (im && im.alt) { m.setAttribute('tabindex', '0'); m.setAttribute('role', 'button'); m.setAttribute('aria-label', 'Ver ' + im.alt); }
+      });
+      var aberto = null;
+      var fecha = function () { card.classList.remove('on'); aberto = null; trilho.style.animationPlayState = ''; };
+      var abre = function (m) {
+        var im = m.querySelector('img'), k = im.getAttribute('src').split('/').pop().replace(/\.\w+$/, '');
+        var d = MARCAS[k] || {}, nome = nomes[k] || k;
+        var h = '<button class="mc-x" type="button" aria-label="Fechar">×</button><div class="mc-topo"><span class="mc-logo"><img src="' + im.getAttribute('src') + '" alt=""></span><div><div class="mc-nome">' + nome + '</div>' +
+          (d.ig ? '<a class="mc-arroba" href="https://instagram.com/' + d.ig + '" target="_blank" rel="noopener">@' + d.ig + '</a>' : '<span class="mc-arroba">Parceira Provou Levou</span>') + '</div></div>';
+        var nums = '';
+        if (d.seguidores) nums += '<div><strong>' + d.seguidores + '</strong><span>seguidores</span></div>';
+        if (d.faturamento) nums += '<div><strong>' + d.faturamento + '</strong><span>vendidos pelo provador</span></div>';
+        if (nums) h += '<div class="mc-num">' + nums + '</div>';
+        card.innerHTML = h;
+        card.querySelector('.mc-x').addEventListener('click', fecha);
+        trilho.style.animationPlayState = 'paused';
+        var r = m.getBoundingClientRect(), w = 260;
+        var x = Math.min(innerWidth - w - 12, Math.max(12, r.left + r.width / 2 - w / 2));
+        card.style.left = x + 'px'; card.style.top = (r.bottom + 10) + 'px';
+        card.classList.add('on'); aberto = m;
+        var ch = card.getBoundingClientRect();
+        if (ch.bottom > innerHeight - 8) card.style.top = Math.max(8, r.top - ch.height - 10) + 'px';
+      };
+      trilho.addEventListener('click', function (e) {
+        var m = e.target.closest('.tl-marca'); if (!m) return;
+        e.stopPropagation();
+        if (aberto === m) fecha(); else abre(m);
+      });
+      trilho.addEventListener('keydown', function (e) {
+        var m = e.target.closest('.tl-marca');
+        if (m && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); abre(m); }
+      });
+      document.addEventListener('click', function (e) { if (aberto && !card.contains(e.target)) fecha(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fecha(); });
+      addEventListener('scroll', function () { if (aberto) fecha(); }, { passive: true });
     })();
   </script>
   <script src="assets/js/lenis-1.1.13.min.js"></script>
