@@ -14,7 +14,24 @@
     .demo-passos li { margin: 3px 0; }
     .demo-extra { display: block; margin-top: 4px; font-size: .92em; }
     .demo-acoes { display: grid; gap: 10px; margin: 18px 0 0; }
-    .btn-medir-dp { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 0; background: #fff; color: #111; border: 1.5px solid #111; text-decoration: none; }
+    /* paleta da Provou Levou (roxo do site provoulevou.com.br) */
+    :root { --pl: #7c3aed; --pl-escuro: #5b21b6; --pl-fundo: #f5f1ff; --pl-linha: #e4dcfb; }
+    .faixa { background: var(--pl); }
+    .demo-nota { background: var(--pl-fundo); border: 1px solid var(--pl-linha); }
+    .demo-nota b, .demo-nota a { color: var(--pl-escuro); }
+    .galeria-thumbs button.is-on, .opcao-itens button.is-on { border-color: var(--pl); }
+    .btn-medir-dp { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 0; background: #fff; color: var(--pl); border: 1.5px solid var(--pl); text-decoration: none; }
+    .btn-medir-dp:hover { background: var(--pl); color: #fff; opacity: 1; }
+    .q-btn-inline-provador { color: var(--pl) !important; border-color: var(--pl) !important; }
+    .q-btn-inline-provador:hover { background: var(--pl) !important; color: #fff !important; }
+    .q-btn-black { background: var(--pl) !important; }
+    /* medidor de DP por cima da página (iframe com câmera liberada) */
+    #pl-medidor { position: fixed; inset: 0; z-index: 2147483647; background: rgba(15, 10, 30, .6); display: none; align-items: center; justify-content: center; }
+    #pl-medidor.on { display: flex; }
+    #pl-medidor .caixa { position: relative; width: min(560px, 100%); height: min(860px, 100%); background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.35); }
+    #pl-medidor iframe { width: 100%; height: 100%; border: 0; display: block; }
+    #pl-medidor .fechar { position: absolute; top: 10px; right: 10px; z-index: 2; width: 38px; height: 38px; border-radius: 50%; border: 0; background: rgba(0,0,0,.65); color: #fff; font-size: 22px; line-height: 1; cursor: pointer; }
+    @media (max-width: 600px) { #pl-medidor .caixa { width: 100%; height: 100%; border-radius: 0; } }
   </style>
 </head>
 <body>
@@ -96,7 +113,7 @@
           <!-- escondido: so serve de ancora pro fluxo de lentes e pro provador (a demo nao vende a armacao avulsa) -->
           <button type="button" class="btn-comprar js-addtocart" data-pl-comprar hidden>Comprar</button>
         </form>
-        <a class="btn-comprar btn-medir-dp" href="https://quantic-dnp-medicao.k5jwra.easypanel.host/" target="_blank" rel="noopener">
+        <a class="btn-comprar btn-medir-dp" href="https://quantic-dnp-medicao.k5jwra.easypanel.host/" target="_blank" rel="noopener" data-medir-dp>
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h18v8H3z"/><path d="M7 8v3M11 8v4M15 8v3M19 8v4"/></svg>
           Medir minha DP
         </a>
@@ -204,6 +221,25 @@
     window.PL_LENTES_PREVIEW = true;
     window.PL_MEDIDOR_DNP_URL = 'https://quantic-dnp-medicao.k5jwra.easypanel.host/';
     if (/[?&]motor=local/.test(location.search)) window.PL_MEDIDOR_DNP_URL = 'http://localhost:18796/?previa=resultado';   // teste local: medidor do Mac com resultado de exemplo
+  </script>
+  <div id="pl-medidor" role="dialog" aria-label="Medição de DP">
+    <div class="caixa"><button type="button" class="fechar" aria-label="Fechar">&times;</button><iframe title="Medidor de DP" allow="camera; autoplay; fullscreen"></iframe></div>
+  </div>
+  <script>
+    // Medição de DP na MESMA página: abre o medidor num iframe por cima. O fluxo de lentes (DNP do multifocal)
+    // também usa isto via window.PL_MEDIDOR_ABRE; a medida volta por postMessage e a janela fecha sozinha.
+    (function () {
+      var ov = document.getElementById('pl-medidor'), fr = ov.querySelector('iframe');
+      function fecha() { ov.classList.remove('on'); fr.src = 'about:blank'; document.documentElement.style.overflow = ''; }
+      window.PL_MEDIDOR_ABRE = function (url) { fr.src = url; ov.classList.add('on'); document.documentElement.style.overflow = 'hidden'; };
+      ov.querySelector('.fechar').addEventListener('click', fecha);
+      document.querySelector('[data-medir-dp]').addEventListener('click', function (e) { e.preventDefault(); window.PL_MEDIDOR_ABRE(window.PL_MEDIDOR_DNP_URL); });
+      window.addEventListener('message', function (ev) {
+        if (!ev.data || ev.data.type !== 'pl-dnp') return;
+        try { if (new URL(window.PL_MEDIDOR_DNP_URL, location.href).origin !== ev.origin) return; } catch (x) { return; }
+        setTimeout(fecha, 700);
+      });
+    })();
   </script>
   <script src="lentes-demo-config.js"></script>
   <script>
