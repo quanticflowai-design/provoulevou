@@ -1128,7 +1128,7 @@
     <!-- ─── MANIFESTO ─── -->
     <section class="manifesto" aria-label="Sobre a Provou Levou">
       <div class="container">
-          <p class="manifesto-txt">Seu cliente prova a peça na própria foto, direto na página do produto, sem app e sem cadastro. Quem se vê usando a peça compra com mais certeza.</p>
+          <p class="manifesto-txt">A Provou Levou é o provador virtual com inteligência artificial feito para moda e óculos. Tecnologia by Quantic, instalada pela nossa equipe em 1 hora, em qualquer plataforma.</p>
           <p class="manifesto-txt" id="manifestoTexto">Mais de 1.000 marcas brasileiras já usam o provador para vender moda e óculos online com mais segurança. Cada prova vira um lead no seu WhatsApp, e cada venda é atribuída ao provador, prova a prova, no seu painel.</p>
       </div>
     </section>
@@ -1502,18 +1502,22 @@
   </script>
   <script>
     (function () {
-      // cada paragrafo do manifesto acende letra a letra conforme a rolagem
-      document.querySelectorAll('.manifesto-txt').forEach(function (p) {
-        p.innerHTML = p.textContent.trim().split(/\s+/).map(function (w) {
-          return '<span style="white-space:nowrap">' + w.split('').map(function (c) { return '<span class="ch">' + c + '</span>'; }).join('') + '</span>';
-        }).join(' ');
-        var chs = p.querySelectorAll('.ch'), pend = false;
+      // os paragrafos do manifesto acendem letra a letra numa sequencia so: primeiro o de cima, depois o de baixo (e o inverso ao subir)
+      var txts = document.querySelectorAll('.manifesto-txt');
+      if (txts.length) {
+        txts.forEach(function (p) {
+          p.innerHTML = p.textContent.trim().split(/\s+/).map(function (w) {
+            return '<span style="white-space:nowrap">' + w.split('').map(function (c) { return '<span class="ch">' + c + '</span>'; }).join('') + '</span>';
+          }).join(' ');
+        });
+        var chs = document.querySelectorAll('.manifesto-txt .ch'), pend = false;
+        var primeiro = txts[0], ultimo = txts[txts.length - 1];
         var atualiza = function () {
           pend = false;
-          var r = p.getBoundingClientRect(), h = innerHeight;
-          // percurso longo (devagar): comeca com o topo do texto a 95% da tela e termina com o fim a 25%
-          var ini = h * 0.95, fim = h * 0.25;
-          var prog = (ini - r.top) / ((ini - fim) + r.height);
+          var h = innerHeight, topo = primeiro.getBoundingClientRect().top, fimR = ultimo.getBoundingClientRect().bottom;
+          // comeca com o topo do primeiro texto a 90% da tela e termina com o fim do ultimo a 30%
+          var ini = h * 0.9, fim = h * 0.3;
+          var prog = (ini - topo) / ((ini - fim) + (fimR - topo));
           prog = Math.max(0, Math.min(1, prog));
           var n = Math.round(prog * chs.length);
           for (var i = 0; i < chs.length; i++) chs[i].classList.toggle('on', i < n);
@@ -1522,7 +1526,7 @@
         addEventListener('scroll', pede, { passive: true });
         addEventListener('resize', pede);
         atualiza();
-      });
+      }
     })();
   </script>
   <script>
