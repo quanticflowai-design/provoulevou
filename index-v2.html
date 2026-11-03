@@ -238,11 +238,14 @@
     }
     .topo-selo::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #fff; }
     .topo-titulo {
-      margin-top: 22px; max-width: 12em;
+      margin-top: 22px; max-width: 12em; text-wrap: balance;
       font-family: var(--sans); font-weight: 300; color: #fff;
       font-size: clamp(44px, 5.6vw, 86px); line-height: 1.04; letter-spacing: -0.035em;
       -webkit-text-stroke: 0.012em #fff;
     }
+    .topo-titulo span { display: block; text-wrap: balance; }
+    /* texto escuro no botao branco parece mais fino que o branco no fundo escuro: um contorno leve iguala */
+    .site-header .nav-actions .btn-primary, .topo .topo-cta { -webkit-text-stroke: 0.028em currentColor; }
     .topo-dir p { font-size: clamp(16px, 1.25vw, 19px); line-height: 1.5; color: rgba(255,255,255,.88); max-width: 30em; letter-spacing: -0.01em; }
     .topo-acoes { margin-top: 26px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 22px; }
     .topo-cta {
@@ -821,7 +824,7 @@
         </nav>
       </div>
 
-      <div class="mob-panel" id="mobPanel">
+      <div class="mob-panel" id="mobPanel" data-lenis-prevent>
         <div class="mob-grupo"><button type="button" class="mob-item" aria-expanded="false" aria-controls="m-dd-como">Como funciona<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           <div class="mob-sub" id="m-dd-como"><div class="mob-sub-in"><div class="dd-lista"><a href="#como-funciona"><strong>Provador com IA</strong><span>O cliente prova a peça na própria foto, sem app e sem cadastro.</span></a><a href="#como-funciona"><strong>Instalação em 1 hora</strong><span>Nossa equipe instala. Você não mexe em código.</span></a><a href="#como-funciona"><strong>Plataformas</strong><span>Shopify, Nuvemshop, Tray, Bagy, VTEX, WooCommerce e Loja Integrada.</span></a></div><a class="dd-card" href="loja-teste.html"><img src="assets/menu/como-funciona.webp" alt="Cliente provando óculos de lentes verdes" width="480" height="340" loading="lazy"><span>Teste o provador agora →</span></a></div></div></div>
         <div class="mob-grupo"><button type="button" class="mob-item" aria-expanded="false" aria-controls="m-dd-cases">Cases<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -839,10 +842,10 @@
       <div class="container topo-grade">
         <div class="topo-esq rise">
           <span class="topo-selo">Provador virtual com IA</span>
-          <h1 class="topo-titulo" id="topoTitulo">Seu cliente prova, sua loja vende com mais certeza</h1>
+          <h1 class="topo-titulo" id="topoTitulo"><span>Quem prova, leva.</span> <span>Quem não leva,</span> <span>vira lead.</span></h1>
         </div>
         <div class="topo-dir rise d1">
-          <p>Provador virtual com IA para moda e óculos. Seu cliente prova a peça na própria foto, sem app e sem cadastro, e cada prova vira um lead no seu WhatsApp.</p>
+          <p>Provador virtual com IA para moda e óculos. Seu cliente prova a peça na própria foto, direto na página do produto, e o WhatsApp de quem provou cai no seu CRM na hora.</p>
           <div class="topo-acoes">
             <a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener" class="topo-cta">Testar grátis</a>
             <div class="topo-prova">
@@ -1047,6 +1050,8 @@
       if (btn && panel) {
         var set = function (open) {
           panel.classList.toggle('open', open);
+          document.documentElement.style.overflow = open ? 'hidden' : '';
+          if (window.plLenis) { if (open) window.plLenis.stop(); else window.plLenis.start(); }
           btn.setAttribute('aria-expanded', open ? 'true' : 'false');
           btn.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
         };
@@ -1083,6 +1088,9 @@
       });
       document.addEventListener('click', function (e) { if (!e.target.closest('.dropdown')) fechaTudo(null); });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fechaTudo(null); });
+      var yAbriu = 0;
+      itens.forEach(function (b) { b.addEventListener('click', function () { yAbriu = window.scrollY; }); });
+      window.addEventListener('scroll', function () { if (Math.abs(window.scrollY - yAbriu) > 40) fechaTudo(null); }, { passive: true });
 
       var cx = document.getElementById('plDepo'), v = document.getElementById('depoVideo');
       var som = document.getElementById('depoSom'), fechar = document.getElementById('depoFechar');
