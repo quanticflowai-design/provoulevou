@@ -847,8 +847,8 @@
     .ib-reveal[data-in="true"]{opacity:1;transform:none}
     .ib-head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;margin-bottom:clamp(28px,4.5cqw,52px)}
     .ib-tag{display:inline-block;padding:4px 10px;font-size:11.5px;letter-spacing:.02em;color:var(--ib-soft);background:var(--ib-card);border:1px solid var(--ib-line)}
-    .ib-root .ib-h2{font-size:clamp(28px,4.4cqw,44px);line-height:1.08;letter-spacing:-.025em;font-weight:500}
-    .ib-h2>span{display:block;letter-spacing:-.025em}
+    .ib-root .ib-h2{font-size:clamp(38px,6.6cqw,76px);line-height:1.08;letter-spacing:-.025em;font-weight:500}
+    .ib-h2>span{display:block;letter-spacing:-.035em}
     .ib-muted{color:var(--ib-faint)}
     .ib-frame{position:relative}
     .ib-c{position:absolute;width:12px;height:12px;border-color:var(--ib-bracket);border-style:solid;border-width:0;pointer-events:none;transition:border-color .3s,transform .35s cubic-bezier(.2,.8,.2,1)}
@@ -863,11 +863,16 @@
     .ib-frame-hover:hover>.ib-c-br{transform:translate(3px,3px)}
     .ib-bento{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(22px,3cqw,34px)}
     @container (min-width:720px){.ib-bento{grid-template-columns:repeat(2,minmax(0,1fr))}.ib-wide{grid-column:1 / -1;width:min(100%,820px);justify-self:center}}
-    .ib-card{background:linear-gradient(180deg,var(--ib-raise),var(--ib-card));border:1px solid var(--ib-line);padding:clamp(14px,2cqw,22px);display:flex;flex-direction:column;gap:14px;transition:border-color .3s,box-shadow .35s}
+    .ib-card{border-radius:20px;background:linear-gradient(180deg,var(--ib-raise),var(--ib-card));border:1px solid var(--ib-line);padding:clamp(14px,2cqw,22px);display:flex;flex-direction:column;gap:14px;transition:border-color .3s,box-shadow .35s}
     .ib-card:hover{border-color:var(--ib-line-strong);box-shadow:var(--ib-shadow)}
     .ib-root .ib-card h3{font-size:13.5px;font-weight:600;letter-spacing:-.005em}
     .ib-root .ib-card p{font-size:12.5px;line-height:1.55;color:var(--ib-muted);max-width:40ch}
     .ib-diagram{width:100%;height:auto;overflow:visible}
+    .ib-c-tl{border-top-left-radius:8px}.ib-c-tr{border-top-right-radius:8px}.ib-c-bl{border-bottom-left-radius:8px}.ib-c-br{border-bottom-right-radius:8px}
+    .ib-frame:not(.ib-wide) .ib-wide-copy{grid-template-columns:1fr !important}
+    .ib-frame:not(.ib-wide) .ib-wide-copy>div:last-child{justify-self:start}
+    .wf-logo{opacity:.55;transition:opacity .3s}
+    .ib-tool-on .wf-logo,.ib-tool:hover .wf-logo{opacity:1}
     .ib-wide-copy{display:grid;grid-template-columns:1fr;gap:16px}
     @container (min-width:560px){.ib-wide-copy{grid-template-columns:1fr 1fr}.ib-wide-copy>div:last-child{justify-self:end;text-align:left}}
     .ib-flow{stroke:var(--ib-line-strong);fill:none;stroke-width:1.2;transition:stroke .3s}
@@ -912,7 +917,7 @@
     .met-titulo {
       font-family: var(--strong); font-weight: 500; color: #fff;
       font-size: clamp(2.4rem, 4.6vw, 4.4rem); line-height: 1.02; letter-spacing: -0.04em;
-      text-shadow: .06em .04em 0 #3a3a3a; margin-bottom: clamp(72px, 10vw, 150px);
+      margin-bottom: clamp(56px, 10vw, 150px);
     }
     .met-titulo span { display: block; letter-spacing: -0.04em; }
     .met-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 56px clamp(32px, 6vw, 96px); }
@@ -923,7 +928,13 @@
     .met-dots { margin-top: 36px; width: min(100%, 260px); display: grid; grid-template-columns: repeat(10, 1fr); gap: 7px; }
     .met-dots i { aspect-ratio: 1; border-radius: 50%; background: #2a2a2a; transition: background .35s ease var(--d); }
     .met-grade[data-in="true"] .met-dots i.on { background: var(--cor); }
-    @media (max-width: 900px) { .met-grade { grid-template-columns: 1fr; gap: 72px; } .met-txt { min-height: 0; } }
+    @media (max-width: 900px) {
+      .met-grade { grid-template-columns: 1fr; gap: 64px; }
+      .met-txt { min-height: 0; max-width: none; margin-top: 22px; }
+      .met-num { margin-top: 26px; font-size: clamp(56px, 16vw, 80px); }
+      .met-dots { width: 100%; margin-top: 24px; gap: clamp(6px, 2vw, 12px); }
+    }
+    @media (max-width: 640px) { .metricas { padding-bottom: 72px; } .met-titulo { font-size: clamp(2.6rem, 12vw, 3.4rem); } }
     @media (prefers-reduced-motion: reduce) { .met-dots i { transition: none; } }
   </style>
 </head>
@@ -1159,11 +1170,22 @@
           <div class="ib-sec">
             <div class="ib-reveal" id="wfReveal" data-in="false">
               <div class="ib-head">
-                <span class="ib-tag">Workflow</span>
                 <h2 class="ib-h2" id="wfTitulo"><span>Da prova à <span class="ib-muted" style="display:inline">venda</span></span><span>no automático</span></h2>
               </div>
               <div class="ib-bento">
           <div class="ib-frame ib-frame-hover ib-wide"><span class="ib-c ib-c-tl" aria-hidden="true"></span><span class="ib-c ib-c-tr" aria-hidden="true"></span><span class="ib-c ib-c-bl" aria-hidden="true"></span><span class="ib-c ib-c-br" aria-hidden="true"></span>
+            <div class="ib-card" style="padding:0;overflow:hidden">
+              <svg class="ib-diagram" viewBox="0 0 640 178" role="group" aria-label="Plataformas conectadas ao provador" id="wfInteg">
+                <defs><radialGradient id="wfglow2" cx="320" cy="89" r="230" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="var(--ib-raise)" stop-opacity="1"/><stop offset="1" stop-color="var(--ib-raise)" stop-opacity="0"/></radialGradient></defs>
+                <rect x="0" y="0" width="640" height="178" fill="url(#wfglow2)"/><path d="M296,89 H210 V34 H172" class="ib-flow"/><path d="M296,89 H210 V89 H172" class="ib-flow"/><path d="M296,89 H210 V144 H172" class="ib-flow"/><path d="M344,89 H430 V34 H468" class="ib-flow"/><path d="M344,89 H430 V89 H468" class="ib-flow"/><path d="M344,89 H430 V144 H468" class="ib-flow"/><g id="wfPkt"></g><g transform="translate(296,65)"><rect x="-4" y="-4" width="56" height="56" rx="13" fill="none" stroke="var(--ib-line)" class="ib-glow wf-mov"/><rect width="48" height="48" rx="11" class="ib-node" style="filter:drop-shadow(0 6px 10px rgba(0,0,0,.25))"/><g style="color:var(--ib-ink)"><svg x="11" y="11" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.2V6.6a2.1 2.1 0 1 1 2.1-2.1M12 7.2 3 15.6c-.6.6-.2 1.6.7 1.6h16.6c.9 0 1.3-1 .7-1.6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.6 13.4l2.3 2 4.4-4.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></g></g><g class="ib-tool" data-i="0" tabindex="0" role="img" aria-label="Shopify"><rect x="50" y="14" width="120" height="40" rx="10" class="ib-node"/><image href="assets/plataformas/shopify.png" x="71.5" y="23.0" width="77.0" height="22.0" class="wf-logo"/></g><g class="ib-tool" data-i="1" tabindex="0" role="img" aria-label="Nuvemshop"><rect x="50" y="69" width="120" height="40" rx="10" class="ib-node"/><image href="assets/plataformas/nuvemshop.png" x="67.0" y="82.0" width="86.0" height="14.0" class="wf-logo"/></g><g class="ib-tool" data-i="2" tabindex="0" role="img" aria-label="Tray"><rect x="50" y="124" width="120" height="40" rx="10" class="ib-node"/><image href="assets/plataformas/tray.png" x="85.4" y="133.0" width="49.1" height="22.0" class="wf-logo"/></g><g class="ib-tool" data-i="3" tabindex="0" role="img" aria-label="Bagy"><rect x="470" y="14" width="120" height="40" rx="10" class="ib-node"/><image href="assets/plataformas/bagy.png" x="502.5" y="23.0" width="55.0" height="22.0" class="wf-logo"/></g><g class="ib-tool" data-i="4" tabindex="0" role="img" aria-label="WooCommerce"><rect x="470" y="69" width="120" height="40" rx="10" class="ib-node"/><image href="assets/plataformas/woocommerce.png" x="487.0" y="80.3" width="86.0" height="17.5" class="wf-logo"/></g><g class="ib-tool" data-i="5" tabindex="0" role="img" aria-label="Loja Integrada"><rect x="470" y="124" width="120" height="40" rx="10" class="ib-node"/><image href="assets/plataformas/lojaintegrada.png" x="487.0" y="137.6" width="86.0" height="12.9" class="wf-logo"/></g><text x="320" y="138" text-anchor="middle" font-size="7.5" fill="var(--ib-faint)" font-family="var(--ib-mono)" id="wfSync">7 plataformas</text>
+              </svg>
+              <div class="ib-wide-copy" style="padding:0 22px 20px">
+                <div><h3>Plug em qualquer plataforma</h3><p>Shopify, Nuvemshop, Tray, Bagy, VTEX, WooCommerce e Loja Integrada: o provador entra na página do produto da sua loja.</p></div>
+                <div><h3>No ar em 1 hora</h3><p>A instalação é feita pela nossa equipe: você não mexe em código nem precisa chamar dev.</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="ib-frame ib-frame-hover"><span class="ib-c ib-c-tl" aria-hidden="true"></span><span class="ib-c ib-c-tr" aria-hidden="true"></span><span class="ib-c ib-c-bl" aria-hidden="true"></span><span class="ib-c ib-c-br" aria-hidden="true"></span>
             <div class="ib-card" style="padding:0;overflow:hidden">
               <svg class="ib-diagram" viewBox="0 0 640 178" role="img" aria-label="Clientes provam na loja, o provador captura o contato e cada prova vira um lead">
                 <defs>
@@ -1181,12 +1203,6 @@
                 <div><h3>Cada prova vira um lead</h3><p>O cliente prova a peça na própria foto, sem app e sem cadastro. Telefone e peça provada caem no seu CRM na hora.</p></div>
                 <div><h3>Disparo oficial pela Meta</h3><p>Mensagem pelo WhatsApp com o produto que o cliente provou. O fluxo insiste sozinho até a venda fechar.</p></div>
               </div>
-            </div>
-          </div>
-          <div class="ib-frame ib-frame-hover"><span class="ib-c ib-c-tl" aria-hidden="true"></span><span class="ib-c ib-c-tr" aria-hidden="true"></span><span class="ib-c ib-c-bl" aria-hidden="true"></span><span class="ib-c ib-c-br" aria-hidden="true"></span>
-            <div class="ib-card">
-              <svg class="ib-diagram" viewBox="0 0 300 150" role="group" aria-label="Plataformas conectadas" id="wfInteg"><path d="M133,75 H108 V34 H81" class="ib-flow" data-i="0"/><path d="M133,75 H108 V116 H81" class="ib-flow" data-i="1"/><path d="M167,75 H192 V34 H219" class="ib-flow" data-i="2"/><path d="M167,75 H192 V116 H219" class="ib-flow" data-i="3"/><g id="wfPkt"></g><g transform="translate(133,58)"><rect width="34" height="34" rx="7" class="ib-node" style="filter:drop-shadow(0 4px 8px rgba(0,0,0,.08))"/><g style="color:var(--ib-ink)"><svg x="8" y="8" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.2V6.6a2.1 2.1 0 1 1 2.1-2.1M12 7.2 3 15.6c-.6.6-.2 1.6.7 1.6h16.6c.9 0 1.3-1 .7-1.6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.6 13.4l2.3 2 4.4-4.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></g></g><g class="ib-tool" data-i="0" tabindex="0" role="img" aria-label="Shopify"><rect x="51" y="19" width="30" height="30" rx="6" class="ib-node"/><g transform="translate(66,34)" style="color:var(--ib-ink)"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M-5.5 -2.5h11l-1 9h-9z"/><path d="M-2.5 -2.5v-1.5a2.5 2.5 0 0 1 5 0v1.5"/></g></g><text x="66" y="13" text-anchor="middle" font-size="8" fill="var(--ib-muted)" font-family="var(--ib-sans)" class="wf-rot">Shopify</text></g><g class="ib-tool" data-i="1" tabindex="0" role="img" aria-label="Nuvemshop"><rect x="51" y="101" width="30" height="30" rx="6" class="ib-node"/><g transform="translate(66,116)" style="color:var(--ib-ink)"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M-4 4h8.5a3.5 3.5 0 0 0 .2-7 4.6 4.6 0 0 0-8.8.8A3.1 3.1 0 0 0-4 4z"/></g></g><text x="66" y="144" text-anchor="middle" font-size="8" fill="var(--ib-muted)" font-family="var(--ib-sans)" class="wf-rot">Nuvemshop</text></g><g class="ib-tool" data-i="2" tabindex="0" role="img" aria-label="Tray"><rect x="219" y="19" width="30" height="30" rx="6" class="ib-node"/><g transform="translate(234,34)" style="color:var(--ib-ink)"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M-6.5 -1.5h13v6.5h-13z"/><path d="M-6.5 -1.5l2-4h9l2 4"/><path d="M-2 1.5h4"/></g></g><text x="234" y="13" text-anchor="middle" font-size="8" fill="var(--ib-muted)" font-family="var(--ib-sans)" class="wf-rot">Tray</text></g><g class="ib-tool" data-i="3" tabindex="0" role="img" aria-label="VTEX"><rect x="219" y="101" width="30" height="30" rx="6" class="ib-node"/><g transform="translate(234,116)" style="color:var(--ib-ink)"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M-6 -5 0 5.5 6 -5"/><path d="M-3 -5 0 .5 3 -5"/></g></g><text x="234" y="144" text-anchor="middle" font-size="8" fill="var(--ib-muted)" font-family="var(--ib-sans)" class="wf-rot">VTEX</text></g><text x="150" y="112" text-anchor="middle" font-size="7" fill="var(--ib-faint)" font-family="var(--ib-mono)" id="wfSync">7 plataformas</text></svg>
-              <div style="margin-top:auto"><h3>Plug em qualquer plataforma</h3><p>Shopify, Nuvemshop, Tray, Bagy, VTEX, WooCommerce e Loja Integrada. No ar em 1 hora: nossa equipe instala, você não mexe em código.</p></div>
             </div>
           </div>
           <div class="ib-frame ib-frame-hover" id="wfInsight" data-in="false"><span class="ib-c ib-c-tl" aria-hidden="true"></span><span class="ib-c ib-c-tr" aria-hidden="true"></span><span class="ib-c ib-c-bl" aria-hidden="true"></span><span class="ib-c ib-c-br" aria-hidden="true"></span>
@@ -1503,7 +1519,7 @@
       });
 
       // cartao 2: plataformas
-      var nomes = ['Shopify', 'Nuvemshop', 'Tray', 'VTEX'], caminhos = ["M133,75 H108 V34 H81","M133,75 H108 V116 H81","M167,75 H192 V34 H219","M167,75 H192 V116 H219"];
+      var nomes = ['Shopify', 'Nuvemshop', 'Tray', 'Bagy', 'WooCommerce', 'Loja Integrada'], caminhos = ["M296,89 H210 V34 H172","M296,89 H210 V89 H172","M296,89 H210 V144 H172","M344,89 H430 V34 H468","M344,89 H430 V89 H468","M344,89 H430 V144 H468"];
       var svg = document.getElementById('wfInteg'), pk = document.getElementById('wfPkt'), sync = document.getElementById('wfSync');
       var auto = 0, hover = -1;
       var mostra = function () {
@@ -1524,7 +1540,7 @@
         t.addEventListener('mouseenter', a); t.addEventListener('mouseleave', b); t.addEventListener('focus', a); t.addEventListener('blur', b);
       });
       mostra();
-      if (!reduz) setInterval(function () { if (hover < 0) { auto = (auto + 1) % 4; mostra(); } }, 1700);
+      if (!reduz) setInterval(function () { if (hover < 0) { auto = (auto + 1) % 6; mostra(); } }, 1700);
 
       // cartao 3: grafico (curva ilustrativa: antes e depois do provador)
       var card = document.getElementById('wfInsight'), chart = document.getElementById('wfChart');
