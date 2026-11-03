@@ -936,6 +936,72 @@
     }
     @media (max-width: 640px) { .metricas { padding-bottom: 72px; } .met-titulo { font-size: clamp(2.6rem, 12vw, 3.4rem); } }
     @media (prefers-reduced-motion: reduce) { .met-dots i { transition: none; } }
+
+    /* ─── CLAREZA (fundo branco, cartoes com degrade desfocado e granulado) ─── */
+    .clareza { background: #fff; padding: clamp(80px, 9vw, 140px) 0 clamp(80px, 9vw, 130px); }
+    .clareza * { -webkit-text-stroke-width: 0; }
+    .cl-topo { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 32px; align-items: start; padding-top: 22px; border-top: 1px solid #e8e6ec; margin-bottom: clamp(56px, 7vw, 96px); }
+    .cl-topo h2 { font-family: var(--sans); font-weight: 300; font-size: clamp(2.3rem, 4.4vw, 4.1rem); line-height: 1.06; letter-spacing: -0.045em; color: #161614; max-width: 13em; -webkit-text-stroke: .01em #161614; }
+    .cl-topo p { font-size: clamp(15px, 1.25vw, 18px); line-height: 1.45; color: #8a8496; max-width: 26em; }
+    .cl-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .cl-item h3 { margin-top: 20px; font-family: var(--strong); font-weight: 500; font-size: clamp(17px, 1.4vw, 21px); letter-spacing: -0.01em; color: #161614; }
+    .cl-item > p { margin-top: 8px; font-size: 14.5px; line-height: 1.45; color: #9a94a6; max-width: 30em; }
+    .cl-card { position: relative; overflow: hidden; isolation: isolate; aspect-ratio: 4 / 5.3; display: grid; place-items: center; padding: 8%; }
+    /* granulado por cima do degrade */
+    .cl-card::after {
+      content: ""; position: absolute; inset: 0; z-index: -1; opacity: .38; mix-blend-mode: overlay; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    .cl-c1 { background: radial-gradient(70% 55% at 8% 4%, #f6f2ff 0%, rgba(246,242,255,0) 70%), radial-gradient(90% 70% at 85% 45%, #c084fc 0%, rgba(192,132,252,0) 70%), linear-gradient(170deg, #b18cf5 0%, #8b5cf6 40%, #4c1d95 85%, #2a1150 100%); }
+    .cl-c2 { background: radial-gradient(80% 60% at 50% 20%, #8f88b8 0%, rgba(143,136,184,0) 70%), linear-gradient(180deg, #6f6a96 0%, #4a4675 55%, #2c2a4d 100%); }
+    .cl-c3 { background: radial-gradient(35% 28% at 30% 30%, #9d7ce8 0%, rgba(157,124,232,0) 100%), radial-gradient(40% 30% at 75% 70%, #6d3fd0 0%, rgba(109,63,208,0) 100%), radial-gradient(30% 25% at 70% 20%, #3b1b7a 0%, rgba(59,27,122,0) 100%), linear-gradient(160deg, #2d1460 0%, #4a2591 50%, #1c0d3d 100%); }
+
+    /* widget 1 */
+    .cl-w1 { width: 100%; max-width: 300px; background: #fff; border-radius: 14px; padding: 18px 18px 16px; box-shadow: 0 24px 50px -24px rgba(34,21,50,.6); font-family: var(--strong); color: #161614; }
+    .cl-w1-topo { display: flex; justify-content: space-between; font-weight: 500; font-size: 13px; }
+    .cl-w1-topo b { color: #8a8496; font-weight: 500; }
+    .cl-w1-num { margin-top: 30px; display: flex; align-items: baseline; gap: 10px; }
+    .cl-w1-num strong { font-weight: 500; font-size: 28px; letter-spacing: -0.02em; }
+    .cl-w1-num span { font-size: 11px; color: #5e566e; }
+    .cl-w1-barra { margin-top: 10px; display: flex; gap: 1.5px; height: 12px; }
+    .cl-w1-barra i { flex: 1; border-radius: 1px; }
+    .cl-w1-barra .a { background: #6d28d9; } .cl-w1-barra .b { background: #c4b5fd; } .cl-w1-barra .c { background: #ece9f2; }
+    .cl-w1-leg { margin-top: 10px; display: flex; justify-content: space-between; gap: 8px; font-size: 10.5px; color: #3d3846; }
+    .cl-w1-leg span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+    .cl-w1-leg i { width: 5px; height: 5px; border-radius: 50%; }
+    .cl-w1-leg .a { background: #6d28d9; } .cl-w1-leg .b { background: #c4b5fd; } .cl-w1-leg .c { background: #d6d2de; }
+    .cl-w1-leg { flex-wrap: wrap; }
+
+    /* widget 2 */
+    .cl-w2-wrap { width: 100%; max-width: 230px; text-align: center; }
+    .cl-w2 { background: #161419; border-radius: 14px; padding: 14px 12px 10px; color: #fff; font-family: var(--strong); box-shadow: 0 24px 50px -24px rgba(0,0,0,.6); text-align: left; }
+    .cl-w2-topo { display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; }
+    .cl-w2-topo small { font-size: 8px; color: #aaa; }
+    .cl-w2-topo em { font-style: normal; color: #6b6676; font-size: 10.5px; }
+    .cl-w2-graf { position: relative; margin-top: 18px; height: 120px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-items: end; }
+    .cl-w2-linha { position: absolute; left: 0; right: 0; top: 30%; border-top: 1.5px dashed #b38bfa; opacity: .8; }
+    .cl-w2-col { position: relative; height: 100%; display: flex; align-items: flex-end; }
+    .cl-w2-col i { width: 100%; border-radius: 2px; background: repeating-linear-gradient(135deg, #3a3640 0 2px, #26232b 2px 6px); }
+    .cl-w2-col.apaga { opacity: .45; }
+    .cl-w2-col.on i { background: repeating-linear-gradient(135deg, #b9a4f5 0 2px, #9b7ff0 2px 6px); }
+    .cl-w2-tip { position: absolute; left: 50%; bottom: calc(86% + 8px); transform: translateX(-50%); white-space: nowrap; font-size: 10px; padding: 3px 7px; border-radius: 5px; background: #8b6cf0; color: #fff; z-index: 1; }
+    .cl-w2-dias { margin-top: 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; font-size: 10.5px; color: #6b6676; }
+    .cl-w2-dias .on { color: #fff; }
+    .cl-w2-leg { margin-top: 14px; font-family: var(--strong); font-weight: 500; font-size: 13px; color: #fff; }
+
+    /* widget 3 */
+    .cl-w3 { display: grid; justify-items: center; gap: 10px; width: 100%; }
+    .cl-w3-tip { font-family: var(--strong); font-weight: 500; font-size: 11px; color: #161614; background: #fff; border-radius: 6px; padding: 5px 9px; position: relative; }
+    .cl-w3-tip::after { content: ""; position: absolute; left: 50%; bottom: -4px; width: 8px; height: 8px; background: #fff; transform: translateX(-50%) rotate(45deg); }
+    .cl-w3-rostos { display: flex; justify-content: center; }
+    .cl-w3-rostos img { width: clamp(56px, 6vw, 76px); height: clamp(56px, 6vw, 76px); border-radius: 50%; object-fit: cover; box-shadow: 0 10px 24px -10px rgba(0,0,0,.55); }
+    .cl-w3-rostos img + img { margin-left: -12px; }
+    .cl-w3-rostos img.on { position: relative; z-index: 1; outline: 2px solid #fff; }
+    @media (max-width: 900px) {
+      .cl-topo { grid-template-columns: 1fr; }
+      .cl-grade { grid-template-columns: 1fr; gap: 40px; }
+      .cl-card { aspect-ratio: 4 / 4.2; }
+    }
   </style>
 </head>
 
@@ -1252,6 +1318,65 @@
             <strong class="met-num" data-n="22">22%</strong>
             <div class="met-dots" role="img" aria-label="22 de 100"><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i style="--d:0ms"></i><i class="on" style="--d:378ms"></i><i class="on" style="--d:360ms"></i><i class="on" style="--d:342ms"></i><i class="on" style="--d:324ms"></i><i class="on" style="--d:306ms"></i><i class="on" style="--d:288ms"></i><i class="on" style="--d:270ms"></i><i class="on" style="--d:252ms"></i><i class="on" style="--d:234ms"></i><i class="on" style="--d:216ms"></i><i class="on" style="--d:198ms"></i><i class="on" style="--d:180ms"></i><i class="on" style="--d:162ms"></i><i class="on" style="--d:144ms"></i><i class="on" style="--d:126ms"></i><i class="on" style="--d:108ms"></i><i class="on" style="--d:90ms"></i><i class="on" style="--d:72ms"></i><i class="on" style="--d:54ms"></i><i class="on" style="--d:36ms"></i><i class="on" style="--d:18ms"></i><i class="on" style="--d:0ms"></i></div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── CLAREZA (tres cartoes com fundo desfocado e um widget em cada) ─── */ -->
+    <section class="clareza" aria-labelledby="clarezaTitulo">
+      <div class="container">
+        <div class="cl-topo">
+          <h2 id="clarezaTitulo">Clareza em cada prova, do clique ao pedido</h2>
+          <p>A Provou Levou junta provador, leads no WhatsApp e atribuição de vendas num sistema só, feito para lojas de moda e óculos.</p>
+        </div>
+        <div class="cl-grade">
+          <article class="cl-item">
+            <div class="cl-card cl-c1">
+              <div class="cl-w1">
+                <div class="cl-w1-topo"><span>Faturamento atribuído</span><b aria-hidden="true">⋮</b></div>
+                <div class="cl-w1-num"><strong>R$ 2,5 mi</strong><span>↗ somando todas as lojas</span></div>
+                <div class="cl-w1-barra" aria-hidden="true"><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i></div>
+                <div class="cl-w1-leg"><span><i class="a"></i>Cacife 300 mil</span><span><i class="b"></i>Acessórios Style 200 mil</span><span><i class="c"></i>Outras</span></div>
+              </div>
+            </div>
+            <h3>Atribuição prova a prova</h3>
+            <p>Cada venda que veio de uma prova entra no painel, separada por loja e comparada aos 3 meses antes do provador.</p>
+          </article>
+          <article class="cl-item">
+            <div class="cl-card cl-c2">
+              <div class="cl-w2-wrap">
+                <div class="cl-w2">
+                  <div class="cl-w2-topo"><span>Conversão <small>▾</small></span><em>Cacife Brand</em></div>
+                  <div class="cl-w2-graf">
+                    <span class="cl-w2-linha" aria-hidden="true"></span>
+                    <div class="cl-w2-col apaga"><i style="height:28%"></i></div>
+                    <div class="cl-w2-col on"><span class="cl-w2-tip">14,32%</span><i style="height:86%"></i></div>
+                    <div class="cl-w2-col"><i style="height:12%"></i></div>
+                    <div class="cl-w2-col apaga"><i style="height:34%"></i></div>
+                  </div>
+                  <div class="cl-w2-dias"><span></span><span class="on">Provador</span><span>Média</span><span></span></div>
+                </div>
+                <p class="cl-w2-leg">7,5x a média da moda online</p>
+              </div>
+            </div>
+            <h3>Conversão de quem prova</h3>
+            <p>Na Cacife Brand, quem usa o provador converte 14,32%: 7,5 vezes a média da moda online no Brasil, de 1,9%.</p>
+          </article>
+          <article class="cl-item">
+            <div class="cl-card cl-c3">
+              <div class="cl-w3">
+                <span class="cl-w3-tip">Entrega da placa de R$ 100 mil</span>
+                <div class="cl-w3-rostos">
+                  <img src="assets/recursos/rosto-1.webp" alt="" width="180" height="180" loading="lazy">
+                  <img src="assets/recursos/rosto-2.webp" alt="" width="180" height="180" loading="lazy">
+                  <img src="assets/recursos/rosto-3.webp" alt="" width="180" height="180" loading="lazy" class="on">
+                  <img src="assets/recursos/rosto-4.webp" alt="" width="180" height="180" loading="lazy">
+                </div>
+              </div>
+            </div>
+            <h3>Atendimento de perto</h3>
+            <p>Nossa equipe instala, acompanha os números com você e entrega a placa pessoalmente quando a loja cruza R$ 100 mil.</p>
+          </article>
         </div>
       </div>
     </section>
