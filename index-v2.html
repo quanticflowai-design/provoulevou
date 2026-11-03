@@ -1166,14 +1166,15 @@
     .abertura { grid-template-columns: minmax(0, 1fr); }
     .ab-novo { min-width: 0; }
     .ab-videos {
-      width: 100vw; max-width: none; overflow: hidden; padding: 8px 0 24px; /* sai das margens do container: ocupa a tela toda */
+      width: 100vw; max-width: none; overflow: hidden; padding: clamp(22px, 2vw, 32px) 0 24px; /* sai das margens do container: ocupa a tela toda */
       -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
       mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
     }
-    .ab-vtrilho { display: flex; gap: 22px; width: max-content; animation: marcas-desliza 70s linear infinite; }
+    .ab-vtrilho { display: flex; gap: 22px; width: max-content; animation: marcas-desliza 70s linear infinite; will-change: transform; }
     .ab-videos:hover .ab-vtrilho { animation-play-state: paused; }
     .ab-vid { flex: none; width: clamp(160px, 16.5vw, 240px); aspect-ratio: 9 / 16; border-radius: 26px; overflow: hidden; background: #ece8f5; }
     .ab-vid video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ab-videos { contain: layout paint; }
     @media (max-width: 640px) { .ab-vtrilho { gap: 12px; animation-duration: 50s; } .ab-vid { width: 150px; border-radius: 18px; } }
     @media (prefers-reduced-motion: reduce) { .ab-vtrilho { animation: none; } }
   </style>
@@ -1973,22 +1974,34 @@
     })();
   </script>
   <script>
-    /* videos da abertura: carregam e tocam so quando a faixa aparece na tela */
+    /* videos da abertura: so tocam os cartoes visiveis na tela (os outros ficam pausados e nem carregam);
+       tudo pausa quando a faixa sai da tela ou a aba fica em segundo plano */
     (function () {
       var faixa = document.querySelector('.ab-videos');
-      if (!faixa) return;
-      var vids = faixa.querySelectorAll('video'), ligado = false;
-      var liga = function (on) {
-        vids.forEach(function (v) {
-          if (on) { if (!v.src) v.src = v.getAttribute('data-src'); var p = v.play(); if (p && p.catch) p.catch(function () {}); }
-          else v.pause();
+      if (!faixa || !('IntersectionObserver' in window)) return;
+      var trilho = faixa.querySelector('.ab-vtrilho');
+      var reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var visiveis = new Set(), faixaNaTela = false;
+      var toca = function (v) {
+        if (!v.src) { v.src = v.getAttribute('data-src'); v.preload = 'auto'; }
+        var p = v.play(); if (p && p.catch) p.catch(function () {});
+      };
+      var aplica = function () {
+        var pode = faixaNaTela && !document.hidden;
+        trilho.style.animationPlayState = pode ? '' : 'paused';
+        faixa.querySelectorAll('video').forEach(function (v) {
+          if (pode && !reduz && visiveis.has(v)) toca(v); else if (!v.paused) v.pause();
         });
       };
-      if (!('IntersectionObserver' in window)) { liga(true); return; }
-      new IntersectionObserver(function (es) {
-        var vis = es[0].isIntersecting;
-        if (vis !== ligado) { ligado = vis; liga(vis); }
-      }, { rootMargin: '200px 0px' }).observe(faixa);
+      // cada video: entra/sai da area visivel da faixa
+      var ioVid = new IntersectionObserver(function (es) {
+        es.forEach(function (e) { if (e.isIntersecting) visiveis.add(e.target); else visiveis.delete(e.target); });
+        aplica();
+      }, { root: faixa, rootMargin: '0px 60px', threshold: 0.01 });
+      faixa.querySelectorAll('video').forEach(function (v) { ioVid.observe(v); });
+      // a faixa inteira: entra/sai da tela
+      new IntersectionObserver(function (es) { faixaNaTela = es[0].isIntersecting; aplica(); }, { rootMargin: '150px 0px' }).observe(faixa);
+      document.addEventListener('visibilitychange', aplica);
     })();
   </script>
   <script src="assets/js/lenis-1.1.13.min.js"></script>
