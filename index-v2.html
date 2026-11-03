@@ -256,14 +256,13 @@
     .mob-sub .dd-links { grid-template-columns: 1fr; grid-auto-flow: row; grid-template-rows: none; gap: 4px; }
     .mob-sub .dd-lista .dd-links a { font-size: 21px; }
 
-    /* computador: menu aberto embaca e escurece o resto do site */
+    /* menu aberto (computador e celular) embaca e escurece o resto do site */
     .menu-veu {
       position: fixed; inset: 0; z-index: 15; pointer-events: none; opacity: 0; transition: opacity .3s ease;
       background: rgba(10,6,20,.35); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
     }
     html.menu-aberto .topo { z-index: 60; }
     html.menu-aberto .menu-veu { opacity: 1; pointer-events: auto; }
-    @media (max-width: 920px) { .menu-veu { display: none; } }
     .mob-panel .btn { margin-top: 6px; }
 
     /* ─── TOPO (hero roxo, inspirado no degrade escuro da referencia) ─── */
@@ -1098,12 +1097,15 @@
         var set = function (open) {
           panel.classList.toggle('open', open);
           document.documentElement.style.overflow = open ? 'hidden' : '';
+          document.documentElement.classList.toggle('menu-aberto', open);
           if (window.plLenis) { if (open) window.plLenis.stop(); else window.plLenis.start(); }
           btn.setAttribute('aria-expanded', open ? 'true' : 'false');
           btn.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
         };
         btn.addEventListener('click', function () { set(!panel.classList.contains('open')); });
         panel.addEventListener('click', function (e) { if (e.target.closest('a')) set(false); });
+        var veu = document.querySelector('.menu-veu');
+        if (veu) veu.addEventListener('click', function () { set(false); });
         document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
         // celular: cada item abre a sua lista (sanfona), um de cada vez
         panel.querySelectorAll('.mob-item').forEach(function (b) {
@@ -1123,7 +1125,7 @@
           if (o === exceto) return;
           o.setAttribute('aria-expanded', 'false'); document.getElementById(o.getAttribute('aria-controls')).classList.remove('open');
         });
-        if (!exceto) document.documentElement.classList.remove('menu-aberto');
+        if (!exceto && !document.querySelector('.mob-panel.open')) document.documentElement.classList.remove('menu-aberto');
       };
       itens.forEach(function (b) {
         b.addEventListener('click', function (e) {
