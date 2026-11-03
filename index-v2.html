@@ -1094,18 +1094,32 @@
     @media (max-width: 640px) { .ab-vtrilho { gap: 12px; animation-duration: 50s; } .ab-vid { width: 150px; border-radius: 18px; } }
     @media (prefers-reduced-motion: reduce) { .ab-vtrilho { animation: none; } }
 
-    /* faixa de logos pretas acima do titulo da abertura (rolagem infinita) */
-    .ab-logos {
-      width: 100vw; max-width: none; overflow: hidden; margin-bottom: clamp(48px, 5vw, 80px);
-      -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-      mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+
+    /* ─── IMPACTO ─── */
+    .impacto { background: #fff; padding: clamp(72px, 8vw, 120px) 0; }
+    .impacto * { -webkit-text-stroke-width: 0; }
+    .im-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #ecebef; border-radius: 22px; overflow: hidden; }
+    .im-card { position: relative; isolation: isolate; overflow: hidden; min-height: clamp(380px, 34vw, 560px); padding: clamp(24px, 2.6vw, 40px); display: flex; flex-direction: column; justify-content: space-between; color: #222; transition: color .45s ease; }
+    .im-card + .im-card { border-left: 1px dashed #e4e2e8; }
+    .im-num { font-family: var(--sans); font-weight: 300; font-size: clamp(64px, 7.4vw, 112px); line-height: 1; letter-spacing: -0.04em; color: inherit; }
+    .im-num sup { font-size: .32em; letter-spacing: 0; margin-left: .12em; vertical-align: .9em; }
+    .im-card p { max-width: 30em; font-family: var(--strong); font-weight: 400; font-size: clamp(16px, 1.25vw, 19px); line-height: 1.5; color: inherit; }
+    /* fumaca: tres manchas desfocadas que seguem o mouse com atraso */
+    .im-fumaca { position: absolute; inset: -20%; z-index: -1; opacity: 0; transition: opacity .6s ease; filter: blur(42px) saturate(1.15); background: var(--c1); }
+    .im-fumaca i { position: absolute; left: var(--x, 50%); top: var(--y, 50%); width: 70%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); }
+    .im-fumaca i:nth-child(1) { background: radial-gradient(circle, var(--c3) 0%, transparent 65%); left: var(--x1, 60%); top: var(--y1, 30%); }
+    .im-fumaca i:nth-child(2) { background: radial-gradient(circle, #fff 0%, transparent 62%); width: 45%; left: var(--x2, 75%); top: var(--y2, 55%); opacity: .85; }
+    .im-fumaca i:nth-child(3) { background: radial-gradient(circle, var(--c2) 0%, transparent 70%); width: 90%; left: var(--x3, 30%); top: var(--y3, 75%); }
+    .im-card.on { color: #fff; }
+    .im-card.on .im-fumaca { opacity: 1; }
+    .im-cta { margin-top: clamp(40px, 4vw, 64px); text-align: center; }
+    .im-cta a { display: inline-block; padding: 16px 28px; border-radius: 10px; background: #161614; color: #fff; text-decoration: none; font-family: var(--strong); font-weight: 500; font-size: 16px; transition: background .2s ease; }
+    .im-cta a:hover { background: var(--violet-dark); }
+    @media (max-width: 900px) {
+      .im-grade { grid-template-columns: 1fr; }
+      .im-card { min-height: 300px; }
+      .im-card + .im-card { border-left: 0; border-top: 1px dashed #e4e2e8; }
     }
-    .lp-trilho { display: flex; width: max-content; animation: marcas-desliza 90s linear infinite; will-change: transform; }
-    .ab-logos:hover .lp-trilho { animation-play-state: paused; }
-    .lp-marca { flex: 0 0 auto; padding: 0 clamp(22px, 2.6vw, 40px); height: 56px; display: flex; align-items: center; }
-    .lp-marca img { height: calc(var(--h) * .8); width: auto; max-width: 130px; object-fit: contain; filter: brightness(0); opacity: .9; user-select: none; }
-    @media (max-width: 640px) { .lp-marca { height: 44px; padding: 0 16px; } .lp-marca img { height: calc(var(--h) * .62); } .lp-trilho { animation-duration: 70s; } }
-    @media (prefers-reduced-motion: reduce) { .lp-trilho { animation: none; } }
   </style>
 </head>
 
@@ -1261,72 +1275,6 @@
 
       <div class="container">
         <div class="abertura-centro ab-novo rise">
-          <div class="ab-logos" aria-label="Marcas que usam o provador"><div class="lp-trilho">
-          <span class="lp-marca"><img src="assets/marcas-mono/arcsunglasses.webp" alt="ARC Sunglasses" style="--h:28.0px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/acessoriostyle.webp" alt="Acessórios Style" style="--h:34.1px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/arantz.webp" alt="Arantz" style="--h:20.7px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/barch.webp" alt="Barch Ótica" style="--h:25.2px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/brecho.webp" alt="Brechó do Óculos" style="--h:30px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/cacife.webp" alt="Cacife Brand" style="--h:22.3px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/cicia.webp" alt="Cicia Eyewear" style="--h:22px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/dayone.webp" alt="Day One Store" style="--h:27.4px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/duoari.webp" alt="Duoari" style="--h:28.0px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/fortuna.webp" alt="Fortuna Sunglasses" style="--h:29.0px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/hazon.webp" alt="Hazon" style="--h:22.6px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/koros.webp" alt="Koros" style="--h:29.0px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/liuzzi.webp" alt="Liuzzi" style="--h:22.5px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/maho.webp" alt="Maho Sunglasses" style="--h:22.9px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/maxilook.webp" alt="Maxilook" style="--h:17.3px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/oculosmeninaflor.webp" alt="Menina Flor" style="--h:40px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/mipiace.webp" alt="Mi Piace Ottica" style="--h:32.9px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/mitani.webp" alt="Mitani" style="--h:26.6px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/mozaik.webp" alt="Mozaik" style="--h:20.7px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/nc.webp" alt="NC Conceito" style="--h:33.4px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/oss.webp" alt="OSS Glasses" style="--h:23.5px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/parislondon.webp" alt="Paris London" style="--h:22.5px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/programmoda.webp" alt="Program Moda" style="--h:23.6px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/santi.webp" alt="Santi Eyewear" style="--h:28.5px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/soucet.webp" alt="Soucet" style="--h:20.5px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/suarmacao.webp" alt="Sua Armação" style="--h:18.0px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/umut.webp" alt="Umut" style="--h:16px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/cand.webp" alt="Use Cand" style="--h:31.2px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/ves.webp" alt="VES" style="--h:28.5px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/vksolaris.webp" alt="VK Solaris" style="--h:36px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/oculosemfoco.webp" alt="Óculos em Foco" style="--h:30.2px" decoding="async"></span>
-          <span aria-hidden="true" style="display:contents">
-          <span class="lp-marca"><img src="assets/marcas-mono/arcsunglasses.webp" alt="" style="--h:28.0px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/acessoriostyle.webp" alt="" style="--h:34.1px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/arantz.webp" alt="" style="--h:20.7px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/barch.webp" alt="" style="--h:25.2px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/brecho.webp" alt="" style="--h:30px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/cacife.webp" alt="" style="--h:22.3px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/cicia.webp" alt="" style="--h:22px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/dayone.webp" alt="" style="--h:27.4px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/duoari.webp" alt="" style="--h:28.0px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/fortuna.webp" alt="" style="--h:29.0px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/hazon.webp" alt="" style="--h:22.6px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/koros.webp" alt="" style="--h:29.0px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/liuzzi.webp" alt="" style="--h:22.5px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/maho.webp" alt="" style="--h:22.9px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/maxilook.webp" alt="" style="--h:17.3px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/oculosmeninaflor.webp" alt="" style="--h:40px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/mipiace.webp" alt="" style="--h:32.9px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/mitani.webp" alt="" style="--h:26.6px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/mozaik.webp" alt="" style="--h:20.7px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/nc.webp" alt="" style="--h:33.4px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/oss.webp" alt="" style="--h:23.5px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/parislondon.webp" alt="" style="--h:22.5px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/programmoda.webp" alt="" style="--h:23.6px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/santi.webp" alt="" style="--h:28.5px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/soucet.webp" alt="" style="--h:20.5px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/suarmacao.webp" alt="" style="--h:18.0px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/umut.webp" alt="" style="--h:16px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/cand.webp" alt="" style="--h:31.2px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/ves.webp" alt="" style="--h:28.5px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/vksolaris.webp" alt="" style="--h:36px" decoding="async"></span>
-          <span class="lp-marca"><img src="assets/marcas-mono/oculosemfoco.webp" alt="" style="--h:30.2px" decoding="async"></span>
-          </span>
-        </div></div>
           <div class="ab-linha1">
             <h2 class="abertura-titulo" id="aberturaTitulo"><span class="t1">Provador virtual</span> <span class="t2">para <i class="ab-icone" aria-hidden="true"></i> moda e óculos.</span></h2>
             <div class="ab-stat"><strong>+R$ 2,5 mi</strong><span>vendidos pelo provador nas lojas parceiras</span></div>
@@ -1526,6 +1474,30 @@
             <p>Separe quem provou, clicou ou abandonou e responda pela caixa de entrada do WhatsApp dentro do painel, sem trocar de ferramenta.</p>
           </article>
         </div>
+      </div>
+    </section>
+
+    <!-- ─── IMPACTO (tres numeros, fumaca colorida que segue o mouse) ─── -->
+    <section class="impacto" aria-label="O impacto do provador">
+      <div class="container">
+        <div class="im-grade">
+          <article class="im-card" style="--c1:#7c3aed;--c2:#c084fc;--c3:#e9d5ff">
+            <span class="im-fumaca" aria-hidden="true"><i></i><i></i><i></i></span>
+            <strong class="im-num">+10<sup>mil</sup></strong>
+            <p>Clientes já provaram as peças na própria foto antes de comprar, direto na página do produto.</p>
+          </article>
+          <article class="im-card" style="--c1:#db2777;--c2:#f472b6;--c3:#fbcfe8">
+            <span class="im-fumaca" aria-hidden="true"><i></i><i></i><i></i></span>
+            <strong class="im-num">7,5x</strong>
+            <p>Mais conversão de quem usa o provador, comparado à média da moda online no Brasil (1,9%).</p>
+          </article>
+          <article class="im-card" style="--c1:#4f46e5;--c2:#818cf8;--c3:#c7d2fe">
+            <span class="im-fumaca" aria-hidden="true"><i></i><i></i><i></i></span>
+            <strong class="im-num">1<sup>hora</sup></strong>
+            <p>É o tempo para o provador entrar no ar na sua loja. Nossa equipe instala, sem você mexer em código.</p>
+          </article>
+        </div>
+        <div class="im-cta"><a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener">Testar grátis</a></div>
       </div>
     </section>
   </main>
@@ -1973,6 +1945,43 @@
       // a faixa inteira: entra/sai da tela
       new IntersectionObserver(function (es) { faixaNaTela = es[0].isIntersecting; aplica(); }, { rootMargin: '150px 0px' }).observe(faixa);
       document.addEventListener('visibilitychange', aplica);
+    })();
+  </script>
+  <script>
+    /* impacto: a fumaca aparece no cartao sob o mouse e cada mancha segue o cursor com um atraso diferente.
+       No celular (sem mouse), o cartao do meio da tela ganha a fumaca, que flutua sozinha. */
+    (function () {
+      var cards = document.querySelectorAll('.im-card');
+      if (!cards.length) return;
+      var reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var toque = matchMedia('(hover: none)').matches;
+      cards.forEach(function (card) {
+        var f = card.querySelector('.im-fumaca');
+        var alvo = { x: 50, y: 50 }, pos = [{ x: 60, y: 30 }, { x: 75, y: 55 }, { x: 30, y: 75 }], vel = [0.06, 0.1, 0.035], rodando = false, ativo = false, t0 = performance.now();
+        var passo = function (t) {
+          if (toque && ativo) { var k = (t - t0) / 1000; alvo.x = 50 + Math.cos(k * .6) * 22; alvo.y = 50 + Math.sin(k * .8) * 18; }
+          pos.forEach(function (p, i) {
+            var ox = i === 0 ? 10 : i === 1 ? 22 : -18, oy = i === 0 ? -16 : i === 1 ? 6 : 20;
+            p.x += (alvo.x + ox - p.x) * vel[i]; p.y += (alvo.y + oy - p.y) * vel[i];
+            f.style.setProperty('--x' + (i + 1), p.x + '%'); f.style.setProperty('--y' + (i + 1), p.y + '%');
+          });
+          if (ativo) requestAnimationFrame(passo); else rodando = false;
+        };
+        var liga = function (on) {
+          ativo = on; card.classList.toggle('on', on);
+          if (on && !rodando && !reduz) { rodando = true; requestAnimationFrame(passo); }
+        };
+        if (!toque) {
+          card.addEventListener('pointerenter', function () { liga(true); });
+          card.addEventListener('pointerleave', function () { liga(false); });
+          card.addEventListener('pointermove', function (e) {
+            var r = f.getBoundingClientRect();
+            alvo.x = (e.clientX - r.left) / r.width * 100; alvo.y = (e.clientY - r.top) / r.height * 100;
+          });
+        } else if ('IntersectionObserver' in window) {
+          new IntersectionObserver(function (es) { liga(es[0].isIntersecting); }, { rootMargin: '-35% 0px -35% 0px' }).observe(card);
+        }
+      });
     })();
   </script>
   <script src="assets/js/lenis-1.1.13.min.js"></script>
