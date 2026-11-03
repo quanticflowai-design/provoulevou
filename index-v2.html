@@ -324,6 +324,12 @@
       display: grid; grid-template-rows: 1fr auto; text-align: center;
     }
     .abertura-fundo { position: absolute; inset: 0; z-index: -1; overflow: hidden; background: #fff; }
+    /* transicao arredondada: a secao branca sobe por cima do fim do hero roxo */
+    .abertura::before {
+      content: ""; position: absolute; left: 0; right: 0; top: calc(-1 * var(--curva)); height: calc(var(--curva) + 1px);
+      background: #fff; border-radius: var(--curva) var(--curva) 0 0; z-index: 2; pointer-events: none;
+    }
+    .abertura { --curva: clamp(24px, 3.2vw, 44px); }
     /* a foto fica numa caixa com a proporcao dela; a assinatura mora dentro da caixa,
        entao acompanha o trecho roxo em qualquer tela */
     .onda { position: absolute; aspect-ratio: 1981 / 794; }
