@@ -369,6 +369,7 @@
     /* a foto fica numa caixa com a proporcao dela; a assinatura mora dentro da caixa,
        entao acompanha o trecho roxo em qualquer tela */
     .onda { position: absolute; aspect-ratio: 1981 / 794; }
+    .onda picture { display: block; width: 100%; height: 100%; }
     .onda img {
       display: block; width: 100%; height: 100%; max-width: none;
       -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.35) 14%, #000 34%);
@@ -440,11 +441,9 @@
       .onda { left: -7.5%; width: 115%; top: calc(58svh - 25.8vw); }
       .abertura-fundo { overflow-x: clip; }
       .onda img {
-        /* computador: esmaecido no topo, ponta direita dissolvendo e um apagado suave (degrade) no alto da subida da direita */
-        -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh), linear-gradient(270deg, transparent 6.5%, rgba(0,0,0,.25) 11%, rgba(0,0,0,.7) 17%, #000 24%), radial-gradient(ellipse 27% 40% at 95% -6%, rgba(0,0,0,.3) 0%, rgba(0,0,0,.42) 35%, rgba(0,0,0,.68) 65%, rgba(0,0,0,.9) 86%, #000 100%);
-        -webkit-mask-composite: source-in, source-in;
-        mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh), linear-gradient(270deg, transparent 6.5%, rgba(0,0,0,.25) 11%, rgba(0,0,0,.7) 17%, #000 24%), radial-gradient(ellipse 27% 40% at 95% -6%, rgba(0,0,0,.3) 0%, rgba(0,0,0,.42) 35%, rgba(0,0,0,.68) 65%, rgba(0,0,0,.9) 86%, #000 100%);
-        mask-composite: intersect, intersect;
+        /* computador: foto propria (sem a subida da direita), so com o esmaecido no topo */
+        -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh);
+        mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh);
       }
     }
     @media (max-width: 640px) {
@@ -1277,7 +1276,7 @@
     <!-- ─── ABERTURA ─── -->
     <section class="abertura" aria-labelledby="aberturaTitulo">
 
-<div class="abertura-fundo"><div class="onda"><img src="assets/hero-ondas.webp" alt="" width="1981" height="794" fetchpriority="high" decoding="async">
+<div class="abertura-fundo"><div class="onda"><picture><source media="(min-width: 641px)" srcset="assets/hero-ondas-pc.webp"><img src="assets/hero-ondas.webp" alt="" width="1981" height="794" fetchpriority="high" decoding="async"></picture>
         <div class="abertura-assina">
           <strong>Provou Levou</strong>
           <span>Tecnologia by Quantic</span>
