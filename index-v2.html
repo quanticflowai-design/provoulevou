@@ -431,8 +431,11 @@
       .onda { left: -7.5%; width: 115%; top: calc(58svh - 25.8vw); }
       .abertura-fundo { overflow-x: clip; }
       .onda img {
-        -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh);
-        mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh);
+        /* computador: alem do esmaecido no topo, a ponta da direita se dissolve no branco */
+        -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh), linear-gradient(270deg, transparent 6.5%, rgba(0,0,0,.25) 11%, rgba(0,0,0,.7) 17%, #000 24%);
+        -webkit-mask-composite: source-in;
+        mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,.35) 6.6svh, #000 16svh), linear-gradient(270deg, transparent 6.5%, rgba(0,0,0,.25) 11%, rgba(0,0,0,.7) 17%, #000 24%);
+        mask-composite: intersect;
       }
     }
     @media (max-width: 640px) {
