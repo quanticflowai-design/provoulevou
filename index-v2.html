@@ -118,27 +118,34 @@
     }
 
     /* ─── HEADER ─── */
-    .site-header { position: absolute; top: 0; left: 0; right: 0; z-index: 70; background: transparent; }
-    /* ao sair do topo, o header vira uma pilula de vidro fixa e centralizada */
+    /* header sempre fixo: no topo e transparente e largo; ao rolar, encolhe para uma pilula de vidro centralizada (transicao continua) */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0; margin: 0 auto; width: 100%; z-index: 70;
+      background: rgba(14, 9, 26, 0); border: 1px solid transparent; border-radius: 0;
+      -webkit-backdrop-filter: blur(0) saturate(1); backdrop-filter: blur(0) saturate(1);
+      transition: top .7s cubic-bezier(.22,1,.36,1), width .7s cubic-bezier(.22,1,.36,1), border-radius .7s cubic-bezier(.22,1,.36,1),
+        background-color .5s ease, border-color .5s ease, box-shadow .5s ease, backdrop-filter .5s ease, -webkit-backdrop-filter .5s ease;
+    }
+    .site-header > .container { transition: padding .7s cubic-bezier(.22,1,.36,1); }
+    .site-header .nav { transition: height .7s cubic-bezier(.22,1,.36,1); }
+    .site-header .nav-brand img { transition: height .7s cubic-bezier(.22,1,.36,1); }
     .site-header.flutua {
-      position: fixed; top: 12px; left: 0; right: 0; margin: 0 auto; width: min(1120px, calc(100% - 24px));
-      border-radius: 100px; background: rgba(14, 9, 26, .8);
+      top: 14px; width: min(940px, calc(100% - 48px)); border-radius: 100px;
+      background: rgba(14, 9, 26, .8); border-color: rgba(255,255,255,.14);
       -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4);
-      border: 1px solid rgba(255,255,255,.14); box-shadow: 0 18px 44px -20px rgba(0,0,0,.55);
-      animation: hdr-desce .5s cubic-bezier(.22,1,.36,1);
+      box-shadow: 0 18px 44px -20px rgba(0,0,0,.55);
     }
-    .site-header.flutua > .container { max-width: none; padding-left: 26px; padding-right: 10px; }
-    .site-header.flutua .nav { height: 64px; }
-    .site-header.flutua .nav-brand img { height: 26px; }
-    @keyframes hdr-desce { from { top: -90px; opacity: 0; } to { top: 12px; opacity: 1; } }
+    .site-header.flutua > .container { padding-left: 24px; padding-right: 10px; }
+    .site-header.flutua .nav { height: 60px; }
+    .site-header.flutua .nav-brand img { height: 24px; }
+    .site-header.flutua .nav-direita, .site-header.flutua .nav-links { gap: 6px; }
     @media (max-width: 640px) {
-      .site-header.flutua { top: 10px; width: calc(100% - 20px); }
-      .site-header.flutua > .container { padding-left: 18px; padding-right: 8px; }
-      .site-header.flutua .nav { height: 56px; }
-      .site-header.flutua .nav-brand img { height: 22px; }
-      @keyframes hdr-desce { from { top: -80px; opacity: 0; } to { top: 10px; opacity: 1; } }
+      .site-header.flutua { top: 10px; width: calc(100% - 32px); }
+      .site-header.flutua > .container { padding-left: 16px; padding-right: 7px; }
+      .site-header.flutua .nav { height: 54px; }
+      .site-header.flutua .nav-brand img { height: 21px; }
     }
-    @media (prefers-reduced-motion: reduce) { .site-header.flutua { animation: none; } }
+    @media (prefers-reduced-motion: reduce) { .site-header, .site-header * { transition: none !important; } }
     .nav { position: relative; height: 110px; display: flex; align-items: center; justify-content: space-between; gap: 44px; }
     .nav-direita { display: flex; align-items: center; gap: 44px; }
     .nav-brand { display: flex; align-items: center; flex-shrink: 0; }
@@ -1029,7 +1036,7 @@
 
     /* abertura no estilo editorial: titulo grande a esquerda, numero a direita, pilula, frase cinza e rotulos */
     .abertura-centro.ab-novo { display: block; width: 100%; text-align: left; }
-    .abertura > .container { width: 100%; justify-self: stretch; }
+    .abertura > .container { justify-self: stretch; width: 100%; min-width: 0; }
     .ab-novo > .ab-linha1, .ab-novo > .ab-linha2, .ab-novo > .ab-rodape { width: 100%; max-width: none; margin-left: 0; margin-right: 0; }
     .ab-linha1 { display: flex; justify-content: space-between; align-items: flex-start; gap: 32px; }
     .ab-novo .abertura-titulo { margin: 0; font-size: clamp(40px, 6.4vw, 104px); line-height: 1; letter-spacing: -0.05em; }
@@ -1054,6 +1061,7 @@
     .ab-seta svg { width: 44%; height: 44%; }
     .ab-grande { font-family: var(--strong); font-weight: 400; font-size: clamp(30px, 4.6vw, 74px); line-height: 1; letter-spacing: -0.04em; color: #c9c4d4; -webkit-text-stroke-width: 0; }
     .ab-grande span { letter-spacing: -0.12em; margin-right: .1em; }
+    .ab-grande b { font-weight: inherit; white-space: nowrap; }
     .ab-rodape { margin-top: clamp(32px, 4.4vw, 64px); display: flex; justify-content: space-between; gap: 16px; font-family: var(--strong); font-weight: 500; font-size: 14px; color: #161614; }
     .ab-rodape * , .ab-novo * { -webkit-text-stroke-width: 0; }
     @media (max-width: 900px) {
@@ -1061,12 +1069,38 @@
       .ab-stat { padding-top: 0; }
       .ab-linha2 { flex-direction: column; align-items: flex-start; gap: 22px; }
     }
-    @media (max-width: 640px) {
-      .ab-novo .abertura-titulo { font-size: clamp(34px, 10.4vw, 44px); }
-      .ab-novo .abertura-titulo .t2 { white-space: normal; }
-      .ab-rodape { flex-wrap: wrap; gap: 8px 18px; font-size: 13px; }
-      .ab-grande { font-size: clamp(28px, 8.4vw, 36px); }
+    @media (max-width: 900px) {
+      .ab-linha1 { flex-direction: row; gap: 12px; }
+      .ab-stat { width: 7.2em; padding-top: .2em; text-align: left; }
+      .ab-linha2 { flex-direction: row; align-items: center; gap: 14px; }
+      .ab-grande { text-align: right; }
     }
+    @media (max-width: 640px) {
+      .ab-novo .abertura-titulo { font-size: clamp(26px, 7.6vw, 34px); }
+      .ab-stat { flex: 0 1 6em; width: auto; min-width: 0; font-size: 14px; }
+      .ab-stat strong { font-size: 20px; }
+      .ab-stat span { font-size: 10.5px; margin-top: 3px; }
+      .ab-pilula { flex: none; padding: 3px; }
+      .ab-pilula img, .ab-seta { width: 38px; height: 38px; }
+      .ab-pilula > * + * { margin-left: -8px; }
+      .ab-grande { font-size: clamp(22px, 6.6vw, 30px); line-height: 1.05; }
+      .ab-rodape { flex-wrap: nowrap; gap: 6px; font-size: 10.5px; }
+      .ab-rodape span { white-space: nowrap; }
+    }
+
+    /* menu do celular: tudo cabe na altura da tela, sem rolar (tamanhos acompanham a altura do aparelho) */
+    @media (max-width: 920px) {
+      .mob-panel { max-height: calc(100svh - 100px); overflow: hidden; padding: clamp(6px, 1.2svh, 12px); }
+      .mob-item, .mob-panel .mob-link { padding: clamp(7px, 1.5svh, 14px) 12px; font-size: clamp(16px, 2.3svh, 18px); }
+      .mob-sub .dd-lista { padding: 2px 12px clamp(4px, 1svh, 12px); gap: clamp(4px, .8svh, 10px); }
+      .mob-sub .dd-rotulo { font-size: clamp(11px, 1.6svh, 13px); }
+      .mob-sub .dd-links { gap: clamp(0px, .4svh, 4px); }
+      .mob-sub .dd-lista .dd-links a { font-size: clamp(15px, 2.45svh, 21px); line-height: 1.2; }
+      .mob-sub .dd-card { height: clamp(56px, 12svh, 150px); min-height: 0; margin: 2px 8px clamp(4px, 1svh, 12px); }
+      .mob-panel .btn { margin-top: clamp(2px, .6svh, 6px); padding-block: clamp(10px, 1.6svh, 14px); }
+    }
+    /* telas bem baixas: a foto do submenu sai para o menu caber inteiro */
+    @media (max-width: 920px) and (max-height: 600px) { .mob-sub .dd-card { display: none; } }
   </style>
 </head>
 
@@ -1164,7 +1198,7 @@
               <img src="assets/recursos/cliente-2.webp" alt="" width="120" height="120">
               <span class="ab-seta" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             </a>
-            <p class="ab-grande"><span aria-hidden="true">\\</span> O futuro do e-commerce</p>
+            <p class="ab-grande"><span aria-hidden="true">\\</span> O futuro do <b>e-commerce</b></p>
           </div>
           <div class="ab-rodape"><span>Inteligência artificial</span><span>Moda e óculos</span><span>Sem app e sem cadastro</span></div>
         </div>
