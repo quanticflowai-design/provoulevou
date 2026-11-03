@@ -1093,6 +1093,19 @@
     .ab-videos { contain: layout paint; }
     @media (max-width: 640px) { .ab-vtrilho { gap: 12px; animation-duration: 50s; } .ab-vid { width: 150px; border-radius: 18px; } }
     @media (prefers-reduced-motion: reduce) { .ab-vtrilho { animation: none; } }
+
+    /* faixa de logos pretas acima do titulo da abertura (rolagem infinita) */
+    .ab-logos {
+      width: 100vw; max-width: none; overflow: hidden; margin-bottom: clamp(48px, 5vw, 80px);
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    }
+    .lp-trilho { display: flex; width: max-content; animation: marcas-desliza 90s linear infinite; will-change: transform; }
+    .ab-logos:hover .lp-trilho { animation-play-state: paused; }
+    .lp-marca { flex: 0 0 auto; padding: 0 clamp(22px, 2.6vw, 40px); height: 56px; display: flex; align-items: center; }
+    .lp-marca img { height: calc(var(--h) * .8); width: auto; max-width: 130px; object-fit: contain; filter: brightness(0); opacity: .9; user-select: none; }
+    @media (max-width: 640px) { .lp-marca { height: 44px; padding: 0 16px; } .lp-marca img { height: calc(var(--h) * .62); } .lp-trilho { animation-duration: 70s; } }
+    @media (prefers-reduced-motion: reduce) { .lp-trilho { animation: none; } }
   </style>
 </head>
 
@@ -1248,6 +1261,72 @@
 
       <div class="container">
         <div class="abertura-centro ab-novo rise">
+          <div class="ab-logos" aria-label="Marcas que usam o provador"><div class="lp-trilho">
+          <span class="lp-marca"><img src="assets/marcas-mono/arcsunglasses.webp" alt="ARC Sunglasses" style="--h:28.0px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/acessoriostyle.webp" alt="Acessórios Style" style="--h:34.1px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/arantz.webp" alt="Arantz" style="--h:20.7px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/barch.webp" alt="Barch Ótica" style="--h:25.2px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/brecho.webp" alt="Brechó do Óculos" style="--h:30px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/cacife.webp" alt="Cacife Brand" style="--h:22.3px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/cicia.webp" alt="Cicia Eyewear" style="--h:22px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/dayone.webp" alt="Day One Store" style="--h:27.4px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/duoari.webp" alt="Duoari" style="--h:28.0px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/fortuna.webp" alt="Fortuna Sunglasses" style="--h:29.0px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/hazon.webp" alt="Hazon" style="--h:22.6px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/koros.webp" alt="Koros" style="--h:29.0px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/liuzzi.webp" alt="Liuzzi" style="--h:22.5px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/maho.webp" alt="Maho Sunglasses" style="--h:22.9px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/maxilook.webp" alt="Maxilook" style="--h:17.3px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/oculosmeninaflor.webp" alt="Menina Flor" style="--h:40px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/mipiace.webp" alt="Mi Piace Ottica" style="--h:32.9px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/mitani.webp" alt="Mitani" style="--h:26.6px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/mozaik.webp" alt="Mozaik" style="--h:20.7px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/nc.webp" alt="NC Conceito" style="--h:33.4px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/oss.webp" alt="OSS Glasses" style="--h:23.5px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/parislondon.webp" alt="Paris London" style="--h:22.5px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/programmoda.webp" alt="Program Moda" style="--h:23.6px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/santi.webp" alt="Santi Eyewear" style="--h:28.5px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/soucet.webp" alt="Soucet" style="--h:20.5px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/suarmacao.webp" alt="Sua Armação" style="--h:18.0px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/umut.webp" alt="Umut" style="--h:16px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/cand.webp" alt="Use Cand" style="--h:31.2px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/ves.webp" alt="VES" style="--h:28.5px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/vksolaris.webp" alt="VK Solaris" style="--h:36px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/oculosemfoco.webp" alt="Óculos em Foco" style="--h:30.2px" decoding="async"></span>
+          <span aria-hidden="true" style="display:contents">
+          <span class="lp-marca"><img src="assets/marcas-mono/arcsunglasses.webp" alt="" style="--h:28.0px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/acessoriostyle.webp" alt="" style="--h:34.1px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/arantz.webp" alt="" style="--h:20.7px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/barch.webp" alt="" style="--h:25.2px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/brecho.webp" alt="" style="--h:30px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/cacife.webp" alt="" style="--h:22.3px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/cicia.webp" alt="" style="--h:22px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/dayone.webp" alt="" style="--h:27.4px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/duoari.webp" alt="" style="--h:28.0px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/fortuna.webp" alt="" style="--h:29.0px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/hazon.webp" alt="" style="--h:22.6px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/koros.webp" alt="" style="--h:29.0px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/liuzzi.webp" alt="" style="--h:22.5px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/maho.webp" alt="" style="--h:22.9px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/maxilook.webp" alt="" style="--h:17.3px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/oculosmeninaflor.webp" alt="" style="--h:40px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/mipiace.webp" alt="" style="--h:32.9px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/mitani.webp" alt="" style="--h:26.6px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/mozaik.webp" alt="" style="--h:20.7px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/nc.webp" alt="" style="--h:33.4px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/oss.webp" alt="" style="--h:23.5px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/parislondon.webp" alt="" style="--h:22.5px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/programmoda.webp" alt="" style="--h:23.6px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/santi.webp" alt="" style="--h:28.5px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/soucet.webp" alt="" style="--h:20.5px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/suarmacao.webp" alt="" style="--h:18.0px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/umut.webp" alt="" style="--h:16px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/cand.webp" alt="" style="--h:31.2px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/ves.webp" alt="" style="--h:28.5px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/vksolaris.webp" alt="" style="--h:36px" decoding="async"></span>
+          <span class="lp-marca"><img src="assets/marcas-mono/oculosemfoco.webp" alt="" style="--h:30.2px" decoding="async"></span>
+          </span>
+        </div></div>
           <div class="ab-linha1">
             <h2 class="abertura-titulo" id="aberturaTitulo"><span class="t1">Provador virtual</span> <span class="t2">para <i class="ab-icone" aria-hidden="true"></i> moda e óculos.</span></h2>
             <div class="ab-stat"><strong>+R$ 2,5 mi</strong><span>vendidos pelo provador nas lojas parceiras</span></div>
