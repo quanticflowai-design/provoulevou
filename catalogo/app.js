@@ -649,7 +649,13 @@
                 brand: '#D4AF37', dark: '#B8962E', soft: 'rgba(212,175,55,.12)', on: '#000000' },
     // Studio GP Academy — cobre sobre grafite chapado -> fundo = grafite do logo (tema escuro); cobre com texto preto
     studiogpacademy: { bg: '#313131', card: '#3B3B3B', line: 'rgba(255,255,255,.14)',
-                brand: '#C99059', dark: '#B07A44', soft: 'rgba(201,144,89,.14)', on: '#000000' }
+                brand: '#C99059', dark: '#B07A44', soft: 'rgba(201,144,89,.14)', on: '#000000' },
+    // Ótica Bruno Alves — branco sobre preto chapado -> fundo = preto do logo (tema escuro); botão branco com texto preto
+    oticabrunoalves: { bg: '#000000', card: '#111111', line: 'rgba(255,255,255,.14)',
+                brand: '#FFFFFF', dark: '#DDDDDD', soft: 'rgba(255,255,255,.10)', on: '#000000' },
+    // Ótica Atitude Glasses — roxo profundo do logo sobre lilás claro (logo em degradê lilás); botão roxo com texto branco
+    oticaatitudeglasses: { bg: '#F8F1FA', card: '#FFFFFF', line: '#E6D6EB',
+                brand: '#3A1A5C', dark: '#270F3F', soft: 'rgba(58,26,92,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
