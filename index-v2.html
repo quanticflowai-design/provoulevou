@@ -1110,6 +1110,11 @@
     .im-fumaca i:nth-child(1) { background: radial-gradient(circle, var(--c3) 0%, transparent 65%); left: var(--x1, 60%); top: var(--y1, 30%); }
     .im-fumaca i:nth-child(2) { background: radial-gradient(circle, #fff 0%, transparent 62%); width: 45%; left: var(--x2, 75%); top: var(--y2, 55%); opacity: .85; }
     .im-fumaca i:nth-child(3) { background: radial-gradient(circle, var(--c2) 0%, transparent 70%); width: 90%; left: var(--x3, 30%); top: var(--y3, 75%); }
+    .im-fumaca canvas { display: none; }
+    /* com WebGL: fumaca realista (shader), sem as manchas de CSS */
+    .im-fumaca.gl { inset: 0; filter: none; background: var(--c1); }
+    .im-fumaca.gl i { display: none; }
+    .im-fumaca.gl canvas { display: block; position: absolute; inset: 0; width: 100%; height: 100%; }
     .im-card.on { color: #fff; }
     .im-card.on .im-fumaca { opacity: 1; }
     .im-cta { margin-top: clamp(40px, 4vw, 64px); text-align: center; }
@@ -1482,17 +1487,17 @@
       <div class="container">
         <div class="im-grade">
           <article class="im-card" style="--c1:#7c3aed;--c2:#c084fc;--c3:#e9d5ff">
-            <span class="im-fumaca" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="im-fumaca" aria-hidden="true"><i></i><i></i><i></i><canvas></canvas></span>
             <strong class="im-num">+10<sup>mil</sup></strong>
             <p>Clientes já provaram as peças na própria foto antes de comprar, direto na página do produto.</p>
           </article>
           <article class="im-card" style="--c1:#db2777;--c2:#f472b6;--c3:#fbcfe8">
-            <span class="im-fumaca" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="im-fumaca" aria-hidden="true"><i></i><i></i><i></i><canvas></canvas></span>
             <strong class="im-num">7,5x</strong>
             <p>Mais conversão de quem usa o provador, comparado à média da moda online no Brasil (1,9%).</p>
           </article>
           <article class="im-card" style="--c1:#4f46e5;--c2:#818cf8;--c3:#c7d2fe">
-            <span class="im-fumaca" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="im-fumaca" aria-hidden="true"><i></i><i></i><i></i><canvas></canvas></span>
             <strong class="im-num">1<sup>hora</sup></strong>
             <p>É o tempo para o provador entrar no ar na sua loja. Nossa equipe instala, sem você mexer em código.</p>
           </article>
@@ -1948,39 +1953,105 @@
     })();
   </script>
   <script>
-    /* impacto: a fumaca aparece no cartao sob o mouse e cada mancha segue o cursor com um atraso diferente.
-       No celular (sem mouse), o cartao do meio da tela ganha a fumaca, que flutua sozinha. */
+    /* impacto: fumaca realista em WebGL (ruido fractal com distorcao em camadas, estilo onda/seda).
+       Ela aparece no cartao sob o mouse, se curva em volta do cursor e o brilho segue o mouse.
+       No celular, o cartao no meio da tela ganha a fumaca, que flutua sozinha. Sem WebGL, ficam as manchas de CSS. */
     (function () {
       var cards = document.querySelectorAll('.im-card');
       if (!cards.length) return;
       var reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
       var toque = matchMedia('(hover: none)').matches;
+      var FRAG = [
+        'precision highp float;',
+        'uniform vec2 uRes; uniform vec2 uMouse; uniform float uT; uniform float uOn;',
+        'uniform vec3 uC1; uniform vec3 uC2; uniform vec3 uC3;',
+        'float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }',
+        'float n(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f*f*(3.0-2.0*f);',
+        '  return mix(mix(h(i), h(i+vec2(1,0)), u.x), mix(h(i+vec2(0,1)), h(i+vec2(1,1)), u.x), u.y); }',
+        'float fbm(vec2 p){ float v = 0.0, a = 0.5; mat2 m = mat2(1.6, 1.2, -1.2, 1.6);',
+        '  for (int i = 0; i < 5; i++) { v += a * n(p); p = m * p; a *= 0.5; } return v; }',
+        'void main(){',
+        '  vec2 uv = gl_FragCoord.xy / uRes; float asp = uRes.x / uRes.y;',
+        '  vec2 p = vec2(uv.x * asp, uv.y) * 1.1; vec2 m = vec2(uMouse.x * asp, uMouse.y) * 1.1;',
+        '  float t = uT * 0.12;',
+        '  vec2 d = p - m; float dl = length(d);',
+        '  float infl = exp(-dl * 1.8);',
+        '  p += vec2(-d.y, d.x) * infl * 0.55;',  // a fumaca gira em volta do cursor
+        '  vec2 q = vec2(fbm(p + vec2(0.0, t)), fbm(p + vec2(5.2, 1.3) - t * 0.7));',
+        '  vec2 r = vec2(fbm(p + 3.5*q + vec2(1.7, 9.2) + t*1.3), fbm(p + 3.5*q + vec2(8.3, 2.8) - t));',
+        '  float f = fbm(p + 3.0*r);',
+        '  vec3 col = mix(uC1, uC2, smoothstep(0.35, 0.95, f));',
+        '  col = mix(col, uC3, smoothstep(0.35, 1.0, length(q)) * 0.75);',
+        '  float fio = smoothstep(0.55, 0.95, r.x * f * 1.9);',  // filamentos claros, como fumaca/seda
+        '  col = mix(col, vec3(1.0), fio * 0.42 * smoothstep(0.1, 0.7, uv.x));',
+        '  col = mix(col, vec3(1.0), infl * 0.35 * smoothstep(0.3, 0.9, f));',  // brilho junto do mouse
+        '  col *= 0.86 + 0.14 * f;',
+        '  gl_FragColor = vec4(col, 1.0);',
+        '}'
+      ].join('\n');
+      var hex = function (c) { c = c.trim().replace('#', ''); return [parseInt(c.slice(0, 2), 16) / 255, parseInt(c.slice(2, 4), 16) / 255, parseInt(c.slice(4, 6), 16) / 255]; };
+
       cards.forEach(function (card) {
-        var f = card.querySelector('.im-fumaca');
-        var alvo = { x: 50, y: 50 }, pos = [{ x: 60, y: 30 }, { x: 75, y: 55 }, { x: 30, y: 75 }], vel = [0.06, 0.1, 0.035], rodando = false, ativo = false, t0 = performance.now();
+        var f = card.querySelector('.im-fumaca'), cv = f.querySelector('canvas');
+        var gl = cv.getContext('webgl', { antialias: false, alpha: false, preserveDrawingBuffer: false });
+        var cs = getComputedStyle(card);
+        var alvo = { x: .5, y: .5 }, mouse = { x: .5, y: .5 }, ativo = false, rodando = false, tempo = Math.random() * 50, ultimo = 0;
+        var U = null;
+        if (gl) {
+          var sh = function (tipo, src) { var o = gl.createShader(tipo); gl.shaderSource(o, src); gl.compileShader(o); return o; };
+          var pr = gl.createProgram();
+          gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }'));
+          gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FRAG));
+          gl.linkProgram(pr);
+          if (gl.getProgramParameter(pr, gl.LINK_STATUS)) {
+            gl.useProgram(pr);
+            var bf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, bf);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
+            var la = gl.getAttribLocation(pr, 'a'); gl.enableVertexAttribArray(la); gl.vertexAttribPointer(la, 2, gl.FLOAT, false, 0, 0);
+            U = {}; ['uRes', 'uMouse', 'uT', 'uC1', 'uC2', 'uC3'].forEach(function (k) { U[k] = gl.getUniformLocation(pr, k); });
+            gl.uniform3fv(U.uC1, hex(cs.getPropertyValue('--c1'))); gl.uniform3fv(U.uC2, hex(cs.getPropertyValue('--c2'))); gl.uniform3fv(U.uC3, hex(cs.getPropertyValue('--c3')));
+            f.classList.add('gl');
+          }
+        }
+        // resolucao reduzida (a fumaca e macia, nao precisa de nitidez) para ficar leve
+        var tamanho = function () {
+          if (!U) return;
+          var r = cv.getBoundingClientRect(), k = Math.min(1, 0.6 * (devicePixelRatio || 1));
+          cv.width = Math.max(2, Math.round(r.width * k)); cv.height = Math.max(2, Math.round(r.height * k));
+          gl.viewport(0, 0, cv.width, cv.height); gl.uniform2f(U.uRes, cv.width, cv.height);
+        };
+        var desenha = function () {
+          gl.uniform2f(U.uMouse, mouse.x, mouse.y); gl.uniform1f(U.uT, tempo);
+          gl.drawArrays(gl.TRIANGLES, 0, 6);
+        };
         var passo = function (t) {
-          if (toque && ativo) { var k = (t - t0) / 1000; alvo.x = 50 + Math.cos(k * .6) * 22; alvo.y = 50 + Math.sin(k * .8) * 18; }
-          pos.forEach(function (p, i) {
-            var ox = i === 0 ? 10 : i === 1 ? 22 : -18, oy = i === 0 ? -16 : i === 1 ? 6 : 20;
-            p.x += (alvo.x + ox - p.x) * vel[i]; p.y += (alvo.y + oy - p.y) * vel[i];
-            f.style.setProperty('--x' + (i + 1), p.x + '%'); f.style.setProperty('--y' + (i + 1), p.y + '%');
-          });
-          if (ativo) requestAnimationFrame(passo); else rodando = false;
+          var dt = ultimo ? Math.min(0.05, (t - ultimo) / 1000) : 0.016; ultimo = t;
+          if (!reduz) tempo += dt;
+          if (toque) { var k = tempo * 0.5; alvo.x = .5 + Math.cos(k) * .25; alvo.y = .5 + Math.sin(k * 1.3) * .2; }
+          mouse.x += (alvo.x - mouse.x) * 0.06; mouse.y += (alvo.y - mouse.y) * 0.06;
+          if (U) desenha();
+          else {
+            f.style.setProperty('--x1', (mouse.x * 100 + 10) + '%'); f.style.setProperty('--y1', ((1 - mouse.y) * 100 - 16) + '%');
+            f.style.setProperty('--x2', (mouse.x * 100 + 22) + '%'); f.style.setProperty('--y2', ((1 - mouse.y) * 100 + 6) + '%');
+            f.style.setProperty('--x3', (mouse.x * 100 - 18) + '%'); f.style.setProperty('--y3', ((1 - mouse.y) * 100 + 20) + '%');
+          }
+          if (ativo) requestAnimationFrame(passo); else { rodando = false; ultimo = 0; }
         };
         var liga = function (on) {
           ativo = on; card.classList.toggle('on', on);
-          if (on && !rodando && !reduz) { rodando = true; requestAnimationFrame(passo); }
+          if (on) { tamanho(); if (!rodando) { rodando = true; requestAnimationFrame(passo); } }
         };
         if (!toque) {
           card.addEventListener('pointerenter', function () { liga(true); });
           card.addEventListener('pointerleave', function () { liga(false); });
           card.addEventListener('pointermove', function (e) {
-            var r = f.getBoundingClientRect();
-            alvo.x = (e.clientX - r.left) / r.width * 100; alvo.y = (e.clientY - r.top) / r.height * 100;
+            var r = card.getBoundingClientRect();
+            alvo.x = (e.clientX - r.left) / r.width; alvo.y = 1 - (e.clientY - r.top) / r.height;
           });
         } else if ('IntersectionObserver' in window) {
           new IntersectionObserver(function (es) { liga(es[0].isIntersecting); }, { rootMargin: '-35% 0px -35% 0px' }).observe(card);
         }
+        addEventListener('resize', function () { if (ativo) tamanho(); });
       });
     })();
   </script>
