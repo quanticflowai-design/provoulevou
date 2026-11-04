@@ -1069,13 +1069,16 @@
     .tudo * { -webkit-text-stroke-width: 0; }
     .ts-topo { position: relative; text-align: center; padding: clamp(170px, 17vw, 230px) 24px clamp(48px, 5vw, 72px); }
     .ts-flutua { position: absolute; inset: 0; pointer-events: none; }
-    .ts-fl { position: absolute; width: clamp(70px, 8vw, 128px); height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 26%; transform: translate(-50%, 0) rotate(var(--rot)); animation: ts-flutua 7s ease-in-out infinite alternate; }
-    .ts-b { animation-delay: -1.5s; } .ts-c { animation-delay: -3s; } .ts-d { animation-delay: -4.5s; } .ts-e { animation-delay: -2s; } .ts-f { animation-delay: -5s; } .ts-g { animation-delay: -6s; }
-    @keyframes ts-flutua { to { transform: translate(-50%, -12px) rotate(calc(var(--rot) + 4deg)); } }
+    .ts-fl { position: absolute; left: 0; top: 0; width: var(--ts-w, 120px); height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 26%; will-change: transform, opacity; opacity: 0; }
     .ts-rotulo { position: relative; display: block; font-family: var(--strong); font-weight: 500; font-size: 12px; letter-spacing: .28em; text-transform: uppercase; color: #161614; }
     .ts-topo h2 { position: relative; margin-top: 18px; font-family: var(--strong); font-weight: 500; font-size: clamp(40px, 5.4vw, 78px); line-height: 1.04; letter-spacing: -0.035em; color: #222; }
     .ts-topo p { position: relative; margin: 22px auto 0; max-width: 36em; font-size: clamp(16px, 1.3vw, 19px); line-height: 1.55; color: #5e566e; }
     .ts-lista { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 22px; }
+    .ts-caixa { position: relative; max-height: var(--ts-max, 9999px); overflow: hidden; transition: max-height .6s ease; }
+    .ts-caixa:not(.aberta)::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 150px; background: linear-gradient(180deg, rgba(255,255,255,0), #fff 85%); pointer-events: none; }
+    .ts-mais { margin-top: 36px; text-align: center; }
+    .ts-mais button { padding: 15px 26px; border: 1px solid #ebeaee; border-radius: 12px; background: #f7f7f8; color: #161614; font-family: var(--strong); font-weight: 500; font-size: 16px; cursor: pointer; transition: background .2s ease; }
+    .ts-mais button:hover { background: #efedf3; }
     .ts-item { display: flex; align-items: center; gap: 16px; padding: 10px; border-radius: 18px; background: #f7f7f8; transition: background .25s ease; }
     .ts-item:hover { background: #f0edf7; }
     .ts-item img { width: 76px; height: 76px; flex: none; border-radius: 12px; object-fit: cover; }
@@ -1084,13 +1087,10 @@
     @media (max-width: 1024px) { .ts-lista { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 640px) {
       .ts-lista { grid-template-columns: 1fr; gap: 10px; }
-      .ts-topo { padding-top: 150px; }
-      .ts-fl { width: 54px; }
-      .ts-e, .ts-f, .ts-g { display: none; }
-      .ts-a { top: 4% !important; } .ts-b { top: 0 !important; } .ts-c { top: 3% !important; left: 72% !important; } .ts-d { top: 9% !important; left: 90% !important; }
+      .ts-topo { padding-top: 170px; }
+      .ts-mais button { border-radius: 100px; background: #fff; }
       .ts-item img { width: 64px; height: 64px; }
     }
-    @media (prefers-reduced-motion: reduce) { .ts-fl { animation: none; } }
   </style>
 </head>
 
@@ -1396,23 +1396,32 @@
     <!-- ─── TUDO EM UM SO LUGAR (funcionalidades) ─── -->
     <section class="tudo" aria-labelledby="tudoTitulo">
       <div class="ts-topo">
-        <div class="ts-flutua" aria-hidden="true"><img class="ts-fl ts-a" src="assets/funcoes/provador.webp" alt="" width="200" height="200" loading="lazy" style="left:30%;top:5%;--rot:-12deg"><img class="ts-fl ts-b" src="assets/funcoes/plataformas.webp" alt="" width="200" height="200" loading="lazy" style="left:52%;top:1%;--rot:6deg"><img class="ts-fl ts-c" src="assets/funcoes/roupas.webp" alt="" width="200" height="200" loading="lazy" style="left:67%;top:0%;--rot:8deg"><img class="ts-fl ts-d" src="assets/funcoes/vidro2.webp" alt="" width="200" height="200" loading="lazy" style="left:84%;top:10%;--rot:18deg"><img class="ts-fl ts-e" src="assets/funcoes/segmenta.webp" alt="" width="200" height="200" loading="lazy" style="left:11%;top:32%;--rot:40deg"><img class="ts-fl ts-f" src="assets/funcoes/oculos2.webp" alt="" width="200" height="200" loading="lazy" style="left:93%;top:44%;--rot:40deg"><img class="ts-fl ts-g" src="assets/funcoes/video6.webp" alt="" width="200" height="200" loading="lazy" style="left:21%;top:13%;--rot:-15deg"></div>
+        <div class="ts-flutua" aria-hidden="true" id="tsArco"><img class="ts-fl" src="assets/funcoes/provador.webp" alt="" width="200" height="200" loading="lazy"><img class="ts-fl" src="assets/funcoes/plataformas.webp" alt="" width="200" height="200" loading="lazy"><img class="ts-fl" src="assets/funcoes/roupas.webp" alt="" width="200" height="200" loading="lazy"><img class="ts-fl" src="assets/funcoes/vidro2.webp" alt="" width="200" height="200" loading="lazy"><img class="ts-fl" src="assets/funcoes/segmenta.webp" alt="" width="200" height="200" loading="lazy"><img class="ts-fl" src="assets/funcoes/oculos2.webp" alt="" width="200" height="200" loading="lazy"><img class="ts-fl" src="assets/funcoes/video6.webp" alt="" width="200" height="200" loading="lazy"><img class="ts-fl" src="assets/funcoes/disparo.webp" alt="" width="200" height="200" loading="lazy"><img class="ts-fl" src="assets/funcoes/sem-app.webp" alt="" width="200" height="200" loading="lazy"><img class="ts-fl" src="assets/funcoes/suporte.webp" alt="" width="200" height="200" loading="lazy"><img class="ts-fl" src="assets/funcoes/leads.webp" alt="" width="200" height="200" loading="lazy"><img class="ts-fl" src="assets/funcoes/anual.webp" alt="" width="200" height="200" loading="lazy"></div>
         <span class="ts-rotulo">Funcionalidades</span>
         <h2 id="tudoTitulo">Tudo em um só lugar</h2>
         <p>O provador, a captura de leads, o CRM, os disparos de WhatsApp e o painel de vendas numa plataforma só, instalada pela nossa equipe.</p>
       </div>
       <div class="container">
+        <div class="ts-caixa" id="tsCaixa">
         <ul class="ts-lista">
           <li class="ts-item"><img src="assets/funcoes/provador.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Provador virtual com IA</strong><span>O cliente prova a peça na própria foto.</span></div></li>
           <li class="ts-item"><img src="assets/funcoes/roupas.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Roupas, óculos e calçados</strong><span>Funciona para moda e para óticas.</span></div></li>
           <li class="ts-item"><img src="assets/funcoes/sem-app.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Sem app e sem cadastro</strong><span>Direto na página do produto.</span></div></li>
           <li class="ts-item"><img src="assets/funcoes/leads.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Captura de leads</strong><span>Cada prova vira um contato no WhatsApp.</span></div></li>
-          <li class="ts-item"><img src="assets/funcoes/crm.webp" alt="" width="200" height="200" loading="lazy"><div><strong>CRM próprio incluso</strong><span>Funil provou, em contato e convertido.</span></div></li>
+          <li class="ts-item"><img src="assets/funcoes/crm.webp" alt="" width="200" height="200" loading="lazy"><div><strong>CRM próprio incluso</strong><span>Sem custo extra no plano.</span></div></li>
           <li class="ts-item"><img src="assets/funcoes/disparo.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Disparos oficiais da Meta</strong><span>Mensagem com o produto que o cliente provou.</span></div></li>
+          <li class="ts-item"><img src="assets/funcoes/funil.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Funil visual de vendas</strong><span>Provou, em contato e convertido.</span></div></li>
+          <li class="ts-item"><img src="assets/funcoes/inbox.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Caixa de entrada do WhatsApp</strong><span>Responda os clientes dentro do painel.</span></div></li>
           <li class="ts-item"><img src="assets/funcoes/segmenta.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Segmentação de clientes</strong><span>Separe quem provou, clicou ou abandonou.</span></div></li>
           <li class="ts-item"><img src="assets/funcoes/painel.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Painel de atribuição</strong><span>Cada venda que veio de uma prova, ao vivo.</span></div></li>
+          <li class="ts-item"><img src="assets/funcoes/baseline.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Crescimento comparado</strong><span>Resultados contra os 3 meses antes do provador.</span></div></li>
+          <li class="ts-item"><img src="assets/funcoes/anual.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Comparativo ano a ano</strong><span>Veja a evolução contra o ano anterior.</span></div></li>
+          <li class="ts-item"><img src="assets/funcoes/oficial.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Número oficial verificado</strong><span>WhatsApp Business Platform da Meta.</span></div></li>
           <li class="ts-item"><img src="assets/funcoes/plataformas.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Plug em qualquer plataforma</strong><span>No ar em 1 hora, instalado pela nossa equipe.</span></div></li>
+          <li class="ts-item"><img src="assets/funcoes/suporte.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Suporte dedicado</strong><span>Resposta no WhatsApp, sem robô.</span></div></li>
         </ul>
+        </div>
+        <div class="ts-mais"><button type="button" id="tsMais" aria-expanded="false" aria-controls="tsCaixa">Ver todas as funcionalidades</button></div>
       </div>
     </section>
 
@@ -1987,6 +1996,69 @@
         }
         addEventListener('resize', function () { if (ativo) tamanho(); });
       });
+    })();
+  </script>
+  <script>
+    /* "Tudo em um so lugar": imagens girando num arco acima do titulo (rolagem infinita)
+       e lista que mostra as primeiras linhas com esmaecido + botao para ver todas */
+    (function () {
+      var arco = document.getElementById('tsArco');
+      if (arco) {
+        var imgs = [].slice.call(arco.querySelectorAll('.ts-fl')), n = imgs.length;
+        var reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var fase = 0, ultimo = 0, visivel = false, rodando = false, G = {};
+        var mede = function () {
+          var w = arco.clientWidth, h = arco.clientHeight, cel = w <= 640;
+          var tam = cel ? 78 : Math.max(76, Math.min(128, w * 0.085));
+          arco.style.setProperty('--ts-w', tam + 'px');
+          // centro do arco no meio do titulo; raio horizontal maior que a tela no celular
+          var cy = cel ? h * 0.78 : h * 0.86;
+          G = { cx: w / 2, cy: cy, rx: cel ? w * 0.62 : w * 0.46, ry: cy - tam / 2 - 14, tam: tam, abre: cel ? 1.15 : 1.5, passo: cel ? 0.5 : 0.36 };
+        };
+        var desenha = function () {
+          for (var i = 0; i < n; i++) {
+            // posicao ao longo do arco, de -1 a 1, girando sem fim
+            var L = n * G.passo, ang = ((i * G.passo + fase * L) % L) - L / 2, u = ang / G.abre;
+            var x = G.cx + Math.sin(ang) * G.rx - G.tam / 2, y = G.cy - Math.cos(ang) * G.ry - G.tam / 2;
+            var op = Math.max(0, Math.min(1, (1 - Math.abs(u)) * 3.2));
+            if (Math.abs(u) > 1) op = 0;
+            imgs[i].style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) rotate(' + (ang * 28 + (i % 2 ? 8 : -6)).toFixed(1) + 'deg)';
+            imgs[i].style.opacity = op.toFixed(2);
+          }
+        };
+        var passo = function (t) {
+          var dt = ultimo ? Math.min(0.05, (t - ultimo) / 1000) : 0; ultimo = t;
+          fase = (fase + dt * 0.01) % 1;
+          desenha();
+          if (visivel && !document.hidden) requestAnimationFrame(passo); else { rodando = false; ultimo = 0; }
+        };
+        var liga = function () { if (!rodando && visivel && !reduz) { rodando = true; requestAnimationFrame(passo); } };
+        mede(); desenha();
+        addEventListener('resize', function () { mede(); desenha(); });
+        if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { visivel = es[0].isIntersecting; liga(); }, { rootMargin: '100px 0px' }).observe(arco);
+        document.addEventListener('visibilitychange', liga);
+      }
+      var caixa = document.getElementById('tsCaixa'), bt = document.getElementById('tsMais');
+      if (caixa && bt) {
+        // fechado: 4 linhas inteiras + metade da 5a (computador) ou 5 cartoes + metade do 6o (celular)
+        var limite = function () {
+          var itens = caixa.querySelectorAll('.ts-item'); if (!itens.length) return;
+          var cols = getComputedStyle(caixa.querySelector('.ts-lista')).gridTemplateColumns.split(' ').length;
+          var linhas = cols === 1 ? 5 : 4, i = Math.min(itens.length - 1, linhas * cols);
+          var topo = caixa.getBoundingClientRect().top, el = itens[i].getBoundingClientRect();
+          caixa.style.setProperty('--ts-max', Math.round(el.top - topo + el.height * 0.75) + 'px');
+          if (i >= itens.length - 1 && linhas * cols >= itens.length) bt.parentNode.hidden = true;
+        };
+        limite(); addEventListener('resize', function () { if (!caixa.classList.contains('aberta')) limite(); });
+        bt.addEventListener('click', function () {
+          var abre = !caixa.classList.contains('aberta');
+          caixa.classList.toggle('aberta', abre);
+          caixa.style.setProperty('--ts-max', abre ? caixa.scrollHeight + 'px' : '');
+          if (!abre) limite();
+          bt.setAttribute('aria-expanded', abre ? 'true' : 'false');
+          bt.textContent = abre ? 'Ver menos' : 'Ver todas as funcionalidades';
+        });
+      }
     })();
   </script>
   <script src="assets/js/lenis-1.1.13.min.js"></script>
