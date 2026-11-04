@@ -42,6 +42,13 @@
   <script>
   (() => {
     'use strict';
+      // Lojista da dash (link com &dash=1): mesmo fluxo, com o texto e o destino da dash.
+      if (/[#&]dash=1\b/.test(location.hash)) {
+        document.title = 'Criar nova senha · Provou Levou';
+        document.getElementById('ns-intro').textContent = 'Escolha a senha que você vai usar para entrar no painel da sua loja.';
+        document.querySelector('#ns-ok a').href = '/login/';
+      }
+
     const SB_URL = 'https://quantic-supabase.k5jwra.easypanel.host';
     const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.pCFnSnrlSUM2EwXi9gxAegpoC-9U0Mjx3iAtROR-E20';
     const $ = s => document.querySelector(s);
