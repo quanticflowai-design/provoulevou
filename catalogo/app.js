@@ -655,7 +655,10 @@
                 brand: '#FFFFFF', dark: '#DDDDDD', soft: 'rgba(255,255,255,.10)', on: '#000000' },
     // Ótica Atitude Glasses — roxo profundo do logo sobre lilás claro (logo em degradê lilás); botão roxo com texto branco
     oticaatitudeglasses: { bg: '#F8F1FA', card: '#FFFFFF', line: '#E6D6EB',
-                brand: '#3A1A5C', dark: '#270F3F', soft: 'rgba(58,26,92,.10)', on: '#ffffff' }
+                brand: '#3A1A5C', dark: '#270F3F', soft: 'rgba(58,26,92,.10)', on: '#ffffff' },
+    // Eyes Glasses Store — logo preto sobre aquarela pêssego/azul; fundo pêssego bem claro, botão preto com texto branco
+    eyesglassesstore: { bg: '#FFF6F3', card: '#FFFFFF', line: '#F3E1DB',
+                brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.08)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
