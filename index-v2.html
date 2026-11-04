@@ -1166,6 +1166,22 @@
     .pl-nota a { color: var(--violet); font-weight: 500; text-decoration: none; margin-left: 6px; }
     @media (max-width: 1100px) { .pl-grade { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 640px) { .pl-grade { grid-template-columns: 1fr; } .pl-sub { min-height: 0; } }
+
+    /* ─── CASES (foto com texto por cima) ─── */
+    .cases-foto { background: #000; padding: clamp(72px, 8vw, 120px) 0 0; }
+    .cases-foto * { -webkit-text-stroke-width: 0; }
+    .cf-card { position: relative; margin: 0; border-radius: 24px; overflow: hidden; aspect-ratio: 640 / 427; max-height: 82vh; width: 100%; }
+    .cf-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    /* sombra que escurece a parte de baixo para o texto ficar em foco */
+    .cf-card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.45) 58%, rgba(0,0,0,.85) 100%); pointer-events: none; }
+    .cf-card figcaption { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; padding: clamp(24px, 4vw, 56px); color: #fff; font-family: var(--strong); text-shadow: 0 2px 18px rgba(0,0,0,.35); }
+    .cf-rotulo { display: inline-block; padding: 6px 12px; border-radius: 100px; border: 1px solid rgba(255,255,255,.35); font-weight: 500; font-size: 13px; letter-spacing: .02em; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); background: rgba(255,255,255,.08); text-shadow: none; }
+    .cf-card h2 { margin-top: 16px; font-weight: 500; font-size: clamp(32px, 4.4vw, 64px); line-height: 1.04; letter-spacing: -0.035em; color: #fff; }
+    .cf-card p { margin-top: 14px; max-width: 34em; font-weight: 400; font-size: clamp(15px, 1.3vw, 19px); line-height: 1.5; color: rgba(255,255,255,.88); }
+    @media (max-width: 640px) {
+      .cf-card { aspect-ratio: 4 / 5; border-radius: 18px; }
+      .cf-card img { object-position: 50% 30%; }
+    }
   </style>
 </head>
 
@@ -1371,6 +1387,20 @@
           <span class="man-pilula" aria-hidden="true"></span>
           <p class="manifesto-txt">Nossos parceiros já venderam mais de R$ 2,5 milhões pelo provador. Acompanhamos cada loja de perto, prova a prova, e quando uma marca cruza R$ 100 mil, entregamos a placa pessoalmente.</p>
           <p class="manifesto-txt" id="manifestoTexto">Mais de 1.000 marcas brasileiras já usam o provador para vender moda e óculos online com mais segurança. Cada prova vira um lead no seu WhatsApp, e cada venda é atribuída ao provador, prova a prova, no seu painel.</p>
+      </div>
+    </section>
+
+    <!-- ─── CASES (foto das placas com o texto por cima) ─── -->
+    <section class="cases-foto" aria-labelledby="casesTitulo">
+      <div class="container">
+        <figure class="cf-card">
+          <img src="assets/placa-100k.webp" alt="Equipe da Provou Levou entregando as placas de R$ 100 mil vendidos pelo provador" width="640" height="427" loading="lazy">
+          <figcaption>
+            <span class="cf-rotulo">Cases</span>
+            <h2 id="casesTitulo">Resultados que falam por si.</h2>
+            <p>Quando uma loja cruza R$ 100 mil vendidos pelo provador, a gente entrega a placa pessoalmente. Não é meta nem projeção: é faturamento fechado, atribuído prova a prova.</p>
+          </figcaption>
+        </figure>
       </div>
     </section>
 
