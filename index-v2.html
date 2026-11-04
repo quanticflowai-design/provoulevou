@@ -906,68 +906,6 @@
     @media (max-width: 640px) { .metricas { padding-bottom: 72px; } }
     @media (prefers-reduced-motion: reduce) { .met-dots i { transition: none; } }
 
-    /* ─── CLAREZA (fundo branco, cartoes com degrade desfocado e granulado) ─── */
-    .clareza { background: #fff; padding: clamp(80px, 9vw, 140px) 0 clamp(80px, 9vw, 130px); }
-    .clareza * { -webkit-text-stroke-width: 0; }
-    .cl-topo { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 32px; align-items: start; padding-top: 22px; border-top: 1px solid #e8e6ec; margin-bottom: clamp(56px, 7vw, 96px); }
-    .cl-topo h2 { font-family: var(--sans); font-weight: 300; font-size: clamp(2.3rem, 4.4vw, 4.1rem); line-height: 1.06; letter-spacing: -0.045em; color: #161614; max-width: 13em; -webkit-text-stroke: .01em #161614; }
-    .cl-topo p { font-size: clamp(15px, 1.25vw, 18px); line-height: 1.45; color: #8a8496; max-width: 26em; }
-    .cl-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-    .cl-item h3 { margin-top: 20px; font-family: var(--strong); font-weight: 500; font-size: clamp(17px, 1.4vw, 21px); letter-spacing: -0.01em; color: #161614; }
-    .cl-item > p { margin-top: 8px; font-size: 14.5px; line-height: 1.45; color: #9a94a6; max-width: 30em; }
-    .cl-card { position: relative; overflow: hidden; aspect-ratio: 4 / 4.6; display: grid; place-items: center; padding: 7%; border-radius: 22px; font-family: var(--strong); }
-    .cl-c1 { background: #f4f2f8; }
-    .cl-c2 { background: #1b1130; }
-    .cl-c3 { background: #ece6fd; }
-    .cl-rotulo { display: block; margin-top: 22px; font-family: 'Fraunces PL', Georgia, serif; font-style: italic; font-size: 15px; color: var(--violet); }
-    .cl-item h3 { margin-top: 6px; }
-
-    /* 1: CRM em janela de navegador */
-    .cl-crm { width: 100%; background: #fff; border-radius: 14px; box-shadow: 0 24px 50px -28px rgba(34,21,50,.45), 0 0 0 1px #ebe7f2; overflow: hidden; }
-    .cl-crm-barra { display: flex; align-items: center; gap: 5px; padding: 10px 12px; background: #f7f6fa; border-bottom: 1px solid #ebe7f2; }
-    .cl-crm-barra i { width: 8px; height: 8px; border-radius: 50%; background: #ff5f57; }
-    .cl-crm-barra i:nth-child(2) { background: #febc2e; } .cl-crm-barra i:nth-child(3) { background: #28c840; }
-    .cl-crm-barra span { margin-left: 8px; flex: 1; background: #fff; border-radius: 6px; padding: 4px 8px; font-size: 10px; color: #8a8496; }
-    .cl-crm-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px; min-height: 190px; }
-    .cl-crm-cols b { display: block; font-weight: 500; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: #8a8496; margin-bottom: 8px; }
-    .cl-lead { background: #f7f5fb; border: 1px solid #eeeaf5; border-radius: 9px; padding: 8px; margin-bottom: 6px; display: grid; gap: 2px; }
-    .cl-lead strong { font-weight: 500; font-size: 11.5px; color: #161614; }
-    .cl-lead span { font-size: 10px; color: #8a8496; }
-    .cl-lead em { justify-self: start; margin-top: 5px; font-style: normal; font-size: 9.5px; color: #6d28d9; background: #ede9fe; border-radius: 100px; padding: 2px 7px; }
-    .cl-lead em.ok { color: #fff; background: #7c3aed; }
-
-    /* 2: conversa no WhatsApp */
-    .cl-chat { width: 100%; max-width: 330px; border-radius: 20px; overflow: hidden; background: #120a22; box-shadow: 0 30px 60px -30px rgba(124,58,237,.6), 0 0 0 1px rgba(255,255,255,.06); color: #fff; }
-    .cl-chat-topo { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: #221638; }
-    .cl-chat-av { width: 32px; height: 32px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #c4b5fd, #7c3aed); flex: none; }
-    .cl-chat-topo strong { display: block; font-weight: 500; font-size: 13px; }
-    .cl-chat-topo small { font-size: 10.5px; color: #9ae6b4; }
-    .cl-chat-corpo { padding: 14px 12px; display: grid; gap: 8px; }
-    .cl-chat-corpo p { position: relative; padding: 9px 12px 18px; border-radius: 12px; font-size: 12.5px; line-height: 1.4; max-width: 86%; }
-    .cl-chat-corpo p b { font-weight: 500; }
-    .cl-chat-corpo small { position: absolute; right: 10px; bottom: 4px; font-size: 9px; color: rgba(255,255,255,.5); }
-    .cl-chat-corpo .eu { justify-self: end; background: #35206a; }
-    .cl-chat-corpo .ela { justify-self: start; background: #241a36; }
-
-    /* 3: caixa de entrada segmentada */
-    .cl-inbox { width: 100%; max-width: 320px; background: #fff; border-radius: 16px; padding: 14px; box-shadow: 0 24px 50px -28px rgba(76,29,149,.5); color: #161614; }
-    .cl-inbox-topo { display: flex; justify-content: space-between; align-items: center; }
-    .cl-inbox-topo strong { font-weight: 500; font-size: 13.5px; }
-    .cl-inbox-topo span { font-size: 10px; color: #16a34a; background: #dcfce7; border-radius: 100px; padding: 2px 8px; }
-    .cl-chips { display: flex; gap: 6px; margin: 12px 0 8px; }
-    .cl-chips span { font-size: 10.5px; padding: 4px 10px; border-radius: 100px; background: #f4f2f8; color: #5e566e; }
-    .cl-chips span.on { background: #161614; color: #fff; }
-    .cl-conv { display: flex; align-items: center; gap: 10px; padding: 9px 4px; border-top: 1px solid #f0edf5; }
-    .cl-conv i { width: 30px; height: 30px; flex: none; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 12px; color: #6d28d9; background: #ede9fe; }
-    .cl-conv div { flex: 1; min-width: 0; display: grid; }
-    .cl-conv strong { font-weight: 500; font-size: 12px; }
-    .cl-conv span { font-size: 11px; color: #8a8496; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .cl-conv em { font-style: normal; font-size: 10px; color: #fff; background: #7c3aed; border-radius: 100px; min-width: 18px; height: 18px; display: grid; place-items: center; }
-    @media (max-width: 900px) {
-      .cl-topo { grid-template-columns: 1fr; }
-      .cl-grade { grid-template-columns: 1fr; gap: 40px; }
-      .cl-card { aspect-ratio: auto; min-height: 380px; }
-    }
 
     /* abertura no estilo editorial: titulo grande a esquerda, numero a direita, pilula, frase cinza e rotulos */
     .abertura-centro.ab-novo { display: block; width: 100%; text-align: left; }
@@ -1125,6 +1063,34 @@
       .im-card { min-height: 300px; }
       .im-card + .im-card { border-left: 0; border-top: 1px dashed #e4e2e8; }
     }
+
+    /* ─── TUDO EM UM SO LUGAR ─── */
+    .tudo { background: #fff; padding: clamp(40px, 5vw, 80px) 0 clamp(72px, 8vw, 120px); overflow: hidden; }
+    .tudo * { -webkit-text-stroke-width: 0; }
+    .ts-topo { position: relative; text-align: center; padding: clamp(170px, 17vw, 230px) 24px clamp(48px, 5vw, 72px); }
+    .ts-flutua { position: absolute; inset: 0; pointer-events: none; }
+    .ts-fl { position: absolute; width: clamp(70px, 8vw, 128px); height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 26%; transform: translate(-50%, 0) rotate(var(--rot)); animation: ts-flutua 7s ease-in-out infinite alternate; }
+    .ts-b { animation-delay: -1.5s; } .ts-c { animation-delay: -3s; } .ts-d { animation-delay: -4.5s; } .ts-e { animation-delay: -2s; } .ts-f { animation-delay: -5s; } .ts-g { animation-delay: -6s; }
+    @keyframes ts-flutua { to { transform: translate(-50%, -12px) rotate(calc(var(--rot) + 4deg)); } }
+    .ts-rotulo { position: relative; display: block; font-family: var(--strong); font-weight: 500; font-size: 12px; letter-spacing: .28em; text-transform: uppercase; color: #161614; }
+    .ts-topo h2 { position: relative; margin-top: 18px; font-family: var(--strong); font-weight: 500; font-size: clamp(40px, 5.4vw, 78px); line-height: 1.04; letter-spacing: -0.035em; color: #222; }
+    .ts-topo p { position: relative; margin: 22px auto 0; max-width: 36em; font-size: clamp(16px, 1.3vw, 19px); line-height: 1.55; color: #5e566e; }
+    .ts-lista { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 22px; }
+    .ts-item { display: flex; align-items: center; gap: 16px; padding: 10px; border-radius: 18px; background: #f7f7f8; transition: background .25s ease; }
+    .ts-item:hover { background: #f0edf7; }
+    .ts-item img { width: 76px; height: 76px; flex: none; border-radius: 12px; object-fit: cover; }
+    .ts-item strong { display: block; font-family: var(--strong); font-weight: 500; font-size: 17px; color: #161614; }
+    .ts-item span { display: block; margin-top: 4px; font-size: 15.5px; line-height: 1.4; color: #5e566e; }
+    @media (max-width: 1024px) { .ts-lista { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px) {
+      .ts-lista { grid-template-columns: 1fr; gap: 10px; }
+      .ts-topo { padding-top: 150px; }
+      .ts-fl { width: 54px; }
+      .ts-e, .ts-f, .ts-g { display: none; }
+      .ts-a { top: 4% !important; } .ts-b { top: 0 !important; } .ts-c { top: 3% !important; left: 72% !important; } .ts-d { top: 9% !important; left: 90% !important; }
+      .ts-item img { width: 64px; height: 64px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .ts-fl { animation: none; } }
   </style>
 </head>
 
@@ -1426,59 +1392,27 @@
       </div>
     </section>
 
-    <!-- ─── CLAREZA (tres cartoes com fundo desfocado e um widget em cada) ─── */ -->
-    <section class="clareza" aria-labelledby="clarezaTitulo">
+
+    <!-- ─── TUDO EM UM SO LUGAR (funcionalidades) ─── -->
+    <section class="tudo" aria-labelledby="tudoTitulo">
+      <div class="ts-topo">
+        <div class="ts-flutua" aria-hidden="true"><img class="ts-fl ts-a" src="assets/funcoes/provador.webp" alt="" width="200" height="200" loading="lazy" style="left:30%;top:5%;--rot:-12deg"><img class="ts-fl ts-b" src="assets/funcoes/plataformas.webp" alt="" width="200" height="200" loading="lazy" style="left:52%;top:1%;--rot:6deg"><img class="ts-fl ts-c" src="assets/funcoes/roupas.webp" alt="" width="200" height="200" loading="lazy" style="left:67%;top:0%;--rot:8deg"><img class="ts-fl ts-d" src="assets/funcoes/vidro2.webp" alt="" width="200" height="200" loading="lazy" style="left:84%;top:10%;--rot:18deg"><img class="ts-fl ts-e" src="assets/funcoes/segmenta.webp" alt="" width="200" height="200" loading="lazy" style="left:11%;top:32%;--rot:40deg"><img class="ts-fl ts-f" src="assets/funcoes/oculos2.webp" alt="" width="200" height="200" loading="lazy" style="left:93%;top:44%;--rot:40deg"><img class="ts-fl ts-g" src="assets/funcoes/video6.webp" alt="" width="200" height="200" loading="lazy" style="left:21%;top:13%;--rot:-15deg"></div>
+        <span class="ts-rotulo">Funcionalidades</span>
+        <h2 id="tudoTitulo">Tudo em um só lugar</h2>
+        <p>O provador, a captura de leads, o CRM, os disparos de WhatsApp e o painel de vendas numa plataforma só, instalada pela nossa equipe.</p>
+      </div>
       <div class="container">
-        <div class="cl-topo">
-          <h2 id="clarezaTitulo">Clareza em cada prova, do clique ao pedido</h2>
-          <p>CRM próprio e disparos oficiais de WhatsApp já incluídos no plano, sem custo extra. Cada prova vira um lead, e cada lead vira conversa.</p>
-        </div>
-        <div class="cl-grade">
-          <article class="cl-item">
-            <div class="cl-card cl-c1">
-              <div class="cl-crm">
-                <div class="cl-crm-barra"><i></i><i></i><i></i><span>gestao.provoulevou.com.br</span></div>
-                <div class="cl-crm-cols">
-                  <div><b>Provou</b><div class="cl-lead"><strong>Marina</strong><span>Óculos Aspen</span></div><div class="cl-lead"><strong>Paula</strong><span>Vestido midi</span></div></div>
-                  <div><b>Em contato</b><div class="cl-lead"><strong>Júlia</strong><span>Blazer linho</span><em>respondeu</em></div></div>
-                  <div><b>Convertido</b><div class="cl-lead"><strong>Carla</strong><span>Óculos Lisboa</span><em class="ok">R$ 289</em></div></div>
-                </div>
-              </div>
-            </div>
-            <span class="cl-rotulo">CRM próprio · já incluído</span>
-            <h3>Cada prova vira um lead no funil</h3>
-            <p>Telefone e produto provado caem no CRM na hora, e você move cada cliente de provou para em contato e convertido num painel só.</p>
-          </article>
-          <article class="cl-item">
-            <div class="cl-card cl-c2">
-              <div class="cl-chat">
-                <div class="cl-chat-topo"><span class="cl-chat-av" aria-hidden="true"></span><div><strong>Ótica Provou Levou</strong><small>conta comercial · online</small></div></div>
-                <div class="cl-chat-corpo">
-                  <p class="eu">Oi, Marina! Vi que você provou o <b>Óculos Aspen</b> aqui na loja 😍<small>14:02 ✓✓</small></p>
-                  <p class="eu">Separei ele pra você com <b>10% OFF</b> hoje. Quer que eu garanta?<small>14:02 ✓✓</small></p>
-                  <p class="ela">Quero sim! Como faço? 💜<small>14:09</small></p>
-                </div>
-              </div>
-            </div>
-            <span class="cl-rotulo">Disparos de WhatsApp</span>
-            <h3>Plataforma de disparo completa</h3>
-            <p>WhatsApp Business Platform da Meta: número oficial verificado, templates aprovados e mensagem com o nome e o produto que o cliente provou.</p>
-          </article>
-          <article class="cl-item">
-            <div class="cl-card cl-c3">
-              <div class="cl-inbox">
-                <div class="cl-inbox-topo"><strong>Caixa de entrada</strong><span>WhatsApp</span></div>
-                <div class="cl-chips"><span class="on">Provou</span><span>Clicou</span><span>Abandonou</span></div>
-                <div class="cl-conv"><i>M</i><div><strong>Marina</strong><span>Quero sim! Como faço?</span></div><em>2</em></div>
-                <div class="cl-conv"><i>J</i><div><strong>Júlia</strong><span>Tem no tamanho 38?</span></div></div>
-                <div class="cl-conv"><i>P</i><div><strong>Paula</strong><span>Provou · Vestido midi</span></div></div>
-              </div>
-            </div>
-            <span class="cl-rotulo">Tudo num lugar só</span>
-            <h3>Segmente e responda pelo painel</h3>
-            <p>Separe quem provou, clicou ou abandonou e responda pela caixa de entrada do WhatsApp dentro do painel, sem trocar de ferramenta.</p>
-          </article>
-        </div>
+        <ul class="ts-lista">
+          <li class="ts-item"><img src="assets/funcoes/provador.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Provador virtual com IA</strong><span>O cliente prova a peça na própria foto.</span></div></li>
+          <li class="ts-item"><img src="assets/funcoes/roupas.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Roupas, óculos e calçados</strong><span>Funciona para moda e para óticas.</span></div></li>
+          <li class="ts-item"><img src="assets/funcoes/sem-app.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Sem app e sem cadastro</strong><span>Direto na página do produto.</span></div></li>
+          <li class="ts-item"><img src="assets/funcoes/leads.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Captura de leads</strong><span>Cada prova vira um contato no WhatsApp.</span></div></li>
+          <li class="ts-item"><img src="assets/funcoes/crm.webp" alt="" width="200" height="200" loading="lazy"><div><strong>CRM próprio incluso</strong><span>Funil provou, em contato e convertido.</span></div></li>
+          <li class="ts-item"><img src="assets/funcoes/disparo.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Disparos oficiais da Meta</strong><span>Mensagem com o produto que o cliente provou.</span></div></li>
+          <li class="ts-item"><img src="assets/funcoes/segmenta.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Segmentação de clientes</strong><span>Separe quem provou, clicou ou abandonou.</span></div></li>
+          <li class="ts-item"><img src="assets/funcoes/painel.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Painel de atribuição</strong><span>Cada venda que veio de uma prova, ao vivo.</span></div></li>
+          <li class="ts-item"><img src="assets/funcoes/plataformas.webp" alt="" width="200" height="200" loading="lazy"><div><strong>Plug em qualquer plataforma</strong><span>No ar em 1 hora, instalado pela nossa equipe.</span></div></li>
+        </ul>
       </div>
     </section>
 
