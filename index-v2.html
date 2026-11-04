@@ -1318,6 +1318,99 @@
     .cr-disparo svg { width: 12px; height: 12px; }
     @media (max-width: 900px) { .cr-topo { grid-template-columns: 1fr; } }
     @media (max-width: 640px) { .cr-painel { padding: 28px 12px; gap: 14px; } .cr-cartao { padding: 14px; } .cr-prods { grid-template-columns: repeat(3, 128px); } }
+
+    /* ─── EXPERIENCIA (presa na tela, troca de etapa com a rolagem) ─── */
+    .exp { position: relative; height: calc(300 * var(--vh)); background: #f4f4f5; }
+    .exp * { -webkit-text-stroke-width: 0; }
+    .ex-fixo { position: sticky; top: 0; height: calc(100 * var(--vh)); display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); overflow: hidden; font-family: var(--strong); }
+    .ex-esq { position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: clamp(96px, calc(12 * var(--vh)), 130px) clamp(24px, calc(4 * var(--vw)), 64px) clamp(32px, calc(6 * var(--vh)), 56px); }
+    .ex-textos { position: relative; }
+    .ex-txt { position: absolute; inset: 0 0 auto 0; opacity: 0; transform: translateY(24px); transition: opacity .55s ease, transform .7s cubic-bezier(.22,1,.36,1); pointer-events: none; }
+    .ex-txt.on { position: relative; opacity: 1; transform: none; pointer-events: auto; }
+    .ex-txt.saiu { transform: translateY(-24px); }
+    .ex-rot { display: inline-flex; align-items: center; gap: 10px; font-weight: 500; font-size: 15px; color: #161614; }
+    .ex-rot i { width: 16px; height: 4px; border-radius: 4px; background: var(--violet); }
+    .ex-txt h2 { margin-top: 18px; font-weight: 500; font-size: clamp(34px, calc(3.7 * var(--vw)), 56px); line-height: 1.06; letter-spacing: -0.035em; color: #161614; max-width: 12em; }
+    .ex-txt h2 span { color: #9c98a6; }
+    .ex-txt p { margin-top: clamp(24px, calc(6 * var(--vh)), 60px); max-width: 30em; font-size: clamp(15px, calc(1.15 * var(--vw)), 17px); line-height: 1.55; color: #8a8496; }
+    .ex-pe { display: grid; gap: 22px; }
+    .ex-pontos { display: flex; gap: 8px; }
+    .ex-pontos i { width: 22px; height: 4px; border-radius: 4px; background: #dcd9e2; transition: background .3s ease, width .3s ease; }
+    .ex-pontos i.on { width: 40px; background: var(--violet); }
+    .ex-bts { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ex-bts a { padding: 14px 22px; border-radius: 10px; text-decoration: none; font-weight: 500; font-size: 15px; transition: background .2s ease; }
+    .ex-bt1 { background: var(--violet); color: #fff; } .ex-bt1:hover { background: var(--violet-dark); }
+    .ex-bt2 { background: #e7e6ea; color: #161614; } .ex-bt2:hover { background: #dedce3; }
+    .ex-dir { position: relative; overflow: hidden; margin: 10px 10px 10px 0; border-radius: 22px; }
+    .ex-ceu { position: absolute; inset: 0; background: radial-gradient(40% 30% at 18% 88%, rgba(255,255,255,.9), transparent 70%), radial-gradient(35% 28% at 8% 70%, rgba(255,255,255,.7), transparent 70%), radial-gradient(60% 50% at 80% 10%, rgba(196,181,253,.6), transparent 70%), linear-gradient(180deg, #a78bfa 0%, #c4b5fd 55%, #e9e2ff 100%); }
+    .ex-pain { position: absolute; left: 14%; top: 13%; right: -6%; bottom: -6%; opacity: 0; transform: translateY(60px); transition: opacity .55s ease, transform .8s cubic-bezier(.22,1,.36,1); }
+    .ex-pain.on { opacity: 1; transform: none; }
+    .ex-pain.saiu { transform: translateY(-60px); }
+    .ex-app { height: 100%; display: grid; grid-template-columns: 210px 1fr; background: #fff; border-radius: 16px 0 0 0; box-shadow: 0 30px 60px -30px rgba(49,46,129,.45); overflow: hidden; color: #161614; }
+    .ex-lado { display: flex; flex-direction: column; gap: 14px; padding: 18px 14px; border-right: 1px solid #efedf2; }
+    .ex-logo { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 14px; }
+    .ex-logo svg { width: 22px; height: 22px; padding: 4px; border-radius: 50%; background: #161614; color: #fff; }
+    .ex-topo-lado { padding: 12px 0; border-bottom: 1px solid #efedf2; display: grid; gap: 2px; }
+    .ex-topo-lado b { font-weight: 500; font-size: 22px; letter-spacing: -0.02em; }
+    .ex-topo-lado span { font-size: 12px; color: #8a8496; }
+    .ex-lado > small { font-size: 12px; color: #a39fab; }
+    .ex-menu { list-style: none; display: grid; gap: 2px; margin-top: -6px; }
+    .ex-menu li { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; font-size: 13.5px; color: #3d3846; }
+    .ex-menu li.on { background: #f0ebff; color: var(--violet-dark); }
+    .ex-menu svg { width: 16px; height: 16px; }
+    .ex-plano { margin-top: auto; padding: 12px; border-radius: 10px; background: #f4f0ff; display: grid; gap: 4px; }
+    .ex-plano b { font-weight: 500; font-size: 13px; color: var(--violet-dark); }
+    .ex-plano span, .ex-plano small { font-size: 11.5px; color: #6b6676; }
+    .ex-plano i { height: 5px; border-radius: 5px; background: #e2d9ff; margin: 6px 0 2px; } .ex-plano em { display: block; height: 100%; border-radius: 5px; background: var(--violet); }
+    .ex-main { padding: 18px 22px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+    .ex-h { display: flex; flex-direction: column; gap: 12px; }
+    .ex-h h4 { font-weight: 500; font-size: 18px; letter-spacing: -0.01em; }
+    .ex-seg { display: flex; gap: 6px; } .ex-seg i { font-style: normal; font-size: 12px; padding: 5px 10px; border-radius: 6px; border: 1px solid #ecebef; color: #5e566e; } .ex-seg i.on { background: #f0ebff; border-color: #e4dbff; color: var(--violet-dark); }
+    .ex-loja { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; min-height: 0; }
+    .ex-prod { position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 5; background: #f4f2f8; }
+    .ex-prod img { width: 100%; height: 100%; object-fit: cover; }
+    .ex-selo { position: absolute; left: 10px; top: 10px; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,.9); font-size: 11px; font-weight: 500; color: var(--violet-dark); }
+    .ex-info { display: flex; flex-direction: column; gap: 6px; }
+    .ex-info small { font-size: 12px; color: #8a8496; } .ex-info b { font-weight: 500; font-size: 18px; } .ex-preco { font-size: 15px; margin-bottom: 6px; }
+    .ex-info button { padding: 10px; border-radius: 8px; border: 0; background: var(--violet); color: #fff; font: inherit; font-size: 13px; font-weight: 500; }
+    .ex-info button.sec { background: #f4f4f5; color: #161614; }
+    .ex-res { margin-top: 8px; display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 10px; border: 1px solid #ecebef; }
+    .ex-res img { width: 52px; height: 64px; border-radius: 8px; object-fit: cover; }
+    .ex-res div { display: grid; gap: 2px; font-size: 12px; color: #8a8496; } .ex-res div b { font-size: 13px; color: #161614; }
+    .ex-res em { justify-self: start; font-style: normal; font-size: 11px; padding: 2px 8px; border-radius: 100px; background: #dcfce7; color: #15803d; }
+    .ex-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .ex-stats div { padding: 12px; border-radius: 10px; border: 1px solid #ecebef; display: grid; gap: 6px; } .ex-stats small { font-size: 11.5px; color: #8a8496; } .ex-stats b { font-weight: 500; font-size: 22px; letter-spacing: -0.02em; }
+    .ex-tab { border: 1px solid #ecebef; border-radius: 12px; padding: 12px 14px; }
+    .ex-tab-h { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; } .ex-tab-h b { font-weight: 500; font-size: 14px; } .ex-tab-h em { font-style: normal; font-size: 11px; padding: 2px 8px; border-radius: 100px; background: #f0ebff; color: var(--violet-dark); }
+    .ex-linha { display: grid; grid-template-columns: 1.2fr 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid #f2f0f5; font-size: 13px; }
+    .ex-linha span:first-child { display: flex; align-items: center; gap: 10px; } .ex-linha span:first-child i { width: 13px; height: 13px; border-radius: 4px; border: 1px solid #d9d6df; }
+    .ex-linha span:nth-child(2) { color: #6b6676; }
+    .ex-cab { border-top: 0; font-size: 11.5px; color: #a39fab; }
+    .ex-st { font-size: 11px; padding: 3px 9px; border-radius: 100px; border: 1px solid #ecebef; color: #6b6676; }
+    .ex-st.ok { background: #dcfce7; border-color: #bbf7d0; color: #15803d; } .ex-st.meio { background: #f0ebff; border-color: #e4dbff; color: var(--violet-dark); }
+    .ex-camps { display: grid; gap: 10px; }
+    .ex-camp { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; border: 1px solid #ecebef; }
+    .ex-cic { width: 34px; height: 34px; flex: none; border-radius: 9px; background: #f0ebff; color: var(--violet-dark); display: grid; place-items: center; } .ex-cic svg { width: 18px; height: 18px; }
+    .ex-camp div { flex: 1; min-width: 0; display: grid; gap: 2px; } .ex-camp b { font-weight: 500; font-size: 14px; } .ex-camp div span { font-size: 12px; color: #8a8496; }
+    .ex-camp em { font-style: normal; font-size: 12px; color: #3d3846; white-space: nowrap; }
+    .ex-tog { width: 32px; height: 18px; flex: none; border-radius: 100px; background: #dcd9e2; position: relative; } .ex-tog i { position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: left .3s ease; }
+    .ex-tog.on { background: var(--violet); } .ex-tog.on i { left: 16px; }
+    @media (max-width: 1100px) { .ex-app { grid-template-columns: 1fr; } .ex-lado { display: none; } }
+    @media (max-width: 900px) {
+      .ex-fixo { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+      .ex-esq { padding: 92px 16px 16px; gap: 16px; }
+      .ex-txt h2 { font-size: clamp(26px, 7.4vw, 34px); }
+      .ex-txt p { margin-top: 12px; font-size: 14px; }
+      .ex-bts a { padding: 11px 16px; font-size: 14px; }
+      .ex-dir { margin: 0 10px 10px; }
+      .ex-pain { left: 8%; top: 8%; }
+      .ex-main { padding: 14px; gap: 12px; }
+      .ex-loja { grid-template-columns: 1fr 1.1fr; gap: 12px; }
+      .ex-res { display: none; }
+      .ex-stats b { font-size: 17px; }
+      .ex-camp em { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) { .ex-txt, .ex-pain { transition: none; } }
   </style>
 </head>
 
@@ -1517,6 +1610,41 @@
         </div>
       </div>
     </section>
+    <!-- ─── EXPERIENCIA (secao presa na tela: 3 etapas que trocam com a rolagem) ─── -->
+    <section class="exp" id="expSec" aria-label="Provador, CRM e marketing">
+      <div class="ex-fixo">
+        <div class="ex-esq">
+          <div class="ex-textos"><div class="ex-txt on" data-i="0"><span class="ex-rot"><i></i>Provador virtual</span><h2>Seu cliente prova a peça, <span>na própria foto, antes de comprar.</span></h2><p>Provador virtual com IA direto na página do produto, para roupas, óculos e calçados. Sem app e sem cadastro, instalado pela nossa equipe em 1 hora.</p></div><div class="ex-txt" data-i="1"><span class="ex-rot"><i></i>Plataforma de CRM</span><h2>Todos os dados de quem prova, <span>num só lugar, medidos de ponta a ponta.</span></h2><p>Cada prova vira um lead com telefone e peça provada. O painel rastreia o caminho do cliente e atribui cada venda que veio de uma prova.</p></div><div class="ex-txt" data-i="2"><span class="ex-rot"><i></i>Ferramentas de marketing</span><h2>Traga o cliente de volta <span>com a mensagem certa, no canal certo.</span></h2><p>Disparos de WhatsApp, SMS, e-mail marketing e recuperação de carrinho, segmentados pelo CRM com o produto que cada cliente provou.</p></div></div>
+          <div class="ex-pe">
+            <div class="ex-pontos" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+            <div class="ex-bts"><a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener" class="ex-bt1">Testar grátis</a><a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener" class="ex-bt2">Falar com especialista</a></div>
+          </div>
+        </div>
+        <div class="ex-dir"><span class="ex-ceu" aria-hidden="true"></span><div class="ex-pain on" data-i="0" aria-hidden="true"><div class="ex-app"><aside class="ex-lado"><span class="ex-logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.2V6.6a2.1 2.1 0 1 1 2.1-2.1M12 7.2 3 15.6c-.6.6-.2 1.6.7 1.6h16.6c.9 0 1.3-1 .7-1.6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Provou Levou</span><div class="ex-topo-lado"><b>1.250</b><span>provas este mês</span></div><small>Menu principal</small><ul class="ex-menu"><li class=""><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 15V9M8.7 15V5M13.3 15v-4M18 15H2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Painel</li><li class="on"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c.8-3 3-4.5 6-4.5s5.2 1.5 6 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Provas</li><li class=""><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14v10H3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M3 8h14" stroke="currentColor" stroke-width="1.5"/></svg>Leads e CRM</li><li class=""><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10 17 3l-4 14-3-6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Disparos</li><li class=""><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 17V3l10 5-10 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Relatórios</li><li class=""><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 4H4v4M12 4h4v4M8 16H4v-4M12 16h4v-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Integrações</li></ul><div class="ex-plano"><b>Plano Escala</b><span>500 fotos por mês</span><i><em style="width:72%"></em></i><small>362 de 500 usadas</small></div></aside>
+  <div class="ex-main">
+    <div class="ex-h"><h4>Provador na página do produto</h4><span class="ex-seg"><i>Roupas</i><i class="on">Óculos</i><i>Calçados</i></span></div>
+    <div class="ex-loja">
+      <div class="ex-prod"><img src="assets/demo/oculos-produto.jpg" alt="" width="686" height="858" loading="lazy"><span class="ex-selo">Provador virtual</span></div>
+      <div class="ex-info"><small>Óculos de sol</small><b>Óculos Aspen</b><span class="ex-preco">R$ 289,90</span><button type="button" tabindex="-1">Provar na minha foto</button><button type="button" class="sec" tabindex="-1">Adicionar à sacola</button>
+        <div class="ex-res"><img src="assets/demo/oculos-resultado.jpg" alt="" width="597" height="799" loading="lazy"><div><b>Veja como ficou em você</b><span>Prova gerada na própria foto</span><em>Pronto</em></div></div>
+      </div>
+    </div>
+  </div></div></div><div class="ex-pain" data-i="1" aria-hidden="true"><div class="ex-app"><aside class="ex-lado"><span class="ex-logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.2V6.6a2.1 2.1 0 1 1 2.1-2.1M12 7.2 3 15.6c-.6.6-.2 1.6.7 1.6h16.6c.9 0 1.3-1 .7-1.6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Provou Levou</span><div class="ex-topo-lado"><b>R$ 2,5 mi</b><span>atribuídos ao provador</span></div><small>Menu principal</small><ul class="ex-menu"><li class=""><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 15V9M8.7 15V5M13.3 15v-4M18 15H2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Painel</li><li class=""><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c.8-3 3-4.5 6-4.5s5.2 1.5 6 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Provas</li><li class="on"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14v10H3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M3 8h14" stroke="currentColor" stroke-width="1.5"/></svg>Leads e CRM</li><li class=""><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10 17 3l-4 14-3-6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Disparos</li><li class=""><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 17V3l10 5-10 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Relatórios</li><li class=""><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 4H4v4M12 4h4v4M8 16H4v-4M12 16h4v-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Integrações</li></ul><div class="ex-plano"><b>Plano Escala</b><span>500 fotos por mês</span><i><em style="width:72%"></em></i><small>362 de 500 usadas</small></div></aside>
+  <div class="ex-main">
+    <div class="ex-h"><h4>Visão geral</h4><span class="ex-seg"><i>Hoje</i><i class="on">Este mês</i><i>Ano</i></span></div>
+    <div class="ex-stats"><div><small>Provas no mês</small><b>1.250</b></div><div><small>Leads capturados</small><b>842</b></div><div><small>Conversão de quem prova</small><b>14,3%</b></div></div>
+    <div class="ex-tab"><div class="ex-tab-h"><b>Leads</b><em>842 leads</em></div>
+      <div class="ex-linha ex-cab"><span>Cliente</span><span>Peça provada</span><span>Status</span></div>
+      <div class="ex-linha"><span><i></i>Marina Souza</span><span>Óculos Aspen</span><span class="ex-st ok">Convertido</span></div><div class="ex-linha"><span><i></i>Bruno Alves</span><span>Óculos Lisboa</span><span class="ex-st meio">Em contato</span></div><div class="ex-linha"><span><i></i>Júlia Rocha</span><span>Blazer linho</span><span class="ex-st ">Provou</span></div><div class="ex-linha"><span><i></i>Carla Dias</span><span>Vestido midi</span><span class="ex-st ok">Convertido</span></div><div class="ex-linha"><span><i></i>Paula Lima</span><span>Camisa de linho</span><span class="ex-st meio">Em contato</span></div><div class="ex-linha"><span><i></i>Enzo Prado</span><span>Tênis branco</span><span class="ex-st ">Provou</span></div>
+    </div>
+  </div></div></div><div class="ex-pain" data-i="2" aria-hidden="true"><div class="ex-app"><aside class="ex-lado"><span class="ex-logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.2V6.6a2.1 2.1 0 1 1 2.1-2.1M12 7.2 3 15.6c-.6.6-.2 1.6.7 1.6h16.6c.9 0 1.3-1 .7-1.6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Provou Levou</span><div class="ex-topo-lado"><b>5 canais</b><span>campanhas ativas</span></div><small>Menu principal</small><ul class="ex-menu"><li class=""><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 15V9M8.7 15V5M13.3 15v-4M18 15H2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Painel</li><li class=""><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c.8-3 3-4.5 6-4.5s5.2 1.5 6 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Provas</li><li class=""><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14v10H3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M3 8h14" stroke="currentColor" stroke-width="1.5"/></svg>Leads e CRM</li><li class="on"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10 17 3l-4 14-3-6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Disparos</li><li class=""><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 17V3l10 5-10 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Relatórios</li><li class=""><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 4H4v4M12 4h4v4M8 16H4v-4M12 16h4v-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Integrações</li></ul><div class="ex-plano"><b>Plano Escala</b><span>500 fotos por mês</span><i><em style="width:72%"></em></i><small>362 de 500 usadas</small></div></aside>
+  <div class="ex-main">
+    <div class="ex-h"><h4>Campanhas</h4><span class="ex-seg"><i class="on">Ativas</i><i>Rascunhos</i><i>Encerradas</i></span></div>
+    <div class="ex-camps"><div class="ex-camp"><span class="ex-cic"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16.5 5 13.2A6.3 6.3 0 1 1 7.6 15.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span><div><b>Disparo no WhatsApp</b><span>Quem provou e não comprou</span></div><em>68% de leitura</em><span class="ex-tog on"><i></i></span></div><div class="ex-camp"><span class="ex-cic"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 3.5h2.2l1.8 9h9l1.6-6.5H5.7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="16" r="1.2" fill="currentColor"/><circle cx="14.5" cy="16" r="1.2" fill="currentColor"/></svg></span><div><b>Recuperação de carrinho</b><span>Carrinhos abandonados</span></div><em>R$ 18 mil recuperados</em><span class="ex-tog on"><i></i></span></div><div class="ex-camp"><span class="ex-cic"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14v10H3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m3 6 7 5 7-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span><div><b>E-mail marketing</b><span>Novidades para quem provou</span></div><em>42% de abertura</em><span class="ex-tog on"><i></i></span></div><div class="ex-camp"><span class="ex-cic"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4h14v9H8l-4 3v-3H3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span><div><b>SMS</b><span>Lembrete de oferta</span></div><em>31% de cliques</em><span class="ex-tog "><i></i></span></div><div class="ex-camp"><span class="ex-cic"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14v10H3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M3 8h14" stroke="currentColor" stroke-width="1.5"/></svg></span><div><b>Segmento no CRM</b><span>Provou, clicou ou abandonou</span></div><em>842 clientes</em><span class="ex-tog on"><i></i></span></div></div>
+  </div></div></div></div>
+      </div>
+    </section>
+
     <!-- ─── MANIFESTO ─── -->
     <section class="manifesto" aria-label="Sobre a Provou Levou">
       <div class="container man-wrap">
@@ -2549,6 +2677,30 @@
         c.addEventListener('focus', function () { if (!toque) c.classList.add('on'); });
         c.addEventListener('blur', function () { if (!toque) c.classList.remove('on'); });
       });
+    })();
+  </script>
+  <script>
+    /* experiencia: a secao fica presa na tela e troca de etapa (texto + painel) conforme a rolagem */
+    (function () {
+      var sec = document.getElementById('expSec');
+      if (!sec) return;
+      var txts = sec.querySelectorAll('.ex-txt'), pains = sec.querySelectorAll('.ex-pain'), pts = sec.querySelectorAll('.ex-pontos i'), atual = 0, pend = false;
+      var mostra = function (k) {
+        if (k === atual) return;
+        [txts, pains].forEach(function (lista) {
+          lista.forEach(function (el, i) { el.classList.toggle('on', i === k); el.classList.toggle('saiu', i < k); });
+        });
+        pts.forEach(function (el, i) { el.classList.toggle('on', i === k); });
+        atual = k;
+      };
+      var mede = function () {
+        pend = false;
+        var r = sec.getBoundingClientRect(), total = sec.offsetHeight - innerHeight;
+        var prog = total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 0;
+        mostra(Math.min(txts.length - 1, Math.floor(prog * txts.length * 0.999)));
+      };
+      addEventListener('scroll', function () { if (!pend) { pend = true; requestAnimationFrame(mede); } }, { passive: true });
+      addEventListener('resize', mede); mede();
     })();
   </script>
   <script src="assets/js/lenis-1.1.13.min.js"></script>
