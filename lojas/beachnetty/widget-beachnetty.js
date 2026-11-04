@@ -2567,11 +2567,36 @@ const fd = new FormData();
         var f = document.getElementById('pl-bn-manequim');
         if (f) f.remove();
         document.documentElement.style.overflow = '';
-        if (ev.data.tamanho) {
-            var el = plTamanhosPagina().filter(function (e) { return e.textContent.trim() === ev.data.tamanho; })[0];
-            if (el) { (el.closest('li') || el).click(); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
-        }
+        if (ev.data.tamanho) plAplicaTamanho(ev.data.tamanho);
     });
+    // A loja exige escolher a cor antes do tamanho: sem cor, guarda o tamanho e marca assim que a cor for escolhida.
+    var plTamPendente = '';
+    function plAvisoTamanho(txt) {
+        var box = document.getElementById('pl-bn-acoes');
+        if (!box) return;
+        var n = document.getElementById('pl-bn-rec');
+        if (!n) { n = document.createElement('div'); n.id = 'pl-bn-rec'; n.style.cssText = 'grid-column:1/-1;font:600 13px Montserrat,sans-serif;color:#252525;'; box.appendChild(n); }
+        n.textContent = txt;
+    }
+    function plAplicaTamanho(t) {
+        var lista = document.querySelector('.variacao-lista-1');
+        var bloco = lista || document.querySelector('.variacao-lista');
+        if (lista && !lista.querySelector('li.selected')) {
+            plTamPendente = t;
+            plAvisoTamanho('Seu tamanho é ' + t + '. Agora escolha a cor.');
+            lista.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            return;
+        }
+        plTamPendente = '';
+        plAvisoTamanho('Tamanho recomendado para você: ' + t + '.');
+        var el = plTamanhosPagina().filter(function (e) { return e.textContent.trim() === t; })[0];
+        if (el) { (el.closest('li') || el).click(); (bloco || el).scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+    }
+    document.addEventListener('click', function (e) {
+        if (!plTamPendente || !e.target.closest || !e.target.closest('.variacao-lista-1 li')) return;
+        var t = plTamPendente;
+        setTimeout(function () { plAplicaTamanho(t); }, 900);
+    }, true);
 
     function plEhProduto() {
         // Beach Netty: validacao em um produto so (04/11/2026, Lucas). Para abrir na loja toda, voltar a regra geral.
