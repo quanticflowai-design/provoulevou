@@ -2009,11 +2009,11 @@
         var fase = 0, ultimo = 0, visivel = false, rodando = false, G = {};
         var mede = function () {
           var w = arco.clientWidth, h = arco.clientHeight, cel = w <= 640;
-          var tam = cel ? 78 : Math.max(76, Math.min(128, w * 0.085));
+          var tam = cel ? 66 : Math.max(64, Math.min(108, w * 0.072));
           arco.style.setProperty('--ts-w', tam + 'px');
           // centro do arco no meio do titulo; raio horizontal maior que a tela no celular
           var cy = cel ? h * 0.78 : h * 0.86;
-          G = { cx: w / 2, cy: cy, rx: cel ? w * 0.62 : w * 0.46, ry: cy - tam / 2 - 14, tam: tam, abre: cel ? 1.15 : 1.5, passo: cel ? 0.5 : 0.36 };
+          G = { cx: w / 2, cy: cy, rx: cel ? w * 0.62 : w * 0.46, ry: cy - tam / 2 - 14, tam: tam, abre: cel ? 1.15 : 1.5, passo: cel ? 0.5 : 0.5 }; // computador: 6 imagens no arco por vez
         };
         var desenha = function () {
           for (var i = 0; i < n; i++) {
