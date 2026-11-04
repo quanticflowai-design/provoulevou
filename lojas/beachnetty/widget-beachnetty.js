@@ -413,6 +413,8 @@
             display: block; font-size: 10.5px; font-weight: 400;
             color: var(--c-muted); line-height: 1.3;
         }
+        .q-guide-ic { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin: 0 auto 7px; border-radius: 50%; background: #fff; border: 1px solid var(--c-line, #e6e1d9); color: var(--c-ink, #111); font-style: normal; }
+        .q-guide-ic svg { width: 20px; height: 20px; display: block; }
 
         /* ── Diálogo de confirmação (ao clicar em Provar) ── */
         .q-gconf {
@@ -899,9 +901,9 @@
                         <div class="q-guide">
                             <div class="q-guide-title">Para a prova sair perfeita</div>
                             <div class="q-guide-row">
-                                <span><i class="ph ph-sun"></i>Luz boa<small>sem sombra</small></span>
-                                <span><i class="ph ph-person-simple"></i>Corpo todo<small>de frente</small></span>
-                                <span><i class="ph ph-t-shirt"></i>Com roupa<small>justa ao corpo</small></span>
+                                <span><em class="q-guide-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M5.28 5.28l1.41 1.41M17.31 17.31l1.41 1.41M2.5 12h2M19.5 12h2M5.28 18.72l1.41-1.41M17.31 6.69l1.41-1.41"/></svg></em>Luz boa<small>sem sombra</small></span>
+                                <span><em class="q-guide-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5V5a2 2 0 0 1 2-2h2.5M16.5 3H19a2 2 0 0 1 2 2v2.5M21 16.5V19a2 2 0 0 1-2 2h-2.5M7.5 21H5a2 2 0 0 1-2-2v-2.5"/><circle cx="12" cy="7.4" r="1.7"/><path d="M9.4 15v-2.6a2.6 2.6 0 0 1 5.2 0V15M10.6 15v3.6M13.4 15v3.6"/></svg></em>Corpo todo<small>de frente</small></span>
+                                <span><em class="q-guide-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg></em>Com roupa<small>justa ao corpo</small></span>
                             </div>
                         </div>
 
