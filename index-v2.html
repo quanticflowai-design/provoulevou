@@ -2859,12 +2859,27 @@
     })();
   </script>
   <script>
-    /* secao "Tem um provador virtual para isso": no celular a faixa ja abre no cartao do meio */
+    /* faixas do celular ("Tem um provador virtual para isso" e Blog): abrem no cartao do meio.
+       Reaplica ao carregar, quando as fontes chegam e quando a faixa aparece, ate a pessoa mexer nela. */
     (function () {
-      var g = document.querySelector('.ia-grade');
-      if (!g || !matchMedia('(max-width: 900px)').matches) return;
-      var cs = g.querySelectorAll('.ia-card'), meio = cs[Math.floor(cs.length / 2)];
-      if (meio) g.scrollLeft = meio.offsetLeft - g.offsetLeft - parseFloat(getComputedStyle(g).scrollPaddingLeft || 0);
+      if (!matchMedia('(max-width: 900px)').matches) return;
+      [['.ia-grade', '.ia-card'], ['.bl2-faixa', '.bl2-card']].forEach(function (par) {
+        var g = document.querySelector(par[0]);
+        if (!g) return;
+        var mexeu = false;
+        var centra = function () {
+          if (mexeu) return;
+          var cs = g.querySelectorAll(par[1]), meio = cs[Math.floor(cs.length / 2)];
+          if (!meio) return;
+          var alvo = g.scrollLeft + meio.getBoundingClientRect().left - g.getBoundingClientRect().left - parseFloat(getComputedStyle(g).scrollPaddingLeft || 0);
+          g.style.scrollBehavior = 'auto'; g.scrollLeft = alvo; g.style.scrollBehavior = '';
+        };
+        ['touchstart', 'pointerdown', 'wheel'].forEach(function (ev) { g.addEventListener(ev, function () { mexeu = true; }, { passive: true }); });
+        centra();
+        addEventListener('load', centra);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(centra);
+        if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { if (es[0].isIntersecting) centra(); }).observe(g);
+      });
     })();
   </script>
   <script src="assets/js/lenis-1.1.13.min.js"></script>
