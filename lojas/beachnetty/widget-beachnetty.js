@@ -1610,11 +1610,11 @@
         let userPhoto = null;
         // Combine com outra peca (05/11/2026, igual ao da Laeva): o gerador veste as duas pelo kit_json.
         // Magazord nao tem rota de recomendacao: as opcoes vem do sitemap e dos dados da pagina de cada produto.
-        let plLook = null, plLookOps = null;
+        let plLook = null, plLookOps = null, plLookPlanos = null, plLookCorUsada = null, plLookVez = 0;
         const PL_LOOK_ON = true; // liberado para todos em 05/11/2026
         const PL_ED_ON = true; // visual da Laeva: no ar para todos desde 05/11/2026
-        const PL_CORES = ['azul marinho', 'verde oliva', 'preto', 'branco', 'marrom', 'marsala', 'azul', 'verde', 'rosa', 'vinho', 'cinza', 'bege', 'nude', 'lilas', 'roxo', 'vermelho', 'laranja', 'amarelo', 'terracota', 'caramelo'];
-        function plLookNorm(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[.\-_]+/g, ' '); }
+        const PL_CORES = ['azul marinho', 'verde oliva', 'off white', 'preto', 'branco', 'marrom', 'marsala', 'marinho', 'azul', 'verde', 'rosa', 'vinho', 'cinza', 'bege', 'nude', 'lilas', 'roxo', 'vermelho', 'laranja', 'amarelo', 'terracota', 'caramelo'];
+        function plLookNorm(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[.\-_]+/g, ' '); }
         function plLookLado(s) {
             const n = plLookNorm(s);
             if (/c?onjunto|\bkit\b|vestido|macac/.test(n)) return '';
@@ -1623,31 +1623,57 @@
             return '';
         }
         function plLookCor(s) { const n = plLookNorm(s); return PL_CORES.find(c => new RegExp('\\b' + c + '\\b').test(n)) || ''; }
-        async function plLookCarregar() {
+        // Cor marcada na pagina; sem marcacao, a cor que estiver no link do produto.
+        function plLookCorAtual() {
+            const li = document.querySelector('.variacao-lista-1 li.selected');
+            const nome = li ? (li.getAttribute('data-derivacao-item-name') || li.getAttribute('title') || li.textContent) : '';
+            return plLookCor(nome) || plLookNorm(nome).trim() || plLookCor(location.pathname.split('/').pop());
+        }
+        // A pagina traz a foto e o estoque de cada cor no JSON da loja: { preto: url, 'off white': url }
+        function plLookCoresDaPagina(h) {
+            const mapa = {}, re = /"qtde_estoque":(\d+)[^{}]*?"derivacoes_produto":(\[.*?\]),"link".*?"midias":\[\{.*?"midia_url":"([^"]+)"/g;
+            let m;
+            while ((m = re.exec(h))) {
+                try {
+                    const cor = JSON.parse(m[2]).find(d => /^cor$/i.test(d.deri_nome || ''));
+                    if (!cor || !Number(m[1])) continue;
+                    const k = plLookCor(cor.derivacao) || plLookNorm(cor.derivacao).trim();
+                    if (!mapa[k]) mapa[k] = JSON.parse('"' + m[3] + '"').split('?')[0];
+                } catch (_) {}
+            }
+            return mapa;
+        }
+        const plLookPaginas = {};
+        function plLookPagina(s) {
+            if (!plLookPaginas[s]) plLookPaginas[s] = fetch('/' + s).then(r => r.text()).then(h => {
+                const d = new DOMParser().parseFromString(h, 'text/html');
+                const p = Array.from(d.querySelectorAll('script[type="application/ld+json"]')).map(e => { try { return JSON.parse(e.textContent); } catch (_) { return null; } }).find(j => j && j['@type'] === 'Product');
+                if (!p || !/InStock/i.test(JSON.stringify(p.offers || ''))) return null;
+                const img = Array.isArray(p.image) ? p.image[0] : p.image;
+                return img ? { slug: s, nome: String(p.name || '').trim(), img: img, cores: plLookCoresDaPagina(h) } : null;
+            }).catch(() => null);
+            return plLookPaginas[s];
+        }
+        async function plLookCarregar(cor) {
             const atual = location.pathname.split('/').pop();
             const lado = plLookLado(plNomeProduto()) || plLookLado(atual);
             if (!lado) return [];
-            const selCor = document.querySelector('.variacao-lista-1 li.selected');
-            const cor = plLookCor(atual) || plLookCor(selCor ? (selCor.textContent || selCor.getAttribute('title')) : '');
-            const xml = await fetch('/sitemap-produto.xml').then(r => r.text());
+            if (!plLookPlanos) plLookPlanos = fetch('/sitemap-produto.xml').then(r => r.text());
+            const xml = await plLookPlanos;
             const slugs = (xml.match(/<loc>[^<]+<\/loc>/g) || []).map(l => l.replace(/<\/?loc>/g, '').split('/').pop())
                 .filter(s => /^[a-z0-9.\-]+$/.test(s) && s !== atual && plLookLado(s) && plLookLado(s) !== lado);
-            const peso = s => { const c = plLookCor(s); return (cor && c === cor) ? 0 : (c === 'preto' ? 1 : 2); };
+            // Primeiro o link na cor; depois produtos com varias cores (a cor esta dentro da pagina); preto por ultimo.
+            const peso = s => { const c = plLookCor(s); return (cor && c === cor) ? 0 : (!c ? 1 : (c === 'preto' ? 2 : 3)); };
             const modelo = s => { let n = plLookNorm(s); PL_CORES.forEach(c => { n = n.replace(c, ''); }); return n.replace(/\s+/g, ' ').trim(); };
             const vistos = {};
             const fila = slugs.map((s, i) => [s, i]).sort((a, b) => (peso(a[0]) - peso(b[0])) || (a[1] - b[1])).map(x => x[0])
-                .filter(s => { const m = modelo(s); if (vistos[m]) return false; vistos[m] = 1; return true; }).slice(0, 8);
-            const lidos = await Promise.all(fila.map(async s => {
-                try {
-                    const h = await fetch('/' + s).then(r => r.text());
-                    const d = new DOMParser().parseFromString(h, 'text/html');
-                    const p = Array.from(d.querySelectorAll('script[type="application/ld+json"]')).map(e => { try { return JSON.parse(e.textContent); } catch (_) { return null; } }).find(j => j && j['@type'] === 'Product');
-                    if (!p || !/InStock/i.test(JSON.stringify(p.offers || ''))) return null;
-                    const img = Array.isArray(p.image) ? p.image[0] : p.image;
-                    return img ? { slug: s, nome: String(p.name || '').trim(), img: img } : null;
-                } catch (_) { return null; }
-            }));
-            return lidos.filter(Boolean).slice(0, 4);
+                .filter(s => { const m = modelo(s); if (vistos[m]) return false; vistos[m] = 1; return true; }).slice(0, 10);
+            const lidos = (await Promise.all(fila.map(plLookPagina))).filter(Boolean);
+            const nota = o => { const cs = plLookCor(o.slug); if (cor && (cs === cor || o.cores[cor])) return 0; if (cs === 'preto' || o.cores.preto) return 1; return 2; };
+            return lidos.map((o, i) => [o, i]).sort((a, b) => (nota(a[0]) - nota(b[0])) || (a[1] - b[1])).map(x => {
+                const o = x[0], igual = cor && o.cores[cor], preto = nota(o) === 1 && o.cores.preto;
+                return { slug: o.slug, nome: o.nome, img: igual || preto || o.img };
+            }).slice(0, 4);
         }
         function plLookPintar() {
             const row = document.getElementById('pl-look-row'), list = document.getElementById('pl-look-list');
@@ -1711,7 +1737,9 @@
         function plEdProduto() {
             const og = document.querySelector('meta[property="og:image"]');
             const im = document.getElementById('ed-prod-img'), nm = document.getElementById('ed-prod-nome');
-            if (im && og) im.src = og.content;
+            let foto = '';
+            try { foto = extractImages()[0] || ''; } catch (_) {}
+            if (im) im.src = foto || (og ? og.content : '');
             if (nm) nm.textContent = plNomeProduto();
         }
         function plEdCarregando(img1) {
@@ -1728,9 +1756,17 @@
         if (PL_ED_ON) { try { plEdMontar(); } catch (_) {} }
         async function plLookAbrir() {
             if (PL_ED_ON) { try { plEdProduto(); } catch (_) {} }
-            if (!PL_LOOK_ON || plLookOps) { plLookPintar(); return; }
-            plLookOps = [];
-            try { plLookOps = await plLookCarregar(); } catch (_) { plLookOps = []; }
+            if (!PL_LOOK_ON) return;
+            // Trocou de cor com o provador fechado: refaz as sugestoes nessa cor.
+            const cor = plLookCorAtual();
+            if (plLookOps && cor === plLookCorUsada) { plLookPintar(); return; }
+            plLookCorUsada = cor; plLook = null; plLookOps = [];
+            plLookPintar();
+            const vez = ++plLookVez;
+            let ops = [];
+            try { ops = await plLookCarregar(cor); } catch (_) {}
+            if (vez !== plLookVez) return;
+            plLookOps = ops;
             plLookPintar();
         }
         let pixPaymentId = null;
