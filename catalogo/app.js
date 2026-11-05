@@ -658,7 +658,16 @@
                 brand: '#3A1A5C', dark: '#270F3F', soft: 'rgba(58,26,92,.10)', on: '#ffffff' },
     // Eyes Glasses Store — logo preto sobre aquarela pêssego/azul; fundo pêssego bem claro, botão preto com texto branco
     eyesglassesstore: { bg: '#FFF6F3', card: '#FFFFFF', line: '#F3E1DB',
-                brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.08)', on: '#ffffff' }
+                brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.08)', on: '#ffffff' },
+    // Ótica Thais — dourado do logo sobre branco; botão em dourado fechado (4,9:1) com texto branco
+    oticathais: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EFE6CF',
+                brand: '#8E6C14', dark: '#6F540F', soft: 'rgba(142,108,20,.10)', on: '#ffffff' },
+    // Horiz Óticas — verde petróleo do logo sobre branco; botão verde com texto branco
+    horizoticas: { bg: '#FFFFFF', card: '#FFFFFF', line: '#DFE9E7',
+                brand: '#2F5F5A', dark: '#234743', soft: 'rgba(47,95,90,.10)', on: '#ffffff' },
+    // Ótica Império — preto e dourado do logo sobre branco; preço em dourado fechado, botão preto com texto dourado
+    oticaimperio: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EFE6CF',
+                brand: '#8A6A14', dark: '#6B520F', soft: 'rgba(138,106,20,.10)', on: '#ffffff', cta: '#111111', ctaDark: '#000000', onCta: '#D2A63A' }
   };
 
   // ─────────── Tema ───────────
