@@ -1141,10 +1141,10 @@
     .bl2-txt b { font-weight: 500; color: #161614; }
     .bl2-pe { margin-top: clamp(36px, calc(4 * var(--vw)), 56px); display: flex; justify-content: center; align-items: center; gap: 16px; }
     .bl2-nav { display: flex; gap: 8px; }
-    .bl2-nav button { width: 44px; height: 44px; border-radius: 50%; border: 1px solid #ecebef; background: #fff; color: #161614; display: grid; place-items: center; cursor: pointer; transition: background .2s ease, opacity .2s ease; }
+    .bl2-nav button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid #ecebef; background: #fff; color: #161614; display: grid; place-items: center; cursor: pointer; transition: background .2s ease, opacity .2s ease; }
     .bl2-nav button:hover { background: #f4f2f8; } .bl2-nav button:disabled { opacity: .35; cursor: default; }
-    .bl2-nav svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-    .bl2-todos { padding: 13px 22px; border-radius: 100px; background: #161614; color: #fff; text-decoration: none; font-weight: 500; font-size: 15px; transition: background .2s ease; }
+    .bl2-nav svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    .bl2-todos { padding: 9px 16px; border-radius: 100px; background: #161614; color: #fff; text-decoration: none; font-weight: 500; font-size: 13px; transition: background .2s ease; }
     .bl2-todos:hover { background: var(--violet-dark); }
     @media (max-width: 640px) {
       .bl2-card { flex-basis: 78vw; }
@@ -2643,6 +2643,11 @@
       var estado = function () { a.disabled = f.scrollLeft < 4; b.disabled = f.scrollLeft + f.clientWidth >= f.scrollWidth - 4; };
       a.addEventListener('click', function () { f.scrollBy({ left: -passo(), behavior: 'smooth' }); });
       b.addEventListener('click', function () { f.scrollBy({ left: passo(), behavior: 'smooth' }); });
+      // celular: a faixa ja comeca no artigo do meio
+      if (matchMedia('(max-width: 640px)').matches) {
+        var cs = f.querySelectorAll('.bl2-card'), meio = cs[Math.floor(cs.length / 2)];
+        if (meio) { f.style.scrollBehavior = 'auto'; f.scrollLeft = meio.offsetLeft - f.offsetLeft - parseFloat(getComputedStyle(f).scrollPaddingLeft || 0); f.style.scrollBehavior = ''; }
+      }
       f.addEventListener('scroll', estado, { passive: true }); addEventListener('resize', estado); estado();
     })();
   </script>
