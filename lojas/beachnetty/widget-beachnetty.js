@@ -931,6 +931,13 @@
                             <input type="file" id="q-gallery-input" accept="image/*" style="display:none">
                         </div>
 
+                        <!-- Combine com outra peca (parte de cima + parte de baixo) -->
+                        <div id="pl-look-row" style="display:none;">
+                            <p class="q-section-label" style="margin-bottom:2px;">Combine com outra pe&#231;a</p>
+                            <div id="pl-look-sub">Opcional: escolha uma e prove as duas juntas</div>
+                            <div id="pl-look-list"></div>
+                        </div>
+
                         <!-- Terms -->
                         <label class="q-terms-row">
                             <input type="checkbox" id="q-accept-terms">
@@ -986,6 +993,7 @@
                                 <div class="q-seal"><i class="ph-fill ph-lock-key"></i><span>Pagamento<br>Seguro</span></div>
                             </div>
                             <button class="q-btn-buy-now" id="q-btn-buy-now" style="display:none;">Comprar Agora</button>
+                            <a id="pl-look-link" target="_blank" rel="noopener" style="display:none;"></a>
                             <div id="q-related-products" style="display:none;">
                                 <h4>Veja tamb&eacute;m</h4>
                                 <div class="q-related-grid" id="q-related-grid"></div>
@@ -1571,6 +1579,72 @@
         const realInput   = galleryInput;
 
         let userPhoto = null;
+        // Combine com outra peca (05/11/2026, igual ao da Laeva): o gerador veste as duas pelo kit_json.
+        // Magazord nao tem rota de recomendacao: as opcoes vem do sitemap e dos dados da pagina de cada produto.
+        let plLook = null, plLookOps = null;
+        const PL_LOOK_ON = /[?&]pl_look=1/.test(location.search);
+        const PL_CORES = ['azul marinho', 'verde oliva', 'preto', 'branco', 'marrom', 'marsala', 'azul', 'verde', 'rosa', 'vinho', 'cinza', 'bege', 'nude', 'lilas', 'roxo', 'vermelho', 'laranja', 'amarelo', 'terracota', 'caramelo'];
+        function plLookNorm(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[.\-_]+/g, ' '); }
+        function plLookLado(s) {
+            const n = plLookNorm(s);
+            if (/c?onjunto|\bkit\b|vestido|macac/.test(n)) return '';
+            if (/\b(calca|legging|short|shorts|saia|bermuda|ciclista)\b/.test(n)) return 'baixo';
+            if (/\b(blusa|top|regata|jaqueta|camiseta|camisa|cropped)\b/.test(n)) return 'cima';
+            return '';
+        }
+        function plLookCor(s) { const n = plLookNorm(s); return PL_CORES.find(c => new RegExp('\\b' + c + '\\b').test(n)) || ''; }
+        async function plLookCarregar() {
+            const atual = location.pathname.split('/').pop();
+            const lado = plLookLado(plNomeProduto()) || plLookLado(atual);
+            if (!lado) return [];
+            const selCor = document.querySelector('.variacao-lista-1 li.selected');
+            const cor = plLookCor(atual) || plLookCor(selCor ? (selCor.textContent || selCor.getAttribute('title')) : '');
+            const xml = await fetch('/sitemap-produto.xml').then(r => r.text());
+            const slugs = (xml.match(/<loc>[^<]+<\/loc>/g) || []).map(l => l.replace(/<\/?loc>/g, '').split('/').pop())
+                .filter(s => /^[a-z0-9.\-]+$/.test(s) && s !== atual && plLookLado(s) && plLookLado(s) !== lado);
+            const peso = s => { const c = plLookCor(s); return (cor && c === cor) ? 0 : (c === 'preto' ? 1 : 2); };
+            const modelo = s => { let n = plLookNorm(s); PL_CORES.forEach(c => { n = n.replace(c, ''); }); return n.replace(/\s+/g, ' ').trim(); };
+            const vistos = {};
+            const fila = slugs.map((s, i) => [s, i]).sort((a, b) => (peso(a[0]) - peso(b[0])) || (a[1] - b[1])).map(x => x[0])
+                .filter(s => { const m = modelo(s); if (vistos[m]) return false; vistos[m] = 1; return true; }).slice(0, 8);
+            const lidos = await Promise.all(fila.map(async s => {
+                try {
+                    const h = await fetch('/' + s).then(r => r.text());
+                    const d = new DOMParser().parseFromString(h, 'text/html');
+                    const p = Array.from(d.querySelectorAll('script[type="application/ld+json"]')).map(e => { try { return JSON.parse(e.textContent); } catch (_) { return null; } }).find(j => j && j['@type'] === 'Product');
+                    if (!p || !/InStock/i.test(JSON.stringify(p.offers || ''))) return null;
+                    const img = Array.isArray(p.image) ? p.image[0] : p.image;
+                    return img ? { slug: s, nome: String(p.name || '').trim(), img: img } : null;
+                } catch (_) { return null; }
+            }));
+            return lidos.filter(Boolean).slice(0, 4);
+        }
+        function plLookPintar() {
+            const row = document.getElementById('pl-look-row'), list = document.getElementById('pl-look-list');
+            if (!row || !list) return;
+            if (!plLookOps || !plLookOps.length) { row.style.display = 'none'; return; }
+            row.style.display = 'block';
+            list.textContent = '';
+            plLookOps.forEach(o => {
+                const on = plLook && plLook.slug === o.slug;
+                const c = document.createElement('button'); c.type = 'button'; c.className = 'pl-look-card' + (on ? ' on' : '');
+                const im = document.createElement('img'); im.src = o.img; im.alt = o.nome; im.loading = 'lazy';
+                const t = document.createElement('span'); t.textContent = o.nome;
+                c.appendChild(im); c.appendChild(t);
+                c.onclick = () => { plLook = on ? null : o; plLookPintar(); };
+                list.appendChild(c);
+            });
+            const sub = document.getElementById('pl-look-sub');
+            if (sub) sub.textContent = plLook ? ('Vamos provar junto: ' + plLook.nome) : 'Opcional: escolha uma e prove as duas juntas';
+            const gb = document.getElementById('q-btn-generate');
+            if (gb) gb.textContent = plLook ? 'Provar o look' : 'Provar roupa';
+        }
+        async function plLookAbrir() {
+            if (!PL_LOOK_ON || plLookOps) { plLookPintar(); return; }
+            plLookOps = [];
+            try { plLookOps = await plLookCarregar(); } catch (_) { plLookOps = []; }
+            plLookPintar();
+        }
         let pixPaymentId = null;
         let selectedProductImgUrl = '';
         let userPickedPhoto = false;   // true quando a cliente clica numa miniatura
@@ -1816,6 +1890,7 @@
 
         var _plOpenOriginal = openModal;
         openModal = function () {
+            try { plLookAbrir(); } catch (_) {}
             var _r = _plOpenOriginal.apply(this, arguments);
             try {
                 _plMontaBotaoNovaProva();
@@ -2390,7 +2465,7 @@ const fd = new FormData();
                             allProdImgs = _mix;
                         }
                     } catch (e) {}
-                    allProdImgs = allProdImgs.slice(0, 4);
+                    allProdImgs = allProdImgs.slice(0, plLook ? 1 : 4);
                     console.log('[PL Arc Sunglasses] Enviando', allProdImgs.length, 'fotos do produto');
                     let _primaryDone = false, _slot = 1;
                     for (let _pi = 0; _pi < allProdImgs.length; _pi++) {
@@ -2410,6 +2485,27 @@ const fd = new FormData();
                                 fd.append('product_image_' + _slot + '_b64', _b64);
                             }
                         } catch (_) { }
+                    }
+
+                    // Look: 1 foto de cada peca, na ordem que o kit_json descreve. Se a peca 2 falhar, prova so a da pagina.
+                    const _lkLink = document.getElementById('pl-look-link');
+                    if (_lkLink) _lkLink.style.display = 'none';
+                    if (plLook && _primaryDone) {
+                        try {
+                            const _b2 = await fetch(plLook.img).then(r => r.blob());
+                            if (_b2 && /^image\//i.test(_b2.type)) {
+                                const _b64 = await new Promise((resolve, reject) => {
+                                    const _r = new FileReader();
+                                    _r.onloadend = () => resolve(_r.result.split(',')[1]);
+                                    _r.onerror = reject;
+                                    _r.readAsDataURL(_b2);
+                                });
+                                fd.append('product_image_2_b64', _b64);
+                                fd.append('kit_json', JSON.stringify([{ nome: prodName.trim(), imgs: 1 }, { nome: plLook.nome, imgs: 1 }]));
+                                fd.set('product_name', prodName.trim() + ' + ' + plLook.nome);
+                                if (_lkLink) { _lkLink.href = '/' + plLook.slug; _lkLink.textContent = 'Ver também: ' + plLook.nome; _lkLink.style.display = 'flex'; }
+                            }
+                        } catch (_) {}
                     }
 
                     calculateFinalSize();
@@ -2641,4 +2737,4 @@ const fd = new FormData();
 
 ;(function(){try{if(window.__plAdLoader)return;window.__plAdLoader=1;var s=document.createElement('script');s.src='https://lucasdecamargosilva.github.io/pl-loja-scripts/pl-antes-depois.js?v=1';s.async=true;(document.head||document.documentElement).appendChild(s);}catch(e){}})(); // PL: slider antes/depois
 
-;(function(){var st=document.createElement('style');st.textContent="#pl-bn-acoes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}\n#pl-bn-acoes .q-btn-inline-provador{width:100%!important;height:50px!important;margin:0!important;padding:0 8px!important;background:transparent!important;color:#00a441!important;border:1px solid #00a441!important;border-radius:5px!important;font-family:Montserrat,sans-serif!important;font-size:13px!important;font-weight:700!important;letter-spacing:0!important;text-transform:uppercase!important;box-shadow:none!important;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}\n#pl-bn-acoes .q-btn-inline-provador:hover{background:rgba(0,164,65,.08)!important;color:#00a441!important}\n#pl-bn-acoes .q-btn-inline-provador svg{stroke:#00a441!important}\n";(document.head||document.documentElement).appendChild(st);})();
+;(function(){var st=document.createElement('style');st.textContent="#pl-bn-acoes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}\n#pl-bn-acoes .q-btn-inline-provador{width:100%!important;height:50px!important;margin:0!important;padding:0 8px!important;background:transparent!important;color:#00a441!important;border:1px solid #00a441!important;border-radius:5px!important;font-family:Montserrat,sans-serif!important;font-size:13px!important;font-weight:700!important;letter-spacing:0!important;text-transform:uppercase!important;box-shadow:none!important;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}\n#pl-bn-acoes .q-btn-inline-provador:hover{background:rgba(0,164,65,.08)!important;color:#00a441!important}\n#pl-bn-acoes .q-btn-inline-provador svg{stroke:#00a441!important}\n#pl-look-row{width:100%;text-align:left}\n#pl-look-sub{font:12px Montserrat,sans-serif;color:#666;margin:0 0 8px}\n#pl-look-list{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}\n.pl-look-card{flex:0 0 84px;width:84px;padding:0;background:#fff;border:1px solid #e5e5e5;border-radius:6px;overflow:hidden;cursor:pointer;text-align:left}\n.pl-look-card.on{border:2px solid #00a441}\n.pl-look-card img{display:block;width:100%;height:112px;object-fit:cover;object-position:top}\n.pl-look-card span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font:600 10px/1.25 Montserrat,sans-serif;color:#252525;padding:5px}\n#pl-look-link{align-items:center;justify-content:center;text-align:center;min-height:44px;margin-top:8px;padding:8px 12px;border:1px solid #00a441;border-radius:5px;color:#00a441;font:700 12px Montserrat,sans-serif;text-decoration:none}\n";(document.head||document.documentElement).appendChild(st);})();
