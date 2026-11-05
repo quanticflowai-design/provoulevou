@@ -2597,45 +2597,20 @@ const fd = new FormData();
                     } catch (e) {}
                     allProdImgs = allProdImgs.slice(0, plLook ? 1 : 4);
                     console.log('[PL Arc Sunglasses] Enviando', allProdImgs.length, 'fotos do produto');
-                    let _primaryDone = false, _slot = 1;
-                    for (let _pi = 0; _pi < allProdImgs.length; _pi++) {
-                        try {
-                            const _b = await fetch(allProdImgs[_pi]).then(r => r.blob());
-                            if (!_b || !/^image\//i.test(_b.type)) continue; // pula HTML/nao-imagem -> evita 400 do gerador (ALTA DEMANDA)
-                            if (!_primaryDone) {
-                                fd.append('product_image', _b, 'product.jpg'); _primaryDone = true;
-                            } else {
-                                _slot++;
-                                const _b64 = await new Promise((resolve, reject) => {
-                                    const _r = new FileReader();
-                                    _r.onloadend = () => resolve(_r.result.split(',')[1]);
-                                    _r.onerror = reject;
-                                    _r.readAsDataURL(_b);
-                                });
-                                fd.append('product_image_' + _slot + '_b64', _b64);
-                            }
-                        } catch (_) { }
-                    }
+                    // O CDN da Magazord nao libera CORS: o navegador nao baixa as fotos. Vao os links,
+                    // e o gerador baixa (product_image_url + product_image_url_2/3/4).
+                    const _urls = allProdImgs.map(u => String(u).split('?')[0]).filter(Boolean);
+                    _urls.slice(1).forEach((u, i) => fd.append('product_image_url_' + (i + 2), u));
+                    const _primaryDone = _urls.length > 0;
 
                     // Look: 1 foto de cada peca, na ordem que o kit_json descreve. Se a peca 2 falhar, prova so a da pagina.
                     const _lkLink = document.getElementById('pl-look-link');
                     if (_lkLink) _lkLink.style.display = 'none';
                     if (plLook && _primaryDone) {
-                        try {
-                            const _b2 = await fetch(String(plLook.img).split('?')[0]).then(r => r.blob());
-                            if (_b2 && /^image\//i.test(_b2.type)) {
-                                const _b64 = await new Promise((resolve, reject) => {
-                                    const _r = new FileReader();
-                                    _r.onloadend = () => resolve(_r.result.split(',')[1]);
-                                    _r.onerror = reject;
-                                    _r.readAsDataURL(_b2);
-                                });
-                                fd.append('product_image_2_b64', _b64);
-                                fd.append('kit_json', JSON.stringify([{ nome: prodName.trim(), imgs: 1 }, { nome: plLook.nome, imgs: 1 }]));
-                                fd.set('product_name', prodName.trim() + ' + ' + plLook.nome);
-                                if (_lkLink) { _lkLink.href = '/' + plLook.slug; _lkLink.textContent = 'Ver também: ' + plLook.nome; _lkLink.style.display = 'flex'; }
-                            }
-                        } catch (_) {}
+                        fd.append('product_image_url_2', String(plLook.img).split('?')[0]);
+                        fd.append('kit_json', JSON.stringify([{ nome: prodName.trim(), imgs: 1 }, { nome: plLook.nome, imgs: 1 }]));
+                        fd.set('product_name', prodName.trim() + ' + ' + plLook.nome);
+                        if (_lkLink) { _lkLink.href = '/' + plLook.slug; _lkLink.textContent = 'Ver também: ' + plLook.nome; _lkLink.style.display = 'flex'; }
                     }
 
                     calculateFinalSize();
