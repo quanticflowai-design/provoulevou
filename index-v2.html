@@ -595,6 +595,8 @@
     .demo-live:hover { background: linear-gradient(150deg, rgba(255,255,255,.88) 0%, rgba(255,255,255,.6) 100%); }
     /* somem enquanto a secao presa (Seu cliente prova a peca...) cobre a tela */
     html.na-exp .pl-depo.entrou, html.na-exp .demo-live.entrou { opacity: 0; transform: translateY(14px) scale(.96); pointer-events: none; }
+    /* o video tambem some quando o rodape aparece */
+    html.no-rodape .pl-depo.entrou { opacity: 0; transform: translateY(14px) scale(.96); pointer-events: none; }
     .demo-live strong { font-family: var(--sans); font-weight: 300; font-size: 15px; line-height: 1.25; }
     .demo-orb {
       position: relative; flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; overflow: hidden;
@@ -2822,6 +2824,14 @@
         c.addEventListener('focus', function () { abre(c); });
         c.addEventListener('click', function () { abre(c); });
       });
+    })();
+  </script>
+  <script>
+    /* rodape na tela: esconde o video flutuante */
+    (function () {
+      var r = document.querySelector('.rodape');
+      if (!r || !('IntersectionObserver' in window)) return;
+      new IntersectionObserver(function (es) { document.documentElement.classList.toggle('no-rodape', es[0].isIntersecting); }).observe(r);
     })();
   </script>
   <script>
