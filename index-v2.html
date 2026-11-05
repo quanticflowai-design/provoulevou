@@ -1209,60 +1209,6 @@
       .cf-card img { object-position: 50% 30%; }
     }
 
-    /* ─── COMO FUNCIONA (3 passos com revelacao no hover/toque) ─── */
-    .passos { background: #fff; padding: clamp(80px, calc(9 * var(--vw)), 130px) 0; }
-    .passos * { -webkit-text-stroke-width: 0; }
-    .pa-topo { text-align: center; margin-bottom: clamp(44px, calc(5 * var(--vw)), 72px); }
-    .pa-rotulo { display: block; font-family: var(--strong); font-weight: 500; font-size: 16px; color: #161614; }
-    .pa-topo h2 { margin-top: 16px; font-family: var(--strong); font-weight: 500; font-size: clamp(38px, calc(5 * var(--vw)), 72px); line-height: 1.04; letter-spacing: -0.035em; color: #222; text-wrap: balance; }
-    .pa-topo p { margin: 20px auto 0; max-width: 36em; font-size: clamp(16px, calc(1.3 * var(--vw)), 19px); line-height: 1.5; color: #5e566e; text-wrap: balance; }
-    .pa-bt { display: inline-block; margin-top: 28px; padding: 14px 24px; border-radius: 10px; background: #161614; color: #fff; text-decoration: none; font-family: var(--strong); font-weight: 500; font-size: 16px; transition: background .2s ease; }
-    .pa-bt:hover { background: var(--violet-dark); }
-    .pa-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-    .pa-card { position: relative; display: block; width: 100%; padding: 0; border: 0; cursor: pointer; aspect-ratio: 4 / 4.9; border-radius: 22px; overflow: hidden; background: #ece8f5; isolation: isolate; }
-    .pa-foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: filter .6s ease, transform .8s cubic-bezier(.22,1,.36,1); }
-    .pa-veu { position: absolute; inset: 0; opacity: 0; transition: opacity .6s ease; }
-    .pa-v1 { background: radial-gradient(70% 55% at 30% 20%, rgba(219,39,119,.55), transparent 70%), linear-gradient(160deg, rgba(76,29,149,.85), rgba(49,46,129,.9) 55%, rgba(124,58,237,.8)); }
-    .pa-v2 { background: linear-gradient(180deg, rgba(60,40,20,.25), rgba(20,14,10,.6)); }
-    .pa-v3 { background: linear-gradient(180deg, rgba(20,12,30,.35), rgba(10,6,16,.7)); }
-    .pa-revela { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; transform: scale(.97); transition: opacity .5s ease .05s, transform .6s cubic-bezier(.22,1,.36,1); pointer-events: none; font-family: var(--strong); color: #fff; text-align: left; }
-    .pa-card.on .pa-foto { filter: blur(22px) saturate(1.1); transform: scale(1.12); }
-    .pa-card.on .pa-veu, .pa-card.on .pa-revela { opacity: 1; }
-    .pa-card.on .pa-revela { transform: none; }
-    /* 1: anel de miniaturas girando */
-    .pa-giro { position: absolute; width: 74%; aspect-ratio: 1; animation: pa-gira 60s linear infinite; animation-play-state: paused; }
-    .pa-card.on .pa-giro { animation-play-state: running; }
-    .pa-giro img { position: absolute; left: 50%; top: 50%; width: 7.6%; height: auto; aspect-ratio: 1; border-radius: 50%; object-fit: cover; transform: rotate(calc(var(--i) * 360deg / var(--n))) translateY(-560%) rotate(calc(var(--i) * -360deg / var(--n))); margin: -3.8% 0 0 -3.8%; box-shadow: 0 4px 10px rgba(0,0,0,.25); }
-    @keyframes pa-gira { to { transform: rotate(360deg); } }
-    .pa-centro { position: relative; text-align: center; display: grid; gap: 4px; }
-    .pa-centro strong { font-weight: 500; font-size: clamp(40px, calc(4 * var(--vw)), 60px); letter-spacing: -0.03em; line-height: 1; }
-    .pa-centro b { font-weight: 500; font-size: 16px; margin-top: 8px; }
-    .pa-centro small { font-size: 15px; color: rgba(255,255,255,.75); }
-    /* 2: painel de vidro */
-    .pa-vidro { width: 74%; padding: 22px 20px 16px; border-radius: 14px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); display: block; }
-    .pa-vidro small { display: block; font-size: 12px; color: rgba(255,255,255,.7); }
-    .pa-vidro strong { display: block; margin-top: 6px; font-weight: 500; font-size: clamp(20px, calc(1.8 * var(--vw)), 26px); line-height: 1.15; letter-spacing: -0.02em; }
-    .pa-vidro ul { list-style: none; margin-top: 20px; display: grid; gap: 4px; }
-    .pa-vidro li { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 8px; padding: 8px 0; font-size: 13.5px; }
-    .pa-vidro li i { width: 7px; height: 7px; border-radius: 50%; }
-    .pa-vidro li em { font-style: normal; color: rgba(255,255,255,.6); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .pa-vidro li span { font-size: 11px; padding: 3px 8px; border-radius: 100px; color: rgba(255,255,255,.75); background: rgba(255,255,255,.08); }
-    .pa-vidro li span.on { color: #fff; background: rgba(124,58,237,.75); }
-    /* 3: lista de tarefas */
-    .pa-tarefas ul { list-style: none; width: 78%; display: grid; gap: 12px; }
-    .pa-tarefas li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
-    .pa-tarefas img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex: none; }
-    .pa-tarefas div { flex: 1; min-width: 0; display: grid; gap: 2px; }
-    .pa-tarefas b { font-weight: 500; font-size: 14.5px; }
-    .pa-tarefas div span { font-size: 13px; color: rgba(255,255,255,.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .pa-ok { width: 18px; height: 18px; border-radius: 50%; background: #22c55e; display: grid; place-items: center; flex: none; }
-    .pa-ok svg { width: 12px; height: 12px; }
-    .pa-spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,.25); border-top-color: #fff; flex: none; animation: pa-gira 1s linear infinite; }
-    .pa-item h3 { margin-top: 22px; font-family: var(--strong); font-weight: 500; font-size: clamp(18px, calc(1.5 * var(--vw)), 22px); letter-spacing: -0.01em; color: #161614; }
-    .pa-item h3 span { margin-right: 6px; }
-    .pa-item > p { margin-top: 10px; max-width: 30em; font-size: clamp(15px, calc(1.2 * var(--vw)), 18px); line-height: 1.5; color: #5e566e; }
-    @media (max-width: 900px) { .pa-grade { grid-template-columns: 1fr; gap: 40px; } .pa-card { aspect-ratio: 4 / 4.4; } }
-    @media (prefers-reduced-motion: reduce) { .pa-giro, .pa-spin { animation: none; } .pa-foto, .pa-revela, .pa-veu { transition: none; } }
 
 
     /* ─── EXPERIENCIA (presa na tela, troca de etapa com a rolagem) ─── */
@@ -1936,56 +1882,6 @@
     </section>
 
 
-
-    <!-- ─── COMO FUNCIONA (3 passos; ao passar o mouse ou tocar, cada cartao revela um painel) ─── -->
-    <section class="passos" aria-labelledby="passosTitulo">
-      <div class="container">
-        <div class="pa-topo">
-          <span class="pa-rotulo">Como funciona</span>
-          <h2 id="passosTitulo">Como a Provou Levou funciona</h2>
-          <p>Do provador na página do produto até a venda atribuída no seu painel, sem você precisar mexer em nada.</p>
-          <a class="pa-bt" href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener">Testar grátis</a>
-        </div>
-        <div class="pa-grade">
-          <article class="pa-item">
-            <button type="button" class="pa-card" aria-label="Ver detalhes do passo 1">
-              <img class="pa-foto" src="assets/passos/passo-1.webp" alt="" width="640" height="800" loading="lazy">
-              <span class="pa-veu pa-v1" aria-hidden="true"></span>
-              <span class="pa-revela pa-anel" aria-hidden="true">
-                <span class="pa-giro" style="--n:18"><img src="assets/funcoes/provador.webp" alt="" width="200" height="200" loading="lazy" style="--i:0"><img src="assets/funcoes/roupas.webp" alt="" width="200" height="200" loading="lazy" style="--i:1"><img src="assets/funcoes/sem-app.webp" alt="" width="200" height="200" loading="lazy" style="--i:2"><img src="assets/funcoes/leads.webp" alt="" width="200" height="200" loading="lazy" style="--i:3"><img src="assets/funcoes/crm.webp" alt="" width="200" height="200" loading="lazy" style="--i:4"><img src="assets/funcoes/disparo.webp" alt="" width="200" height="200" loading="lazy" style="--i:5"><img src="assets/funcoes/funil.webp" alt="" width="200" height="200" loading="lazy" style="--i:6"><img src="assets/funcoes/inbox.webp" alt="" width="200" height="200" loading="lazy" style="--i:7"><img src="assets/funcoes/segmenta.webp" alt="" width="200" height="200" loading="lazy" style="--i:8"><img src="assets/funcoes/painel.webp" alt="" width="200" height="200" loading="lazy" style="--i:9"><img src="assets/funcoes/baseline.webp" alt="" width="200" height="200" loading="lazy" style="--i:10"><img src="assets/funcoes/anual.webp" alt="" width="200" height="200" loading="lazy" style="--i:11"><img src="assets/funcoes/oficial.webp" alt="" width="200" height="200" loading="lazy" style="--i:12"><img src="assets/funcoes/plataformas.webp" alt="" width="200" height="200" loading="lazy" style="--i:13"><img src="assets/funcoes/suporte.webp" alt="" width="200" height="200" loading="lazy" style="--i:14"><img src="assets/funcoes/oculos2.webp" alt="" width="200" height="200" loading="lazy" style="--i:15"><img src="assets/funcoes/video6.webp" alt="" width="200" height="200" loading="lazy" style="--i:16"><img src="assets/funcoes/vidro2.webp" alt="" width="200" height="200" loading="lazy" style="--i:17"></span>
-                <span class="pa-centro"><strong>1 hora</strong><b>No ar na sua loja</b><small>instalado pela nossa equipe</small></span>
-              </span>
-            </button>
-            <h3><span>1.</span> Instalamos na sua loja</h3>
-            <p>Nossa equipe coloca o provador na página do produto, em qualquer plataforma. Você não mexe em código.</p>
-          </article>
-          <article class="pa-item">
-            <button type="button" class="pa-card" aria-label="Ver detalhes do passo 2">
-              <img class="pa-foto" src="assets/passos/passo-2.webp" alt="Camisa de linho no cabide" width="640" height="800" loading="lazy">
-              <span class="pa-veu pa-v2" aria-hidden="true"></span>
-              <span class="pa-revela pa-painel" aria-hidden="true">
-                <span class="pa-vidro">
-                  <small>Painel do lojista</small>
-                  <strong>Quem provou hoje na sua loja</strong>
-                  <ul><li><i style="background:#a78bfa"></i><b>Marina</b><em>Óculos Aspen</em><span class="">Provou</span></li><li><i style="background:#fb923c"></i><b>Júlia</b><em>Blazer linho</em><span class="">Em contato</span></li><li><i style="background:#f472b6"></i><b>Carla</b><em>Óculos Lisboa</em><span class="on">Convertido</span></li><li><i style="background:#818cf8"></i><b>Paula</b><em>Vestido midi</em><span class="">Provou</span></li><li><i style="background:#34d399"></i><b>Bruno</b><em>Camisa de linho</em><span class="">Em contato</span></li></ul>
-                </span>
-              </span>
-            </button>
-            <h3><span>2.</span> Seu cliente prova na própria foto</h3>
-            <p>Sem app e sem cadastro. O telefone e a peça provada caem no seu CRM na hora.</p>
-          </article>
-          <article class="pa-item">
-            <button type="button" class="pa-card" aria-label="Ver detalhes do passo 3">
-              <img class="pa-foto" src="assets/passos/passo-3.webp" alt="Cliente usando óculos escuros" width="640" height="800" loading="lazy">
-              <span class="pa-veu pa-v3" aria-hidden="true"></span>
-              <span class="pa-revela pa-tarefas" aria-hidden="true"><ul><li><img src="assets/funcoes/disparo.webp" alt="" width="200" height="200" loading="lazy"><div><b>Disparo enviado</b><span>Óculos Aspen com 10% OFF</span></div><span class="pa-ok" aria-hidden="true"><svg viewBox="0 0 12 12"><path d="M3 6.2 5 8.2 9 4" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></li><li><img src="assets/funcoes/inbox.webp" alt="" width="200" height="200" loading="lazy"><div><b>Cliente respondeu</b><span>“Quero sim! Como faço?”</span></div><span class="pa-ok" aria-hidden="true"><svg viewBox="0 0 12 12"><path d="M3 6.2 5 8.2 9 4" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></li><li><img src="assets/funcoes/funil.webp" alt="" width="200" height="200" loading="lazy"><div><b>Pedido confirmado</b><span>R$ 289 atribuído à prova</span></div><span class="pa-spin" aria-hidden="true"></span></li><li><img src="assets/funcoes/painel.webp" alt="" width="200" height="200" loading="lazy"><div><b>Painel atualizado</b><span>Venda somada ao seu ROI</span></div><span class="pa-spin" aria-hidden="true"></span></li></ul></span>
-            </button>
-            <h3><span>3.</span> Cada prova vira venda</h3>
-            <p>Disparos oficiais pelo WhatsApp com o produto provado, e cada venda que veio de uma prova aparece no seu painel.</p>
-          </article>
-        </div>
-      </div>
-    </section>
 
     <!-- ─── PLANOS ─── -->
     <section class="planos" id="planos" aria-labelledby="planosTitulo">
@@ -2787,28 +2683,6 @@
         if (meio) { f.style.scrollBehavior = 'auto'; f.scrollLeft = meio.offsetLeft - f.offsetLeft - parseFloat(getComputedStyle(f).scrollPaddingLeft || 0); f.style.scrollBehavior = ''; }
       }
       f.addEventListener('scroll', estado, { passive: true }); addEventListener('resize', estado); estado();
-    })();
-  </script>
-  <script>
-    /* como funciona: no computador o cartao revela o painel ao passar o mouse; no toque, cada clique liga e desliga */
-    (function () {
-      var cards = document.querySelectorAll('.pa-card');
-      if (!cards.length) return;
-      var toque = matchMedia('(hover: none)').matches;
-      cards.forEach(function (c) {
-        if (!toque) {
-          c.addEventListener('mouseenter', function () { c.classList.add('on'); });
-          c.addEventListener('mouseleave', function () { c.classList.remove('on'); });
-        }
-        c.addEventListener('click', function () {
-          if (!toque) return;
-          var liga = !c.classList.contains('on');
-          cards.forEach(function (o) { o.classList.remove('on'); });
-          c.classList.toggle('on', liga);
-        });
-        c.addEventListener('focus', function () { if (!toque) c.classList.add('on'); });
-        c.addEventListener('blur', function () { if (!toque) c.classList.remove('on'); });
-      });
     })();
   </script>
   <script>
