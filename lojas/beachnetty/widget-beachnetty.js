@@ -1512,13 +1512,17 @@
                 if (!_acoes) {
                     _acoes = document.createElement('div');
                     _acoes.id = 'pl-bn-acoes';
-                    var _tam = document.createElement('button');
-                    _tam.type = 'button';
-                    _tam.className = 'q-btn-inline-provador';
-                    _tam.id = 'pl-bn-tamanho';
-                    _tam.textContent = 'Descobrir meu tamanho';
-                    _tam.onclick = function (e) { e.preventDefault(); e.stopPropagation(); plAbreManequim(); };
-                    _acoes.appendChild(_tam);
+                    if (plTemManequim()) {
+                        var _tam = document.createElement('button');
+                        _tam.type = 'button';
+                        _tam.className = 'q-btn-inline-provador';
+                        _tam.id = 'pl-bn-tamanho';
+                        _tam.textContent = 'Descobrir meu tamanho';
+                        _tam.onclick = function (e) { e.preventDefault(); e.stopPropagation(); plAbreManequim(); };
+                        _acoes.appendChild(_tam);
+                    } else {
+                        _acoes.style.gridTemplateColumns = '1fr';
+                    }
                     _alvo.parentNode.insertBefore(_acoes, _alvo);
                 }
                 _acoes.appendChild(inlineBtn);
@@ -2601,22 +2605,13 @@ const fd = new FormData();
     }, true);
 
     function plEhProduto() {
-        // Beach Netty: validacao em um produto so (04/11/2026, Lucas). Para abrir na loja toda, voltar a regra geral.
+        // Beach Netty (Magazord): so a pagina de produto tem og:type "og:product". O JSON-LD
+        // com @type Product tambem aparece nas categorias, entao nao serve aqui.
+        return !!document.querySelector('meta[property="og:type"][content="og:product"]');
+    }
+    // Manequim: por enquanto so na legging validada (05/11/2026, Lucas). O provador vale para a loja toda.
+    function plTemManequim() {
         return window.location.pathname === '/calca-legging-plus-size-cintura-alta-basica';
-        // Tray (tema Day One): a URL é /categoria/slug e og:type vem como "website".
-        // ⚠️ NÃO usar .product-name / .product-gallery aqui: existem também nas páginas
-        // de CATEGORIA (cards dos carrosséis). O que só aparece na página de produto é
-        // o bloco de compra (.page-product__*) e o JSON-LD com @type Product.
-        if (document.querySelector('.page-product__button-buy, .page-product__quantity-and-buy, .botao-comprar')) return true;
-        try {
-            var lds = document.querySelectorAll('script[type="application/ld+json"]');
-            for (var i = 0; i < lds.length; i++) {
-                if (/"@type"\s*:\s*"Product"/i.test(lds[i].textContent || '')) return true;
-            }
-        } catch (_) {}
-        return /\/p($|\/|\?)/.test(window.location.pathname + window.location.search)
-            || window.location.pathname.indexOf('/produtos/') > -1
-            || !!document.querySelector('meta[property="og:type"][content="product"]');
     }
     function plTentaMontar() {
         try {
