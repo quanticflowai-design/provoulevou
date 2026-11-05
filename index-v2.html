@@ -1401,11 +1401,36 @@
     .ia-topo { text-align: center; margin-top: clamp(32px, calc(3 * var(--vw)), 48px); }
     .ia-topo h2 { margin: 0 auto; max-width: 10em; font-weight: 500; font-size: clamp(34px, calc(4 * var(--vw)), 58px); line-height: 1.06; letter-spacing: -0.035em; color: #161614; text-wrap: balance; }
     .ia-topo p { margin-top: 14px; font-size: clamp(15px, calc(1.2 * var(--vw)), 18px); color: #4a4553; }
-    .ia-grade { margin-top: clamp(40px, calc(4.4 * var(--vw)), 64px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-    .ia-card { padding: 18px 18px 26px; border-radius: 22px; background: #f6f6f7; box-shadow: inset 0 0 0 1px #efeef1; }
-    .ia-tela { position: relative; height: clamp(210px, calc(18 * var(--vw)), 260px); display: grid; align-content: center; }
-    .ia-card h3 { margin: 22px 8px 0; font-weight: 500; font-size: clamp(17px, calc(1.4 * var(--vw)), 20px); letter-spacing: -0.01em; color: #161614; }
-    .ia-card > p { margin: 8px 8px 0; font-size: 14px; line-height: 1.5; color: #8a8496; }
+    /* cartoes em sanfona: um aberto largo e os outros estreitos com o titulo em pe */
+    .ia-grade { margin-top: clamp(40px, calc(4.4 * var(--vw)), 64px); display: flex; gap: 14px; height: clamp(460px, calc(38 * var(--vw)), 540px); }
+    .ia-card { position: relative; flex: 1 1 0; min-width: 0; border-radius: 30px; overflow: hidden; cursor: pointer; isolation: isolate;
+      transition: flex-grow .7s cubic-bezier(.65,0,.25,1); outline: none; }
+    .ia-card.on { flex-grow: 3.6; cursor: default; }
+    .ia-card:focus-visible { box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--violet); }
+    .ia-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; transition: transform 1.2s cubic-bezier(.2,.7,.2,1); }
+    .ia-card::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(100deg, rgba(20,6,46,.55) 0%, rgba(20,6,46,.18) 48%, rgba(20,6,46,0) 70%); opacity: 0; transition: opacity .5s; }
+    .ia-card.on::before { opacity: 1; }
+    .ia-card:not(.on):hover .ia-bg { transform: scale(1.06); }
+    .ia-vert { position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%) rotate(180deg); writing-mode: vertical-rl; white-space: nowrap;
+      font-weight: 500; font-size: clamp(26px, calc(2.4 * var(--vw)), 36px); letter-spacing: -0.02em; color: #fff; transition: opacity .35s .25s; }
+    .ia-card.on .ia-vert { opacity: 0; transition-delay: 0s; pointer-events: none; }
+    .ia-cont { position: absolute; inset: 0; padding: clamp(28px, calc(2.6 * var(--vw)), 40px); display: flex; flex-direction: column; width: max(100%, 640px);
+      opacity: 0; transform: translateY(10px); transition: opacity .3s, transform .3s; pointer-events: none; }
+    .ia-card.on .ia-cont { opacity: 1; transform: none; transition: opacity .5s .35s, transform .6s .35s; pointer-events: auto; }
+    .ia-card h3 { margin: 0; font-weight: 500; font-size: clamp(28px, calc(2.6 * var(--vw)), 38px); line-height: 1.05; letter-spacing: -0.025em; color: #fff; }
+    .ia-card .ia-cont > p { margin: 14px 0 0; max-width: 23em; font-family: var(--sans); font-size: clamp(14px, calc(1.1 * var(--vw)), 16px); line-height: 1.45; color: rgba(255,255,255,.9); }
+    .ia-wid { margin-top: auto; width: min(370px, 100%); padding: 16px; border-radius: 26px; background: rgba(255,255,255,.62); border: 1px solid rgba(255,255,255,.75);
+      -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); box-shadow: 0 24px 50px -30px rgba(20,6,46,.6); }
+    .ia-tela { position: relative; height: 196px; display: grid; align-content: center; }
+    /* recorte branco no canto com o botao de seta, como na referencia */
+    .ia-seta { position: absolute; right: 0; bottom: 0; width: 84px; height: 84px; padding: 10px 0 0 10px; background: #fff; border-top-left-radius: 30px;
+      opacity: 0; transition: opacity .3s; }
+    .ia-card.on .ia-seta { opacity: 1; transition: opacity .4s .45s; }
+    .ia-seta::before, .ia-seta::after { content: ""; position: absolute; width: 30px; height: 30px; background: radial-gradient(circle at 0 0, transparent 29.5px, #fff 30px); }
+    .ia-seta::before { right: 0; bottom: 100%; } .ia-seta::after { right: 100%; bottom: 0; }
+    .ia-seta span { width: 74px; height: 74px; border-radius: 50%; background: #161614; color: #fff; display: grid; place-items: center; transition: transform .3s; }
+    .ia-seta span svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    .ia-card.on:hover .ia-seta span { transform: translateX(3px); }
     .ia-orbmini { width: 16px; height: 16px; flex: none; border-radius: 50%; background: radial-gradient(circle at 40% 45%, #2e0a5c, #7c3aed 55%, #c4b5fd); filter: blur(.3px); }
     .ia-arq { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #fff; font-size: 12.5px; color: #3d3846; box-shadow: 0 6px 18px -12px rgba(0,0,0,.2); }
     .ia-pdf { padding: 4px 5px; border-radius: 5px; background: var(--violet); color: #fff; font-size: 8.5px; font-weight: 500; }
@@ -1431,11 +1456,19 @@
     .ia-chip2 { left: 6%; right: 6%; color: #161614; } .ia-chip2 .ia-orbmini { margin-left: auto; width: 20px; height: 20px; }
     .ia-ic { width: 22px; height: 22px; border-radius: 6px; background: var(--violet); color: #fff; font-size: 9px; font-weight: 500; display: grid; place-items: center; }
     @media (max-width: 900px) {
-      /* celular/tablet: cartoes lado a lado, deslizando para os lados, comecando no do meio */
-      .ia-grade { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
-        margin-left: calc(-1 * var(--gutter-l)); margin-right: calc(-1 * var(--gutter-r)); padding: 0 11vw 6px; scroll-padding-left: 11vw; }
+      /* celular/tablet: cartoes lado a lado, deslizando para os lados, comecando no do meio, todos abertos */
+      .ia-grade { display: flex; gap: 12px; height: auto; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+        margin-left: calc(-1 * var(--gutter-l)); margin-right: calc(-1 * var(--gutter-r)); padding: 0 9vw 6px; scroll-padding-left: 9vw; }
       .ia-grade::-webkit-scrollbar { display: none; }
-      .ia-card { flex: 0 0 78vw; scroll-snap-align: start; }
+      .ia-card, .ia-card.on { flex: 0 0 82vw; height: 480px; scroll-snap-align: start; cursor: default; border-radius: 26px; }
+      .ia-card::before { opacity: 1; background: linear-gradient(180deg, rgba(20,6,46,.5) 0%, rgba(20,6,46,.1) 50%, rgba(20,6,46,0) 70%); }
+      .ia-vert { display: none; }
+      .ia-cont, .ia-card.on .ia-cont { opacity: 1; transform: none; width: 100%; padding: 24px 20px 20px; pointer-events: auto; }
+      .ia-card h3 { font-size: 27px; }
+      .ia-card .ia-cont > p { font-size: 14px; }
+      .ia-wid { width: 100%; padding: 12px; border-radius: 22px; }
+      .ia-tela { height: 186px; }
+      .ia-seta { display: none; }
     }
     @media (max-width: 640px) {
       .ia-palco { height: 360px; }
@@ -1898,41 +1931,62 @@
           <p>Direto na página do produto, sem app e sem cadastro.</p>
         </div>
         <div class="ia-grade">
-          <article class="ia-card">
-            <div class="ia-tela" aria-hidden="true">
-              <div class="ia-arq"><span class="ia-pdf">IMG</span><span>foto-cliente.jpg</span><em>Gerando prova…</em></div>
-              <ul class="ia-passos">
-                <li class="ok"><span class="ia-orbmini" aria-hidden="true"></span>Lendo a foto do cliente…</li>
-                <li class="ok"><i></i>Detectando rosto e medidas</li>
-                <li class="ok"><i></i>Ajustando a peça na foto</li>
-                <li><i></i>Gerando a prova</li>
-              </ul>
-            </div>
-            <h3>Prova gerada com IA</h3>
-            <p>O cliente envia uma foto e vê a peça nele em segundos, com caimento e proporção reais.</p>
-          </article>
-          <article class="ia-card">
-            <div class="ia-tela" aria-hidden="true">
-              <div class="ia-jan">
-                <div class="ia-jan-lado"><i class="b"></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
-                <div class="ia-jan-main"><span class="ia-jan-h"></span><span class="ia-lin"><i></i><b></b></span><span class="ia-lin"><i></i><b></b></span><span class="ia-lin"><i></i><b></b></span><span class="ia-lin"><i></i><b></b></span><span class="ia-lin"><i></i><b></b></span></div>
-                <span class="ia-cam"><img src="assets/recursos/cliente-1.webp" alt="" width="120" height="120" loading="lazy"></span>
+          <article class="ia-card on" tabindex="0">
+            <img class="ia-bg" src="assets/recursos/ia-fundo-1.webp" alt="" width="1000" height="1100" loading="lazy">
+            <span class="ia-vert" aria-hidden="true">Prova com IA</span>
+            <div class="ia-cont">
+              <h3>Prova gerada com IA</h3>
+              <p>O cliente envia uma foto e vê a peça nele em segundos, com caimento e proporção reais.</p>
+              <div class="ia-wid">
+              <div class="ia-tela" aria-hidden="true">
+                <div class="ia-arq"><span class="ia-pdf">IMG</span><span>foto-cliente.jpg</span><em>Gerando prova…</em></div>
+                <ul class="ia-passos">
+                  <li class="ok"><span class="ia-orbmini" aria-hidden="true"></span>Lendo a foto do cliente…</li>
+                  <li class="ok"><i></i>Detectando rosto e medidas</li>
+                  <li class="ok"><i></i>Ajustando a peça na foto</li>
+                  <li><i></i>Gerando a prova</li>
+                </ul>
               </div>
-              <div class="ia-chip"><span class="ia-orbmini" aria-hidden="true"></span><span>Salvando lead no CRM…</span><em>80%</em></div>
-            </div>
-            <h3>Leads com a peça provada</h3>
-            <p>Telefone e produto provado entram no seu CRM na hora, prontos para o disparo no WhatsApp.</p>
-          </article>
-          <article class="ia-card">
-            <div class="ia-tela" aria-hidden="true">
-              <div class="ia-jan ia-dash">
-                <div class="ia-jan-lado"><i class="b"></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
-                <div class="ia-jan-main"><span class="ia-jan-h"></span><span class="ia-kpis"><i></i><i></i><i class="on"></i><i></i></span><span class="ia-lin"><i></i><b></b></span><span class="ia-lin"><i></i><b></b></span></div>
               </div>
-              <div class="ia-chip ia-chip2"><span class="ia-ic">R$</span><span>Atribuindo venda à prova</span><span class="ia-orbmini" aria-hidden="true"></span></div>
             </div>
-            <h3>Atribuição automática</h3>
-            <p>Cada venda que veio de uma prova aparece no painel, sem planilha e sem conta manual.</p>
+            <span class="ia-seta" aria-hidden="true"><span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+          </article>
+          <article class="ia-card" tabindex="0">
+            <img class="ia-bg" src="assets/recursos/ia-fundo-2.webp" alt="" width="1000" height="1100" loading="lazy">
+            <span class="ia-vert" aria-hidden="true">Leads no CRM</span>
+            <div class="ia-cont">
+              <h3>Leads com a peça provada</h3>
+              <p>Telefone e produto provado entram no seu CRM na hora, prontos para o disparo no WhatsApp.</p>
+              <div class="ia-wid">
+              <div class="ia-tela" aria-hidden="true">
+                <div class="ia-jan">
+                  <div class="ia-jan-lado"><i class="b"></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
+                  <div class="ia-jan-main"><span class="ia-jan-h"></span><span class="ia-lin"><i></i><b></b></span><span class="ia-lin"><i></i><b></b></span><span class="ia-lin"><i></i><b></b></span><span class="ia-lin"><i></i><b></b></span><span class="ia-lin"><i></i><b></b></span></div>
+                  <span class="ia-cam"><img src="assets/recursos/cliente-1.webp" alt="" width="120" height="120" loading="lazy"></span>
+                </div>
+                <div class="ia-chip"><span class="ia-orbmini" aria-hidden="true"></span><span>Salvando lead no CRM…</span><em>80%</em></div>
+              </div>
+              </div>
+            </div>
+            <span class="ia-seta" aria-hidden="true"><span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+          </article>
+          <article class="ia-card" tabindex="0">
+            <img class="ia-bg" src="assets/recursos/ia-fundo-3.webp" alt="" width="1000" height="1100" loading="lazy">
+            <span class="ia-vert" aria-hidden="true">Atribuição</span>
+            <div class="ia-cont">
+              <h3>Atribuição automática</h3>
+              <p>Cada venda que veio de uma prova aparece no painel, sem planilha e sem conta manual.</p>
+              <div class="ia-wid">
+              <div class="ia-tela" aria-hidden="true">
+                <div class="ia-jan ia-dash">
+                  <div class="ia-jan-lado"><i class="b"></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
+                  <div class="ia-jan-main"><span class="ia-jan-h"></span><span class="ia-kpis"><i></i><i></i><i class="on"></i><i></i></span><span class="ia-lin"><i></i><b></b></span><span class="ia-lin"><i></i><b></b></span></div>
+                </div>
+                <div class="ia-chip ia-chip2"><span class="ia-ic">R$</span><span>Atribuindo venda à prova</span><span class="ia-orbmini" aria-hidden="true"></span></div>
+              </div>
+              </div>
+            </div>
+            <span class="ia-seta" aria-hidden="true"><span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
           </article>
         </div>
       </div>
@@ -2568,6 +2622,20 @@
       });
       pop.addEventListener('click', function (e) { if (e.target.closest('[data-fecha]')) fecha(); });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pop.hidden) fecha(); });
+    })();
+  </script>
+  <script>
+    /* "Tem um provador virtual para isso": sanfona no computador, abre o cartao ao passar o mouse, focar ou clicar */
+    (function () {
+      var g = document.querySelector('.ia-grade');
+      if (!g) return;
+      var cs = [].slice.call(g.querySelectorAll('.ia-card'));
+      var abre = function (c) { if (!matchMedia('(min-width: 901px)').matches) return; cs.forEach(function (x) { x.classList.toggle('on', x === c); }); };
+      cs.forEach(function (c) {
+        c.addEventListener('mouseenter', function () { abre(c); });
+        c.addEventListener('focus', function () { abre(c); });
+        c.addEventListener('click', function () { abre(c); });
+      });
     })();
   </script>
   <script>
