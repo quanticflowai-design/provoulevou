@@ -74,7 +74,8 @@
   </main>
 <script>
 const params = new URLSearchParams(location.search);
-let TOKEN = params.get('t');
+// O teclado da TV não tem "=": aceita também o formato /tv/?codigo
+let TOKEN = params.get('t') || (location.search.length > 1 && location.search.indexOf('=') < 0 ? location.search.slice(1) : null);
 try { if (TOKEN) localStorage.setItem('pl-tv-token', TOKEN); else TOKEN = localStorage.getItem('pl-tv-token'); } catch (e) {}
 const FONTE = params.get('fonte') || (TOKEN ? 'https://n8n.segredosdodrop.com/webhook/pl-tv-painel?t=' + encodeURIComponent(TOKEN) : 'snapshot.json');
 if (!Element.prototype.replaceChildren) Element.prototype.replaceChildren = function () { this.textContent = ''; this.append.apply(this, arguments); };
