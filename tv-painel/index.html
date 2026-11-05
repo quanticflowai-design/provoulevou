@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Provou Levou TV</title>
+<style>
+  :root { --bg:#ffffff; --card:#ffffff; --linha:#ecebe6; --texto:#1c1826; --sec:#6b6577; --mudo:#6b6577; --roxo:#7c3aed; --roxo2:#7c3aed; --barra-off:#dcd8e6; --alerta:#b45309; }
+  * { box-sizing:border-box; margin:0; }
+  html { font-size:calc(100vw / 120); }
+  html, body { height:100%; background:var(--bg); color:var(--texto); overflow:hidden; font-family:Inter, "Helvetica Neue", Roboto, Arial, sans-serif; font-variant-numeric:tabular-nums; }
+  body { display:grid; grid-template-rows:auto auto 1fr; gap:1.25rem; padding:1.75rem 2.25rem; }
+  header { display:flex; align-items:center; gap:2rem; }
+  .marca { display:block; height:2.75rem; width:auto; }
+  nav { display:flex; gap:.5rem; }
+  nav button { font:inherit; font-size:1.25rem; font-weight:600; color:var(--sec); background:var(--card); border:.125rem solid var(--linha); border-radius:.75rem; padding:.6rem 1.5rem; }
+  nav button.ativo { background:var(--roxo); border-color:var(--roxo); color:#fff; }
+  .status { margin-left:auto; text-align:right; color:var(--sec); font-size:1.05rem; line-height:1.35; white-space:nowrap; }
+  .relogio { font-size:1.75rem; font-weight:700; color:var(--texto); }
+  .status.atrasado .atualizado { color:var(--alerta); font-weight:600; }
+  .kpis { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr 1fr; gap:1rem; }
+  .kpi { background:var(--card); border:.0625rem solid var(--linha); border-radius:1rem; padding:1.1rem 1.5rem; min-width:0; }
+  .kpi span { display:block; color:var(--sec); font-size:1.1rem; }
+  .kpi strong { display:block; font-size:2.25rem; line-height:1.55; font-weight:700; letter-spacing:-.02em; margin-top:.25rem; white-space:nowrap; }
+  .kpi.hero { border-color:var(--roxo); }
+  .kpi.hero strong { font-size:3.25rem; color:var(--roxo2); line-height:1.07; }
+  .kpi small { display:block; color:var(--mudo); font-size:1rem; margin-top:.2rem; white-space:nowrap; }
+  main { display:grid; grid-template-columns:1.5fr 1fr; gap:1rem; min-height:0; }
+  section { background:var(--card); border:.0625rem solid var(--linha); border-radius:1rem; padding:1.1rem 1.5rem; min-height:0; display:flex; flex-direction:column; }
+  h2 { font-size:1.25rem; font-weight:600; display:flex; justify-content:space-between; align-items:baseline; gap:1rem; margin-bottom:.5rem; }
+  h2 small { font-size:1rem; font-weight:400; color:var(--mudo); }
+  table { width:100%; border-collapse:collapse; table-layout:fixed; }
+  th { color:var(--mudo); font-size:1rem; font-weight:500; text-align:right; padding:.3rem .5rem; }
+  td { font-size:1.4rem; text-align:right; padding:0 .5rem; height:3.95rem; border-top:.0625rem solid var(--linha); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  th:nth-child(1), td:nth-child(1) { width:3.25rem; text-align:left; color:var(--mudo); }
+  th:nth-child(2), td:nth-child(2) { width:24%; text-align:left; }
+  th:nth-child(3) { width:17%; } th:nth-child(4), th:nth-child(5) { width:9%; } th:nth-child(6) { width:12%; } th:nth-child(7) { width:18%; }
+  td:nth-child(2) { font-weight:600; }
+  td:nth-child(3) { color:var(--roxo2); font-weight:700; }
+  .graficos { display:grid; grid-template-rows:1fr 1fr; gap:1rem; min-height:0; }
+  .grafico { flex:1; min-height:0; }
+  svg { display:block; width:100%; height:100%; }
+  svg text { font-family:inherit; }
+  .vazio { color:var(--mudo); font-size:1.25rem; padding:2rem 0; text-align:center; }
+</style>
+</head>
+<body>
+  <header>
+    <img class="marca" src="logo.png" alt="Provou Levou">
+    <nav id="abas" aria-label="Período"></nav>
+    <div class="status" id="status"><div class="relogio" id="relogio"></div><div class="atualizado" id="atualizado">Carregando…</div></div>
+  </header>
+  <div class="kpis" id="kpis"></div>
+  <main>
+    <section>
+      <h2>Lojas por faturamento via provador <small id="pagina"></small></h2>
+      <div id="ranking"></div>
+    </section>
+    <div class="graficos">
+      <section><h2>Faturamento via provador por dia <small>últimos 30 dias</small></h2><div class="grafico" id="gFat"></div></section>
+      <section><h2>Provas por dia <small>últimos 30 dias</small></h2><div class="grafico" id="gProvas"></div></section>
+    </div>
+  </main>
+<script>
+const params = new URLSearchParams(location.search);
+const TOKEN = params.get('t');
+const FONTE = params.get('fonte') || (TOKEN ? 'https://n8n.segredosdodrop.com/webhook/pl-tv-painel?t=' + encodeURIComponent(TOKEN) : 'snapshot.json');
+if (!Element.prototype.replaceChildren) Element.prototype.replaceChildren = function () { this.textContent = ''; this.append.apply(this, arguments); };
+const PERIODOS = [['hoje','Hoje'],['ontem','Ontem'],['d7','7 dias'],['d30','30 dias'],['tudo','Tudo']];
+const POR_PAGINA = 10, TROCA_PAGINA_MS = 15000, RECARREGA_MS = 60000, ATRASO_MIN = 20;
+const $ = id => document.getElementById(id);
+const el = (tag, txt, cls) => { const e = document.createElement(tag); if (txt != null) e.textContent = txt; if (cls) e.className = cls; return e; };
+const brl = v => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+const num = v => Math.round(v).toLocaleString('pt-BR');
+const pct = v => v.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
+let dados = null, periodo = 'hoje', pagina = 0;
+try { const p = localStorage.getItem('pl-tv-periodo'); if (PERIODOS.some(x => x[0] === p)) periodo = p; } catch (e) {}
+
+PERIODOS.forEach(([k, nome]) => { const b = el('button', nome); b.dataset.k = k; b.tabIndex = -1; $('abas').appendChild(b); });
+
+function somar() {
+  const t = { provas:0, custo:0, fat_pos:0, ped_pos:0, fat_loja:0, ped_loja:0 };
+  dados.lojas.forEach(l => { for (const c in t) t[c] += l.periodos[periodo][c]; });
+  return t;
+}
+function kpi(rotulo, valor, nota, hero) {
+  const d = el('div', null, 'kpi' + (hero ? ' hero' : ''));
+  d.append(el('span', rotulo), el('strong', valor), el('small', nota));
+  return d;
+}
+function linhasRanking() {
+  return dados.lojas.map(l => ({ nome:l.nome, ...l.periodos[periodo] }))
+    .filter(l => l.provas || l.fat_pos || l.fat_loja)
+    .sort((a, b) => b.fat_pos - a.fat_pos || b.provas - a.provas);
+}
+function renderRanking() {
+  const linhas = linhasRanking(), paginas = Math.max(1, Math.ceil(linhas.length / POR_PAGINA));
+  pagina = (pagina + paginas) % paginas;
+  $('pagina').textContent = linhas.length ? `${linhas.length} lojas · página ${pagina + 1} de ${paginas}` : '';
+  const alvo = $('ranking'); alvo.replaceChildren();
+  if (!linhas.length) { alvo.append(el('div', 'Nenhuma loja com movimento neste período.', 'vazio')); return; }
+  const tb = el('table'), cab = el('tr'), corpo = el('tbody'), head = el('thead');
+  ['#','Loja','Via provador','Pedidos','Provas','Custo','Total da loja'].forEach(c => cab.append(el('th', c)));
+  head.append(cab); tb.append(head, corpo);
+  linhas.slice(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA).forEach((l, i) => {
+    const tr = el('tr');
+    [pagina * POR_PAGINA + i + 1, l.nome, brl(l.fat_pos), num(l.ped_pos), num(l.provas), brl(l.custo), brl(l.fat_loja)].forEach(v => tr.append(el('td', v)));
+    corpo.append(tr);
+  });
+  alvo.append(tb);
+}
+function intervalo() {
+  const s = dados.serie, hoje = dados.hoje;
+  const menos = n => new Date(Date.parse(hoje + 'T12:00:00Z') - n * 864e5).toISOString().slice(0, 10);
+  return { hoje:[hoje,hoje], ontem:[menos(1),menos(1)], d7:[menos(6),hoje], d30:[menos(29),hoje], tudo:[s.length ? s[0].dia : hoje, hoje] }[periodo];
+}
+function svgEl(tag, a) { const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in a) e.setAttribute(k, a[k]); return e; }
+function grafico(alvo, campo, fmt) {
+  alvo.replaceChildren();
+  const W = alvo.clientWidth || 700, H = alvo.clientHeight || 200, fonte = W / 42, base = H - fonte * 1.6, topo = fonte * 1.9, s = dados.serie;
+  const svg = svgEl('svg', { viewBox:`0 0 ${W} ${H}`, role:'img' });
+  const texto = (x, y, t, anchor, cor) => { const n = svgEl('text', { x, y, 'text-anchor':anchor, fill:cor, 'font-size':fonte }); n.textContent = t; svg.append(n); };
+  if (!s.length) { alvo.append(el('div', 'Sem dados.', 'vazio')); return; }
+  const max = Math.max(1, ...s.map(d => d[campo])), [a, b] = intervalo(), passo = W / s.length, larg = Math.max(4, passo - 4);
+  svg.append(svgEl('line', { x1:0, x2:W, y1:base, y2:base, stroke:'#ecebe6', 'stroke-width':1 }));
+  let pico = s[0], picoX = 0;
+  s.forEach((d, i) => {
+    const h = Math.max(d[campo] ? 2 : 0, (d[campo] / max) * (base - topo)), x = i * passo + (passo - larg) / 2;
+    if (d[campo] >= pico[campo]) { pico = d; picoX = x + larg / 2; }
+    svg.append(svgEl('rect', { x, y:base - h, width:larg, height:h, rx:Math.min(3, larg / 2), fill: d.dia >= a && d.dia <= b ? '#7c3aed' : '#dcd8e6' }));
+  });
+  const data = d => d.slice(8, 10) + '/' + d.slice(5, 7);
+  texto(Math.min(W - 4, Math.max(4, picoX)), fonte * 1.1, fmt(pico[campo]) + ' em ' + data(pico.dia), picoX > W * .7 ? 'end' : picoX < W * .3 ? 'start' : 'middle', '#1c1826');
+  texto(0, H - 4, data(s[0].dia), 'start', '#6b6577');
+  texto(W, H - 4, data(s[s.length - 1].dia), 'end', '#6b6577');
+  alvo.append(svg);
+}
+function render() {
+  document.querySelectorAll('#abas button').forEach(b => b.classList.toggle('ativo', b.dataset.k === periodo));
+  if (!dados) return;
+  const t = somar(), comProva = dados.lojas.filter(l => !l.outras && l.periodos[periodo].provas > 0).length;
+  const share = t.fat_loja ? t.fat_pos / t.fat_loja * 100 : 0;
+  $('kpis').replaceChildren(
+    kpi('Faturamento via provador', brl(t.fat_pos), `${pct(share)} do faturamento das lojas`, true),
+    kpi('Faturamento das lojas', brl(t.fat_loja), `${num(t.ped_loja)} pedidos pagos`),
+    kpi('Provas feitas', num(t.provas), `${comProva} lojas com prova`),
+    kpi('Meu custo total', brl(t.custo), t.fat_pos ? `${pct(t.custo / t.fat_pos * 100)} do faturamento via provador` : 'custo das provas no período'),
+    kpi('Pedidos pós-prova', num(t.ped_pos), t.ped_pos ? `ticket médio ${brl(t.fat_pos / t.ped_pos)}` : 'sem pedidos no período')
+  );
+  renderRanking();
+  grafico($('gFat'), 'fat_pos', brl);
+  grafico($('gProvas'), 'provas', num);
+}
+function relogio() {
+  $('relogio').textContent = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', timeZone:'America/Sao_Paulo' });
+  if (!dados) return;
+  const min = Math.floor((Date.now() - Date.parse(dados.gerado_em)) / 60000);
+  $('atualizado').textContent = min < 1 ? 'Atualizado agora' : `Atualizado há ${min} min`;
+  $('status').classList.toggle('atrasado', min >= ATRASO_MIN);
+}
+async function carregar() {
+  try {
+    const r = await fetch(FONTE + (FONTE.includes('?') ? '&' : '?') + '_=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    dados = await r.json();
+    render(); relogio();
+  } catch (e) {
+    $('atualizado').textContent = dados ? 'Sem conexão: mostrando os últimos dados' : 'Não foi possível carregar os dados';
+    $('status').classList.add('atrasado');
+  }
+}
+function trocarPeriodo(delta) {
+  const i = PERIODOS.findIndex(p => p[0] === periodo);
+  periodo = PERIODOS[(i + delta + PERIODOS.length) % PERIODOS.length][0];
+  pagina = 0;
+  try { localStorage.setItem('pl-tv-periodo', periodo); } catch (e) {}
+  render();
+}
+let timerPagina;
+function reiniciaPaginas() { clearInterval(timerPagina); timerPagina = setInterval(() => { pagina++; if (dados) renderRanking(); }, TROCA_PAGINA_MS); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') trocarPeriodo(1);
+  else if (e.key === 'ArrowLeft') trocarPeriodo(-1);
+  else if (e.key === 'ArrowDown') { pagina++; renderRanking(); reiniciaPaginas(); }
+  else if (e.key === 'ArrowUp') { pagina--; renderRanking(); reiniciaPaginas(); }
+  else return;
+  e.preventDefault();
+});
+render(); relogio(); carregar();
+setInterval(relogio, 15000); setInterval(carregar, RECARREGA_MS); reiniciaPaginas();
+addEventListener('resize', render);
+</script>
+</body>
+</html>
