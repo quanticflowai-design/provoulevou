@@ -1475,6 +1475,46 @@
     .m-tab > span { display: grid; grid-template-columns: 1fr repeat(3, 34px); align-items: center; justify-items: center; padding: 6px 0; border-top: 1px solid #f0edf3; }
     .m-tab > span.h { border-top: 0; } .m-tab > span > i { justify-self: stretch; height: 8px; border-radius: 8px; background: #efedf3; margin-right: 8px; }
     .m-tab > span.h > i { background: none; } .m-tab b { font-size: 11px; font-weight: 500; color: #8a8496; } .m-tab b.on { color: var(--cor); }
+
+    /* cada cartao do blog com uma composicao propria (sem folha branca) */
+    .bl2-img > * { position: absolute; }
+    .bl2-img svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+    .v-guia { background: var(--cor); color: #fff; }
+    .g-ano { left: 8%; top: 7%; font-weight: 500; font-size: clamp(56px, calc(6 * var(--vw)), 92px); letter-spacing: -0.05em; line-height: 1; color: rgba(255,255,255,.95); }
+    .g-pod { left: 8%; right: 8%; bottom: 0; height: 52%; display: flex; align-items: flex-end; gap: 8px; }
+    .g-pod > span { flex: 1; height: var(--h); border-radius: 12px 12px 0 0; background: rgba(255,255,255,.22); display: flex; justify-content: center; padding-top: 10px; }
+    .g-pod > span.on { background: #fff; color: var(--cor); }
+    .g-pod b { font-weight: 500; font-size: 18px; }
+    .v-grau { background: #fdf2f8; color: #161614; }
+    .r-oc { left: 10%; right: 10%; top: 16%; color: var(--cor); } .bl2-img .r-oc svg { width: 100%; height: auto; stroke-width: 2.2; }
+    .r-rx { left: 8%; right: 8%; bottom: 9%; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1.5px dashed color-mix(in srgb, var(--cor) 45%, #fff); padding-top: 14px; }
+    .r-rx > span { display: grid; gap: 2px; } .r-rx small { font-size: 11px; letter-spacing: .08em; color: #8a8496; } .r-rx b { font-family: ui-monospace, Menlo, monospace; font-weight: 500; font-size: clamp(16px, calc(1.5 * var(--vw)), 21px); }
+    .v-conv { background: #faf5ff; color: var(--cor); }
+    .bl2-img .c-graf { left: 0; right: 0; bottom: 0; width: 100%; height: 62%; }
+    .c-graf .a { fill: color-mix(in srgb, var(--cor) 16%, transparent); stroke: none; } .c-graf .l { stroke-width: 2.4; vector-effect: non-scaling-stroke; }
+    .c-num { left: 8%; top: 8%; display: grid; } .c-num small { font-size: 13px; color: #8a8496; } .c-num b { font-weight: 500; font-size: clamp(54px, calc(5.6 * var(--vw)), 84px); letter-spacing: -0.05em; line-height: 1; color: #161614; }
+    .v-dev { background: color-mix(in srgb, var(--cor) 88%, #1a0420); color: #fff; }
+    .d-cx { right: 8%; top: 12%; width: 46%; aspect-ratio: 1; } .d-cx > svg { width: 100%; height: 100%; stroke-width: 2.2; color: rgba(255,255,255,.9); }
+    .d-bloq { position: absolute; right: -4%; bottom: 4%; width: 34%; aspect-ratio: 1; border-radius: 50%; background: #fff; color: var(--cor); display: grid; place-items: center; } .bl2-img .d-bloq svg { width: 52%; height: 52%; stroke-width: 3; color: var(--cor); }
+    .d-txt { left: 8%; bottom: 8%; display: grid; } .d-txt b { font-weight: 500; font-size: clamp(44px, calc(4.4 * var(--vw)), 66px); letter-spacing: -0.04em; line-height: 1; } .d-txt small { margin-top: 6px; font-size: 14px; color: rgba(255,255,255,.75); }
+    .v-cel { background: linear-gradient(160deg, #fbcfe8, var(--cor)); }
+    .t-cel { left: 50%; top: 12%; bottom: -10%; width: 46%; transform: translateX(-50%) rotate(-6deg); border-radius: 26px; background: #161614; padding: 8px; box-shadow: 0 24px 40px -20px rgba(80,0,40,.6); }
+    .t-tela { position: relative; display: block; height: 100%; border-radius: 19px; overflow: hidden; background: #f6e9ef; }
+    .t-cab { position: absolute; left: 22%; right: 22%; top: 16%; height: 40%; border-radius: 50% 50% 40% 40%; background: #3b2a24; }
+    .t-rosto { position: absolute; left: 30%; right: 30%; top: 25%; height: 34%; border-radius: 50%; background: #e8c4a8; }
+    .t-oc { position: absolute; left: 50%; top: 35%; width: 52%; transform: translateX(-50%); color: #161614; } .bl2-img .t-oc svg { width: 100%; height: auto; stroke-width: 3; }
+    .t-bt { position: absolute; z-index: 2; left: 50%; bottom: 22%; transform: translateX(-50%); padding: 6px 14px; border-radius: 100px; background: var(--cor); color: #fff !important; color: var(--cor); font-weight: 500; font-size: 12px; }
+    .v-int { background: #2e1065; }
+    .i-grade { inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); }
+    .i-grade img { width: 58%; height: 40%; object-fit: contain; margin: auto; opacity: .92; }
+    .i-grade img:nth-child(odd) { border-right: 0; }
+    .v-comp { background: #fff1f7; display: flex; align-items: flex-end; justify-content: center; gap: 6%; padding: 0 10%; }
+    .v-comp > * { position: relative; }
+    .p-col { flex: 1; height: 86%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; color: #8a8496; }
+    .p-col small { font-size: 12px; } .p-col b { font-weight: 500; font-size: clamp(22px, calc(2 * var(--vw)), 30px); letter-spacing: -0.03em; color: #161614; }
+    .p-col i { width: 100%; height: var(--h); border-radius: 14px 14px 0 0; background: #e9e4ee; }
+    .p-col.on { color: var(--cor); } .p-col.on i { background: var(--cor); }
+    .p-vs { align-self: center; font-weight: 500; font-size: 13px; color: #a39fab; }
   </style>
 </head>
 
@@ -2031,37 +2071,37 @@
       <div class="bl2-faixa" id="blFaixa">
           <a class="bl2-card" href="blog/melhores-provadores-virtuais-2026.html" style="--bg:#ede9fe;--cor:#7c3aed">
             <span class="bl2-cat"><span class="bl2-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5h9l3 3V19.5H6z"/><path d="M9.5 11h5M9.5 15h5"/></svg></span>Guia</span>
-            <span class="bl2-img" aria-hidden="true"><span class="bl2-mock"><span class="bl2-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5h9l3 3V19.5H6z"/><path d="M9.5 11h5M9.5 15h5"/></svg>Guia</span><span class="bl2-m"><span class="m-rank"><span><b>1</b><i style="width:86%"></i><em>★★★★★</em></span><span><b>2</b><i style="width:64%"></i><em>★★★★</em></span><span><b>3</b><i style="width:48%"></i><em>★★★</em></span></span></span></span></span>
+            <span class="bl2-img v-guia" aria-hidden="true"><span class="g-ano">2026</span><span class="g-pod"><span style="--h:58%"><b>2</b></span><span style="--h:86%" class="on"><b>1</b></span><span style="--h:40%"><b>3</b></span></span></span>
             <span class="bl2-txt"><b>Melhores provadores virtuais em 2026</b> critérios reais e qual solução faz sentido para cada porte de loja.</span>
           </a>
           <a class="bl2-card" href="blog/provador-virtual-oculos-de-grau.html" style="--bg:#fce7f3;--cor:#db2777">
             <span class="bl2-cat"><span class="bl2-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="14" r="3.5"/><circle cx="16.5" cy="14" r="3.5"/><path d="M11 13.5h2M4 13 5.5 7.5M20 13l-1.5-5.5"/></svg></span>Óticas</span>
-            <span class="bl2-img" aria-hidden="true"><span class="bl2-mock"><span class="bl2-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="14" r="3.5"/><circle cx="16.5" cy="14" r="3.5"/><path d="M11 13.5h2M4 13 5.5 7.5M20 13l-1.5-5.5"/></svg>Óticas</span><span class="bl2-m"><span class="m-grau"><svg class="m-oc" viewBox="0 0 64 24" aria-hidden="true"><circle cx="15" cy="13" r="9"/><circle cx="49" cy="13" r="9"/><path d="M24 12.5c3-2 13-2 16 0M6 11 2 6M58 11l4-5"/></svg><span class="m-rx"><span><small>OD</small>-1,25</span><span><small>OE</small>-1,00</span></span><span class="m-chip"><svg class="m-ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5 10 17l8.5-9"/></svg>Receita anexada</span></span></span></span></span>
+            <span class="bl2-img v-grau" aria-hidden="true"><span class="r-oc"><svg viewBox="0 0 64 24" aria-hidden="true"><circle cx="15" cy="13" r="9"/><circle cx="49" cy="13" r="9"/><path d="M24 12.5c3-2 13-2 16 0M6 11 2 6M58 11l4-5"/></svg></span><span class="r-rx"><span><small>OD</small><b>−1,25</b></span><span><small>OE</small><b>−1,00</b></span><span><small>DP</small><b>62</b></span></span></span>
             <span class="bl2-txt"><b>Provador de óculos de grau:</b> como experimentar armações online e anexar a receita.</span>
           </a>
           <a class="bl2-card" href="blog/aumentar-conversao-moda-online.html" style="--bg:#f3e8ff;--cor:#9333ea">
             <span class="bl2-cat"><span class="bl2-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 17.5 10 12l3.5 3.5L19.5 9.5"/><path d="M14.5 9.5h5v5"/></svg></span>Conversão</span>
-            <span class="bl2-img" aria-hidden="true"><span class="bl2-mock"><span class="bl2-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 17.5 10 12l3.5 3.5L19.5 9.5"/><path d="M14.5 9.5h5v5"/></svg>Conversão</span><span class="bl2-m"><span class="m-bars"><span class="m-bv"><b>1,9%</b><i style="height:18%"></i><small>Média</small></span><span class="m-bv"><b>5%</b><i style="height:46%"></i><small>Mês 1</small></span><span class="m-bv on"><b>8%+</b><i style="height:82%"></i><small>Com provador</small></span></span></span></span></span>
+            <span class="bl2-img v-conv" aria-hidden="true"><svg class="c-graf" viewBox="0 0 200 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 88 C40 86 60 80 90 70 S150 30 200 10 L200 100 L0 100 Z" class="a"/><path d="M0 88 C40 86 60 80 90 70 S150 30 200 10" class="l"/></svg><span class="c-num"><small>de 1,9% para</small><b>8%+</b></span></span>
             <span class="bl2-txt"><b>5 estratégias de conversão</b> para sair da média de 1,9% da moda online.</span>
           </a>
           <a class="bl2-card" href="blog/como-reduzir-devolucao-moda-online.html" style="--bg:#fae8ff;--cor:#c026d3">
             <span class="bl2-cat"><span class="bl2-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8.5H16a4 4 0 0 1 0 8h-6"/><path d="M11 5 7.5 8.5 11 12"/></svg></span>Devoluções</span>
-            <span class="bl2-img" aria-hidden="true"><span class="bl2-mock"><span class="bl2-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8.5H16a4 4 0 0 1 0 8h-6"/><path d="M11 5 7.5 8.5 11 12"/></svg>Devoluções</span><span class="bl2-m"><span class="m-donut"><svg viewBox="0 0 42 42" aria-hidden="true"><circle cx="21" cy="21" r="15.9" class="t"/><circle cx="21" cy="21" r="15.9" class="v" stroke-dasharray="27 73" stroke-dashoffset="25"/></svg><span><b>−27%</b><small>devoluções</small></span></span></span></span></span>
+            <span class="bl2-img v-dev" aria-hidden="true"><span class="d-cx"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 22 32 12l22 10v24L32 56 10 46z"/><path d="M10 22l22 10 22-10M32 32v24"/><path d="M21 17l22 10"/></svg><span class="d-bloq"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></span></span><span class="d-txt"><b>−27%</b><small>em devoluções</small></span></span>
             <span class="bl2-txt"><b>Como reduzir devoluções</b> em moda online, com ROI medido.</span>
           </a>
           <a class="bl2-card" href="blog/provador-virtual-oculos.html" style="--bg:#fce7f3;--cor:#db2777">
             <span class="bl2-cat"><span class="bl2-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="14" r="3.5"/><circle cx="16.5" cy="14" r="3.5"/><path d="M11 13.5h2M4 13 5.5 7.5M20 13l-1.5-5.5"/></svg></span>Óticas</span>
-            <span class="bl2-img" aria-hidden="true"><span class="bl2-mock"><span class="bl2-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="14" r="3.5"/><circle cx="16.5" cy="14" r="3.5"/><path d="M11 13.5h2M4 13 5.5 7.5M20 13l-1.5-5.5"/></svg>Óticas</span><span class="bl2-m"><span class="m-try"><span class="m-face"><span class="m-cab"></span><span class="m-rosto"></span><svg class="m-oc" viewBox="0 0 64 24" aria-hidden="true"><circle cx="15" cy="13" r="9"/><circle cx="49" cy="13" r="9"/><path d="M24 12.5c3-2 13-2 16 0M6 11 2 6M58 11l4-5"/></svg></span><span class="m-chip"><svg class="m-ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5 10 17l8.5-9"/></svg>Prova pronta</span></span></span></span></span>
+            <span class="bl2-img v-cel" aria-hidden="true"><span class="t-cel"><span class="t-tela"><span class="t-cab"></span><span class="t-rosto"></span><span class="t-oc"><svg viewBox="0 0 64 24" aria-hidden="true"><circle cx="15" cy="13" r="9"/><circle cx="49" cy="13" r="9"/><path d="M24 12.5c3-2 13-2 16 0M6 11 2 6M58 11l4-5"/></svg></span></span><span class="t-bt">Provar</span></span></span>
             <span class="bl2-txt"><b>Provador para óculos:</b> o guia completo para óticas online.</span>
           </a>
           <a class="bl2-card" href="blog/virtual-try-on-brasil.html" style="--bg:#ede9fe;--cor:#6d28d9">
             <span class="bl2-cat"><span class="bl2-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7H7a5 5 0 0 0 0 10h2M15 7h2a5 5 0 0 1 0 10h-2M8.5 12h7"/></svg></span>Integração</span>
-            <span class="bl2-img" aria-hidden="true"><span class="bl2-mock"><span class="bl2-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7H7a5 5 0 0 0 0 10h2M15 7h2a5 5 0 0 1 0 10h-2M8.5 12h7"/></svg>Integração</span><span class="bl2-m"><span class="m-int"><span class="m-plat">Shopify</span><span class="m-plat">Nuvemshop</span><span class="m-hub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.2V6.6a2.1 2.1 0 1 1 2.1-2.1M12 7.2 3 15.6c-.6.6-.2 1.6.7 1.6h16.6c.9 0 1.3-1 .7-1.6z"/></svg></span><span class="m-plat">Tray</span><span class="m-plat">Bagy</span></span></span></span></span>
+            <span class="bl2-img v-int" aria-hidden="true"><span class="i-grade"><img src="assets/plataformas/shopify.png" alt="" loading="lazy"><img src="assets/plataformas/nuvemshop.png" alt="" loading="lazy"><img src="assets/plataformas/tray.png" alt="" loading="lazy"><img src="assets/plataformas/bagy.png" alt="" loading="lazy"><img src="assets/plataformas/woocommerce.png" alt="" loading="lazy"><img src="assets/plataformas/lojaintegrada.png" alt="" loading="lazy"></span></span>
             <span class="bl2-txt"><b>Virtual try-on no Brasil:</b> quanto custa e como integrar com sua plataforma.</span>
           </a>
           <a class="bl2-card" href="blog/comparativo-provadores-virtuais.html" style="--bg:#fdf2f8;--cor:#be185d">
             <span class="bl2-cat"><span class="bl2-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19V11M12 19V5M18 19v-6"/></svg></span>Comparativo</span>
-            <span class="bl2-img" aria-hidden="true"><span class="bl2-mock"><span class="bl2-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19V11M12 19V5M18 19v-6"/></svg>Comparativo</span><span class="bl2-m"><span class="m-tab"><span class="h"><i></i><b>A</b><b>B</b><b class="on">Nós</b></span><span><i></i><svg class="m-ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5 10 17l8.5-9"/></svg><svg class="m-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><svg class="m-ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5 10 17l8.5-9"/></svg></span><span><i></i><svg class="m-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><svg class="m-ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5 10 17l8.5-9"/></svg><svg class="m-ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5 10 17l8.5-9"/></svg></span><span><i></i><svg class="m-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><svg class="m-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><svg class="m-ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5 10 17l8.5-9"/></svg></span></span></span></span></span>
+            <span class="bl2-img v-comp" aria-hidden="true"><span class="p-col"><small>Sem provador</small><b>1,9%</b><i style="--h:22%"></i></span><span class="p-vs">vs</span><span class="p-col on"><small>Com provador</small><b>8%+</b><i style="--h:80%"></i></span></span>
             <span class="bl2-txt"><b>Comparativo de provadores</b> preço, integração e resultados, lado a lado.</span>
           </a>
       </div>
