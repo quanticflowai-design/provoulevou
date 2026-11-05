@@ -1094,6 +1094,19 @@
       .pn-card h3 { margin-top: 12px; }
     }
 
+    /* ─── CTA FINAL (fundo lilas com faixas, texto no centro) ─── */
+    .cta-fim { position: relative; display: grid; place-items: center; min-height: clamp(520px, calc(42 * var(--vw)), 720px); padding: clamp(80px, calc(8 * var(--vw)), 120px) 0;
+      background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0) 28%), url("assets/recursos/cta-fundo.webp") center / cover no-repeat #fff; text-align: center; font-family: var(--strong); }
+    .cta-fim * { -webkit-text-stroke-width: 0; }
+    .cta-fim h2 { margin: 0 auto; max-width: 13em; font-weight: 500; font-size: clamp(38px, calc(5.2 * var(--vw)), 76px); line-height: 1.04; letter-spacing: -0.04em; color: #161614; text-wrap: balance; }
+    .cta-fim p { margin: clamp(18px, calc(1.8 * var(--vw)), 26px) auto 0; max-width: 32em; font-family: var(--sans); font-size: clamp(15px, calc(1.3 * var(--vw)), 19px); line-height: 1.45; color: #6b6675; text-wrap: balance; }
+    .cta-bt { display: inline-flex; align-items: center; gap: 12px; margin-top: clamp(26px, calc(2.6 * var(--vw)), 36px); padding: 17px 30px; border-radius: 100px; background: #000; color: #fff;
+      font-size: 16px; text-decoration: none; transition: background .25s, transform .25s; }
+    .cta-bt:hover { background: #2a2433; transform: translateY(-1px); }
+    .cta-bt svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .25s; }
+    .cta-bt:hover svg { transform: translate(2px, -2px); }
+    @media (max-width: 640px) { .cta-fim { min-height: 520px; background-position: center, 30% center; } .cta-bt { padding: 15px 24px; font-size: 15px; } }
+
     /* ─── TUDO EM UM SO LUGAR ─── */
     .tudo { background: #fff; padding: clamp(96px, calc(10 * var(--vw)), 160px) 0 clamp(72px, calc(8 * var(--vw)), 120px); overflow: hidden; }
     .tudo * { -webkit-text-stroke-width: 0; }
@@ -2117,6 +2130,15 @@
       <div class="container bl2-pe">
         <div class="bl2-nav"><button type="button" id="blAnt" aria-label="Artigos anteriores"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5"/></svg></button><button type="button" id="blProx" aria-label="Próximos artigos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6.5 15 12l-5.5 5.5"/></svg></button></div>
         <a href="blog/" class="bl2-todos">Ver todos os artigos</a>
+      </div>
+    </section>
+
+    <!-- ─── CTA FINAL ─── -->
+    <section class="cta-fim" aria-labelledby="ctaTitulo">
+      <div class="container">
+        <h2 id="ctaTitulo">Preparado para transformar seu e-commerce?</h2>
+        <p>Nossa equipe instala o provador em 1 hora, você não mexe em código. CRM incluso no plano e 7 dias grátis pra testar na sua loja.</p>
+        <a class="cta-bt" href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener">Testar grátis por 7 dias <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8.5 7H17v8.5"/></svg></a>
       </div>
     </section>
   </main>
