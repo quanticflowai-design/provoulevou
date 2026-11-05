@@ -1515,7 +1515,13 @@
     .ia-chip em { margin-left: auto; font-style: normal; font-size: 10px; color: #8a8496; padding: 3px 6px; border-radius: 100px; border: 2px solid #ede9fe; border-top-color: var(--violet); }
     .ia-chip2 { left: 6%; right: 6%; color: #161614; } .ia-chip2 .ia-orbmini { margin-left: auto; width: 20px; height: 20px; }
     .ia-ic { width: 22px; height: 22px; border-radius: 6px; background: var(--violet); color: #fff; font-size: 9px; font-weight: 500; display: grid; place-items: center; }
-    @media (max-width: 900px) { .ia-grade { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) {
+      /* celular/tablet: cartoes lado a lado, deslizando para os lados, comecando no do meio */
+      .ia-grade { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+        margin-left: calc(-1 * var(--gutter-l)); margin-right: calc(-1 * var(--gutter-r)); padding: 0 11vw 6px; scroll-padding-left: 11vw; }
+      .ia-grade::-webkit-scrollbar { display: none; }
+      .ia-card { flex: 0 0 78vw; scroll-snap-align: start; }
+    }
     @media (max-width: 640px) {
       .ia-palco { height: 360px; }
       .ia-orbe { width: 230px; }
@@ -2850,6 +2856,15 @@
       });
       pop.addEventListener('click', function (e) { if (e.target.closest('[data-fecha]')) fecha(); });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pop.hidden) fecha(); });
+    })();
+  </script>
+  <script>
+    /* secao "Tem um provador virtual para isso": no celular a faixa ja abre no cartao do meio */
+    (function () {
+      var g = document.querySelector('.ia-grade');
+      if (!g || !matchMedia('(max-width: 900px)').matches) return;
+      var cs = g.querySelectorAll('.ia-card'), meio = cs[Math.floor(cs.length / 2)];
+      if (meio) g.scrollLeft = meio.offsetLeft - g.offsetLeft - parseFloat(getComputedStyle(g).scrollPaddingLeft || 0);
     })();
   </script>
   <script src="assets/js/lenis-1.1.13.min.js"></script>
