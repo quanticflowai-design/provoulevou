@@ -1534,6 +1534,62 @@
     .b3-ler svg { width: 16px; height: 16px; }
     .bl2-card .bl2-img { margin-top: 0; border-radius: 0 0 26px 26px; aspect-ratio: 4 / 2.9; }
     .bl2-card:hover .b3-ler { color: var(--cor); }
+
+    /* ─── IA (orbe + tres cartoes) ─── */
+    .ia { background: #fff; padding: clamp(72px, calc(8 * var(--vw)), 120px) 0; font-family: var(--strong); }
+    .ia * { -webkit-text-stroke-width: 0; }
+    .ia-palco { position: relative; height: clamp(300px, calc(30 * var(--vw)), 420px); max-width: 860px; margin: 0 auto; }
+    .ia-orbe { position: absolute; left: 50%; top: 50%; width: clamp(240px, calc(26 * var(--vw)), 380px); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%;
+      background: radial-gradient(circle at 46% 58%, #2e0a5c 0%, #5b21b6 22%, #7c3aed 42%, #a855f7 62%, #e9d5ff 86%, rgba(255,255,255,0) 100%);
+      filter: blur(6px); animation: ia-respira 8s ease-in-out infinite alternate; }
+    .ia-orbe::after { content: ""; position: absolute; inset: 0; border-radius: 50%; opacity: .5; mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: cover; }
+    @keyframes ia-respira { to { transform: translate(-50%, -50%) scale(1.04) rotate(8deg); } }
+    .ia-dor { position: absolute; width: clamp(220px, calc(21 * var(--vw)), 300px); padding: 22px 26px; border-radius: 28px; display: grid; gap: 8px;
+      background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.7); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+      box-shadow: 0 20px 50px -30px rgba(46,16,101,.45); }
+    .ia-dor b { font-weight: 500; font-size: 15.5px; color: #161614; line-height: 1.3; }
+    .ia-dor small { font-size: 12.5px; line-height: 1.45; color: #8a8496; }
+    .ia-dor.d1 { left: 0; bottom: 14%; } .ia-dor.d2 { right: 0; top: 6%; }
+    .ia-topo { text-align: center; margin-top: clamp(32px, calc(3 * var(--vw)), 48px); }
+    .ia-topo h2 { margin: 0 auto; max-width: 10em; font-weight: 500; font-size: clamp(34px, calc(4 * var(--vw)), 58px); line-height: 1.06; letter-spacing: -0.035em; color: #161614; text-wrap: balance; }
+    .ia-topo p { margin-top: 14px; font-size: clamp(15px, calc(1.2 * var(--vw)), 18px); color: #4a4553; }
+    .ia-grade { margin-top: clamp(40px, calc(4.4 * var(--vw)), 64px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+    .ia-card { padding: 18px 18px 26px; border-radius: 22px; background: #f6f6f7; box-shadow: inset 0 0 0 1px #efeef1; }
+    .ia-tela { position: relative; height: clamp(210px, calc(18 * var(--vw)), 260px); display: grid; align-content: center; }
+    .ia-card h3 { margin: 22px 8px 0; font-weight: 500; font-size: clamp(17px, calc(1.4 * var(--vw)), 20px); letter-spacing: -0.01em; color: #161614; }
+    .ia-card > p { margin: 8px 8px 0; font-size: 14px; line-height: 1.5; color: #8a8496; }
+    .ia-orbmini { width: 16px; height: 16px; flex: none; border-radius: 50%; background: radial-gradient(circle at 40% 45%, #2e0a5c, #7c3aed 55%, #c4b5fd); filter: blur(.3px); }
+    .ia-arq { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #fff; font-size: 12.5px; color: #3d3846; box-shadow: 0 6px 18px -12px rgba(0,0,0,.2); }
+    .ia-pdf { padding: 4px 5px; border-radius: 5px; background: var(--violet); color: #fff; font-size: 8.5px; font-weight: 500; }
+    .ia-arq em { margin-left: auto; font-style: normal; color: var(--violet); }
+    .ia-passos { list-style: none; margin-top: 10px; padding: 14px 16px; border-radius: 12px; background: #fff; display: grid; gap: 10px; box-shadow: 0 16px 30px -18px rgba(0,0,0,.25); }
+    .ia-passos li { position: relative; display: flex; align-items: center; gap: 12px; font-size: 12.5px; color: #3d3846; }
+    .ia-passos li i { width: 16px; height: 16px; flex: none; display: grid; place-items: center; }
+    .ia-passos li i::before { content: ""; width: 7px; height: 7px; border-radius: 50%; border: 2px solid #d9d6df; }
+    .ia-passos li.ok i::before { border-color: var(--violet); background: #fff; }
+    .ia-passos li:not(:last-child)::after { content: ""; position: absolute; left: 7.5px; top: 17px; height: 12px; width: 1.5px; background: #ece9f1; }
+    .ia-passos li.ok:not(:last-child)::after { background: var(--violet); }
+    .ia-passos li:last-child { color: #a39fab; }
+    .ia-jan { position: relative; display: grid; grid-template-columns: 26% 1fr; height: 170px; border-radius: 12px; background: #fff; overflow: hidden; box-shadow: 0 10px 24px -16px rgba(0,0,0,.25); }
+    .ia-jan-lado { display: grid; align-content: start; gap: 7px; padding: 12px 10px; background: #f8f7fa; }
+    .ia-jan-lado i { height: 6px; border-radius: 6px; background: #e7e4ec; } .ia-jan-lado i.b { width: 40%; height: 7px; background: #d9d6df; margin-bottom: 4px; } .ia-jan-lado i.on { background: #c4b5fd; }
+    .ia-jan-main { padding: 12px; display: grid; align-content: start; gap: 9px; }
+    .ia-jan-h { width: 38%; height: 8px; border-radius: 8px; background: #d9d6df; margin-bottom: 4px; }
+    .ia-lin { display: flex; align-items: center; gap: 8px; } .ia-lin i { width: 10px; height: 10px; border-radius: 3px; background: #ede9fe; } .ia-lin b { flex: 1; height: 6px; border-radius: 6px; background: #efedf3; }
+    .ia-cam { position: absolute; right: 10px; top: 10px; width: 64px; height: 44px; border-radius: 8px; overflow: hidden; } .ia-cam img { width: 100%; height: 100%; object-fit: cover; }
+    .ia-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; } .ia-kpis i { height: 34px; border-radius: 7px; border: 1px solid #efedf3; } .ia-kpis i.on { background: #ede9fe; border-color: #e4dbff; }
+    .ia-chip { position: absolute; left: 10%; right: 6%; bottom: 14px; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #fff; font-size: 12.5px; color: var(--violet); box-shadow: 0 14px 30px -14px rgba(46,16,101,.35); }
+    .ia-chip em { margin-left: auto; font-style: normal; font-size: 10px; color: #8a8496; padding: 3px 6px; border-radius: 100px; border: 2px solid #ede9fe; border-top-color: var(--violet); }
+    .ia-chip2 { left: 6%; right: 6%; color: #161614; } .ia-chip2 .ia-orbmini { margin-left: auto; width: 20px; height: 20px; }
+    .ia-ic { width: 22px; height: 22px; border-radius: 6px; background: var(--violet); color: #fff; font-size: 9px; font-weight: 500; display: grid; place-items: center; }
+    @media (max-width: 900px) { .ia-grade { grid-template-columns: 1fr; } }
+    @media (max-width: 640px) {
+      .ia-palco { height: 360px; }
+      .ia-orbe { width: 230px; }
+      .ia-dor { width: 210px; padding: 16px 18px; border-radius: 22px; } .ia-dor.d1 { bottom: 4%; } .ia-dor.d2 { top: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) { .ia-orbe { animation: none; } }
   </style>
 </head>
 
@@ -2077,6 +2133,59 @@
             <div class="cr-sub"><span>Disparos ativos <i>(1)</i></span><span class="cr-nav" aria-hidden="true"><i><svg viewBox="0 0 12 12"><path d="M7.5 3 4.5 6l3 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></i><i><svg viewBox="0 0 12 12"><path d="M4.5 3 7.5 6l-3 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></i></span></div>
             <div class="cr-disparo"><i></i><b>Recuperação de provas</b><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 3 7.5 6l-3 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── IA (orbe com dores + tres cartoes com mini telas) ─── -->
+    <section class="ia" aria-labelledby="iaTitulo">
+      <div class="container">
+        <div class="ia-palco" aria-hidden="true">
+          <span class="ia-orbe"></span>
+          <span class="ia-dor d1"><b>Cliente com dúvida não compra</b><small>De cada 100 visitas, 98 saem sem provar e sem comprar.</small></span>
+          <span class="ia-dor d2"><b>Devolução que come a margem</b><small>Em moda online, a devolução chega a 50% dos pedidos.</small></span>
+        </div>
+        <div class="ia-topo">
+          <h2 id="iaTitulo">Tem um provador virtual para isso</h2>
+          <p>Direto na página do produto, sem app e sem cadastro.</p>
+        </div>
+        <div class="ia-grade">
+          <article class="ia-card">
+            <div class="ia-tela" aria-hidden="true">
+              <div class="ia-arq"><span class="ia-pdf">IMG</span><span>foto-cliente.jpg</span><em>Gerando prova…</em></div>
+              <ul class="ia-passos">
+                <li class="ok"><span class="ia-orbmini" aria-hidden="true"></span>Lendo a foto do cliente…</li>
+                <li class="ok"><i></i>Detectando rosto e medidas</li>
+                <li class="ok"><i></i>Ajustando a peça na foto</li>
+                <li><i></i>Gerando a prova</li>
+              </ul>
+            </div>
+            <h3>Prova gerada com IA</h3>
+            <p>O cliente envia uma foto e vê a peça nele em segundos, com caimento e proporção reais.</p>
+          </article>
+          <article class="ia-card">
+            <div class="ia-tela" aria-hidden="true">
+              <div class="ia-jan">
+                <div class="ia-jan-lado"><i class="b"></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
+                <div class="ia-jan-main"><span class="ia-jan-h"></span><span class="ia-lin"><i></i><b></b></span><span class="ia-lin"><i></i><b></b></span><span class="ia-lin"><i></i><b></b></span><span class="ia-lin"><i></i><b></b></span><span class="ia-lin"><i></i><b></b></span></div>
+                <span class="ia-cam"><img src="assets/recursos/cliente-1.webp" alt="" width="120" height="120" loading="lazy"></span>
+              </div>
+              <div class="ia-chip"><span class="ia-orbmini" aria-hidden="true"></span><span>Salvando lead no CRM…</span><em>80%</em></div>
+            </div>
+            <h3>Leads com a peça provada</h3>
+            <p>Telefone e produto provado entram no seu CRM na hora, prontos para o disparo no WhatsApp.</p>
+          </article>
+          <article class="ia-card">
+            <div class="ia-tela" aria-hidden="true">
+              <div class="ia-jan ia-dash">
+                <div class="ia-jan-lado"><i class="b"></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
+                <div class="ia-jan-main"><span class="ia-jan-h"></span><span class="ia-kpis"><i></i><i></i><i class="on"></i><i></i></span><span class="ia-lin"><i></i><b></b></span><span class="ia-lin"><i></i><b></b></span></div>
+              </div>
+              <div class="ia-chip ia-chip2"><span class="ia-ic">R$</span><span>Atribuindo venda à prova</span><span class="ia-orbmini" aria-hidden="true"></span></div>
+            </div>
+            <h3>Atribuição automática</h3>
+            <p>Cada venda que veio de uma prova aparece no painel, sem planilha e sem conta manual.</p>
+          </article>
         </div>
       </div>
     </section>
