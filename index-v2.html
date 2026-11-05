@@ -1416,6 +1416,19 @@
       .ex-camp em { display: none; }
     }
     @media (prefers-reduced-motion: reduce) { .ex-txt, .ex-pain { transition: none; } }
+
+    /* pop-up dos videos da abertura */
+    .ab-vid { cursor: pointer; transition: transform .3s ease; }
+    .ab-vid:hover { transform: translateY(-4px); }
+    .vp { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; }
+    .vp[hidden] { display: none; }
+    .vp-fundo { position: absolute; inset: 0; background: rgba(10,6,20,.55); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); opacity: 0; transition: opacity .3s ease; }
+    .vp-caixa { position: relative; height: min(86vh, 760px); aspect-ratio: 9 / 16; max-width: 92vw; border-radius: 22px; overflow: hidden; background: #000; box-shadow: 0 40px 90px -30px rgba(0,0,0,.7); transform: scale(.94); opacity: 0; transition: transform .4s cubic-bezier(.22,1,.36,1), opacity .3s ease; }
+    .vp.on .vp-fundo, .vp.on .vp-caixa { opacity: 1; }
+    .vp.on .vp-caixa { transform: none; }
+    .vp-caixa video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .vp-x { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(0,0,0,.45); color: #fff; display: grid; place-items: center; cursor: pointer; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+    .vp-x svg { width: 16px; height: 16px; }
   </style>
 </head>
 
@@ -2012,6 +2025,15 @@
       </div>
     </section>
   </main>
+
+  <!-- ─── POP-UP DOS VIDEOS DA ABERTURA ─── -->
+  <div class="vp" id="vpPop" role="dialog" aria-modal="true" aria-label="Vídeo do provador" hidden>
+    <div class="vp-fundo" data-fecha></div>
+    <div class="vp-caixa">
+      <video id="vpVideo" playsinline controls preload="none"></video>
+      <button type="button" class="vp-x" data-fecha aria-label="Fechar vídeo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
 
   <!-- ─── DEPOIMENTO FLUTUANTE ─── -->
   <div class="pl-depo" id="plDepo" aria-label="Depoimento de lojistas">
@@ -2695,6 +2717,29 @@
       };
       addEventListener('scroll', function () { if (!pend) { pend = true; requestAnimationFrame(mede); } }, { passive: true });
       addEventListener('resize', mede); mede();
+    })();
+  </script>
+  <script>
+    /* clique num video da faixa: abre o pop-up e toca com som */
+    (function () {
+      var faixa = document.querySelector('.ab-videos'), pop = document.getElementById('vpPop'), v = document.getElementById('vpVideo');
+      if (!faixa || !pop || !v) return;
+      var fecha = function () {
+        pop.classList.remove('on'); v.pause();
+        if (window.plLenis) window.plLenis.start(); document.documentElement.style.overflow = '';
+        setTimeout(function () { if (!pop.classList.contains('on')) { pop.hidden = true; v.removeAttribute('src'); v.load(); } }, 320);
+      };
+      faixa.addEventListener('click', function (e) {
+        var card = e.target.closest('.ab-vid'); if (!card) return;
+        var fonte = card.querySelector('video');
+        v.src = fonte.getAttribute('data-src'); v.poster = fonte.getAttribute('poster') || '';
+        v.muted = false; v.volume = 1;
+        pop.hidden = false; requestAnimationFrame(function () { pop.classList.add('on'); });
+        if (window.plLenis) window.plLenis.stop(); document.documentElement.style.overflow = 'hidden';
+        var p = v.play(); if (p && p.catch) p.catch(function () {});
+      });
+      pop.addEventListener('click', function (e) { if (e.target.closest('[data-fecha]')) fecha(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pop.hidden) fecha(); });
     })();
   </script>
   <script src="assets/js/lenis-1.1.13.min.js"></script>
