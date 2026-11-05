@@ -170,6 +170,11 @@
       .site-header.flutua .nav-actions .btn-primary { font-size: 12.5px; padding: 7px 12px; }
       .site-header.flutua .nav-toggle { width: 34px; height: 34px; }
     }
+    /* computador: o header some enquanto a secao presa (provador/CRM/marketing) ocupa a tela */
+    @media (min-width: 921px) {
+      .site-header.flutua.escondido { top: -90px; opacity: 0; pointer-events: none; }
+      .site-header { transition-property: top, width, border-radius, background-color, border-color, box-shadow, backdrop-filter, -webkit-backdrop-filter, opacity; }
+    }
     @media (prefers-reduced-motion: reduce) { .site-header, .site-header * { transition: none !important; } }
     .nav { position: relative; height: 110px; display: flex; align-items: center; justify-content: space-between; gap: 44px; }
     .nav-direita { display: flex; align-items: center; gap: 44px; }
@@ -2381,6 +2386,13 @@
         pend = false;
         var deve = window.scrollY > 140;
         if (deve !== on) { on = deve; h.classList.toggle('flutua', on); }
+        // some enquanto a secao presa cobre a tela (so tem efeito no computador, pelo CSS)
+        var ex = document.getElementById('expSec');
+        if (ex) {
+          var r = ex.getBoundingClientRect();
+          var dentro = r.top <= 1 && r.bottom >= innerHeight - 1 && !document.documentElement.classList.contains('menu-aberto');
+          h.classList.toggle('escondido', dentro);
+        }
       };
       addEventListener('scroll', function () { if (!pend) { pend = true; requestAnimationFrame(checa); } }, { passive: true });
       checa();
