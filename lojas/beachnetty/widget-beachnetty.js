@@ -852,6 +852,8 @@
 
 
 
+    const PL_ED_CSS = "\n#q-modal-ia.pl-ed{background:rgba(17,17,17,.55)!important;font-family:'Inter Tight',sans-serif}\n#q-modal-ia.pl-ed *{font-family:'Inter Tight',sans-serif}\n#q-modal-ia.pl-ed .q-card-ia{border-radius:4px!important;box-shadow:0 30px 80px rgba(0,0,0,.25)!important}\n@media(min-width:768px){#q-modal-ia.pl-ed .q-card-ia:not(.is-result){width:480px!important}}\n#q-modal-ia.pl-ed .q-close-ia{top:11px!important;right:14px!important;color:#111!important;font-size:24px!important}\n#q-modal-ia.pl-ed #q-header-provador{display:flex!important;flex-direction:row!important;justify-content:flex-start!important;align-items:center!important;gap:14px!important;padding:17px 56px 15px 24px!important;border-bottom:1px solid #111!important;background:#fff!important}\n#q-modal-ia.pl-ed #q-header-provador h1{display:none!important}\n#q-modal-ia.pl-ed #q-header-provador img{height:20px!important;width:auto!important}\n#q-modal-ia.pl-ed .ed-tag{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#111}\n#q-modal-ia.pl-ed #ed-prod{display:flex;gap:12px;align-items:center;padding:14px 24px;border-bottom:1px solid #e6e6e6}\n#q-modal-ia.pl-ed #ed-prod img{width:44px;height:58px;object-fit:cover;object-position:top;background:#f3f3f3;flex:none}\n#q-modal-ia.pl-ed #ed-prod b{display:block;font-size:13px;font-weight:500;color:#111}\n#q-modal-ia.pl-ed #ed-prod small{font-size:11px;color:#777}\n#q-modal-ia.pl-ed .q-card-ia.is-result #ed-prod{display:none!important}\n#q-modal-ia.pl-ed #q-step-photo{padding:0 24px!important;gap:0!important}\n#q-modal-ia.pl-ed .ed-sec,#q-modal-ia.pl-ed .q-phone-wrap{padding-top:20px;margin:0!important}\n#q-modal-ia.pl-ed .ed-n{font-size:10px;letter-spacing:.2em;color:#999;text-transform:uppercase;text-align:left}\n#q-modal-ia.pl-ed .ed-h{font-size:15px;font-weight:500;letter-spacing:.02em;margin:4px 0 10px;text-transform:uppercase;color:#111;text-align:left}\n#q-modal-ia.pl-ed .q-phone-wrap .q-field-label,#q-modal-ia.pl-ed .q-guide,#q-modal-ia.pl-ed #q-step-photo>.q-section-label,#q-modal-ia.pl-ed #pl-look-row .q-section-label{display:none!important}\n#q-modal-ia.pl-ed #q-phone{height:44px!important;padding:0!important;border:0!important;border-bottom:1px solid #111!important;border-radius:0!important;background:transparent!important;text-align:left!important;font-size:16px!important;box-shadow:none!important}\n#q-modal-ia.pl-ed #q-phone:focus{border-bottom-width:2px!important}\n#q-modal-ia.pl-ed .q-provas-msg{border-radius:0!important;font-size:12px!important;text-align:left!important;background:transparent!important;border:0!important;padding:8px 0 0!important;color:#777!important}\n#q-modal-ia.pl-ed .ed-foto{display:flex;gap:12px;align-items:flex-start}\n#q-modal-ia.pl-ed #q-face-frame{width:96px!important;height:128px!important;margin:0!important;border:1px dashed #111!important;border-radius:0!important;background:#fff!important;flex:none;transform:none!important;aspect-ratio:auto!important}\n#q-modal-ia.pl-ed .q-face-corner{display:none!important}\n#q-modal-ia.pl-ed .q-face-placeholder i{font-size:30px!important;color:#111!important}\n#q-modal-ia.pl-ed .ed-tips{margin:0;padding:2px 0 0;list-style:none;font-size:12px;color:#555;line-height:1.9;flex:1;min-width:130px;text-align:left}\n#q-modal-ia.pl-ed .ed-tips li::before{content:'— ';color:#111}\n#q-modal-ia.pl-ed .q-upload-btns{margin:10px 0 0!important;gap:8px!important}\n#q-modal-ia.pl-ed .q-upload-btn{border:1px solid #111!important;border-radius:0!important;background:#fff!important;color:#111!important;font-size:11px!important;font-weight:500!important;letter-spacing:.14em!important;text-transform:uppercase!important;min-height:42px!important;box-shadow:none!important}\n#q-modal-ia.pl-ed #pl-look-row{margin:0!important;padding-top:20px}\n#q-modal-ia.pl-ed #pl-look-sub{font-size:12px!important;color:#777!important;margin:-4px 0 10px!important;text-align:left!important}\n#q-modal-ia.pl-ed #pl-look-list{gap:8px!important}\n#q-modal-ia.pl-ed .pl-look-card{position:relative;flex:0 0 96px!important;width:96px!important;border:0!important;border-radius:0!important;background:transparent!important;overflow:visible!important}\n#q-modal-ia.pl-ed .pl-look-card img{height:128px!important;outline:1px solid #e6e6e6;outline-offset:-1px;background:#f3f3f3}\n#q-modal-ia.pl-ed .pl-look-card.on img{outline:2px solid #111;outline-offset:-2px}\n#q-modal-ia.pl-ed .pl-look-card::after{content:'';position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;border:1px solid #111;background:#fff;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}\n#q-modal-ia.pl-ed .pl-look-card.on::after{content:'✓';background:#111}\n#q-modal-ia.pl-ed .pl-look-card span{margin:6px 0 0!important;font-size:11px!important;font-weight:400!important;line-height:1.3!important;color:#111!important}\n#q-modal-ia.pl-ed .q-terms-row{justify-content:flex-start!important;text-align:left!important;font-size:12px!important;margin:18px 0 0!important;color:#555!important}\n#q-modal-ia.pl-ed #q-btn-generate,#q-modal-ia.pl-ed .q-btn-buy-now,#q-modal-ia.pl-ed .q-gconf-yes{background:#111!important;color:#fff!important;border:0!important;border-radius:0!important;font-size:12px!important;font-weight:500!important;letter-spacing:.22em!important;text-transform:uppercase!important;padding:17px!important;min-height:0!important;height:auto!important;box-shadow:none!important}\n#q-modal-ia.pl-ed #q-btn-generate{margin:14px 0 18px!important;width:100%}\n#q-modal-ia.pl-ed .q-gconf-box{border-radius:0!important}\n#q-modal-ia.pl-ed .q-gconf-no{border:1px solid #111!important;border-radius:0!important;background:#fff!important;color:#111!important;font-size:11px!important;letter-spacing:.16em!important;text-transform:uppercase!important}\n#q-modal-ia.pl-ed #q-loading-box{padding:0!important;min-height:0!important;flex-direction:column;align-items:stretch!important;justify-content:flex-start!important;gap:0!important}\n#q-modal-ia.pl-ed .q-loading-texts{display:none!important}\n#q-modal-ia.pl-ed .ed-duo{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:100%;gap:1px;background:#111;height:min(300px,42vh);width:100%;flex:none;overflow:hidden}\n#q-modal-ia.pl-ed .ed-duo.solo{grid-template-columns:1fr}\n#q-modal-ia.pl-ed .ed-duo img{display:block;min-height:0;width:100%;height:100%;object-fit:cover;object-position:top;filter:grayscale(1) contrast(1.05);background:#f3f3f3}\n#q-modal-ia.pl-ed .ed-load-tx{padding:20px 24px 24px;text-align:left;width:100%;box-sizing:border-box}\n#q-modal-ia.pl-ed .ed-load-tx b{display:block;font-size:15px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#111}\n#q-modal-ia.pl-ed .ed-load-tx small{display:block;font-size:12px;color:#777;margin-top:3px}\n#q-modal-ia.pl-ed .q-loading-bar{height:2px!important;background:#eee!important;margin-top:16px!important;border-radius:0!important}\n#q-modal-ia.pl-ed .q-loading-bar>div{background:#111!important}\n#q-modal-ia.pl-ed .q-res-title{font-size:18px!important;font-weight:400!important;letter-spacing:.14em!important;text-transform:uppercase!important;color:#111!important}\n#q-modal-ia.pl-ed #q-result-img-col{background:#f3f3f3!important;border-radius:0!important}\n#q-modal-ia.pl-ed #q-result-img-col img{border-radius:0!important}\n#q-modal-ia.pl-ed .q-seals,#q-modal-ia.pl-ed .q-scarcity{display:none!important}\n#q-modal-ia.pl-ed .q-result-prodname{font-size:14px!important;font-weight:500!important;color:#111!important}\n#q-modal-ia.pl-ed #q-step-result button:not(.q-btn-buy-now),#q-modal-ia.pl-ed #pl-look-link{border:1px solid #111!important;border-radius:0!important;background:#fff!important;color:#111!important;font-size:11px!important;font-weight:500!important;letter-spacing:.16em!important;text-transform:uppercase!important;min-height:46px!important;box-shadow:none!important}\n#q-modal-ia.pl-ed .q-powered-footer,#q-modal-ia.pl-ed [class*=powered]{background:#fff!important;border-top:1px solid #eee!important}\n";
+
     // ─── HTML ─────────────────────────────────────────────────────────────────────
 
 
@@ -1637,9 +1639,67 @@
             const sub = document.getElementById('pl-look-sub');
             if (sub) sub.textContent = plLook ? ('Vamos provar junto: ' + plLook.nome) : 'Opcional: escolha uma e prove as duas juntas';
             const gb = document.getElementById('q-btn-generate');
-            if (gb) gb.textContent = plLook ? 'Provar o look' : 'Provar roupa';
+            if (gb) gb.textContent = plLook ? 'Ver o look no meu corpo' : 'Ver no meu corpo';
         }
+        // Visual igual ao da Laeva (05/11/2026). Por enquanto so na previa (pl_look=1).
+        function plEdMontar() {
+            const modal = document.getElementById('q-modal-ia');
+            if (!modal || modal.classList.contains('pl-ed')) return;
+            const lk = document.createElement('link'); lk.rel = 'stylesheet';
+            lk.href = 'https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600&display=swap';
+            document.head.appendChild(lk);
+            const st = document.createElement('style'); st.textContent = PL_ED_CSS; document.head.appendChild(st);
+            modal.classList.add('pl-ed');
+            const mk = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt) e.textContent = txt; return e; };
+            const sec = (n, h) => { const s = mk('div', 'ed-sec'); s.appendChild(mk('div', 'ed-n', n)); s.appendChild(mk('div', 'ed-h', h)); return s; };
+            const head = document.getElementById('q-header-provador');
+            head.appendChild(mk('span', 'ed-tag', 'Provador virtual'));
+            const prod = mk('div'); prod.id = 'ed-prod';
+            const pi = mk('img'); pi.id = 'ed-prod-img'; pi.alt = '';
+            const pt = mk('div'); const pb = mk('b'); pb.id = 'ed-prod-nome'; pt.appendChild(pb); pt.appendChild(mk('small', '', 'você está provando'));
+            prod.appendChild(pi); prod.appendChild(pt);
+            head.parentNode.insertBefore(prod, head.nextSibling);
+            const fone = document.querySelector('.q-phone-wrap');
+            fone.insertBefore(mk('div', 'ed-h', 'Seu WhatsApp'), fone.firstChild);
+            fone.insertBefore(mk('div', 'ed-n', '01'), fone.firstChild);
+            const frame = document.getElementById('q-face-frame'), btns = document.querySelector('.q-upload-btns');
+            const s2 = sec('02', 'Sua foto');
+            frame.parentNode.insertBefore(s2, frame);
+            const foto = mk('div', 'ed-foto'); foto.appendChild(frame);
+            const tips = mk('ul', 'ed-tips'); ['Corpo inteiro', 'Roupa justa ou leve', 'Boa luz, fundo limpo'].forEach(x => tips.appendChild(mk('li', '', x)));
+            foto.appendChild(tips); s2.appendChild(foto); s2.appendChild(btns);
+            const row = document.getElementById('pl-look-row');
+            row.insertBefore(mk('div', 'ed-h', 'Combine com outra peça'), row.firstChild);
+            row.insertBefore(mk('div', 'ed-n', '03 · opcional'), row.firstChild);
+            const gb = document.getElementById('q-btn-generate'); if (gb) gb.textContent = 'Ver no meu corpo';
+            const lb = document.getElementById('q-loading-box'), bar = lb.querySelector('.q-loading-bar');
+            const duo = mk('div', 'ed-duo solo'); duo.id = 'ed-duo';
+            const d1 = mk('img'); d1.id = 'ed-duo-1'; d1.alt = ''; const d2 = mk('img'); d2.id = 'ed-duo-2'; d2.alt = ''; d2.style.display = 'none';
+            duo.appendChild(d1); duo.appendChild(d2);
+            const tx = mk('div', 'ed-load-tx'); const tb = mk('b'); tb.id = 'ed-load-tit'; const ts = mk('small'); ts.id = 'ed-load-sub';
+            tx.appendChild(tb); tx.appendChild(ts); if (bar) tx.appendChild(bar);
+            lb.insertBefore(tx, lb.firstChild); lb.insertBefore(duo, lb.firstChild);
+        }
+        function plEdProduto() {
+            const og = document.querySelector('meta[property="og:image"]');
+            const im = document.getElementById('ed-prod-img'), nm = document.getElementById('ed-prod-nome');
+            if (im && og) im.src = og.content;
+            if (nm) nm.textContent = plNomeProduto();
+        }
+        function plEdCarregando(img1) {
+            const duo = document.getElementById('ed-duo');
+            if (!duo) return;
+            const i1 = document.getElementById('ed-duo-1'), i2 = document.getElementById('ed-duo-2');
+            if (img1) i1.src = img1;
+            duo.classList.toggle('solo', !plLook);
+            i2.style.display = plLook ? '' : 'none';
+            if (plLook) i2.src = plLook.img;
+            document.getElementById('ed-load-tit').textContent = plLook ? 'Vestindo as 2 peças em você' : 'Vestindo a peça em você';
+            document.getElementById('ed-load-sub').textContent = plNomeProduto() + (plLook ? ' + ' + plLook.nome : '');
+        }
+        if (PL_LOOK_ON) { try { plEdMontar(); } catch (_) {} }
         async function plLookAbrir() {
+            if (PL_LOOK_ON) { try { plEdProduto(); } catch (_) {} }
             if (!PL_LOOK_ON || plLookOps) { plLookPintar(); return; }
             plLookOps = [];
             try { plLookOps = await plLookCarregar(); } catch (_) { plLookOps = []; }
@@ -2391,6 +2451,7 @@
 
                 uploadStep.style.display = 'none';
                 document.getElementById('q-loading-box').style.display = 'flex';
+                try { plEdCarregando(prodImg); } catch (_) {}
                 startLoadingProgress();
 
                 try {
