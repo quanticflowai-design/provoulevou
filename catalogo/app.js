@@ -667,7 +667,10 @@
                 brand: '#2F5F5A', dark: '#234743', soft: 'rgba(47,95,90,.10)', on: '#ffffff' },
     // Ótica Império — preto e dourado do logo sobre branco; preço em dourado fechado, botão preto com texto dourado
     oticaimperio: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EFE6CF',
-                brand: '#8A6A14', dark: '#6B520F', soft: 'rgba(138,106,20,.10)', on: '#ffffff', cta: '#111111', ctaDark: '#000000', onCta: '#D2A63A' }
+                brand: '#8A6A14', dark: '#6B520F', soft: 'rgba(138,106,20,.10)', on: '#ffffff', cta: '#111111', ctaDark: '#000000', onCta: '#D2A63A' },
+    // Brothers Óptica — cobre do logo sobre preto; fundo igual ao do logo; botão cobre com texto preto (9:1)
+    brothersoptica: { bg: '#000000', card: '#111111', line: '#2B2B2B',
+                brand: '#DE9150', dark: '#C47B3D', soft: 'rgba(222,145,80,.14)', on: '#000000' }
   };
 
   // ─────────── Tema ───────────
