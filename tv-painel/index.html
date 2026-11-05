@@ -67,7 +67,7 @@
   <div class="kpis" id="kpis"></div>
   <main>
     <section>
-      <h2>Lojas por faturamento via provador <small id="pagina"></small></h2>
+      <h2><span id="tituloLista">Lojas por faturamento via provador</span> <small id="pagina"></small></h2>
       <div id="ranking"></div>
     </section>
     <div class="graficos">
@@ -82,7 +82,7 @@ let TOKEN = params.get('t') || (location.search.length > 1 && location.search.in
 try { if (TOKEN) localStorage.setItem('pl-tv-token', TOKEN); else TOKEN = localStorage.getItem('pl-tv-token'); } catch (e) {}
 const FONTE = params.get('fonte') || (TOKEN ? 'https://n8n.segredosdodrop.com/webhook/pl-tv-painel?t=' + encodeURIComponent(TOKEN) : 'snapshot.json');
 if (!Element.prototype.replaceChildren) Element.prototype.replaceChildren = function () { this.textContent = ''; this.append.apply(this, arguments); };
-const PERIODOS = [['hoje','Hoje'],['ontem','Ontem'],['d7','7 dias'],['d30','30 dias'],['tudo','Tudo']];
+const PERIODOS = [['hoje','Hoje'],['ontem','Ontem'],['d7','7 dias'],['d30','30 dias'],['tudo','Tudo'],['clientes','Clientes']];
 const POR_PAGINA = 8, TROCA_PAGINA_MS = 15000, RECARREGA_MS = 60000, ATRASO_MIN = 20;
 const $ = id => document.getElementById(id);
 const el = (tag, txt, cls) => { const e = document.createElement(tag); if (txt != null) e.textContent = txt; if (cls) e.className = cls; return e; };
@@ -94,9 +94,11 @@ try { const p = localStorage.getItem('pl-tv-periodo'); if (PERIODOS.some(x => x[
 
 PERIODOS.forEach(([k, nome]) => { const b = el('button', nome); b.dataset.k = k; b.tabIndex = -1; $('abas').appendChild(b); });
 
+// A aba Clientes troca só a lista; os cartões e o gráfico mostram os últimos 30 dias.
+const periodoDados = () => periodo === 'clientes' ? 'd30' : periodo;
 function somar() {
   const t = { provas:0, custo:0, fat_pos:0, ped_pos:0, fat_loja:0, ped_loja:0 };
-  dados.lojas.forEach(l => { for (const c in t) t[c] += l.periodos[periodo][c]; });
+  dados.lojas.forEach(l => { for (const c in t) t[c] += l.periodos[periodoDados()][c]; });
   return t;
 }
 function kpi(rotulo, valor, nota, hero) {
@@ -105,11 +107,31 @@ function kpi(rotulo, valor, nota, hero) {
   return d;
 }
 function linhasRanking() {
-  return dados.lojas.map(l => ({ nome:l.nome, ...l.periodos[periodo] }))
+  return dados.lojas.map(l => ({ nome:l.nome, ...l.periodos[periodoDados()] }))
     .filter(l => l.provas || l.fat_pos || l.fat_loja)
     .sort((a, b) => b.fat_pos - a.fat_pos || b.provas - a.provas);
 }
+function renderClientes() {
+  const n = dados.negocio, linhas = (n && n.lista) || [], paginas = Math.max(1, Math.ceil(linhas.length / POR_PAGINA));
+  pagina = (pagina + paginas) % paginas;
+  $('tituloLista').textContent = 'Quanto cada cliente paga';
+  $('pagina').textContent = linhas.length ? `${linhas.length} clientes · página ${pagina + 1} de ${paginas}` : '';
+  const alvo = $('ranking'); alvo.replaceChildren();
+  if (!linhas.length) { alvo.append(el('div', 'Lista ainda não disponível.', 'vazio')); return; }
+  const tb = el('table'), cab = el('tr'), corpo = el('tbody'), head = el('thead');
+  ['Cliente','Plano mensal','Última mensalidade','Recebido em 30 dias'].forEach(c => cab.append(el('th', c)));
+  head.append(cab); tb.append(head, corpo);
+  linhas.slice(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA).forEach(l => {
+    const tr = el('tr');
+    const ultima = l.ult_data ? `${l.ult_data.slice(8, 10)}/${l.ult_data.slice(5, 7)} · ${brl(l.ult_valor || 0)}` : 'Sem lançamento';
+    [l.nome, brl(l.valor), ultima, brl(l.rec30)].forEach(v => tr.append(el('td', v)));
+    corpo.append(tr);
+  });
+  alvo.append(tb);
+}
 function renderRanking() {
+  if (periodo === 'clientes') return renderClientes();
+  $('tituloLista').textContent = 'Lojas por faturamento via provador';
   const linhas = linhasRanking(), paginas = Math.max(1, Math.ceil(linhas.length / POR_PAGINA));
   pagina = (pagina + paginas) % paginas;
   $('pagina').textContent = linhas.length ? `${linhas.length} lojas · página ${pagina + 1} de ${paginas}` : '';
@@ -128,7 +150,7 @@ function renderRanking() {
 function intervalo() {
   const s = dados.serie, hoje = dados.hoje;
   const menos = n => new Date(Date.parse(hoje + 'T12:00:00Z') - n * 864e5).toISOString().slice(0, 10);
-  return { hoje:[hoje,hoje], ontem:[menos(1),menos(1)], d7:[menos(6),hoje], d30:[menos(29),hoje], tudo:[s.length ? s[0].dia : hoje, hoje] }[periodo];
+  return { hoje:[hoje,hoje], ontem:[menos(1),menos(1)], d7:[menos(6),hoje], d30:[menos(29),hoje], tudo:[s.length ? s[0].dia : hoje, hoje] }[periodoDados()];
 }
 function svgEl(tag, a) { const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in a) e.setAttribute(k, a[k]); return e; }
 function grafico(alvo, campo, fmt) {
@@ -154,7 +176,7 @@ function grafico(alvo, campo, fmt) {
 function render() {
   document.querySelectorAll('#abas button').forEach(b => b.classList.toggle('ativo', b.dataset.k === periodo));
   if (!dados) return;
-  const t = somar(), comProva = dados.lojas.filter(l => !l.outras && l.periodos[periodo].provas > 0).length;
+  const t = somar(), comProva = dados.lojas.filter(l => !l.outras && l.periodos[periodoDados()].provas > 0).length;
   const share = t.fat_loja ? t.fat_pos / t.fat_loja * 100 : 0, n = dados.negocio;
   $('kpis').replaceChildren(
     kpi('Faturamento via provador', brl(t.fat_pos), `${pct(share)} do faturamento das lojas`, true),
