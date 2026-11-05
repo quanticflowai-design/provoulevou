@@ -1107,6 +1107,43 @@
     .cta-bt:hover svg { transform: translate(2px, -2px); }
     @media (max-width: 640px) { .cta-fim { min-height: 520px; background-position: center, 30% center; } .cta-bt { padding: 15px 24px; font-size: 15px; } }
 
+    /* ─── RODAPE (fundo preto) ─── */
+    .rodape { background: #000; color: #fff; padding: clamp(56px, calc(5 * var(--vw)), 80px) 0 0; font-family: var(--strong); overflow: hidden; }
+    .rodape * { -webkit-text-stroke-width: 0; }
+    .rodape a { color: inherit; text-decoration: none; }
+    .rd-grade { display: grid; grid-template-columns: 1.7fr 1fr 1fr 1fr; gap: 40px; }
+    .rd-col h4 { margin: 0 0 22px; font-weight: 500; font-size: 15px; letter-spacing: .02em; text-transform: uppercase; color: #fff; }
+    .rd-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .rd-col li a { font-family: var(--sans); font-size: 15px; color: rgba(255,255,255,.72); transition: color .2s; }
+    .rd-col li a:hover { color: #fff; }
+    .rd-news { max-width: 470px; }
+    .rd-news p { margin: 0; font-family: var(--sans); font-size: 15px; line-height: 1.45; color: rgba(255,255,255,.72); }
+    .rd-linha { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 30px; padding: 0 2px 14px; border-bottom: 1px solid rgba(255,255,255,.28); }
+    .rd-linha span { font-family: var(--sans); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; color: rgba(255,255,255,.45); }
+    .rd-linha a { font-size: 13px; letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; transition: opacity .2s; }
+    .rd-linha a:hover { opacity: .7; }
+    .rd-meio { display: grid; grid-template-columns: 1.7fr 3fr; gap: 40px; align-items: center; margin-top: clamp(40px, calc(4 * var(--vw)), 64px); }
+    .rd-meio small { font-family: var(--sans); font-size: 13px; color: rgba(255,255,255,.45); }
+    .rd-base { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .rd-idioma { display: flex; align-items: center; gap: 14px; font-size: 15px; }
+    .rd-idioma b { font-weight: 500; text-transform: uppercase; letter-spacing: .02em; }
+    .rd-idioma span { display: flex; align-items: center; gap: 10px; font-family: var(--sans); color: rgba(255,255,255,.72); }
+    .rd-idioma span a:hover, .rd-idioma span a.on { color: #fff; }
+    .rd-idioma i { font-style: normal; color: rgba(255,255,255,.3); }
+    .rd-redes { display: flex; gap: 10px; }
+    .rd-redes a { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: #fff; color: #000; transition: transform .2s, background .2s; }
+    .rd-redes a:hover { transform: translateY(-2px); background: #ede9fe; }
+    .rd-redes svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+    .rd-marca { display: block; width: max-content; margin: clamp(48px, calc(5 * var(--vw)), 80px) 0 0; font-weight: 500; font-size: calc(14.2 * var(--vw)); line-height: .74; letter-spacing: -0.055em; white-space: nowrap; color: #fff; user-select: none; padding-bottom: .02em; }
+    .rd-marca sup { font-size: .22em; vertical-align: top; position: relative; top: .1em; margin-left: .04em; letter-spacing: 0; }
+    @media (max-width: 900px) {
+      .rd-grade { grid-template-columns: 1fr 1fr; gap: 36px 24px; }
+      .rd-news { grid-column: 1 / -1; }
+      .rd-meio { grid-template-columns: 1fr; gap: 24px; }
+      .rd-base { flex-wrap: wrap; }
+    }
+    @media (max-width: 640px) { .rd-grade { grid-template-columns: 1fr 1fr; } .rd-col:last-child { grid-column: 1 / -1; } }
+
     /* ─── TUDO EM UM SO LUGAR ─── */
     .tudo { background: #fff; padding: clamp(96px, calc(10 * var(--vw)), 160px) 0 clamp(72px, calc(8 * var(--vw)), 120px); overflow: hidden; }
     .tudo * { -webkit-text-stroke-width: 0; }
@@ -2147,6 +2184,42 @@
     </section>
   </main>
 
+  <!-- ─── RODAPE ─── -->
+  <footer class="rodape">
+    <div class="container">
+      <div class="rd-grade">
+        <div class="rd-col rd-news">
+          <h4>Fique por dentro</h4>
+          <p>O provador virtual que materializa o desejo de compra. Tecnologia by Quantic.</p>
+          <div class="rd-linha"><span>Resposta no WhatsApp, sem robô</span><a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener">Falar com especialista</a></div>
+        </div>
+        <nav class="rd-col" aria-label="Produto">
+          <h4>Produto</h4>
+          <ul><li><a href="#como-funciona">Como funciona</a></li><li><a href="#whatsapp">WhatsApp e CRM</a></li><li><a href="#cases">Cases</a></li><li><a href="#planos">Planos</a></li><li><a href="loja-teste.html">Teste ao vivo</a></li></ul>
+        </nav>
+        <nav class="rd-col" aria-label="Empresa">
+          <h4>Empresa</h4>
+          <ul><li><a href="blog/">Blog</a></li><li><a href="afiliados.html">Afiliados</a></li><li><a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener">Contato</a></li><li><a href="https://www.instagram.com/quanticflowai/" target="_blank" rel="noopener">Instagram</a></li></ul>
+        </nav>
+        <nav class="rd-col" aria-label="Legal">
+          <h4>Legal</h4>
+          <ul><li><a href="termos.html">Termos e Condições</a></li><li><a href="politica-de-privacidade.html">Política de Privacidade</a></li></ul>
+        </nav>
+      </div>
+      <div class="rd-meio">
+        <small>&copy; 2026 Provou Levou — Tecnologia by Quantic. Todos os direitos reservados.</small>
+        <div class="rd-base">
+          <div class="rd-idioma"><b>Idioma</b><span><a class="on" href="index-v2.html">PT</a><i>|</i><a href="index-en.html">EN</a><i>|</i><a href="index-es.html">ES</a></span></div>
+          <div class="rd-redes">
+            <a href="https://www.instagram.com/quanticflowai/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.2 6.8h.01"/></svg></a>
+            <a href="https://wa.me/5511938034714?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Provador%20Virtual." target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19.1z"/><path d="M9.2 8.6c0 3.4 2.8 6.2 6.2 6.2l.9-1.6-1.9-1-1 .9c-1-.4-1.8-1.2-2.2-2.2l.9-1-1-1.9z"/></svg></a>
+          </div>
+        </div>
+      </div>
+      <span class="rd-marca" aria-hidden="true">Provou Levou<sup>®</sup></span>
+    </div>
+  </footer>
+
   <!-- ─── POP-UP DOS VIDEOS DA ABERTURA ─── -->
   <div class="vp" id="vpPop" role="dialog" aria-modal="true" aria-label="Vídeo do provador" hidden>
     <div class="vp-fundo" data-fecha></div>
@@ -2749,6 +2822,21 @@
         c.addEventListener('focus', function () { abre(c); });
         c.addEventListener('click', function () { abre(c); });
       });
+    })();
+  </script>
+  <script>
+    /* rodape: o nome grande ocupa a largura toda do container */
+    (function () {
+      var m = document.querySelector('.rd-marca');
+      if (!m) return;
+      var ajusta = function () {
+        m.style.fontSize = '100px';
+        var alvo = m.parentNode.clientWidth - parseFloat(getComputedStyle(m.parentNode).paddingLeft) - parseFloat(getComputedStyle(m.parentNode).paddingRight);
+        m.style.fontSize = (100 * alvo / m.getBoundingClientRect().width) + 'px';
+      };
+      ajusta();
+      addEventListener('resize', ajusta);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(ajusta);
     })();
   </script>
   <script>
