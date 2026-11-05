@@ -47,6 +47,15 @@
 </style>
 </head>
 <body>
+  <script>
+    // Navegador de TV pode não entender o JS moderno abaixo: mostra o erro na tela para diagnosticar.
+    window.onerror = function (msg, src, linha) {
+      var d = document.createElement('pre');
+      d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;margin:0;padding:16px;background:#1c1826;color:#fff;font-size:20px;white-space:pre-wrap;z-index:9';
+      d.textContent = 'Erro: ' + msg + ' (linha ' + linha + ')\n' + navigator.userAgent;
+      document.body.appendChild(d);
+    };
+  </script>
   <header>
     <img class="marca" src="logo.png" alt="Provou Levou">
     <nav id="abas" aria-label="Período"></nav>
@@ -65,7 +74,8 @@
   </main>
 <script>
 const params = new URLSearchParams(location.search);
-const TOKEN = params.get('t');
+let TOKEN = params.get('t');
+try { if (TOKEN) localStorage.setItem('pl-tv-token', TOKEN); else TOKEN = localStorage.getItem('pl-tv-token'); } catch (e) {}
 const FONTE = params.get('fonte') || (TOKEN ? 'https://n8n.segredosdodrop.com/webhook/pl-tv-painel?t=' + encodeURIComponent(TOKEN) : 'snapshot.json');
 if (!Element.prototype.replaceChildren) Element.prototype.replaceChildren = function () { this.textContent = ''; this.append.apply(this, arguments); };
 const PERIODOS = [['hoje','Hoje'],['ontem','Ontem'],['d7','7 dias'],['d30','30 dias'],['tudo','Tudo']];
