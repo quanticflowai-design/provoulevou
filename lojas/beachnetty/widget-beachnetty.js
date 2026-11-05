@@ -1366,6 +1366,24 @@
             return best;
         }
         function plPosicionaSelo() {
+            // Beach Netty (05/11/2026): selo preso dentro da galeria, rola junto com a foto.
+            // Fixo na tela e reposicionado no scroll ele tremia e andava com a pagina.
+            var _gal = document.querySelector('.block-imagem .product-img');
+            if (_gal) {
+                if (window.getComputedStyle(_gal).position === 'static') _gal.style.position = 'relative';
+                if (openBtn.parentElement !== _gal) _gal.appendChild(openBtn);
+                var _tam = window.innerWidth < 768 ? 66 : 72;
+                openBtn.style.position = 'absolute';
+                openBtn.style.top = '14px';
+                openBtn.style.right = '14px';
+                openBtn.style.left = 'auto';
+                openBtn.style.bottom = 'auto';
+                openBtn.style.width = _tam + 'px';
+                openBtn.style.height = _tam + 'px';
+                openBtn.style.zIndex = '20';
+                openBtn.style.visibility = 'visible';
+                return true;
+            }
             // Tray/Day One: a galeria é um swiper cujos slides ficam lado a lado muito
             // além do container (overflow hidden) e uma das <img> renderiza no tamanho
             // natural (1080x1920). Mirar na "maior imagem" jogava o selo pra fora da
@@ -1409,6 +1427,7 @@
             return true;
         }
         window.addEventListener('scroll', plPosicionaSelo, { passive: true });
+        setInterval(plPosicionaSelo, 800); // o React re-renderiza a galeria e arranca o selo
         window.addEventListener('resize', plPosicionaSelo);
 
         function tryPlaceTriggerBtn() {
