@@ -38,7 +38,12 @@
   th:nth-child(2) { width:20%; } th:nth-child(3) { width:13%; } th:nth-child(4) { width:15%; } th:nth-child(5) { width:22%; }
   td:nth-child(1) { font-weight:600; }
   td:nth-child(2) { color:var(--roxo2); font-weight:700; }
-  .graficos { display:grid; grid-template-rows:1fr; min-height:0; }
+  .graficos { display:grid; grid-template-rows:minmax(0,1fr) minmax(0,1.15fr); gap:1rem; min-height:0; }
+  #tarefas { min-height:0; overflow:hidden; }
+  .tarefa { display:flex; align-items:center; justify-content:space-between; gap:1rem; height:3.6rem; border-top:.0625rem solid var(--linha); font-size:1.3rem; }
+  .tarefa span { min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; }
+  .tarefa small { flex:none; font-size:1.05rem; color:var(--sec); white-space:nowrap; }
+  .tarefa small.atrasada { color:#b91c1c; font-weight:600; }
   .grafico { flex:1; min-height:0; }
   svg { display:block; width:100%; height:100%; }
   svg text { font-family:inherit; }
@@ -67,6 +72,7 @@
     </section>
     <div class="graficos">
       <section><h2>Via provador por dia <small>últimos 30 dias</small></h2><div class="grafico" id="gFat"></div></section>
+      <section><h2>Minhas tarefas do dia <small id="tarefasResumo"></small></h2><div id="tarefas"></div></section>
     </div>
   </main>
 <script>
@@ -162,6 +168,33 @@ function render() {
   renderRanking();
   grafico($('gFat'), 'fat_pos', brl);
 }
+const MAX_TAREFAS = 5;
+function renderTarefas(d) {
+  const alvo = $('tarefas'), lista = d.tarefas || [];
+  const atrasadas = lista.filter(t => t.prazo < d.hoje).length;
+  $('tarefasResumo').textContent = lista.length ? `${lista.length - atrasadas} para hoje · ${atrasadas} atrasada${atrasadas === 1 ? '' : 's'}` : '';
+  alvo.replaceChildren();
+  if (!lista.length) { alvo.append(el('div', 'Nenhuma tarefa para hoje.', 'vazio')); return; }
+  const visiveis = lista.length > MAX_TAREFAS ? lista.slice(0, MAX_TAREFAS - 1) : lista;
+  visiveis.forEach(t => {
+    const atrasada = t.prazo < d.hoje;
+    const quando = atrasada ? 'Atrasada · ' + t.prazo.slice(8, 10) + '/' + t.prazo.slice(5, 7) : (t.hora ? 'Hoje · ' + t.hora : 'Hoje');
+    const linha = el('div', null, 'tarefa');
+    linha.append(el('span', t.titulo), el('small', quando, atrasada ? 'atrasada' : ''));
+    alvo.append(linha);
+  });
+  if (lista.length > visiveis.length) { const mais = el('div', null, 'tarefa'); mais.append(el('small', `+ ${lista.length - visiveis.length} no CRM`)); alvo.append(mais); }
+}
+async function carregarTarefas() {
+  if (!TOKEN) return;
+  try {
+    const r = await fetch('https://crm.quanticsolutions.com.br/api/tv/tarefas?t=' + encodeURIComponent(TOKEN));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    renderTarefas(await r.json());
+  } catch (e) {
+    $('tarefasResumo').textContent = 'indisponível no momento';
+  }
+}
 function relogio() {
   $('relogio').textContent = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', timeZone:'America/Sao_Paulo' });
   if (!dados) return;
@@ -197,8 +230,8 @@ document.addEventListener('keydown', e => {
   else return;
   e.preventDefault();
 });
-render(); relogio(); carregar();
-setInterval(relogio, 15000); setInterval(carregar, RECARREGA_MS); reiniciaPaginas();
+render(); relogio(); carregar(); carregarTarefas();
+setInterval(relogio, 15000); setInterval(carregar, RECARREGA_MS); setInterval(carregarTarefas, RECARREGA_MS); reiniciaPaginas();
 addEventListener('resize', render);
 </script>
 </body>
