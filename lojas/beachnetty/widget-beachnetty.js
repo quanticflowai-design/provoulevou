@@ -1374,8 +1374,16 @@
                 if (openBtn.parentElement !== _gal) _gal.appendChild(openBtn);
                 var _tam = window.innerWidth < 768 ? 66 : 72;
                 openBtn.style.position = 'absolute';
-                openBtn.style.top = '14px';
-                openBtn.style.right = '14px';
+                // Canto da FOTO, medido em relacao a galeria: a distancia nao muda com o scroll.
+                var _foto = null, _ar = 0;
+                _gal.querySelectorAll('img').forEach(function (im) {
+                    var q = im.getBoundingClientRect();
+                    if (im === openBtn.querySelector('img') || q.width < 200 || q.height < 200 || q.left < 0 || q.left > window.innerWidth - 80) return;
+                    if (q.width * q.height > _ar) { _ar = q.width * q.height; _foto = q; }
+                });
+                var _gr = _gal.getBoundingClientRect();
+                openBtn.style.top = ((_foto ? Math.max(0, _foto.top - _gr.top) : 0) + 14) + 'px';
+                openBtn.style.right = ((_foto ? Math.max(0, _gr.right - _foto.right) : 0) + 14) + 'px';
                 openBtn.style.left = 'auto';
                 openBtn.style.bottom = 'auto';
                 openBtn.style.width = _tam + 'px';
@@ -1604,7 +1612,7 @@
         // Magazord nao tem rota de recomendacao: as opcoes vem do sitemap e dos dados da pagina de cada produto.
         let plLook = null, plLookOps = null;
         const PL_LOOK_ON = true; // liberado para todos em 05/11/2026
-        const PL_ED_ON = /[?&]pl_look=1/.test(location.search); // visual da Laeva: ainda so na previa
+        const PL_ED_ON = true; // visual da Laeva: no ar para todos desde 05/11/2026
         const PL_CORES = ['azul marinho', 'verde oliva', 'preto', 'branco', 'marrom', 'marsala', 'azul', 'verde', 'rosa', 'vinho', 'cinza', 'bege', 'nude', 'lilas', 'roxo', 'vermelho', 'laranja', 'amarelo', 'terracota', 'caramelo'];
         function plLookNorm(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[.\-_]+/g, ' '); }
         function plLookLado(s) {
