@@ -1408,7 +1408,7 @@
     .ia-card.on { flex-grow: 3.6; cursor: default; }
     .ia-card:focus-visible { box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--violet); }
     .ia-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; transition: transform 1.2s cubic-bezier(.2,.7,.2,1); }
-    .ia-card::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(100deg, rgba(20,6,46,.55) 0%, rgba(20,6,46,.18) 48%, rgba(20,6,46,0) 70%); opacity: 0; transition: opacity .5s; }
+    .ia-card::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(100deg, rgba(20,6,46,.38) 0%, rgba(20,6,46,.12) 48%, rgba(20,6,46,0) 70%); opacity: 0; transition: opacity .5s; }
     .ia-card.on::before { opacity: 1; }
     .ia-card:not(.on):hover .ia-bg { transform: scale(1.06); }
     .ia-vert { position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%) rotate(180deg); writing-mode: vertical-rl; white-space: nowrap;
@@ -1456,14 +1456,15 @@
     .ia-chip2 { left: 6%; right: 6%; color: #161614; } .ia-chip2 .ia-orbmini { margin-left: auto; width: 20px; height: 20px; }
     .ia-ic { width: 22px; height: 22px; border-radius: 6px; background: var(--violet); color: #fff; font-size: 9px; font-weight: 500; display: grid; place-items: center; }
     @media (max-width: 900px) {
-      /* celular/tablet: cartoes lado a lado, deslizando para os lados, comecando no do meio, todos abertos */
-      .ia-grade { display: flex; gap: 12px; height: auto; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
-        margin-left: calc(-1 * var(--gutter-l)); margin-right: calc(-1 * var(--gutter-r)); padding: 0 9vw 6px; scroll-padding-left: 9vw; }
-      .ia-grade::-webkit-scrollbar { display: none; }
-      .ia-card, .ia-card.on { flex: 0 0 82vw; height: 480px; scroll-snap-align: start; cursor: default; border-radius: 26px; }
-      .ia-card::before { opacity: 1; background: linear-gradient(180deg, rgba(20,6,46,.5) 0%, rgba(20,6,46,.1) 50%, rgba(20,6,46,0) 70%); }
-      .ia-vert { display: none; }
-      .ia-cont, .ia-card.on .ia-cont { opacity: 1; transform: none; width: 100%; padding: 24px 20px 20px; pointer-events: auto; }
+      /* celular/tablet: mesma sanfona, em pe. Um cartao aberto e os outros viram faixas; tocar abre */
+      .ia-grade { flex-direction: column; gap: 10px; height: auto; }
+      .ia-card { flex: none; height: 76px; border-radius: 24px; cursor: pointer; transition: height .65s cubic-bezier(.65,0,.25,1); }
+      .ia-card.on { height: 470px; }
+      .ia-card::before { background: linear-gradient(180deg, rgba(20,6,46,.45) 0%, rgba(20,6,46,.08) 50%, rgba(20,6,46,0) 70%); }
+      .ia-vert { writing-mode: horizontal-tb; left: 22px; bottom: auto; top: 50%; transform: translateY(-50%); font-size: 22px; }
+      .ia-card:not(.on)::after { content: ""; position: absolute; right: 16px; top: 50%; width: 40px; height: 40px; margin-top: -20px; border-radius: 50%; background: #161614 no-repeat center / 18px
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E"); }
+      .ia-cont { width: 100%; padding: 24px 20px 20px; }
       .ia-card h3 { font-size: 27px; }
       .ia-card .ia-cont > p { font-size: 14px; }
       .ia-wid { width: 100%; padding: 12px; border-radius: 22px; }
@@ -2630,20 +2631,20 @@
       var g = document.querySelector('.ia-grade');
       if (!g) return;
       var cs = [].slice.call(g.querySelectorAll('.ia-card'));
-      var abre = function (c) { if (!matchMedia('(min-width: 901px)').matches) return; cs.forEach(function (x) { x.classList.toggle('on', x === c); }); };
+      var abre = function (c) { cs.forEach(function (x) { x.classList.toggle('on', x === c); }); };
       cs.forEach(function (c) {
-        c.addEventListener('mouseenter', function () { abre(c); });
+        c.addEventListener('mouseenter', function () { if (matchMedia('(hover: hover) and (min-width: 901px)').matches) abre(c); });
         c.addEventListener('focus', function () { abre(c); });
         c.addEventListener('click', function () { abre(c); });
       });
     })();
   </script>
   <script>
-    /* faixas do celular ("Tem um provador virtual para isso" e Blog): abrem no cartao do meio.
+    /* faixa do Blog no celular: abre no cartao do meio.
        Reaplica ao carregar, quando as fontes chegam e quando a faixa aparece, ate a pessoa mexer nela. */
     (function () {
       if (!matchMedia('(max-width: 900px)').matches) return;
-      [['.ia-grade', '.ia-card'], ['.bl2-faixa', '.bl2-card']].forEach(function (par) {
+      [['.bl2-faixa', '.bl2-card']].forEach(function (par) {
         var g = document.querySelector(par[0]);
         if (!g) return;
         var mexeu = false;
