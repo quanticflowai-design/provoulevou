@@ -1819,6 +1819,10 @@
                 }
 
                 if (!src || src.includes('data:image')) return;
+                // Magazord: a miniatura (?ims=fit-in/96x96) vinha primeiro e ia como referencia da prova;
+                // sem o ?ims o CDN entrega a foto inteira.
+                if (/[?&]ims=fit-in\/\d{1,3}x\d{1,3}/.test(src)) return;
+                if (/cdn\.magazord\.com\.br/.test(src)) src = src.split('?')[0];
 
                 const lowerSrc = src.toLowerCase();
                 const invalidKeywords = ['provador', 'logo', 'provoulevou', 'icon', 'play', 'video', 'transparent', 'placeholder', 'blank', 'spacer'];
@@ -2511,6 +2515,7 @@
                 if (!userPickedPhoto && !plVariantImage()) {
                     try { prodImg = (await plFotoEstudio([prodImg].concat(extractImages()))) || prodImg; } catch (e) {}
                 }
+                if (/cdn\.magazord\.com\.br/.test(prodImg)) prodImg = prodImg.split('?')[0];
                 const prodName = plNomeProduto();
 
                 uploadStep.style.display = 'none';
@@ -2617,7 +2622,7 @@ const fd = new FormData();
                     if (_lkLink) _lkLink.style.display = 'none';
                     if (plLook && _primaryDone) {
                         try {
-                            const _b2 = await fetch(plLook.img).then(r => r.blob());
+                            const _b2 = await fetch(String(plLook.img).split('?')[0]).then(r => r.blob());
                             if (_b2 && /^image\//i.test(_b2.type)) {
                                 const _b64 = await new Promise((resolve, reject) => {
                                     const _r = new FileReader();
