@@ -20,7 +20,7 @@
   .status { margin-left:auto; text-align:right; color:var(--sec); font-size:1.05rem; line-height:1.35; white-space:nowrap; }
   .relogio { font-size:1.75rem; font-weight:700; color:var(--texto); }
   .status.atrasado .atualizado { color:var(--alerta); font-weight:600; }
-  .kpis { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr 1fr; gap:1rem; }
+  .kpis { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:1rem; }
   .kpi { background:var(--card); border:.0625rem solid var(--linha); border-radius:1rem; padding:1.1rem 1.5rem; min-width:0; }
   .kpi span { display:block; color:var(--sec); font-size:1.1rem; }
   .kpi strong { display:block; font-size:2.25rem; line-height:1.55; font-weight:700; letter-spacing:-.02em; margin-top:.25rem; white-space:nowrap; }
@@ -33,13 +33,12 @@
   h2 small { font-size:1rem; font-weight:400; color:var(--mudo); }
   table { width:100%; border-collapse:collapse; table-layout:fixed; }
   th { color:var(--mudo); font-size:1rem; font-weight:500; text-align:right; padding:.3rem .5rem; }
-  td { font-size:1.4rem; text-align:right; padding:0 .5rem; height:3.95rem; border-top:.0625rem solid var(--linha); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  th:nth-child(1), td:nth-child(1) { width:3.25rem; text-align:left; color:var(--mudo); }
-  th:nth-child(2), td:nth-child(2) { width:24%; text-align:left; }
-  th:nth-child(3) { width:17%; } th:nth-child(4), th:nth-child(5) { width:9%; } th:nth-child(6) { width:12%; } th:nth-child(7) { width:18%; }
-  td:nth-child(2) { font-weight:600; }
-  td:nth-child(3) { color:var(--roxo2); font-weight:700; }
-  .graficos { display:grid; grid-template-rows:1fr 1fr; gap:1rem; min-height:0; }
+  td { font-size:1.5rem; text-align:right; padding:0 .5rem; height:5.1rem; border-top:.0625rem solid var(--linha); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  th:nth-child(1), td:nth-child(1) { width:30%; text-align:left; }
+  th:nth-child(2) { width:20%; } th:nth-child(3) { width:13%; } th:nth-child(4) { width:15%; } th:nth-child(5) { width:22%; }
+  td:nth-child(1) { font-weight:600; }
+  td:nth-child(2) { color:var(--roxo2); font-weight:700; }
+  .graficos { display:grid; grid-template-rows:1fr; min-height:0; }
   .grafico { flex:1; min-height:0; }
   svg { display:block; width:100%; height:100%; }
   svg text { font-family:inherit; }
@@ -68,8 +67,7 @@
       <div id="ranking"></div>
     </section>
     <div class="graficos">
-      <section><h2>Faturamento via provador por dia <small>últimos 30 dias</small></h2><div class="grafico" id="gFat"></div></section>
-      <section><h2>Provas por dia <small>últimos 30 dias</small></h2><div class="grafico" id="gProvas"></div></section>
+      <section><h2>Via provador por dia <small>últimos 30 dias</small></h2><div class="grafico" id="gFat"></div></section>
     </div>
   </main>
 <script>
@@ -80,7 +78,7 @@ try { if (TOKEN) localStorage.setItem('pl-tv-token', TOKEN); else TOKEN = localS
 const FONTE = params.get('fonte') || (TOKEN ? 'https://n8n.segredosdodrop.com/webhook/pl-tv-painel?t=' + encodeURIComponent(TOKEN) : 'snapshot.json');
 if (!Element.prototype.replaceChildren) Element.prototype.replaceChildren = function () { this.textContent = ''; this.append.apply(this, arguments); };
 const PERIODOS = [['hoje','Hoje'],['ontem','Ontem'],['d7','7 dias'],['d30','30 dias'],['tudo','Tudo']];
-const POR_PAGINA = 10, TROCA_PAGINA_MS = 15000, RECARREGA_MS = 60000, ATRASO_MIN = 20;
+const POR_PAGINA = 8, TROCA_PAGINA_MS = 15000, RECARREGA_MS = 60000, ATRASO_MIN = 20;
 const $ = id => document.getElementById(id);
 const el = (tag, txt, cls) => { const e = document.createElement(tag); if (txt != null) e.textContent = txt; if (cls) e.className = cls; return e; };
 const brl = v => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
@@ -113,11 +111,11 @@ function renderRanking() {
   const alvo = $('ranking'); alvo.replaceChildren();
   if (!linhas.length) { alvo.append(el('div', 'Nenhuma loja com movimento neste período.', 'vazio')); return; }
   const tb = el('table'), cab = el('tr'), corpo = el('tbody'), head = el('thead');
-  ['#','Loja','Via provador','Pedidos','Provas','Custo','Total da loja'].forEach(c => cab.append(el('th', c)));
+  ['Loja','Via provador','Provas','Custo','Total da loja'].forEach(c => cab.append(el('th', c)));
   head.append(cab); tb.append(head, corpo);
-  linhas.slice(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA).forEach((l, i) => {
+  linhas.slice(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA).forEach(l => {
     const tr = el('tr');
-    [pagina * POR_PAGINA + i + 1, l.nome, brl(l.fat_pos), num(l.ped_pos), num(l.provas), brl(l.custo), brl(l.fat_loja)].forEach(v => tr.append(el('td', v)));
+    [l.nome, brl(l.fat_pos), num(l.provas), brl(l.custo), brl(l.fat_loja)].forEach(v => tr.append(el('td', v)));
     corpo.append(tr);
   });
   alvo.append(tb);
@@ -157,12 +155,10 @@ function render() {
     kpi('Faturamento via provador', brl(t.fat_pos), `${pct(share)} do faturamento das lojas`, true),
     kpi('Faturamento das lojas', brl(t.fat_loja), `${num(t.ped_loja)} pedidos pagos`),
     kpi('Provas feitas', num(t.provas), `${comProva} lojas com prova`),
-    kpi('Meu custo total', brl(t.custo), t.fat_pos ? `${pct(t.custo / t.fat_pos * 100)} do faturamento via provador` : 'custo das provas no período'),
-    kpi('Pedidos pós-prova', num(t.ped_pos), t.ped_pos ? `ticket médio ${brl(t.fat_pos / t.ped_pos)}` : 'sem pedidos no período')
+    kpi('Meu custo total', brl(t.custo), t.fat_pos ? `${pct(t.custo / t.fat_pos * 100)} do faturamento via provador` : 'custo das provas no período')
   );
   renderRanking();
   grafico($('gFat'), 'fat_pos', brl);
-  grafico($('gProvas'), 'provas', num);
 }
 function relogio() {
   $('relogio').textContent = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', timeZone:'America/Sao_Paulo' });
