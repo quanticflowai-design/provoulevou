@@ -1630,15 +1630,19 @@
             return plLookCor(nome) || plLookNorm(nome).trim() || plLookCor(location.pathname.split('/').pop());
         }
         // A pagina traz a foto e o estoque de cada cor no JSON da loja: { preto: url, 'off white': url }
+        function plLookFotosDe(trecho) {
+            return (trecho.match(/"midia_url":"[^"]+"/g) || []).map(x => JSON.parse(x.slice(12)).split('?')[0])
+                .filter((u, i, l) => l.indexOf(u) === i && !/tabela|medida/i.test(u));
+        }
         function plLookCoresDaPagina(h) {
-            const mapa = {}, re = /"qtde_estoque":(\d+)[^{}]*?"derivacoes_produto":(\[.*?\]),"link".*?"midias":\[\{.*?"midia_url":"([^"]+)"/g;
+            const mapa = {}, re = /"qtde_estoque":(\d+)[^{}]*?"derivacoes_produto":(\[.*?\]),"link".*?"midias":\[(\{.*?\})\]/g;
             let m;
             while ((m = re.exec(h))) {
                 try {
                     const cor = JSON.parse(m[2]).find(d => /^cor$/i.test(d.deri_nome || ''));
                     if (!cor || !Number(m[1])) continue;
                     const k = plLookCor(cor.derivacao) || plLookNorm(cor.derivacao).trim();
-                    if (!mapa[k]) mapa[k] = JSON.parse('"' + m[3] + '"').split('?')[0];
+                    if (!mapa[k]) { const f = plLookFotosDe(m[3]); if (f.length) mapa[k] = f; }
                 } catch (_) {}
             }
             return mapa;
@@ -1650,7 +1654,8 @@
                 const p = Array.from(d.querySelectorAll('script[type="application/ld+json"]')).map(e => { try { return JSON.parse(e.textContent); } catch (_) { return null; } }).find(j => j && j['@type'] === 'Product');
                 if (!p || !/InStock/i.test(JSON.stringify(p.offers || ''))) return null;
                 const img = Array.isArray(p.image) ? p.image[0] : p.image;
-                return img ? { slug: s, nome: String(p.name || '').trim(), img: img, cores: plLookCoresDaPagina(h) } : null;
+                const g = /"midias":\[(\{.*?\})\]/.exec(h);
+                return img ? { slug: s, nome: String(p.name || '').trim(), img: img, cores: plLookCoresDaPagina(h), galeria: g ? plLookFotosDe(g[1]) : [] } : null;
             }).catch(() => null);
             return plLookPaginas[s];
         }
@@ -1672,7 +1677,8 @@
             const nota = o => { const cs = plLookCor(o.slug); if (cor && (cs === cor || o.cores[cor])) return 0; if (cs === 'preto' || o.cores.preto) return 1; return 2; };
             return lidos.map((o, i) => [o, i]).sort((a, b) => (nota(a[0]) - nota(b[0])) || (a[1] - b[1])).map(x => {
                 const o = x[0], igual = cor && o.cores[cor], preto = nota(o) === 1 && o.cores.preto;
-                return { slug: o.slug, nome: o.nome, img: igual || preto || o.img };
+                const fotos = igual || preto || (o.galeria.length ? o.galeria : [String(o.img).split('?')[0]]);
+                return { slug: o.slug, nome: o.nome, img: fotos[0], fotos: fotos.slice(0, 2) };
             }).slice(0, 4);
         }
         function plLookPintar() {
@@ -2595,7 +2601,7 @@ const fd = new FormData();
                             allProdImgs = _mix;
                         }
                     } catch (e) {}
-                    allProdImgs = allProdImgs.slice(0, plLook ? 1 : 4);
+                    allProdImgs = allProdImgs.filter(u => !/tabela|medida/i.test(u)).slice(0, plLook ? 2 : 4);
                     console.log('[PL Arc Sunglasses] Enviando', allProdImgs.length, 'fotos do produto');
                     // O CDN da Magazord nao libera CORS: o navegador nao baixa as fotos. Vao os links,
                     // e o gerador baixa (product_image_url + product_image_url_2/3/4).
@@ -2607,8 +2613,10 @@ const fd = new FormData();
                     const _lkLink = document.getElementById('pl-look-link');
                     if (_lkLink) _lkLink.style.display = 'none';
                     if (plLook && _primaryDone) {
-                        fd.append('product_image_url_2', String(plLook.img).split('?')[0]);
-                        fd.append('kit_json', JSON.stringify([{ nome: prodName.trim(), imgs: 1 }, { nome: plLook.nome, imgs: 1 }]));
+                        // Ate 2 fotos de cada peca, na mesma cor, na ordem que o kit_json descreve.
+                        const _f2 = (plLook.fotos && plLook.fotos.length ? plLook.fotos : [plLook.img]).map(u => String(u).split('?')[0]);
+                        _f2.forEach((u, i) => fd.append('product_image_url_' + (_urls.length + i + 1), u));
+                        fd.append('kit_json', JSON.stringify([{ nome: prodName.trim(), imgs: _urls.length }, { nome: plLook.nome, imgs: _f2.length }]));
                         fd.set('product_name', prodName.trim() + ' + ' + plLook.nome);
                         if (_lkLink) { _lkLink.href = '/' + plLook.slug; _lkLink.textContent = 'Ver também: ' + plLook.nome; _lkLink.style.display = 'flex'; }
                     }
