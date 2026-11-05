@@ -1584,7 +1584,8 @@
         // Combine com outra peca (05/11/2026, igual ao da Laeva): o gerador veste as duas pelo kit_json.
         // Magazord nao tem rota de recomendacao: as opcoes vem do sitemap e dos dados da pagina de cada produto.
         let plLook = null, plLookOps = null;
-        const PL_LOOK_ON = /[?&]pl_look=1/.test(location.search);
+        const PL_LOOK_ON = true; // liberado para todos em 05/11/2026
+        const PL_ED_ON = /[?&]pl_look=1/.test(location.search); // visual da Laeva: ainda so na previa
         const PL_CORES = ['azul marinho', 'verde oliva', 'preto', 'branco', 'marrom', 'marsala', 'azul', 'verde', 'rosa', 'vinho', 'cinza', 'bege', 'nude', 'lilas', 'roxo', 'vermelho', 'laranja', 'amarelo', 'terracota', 'caramelo'];
         function plLookNorm(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[.\-_]+/g, ' '); }
         function plLookLado(s) {
@@ -1639,7 +1640,7 @@
             const sub = document.getElementById('pl-look-sub');
             if (sub) sub.textContent = plLook ? ('Vamos provar junto: ' + plLook.nome) : 'Opcional: escolha uma e prove as duas juntas';
             const gb = document.getElementById('q-btn-generate');
-            if (gb) gb.textContent = plLook ? 'Ver o look no meu corpo' : 'Ver no meu corpo';
+            if (gb) gb.textContent = PL_ED_ON ? (plLook ? 'Ver o look no meu corpo' : 'Ver no meu corpo') : (plLook ? 'Provar o look' : 'Provar roupa');
         }
         // Visual igual ao da Laeva (05/11/2026). Por enquanto so na previa (pl_look=1).
         function plEdMontar() {
@@ -1697,9 +1698,9 @@
             document.getElementById('ed-load-tit').textContent = plLook ? 'Vestindo as 2 peças em você' : 'Vestindo a peça em você';
             document.getElementById('ed-load-sub').textContent = plNomeProduto() + (plLook ? ' + ' + plLook.nome : '');
         }
-        if (PL_LOOK_ON) { try { plEdMontar(); } catch (_) {} }
+        if (PL_ED_ON) { try { plEdMontar(); } catch (_) {} }
         async function plLookAbrir() {
-            if (PL_LOOK_ON) { try { plEdProduto(); } catch (_) {} }
+            if (PL_ED_ON) { try { plEdProduto(); } catch (_) {} }
             if (!PL_LOOK_ON || plLookOps) { plLookPintar(); return; }
             plLookOps = [];
             try { plLookOps = await plLookCarregar(); } catch (_) { plLookOps = []; }
