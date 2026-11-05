@@ -593,6 +593,8 @@
     }
     .demo-live.entrou { opacity: 1; transform: none; }
     .demo-live:hover { background: linear-gradient(150deg, rgba(255,255,255,.88) 0%, rgba(255,255,255,.6) 100%); }
+    /* somem enquanto a secao presa (Seu cliente prova a peca...) cobre a tela */
+    html.na-exp .pl-depo.entrou, html.na-exp .demo-live.entrou { opacity: 0; transform: translateY(14px) scale(.96); pointer-events: none; }
     .demo-live strong { font-family: var(--sans); font-weight: 300; font-size: 15px; line-height: 1.25; }
     .demo-orb {
       position: relative; flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; overflow: hidden;
@@ -2484,6 +2486,7 @@
           var r = ex.getBoundingClientRect();
           var dentro = r.top <= 1 && r.bottom >= innerHeight - 1 && !document.documentElement.classList.contains('menu-aberto');
           h.classList.toggle('escondido', dentro);
+          document.documentElement.classList.toggle('na-exp', dentro);
         }
       };
       addEventListener('scroll', function () { if (!pend) { pend = true; requestAnimationFrame(checa); } }, { passive: true });
