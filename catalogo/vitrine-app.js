@@ -56,6 +56,8 @@
     '.va-grade{display:grid;grid-template-columns:1fr 1fr;gap:10px}',
     '.va-card{border:0;background:#fff;padding:0;text-align:left;border-radius:16px;overflow:hidden;box-shadow:0 0 0 1px var(--brand);color:#111827;display:flex;flex-direction:column}',
     '.va-card .ft{position:relative;aspect-ratio:1;min-height:0;flex:0 0 auto;overflow:hidden;background:#fff}.va-card .ft img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.va.foto-inteira .va-card .ft img{object-fit:contain;padding:8%;box-sizing:border-box}',
+    // iPad/iPhone antigo (Safari < 15): sem suporte a proporcao por CSS a foto ficava com altura zero e o cartao sem imagem.
+    '@supports not (aspect-ratio:1/1){.va-card .ft{width:100%;height:0;padding-top:100%}.va-card .ft img{top:0;left:0}.va-card .in{width:100%;box-sizing:border-box}}',
     '.va-card .pos{position:absolute;left:8px;top:8px;background:#111827;color:#fff;font-size:12px;font-weight:800;border-radius:8px;padding:3px 8px}',
     '.va-card .fire{position:absolute;left:8px;bottom:8px;background:rgba(17,24,39,.75);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:4px 8px;display:flex;align-items:center;gap:4px}',
     '.va-card .off{position:absolute;right:8px;top:8px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;border-radius:8px;padding:3px 7px}',
