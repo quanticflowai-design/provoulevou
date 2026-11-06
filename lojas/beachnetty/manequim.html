@@ -89,7 +89,11 @@ const TABELA_LOJA = [
   { t: 'G4', busto: [140, 144], cintura: [120, 134], quadril: [154, 158] }
 ];
 const _tams = (new URLSearchParams(location.search).get('tams') || '').split(',').filter(Boolean);
-const TABELA = _tams.length ? TABELA_LOJA.filter(x => _tams.includes(x.t)) : TABELA_LOJA;
+// Equivalencia da propria tabela da loja: produto com numeracao recomenda e marca o numero da pagina.
+const NUM_LOJA = { P: '40', M: '42', G: '44', GG: '46', G1: '48', G2: '50', G3: '52', G4: '54' };
+const _num = _tams.some(x => /^\d+$/.test(x));
+const _base = _num ? TABELA_LOJA.map(x => Object.assign({}, x, { t: NUM_LOJA[x.t] })) : TABELA_LOJA;
+const TABELA = _tams.length ? _base.filter(x => _tams.includes(x.t)) : TABELA_LOJA;
 const ULTIMO = TABELA[TABELA.length - 1].t;
 const MED = { busto: { nome: 'Busto', min: 80, max: 150, v: 104 }, cintura: { nome: 'Cintura', min: 68, max: 140, v: 88 }, quadril: { nome: 'Quadril', min: 90, max: 165, v: 118 } };
 
