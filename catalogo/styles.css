@@ -1137,3 +1137,9 @@ html.tema-escuro.pv-modal .screen.active[data-screen] .terms-row,
 html.tema-escuro.pv-modal .screen.active[data-screen] .terms-row a { color: #5b5566; }
 /* "Provar agora" desabilitado legível dentro do cartão (tema escuro usava #2a2930 / #6c6a74) */
 html.pv-modal .screen.active[data-screen] .btn-primary:disabled { background: #ecebee; color: #6b6577; opacity: 1; }
+
+/* iPad/iPhone antigo (Safari < 15) nao tem aspect-ratio nem inset: a area de enviar foto ficaria com altura zero. */
+@supports not (aspect-ratio: 1 / 1) {
+  .uploader { min-height: 320px; }
+  .uploader-empty { top: 0; left: 0; right: 0; bottom: 0; }
+}
