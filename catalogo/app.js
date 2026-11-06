@@ -673,7 +673,10 @@
                 brand: '#DE9150', dark: '#C47B3D', soft: 'rgba(222,145,80,.14)', on: '#000000' },
     // Óticas Marina: azul do logo sobre branco
     oticasmarina: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E6EBF0',
-                brand: '#0A5FA8', dark: '#084B85', soft: 'rgba(10,95,168,.10)', on: '#ffffff' }
+                brand: '#0A5FA8', dark: '#084B85', soft: 'rgba(10,95,168,.10)', on: '#ffffff' },
+    // Afra Oliver: fundo azul-marinho do logo com dourado
+    afraoliver: { bg: '#021C38', card: '#0A2A4D', line: '#1F3F63',
+                brand: '#C99446', dark: '#A87A35', soft: 'rgba(201,148,70,.16)', on: '#021C38' }
   };
 
   // ─────────── Tema ───────────
