@@ -676,7 +676,10 @@
                 brand: '#0A5FA8', dark: '#084B85', soft: 'rgba(10,95,168,.10)', on: '#ffffff' },
     // Afra Oliver: fundo azul-marinho do logo com dourado
     afraoliver: { bg: '#021C38', card: '#0A2A4D', line: '#1F3F63',
-                brand: '#C99446', dark: '#A87A35', soft: 'rgba(201,148,70,.16)', on: '#021C38' }
+                brand: '#C99446', dark: '#A87A35', soft: 'rgba(201,148,70,.16)', on: '#021C38' },
+    // Intimissima: fundo preto do logo com rosa
+    intimissima: { bg: '#000000', card: '#141014', line: '#2E2430',
+                brand: '#F06BAE', dark: '#D94F97', soft: 'rgba(240,107,174,.16)', on: '#14060E' }
   };
 
   // ─────────── Tema ───────────
