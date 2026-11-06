@@ -1223,7 +1223,15 @@
       background: rgba(255,255,255,.2); box-shadow: inset 0 0 0 1px rgba(255,255,255,.45); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
     .pl-tselo i { width: 22px; height: 22px; border-radius: 50%; background: #fff; display: grid; place-items: center; }
     .pl-tselo svg { width: 13px; height: 13px; fill: none; stroke: #161614; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
-    @media (max-width: 760px) { .pl-topo { flex-direction: column; align-items: flex-start; gap: 22px; border-radius: 20px; } }
+    @media (max-width: 760px) {
+      /* celular: faixa mais limpa, so titulo e frase curta */
+      .pl-topo { flex-direction: column; align-items: flex-start; gap: 0; padding: 28px 22px 30px; border-radius: 20px;
+        background: linear-gradient(180deg, rgba(28,20,58,.32) 0%, rgba(28,20,58,.08) 70%), url("assets/recursos/planos-fundo.webp") 30% 60% / cover no-repeat #c9b8f0; }
+      .pl-rotulo { font-size: 13px; }
+      .pl-topo h2 { margin-top: 8px; font-size: 28px; }
+      .pl-topo p { margin-top: 10px; font-size: 14px; }
+      .pl-tselo { display: none; }
+    }
     .pl-grade { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
     .pl-plano { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; padding: clamp(24px, calc(2.2 * var(--vw)), 34px) clamp(20px, calc(1.8 * var(--vw)), 28px); border-radius: 22px; background: #f7f7f8; color: #161614; font-family: var(--strong); }
     .pl-plano.escuro { background: #161319; color: #fff; }
