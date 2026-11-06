@@ -1212,10 +1212,18 @@
     /* ─── PLANOS ─── */
     .planos { background: #fff; padding: clamp(80px, calc(9 * var(--vw)), 130px) 0; }
     .planos * { -webkit-text-stroke-width: 0; }
-    .pl-topo { text-align: center; margin-bottom: clamp(48px, calc(5 * var(--vw)), 72px); }
-    .pl-rotulo { display: block; font-family: var(--strong); font-weight: 500; font-size: 16px; color: #161614; }
-    .pl-topo h2 { margin: 16px auto 0; max-width: 14em; text-wrap: balance; font-family: var(--strong); font-weight: 500; font-size: clamp(38px, calc(5 * var(--vw)), 72px); line-height: 1.04; letter-spacing: -0.035em; color: #222; }
-    .pl-topo p { margin: 20px auto 0; max-width: 32em; text-wrap: balance; font-size: clamp(16px, calc(1.3 * var(--vw)), 19px); line-height: 1.5; color: #5e566e; }
+    /* topo dos planos: faixa com imagem de fundo, texto a esquerda e selo a direita */
+    .pl-topo { position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; margin-bottom: clamp(32px, calc(3.4 * var(--vw)), 48px);
+      padding: clamp(32px, calc(3.6 * var(--vw)), 52px) clamp(28px, calc(3.6 * var(--vw)), 52px); border-radius: 24px; overflow: hidden; color: #fff;
+      background: linear-gradient(100deg, rgba(28,20,58,.42) 0%, rgba(28,20,58,.16) 45%, rgba(28,20,58,0) 70%), url("assets/recursos/planos-fundo.webp") center 60% / cover no-repeat #c9b8f0; }
+    .pl-rotulo { display: block; font-family: var(--strong); font-weight: 500; font-size: 15px; color: rgba(255,255,255,.88); }
+    .pl-topo h2 { margin: 12px 0 0; max-width: 13em; text-wrap: balance; font-family: var(--strong); font-weight: 500; font-size: clamp(32px, calc(3.6 * var(--vw)), 52px); line-height: 1.05; letter-spacing: -0.035em; color: #fff; }
+    .pl-topo p { margin: 14px 0 0; max-width: 28em; text-wrap: balance; font-size: clamp(14px, calc(1.1 * var(--vw)), 16px); line-height: 1.5; color: rgba(255,255,255,.9); }
+    .pl-tselo { flex: none; display: inline-flex; align-items: center; gap: 10px; padding: 10px 16px 10px 12px; border-radius: 100px; font-family: var(--strong); font-size: 14px; color: #fff;
+      background: rgba(255,255,255,.2); box-shadow: inset 0 0 0 1px rgba(255,255,255,.45); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+    .pl-tselo i { width: 22px; height: 22px; border-radius: 50%; background: #fff; display: grid; place-items: center; }
+    .pl-tselo svg { width: 13px; height: 13px; fill: none; stroke: #161614; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+    @media (max-width: 760px) { .pl-topo { flex-direction: column; align-items: flex-start; gap: 22px; border-radius: 20px; } }
     .pl-grade { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
     .pl-plano { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; padding: clamp(24px, calc(2.2 * var(--vw)), 34px) clamp(20px, calc(1.8 * var(--vw)), 28px); border-radius: 22px; background: #f7f7f8; color: #161614; font-family: var(--strong); }
     .pl-plano.escuro { background: #161319; color: #fff; }
@@ -2005,9 +2013,12 @@
     <section class="planos" id="planos" aria-labelledby="planosTitulo">
       <div class="container">
         <div class="pl-topo">
+          <div>
           <span class="pl-rotulo">Planos</span>
           <h2 id="planosTitulo">O plano certo para cada fase da sua loja</h2>
           <p>Escolha a solução ideal e comece a converter mais hoje. 7 dias grátis para testar.</p>
+          </div>
+          <span class="pl-tselo"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></i>Instalação em 1 hora · 7 dias grátis</span>
         </div>
         <div class="pl-grade">
           <article class="pl-plano">
