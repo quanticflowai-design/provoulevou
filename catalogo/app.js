@@ -670,7 +670,10 @@
                 brand: '#8A6A14', dark: '#6B520F', soft: 'rgba(138,106,20,.10)', on: '#ffffff', cta: '#111111', ctaDark: '#000000', onCta: '#D2A63A' },
     // Brothers Óptica — cobre do logo sobre preto; fundo igual ao do logo; botão cobre com texto preto (9:1)
     brothersoptica: { bg: '#000000', card: '#111111', line: '#2B2B2B',
-                brand: '#DE9150', dark: '#C47B3D', soft: 'rgba(222,145,80,.14)', on: '#000000' }
+                brand: '#DE9150', dark: '#C47B3D', soft: 'rgba(222,145,80,.14)', on: '#000000' },
+    // Óticas Marina: azul do logo sobre branco
+    oticasmarina: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E6EBF0',
+                brand: '#0A5FA8', dark: '#084B85', soft: 'rgba(10,95,168,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
