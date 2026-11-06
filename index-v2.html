@@ -2699,7 +2699,7 @@
             var L = n * G.passo, ang = ((i * G.passo + fase * L) % L) - L / 2, u = ang / G.abre;
             var x = G.cx + Math.sin(ang) * G.rx - G.tam / 2, y = G.cy - Math.cos(ang) * G.ry - G.tam / 2;
             // surge e some com degrade de opacidade nas pontas do arco (curva suave)
-            var e = Math.max(0, Math.min(1, (1 - Math.abs(u)) / 0.5)); var op = e * e * (3 - 2 * e);
+            var e = Math.max(0, Math.min(1, (1 - Math.abs(u)) / 0.8)); var op = Math.pow(e * e * (3 - 2 * e), 1.6);
             var esc = 0.86 + 0.14 * op;
             imgs[i].style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) rotate(' + (ang * 28 + (i % 2 ? 8 : -6)).toFixed(1) + 'deg) scale(' + esc.toFixed(3) + ')';
             imgs[i].style.opacity = op.toFixed(2);
