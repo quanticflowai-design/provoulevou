@@ -1942,6 +1942,11 @@
 
   // Abre a prova virtual já com o produto escolhido
   function startTryOn(p) {
+    // Intimissima (06/11/2026): loja sem peca intima, segundo o Lucas. Se uma peca intima for cadastrada, nao gera prova.
+    if (STORE_SLUG === 'intimissima' && /(lingerie|calcinha|suti[aã]|cueca|tanga|fio[ -]?dental|biqu[ií]ni|body|corpete|espartilho|camisola|baby[ -]?doll|sensual|er[oó]tic|cinta[ -]?liga)/i.test(String((p && p.name) || ''))) {
+      toast('O provador não está disponível para esta peça.');
+      return;
+    }
     openProduct(p);       // popula os dados do produto nas telas seguintes
     resetUploader();
     show('tryon');
@@ -2204,7 +2209,7 @@
   // armação no rosto. Toda loja do catálogo hoje é ótica, então o padrão é
   // óculos e a exceção é declarada. Quando entrar uma loja de roupa, o slug
   // dela entra aqui — até existir coluna de categoria na loja (é DDL).
-  const LOJAS_ROUPA = ['lojateste', 'provoulevou', 'ayzo'];
+  const LOJAS_ROUPA = ['lojateste', 'provoulevou', 'ayzo', 'intimissima'];
   // Boné (22/10/2026): vai pro gerador de ROUPA com product_type 'bone', que troca o prompt de roupa
   // pelo de boné (mesmo boné/logo na cabeça; rosto, cabelo e fundo intactos).
   const RE_BONE = /\bbon[eé]s?\b|\bcap\b|trucker|snapback|aba reta|aba curva/i;
