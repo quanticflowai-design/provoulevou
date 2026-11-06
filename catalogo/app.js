@@ -1942,11 +1942,6 @@
 
   // Abre a prova virtual já com o produto escolhido
   function startTryOn(p) {
-    // Intimissima (06/11/2026): loja sem peca intima, segundo o Lucas. Se uma peca intima for cadastrada, nao gera prova.
-    if (STORE_SLUG === 'intimissima' && /(lingerie|calcinha|suti[aã]|cueca|tanga|fio[ -]?dental|biqu[ií]ni|body|corpete|espartilho|camisola|baby[ -]?doll|sensual|er[oó]tic|cinta[ -]?liga)/i.test(String((p && p.name) || ''))) {
-      toast('O provador não está disponível para esta peça.');
-      return;
-    }
     openProduct(p);       // popula os dados do produto nas telas seguintes
     resetUploader();
     show('tryon');
@@ -2456,6 +2451,11 @@
   }
 
   async function geraProva(tel, chave) {
+    // Intimissima (06/11/2026): loja sem peca intima, segundo o Lucas. Se uma peca intima for cadastrada, nao gera prova.
+    if (STORE_SLUG === 'intimissima' && /(lingerie|calcinha|suti[aã]|cueca|tanga|fio[ -]?dental|biqu[ií]ni|body|corpete|espartilho|camisola|baby[ -]?doll|sensual|er[oó]tic|cinta[ -]?liga)/i.test(String((current && current.name) || ''))) {
+      toast('O provador não está disponível para esta peça.');
+      return;
+    }
     _telPixel = String(tel || '');
     pixelEvento('Lead', _pxProduto(current));
     show('loading');
