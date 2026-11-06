@@ -1143,3 +1143,52 @@ html.pv-modal .screen.active[data-screen] .btn-primary:disabled { background: #e
   .uploader { min-height: 320px; }
   .uploader-empty { top: 0; left: 0; right: 0; bottom: 0; }
 }
+
+/* Foto principal + botão de acrescentar outra logo abaixo. */
+.admin-fotos-col { display: flex; flex-direction: column; gap: 10px; flex: 0 0 auto; width: 132px; }
+.admin-add-foto { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); font: 600 14px 'Hanken Grotesk', sans-serif; text-align: center; cursor: pointer; transition: border-color .15s; }
+.admin-add-foto:hover { border-color: var(--brand); }
+.admin-add-foto[hidden] { display: none; }
+@media (max-width: 599px) { .admin-fotos-col { width: 100%; } }
+.admin-interest[hidden] { display: none; }
+
+/* Cadastro no computador (06/11/2026, Lucas): duas colunas de verdade, em vez do formulário de celular. */
+html.tema-escuro .admin-fields input[type="text"], html.tema-escuro .admin-fields input[type="number"],
+html.tema-escuro .admin-fields select, html.tema-escuro .admin-fields textarea {
+  background: var(--bg); color: var(--ink); border-color: var(--line);
+}
+html.tema-escuro .admin-fields input::placeholder, html.tema-escuro .admin-fields textarea::placeholder { color: var(--muted); }
+html.tema-escuro .admin-variacao input[type="text"] { background: var(--card); }
+@media (min-width: 900px) {
+  .admin-box { max-width: 1120px; }
+  .admin-menu { flex-wrap: wrap; overflow: visible; }
+  .admin-add { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 28px; padding: 24px; align-items: start; }
+  .admin-fotos-col { width: 260px; position: sticky; top: 20px; }
+  .admin-uploader { width: 260px; height: 260px; }
+  .admin-fields { min-width: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px; }
+  .admin-fields input[type="text"], .admin-fields input[type="number"], .admin-fields select { width: 100%; height: 46px; margin: 0; }
+  .admin-fields textarea { width: 100%; margin: 0; }
+  #admin-name, .admin-fields .admin-check, .admin-fields .admin-kit, .admin-fields .admin-interest, #btn-cancel-edit { grid-column: 1 / -1; }
+  .admin-fields > #btn-save-draft, .admin-fields > #btn-add-product { grid-column: auto; order: 6; margin: 4px 0 0; }
+  .admin-fields > #btn-cancel-edit { order: 7; }
+  .admin-fields > .admin-unit-label { margin: 2px 0 -6px; }
+  .admin-fields > label[for="admin-unit"] { order: 1; }
+  .admin-fields > label[for="admin-estoque"] { order: 2; }
+  .admin-fields > #admin-unit { order: 3; }
+  .admin-fields > #admin-estoque { order: 4; }
+  .admin-fields > textarea, .admin-fields > .admin-check, .admin-fields > .admin-kit { order: 5; }
+  .admin-fields > .admin-unit-label, .admin-fields > #admin-unit, .admin-fields > #admin-estoque { grid-column: auto; }
+  .admin-fields > #btn-save-draft, .admin-fields > #btn-add-product { width: 100%; min-height: 50px; height: 50px; margin: 4px 0 0; }
+  .variant-order button:first-child { min-width: 132px; }
+  .admin-variacoes { padding: 16px; }
+  .admin-variacoes > p { font-size: 13px; }
+  .admin-variacao { flex-wrap: nowrap; gap: 10px; }
+  .admin-variacao input[type="text"] { height: 46px; }
+  .admin-variante-remover { order: 3; }
+  .variant-order { order: 2; width: auto; flex: none; }
+  .variant-order button { height: 40px; min-width: 40px; }
+  .admin-categoria-nova { display: flex; gap: 10px; align-items: center; }
+  .admin-categoria-nova input { flex: 1; min-width: 0; }
+  .admin-categoria-nova button { flex: none; width: auto; margin: 0; }
+}
+
