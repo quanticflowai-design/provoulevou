@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=164">
+  <link rel="stylesheet" href="styles.css?v=165">
 </head>
 <body>
   <div id="app">
@@ -359,6 +359,7 @@
         <div class="admin-add">
           <!-- multiple: o cliente decide melhor com 2-3 ângulos, e o gerador
                acerta mais a armação recebendo mais de uma referência. -->
+          <div class="admin-fotos-col">
           <label class="admin-uploader" id="admin-uploader">
             <input type="file" id="admin-photo" class="file-oculto" accept="image/*" multiple>
             <div id="admin-up-empty">
@@ -368,6 +369,8 @@
             <img id="admin-up-preview" alt="" hidden>
             <span class="admin-up-conta" id="admin-up-conta" hidden></span>
           </label>
+            <label class="admin-add-foto" id="admin-add-foto" for="admin-photo" hidden>+ Adicionar nova foto</label>
+          </div>
           <div class="admin-fields">
             <div class="admin-variacoes" id="admin-variacoes">
               <p>Variantes e fotos do produto</p>
@@ -382,7 +385,7 @@
                  digitava o preço cheio no 1º campo e levava "preço original deve ser maior" (Pytaia & Pytanga, 25/10/2026). -->
             <input type="text" id="admin-original-price" inputmode="decimal"
                    placeholder="Preço original (ex.: 149,90)">
-            <input type="text" id="admin-price" inputmode="decimal" placeholder="Preço promocional (opcional, menor que o original — ex.: 99,90)">
+            <input type="text" id="admin-price" inputmode="decimal" placeholder="Preço promocional (opcional)">
             <div class="admin-categorias">
               <p class="admin-categorias-tit">Categorias do produto</p>
               <p class="admin-categorias-sub">Selecione quantas quiser.</p>
@@ -739,7 +742,7 @@
   <div id="toast"></div>
 
   <script src="lentes.js?v=152"></script>
-  <script src="vitrine-app.js?v=40"></script>
-  <script src="app.js?v=199"></script>
+  <script src="vitrine-app.js?v=41"></script>
+  <script src="app.js?v=200"></script>
 </body>
 </html>
