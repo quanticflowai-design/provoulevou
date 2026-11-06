@@ -2764,7 +2764,7 @@ const fd = new FormData();
 
     // Manequim 3D (pagina isolada no iframe): recomenda pela tabela de medidas da loja e marca o tamanho na pagina.
     function plTamanhosPagina() {
-        return Array.from(document.querySelectorAll('.variacao-label')).filter(function (e) { return e.offsetParent !== null && /^(PP|P|M|G|GG|G[1-9])$/.test((e.textContent || '').trim()); });
+        return Array.from(document.querySelectorAll('.variacao-label')).filter(function (e) { return e.offsetParent !== null && /^(PP|P|M|G|GG|G[1-9]|40|42|44|46|48|50|52|54)$/.test((e.textContent || '').trim()); });
     }
     function plAbreManequim() {
         var nomes = plTamanhosPagina().map(function (e) { return e.textContent.trim(); }).filter(function (v, i, a) { return a.indexOf(v) === i; });
@@ -2818,9 +2818,9 @@ const fd = new FormData();
         // com @type Product tambem aparece nas categorias, entao nao serve aqui.
         return !!document.querySelector('meta[property="og:type"][content="og:product"]');
     }
-    // Manequim: por enquanto so na legging validada (05/11/2026, Lucas). O provador vale para a loja toda.
+    // Manequim em todos os produtos desde 06/11/2026 (Lucas): a loja usa a mesma tabela de medidas em todas as pecas.
     function plTemManequim() {
-        return window.location.pathname === '/calca-legging-plus-size-cintura-alta-basica';
+        return true;
     }
     function plTentaMontar() {
         try {
