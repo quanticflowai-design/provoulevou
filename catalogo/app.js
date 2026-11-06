@@ -3224,6 +3224,11 @@
   $('#admin-interest-type').addEventListener('change', atualizaCampoJuros);
 
   let adminFotoOcupada = false;
+  // Botão "Adicionar nova foto": aparece depois da 1ª foto e some ao chegar no limite.
+  function atualizaBotaoNovaFoto() {
+    const b = $('#admin-add-foto');
+    if (b) b.hidden = !adminFotosPreview.some(f => f.url) || adminFotosPreview.length >= MAX_FOTOS_PRODUTO;
+  }
   function sincronizaFotos() {
     adminFotosB64 = adminFotosPreview.map(f => f.b64 || '');
     adminPhotoB64 = adminFotosB64[0] || '';
@@ -3234,6 +3239,7 @@
     const conta = $('#admin-up-conta');
     conta.textContent = adminFotosPreview.length + ' fotos';
     conta.hidden = adminFotosPreview.length < 2;
+    atualizaBotaoNovaFoto();
   }
 
   async function escolheFotoVariante(foto, file) {
@@ -3263,6 +3269,7 @@
 
   function renderAdminVariacoes(fotos) {
     adminFotosPreview = fotos;
+    atualizaBotaoNovaFoto();
     const lista = $('#admin-variacoes-lista');
     lista.textContent = '';
     fotos.forEach((foto, i) => {
