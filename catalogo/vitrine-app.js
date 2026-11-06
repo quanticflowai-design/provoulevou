@@ -179,7 +179,7 @@
     '@media(min-width:900px){',
     'html.layout-app #app{max-width:1240px}',
     'html.layout-app #screen-catalog{padding-bottom:40px}',
-    'html.layout-app .screen:not(#screen-catalog):not(#screen-product){max-width:560px;margin-left:auto;margin-right:auto}',
+    'html.layout-app .screen:not(#screen-catalog):not(#screen-product):not(#screen-admin){max-width:560px;margin-left:auto;margin-right:auto}',
     '.va-perfil.so-logo{padding:24px 80px 16px}.va-perfil{padding:28px 32px 18px;gap:18px}.va-av{flex-basis:92px;width:92px;height:92px}.va-perfil h1{font-size:26px}.va-perfil p{font-size:14px}.va-acoes{top:26px;right:28px}',
     '.va-banner{margin:18px 32px 14px}.va-slide{padding:0 48px;gap:24px}.va-slide b{font-size:34px}.va-slide small{font-size:16px}.va-slide .fs{gap:12px}.va-slide .fs img{width:150px;height:150px;border-radius:18px}',
     '.va-stories{gap:22px;padding:10px 0 20px;margin:0 32px}.va-stories button{width:84px}.va-stories button span{max-width:84px;font-size:12.5px}.va-stories .r{width:80px;height:80px}',
