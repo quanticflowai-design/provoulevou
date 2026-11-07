@@ -679,7 +679,10 @@
                 brand: '#C99446', dark: '#A87A35', soft: 'rgba(201,148,70,.16)', on: '#021C38' },
     // Intimissima: fundo preto do logo com rosa
     intimissima: { bg: '#000000', card: '#141014', line: '#2E2430',
-                brand: '#F06BAE', dark: '#D94F97', soft: 'rgba(240,107,174,.16)', on: '#14060E' }
+                brand: '#F06BAE', dark: '#D94F97', soft: 'rgba(240,107,174,.16)', on: '#14060E' },
+    // Ótica Vitória (São Caetano de Odivelas/PA)
+    oticavitoriasco: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F0E2E3',
+                brand: '#D8161E', dark: '#AD1118', soft: 'rgba(216,22,30,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
