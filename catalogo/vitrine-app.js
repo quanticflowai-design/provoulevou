@@ -6,7 +6,7 @@
 (function () {
   'use strict';
   // Lojas de roupa (07/11/2026, Lucas): a vitrine nasceu para ótica. Aqui os textos de armação viram peça.
-  var _ROUPA = ['ayzo', 'intimissima'].indexOf(new URLSearchParams(location.search).get('loja') || '') >= 0;
+  var _ROUPA = ['intimissima'].indexOf(new URLSearchParams(location.search).get('loja') || '') >= 0;
   var _tx = function (s) {
     if (!_ROUPA) return s;
     return s.replace(/Provar no meu rosto/g, 'Provar em mim').replace(/no seu rosto/g, 'em você')
