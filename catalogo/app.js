@@ -2167,7 +2167,7 @@
           '<rect width="100" height="133" fill="rgba(0,0,0,.55)" mask="url(#cam-furo)"/>' +
           '<ellipse class="cam-oval" cx="50" cy="58" rx="27" ry="36"/>' +
         '</svg>' +
-        (['ayzo', 'intimissima'].indexOf(STORE_SLUG) >= 0 ? '<p class="cam-dica">Fique de frente para a câmera<br><small>Use uma foto com boa luz</small></p>' : '<p class="cam-dica">Encaixe seu rosto no contorno<br><small>Olhe para a câmera, sem óculos e com boa luz</small></p>') +
+        (['intimissima'].indexOf(STORE_SLUG) >= 0 ? '<p class="cam-dica">Fique de frente para a câmera<br><small>Use uma foto com boa luz</small></p>' : '<p class="cam-dica">Encaixe seu rosto no contorno<br><small>Olhe para a câmera, sem óculos e com boa luz</small></p>') +
       '</div>' +
       '<div class="cam-acoes"><button type="button" class="cam-disparo" aria-label="Tirar foto"><i></i></button>' +
       '<button type="button" class="cam-galeria">Enviar foto da galeria</button></div>';
@@ -2551,7 +2551,7 @@
   }
   function comprarMinhaProva(item) {
     const p = catalog.find(x => String(x.id) === String(item && item.pid));
-    if (!p) { toast(['ayzo', 'intimissima'].indexOf(STORE_SLUG) >= 0 ? 'Essa peça não está mais no catálogo.' : 'Essa armação não está mais no catálogo.'); return; }
+    if (!p) { toast(['intimissima'].indexOf(STORE_SLUG) >= 0 ? 'Essa peça não está mais no catálogo.' : 'Essa armação não está mais no catálogo.'); return; }
     current = p; fotoSel = Number(item.foto) || 0;
     comprarNoWhatsapp();
   }
