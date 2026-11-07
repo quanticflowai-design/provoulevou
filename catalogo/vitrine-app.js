@@ -5,6 +5,14 @@
 // provar, WhatsApp) vêm do app.js por PLVitrineApp.render(ctx) — aqui é só a vitrine.
 (function () {
   'use strict';
+  // Lojas de roupa (07/11/2026, Lucas): a vitrine nasceu para ótica. Aqui os textos de armação viram peça.
+  var _ROUPA = ['ayzo', 'intimissima'].indexOf(new URLSearchParams(location.search).get('loja') || '') >= 0;
+  var _tx = function (s) {
+    if (!_ROUPA) return s;
+    return s.replace(/Provar no meu rosto/g, 'Provar em mim').replace(/no seu rosto/g, 'em você')
+      .replace(/medida, lente e entrega direto com a ótica/g, 'tamanho e entrega direto com a loja')
+      .replace(/armações/g, 'peças').replace(/armação/g, 'peça');
+  };
   var CSS = [
     'html.layout-app #app{max-width:560px}',
     'html.layout-app #screen-catalog{padding:0 0 92px}',
@@ -227,7 +235,7 @@
 
   var I = function (d, fill) { return '<svg class="i" viewBox="0 0 24 24" fill="' + (fill ? 'currentColor' : 'none') + '" stroke="' + (fill ? 'none' : 'currentColor') + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
   var IC = {
-    oculos: I('<circle cx="6" cy="14" r="3.5"/><circle cx="18" cy="14" r="3.5"/><path d="M9.5 14h5"/><path d="M2.5 14 4 7.5A1.5 1.5 0 0 1 5.5 6.5H7"/><path d="M21.5 14 20 7.5a1.5 1.5 0 0 0-1.5-1h-1.5"/>'),
+    oculos: I(_ROUPA ? '<path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>' : '<circle cx="6" cy="14" r="3.5"/><circle cx="18" cy="14" r="3.5"/><path d="M9.5 14h5"/><path d="M2.5 14 4 7.5A1.5 1.5 0 0 1 5.5 6.5H7"/><path d="M21.5 14 20 7.5a1.5 1.5 0 0 0-1.5-1h-1.5"/>'),
     spark: I('<path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0l1.58 6.14a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96l-6.14 1.58a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z"/>'),
     trend: I('<path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/>'),
     home: I('<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .71-1.53l7-6a2 2 0 0 1 2.58 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),
@@ -290,8 +298,8 @@
   function slides() {
     var t = (X.tema && Array.isArray(X.tema.slides) && X.tema.slides.length) ? X.tema.slides : null;
     if (t) return t;
-    var l = [{ tipo: 'texto', titulo: 'Prove antes de comprar', sub: 'Veja a armação no seu rosto em segundos', auto: 'mais' },
-             { tipo: 'texto', titulo: 'Novidades na loja', sub: X.catalog.length + ' armações para provar', auto: 'novos', fundo: 'linear-gradient(120deg,#111,var(--brand-dark))' }];
+    var l = [{ tipo: 'texto', titulo: 'Prove antes de comprar', sub: _tx('Veja a armação no seu rosto em segundos'), auto: 'mais' },
+             { tipo: 'texto', titulo: 'Novidades na loja', sub: X.catalog.length + _tx(' armações para provar'), auto: 'novos', fundo: 'linear-gradient(120deg,#111,var(--brand-dark))' }];
     var pr = promo(); if (pr.length) l.push({ tipo: 'texto', titulo: 'Até ' + desconto(pr[0]) + '% off', sub: 'Aproveite as promoções', auto: 'promo', fundo: 'linear-gradient(120deg,#b91c1c,#ef4444)' });
     return l;
   }
@@ -358,7 +366,7 @@
       '</div>' +
       (sl.length ? '<div class="va-banner" data-bl="banner"><div class="va-trilho">' + sl.join('') + '</div><div class="va-pts"></div></div>' : '') +
       '<div class="va-stories" data-bl="categorias"></div>' +
-      '<div class="va-busca" data-bl="busca"><input type="search" placeholder="Buscar armação" aria-label="Buscar armação" autocomplete="off"><div class="va-chips"></div></div>' +
+      _tx('<div class="va-busca" data-bl="busca"><input type="search" placeholder="Buscar armação" aria-label="Buscar armação" autocomplete="off"><div class="va-chips"></div></div>') +
       '<div class="va-top" data-bl="top"><h2><span>' + IC.trend + ' Top 10 mais provados</span><small>últimos 30 dias</small></h2><div class="va-rank"></div></div>' +
       '<div class="va-sec" data-bl="grade"><h2><span class="va-tit">Todas</span><small class="va-n"></small></h2><div class="va-grade"></div></div>' +
       '</div>' +
@@ -414,7 +422,7 @@
   }
   function pintaGrade() {
     var l = lista();
-    root.querySelector('.va-grade').innerHTML = l.length ? l.map(function (p) { return card(p); }).join('') : '<p class="va-vazio">Nenhuma armação encontrada.</p>';
+    root.querySelector('.va-grade').innerHTML = l.length ? l.map(function (p) { return card(p); }).join('') : _tx('<p class="va-vazio">Nenhuma armação encontrada.</p>');
     root.querySelector('.va-n').textContent = l.length + (l.length === 1 ? ' item' : ' itens');
     root.querySelector('.va-tit').textContent = titulo();
     root.querySelector('.va-chips').innerHTML = [''].concat(X.cats).map(function (c) {
@@ -426,7 +434,7 @@
   // ─────────── Personalizar (só o dono da loja) ───────────
   // 27/10/2026 (Lucas): seção nunca é apagada — só escondida (olho) e reordenada (setas).
   // Fica salvo na loja em tema.blocos = { ordem: [...], ocultos: [...] }.
-  var BLOCOS = [['perfil', 'Perfil da loja'], ['banner', 'Banner'], ['busca', 'Busca'], ['categorias', 'Categorias'], ['top', 'Top 10 mais provados'], ['grade', 'Todas as armações']];
+  var BLOCOS = [['perfil', 'Perfil da loja'], ['banner', 'Banner'], ['busca', 'Busca'], ['categorias', 'Categorias'], ['top', 'Top 10 mais provados'], ['grade', _tx('Todas as armações')]];
   var ED = { on: false, cfg: null, catImgs: {} };
   function cfgBlocos() {
     if (ED.cfg) return ED.cfg;
@@ -535,7 +543,7 @@
       '<div class="topo">' + (L.logo ? '<img src="' + esc(typeof X.tema.soLogo === 'string' ? X.tema.soLogo : L.logo) + '" alt="">' : '<b>' + esc(L.nome) + '</b>') + '<button type="button" class="va-ico" data-m="fechar" aria-label="Fechar">' + IC.fechar + '</button></div>' +
       '<button type="button" class="it" data-m="inicio">' + IC.home + ' Início</button>' +
       '<button type="button" class="it" data-m="provas">' + IC.sacola + ' Minhas provas <small>' + minhas().length + '</small></button>' +
-      '<button type="button" class="it" data-m="busca">' + IC.busca + ' Buscar armação</button>' +
+      '<button type="button" class="it" data-m="busca">' + IC.busca + _tx(' Buscar armação</button>') +
       (wa ? '<a class="it" href="' + esc(wa) + '" target="_blank" rel="noopener">' + IC.wa.replace('<svg', '<svg class="i" fill="currentColor"') + ' Falar com a loja</a>' : '') +
       (X.cats.length ? '<div class="sep">Categorias</div>' + X.cats.map(function (c) { return '<button type="button" class="it cat" data-m="cat" data-c="' + esc(c) + '">' + esc(c) + '</button>'; }).join('') : '') +
       '<div class="sep">Loja</div><button type="button" class="it cat" data-m="admin">' + IC.gear + ' Área do lojista</button>' +
@@ -566,7 +574,7 @@
           (x.preco ? '<span class="pr">' + X.brl(x.preco) + '</span>' : '') + '<span class="qd">Provado em ' + d.toLocaleDateString('pt-BR') + '</span>' +
           '<button type="button" class="comprar" data-pv="comprar" data-i="' + i + '">Comprar</button></div></div>';
       }).join('') + '</div>'
-        : '<div class="vazio"><b>Você ainda não provou nenhuma armação.</b><br>Escolha uma armação e toque em Provar: suas provas ficam guardadas aqui.<br><button type="button" data-pv="fechar">Ver armações</button></div>');
+        : _tx('<div class="vazio"><b>Você ainda não provou nenhuma armação.</b><br>Escolha uma armação e toque em Provar: suas provas ficam guardadas aqui.<br><button type="button" data-pv="fechar">Ver armações</button></div>'));
     p.classList.add('on'); p.scrollTop = 0; document.body.style.overflow = 'hidden';
   }
   function fechaProvas() { var p = document.getElementById('va-provas'); if (p) p.classList.remove('on'); document.body.style.overflow = ''; }
@@ -650,15 +658,15 @@
     var parcTxt = par > 1 ? 'ou <b>' + par + 'x de ' + X.brl(ctx.valorParcela(p, par)) + '</b> ' + (juros ? 'com juros' : 'sem juros') : (par === 1 ? 'à vista' : '&nbsp;');
     var rel = X.catalog.filter(function (x) { return x.id !== p.id && x.img && cat && X.temCat(x, cat); }).slice(0, 8);
     if (rel.length < 4) rel = rel.concat(X.catalog.filter(function (x) { return x.id !== p.id && x.img && rel.indexOf(x) < 0; }).slice(0, 8 - rel.length));
-    var GAR = [[IP.olho, 'Prove antes de comprar', 'Veja a armação no seu rosto com uma foto, sem sair de casa.'],
-               [IP.balao, 'Atendimento pelo WhatsApp', 'Tire dúvidas de medida, lente e entrega direto com a ótica.'],
+    var GAR = [[IP.olho, 'Prove antes de comprar', _tx('Veja a armação no seu rosto com uma foto, sem sair de casa.')],
+               [IP.balao, 'Atendimento pelo WhatsApp', _tx('Tire dúvidas de medida, lente e entrega direto com a ótica.')],
                [IP.escudo, 'Compra direto com a ' + esc(L.nome), 'Você combina pagamento e entrega com a própria loja.']];
     el.innerHTML =
       '<div class="vp-cab"><div class="vp-topo"><button type="button" class="va-ico" data-vp="volta" aria-label="Voltar">' + IP.volta + '</button>' +
         '<div class="vp-marca" data-vp="volta">' + (L.logo ? '<img src="' + esc(typeof X.tema.soLogo === 'string' ? X.tema.soLogo : L.logo) + '" alt="' + esc(L.nome) + '">' : '<b>' + esc(L.nome) + '</b>') + '</div>' +
         '<button type="button" class="va-ico va-sacola" data-vp="provas" aria-label="Minhas provas">' + IC.sacola + '<b class="va-qtd" hidden></b></button></div>' +
         // busca só na página do produto (27/10, Lucas): Enter leva pra vitrine filtrada
-        '<form class="vp-busca" data-vp-form><input type="search" enterkeyhint="search" placeholder="Buscar armação" aria-label="Buscar armação"></form></div>' +
+        _tx('<form class="vp-busca" data-vp-form><input type="search" enterkeyhint="search" placeholder="Buscar armação" aria-label="Buscar armação"></form></div>') +
       '<div class="vp-corpo">' +
         '<div class="vp-trilha"><a data-vp="volta">Início</a>' + (cat ? '<span>›</span><a data-vp="cat">' + esc(cat) + '</a>' : '') + '<span>›</span>' + esc(p.name) + '</div>' +
         '<div class="vp-gal"><div class="vp-principal"><img class="vp-foto" src="' + esc(MINI(fotos[0] ? fotos[0].url : p.img, 900)) + '" alt="' + esc(p.name) + '">' + (d ? '<span class="vp-selo">-' + d + '%</span>' : '') + '<button type="button" class="vp-selo-pv" data-vp="provar" aria-label="Abrir o provador virtual"><img src="' + SELO + '" alt="Provador virtual"></button></div>' +
@@ -668,7 +676,7 @@
           (n ? '<span class="vp-prova">' + IC.trend + ' ' + n + (n === 1 ? ' pessoa já provou' : ' pessoas já provaram') + '</span>' : '') +
           '<div class="vp-precos"><span class="vp-p">' + X.brl(X.preco(p)) + '</span>' + (d ? '<span class="vp-d">' + X.brl(p.originalPrice) + '</span><span class="vp-eco">Economize ' + X.brl(Number(p.originalPrice) - X.preco(p)) + '</span>' : '') + '</div>' +
           '<div class="vp-parc">' + parcTxt + '</div>' +
-          '<button type="button" class="vp-provar" data-vp="provar">' + IC.oculos + ' Provar no meu rosto</button>' +
+          '<button type="button" class="vp-provar" data-vp="provar">' + IC.oculos + _tx(' Provar no meu rosto</button>') +
           (L.whatsapp ? '<button type="button" class="vp-wa" data-vp="comprar">Comprar pelo WhatsApp ' + IC.wa + '</button>' : '') +
           '<div class="vp-gar">' + GAR.map(function (g) { return '<div>' + g[0] + '<span><b>' + g[1] + '</b>' + g[2] + '</span></div>'; }).join('') + '</div>' +
           (p.desc ? '<details class="vp-sec" open><summary>Descrição</summary><div class="vp-txt">' + esc(p.desc) + '</div></details>' : '') +
@@ -679,7 +687,7 @@
             (p.unit ? '<tr><td>Unidade</td><td>' + esc(p.unit) + '</td></tr>' : '') +
             '<tr><td>Vendido por</td><td>' + esc(L.nome) + '</td></tr></table></details>' +
           '<details class="vp-sec"><summary>Como funciona a prova virtual</summary><div class="vp-passos">' +
-            '<div><i>1</i>Toque em “Provar no meu rosto”.</div><div><i>2</i>Tire ou envie uma foto de frente.</div><div><i>3</i>Veja a armação em você e chame a loja no WhatsApp.</div></div></details>' +
+            _tx('<div><i>1</i>Toque em “Provar no meu rosto”.</div><div><i>2</i>Tire ou envie uma foto de frente.</div><div><i>3</i>Veja a armação em você e chame a loja no WhatsApp.</div></div></details>') +
         '</div>' +
       '</div>' +
       (rel.length ? '<div class="vp-relw"><h3>Você também pode gostar</h3><div class="vp-relg">' + rel.map(function (r) {
