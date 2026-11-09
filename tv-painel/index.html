@@ -17,6 +17,8 @@
   nav { display:flex; gap:.5rem; }
   nav button { font:inherit; font-size:1.25rem; font-weight:600; color:var(--sec); background:var(--card); border:.125rem solid var(--linha); border-radius:.75rem; padding:.6rem 1.5rem; }
   nav button.ativo { background:var(--roxo); border-color:var(--roxo); color:#fff; }
+  #ocultar { font:inherit; font-size:1.1rem; font-weight:600; color:var(--sec); background:var(--card); border:.125rem dashed var(--linha); border-radius:.75rem; padding:.55rem 1.1rem; white-space:nowrap; }
+  #ocultar.ligado { color:var(--roxo); border:.125rem solid var(--roxo); }
   .status { margin-left:auto; text-align:right; color:var(--sec); font-size:1.05rem; line-height:1.35; white-space:nowrap; }
   .relogio { font-size:1.75rem; font-weight:700; color:var(--texto); }
   .status.atrasado .atualizado { color:var(--alerta); font-weight:600; }
@@ -62,6 +64,7 @@
   <header>
     <img class="marca" src="logo.png" alt="Provou Levou">
     <nav id="abas" aria-label="Período"></nav>
+    <button id="ocultar" tabindex="-1" type="button"></button>
     <div class="status" id="status"><div class="relogio" id="relogio"></div><div class="atualizado" id="atualizado">Carregando…</div></div>
   </header>
   <div class="kpis" id="kpis"></div>
@@ -89,8 +92,18 @@ const el = (tag, txt, cls) => { const e = document.createElement(tag); if (txt !
 const brl = v => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
 const num = v => Math.round(v).toLocaleString('pt-BR');
 const pct = v => v.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
-let dados = null, periodo = 'hoje', pagina = 0;
+let dados = null, periodo = 'hoje', pagina = 0, ocultar = false, ultTarefas = null;
 try { const p = localStorage.getItem('pl-tv-periodo'); if (PERIODOS.some(x => x[0] === p)) periodo = p; } catch (e) {}
+try { ocultar = localStorage.getItem('pl-tv-ocultar') === '1'; } catch (e) {}
+// Com "Ocultar nomes" ligado, cada cliente vira "Loja N"/"Cliente N" pela posição na lista.
+const nomeVisivel = (nome, prefixo, i) => ocultar ? `${prefixo} ${i + 1}` : nome;
+function alternarOcultar() {
+  ocultar = !ocultar;
+  try { localStorage.setItem('pl-tv-ocultar', ocultar ? '1' : '0'); } catch (e) {}
+  render();
+  if (ultTarefas) renderTarefas(ultTarefas);
+}
+$('ocultar').addEventListener('click', alternarOcultar);
 
 PERIODOS.forEach(([k, nome]) => { const b = el('button', nome); b.dataset.k = k; b.tabIndex = -1; $('abas').appendChild(b); });
 
@@ -121,10 +134,10 @@ function renderClientes() {
   const tb = el('table'), cab = el('tr'), corpo = el('tbody'), head = el('thead');
   ['Cliente','Plano mensal','Última mensalidade','Recebido em 30 dias'].forEach(c => cab.append(el('th', c)));
   head.append(cab); tb.append(head, corpo);
-  linhas.slice(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA).forEach(l => {
+  linhas.slice(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA).forEach((l, i) => {
     const tr = el('tr');
     const ultima = l.ult_data ? `${l.ult_data.slice(8, 10)}/${l.ult_data.slice(5, 7)} · ${brl(l.ult_valor || 0)}` : 'Sem lançamento';
-    [l.nome, brl(l.valor), ultima, brl(l.rec30)].forEach(v => tr.append(el('td', v)));
+    [nomeVisivel(l.nome, 'Cliente', pagina * POR_PAGINA + i), brl(l.valor), ultima, brl(l.rec30)].forEach(v => tr.append(el('td', v)));
     corpo.append(tr);
   });
   alvo.append(tb);
@@ -140,9 +153,9 @@ function renderRanking() {
   const tb = el('table'), cab = el('tr'), corpo = el('tbody'), head = el('thead');
   ['Loja','Via provador','Provas','Custo','Total da loja'].forEach(c => cab.append(el('th', c)));
   head.append(cab); tb.append(head, corpo);
-  linhas.slice(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA).forEach(l => {
+  linhas.slice(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA).forEach((l, i) => {
     const tr = el('tr');
-    [l.nome, brl(l.fat_pos), num(l.provas), brl(l.custo), brl(l.fat_loja)].forEach(v => tr.append(el('td', v)));
+    [nomeVisivel(l.nome, 'Loja', pagina * POR_PAGINA + i), brl(l.fat_pos), num(l.provas), brl(l.custo), brl(l.fat_loja)].forEach(v => tr.append(el('td', v)));
     corpo.append(tr);
   });
   alvo.append(tb);
@@ -175,6 +188,8 @@ function grafico(alvo, campo, fmt) {
 }
 function render() {
   document.querySelectorAll('#abas button').forEach(b => b.classList.toggle('ativo', b.dataset.k === periodo));
+  $('ocultar').textContent = ocultar ? '🙈 Nomes ocultos' : '👁 Ocultar nomes';
+  $('ocultar').classList.toggle('ligado', ocultar);
   if (!dados) return;
   const t = somar(), comProva = dados.lojas.filter(l => !l.outras && l.periodos[periodoDados()].provas > 0).length;
   const share = t.fat_loja ? t.fat_pos / t.fat_loja * 100 : 0, n = dados.negocio;
@@ -192,14 +207,17 @@ function render() {
 }
 const MAX_TAREFAS = 5;
 function renderTarefas(d) {
+  ultTarefas = d;
   const alvo = $('tarefas'), lista = d.tarefas || [];
   const atrasadas = lista.filter(t => t.prazo < d.hoje).length;
   $('tarefasResumo').textContent = lista.length ? `${lista.length - atrasadas} para hoje · ${atrasadas} atrasada${atrasadas === 1 ? '' : 's'}` : '';
   alvo.replaceChildren();
   if (!lista.length) { alvo.append(el('div', 'Nenhuma tarefa para hoje.', 'vazio')); return; }
   const visiveis = lista.length > MAX_TAREFAS ? lista.slice(0, MAX_TAREFAS - 1) : lista;
-  visiveis.forEach(t => {
+  visiveis.forEach((t, i) => {
     const atrasada = t.prazo < d.hoje;
+    // Título de tarefa costuma ter o nome do cliente: some junto com os nomes.
+    if (ocultar) t = Object.assign({}, t, { titulo: `Tarefa ${i + 1}` });
     const quando = atrasada ? 'Atrasada · ' + t.prazo.slice(8, 10) + '/' + t.prazo.slice(5, 7) : (t.hora ? 'Hoje · ' + t.hora : 'Hoje');
     const linha = el('div', null, 'tarefa');
     linha.append(el('span', t.titulo), el('small', quando, atrasada ? 'atrasada' : ''));
@@ -249,6 +267,7 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'ArrowLeft') trocarPeriodo(-1);
   else if (e.key === 'ArrowDown') { pagina++; renderRanking(); reiniciaPaginas(); }
   else if (e.key === 'ArrowUp') { pagina--; renderRanking(); reiniciaPaginas(); }
+  else if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 23) alternarOcultar();
   else return;
   e.preventDefault();
 });
