@@ -682,7 +682,10 @@
                 brand: '#F06BAE', dark: '#D94F97', soft: 'rgba(240,107,174,.16)', on: '#14060E' },
     // Ótica Vitória (São Caetano de Odivelas/PA)
     oticavitoriasco: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F0E2E3',
-                brand: '#D8161E', dark: '#AD1118', soft: 'rgba(216,22,30,.10)', on: '#ffffff' }
+                brand: '#D8161E', dark: '#AD1118', soft: 'rgba(216,22,30,.10)', on: '#ffffff' },
+    // Império dos Óculos — dourado da coroa sobre preto; fundo igual ao do logo; botão dourado com texto preto
+    imperiodosoculos: { bg: '#000000', card: '#111111', line: '#2B2B2B',
+                brand: '#DEAC2F', dark: '#C4951F', soft: 'rgba(222,172,47,.14)', on: '#000000' }
   };
 
   // ─────────── Tema ───────────
