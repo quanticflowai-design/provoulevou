@@ -1201,3 +1201,15 @@ html.tema-escuro .admin-variacao input[type="text"] { background: var(--card); }
 .admin-filtro-status button.on { background:var(--brand); border-color:var(--brand); color:var(--on-brand); }
 .admin-filtro-vazio { font-size:13px; color:var(--muted); margin:8px 0; }
 .admin-list .admin-item[hidden] { display:none !important; }
+
+/* 09/11/2026: tela "Gerando prova virtual" no modal (layout app): conteudo centralizado, indicador girando e logo legivel */
+html.pv-modal-gerando #screen-loading.active { display:flex !important; flex-direction:column; justify-content:center; min-height:100%; }
+html.pv-modal-gerando #screen-loading .loading-box { flex:1; width:100%; min-height:0 !important; padding:44px 28px 40px; justify-content:center; }
+html.pv-modal-gerando .loading-box::before { content:""; width:56px; height:56px; border-radius:50%; border:4px solid var(--pl-brand-soft); border-top-color:var(--pl-brand); animation:pl-gira 1s linear infinite; margin-bottom:22px; }
+@keyframes pl-gira { to { transform:rotate(360deg); } }
+html.pv-modal-gerando .loading-alt { height:34px; margin-bottom:16px; }
+html.pv-modal-gerando .alt-t1 { font-size:14px; }
+html.pv-modal-gerando .alt-t2 span { font-size:11px; }
+html.pv-modal-gerando .alt-t2 img { height:24px; opacity:1; }
+html.pv-modal-gerando .loading-box .progress { height:6px; border-radius:99px; max-width:260px; }
+@media (prefers-reduced-motion: reduce) { html.pv-modal-gerando .loading-box::before { animation:none; } }
