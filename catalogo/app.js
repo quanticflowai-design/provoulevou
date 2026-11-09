@@ -774,7 +774,7 @@
   // salvar/restaurar as cores no painel não pode apagar o layout escolhido
   function extrasDoTema() {
     const t0 = (storeRow && storeRow.tema) || {}, x = {};
-    ['layout', 'catImgs', 'blocos', 'slides', 'soLogo', 'fotoInteira'].forEach(k => { if (t0[k] != null) x[k] = t0[k]; });
+    ['layout', 'catImgs', 'blocos', 'slides', 'soLogo', 'fotoInteira', 'msgWhats'].forEach(k => { if (t0[k] != null) x[k] = t0[k]; });
     return x;
   }
   function aplicaTema(cor) {
@@ -3188,7 +3188,32 @@
       list.appendChild(item);
     });
     atualizaSelecao();
+    aplicaFiltroAdmin();
   }
+  // 09/11/2026: busca por nome/categoria e filtro Todos/Publicados/Rascunhos (só esconde; ordem e índices seguem iguais)
+  let filtroAdmin = 'todos';
+  function semAcento(t) { return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+  function aplicaFiltroAdmin() {
+    const busca = $('#admin-busca'), lista = $('#admin-list'); if (!lista) return;
+    const q = semAcento(busca ? busca.value.trim() : '');
+    let visiveis = 0;
+    lista.querySelectorAll('.admin-item').forEach(el => {
+      const p = adminCatalog.find(x => String(x.id) === el.dataset.pid);
+      let ok = !!p;
+      if (ok && filtroAdmin === 'rascunhos') ok = !p.active;
+      if (ok && filtroAdmin === 'publicados') ok = !!p.active;
+      if (ok && q) ok = semAcento([p.name, p.category, p.categoria, p.categoria_vitrine].join(' ')).includes(q);
+      el.hidden = !ok; if (ok) visiveis++;
+    });
+    const vazio = $('#admin-filtro-vazio'); if (vazio) vazio.hidden = visiveis > 0 || !adminCatalog.length;
+  }
+  document.addEventListener('input', e => { if (e.target && e.target.id === 'admin-busca') aplicaFiltroAdmin(); });
+  document.addEventListener('click', e => {
+    const b = e.target && e.target.closest && e.target.closest('.admin-filtro-status button'); if (!b) return;
+    filtroAdmin = b.dataset.filtro || 'todos';
+    document.querySelectorAll('.admin-filtro-status button').forEach(x => x.classList.toggle('on', x === b));
+    aplicaFiltroAdmin();
+  });
   let reordenando = false;
   async function moveProduct(indice, dir) {
     if (reordenando) return;

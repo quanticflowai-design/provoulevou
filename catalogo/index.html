@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=166">
+  <link rel="stylesheet" href="styles.css?v=167">
 </head>
 <body>
   <div id="app">
@@ -697,6 +697,15 @@
         <div class="admin-aba" data-aba="produtos" role="tabpanel">
         <button type="button" class="btn-primary admin-aba-novo" id="btn-aba-novo">+ Cadastrar produto</button>
         <p class="admin-count" id="admin-count"></p>
+        <div class="admin-filtros">
+          <input type="search" id="admin-busca" placeholder="Buscar produto pelo nome ou categoria" aria-label="Buscar produto">
+          <div class="admin-filtro-status" role="group" aria-label="Filtrar por situação">
+            <button type="button" class="on" data-filtro="todos">Todos</button>
+            <button type="button" data-filtro="publicados">Publicados</button>
+            <button type="button" data-filtro="rascunhos">Rascunhos</button>
+          </div>
+        </div>
+        <p class="admin-filtro-vazio" id="admin-filtro-vazio" hidden>Nenhum produto encontrado com esse filtro.</p>
         <div class="bulk-toolbar">
           <label><input type="checkbox" id="bulk-all"> Selecionar todos</label>
           <span id="bulk-count">0 selecionados</span>
@@ -742,7 +751,7 @@
   <div id="toast"></div>
 
   <script src="lentes.js?v=152"></script>
-  <script src="vitrine-app.js?v=45"></script>
-  <script src="app.js?v=209"></script>
+  <script src="vitrine-app.js?v=46"></script>
+  <script src="app.js?v=210"></script>
 </body>
 </html>

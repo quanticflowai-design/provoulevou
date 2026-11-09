@@ -349,7 +349,7 @@
     b.querySelector('.va-pts').addEventListener('click', function (e) { var i = [].indexOf.call(this.children, e.target); if (i >= 0) { vaiBanner(i); autoBanner(); } });
   }
   function monta() {
-    var L = X.loja, wa = L.whatsapp ? 'https://wa.me/' + String(L.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent('Olá! Vim pelo catálogo da ' + L.nome + '.') : '';
+    var L = X.loja, wa = L.whatsapp ? 'https://wa.me/' + String(L.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent((X.tema && X.tema.msgWhats) || ('Olá! Vim pelo catálogo da ' + L.nome + '.')) : '';
     // 28/10 (Lucas): Instagram da loja no rodapé, antes do WhatsApp (tema.instagram)
     var ig = X.tema && typeof X.tema.instagram === 'string' && /^https:\/\/(www\.)?instagram\.com\//.test(X.tema.instagram) ? X.tema.instagram : '';
     var sl = slides().map(slideHTML).filter(Boolean); ban.n = Math.max(sl.length, 1);
@@ -530,7 +530,7 @@
   }
 
   // ─────────── Menu lateral e "Minhas provas" ───────────
-  function waLink() { var L = X.loja; return L.whatsapp ? 'https://wa.me/' + String(L.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent('Olá! Vim pelo catálogo da ' + L.nome + '.') : ''; }
+  function waLink() { var L = X.loja; return L.whatsapp ? 'https://wa.me/' + String(L.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent((X.tema && X.tema.msgWhats) || ('Olá! Vim pelo catálogo da ' + L.nome + '.')) : ''; }
   function minhas() { try { return (X.minhasProvas && X.minhasProvas()) || []; } catch (e) { return []; } }
   function pintaQtd() {
     var n = minhas().length;
