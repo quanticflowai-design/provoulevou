@@ -685,7 +685,13 @@
                 brand: '#D8161E', dark: '#AD1118', soft: 'rgba(216,22,30,.10)', on: '#ffffff' },
     // Império dos Óculos — dourado da coroa sobre preto; fundo igual ao do logo; botão dourado com texto preto
     imperiodosoculos: { bg: '#000000', card: '#111111', line: '#2B2B2B',
-                brand: '#DEAC2F', dark: '#C4951F', soft: 'rgba(222,172,47,.14)', on: '#000000' }
+                brand: '#DEAC2F', dark: '#C4951F', soft: 'rgba(222,172,47,.14)', on: '#000000' },
+    // Rezzi Óculos (catálogo da loja Nuvemshop) — cinza do logo sobre preto, igual ao site; botão cinza com texto preto
+    rezzi: { bg: '#000000', card: '#111111', line: '#2B2B2B',
+                brand: '#CBC8C8', dark: '#B3AFAF', soft: 'rgba(203,200,200,.12)', on: '#000000' },
+    // Ótica Genérica Express — vermelho do logo (fechado p/ 5,2:1) sobre branco; logo invertido p/ vermelho no branco
+    oticagenericaexpress: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F3DCDB',
+                brand: '#C83734', dark: '#A82D2A', soft: 'rgba(200,55,52,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
