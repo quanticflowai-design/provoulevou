@@ -2301,8 +2301,11 @@
       // Telefone/loja que a função não reconheceu não zera o contador local.
       if (!d || d.erro) return null;
       // DDD fora da área atendida pela loja (14/10/2026, pl_catalog_stores.ddds_permitidos): não prova
-      if (d.pausado) { _provPausado = true; absorveServidor(tel, 999); return 999; }
-      if (d.ddd_bloqueado) { _dddBloq[tel] = (d.ddds || []).join(', '); absorveServidor(tel, 999); return 999; }
+      if (d.pausado) { _provPausado = true; return 999; }   // 09/11/2026: pausa NAO vira contador do dia (prendia o cliente depois que a loja voltava)
+      if (d.ddd_bloqueado) { _dddBloq[tel] = (d.ddds || []).join(', '); return 999; }
+      _provPausado = false;
+      // 09/11/2026: limpa a marca 999 que versoes antigas gravavam na pausa ou no DDD bloqueado
+      if (provasLocais(tel) >= 999) { const _o = lerProvas(); delete _o.tel[tel]; salvarProvas(_o); }
       delete _dddBloq[tel];
       // franquia definida no banco (por loja) vence a constante local.
       // ilimitado=true (limite_diario NULL na loja) = sem teto — Satika foi a 1ª.
