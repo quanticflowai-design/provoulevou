@@ -691,7 +691,19 @@
                 brand: '#CBC8C8', dark: '#B3AFAF', soft: 'rgba(203,200,200,.12)', on: '#000000' },
     // Ótica Genérica Express — vermelho do logo (fechado p/ 5,2:1) sobre branco; logo invertido p/ vermelho no branco
     oticagenericaexpress: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F3DCDB',
-                brand: '#C83734', dark: '#A82D2A', soft: 'rgba(200,55,52,.10)', on: '#ffffff' }
+                brand: '#C83734', dark: '#A82D2A', soft: 'rgba(200,55,52,.10)', on: '#ffffff' },
+    // M Vision Ótica em Casa — fundo amarelo igual ao do logo; marca preta, texto do botão amarelo (12:1)
+    mvision: { bg: '#F7CB50', card: '#FFFFFF', line: '#E3B53F',
+                brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.08)', on: '#F7CB50' },
+    // Owhel — papel cinza-claro do logo; roxo da coroa; texto branco (10:1)
+    owhel: { bg: '#E9E9E7', card: '#FFFFFF', line: '#D6D3DA',
+                brand: '#5E2A8A', dark: '#48276E', soft: 'rgba(94,42,138,.10)', on: '#ffffff' },
+    // CJ Avelor Eyewear — dourado sobre preto, fundo igual ao do logo; botão dourado com texto preto (9:1)
+    cjavelor: { bg: '#000000', card: '#111111', line: '#2B2B2B',
+                brand: '#D9A23A', dark: '#B8862A', soft: 'rgba(217,162,58,.14)', on: '#000000' },
+    // Etiene Santos Ótica e Acessórios — roxo do logo (tema escuro), dourado; botão dourado com texto roxo-escuro
+    etienesantos: { bg: '#791680', card: '#86218D', line: '#9A3BA1',
+                brand: '#EBCB82', dark: '#D9B565', soft: 'rgba(235,203,130,.16)', on: '#3A0A3F' }
   };
 
   // ─────────── Tema ───────────
