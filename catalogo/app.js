@@ -712,7 +712,10 @@
                 brand: '#8B3014', dark: '#6E240E', soft: 'rgba(139,48,20,.10)', on: '#ffffff' },
     // Ótica Lo — fundo azul-marinho igual ao do logo (tema escuro); laranja do logo como marca; botão laranja com texto marinho (6,4:1)
     oticalo: { bg: '#22385F', card: '#2A4370', line: '#3A5482',
-                brand: '#F9AC32', dark: '#E0952A', soft: 'rgba(249,172,50,.14)', on: '#22385F' }
+                brand: '#F9AC32', dark: '#E0952A', soft: 'rgba(249,172,50,.14)', on: '#22385F' },
+    // Ótica Kamyly — logo preto sobre amarelo; fundo branco com amarelo da marca nos detalhes; botão preto com texto amarelo (12:1)
+    oticakamyly: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F1E3A6',
+                brand: '#111111', dark: '#000000', soft: 'rgba(254,200,10,.18)', on: '#FEC80A' }
   };
 
   // ─────────── Tema ───────────
