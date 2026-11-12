@@ -703,7 +703,13 @@
                 brand: '#D9A23A', dark: '#B8862A', soft: 'rgba(217,162,58,.14)', on: '#000000' },
     // Etiene Santos Ótica e Acessórios — roxo do logo (tema escuro), dourado; botão dourado com texto roxo-escuro
     etienesantos: { bg: '#791680', card: '#86218D', line: '#9A3BA1',
-                brand: '#EBCB82', dark: '#D9B565', soft: 'rgba(235,203,130,.16)', on: '#3A0A3F' }
+                brand: '#EBCB82', dark: '#D9B565', soft: 'rgba(235,203,130,.16)', on: '#3A0A3F' },
+    // GGDISK Ótica — logo preto sobre branco; fundo branco, marca preta, texto branco no botão (18:1)
+    ggdiskotica: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E6E6E6',
+                brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.06)', on: '#ffffff' },
+    // Óticas Marrô — marrom do logo sobre creme; fundo igual ao do logo; botão marrom com texto branco (8:1)
+    oticasmarro: { bg: '#F3E3C8', card: '#FBF4E8', line: '#E4CFAE',
+                brand: '#8B3014', dark: '#6E240E', soft: 'rgba(139,48,20,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
