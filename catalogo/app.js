@@ -709,7 +709,10 @@
                 brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.06)', on: '#ffffff' },
     // Óticas Marrô — marrom do logo sobre creme; fundo igual ao do logo; botão marrom com texto branco (8:1)
     oticasmarro: { bg: '#F3E3C8', card: '#FBF4E8', line: '#E4CFAE',
-                brand: '#8B3014', dark: '#6E240E', soft: 'rgba(139,48,20,.10)', on: '#ffffff' }
+                brand: '#8B3014', dark: '#6E240E', soft: 'rgba(139,48,20,.10)', on: '#ffffff' },
+    // Ótica Lo — fundo azul-marinho igual ao do logo (tema escuro); laranja do logo como marca; botão laranja com texto marinho (6,4:1)
+    oticalo: { bg: '#22385F', card: '#2A4370', line: '#3A5482',
+                brand: '#F9AC32', dark: '#E0952A', soft: 'rgba(249,172,50,.14)', on: '#22385F' }
   };
 
   // ─────────── Tema ───────────
