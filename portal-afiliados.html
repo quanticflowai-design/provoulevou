@@ -1,1 +1,283 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url=/"><title>Provou Levou</title><script>location.replace("/")</script></head><body><a href="/">Provou Levou</a></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Afiliados — Provou Levou</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HDH9028QL5"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-HDH9028QL5',{anonymize_ip:true});</script>
+<link rel="icon" type="image/jpeg" href="assets/favicon.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4"></script>
+<script src="env.js"></script>
+<style>
+:root{--bg:#f6f5f2;--card:#fff;--line:#e8e6e1;--txt:#1b1a19;--txt2:#5f5d58;--txt3:#8d8a84;--brand:#6d28d9;--brand2:#ede9fe;--ok:#0f7b52;--okbg:#e3f5ec;--warn:#9a5b00;--warnbg:#fdf1dc;--err:#b42318;--errbg:#fdecea;--r:14px}
+@media (prefers-color-scheme:dark){:root{--bg:#121212;--card:#1b1b1b;--line:#2c2c2c;--txt:#f2f1ee;--txt2:#b4b1aa;--txt3:#85827c;--brand:#a78bfa;--brand2:#2a2140;--ok:#5fd3a0;--okbg:#14291f;--warn:#f0b65a;--warnbg:#2c2112;--err:#ff8a7a;--errbg:#2e1613}}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--txt);font:15px/1.55 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--brand)}
+.wrap{max-width:1040px;margin:0 auto;padding:24px 16px 64px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px}
+.logo{font-weight:700;font-size:18px;letter-spacing:-.01em}.logo span{color:var(--brand)}
+.btn{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:10px;padding:9px 14px;font:inherit;font-weight:500;cursor:pointer}
+.btn:hover{border-color:var(--txt3)}.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}.btn.pri:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.55;cursor:default}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+h1{font-size:26px;line-height:1.25;margin:0 0 6px;letter-spacing:-.02em}h2{font-size:17px;margin:0 0 14px}
+.muted{color:var(--txt2)}.small{font-size:13px}.dim{color:var(--txt3)}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g2{grid-template-columns:1fr 1fr}
+@media (max-width:820px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
+.stat .k{font-size:12.5px;color:var(--txt2)}.stat .v{font-size:24px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+.sec{margin-top:18px}
+label{display:block;font-size:13px;color:var(--txt2);margin:10px 0 4px}
+input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--txt);font:inherit}
+input:focus{outline:2px solid var(--brand2);border-color:var(--brand)}
+.err{color:var(--err);background:var(--errbg);border-radius:10px;padding:9px 12px;font-size:13.5px;margin-top:12px;display:none}
+.okmsg{color:var(--ok);background:var(--okbg);border-radius:10px;padding:9px 12px;font-size:13.5px;margin-top:12px;display:none}
+.auth{max-width:420px;margin:6vh auto 0}
+.tabs{display:flex;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:16px}
+.tabs button{flex:1;border:0;background:none;padding:8px;border-radius:9px;font:inherit;font-weight:500;color:var(--txt2);cursor:pointer}
+.tabs button.on{background:var(--card);color:var(--txt);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.linkbox{display:flex;gap:8px;align-items:center}.linkbox input{font-size:13.5px}
+table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;font-weight:500;color:var(--txt2);font-size:12.5px;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}tr:last-child td{border-bottom:0}.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.scroll{overflow-x:auto}
+.pill{display:inline-block;font-size:12px;font-weight:500;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.p-ok{background:var(--okbg);color:var(--ok)}.p-warn{background:var(--warnbg);color:var(--warn)}.p-brand{background:var(--brand2);color:var(--brand)}
+.empty{color:var(--txt3);font-size:14px;padding:6px 0}
+.regra{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+@media (max-width:620px){.regra{grid-template-columns:1fr}}
+.nivel{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg)}
+.nivel .t{font-weight:600}.nivel .pc{font-size:22px;font-weight:700;color:var(--brand);margin-top:6px}.nivel .pc small{font-size:13px;color:var(--txt2);font-weight:500}
+.passos{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+.passos li{display:flex;gap:10px;align-items:baseline;font-size:14px}.passos b{min-width:22px;height:22px;border-radius:99px;background:var(--brand2);color:var(--brand);display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo">provou<span>levou</span> · afiliados</div>
+    <button class="btn hide" id="sair">Sair</button>
+  </header>
+
+  <section id="v-auth" class="auth hide">
+    <div class="card">
+      <h1>Programa de afiliados</h1>
+      <p class="muted" style="margin:0 0 16px">Indique óticas e lojas para o provador virtual e ganhe todo mês enquanto o cliente pagar. Também ganha quando a sua rede vende.</p>
+      <p class="small p-brand pill hide" id="convite"></p>
+      <div class="tabs" role="tablist">
+        <button class="on" data-t="entrar" role="tab">Entrar</button>
+        <button data-t="cadastrar" role="tab">Quero ser afiliado</button>
+      </div>
+      <form id="f-entrar">
+        <label for="e-email">E-mail</label><input id="e-email" type="email" autocomplete="email" required>
+        <label for="e-senha">Senha</label><input id="e-senha" type="password" autocomplete="current-password" required>
+        <div class="err" id="e-err"></div>
+        <button class="btn pri" style="width:100%;margin-top:16px" type="submit">Entrar</button>
+        <p class="small dim" style="margin:12px 0 0">Esqueceu a senha? <a href="https://wa.me/5511938034714?text=Esqueci%20minha%20senha%20do%20portal%20de%20afiliados" target="_blank" rel="noopener">Fale com a gente</a>.</p>
+      </form>
+      <form id="f-cadastrar" class="hide">
+        <label for="c-nome">Nome completo</label><input id="c-nome" required autocomplete="name">
+        <label for="c-tel">WhatsApp</label><input id="c-tel" required inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999">
+        <label for="c-email">E-mail</label><input id="c-email" type="email" required autocomplete="email">
+        <label for="c-senha">Senha (mínimo 8 caracteres)</label><input id="c-senha" type="password" minlength="8" required autocomplete="new-password">
+        <div class="err" id="c-err"></div>
+        <button class="btn pri" style="width:100%;margin-top:16px" type="submit">Criar minha conta</button>
+      </form>
+    </div>
+    <div class="card sec" id="regra-pub"></div>
+  </section>
+
+  <section id="v-painel" class="hide">
+    <h1 id="ola">Olá!</h1>
+    <p class="muted" id="sub" style="margin:0 0 18px"></p>
+
+    <div class="grid g4">
+      <div class="card stat"><div class="k">A receber</div><div class="v" id="s-receber">R$ 0,00</div></div>
+      <div class="card stat"><div class="k">Já recebido</div><div class="v" id="s-pago">R$ 0,00</div></div>
+      <div class="card stat"><div class="k">Sua rede (2º nível)</div><div class="v" id="s-n2">0</div></div>
+      <div class="card stat"><div class="k">Rede da rede (3º nível)</div><div class="v" id="s-n3">0</div></div>
+    </div>
+
+    <div class="grid g2 sec">
+      <div class="card">
+        <h2>Indicar uma loja</h2>
+        <p class="small muted" style="margin:-6px 0 6px">Cadastre a loja aqui antes do fechamento. Quando ela pagar, a comissão cai sozinha para você e para a sua rede.</p>
+        <form id="f-indicar">
+          <label for="i-loja">Nome da loja</label><input id="i-loja" required>
+          <label for="i-site">Site ou Instagram da loja</label><input id="i-site" placeholder="https://www.loja.com.br">
+          <div class="grid g2" style="gap:10px">
+            <div><label for="i-email">E-mail do dono</label><input id="i-email" type="email"></div>
+            <div><label for="i-whats">WhatsApp do dono</label><input id="i-whats" inputmode="tel"></div>
+          </div>
+          <div class="err" id="i-err"></div><div class="okmsg" id="i-ok">Loja indicada! Nosso time entra em contato com ela.</div>
+          <button class="btn pri" style="margin-top:14px" type="submit">Indicar loja</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Convide pessoas para a sua rede</h2>
+        <p class="small muted" style="margin:-6px 0 10px">Quem se cadastrar pelo seu link entra na sua rede. Você ganha nas vendas dessa pessoa e de quem ela convidar.</p>
+        <div class="linkbox"><input id="meulink" readonly aria-label="Seu link de convite"><button class="btn" id="copiar" type="button">Copiar</button></div>
+        <p class="small dim" id="indicadopor" style="margin:12px 0 0"></p>
+        <div class="sec">
+          <div class="small muted" style="font-weight:500;margin-bottom:6px">Sua rede</div>
+          <div id="rede"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card sec">
+      <h2>Suas comissões</h2>
+      <div class="scroll"><table>
+        <thead><tr><th>Data</th><th>Loja</th><th>De onde veio</th><th class="num">Pagamento</th><th class="num">%</th><th class="num">Comissão</th><th>Situação</th></tr></thead>
+        <tbody id="t-com"></tbody>
+      </table></div>
+    </div>
+
+    <div class="card sec">
+      <h2>Lojas que você indicou</h2>
+      <div class="scroll"><table>
+        <thead><tr><th>Loja</th><th>Site</th><th>Indicada em</th><th>Situação</th></tr></thead>
+        <tbody id="t-ind"></tbody>
+      </table></div>
+    </div>
+
+    <div class="card sec" id="regra-painel"></div>
+  </section>
+</div>
+
+<script>
+const REGRA_HTML = `
+  <h2>Como você ganha</h2>
+  <p class="small muted" style="margin:-6px 0 8px">A comissão é sobre a mensalidade que a loja paga. No 1º mês ela é maior; do 2º mês em diante continua caindo todo mês, enquanto a loja for cliente.</p>
+  <div class="regra">
+    <div class="nivel"><div class="t">Você vendeu</div><div class="small muted">A loja fechou pela sua indicação</div><div class="pc">20% <small>no 1º mês</small></div><div class="pc" style="font-size:17px">10% <small>todo mês depois</small></div></div>
+    <div class="nivel"><div class="t">Sua rede vendeu</div><div class="small muted">Alguém que você convidou fechou</div><div class="pc">5% <small>no 1º mês</small></div><div class="pc" style="font-size:17px">2% <small>todo mês depois</small></div></div>
+    <div class="nivel"><div class="t">A rede da sua rede vendeu</div><div class="small muted">Quem o seu convidado convidou</div><div class="pc">2% <small>no 1º mês</small></div><div class="pc" style="font-size:17px">1% <small>todo mês depois</small></div></div>
+  </div>
+  <ul class="passos">
+    <li><b>1</b><span>Exemplo: Ana convida o Bruno, e o Bruno convida a Carla. Só convidar não paga nada.</span></li>
+    <li><b>2</b><span>A Carla fecha uma ótica no plano de R$ 369. No 1º mês: Carla ganha R$ 73,80, Bruno R$ 18,45 e Ana R$ 7,38.</span></li>
+    <li><b>3</b><span>Do 2º mês em diante, todo mês: Carla R$ 36,90, Bruno R$ 7,38 e Ana R$ 3,69.</span></li>
+    <li><b>4</b><span>Se a ótica fica 1 ano: Carla soma R$ 479,70, Bruno R$ 99,63 e Ana R$ 47,97.</span></li>
+  </ul>
+  <p class="small dim" style="margin:12px 0 0">A comissão conta depois que o pagamento da loja é confirmado e para quando a loja deixa de pagar. O ganho vai até o 3º nível: quem a Carla convidar não gera nada para a Ana.</p>`;
+document.getElementById('regra-pub').innerHTML = REGRA_HTML;
+document.getElementById('regra-painel').innerHTML = REGRA_HTML;
+
+const SB_URL = (window.ENV && window.ENV.SUPABASE_URL) || 'https://quantic-supabase.k5jwra.easypanel.host';
+const sb = window.supabase.createClient(SB_URL, window.ENV.SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+const brl = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const dt = v => v ? new Date(String(v).length <= 10 ? v + 'T12:00:00' : v).toLocaleDateString('pt-BR') : '—';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const showErr = (id, msg) => { const e = $(id); e.textContent = msg; e.style.display = msg ? 'block' : 'none'; };
+const slugify = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 50);
+const ref = (new URLSearchParams(location.search).get('ref') || '').trim().toLowerCase();
+
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  $('f-entrar').classList.toggle('hide', b.dataset.t !== 'entrar');
+  $('f-cadastrar').classList.toggle('hide', b.dataset.t !== 'cadastrar');
+});
+
+async function mostrarConvite() {
+  if (!ref) return;
+  const { data } = await sb.rpc('pl_afiliado_nome_ref', { p_slug: ref });
+  if (data) { const c = $('convite'); c.textContent = 'Você foi convidado por ' + data; c.classList.remove('hide'); c.style.marginBottom = '12px';
+    document.querySelector('.tabs button[data-t="cadastrar"]').click(); }
+}
+
+$('f-entrar').onsubmit = async ev => {
+  ev.preventDefault(); showErr('e-err', '');
+  const btn = ev.submitter; btn.disabled = true;
+  const { error } = await sb.auth.signInWithPassword({ email: $('e-email').value.trim().toLowerCase(), password: $('e-senha').value });
+  btn.disabled = false;
+  if (error) return showErr('e-err', 'E-mail ou senha incorretos.');
+  carregar();
+};
+
+$('f-cadastrar').onsubmit = async ev => {
+  ev.preventDefault(); showErr('c-err', '');
+  const nome = $('c-nome').value.trim(), email = $('c-email').value.trim().toLowerCase(), tel = $('c-tel').value.replace(/\D/g, ''), senha = $('c-senha').value;
+  if (nome.split(/\s+/).length < 2) return showErr('c-err', 'Informe nome e sobrenome.');
+  if (tel.length < 10) return showErr('c-err', 'Informe o WhatsApp com DDD.');
+  const btn = ev.submitter; btn.disabled = true; btn.textContent = 'Criando conta…';
+  try {
+    let { data, error } = await sb.auth.signUp({ email, password: senha });
+    if (error && /already|registered|exists/i.test(error.message)) {
+      ({ data, error } = await sb.auth.signInWithPassword({ email, password: senha }));
+      if (error) throw new Error('Este e-mail já tem conta. Use a aba Entrar.');
+    } else if (error) throw new Error(error.message);
+    if (!data.session) { ({ data, error } = await sb.auth.signInWithPassword({ email, password: senha })); if (error) throw new Error('Conta criada. Entre pela aba Entrar.'); }
+    const uid = data.user.id;
+    const { data: ja } = await sb.from('afiliados').select('id').eq('email', email).maybeSingle();
+    if (!ja) {
+      let slug = slugify(nome) || 'afiliado';
+      for (let i = 0; i < 4; i++) {
+        const { error: ie } = await sb.from('afiliados').insert({ id: uid, email, nome, telefone: tel, slug: i ? slug + '-' + Math.random().toString(36).slice(2, 6) : slug, referido_por: ref || null });
+        if (!ie) break;
+        if (!/duplicate|unique/i.test(ie.message) || i === 3) throw new Error('Não foi possível concluir o cadastro. Fale com a gente pelo WhatsApp.');
+      }
+    }
+    carregar();
+  } catch (e) { showErr('c-err', e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Criar minha conta'; }
+};
+
+$('f-indicar').onsubmit = async ev => {
+  ev.preventDefault(); showErr('i-err', ''); $('i-ok').style.display = 'none';
+  const btn = ev.submitter; btn.disabled = true;
+  const { error } = await sb.rpc('pl_afiliado_indicar', { p_loja: $('i-loja').value, p_site: $('i-site').value, p_email: $('i-email').value, p_whatsapp: $('i-whats').value });
+  btn.disabled = false;
+  if (error) return showErr('i-err', error.message.replace(/^.*?:\s*/, '') || 'Não foi possível indicar.');
+  ev.target.reset(); $('i-ok').style.display = 'block'; carregar();
+};
+
+$('copiar').onclick = async () => { try { await navigator.clipboard.writeText($('meulink').value); $('copiar').textContent = 'Copiado!'; setTimeout(() => $('copiar').textContent = 'Copiar', 1800); } catch { $('meulink').select(); } };
+$('sair').onclick = async () => { await sb.auth.signOut(); location.href = location.pathname; };
+
+const ORIGEM = { L1: ['Sua venda', 'p-brand'], L2: ['Sua rede', 'p-ok'], L3: ['Rede da rede', 'p-warn'] };
+
+async function carregar() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { $('v-auth').classList.remove('hide'); $('v-painel').classList.add('hide'); $('sair').classList.add('hide'); mostrarConvite(); return; }
+  const { data, error } = await sb.rpc('pl_afiliado_painel');
+  if (error || !data || !data.afiliado) {
+    $('v-auth').classList.remove('hide'); $('v-painel').classList.add('hide'); $('sair').classList.remove('hide');
+    document.querySelector('.tabs button[data-t="cadastrar"]').click();
+    showErr('c-err', error ? 'Não foi possível carregar seu painel agora.' : 'Seu login existe, mas falta o cadastro de afiliado. Complete os dados abaixo.');
+    $('c-email').value = session.user.email; return;
+  }
+  const a = data.afiliado;
+  $('v-auth').classList.add('hide'); $('v-painel').classList.remove('hide'); $('sair').classList.remove('hide');
+  $('ola').textContent = 'Olá, ' + a.nome.split(' ')[0] + '!';
+  $('sub').textContent = 'Afiliado desde ' + dt(a.desde) + '.';
+  $('meulink').value = location.origin + location.pathname + '?ref=' + a.slug;
+  $('indicadopor').textContent = a.indicado_por ? 'Você entrou pelo convite de ' + a.indicado_por + '.' : '';
+  const com = data.comissoes || [];
+  const soma = st => com.filter(c => st(c.status)).reduce((s, c) => s + Number(c.valor), 0);
+  $('s-receber').textContent = brl(soma(s => s !== 'pago' && s !== 'cancelado'));
+  $('s-pago').textContent = brl(soma(s => s === 'pago'));
+  $('s-n2').textContent = data.rede_n2.length; $('s-n3').textContent = data.rede_n3.length;
+  const rede = data.rede_n2.map(r => `<div class="small" style="padding:4px 0">${esc(r.nome)} <span class="dim">· 2º nível · desde ${dt(r.desde)}</span></div>`)
+    .concat(data.rede_n3.map(r => `<div class="small" style="padding:4px 0">${esc(r.nome)} <span class="dim">· 3º nível, convidado por ${esc(r.via)}</span></div>`));
+  $('rede').innerHTML = rede.length ? rede.join('') : '<div class="empty">Ninguém ainda. Mande o seu link de convite.</div>';
+  $('t-com').innerHTML = com.length ? com.map(c => {
+    const o = ORIGEM[c.nivel] || [c.nivel, 'p-brand'];
+    const quem = c.nivel !== 'L1' && c.vendedor ? `<div class="small dim">venda de ${esc(c.vendedor)}</div>` : '';
+    const st = c.status === 'pago' ? '<span class="pill p-ok">Pago</span>' : c.status === 'cancelado' ? '<span class="pill p-warn">Cancelado</span>' : '<span class="pill p-brand">A receber</span>';
+    return `<tr><td>${dt(c.data)}</td><td>${esc(c.loja)}<div class="small dim">${c.primeiro_mes ? '1º mês' : 'mensalidade'}</div></td><td><span class="pill ${o[1]}">${o[0]}</span>${quem}</td><td class="num">${brl(c.base)}</td><td class="num">${Number(c.rate)}%</td><td class="num"><b>${brl(c.valor)}</b></td><td>${st}</td></tr>`;
+  }).join('') : '<tr><td colspan="7" class="empty">Nenhuma comissão ainda. Ela aparece aqui quando uma loja indicada por você ou pela sua rede paga.</td></tr>';
+  const ind = data.indicacoes || [];
+  $('t-ind').innerHTML = ind.length ? ind.map(i => `<tr><td>${esc(i.loja)}</td><td class="small">${esc(i.site || '—')}</td><td>${dt(i.quando)}</td><td>${i.situacao === 'cliente' ? '<span class="pill p-ok">Virou cliente</span>' : '<span class="pill p-brand">Em negociação</span>'}</td></tr>`).join('')
+    : '<tr><td colspan="4" class="empty">Nenhuma loja indicada ainda.</td></tr>';
+}
+carregar();
+</script>
+</body>
+</html>
