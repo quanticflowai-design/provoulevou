@@ -792,9 +792,11 @@
       .abertura-apoio { font-size: 13.5px; margin-top: 20px; }
       /* mesma montagem de antes: caixa com 40% da altura, ponto 46,5% da foto alinhado a 46,5% da tela */
       /* celular: zoom na foto (a assinatura esta dentro e acompanha) */
-      /* sem transform scale: o Safari do iPhone cortava a foto ampliada (so desenhava um pedaco) */
-      .onda { bottom: 13%; height: 64%; left: 46.5%; transform: translateX(-46.5%); }
-      .abertura-assina { left: calc(46.5% + calc(5.6 * var(--vw))); transform: translate(-50%, -50%); }
+      /* celular: foto propria ja recortada na largura da tela e com o esmaecido no arquivo
+         (o Safari do iPhone cortava a foto larga com mascara e so desenhava um pedaco) */
+      .onda { left: 0; width: 100%; height: auto; aspect-ratio: 547 / 794; bottom: auto; transform: none; }
+      .onda img { -webkit-mask-image: none; mask-image: none; }
+      .abertura-assina { left: 52%; transform: translate(-50%, -50%); }
     }
 
     /* ─── HERO ─── */
@@ -2114,7 +2116,7 @@
     <!-- ─── ABERTURA ─── -->
     <section class="abertura" id="como-funciona" aria-labelledby="aberturaTitulo">
 
-<div class="abertura-fundo"><div class="onda"><picture><source media="(min-width: 641px)" srcset="assets/hero-ondas-pc.webp"><img src="assets/hero-ondas.webp" alt="" width="1981" height="794" fetchpriority="high" decoding="async"></picture>
+<div class="abertura-fundo"><div class="onda"><picture><source media="(max-width: 640px)" srcset="assets/hero-ondas-mobile.webp"><source media="(min-width: 641px)" srcset="assets/hero-ondas-pc.webp"><img src="assets/hero-ondas.webp" alt="" width="1981" height="794" fetchpriority="high" decoding="async"></picture>
         <div class="abertura-assina">
           <strong>Provou Levou</strong>
           <span>Tecnologia by Quantic</span>
