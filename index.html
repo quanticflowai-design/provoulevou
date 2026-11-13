@@ -782,8 +782,9 @@
       }
     }
     @media (max-width: 640px) {
-      .abertura { min-height: max(600px, calc(92 * var(--vh))); overflow: visible; }
-      .abertura-fundo { overflow: visible; overflow-x: clip; }
+      /* celular: a secao cresce ate caber a foto inteira (padding pelo JS); nada vaza nem depende de overflow-x: clip */
+      .abertura { min-height: max(600px, calc(92 * var(--vh))); overflow: hidden; }
+      .abertura-fundo { overflow: hidden; }
       .abertura > .container { padding-top: 72px; padding-bottom: calc(26 * var(--vh)); }
       .abertura-apoio br { display: none; }
       /* celular: bloco central um pouco menor como um todo */
@@ -794,8 +795,8 @@
       /* celular: zoom na foto (a assinatura esta dentro e acompanha) */
       /* celular: foto propria ja recortada na largura da tela e com o esmaecido no arquivo
          (o Safari do iPhone cortava a foto larga com mascara e so desenhava um pedaco) */
-      .onda { left: 0; width: 100%; height: auto; aspect-ratio: 547 / 794; bottom: auto; transform: none; }
-      .onda img { -webkit-mask-image: none; mask-image: none; }
+      .onda { left: 0; right: 0; width: auto; aspect-ratio: auto; bottom: auto; transform: none; }
+      .onda img { -webkit-mask-image: none; mask-image: none; object-fit: cover; }
       .abertura-assina { left: 52%; transform: translate(-50%, -50%); }
     }
 
@@ -2807,13 +2808,15 @@
       function posiciona() {
         var fim = centro.offsetTop + centro.offsetHeight;
         if (innerWidth <= 640) {
-          // celular: caixa ja no tamanho ampliado (sem scale); o topo fica 24px abaixo do texto
-          var hc = onda.offsetHeight;
+          // celular: foto propria (547x794) na largura da tela; altura calculada aqui (sem aspect-ratio)
+          // e a secao ganha padding embaixo para conter a foto inteira (o Safari cortava o que vazava)
+          sec.style.marginBottom = '0px'; sec.style.paddingBottom = '0px';
+          var hc = Math.round(sec.clientWidth * 794 / 547);
+          onda.style.height = hc + 'px';
           onda.style.bottom = 'auto';
           var topo = fim + 24;
           onda.style.top = topo + 'px';
-          /* a foto desce alem da secao; a margem embaixo reserva o espaco (assinatura inteira) */
-          sec.style.marginBottom = Math.max(0, Math.ceil(topo + hc - sec.offsetHeight)) + 'px';
+          sec.style.paddingBottom = Math.max(0, Math.ceil(topo + hc - sec.offsetHeight)) + 'px';
           return;
         }
         // computador/tablet: o topo da foto (que some no branco) comeca 40px abaixo do texto
