@@ -86,4 +86,18 @@ $('vMes').textContent=brl(meses[11]);$('vAno').textContent=brl(tot);var mx=meses
 $('barras').innerHTML=meses.map(function(g){return'<i style="height:'+Math.max(4,g/mx*100)+'%"></i>'}).join('');}
 $('lojas').oninput=calc;document.querySelectorAll('#planos button').forEach(function(b){b.onclick=function(){plano=+b.dataset.v;document.querySelectorAll('#planos button').forEach(function(x){x.classList.toggle('on',x===b)});calc();}});calc();})();
 </script>
+<script src="assets/js/lenis-1.1.13.min.js"></script>
+<script>
+(function () {
+  if (typeof Lenis === 'undefined' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var lenis = new Lenis({ duration: 1.5, easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); }, wheelMultiplier: 0.85, smoothWheel: true });
+  function raf(t) { lenis.raf(t); requestAnimationFrame(raf); }
+  requestAnimationFrame(raf);
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="#"]'); if (!a) return;
+    var id = a.getAttribute('href'); if (id.length < 2) { e.preventDefault(); lenis.scrollTo(0); return; }
+    var alvo = document.querySelector(id); if (alvo) { e.preventDefault(); lenis.scrollTo(alvo, { offset: -16 }); }
+  });
+})();
+</script>
 </body></html>
