@@ -5826,7 +5826,14 @@
 
             
             <div class="tab-pane" id="tab-academy" role="tabpanel" aria-labelledby="tab-btn-academy">
-                <iframe id="academyFrame" title="Provou Academy" style="width:100%;height:calc(100vh - 120px);min-height:640px;border:0;border-radius:16px;background:#f6f5f8;display:block" allow="fullscreen; autoplay"></iframe>
+                <style>
+                    
+                    body[data-active-tab="academy"] .container { padding:0 !important; max-width:none !important; }
+                    body[data-active-tab="academy"] .dashboard-content { padding:64px 0 0 0 !important; max-width:none !important; margin:0 !important; }
+                    body[data-active-tab="academy"] #pageTitleRow { display:none !important; }
+                    #academyFrame { width:100%; height:calc(100vh - 64px); border:0; display:block; background:#f6f5f8; }
+                </style>
+                <iframe id="academyFrame" title="Provou Academy" allow="fullscreen; autoplay"></iframe>
             </div>
 
             
