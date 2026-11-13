@@ -792,8 +792,9 @@
       .abertura-apoio { font-size: 13.5px; margin-top: 20px; }
       /* mesma montagem de antes: caixa com 40% da altura, ponto 46,5% da foto alinhado a 46,5% da tela */
       /* celular: zoom na foto (a assinatura esta dentro e acompanha) */
-      .onda { bottom: 13%; height: 40%; left: 46.5%; transform: translateX(-46.5%) scale(1.6); transform-origin: 46.5% 100%; }
-      .abertura-assina { left: calc(46.5% + calc(3.5 * var(--vw))); transform: translate(-50%, -50%) scale(.63); }
+      /* sem transform scale: o Safari do iPhone cortava a foto ampliada (so desenhava um pedaco) */
+      .onda { bottom: 13%; height: 64%; left: 46.5%; transform: translateX(-46.5%); }
+      .abertura-assina { left: calc(46.5% + calc(5.6 * var(--vw))); transform: translate(-50%, -50%); }
     }
 
     /* ─── HERO ─── */
@@ -2804,10 +2805,10 @@
       function posiciona() {
         var fim = centro.offsetTop + centro.offsetHeight;
         if (innerWidth <= 640) {
-          // celular: caixa com zoom 1.6 a partir da base; o topo visivel fica 24px abaixo do texto
+          // celular: caixa ja no tamanho ampliado (sem scale); o topo fica 24px abaixo do texto
           var hc = onda.offsetHeight;
           onda.style.bottom = 'auto';
-          var topo = fim + 24 + 0.6 * hc;
+          var topo = fim + 24;
           onda.style.top = topo + 'px';
           /* a foto desce alem da secao; a margem embaixo reserva o espaco (assinatura inteira) */
           sec.style.marginBottom = Math.max(0, Math.ceil(topo + hc - sec.offsetHeight)) + 'px';
