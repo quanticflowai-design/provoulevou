@@ -718,7 +718,16 @@
                 brand: '#111111', dark: '#000000', soft: 'rgba(254,200,10,.18)', on: '#FEC80A' },
     // Óticas Shallon Gold — azul-marinho do logo sobre branco, linha dourada; botão marinho com texto branco (~12:1)
     oticasshallongold: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EDE6C8',
-                brand: '#1F2E73', dark: '#172259', soft: 'rgba(31,46,115,.08)', on: '#ffffff' }
+                brand: '#1F2E73', dark: '#172259', soft: 'rgba(31,46,115,.08)', on: '#ffffff' },
+    // Óticas Amorim — dourado do logo sobre branco; botão dourado fechado (#8C6A2E) com texto branco (~5:1)
+    oticasamorim: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F0E4CC',
+                brand: '#8C6A2E', dark: '#6E5222', soft: 'rgba(140,106,46,.10)', on: '#ffffff' },
+    // Ótica do Conjunto Veja — logo em fundo preto chapado, laranja; tema escuro, botão laranja com texto preto (~6,8:1)
+    oticadoconjuntoveja: { bg: '#000000', card: '#141414', line: '#2A2A2A',
+                brand: '#F26A10', dark: '#C9540A', soft: 'rgba(242,106,16,.14)', on: '#000000' },
+    // Diamantina — azul do diamante sobre branco; botão azul fechado (#1A73B0) com texto branco (~5:1)
+    diamantina: { bg: '#FFFFFF', card: '#FFFFFF', line: '#DCEBF5',
+                brand: '#1A73B0', dark: '#145A8A', soft: 'rgba(26,115,176,.08)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
