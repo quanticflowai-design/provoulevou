@@ -715,7 +715,10 @@
                 brand: '#F9AC32', dark: '#E0952A', soft: 'rgba(249,172,50,.14)', on: '#22385F' },
     // Ótica Kamyly — logo preto sobre amarelo; fundo branco com amarelo da marca nos detalhes; botão preto com texto amarelo (12:1)
     oticakamyly: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F1E3A6',
-                brand: '#111111', dark: '#000000', soft: 'rgba(254,200,10,.18)', on: '#FEC80A' }
+                brand: '#111111', dark: '#000000', soft: 'rgba(254,200,10,.18)', on: '#FEC80A' },
+    // Óticas Shallon Gold — azul-marinho do logo sobre branco, linha dourada; botão marinho com texto branco (~12:1)
+    oticasshallongold: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EDE6C8',
+                brand: '#1F2E73', dark: '#172259', soft: 'rgba(31,46,115,.08)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
