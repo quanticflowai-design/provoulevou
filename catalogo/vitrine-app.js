@@ -7,6 +7,10 @@
   'use strict';
   // Lojas de roupa (07/11/2026, Lucas): a vitrine nasceu para ótica. Aqui os textos de armação viram peça.
   var _ROUPA = ['intimissima'].indexOf(new URLSearchParams(location.search).get('loja') || '') >= 0;
+  // Catálogo sem provador (17/11/2026, Lucas): Intimíssima virou catálogo normal — sem botão de prova, selo,
+  // "Minhas provas" e Top 10; o produto vende direto pelo WhatsApp.
+  var _SEM_PROV = ['intimissima'].indexOf(new URLSearchParams(location.search).get('loja') || '') >= 0;
+  if (_SEM_PROV) document.documentElement.classList.add('sem-provador');
   var _tx = function (s) {
     if (!_ROUPA) return s;
     return s.replace(/Provar no meu rosto/g, 'Provar em mim').replace(/no seu rosto/g, 'em você')
@@ -14,6 +18,7 @@
       .replace(/armações/g, 'peças').replace(/armação/g, 'peça');
   };
   var CSS = [
+    'html.sem-provador .va-sacola,html.sem-provador .va-top,html.sem-provador .va-selo,html.sem-provador .fire,html.sem-provador [data-m="provas"],html.sem-provador .vp-selo-pv,html.sem-provador .vp-prova{display:none!important}',
     'html.layout-app #app{max-width:560px}',
     'html.layout-app #screen-catalog{padding:0 0 92px}',
     'html.layout-app #screen-catalog>.store-head,html.layout-app #screen-catalog>.catalogo-painel{display:none!important}',
@@ -290,9 +295,9 @@
     var d = desconto(p), n = provas(p);
     return '<button class="va-card" data-p="' + esc(p.id) + '"><div class="ft"><img loading="lazy" decoding="async" src="' + esc(MINI(p.img, 480)) + '" alt="">' +
       (i != null ? '<span class="pos">#' + (i + 1) + '</span>' : '') + (d ? '<span class="off">-' + d + '%</span>' : '') +
-      (n >= 3 ? '<span class="fire">' + IC.trend + ' ' + n + ' provaram</span>' : '') + '</div>' +
+      (n >= 3 && !_SEM_PROV ? '<span class="fire">' + IC.trend + ' ' + n + ' provaram</span>' : '') + '</div>' +
       '<div class="in"><div class="nm">' + esc(p.name) + '</div><div class="pr">' + X.brl(X.preco(p)) + (d ? '<span class="de">' + X.brl(p.originalPrice) + '</span>' : '') + '</div>' +
-      '<span class="bt" data-provar="' + esc(p.id) + '">' + IC.spark + ' ' + (X.ehKit(p) ? 'Ver o kit' : 'Provar') + '</span></div></button>';
+      (_SEM_PROV ? '<span class="bt">Ver peça</span>' : '<span class="bt" data-provar="' + esc(p.id) + '">' + IC.spark + ' ' + (X.ehKit(p) ? 'Ver o kit' : 'Provar') + '</span>') + '</div></button>';
   }
 
   function slides() {
@@ -676,7 +681,7 @@
           (n ? '<span class="vp-prova">' + IC.trend + ' ' + n + (n === 1 ? ' pessoa já provou' : ' pessoas já provaram') + '</span>' : '') +
           '<div class="vp-precos"><span class="vp-p">' + X.brl(X.preco(p)) + '</span>' + (d ? '<span class="vp-d">' + X.brl(p.originalPrice) + '</span><span class="vp-eco">Economize ' + X.brl(Number(p.originalPrice) - X.preco(p)) + '</span>' : '') + '</div>' +
           '<div class="vp-parc">' + parcTxt + '</div>' +
-          '<button type="button" class="vp-provar" data-vp="provar">' + IC.oculos + _tx(' Provar no meu rosto</button>') +
+          (_SEM_PROV ? '' : '<button type="button" class="vp-provar" data-vp="provar">' + IC.oculos + _tx(' Provar no meu rosto</button>')) +
           (L.whatsapp ? '<button type="button" class="vp-wa" data-vp="comprar">Comprar pelo WhatsApp ' + IC.wa + '</button>' : '') +
           '<div class="vp-gar">' + GAR.map(function (g) { return '<div>' + g[0] + '<span><b>' + g[1] + '</b>' + g[2] + '</span></div>'; }).join('') + '</div>' +
           (p.desc ? '<details class="vp-sec" open><summary>Descrição</summary><div class="vp-txt">' + esc(p.desc) + '</div></details>' : '') +
@@ -686,14 +691,14 @@
             (par > 1 ? '<tr><td>Parcelamento</td><td>até ' + par + 'x ' + (juros ? 'com juros' : 'sem juros') + '</td></tr>' : '') +
             (p.unit ? '<tr><td>Unidade</td><td>' + esc(p.unit) + '</td></tr>' : '') +
             '<tr><td>Vendido por</td><td>' + esc(L.nome) + '</td></tr></table></details>' +
-          '<details class="vp-sec"><summary>Como funciona a prova virtual</summary><div class="vp-passos">' +
-            _tx('<div><i>1</i>Toque em “Provar no meu rosto”.</div><div><i>2</i>Tire ou envie uma foto de frente.</div><div><i>3</i>Veja a armação em você e chame a loja no WhatsApp.</div></div></details>') +
+          (_SEM_PROV ? '' : '<details class="vp-sec"><summary>Como funciona a prova virtual</summary><div class="vp-passos">' +
+            _tx('<div><i>1</i>Toque em “Provar no meu rosto”.</div><div><i>2</i>Tire ou envie uma foto de frente.</div><div><i>3</i>Veja a armação em você e chame a loja no WhatsApp.</div></div></details>')) +
         '</div>' +
       '</div>' +
       (rel.length ? '<div class="vp-relw"><h3>Você também pode gostar</h3><div class="vp-relg">' + rel.map(function (r) {
         return '<button type="button" data-rel="' + esc(r.id) + '"><img src="' + esc(MINI(r.img, 400)) + '" alt="" loading="lazy" decoding="async"><span>' + esc(r.name) + '</span><b>' + X.brl(X.preco(r)) + '</b></button>';
       }).join('') + '</div></div>' : '') +
-      '<div class="vp-barra"><div><small>' + (par > 1 ? par + 'x de ' + X.brl(ctx.valorParcela(p, par)) : esc(p.name)) + '</small><b>' + X.brl(X.preco(p)) + '</b></div><button type="button" class="vp-provar" data-vp="provar">' + IC.oculos + ' Provar</button></div>';
+      '<div class="vp-barra"><div><small>' + (par > 1 ? par + 'x de ' + X.brl(ctx.valorParcela(p, par)) : esc(p.name)) + '</small><b>' + X.brl(X.preco(p)) + '</b></div>' + (_SEM_PROV ? (L.whatsapp ? '<button type="button" class="vp-provar" data-vp="comprar">Comprar ' + IC.wa + '</button>' : '') : '<button type="button" class="vp-provar" data-vp="provar">' + IC.oculos + ' Provar</button>') + '</div>';
     el.scrollTop = 0;
     el.querySelector('[data-vp-form]').addEventListener('submit', function (e) {
       e.preventDefault(); var q = this.querySelector('input').value.trim(); if (!q) return;
