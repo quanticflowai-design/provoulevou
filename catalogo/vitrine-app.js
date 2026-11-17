@@ -683,7 +683,7 @@
           '<div class="vp-parc">' + parcTxt + '</div>' +
           (_SEM_PROV ? '' : '<button type="button" class="vp-provar" data-vp="provar">' + IC.oculos + _tx(' Provar no meu rosto</button>')) +
           (L.whatsapp ? '<button type="button" class="vp-wa" data-vp="comprar">Comprar pelo WhatsApp ' + IC.wa + '</button>' : '') +
-          '<div class="vp-gar">' + GAR.map(function (g) { return '<div>' + g[0] + '<span><b>' + g[1] + '</b>' + g[2] + '</span></div>'; }).join('') + '</div>' +
+          '<div class="vp-gar">' + GAR.filter(function (g) { return !_SEM_PROV || !/Prove antes/.test(g[1]); }).map(function (g) { return '<div>' + g[0] + '<span><b>' + g[1] + '</b>' + g[2] + '</span></div>'; }).join('') + '</div>' +
           (p.desc ? '<details class="vp-sec" open><summary>Descrição</summary><div class="vp-txt">' + esc(p.desc) + '</div></details>' : '') +
           '<details class="vp-sec"' + (p.desc ? '' : ' open') + '><summary>Detalhes do produto</summary><table class="vp-tab">' +
             (cat ? '<tr><td>Categoria</td><td>' + esc((p.cats && p.cats.length ? p.cats : [cat]).join(', ')) + '</td></tr>' : '') +
