@@ -48,7 +48,10 @@
     'magrini-luciana': { loja: 'oticasprimemagrini', rotulo: null },
     'magrini-isaias':  { loja: 'oticasprimemagrini', rotulo: null },
     charmeprime:       { loja: 'charmeprime', rotulo: 'Charme Prime' },
-    orbita:            { loja: 'charmeprime', rotulo: 'Órbita' }
+    orbita:            { loja: 'charmeprime', rotulo: 'Órbita' },
+    // 17/11 (Lucas): o nome certo é Rufians. O slug interno segue oticasrufins (rota do gerador);
+    // o link novo ?loja=oticasrufians abre a mesma loja e o antigo continua valendo.
+    oticasrufians:     { loja: 'oticasrufins', rotulo: null }
   };
   // Lojas com botão "Comprar" direto na vitrine e na página do produto (sem provar).
   const LOJAS_COMPRA_DIRETA = new Set(['prevedelloacessorios']);
@@ -448,7 +451,7 @@
     // Óptica Santa Efigênia: laranja do logo sobre uma base clara e quente.
     santaefigenia: { bg: '#FFF8F3', card: '#FFFFFF', line: '#F2D8CC',
                      brand: '#F15A24', dark: '#C74316', soft: 'rgba(241,90,36,.11)', on: '#FFFFFF' },
-    // Óticas Rufins: amarelo e grafite presentes no logo.
+    // Óticas Rufians: amarelo e grafite presentes no logo.
     oticasrufins: { bg: '#FFFDF4', card: '#FFFFFF', line: '#EEE4B8',
                     brand: '#E0B900', dark: '#3F3F43', soft: 'rgba(224,185,0,.13)', on: '#FFFFFF' },
     // Ótica Salvador: turquesa do símbolo com contraste em fundo claro.
