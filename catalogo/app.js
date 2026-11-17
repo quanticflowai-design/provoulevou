@@ -727,7 +727,10 @@
                 brand: '#F26A10', dark: '#C9540A', soft: 'rgba(242,106,16,.14)', on: '#000000' },
     // Diamantina — azul do diamante sobre branco; botão azul fechado (#1A73B0) com texto branco (~5:1)
     diamantina: { bg: '#FFFFFF', card: '#FFFFFF', line: '#DCEBF5',
-                brand: '#1A73B0', dark: '#145A8A', soft: 'rgba(26,115,176,.08)', on: '#ffffff' }
+                brand: '#1A73B0', dark: '#145A8A', soft: 'rgba(26,115,176,.08)', on: '#ffffff' },
+    // Optica Confiança — marinho do logo sobre branco; botão marinho (#1E1A6E) com texto branco (~13:1)
+    opticaconfianca: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E2E1F0',
+                brand: '#1E1A6E', dark: '#151250', soft: 'rgba(30,26,110,.08)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
