@@ -733,7 +733,10 @@
                 brand: '#1A73B0', dark: '#145A8A', soft: 'rgba(26,115,176,.08)', on: '#ffffff' },
     // Optica Confiança — marinho do logo sobre branco; botão marinho (#1E1A6E) com texto branco (~13:1)
     opticaconfianca: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E2E1F0',
-                brand: '#1E1A6E', dark: '#151250', soft: 'rgba(30,26,110,.08)', on: '#ffffff' }
+                brand: '#1E1A6E', dark: '#151250', soft: 'rgba(30,26,110,.08)', on: '#ffffff' },
+    // Elis Ótica Personalizada — marrom-café do logo sobre branco (cantos do logo são brancos), linha creme; botão marrom com texto branco (~12:1)
+    elisotica: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EFE6DD',
+                brand: '#433930', dark: '#2E2721', soft: 'rgba(67,57,48,.08)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
