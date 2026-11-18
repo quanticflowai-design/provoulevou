@@ -85,7 +85,13 @@ svg.links{position:absolute;inset:0;overflow:visible}svg.links path{fill:none;st
 .tag1.in{position:static;margin-left:4px;vertical-align:1px}
 .det{display:flex;flex-wrap:wrap;gap:6px 24px;align-items:center;padding:14px 18px;border-top:1px solid var(--line);min-height:52px;font-size:13.5px;color:var(--txt2)}.det b{color:var(--txt)}
 .vazio{padding:28px 18px;text-align:center;color:var(--txt2)}
-.split{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;margin-top:18px;align-items:start}
+.split{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;margin-top:18px;align-items:stretch}
+.ext-card{display:flex;flex-direction:column}.ext-card .scroll{flex:1;display:flex;flex-direction:column}.ext-card table{flex:none}
+.vz{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:28px 16px;min-height:220px;border:1px dashed var(--line);border-radius:14px;background:radial-gradient(circle at 50% 0,rgba(124,58,237,.05),transparent 60%)}
+.vz .vi{width:56px;height:56px;border-radius:16px;background:var(--brand2);color:var(--brand);display:grid;place-items:center;font-size:26px}
+.vz b{font-family:'HelveticaNow',Inter,sans-serif;font-weight:500;font-size:17px}.vz p{margin:0;color:var(--txt2);font-size:13.5px;max-width:44ch}
+.vz .acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.hist.zero{height:auto;padding:4px 0 0}.hist.zero .hz{flex-direction:row;align-items:center;gap:12px;color:var(--txt2);font-size:13.5px;padding:14px;border:1px dashed var(--line);border-radius:12px}.hist.zero .hz i{display:grid;place-items:center;width:40px;height:40px;flex:none;border-radius:12px;background:var(--brand2)!important;color:var(--brand);font-size:20px}
 .next{display:grid;gap:12px;font-size:13.5px;color:var(--txt2)}.next .it{display:flex;gap:10px}.next .ic{width:28px;height:28px;flex:none;border-radius:8px;background:var(--bg);display:grid;place-items:center}.next b{color:var(--txt)}
 .hist{display:flex;align-items:flex-end;gap:10px;height:230px;padding-top:12px}.hist div{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;color:var(--txt3)}
 .hist i{display:block;width:100%;border-radius:5px 5px 2px 2px;background:var(--brand)}.hist div:last-child i{background:var(--ok)}
@@ -173,7 +179,7 @@ h1{font-size:28px}h2{font-size:16px}
       <div class="det" id="det"><span>Toque em alguém da árvore para ver os detalhes.</span></div>
     </div>
     <div class="split">
-      <div class="card"><h2>Extrato deste mês</h2><div class="scroll"><table id="ext"></table></div></div>
+      <div class="card ext-card"><h2>Extrato deste mês</h2><div class="scroll" id="ext-wrap"><table id="ext"></table></div></div>
       <div style="display:grid;gap:18px">
         <div class="card"><h2>O que vem por aí</h2><div class="next" id="next"></div></div>
         <div class="card"><h2>Seus últimos meses</h2><div class="hist" id="hist"></div></div>
@@ -363,13 +369,16 @@ function desenha(d) {
   // extrato
   const ex = d.extrato || [];
   $('ext').innerHTML = ex.length ? `<thead><tr><th>Loja</th><th>Origem</th><th class="num">Mensalidade</th><th class="num">Sua parte</th><th>Situação</th></tr></thead><tbody>${ex.map(c => `<tr><td>${esc(c.loja)}${c.primeiro_mes ? '<span class="tag1 in">1º mês</span>' : ''}<div class="small dim">${dt(c.data)}${c.nivel !== 'L1' && c.vendedor ? ' · venda de ' + esc(c.vendedor) : ''}</div></td><td class="small">${ORIG[c.nivel] || 'comissão'}</td><td class="num">${brl(c.base)}</td><td class="num"><b>${brl(c.valor)}</b><div class="small dim">${Number(c.taxa)}%</div></td><td>${c.status === 'pago' ? '<span class="pill p-ok">Pago</span>' : '<span class="pill p-brand">A receber</span>'}</td></tr>`).join('')}</tbody><tfoot><tr><td colspan="3">Total do mês</td><td class="num" style="color:var(--ok)">${brl(d.a_receber_mes)}</td><td></td></tr></tfoot>`
-    : '<tbody><tr><td class="empty">Nenhuma comissão neste mês ainda. Ela aparece aqui quando uma loja da sua rede paga.</td></tr></tbody>';
+    : '';
+  const vz = document.getElementById('ext-vazio'); if (vz) vz.remove();
+  if (!ex.length) $('ext-wrap').insertAdjacentHTML('beforeend', `<div class="vz" id="ext-vazio"><span class="vi"><i class="ph-bold ph-receipt"></i></span><b>Nenhuma comissão neste mês ainda</b><p>Quando uma loja indicada por você ou pela sua rede pagar a mensalidade, ela aparece aqui com o valor que é seu.</p><div class="acts"><button class="btn pri" type="button" onclick="document.getElementById('copiar').click()">Copiar meu link</button><button class="btn" type="button" onclick="document.getElementById('i-loja').focus()">Indicar uma loja</button></div></div>`);
   const queda = prim.reduce((s, l) => s + Number(l.comissao || 0) - Number(l.valor || 0) * Number(l.rec_rate || 0) / 100, 0);
   $('next').innerHTML = (prim.length ? `<div class="it"><span class="ic">↺</span><div><b>${prim.length} loja${prim.length === 1 ? '' : 's'} no 1º mês</b>: a partir do próximo mês ${prim.length === 1 ? 'ela passa' : 'elas passam'} para a comissão recorrente (de 20% para 10%). Por isso a recorrência fica ${brl(queda)} abaixo deste mês.</div></div>` : '')
     + `<div class="it"><span class="ic">✓</span><div>Você recebe enquanto a loja estiver <b>ativa e pagando</b>. Se cancelar, a comissão daquela loja para.</div></div>`
     + `<div class="it"><span class="ic">+</span><div>Cada nova loja que entrar pela sua indicação rende <b>20% no 1º mês</b> e 10% todo mês depois.</div></div>`;
   const hi = d.historico || [], mx = Math.max(...hi.map(h => Number(h.valor)), 0) || 1, MES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  $('hist').innerHTML = hi.map(h => `<div><span>${Number(h.valor) ? brl(h.valor).replace('R$', '').trim() : '–'}</span><i style="height:${Math.max(3, Number(h.valor) / mx * 160)}px"></i>${MES[+h.mes.slice(5, 7) - 1]}</div>`).join('');
+  const temHist = hi.some(h => Number(h.valor) > 0); $('hist').classList.toggle('zero', !temHist);
+  if (!temHist) $('hist').innerHTML = '<div class="hz"><i class="ph-bold ph-chart-bar"></i><span>Seu gráfico começa a aparecer no mês da sua primeira comissão.</span></div>'; else $('hist').innerHTML = hi.map(h => `<div><span>${Number(h.valor) ? brl(h.valor).replace('R$', '').trim() : '–'}</span><i style="height:${Math.max(3, Number(h.valor) / mx * 160)}px"></i>${MES[+h.mes.slice(5, 7) - 1]}</div>`).join('');
   const ind = d.indicacoes || [];
   $('t-ind').innerHTML = ind.length ? ind.map(i => `<tr><td>${esc(i.loja)}<div class="small dim">${esc(i.site || '')}</div></td><td>${dt(i.quando)}</td><td>${i.situacao === 'cliente' ? '<span class="pill p-ok">Virou cliente</span>' : '<span class="pill p-brand">Em negociação</span>'}</td></tr>`).join('')
     : '<tr><td colspan="3" class="empty">Nenhuma loja indicada ainda.</td></tr>';
