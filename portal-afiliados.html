@@ -15,7 +15,6 @@
 <script src="env.js"></script>
 <style>
 :root{--bg:#f6f5f2;--card:#fff;--line:#e8e6e1;--txt:#1b1a19;--txt2:#5f5d58;--txt3:#8d8a84;--brand:#6d28d9;--brand2:#ede9fe;--ok:#0f7b52;--okbg:#e3f5ec;--warn:#9a5b00;--warnbg:#fdf1dc;--err:#b42318;--errbg:#fdecea;--r:14px}
-@media (prefers-color-scheme:dark){:root{--bg:#121212;--card:#1b1b1b;--line:#2c2c2c;--txt:#f2f1ee;--txt2:#b4b1aa;--txt3:#85827c;--brand:#a78bfa;--brand2:#2a2140;--ok:#5fd3a0;--okbg:#14291f;--warn:#f0b65a;--warnbg:#2c2112;--err:#ff8a7a;--errbg:#2e1613}}
 *{box-sizing:border-box}html,body{margin:0}
 body{background:var(--bg);color:var(--txt);font:15px/1.55 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 a{color:var(--brand)}
@@ -55,6 +54,42 @@ td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}tr:last-c
 .passos{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
 .passos li{display:flex;gap:10px;align-items:baseline;font-size:14px}.passos b{min-width:22px;height:22px;border-radius:99px;background:var(--brand2);color:var(--brand);display:inline-flex;align-items:center;justify-content:center;font-size:12px}
 .hide{display:none!important}
+
+.wrap{max-width:1200px}
+.adminbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:#1b1530;color:#fff;border-radius:12px;padding:10px 14px;margin-bottom:18px;font-size:13.5px}
+.adminbar select{padding:8px 10px;border-radius:9px;border:0;font:inherit;max-width:100%}
+.adminbar .btn{background:#2c2347;color:#fff;border-color:#4b3e78}
+.money{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;border:1px solid var(--line);border-radius:16px;background:var(--card);margin:6px 0 18px;overflow:hidden}
+.money>div{padding:16px 18px;border-left:1px solid var(--line)}.money>div:first-child{border-left:0;background:#1b1530;color:#fff}
+.money small{display:block;color:var(--txt2);font-size:12.5px}.money>div:first-child small{color:#cfc6ff}
+.money b{display:block;font-size:22px;font-weight:700;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums}
+.money .main b{font-size:28px;color:#6ee7b7}.money span.s{display:block;color:var(--txt3);font-size:12px;margin-top:2px}.money>div:first-child span.s{color:#a59cc4}
+.tree-card{padding:0;overflow:hidden}
+.tree-h{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}.tree-h h2{margin:0;font-size:15px}
+.keys{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--txt3)}.keys span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.stage{position:relative;overflow-x:auto;padding:8px 0 18px}
+.gens{position:absolute;left:0;top:0;width:100%;pointer-events:none}
+.gen{position:absolute;left:0;right:0;border-top:1px dashed var(--line);font-size:11.5px;color:var(--txt3);padding:6px 18px}
+.canvas{position:relative;margin:0 auto}
+svg.links{position:absolute;inset:0;overflow:visible}svg.links path{fill:none;stroke:#d6d0e6;stroke-width:1.5}svg.links path.hot{stroke:var(--brand);stroke-width:2}
+.node{position:absolute;width:152px;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:9px 12px 9px 9px;border:1px solid #d6d0e6;border-radius:22px;background:#fff;text-align:left;cursor:pointer;font:inherit;color:inherit;transition:border-color .18s,background .18s;box-shadow:0 1px 2px #1b153008}
+.node:hover{border-color:var(--brand)}.node:focus-visible{outline:2px solid var(--brand);outline-offset:3px}.node.sel{background:#f1ecff;border-color:var(--brand)}
+.av{width:34px;height:34px;flex:none;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12px}
+.k-eu{width:176px;background:#1b1530;border-color:#1b1530;color:#fff}.k-eu .av{background:#a78bfa;color:#1b1530}.k-eu small{color:#cfc6ff!important}
+.k-af .av{background:var(--brand);color:#fff}.k-ok .av{background:var(--okbg);color:var(--ok);box-shadow:inset 0 0 0 1.5px var(--ok)}.k-off{opacity:.7}.k-off .av{color:#8d87a0;box-shadow:inset 0 0 0 1.5px #8d87a0}
+.tx{flex:1;min-width:0}.tx b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12.5px;font-weight:600;line-height:1.2}
+.tx small{display:block;font-size:12px;line-height:1.25;color:var(--txt2);overflow-wrap:anywhere}.k-ok .tx small{color:var(--ok)}.k-af .tx small{color:var(--brand)}
+.tag1{position:absolute;top:-9px;right:12px;font-size:10.5px;font-weight:700;color:#1a1300;background:#f5b301;border-radius:5px;padding:1px 6px}
+.tag1.in{position:static;margin-left:4px;vertical-align:1px}
+.det{display:flex;flex-wrap:wrap;gap:6px 24px;align-items:center;padding:14px 18px;border-top:1px solid var(--line);min-height:52px;font-size:13.5px;color:var(--txt2)}.det b{color:var(--txt)}
+.vazio{padding:28px 18px;text-align:center;color:var(--txt2)}
+.split{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;margin-top:18px;align-items:start}
+.next{display:grid;gap:12px;font-size:13.5px;color:var(--txt2)}.next .it{display:flex;gap:10px}.next .ic{width:28px;height:28px;flex:none;border-radius:8px;background:var(--bg);display:grid;place-items:center}.next b{color:var(--txt)}
+.hist{display:flex;align-items:flex-end;gap:10px;height:230px;padding-top:12px}.hist div{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;color:var(--txt3)}
+.hist i{display:block;width:100%;border-radius:5px 5px 2px 2px;background:var(--brand)}.hist div:last-child i{background:var(--ok)}
+tfoot td{font-weight:700;border-top:1px solid var(--line)}
+@media (max-width:860px){.money{grid-template-columns:1fr 1fr}.money>div{border-left:0;border-top:1px solid var(--line)}.money>div:first-child{grid-column:1/-1;border-top:0}.split{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -92,17 +127,27 @@ td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}tr:last-c
     <div class="card sec" id="regra-pub"></div>
   </section>
 
+  <section id="v-admin" class="hide">
+    <div class="adminbar"><b>Administrador</b><span>Ver o painel de:</span><select id="adm-sel"></select><button class="btn" id="adm-todos" type="button">Todos os afiliados</button></div>
+    <div id="adm-lista" class="card hide"><h2>Todos os afiliados</h2><p class="small muted" id="adm-tot" style="margin:-6px 0 10px"></p><div class="scroll"><table><thead><tr><th>Afiliado</th><th>Indicado por</th><th class="num">Lojas</th><th class="num">Afiliados</th><th class="num">Este mês</th><th class="num">A pagar</th><th class="num">Já pago</th><th></th></tr></thead><tbody id="adm-t"></tbody></table></div></div>
+  </section>
+
   <section id="v-painel" class="hide">
     <h1 id="ola">Olá!</h1>
-    <p class="muted" id="sub" style="margin:0 0 18px"></p>
-
-    <div class="grid g4">
-      <div class="card stat"><div class="k">A receber</div><div class="v" id="s-receber">R$ 0,00</div></div>
-      <div class="card stat"><div class="k">Já recebido</div><div class="v" id="s-pago">R$ 0,00</div></div>
-      <div class="card stat"><div class="k">Sua rede (2º nível)</div><div class="v" id="s-n2">0</div></div>
-      <div class="card stat"><div class="k">Rede da rede (3º nível)</div><div class="v" id="s-n3">0</div></div>
+    <p class="muted" id="sub" style="margin:0 0 6px"></p>
+    <div class="money" id="money"></div>
+    <div class="card tree-card">
+      <div class="tree-h"><h2>Sua árvore de indicações</h2><div class="keys"><span><i class="dot" style="background:#1b1530"></i>Você</span><span><i class="dot" style="background:var(--brand)"></i>Afiliado</span><span><i class="dot" style="background:var(--ok)"></i>Loja ativa</span><span><i class="dot" style="background:#8d87a0"></i>Cancelada</span></div></div>
+      <div class="stage" id="stage"><div class="gens" id="gens"></div><div class="canvas" id="cv"><svg class="links" id="sv"></svg></div></div>
+      <div class="det" id="det"><span>Toque em alguém da árvore para ver os detalhes.</span></div>
     </div>
-
+    <div class="split">
+      <div class="card"><h2>Extrato deste mês</h2><div class="scroll"><table id="ext"></table></div></div>
+      <div style="display:grid;gap:18px">
+        <div class="card"><h2>O que vem por aí</h2><div class="next" id="next"></div></div>
+        <div class="card"><h2>Seus últimos meses</h2><div class="hist" id="hist"></div></div>
+      </div>
+    </div>
     <div class="grid g2 sec">
       <div class="card">
         <h2>Indicar uma loja</h2>
@@ -123,29 +168,10 @@ td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}tr:last-c
         <p class="small muted" style="margin:-6px 0 10px">Quem se cadastrar pelo seu link entra na sua rede. Você ganha nas vendas dessa pessoa e de quem ela convidar.</p>
         <div class="linkbox"><input id="meulink" readonly aria-label="Seu link de convite"><button class="btn" id="copiar" type="button">Copiar</button></div>
         <p class="small dim" id="indicadopor" style="margin:12px 0 0"></p>
-        <div class="sec">
-          <div class="small muted" style="font-weight:500;margin-bottom:6px">Sua rede</div>
-          <div id="rede"></div>
-        </div>
+        <h2 style="margin-top:22px">Lojas que você indicou</h2>
+        <div class="scroll"><table><thead><tr><th>Loja</th><th>Indicada em</th><th>Situação</th></tr></thead><tbody id="t-ind"></tbody></table></div>
       </div>
     </div>
-
-    <div class="card sec">
-      <h2>Suas comissões</h2>
-      <div class="scroll"><table>
-        <thead><tr><th>Data</th><th>Loja</th><th>De onde veio</th><th class="num">Pagamento</th><th class="num">%</th><th class="num">Comissão</th><th>Situação</th></tr></thead>
-        <tbody id="t-com"></tbody>
-      </table></div>
-    </div>
-
-    <div class="card sec">
-      <h2>Lojas que você indicou</h2>
-      <div class="scroll"><table>
-        <thead><tr><th>Loja</th><th>Site</th><th>Indicada em</th><th>Situação</th></tr></thead>
-        <tbody id="t-ind"></tbody>
-      </table></div>
-    </div>
-
     <div class="card sec" id="regra-painel"></div>
   </section>
 </div>
@@ -241,41 +267,116 @@ $('f-indicar').onsubmit = async ev => {
 $('copiar').onclick = async () => { try { await navigator.clipboard.writeText($('meulink').value); $('copiar').textContent = 'Copiado!'; setTimeout(() => $('copiar').textContent = 'Copiar', 1800); } catch { $('meulink').select(); } };
 $('sair').onclick = async () => { await sb.auth.signOut(); location.href = location.pathname; };
 
-const ORIGEM = { L1: ['Sua venda', 'p-brand'], L2: ['Sua rede', 'p-ok'], L3: ['Rede da rede', 'p-warn'] };
+
+const GER = ['Você', '1ª geração', '2ª geração', '3ª geração'];
+const ini2 = n => String(n || '?').split(/\s+/).filter(Boolean).map(x => x[0]).slice(0, 2).join('').toUpperCase();
+const ORIG = { L1: 'sua venda', L2: 'venda de quem você indicou', L3: 'rede da sua rede' };
+let PAINEL = null, ADMIN = false;
+
+function layout(root) {
+  let leaf = 0; const nodes = [], links = [];
+  (function walk(n, d, p) { n._d = d; const k = n.filhos || []; k.forEach(c => walk(c, d + 1, n));
+    n._x = k.length ? (k[0]._x + k[k.length - 1]._x) / 2 : leaf++; nodes.push(n); if (p) links.push([p, n]); })(root, 0, null);
+  return { nodes, links, leaves: Math.max(leaf, 1), depth: Math.max(...nodes.map(n => n._d)) };
+}
+function somaRamo(n) { if (n.tipo === 'loja') return Number(n.comissao || 0); n.total = (n.filhos || []).reduce((s, f) => s + somaRamo(f), 0); return n.total; }
+function lojasDe(n, out = []) { (n.filhos || []).forEach(f => { if (f.tipo === 'loja') out.push(f); else lojasDe(f, out); }); return out; }
+function afilDe(n, out = []) { (n.filhos || []).forEach(f => { if (f.tipo === 'afiliado') { out.push(f); afilDe(f, out); } }); return out; }
+
+function desenha(d) {
+  const a = d.afiliado, root = { tipo: 'eu', nome: 'Você', filhos: d.filhos || [] };
+  somaRamo(root);
+  const lojas = lojasDe(root), ativas = lojas.filter(l => l.ativa), afs = afilDe(root);
+  const recorr = ativas.reduce((s, l) => s + Number(l.valor || 0) * Number(l.rec_rate || 0) / 100, 0);
+  const prim = ativas.filter(l => Number(l.mes) === 1);
+  $('ola').textContent = (ADMIN && PAINEL_ALVO ? 'Painel de ' : 'Olá, ') + a.nome.split(' ')[0] + (ADMIN && PAINEL_ALVO ? '' : '!');
+  $('sub').textContent = 'Afiliado desde ' + dt(a.desde) + '. Aqui está a sua rede de indicações e quanto cada loja rende para você.';
+  $('meulink').value = location.origin + location.pathname + '?ref=' + a.slug;
+  $('indicadopor').textContent = a.indicado_por ? 'Você entrou pelo convite de ' + a.indicado_por + '.' : '';
+  $('money').innerHTML = `<div class="main"><small>A receber este mês</small><b>${brl(d.a_receber_mes)}</b><span class="s">fecha no último dia do mês</span></div>
+    <div><small>Recorrência total</small><b>${brl(recorr)}<span style="font-size:13px;color:var(--txt3);font-weight:500"> /mês</span></b><span class="s">se as ${ativas.length} loja${ativas.length === 1 ? '' : 's'} seguir${ativas.length === 1 ? '' : 'em'} ativa${ativas.length === 1 ? '' : 's'}</span></div>
+    <div><small>Já recebido</small><b>${brl(d.recebido)}</b><span class="s">${Number(d.pendente_total) ? brl(d.pendente_total) + ' a receber no total' : 'desde que você entrou'}</span></div>
+    <div><small>Sua rede</small><b>${ativas.length} loja${ativas.length === 1 ? '' : 's'}</b><span class="s">${afs.length} afiliado${afs.length === 1 ? '' : 's'} · ${lojas.length - ativas.length} cancelada${lojas.length - ativas.length === 1 ? '' : 's'}</span></div>`;
+  // árvore
+  const cv = $('cv'), sv = $('sv'), gens = $('gens');
+  cv.querySelectorAll('.node,.vazio').forEach(x => x.remove()); gens.innerHTML = '';
+  if (!(root.filhos || []).length) { cv.style.width = '100%'; cv.style.height = 'auto'; sv.innerHTML = '';
+    cv.insertAdjacentHTML('beforeend', '<div class="vazio">Sua árvore começa quando a primeira loja indicada por você pagar. Mande o seu link e indique lojas abaixo.</div>'); }
+  else {
+    const L = layout(root), COL = 158, ROW = 104, PAD = 8, W = L.leaves * COL + PAD * 2, H = (L.depth + 1) * ROW + 20;
+    cv.style.width = W + 'px'; cv.style.height = H + 'px'; gens.style.height = H + 'px';
+    GER.slice(0, L.depth + 1).forEach((g, i) => gens.insertAdjacentHTML('beforeend', `<div class="gen" style="top:${i * ROW + 2}px">${g}</div>`));
+    const X = n => PAD + n._x * COL + COL / 2, Y = n => n._d * ROW + 30;
+    sv.innerHTML = L.links.map(([p, c]) => { const x1 = X(p), y1 = Y(p) + 50, x2 = X(c), y2 = Y(c), m = (y1 + y2) / 2, s = x2 > x1 ? 10 : x2 < x1 ? -10 : 0;
+      return `<path data-to="${L.nodes.indexOf(c)}" d="M${x1},${y1} V${m - 10} Q${x1},${m} ${x1 + s},${m} H${x2 - s} Q${x2},${m} ${x2},${m + 10} V${y2}"/>`; }).join('');
+    L.nodes.forEach(n => {
+      const k = n.tipo === 'eu' ? 'eu' : n.tipo === 'afiliado' ? 'af' : n.ativa ? 'ok' : 'off';
+      const val = n.tipo === 'eu' ? brl(n.total) + ' no mês' : n.tipo === 'afiliado' ? brl(n.total) + '<br>da rede dele' : n.ativa ? `${brl(n.comissao)} · ${Number(n.taxa)}%` : 'cancelou';
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'node k-' + k; b.title = n.nome;
+      b.style.left = X(n) + 'px'; b.style.top = Y(n) + 'px';
+      b.innerHTML = `${n.tipo === 'loja' && n.ativa && Number(n.mes) === 1 ? '<span class="tag1">1º mês</span>' : ''}<span class="av">${n.tipo === 'eu' ? ini2(a.nome) : ini2(n.nome)}</span><span class="tx"><b>${esc(n.nome)}</b><small>${val}</small></span>`;
+      b.onclick = () => {
+        cv.querySelectorAll('.node.sel').forEach(x => x.classList.remove('sel')); b.classList.add('sel');
+        const info = n.tipo === 'eu' ? 'Total que a sua rede gera para você este mês' : n.tipo === 'afiliado' ? `Afiliado desde ${dt(n.desde)} · ${(n.filhos || []).length} na rede dele` :
+          `${esc(n.plano || '')} · ${brl(n.valor)}/mês · ${n.mes}º mês · cliente desde ${dt(n.desde)} · ${ORIG[n.nivel] || ''}`;
+        $('det').innerHTML = `<b>${esc(n.nome)}</b><span>${info}</span>${n.tipo === 'loja' ? (n.ativa ? `<span>Sua parte este mês: <b style="color:var(--ok)">${brl(n.comissao)}</b></span>` : '<span>Cancelou: sem comissão</span>') : ''}`;
+        const anc = new Set(); (function up(t) { L.links.forEach(([p, c]) => { if (c === t) { anc.add(L.nodes.indexOf(c)); up(p); } }); })(n);
+        sv.querySelectorAll('path').forEach(p => p.classList.toggle('hot', anc.has(+p.dataset.to)));
+      };
+      cv.appendChild(b);
+    });
+    const st = $('stage'); st.scrollLeft = Math.max(0, (W - st.clientWidth) / 2);
+    st.onscroll = () => { gens.style.transform = 'translateX(' + st.scrollLeft + 'px)'; };
+  }
+  // extrato
+  const ex = d.extrato || [];
+  $('ext').innerHTML = ex.length ? `<thead><tr><th>Loja</th><th>Origem</th><th class="num">Mensalidade</th><th class="num">Sua parte</th><th>Situação</th></tr></thead><tbody>${ex.map(c => `<tr><td>${esc(c.loja)}${c.primeiro_mes ? '<span class="tag1 in">1º mês</span>' : ''}<div class="small dim">${dt(c.data)}${c.nivel !== 'L1' && c.vendedor ? ' · venda de ' + esc(c.vendedor) : ''}</div></td><td class="small">${ORIG[c.nivel] || 'comissão'}</td><td class="num">${brl(c.base)}</td><td class="num"><b>${brl(c.valor)}</b><div class="small dim">${Number(c.taxa)}%</div></td><td>${c.status === 'pago' ? '<span class="pill p-ok">Pago</span>' : '<span class="pill p-brand">A receber</span>'}</td></tr>`).join('')}</tbody><tfoot><tr><td colspan="3">Total do mês</td><td class="num" style="color:var(--ok)">${brl(d.a_receber_mes)}</td><td></td></tr></tfoot>`
+    : '<tbody><tr><td class="empty">Nenhuma comissão neste mês ainda. Ela aparece aqui quando uma loja da sua rede paga.</td></tr></tbody>';
+  const queda = prim.reduce((s, l) => s + Number(l.comissao || 0) - Number(l.valor || 0) * Number(l.rec_rate || 0) / 100, 0);
+  $('next').innerHTML = (prim.length ? `<div class="it"><span class="ic">↺</span><div><b>${prim.length} loja${prim.length === 1 ? '' : 's'} no 1º mês</b>: a partir do próximo mês ${prim.length === 1 ? 'ela passa' : 'elas passam'} para a comissão recorrente (de 20% para 10%). Por isso a recorrência fica ${brl(queda)} abaixo deste mês.</div></div>` : '')
+    + `<div class="it"><span class="ic">✓</span><div>Você recebe enquanto a loja estiver <b>ativa e pagando</b>. Se cancelar, a comissão daquela loja para.</div></div>`
+    + `<div class="it"><span class="ic">+</span><div>Cada nova loja que entrar pela sua indicação rende <b>20% no 1º mês</b> e 10% todo mês depois.</div></div>`;
+  const hi = d.historico || [], mx = Math.max(...hi.map(h => Number(h.valor)), 0) || 1, MES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  $('hist').innerHTML = hi.map(h => `<div><span>${Number(h.valor) ? brl(h.valor).replace('R$', '').trim() : '–'}</span><i style="height:${Math.max(3, Number(h.valor) / mx * 160)}px"></i>${MES[+h.mes.slice(5, 7) - 1]}</div>`).join('');
+  const ind = d.indicacoes || [];
+  $('t-ind').innerHTML = ind.length ? ind.map(i => `<tr><td>${esc(i.loja)}<div class="small dim">${esc(i.site || '')}</div></td><td>${dt(i.quando)}</td><td>${i.situacao === 'cliente' ? '<span class="pill p-ok">Virou cliente</span>' : '<span class="pill p-brand">Em negociação</span>'}</td></tr>`).join('')
+    : '<tr><td colspan="3" class="empty">Nenhuma loja indicada ainda.</td></tr>';
+}
+
+let PAINEL_ALVO = null;
+async function abrir(slug) {
+  PAINEL_ALVO = slug || null;
+  const { data, error } = await sb.rpc('pl_afiliado_portal', slug ? { p_slug: slug } : {});
+  return { data, error };
+}
+async function carregarAdmin(meuSlug) {
+  const { data } = await sb.rpc('pl_afiliado_admin_lista'); const l = data || [];
+  $('v-admin').classList.remove('hide');
+  $('adm-sel').innerHTML = '<option value="">Escolha um afiliado…</option>' + l.map(x => `<option value="${esc(x.slug)}">${esc(x.nome)}${x.lojas ? ' · ' + x.lojas + ' loja' + (x.lojas === 1 ? '' : 's') : ''}</option>`).join('');
+  const tot = k => l.reduce((s, x) => s + Number(x[k] || 0), 0);
+  $('adm-tot').textContent = `${l.length} afiliados · este mês ${brl(tot('mes'))} · a pagar ${brl(tot('pendente'))} · já pago ${brl(tot('recebido'))}`;
+  $('adm-t').innerHTML = l.map(x => `<tr><td>${esc(x.nome)}<div class="small dim">${esc(x.email)}</div></td><td class="small">${esc(x.indicado_por || '—')}</td><td class="num">${x.lojas}</td><td class="num">${x.afiliados}</td><td class="num">${brl(x.mes)}</td><td class="num"><b>${brl(x.pendente)}</b></td><td class="num">${brl(x.recebido)}</td><td><button class="btn" data-ver="${esc(x.slug)}" type="button">Ver painel</button></td></tr>`).join('');
+  $('adm-t').onclick = e => { const b = e.target.closest('[data-ver]'); if (b) { $('adm-sel').value = b.dataset.ver; $('adm-sel').onchange(); } };
+  $('adm-sel').onchange = async () => { const s = $('adm-sel').value; if (!s) return; $('adm-lista').classList.add('hide');
+    const { data: d } = await abrir(s); if (d && d.afiliado) { $('v-painel').classList.remove('hide'); desenha(d); scrollTo(0, 0); } };
+  $('adm-todos').onclick = () => { $('adm-lista').classList.toggle('hide'); };
+  if (!meuSlug) $('adm-lista').classList.remove('hide');
+}
 
 async function carregar() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { $('v-auth').classList.remove('hide'); $('v-painel').classList.add('hide'); $('sair').classList.add('hide'); mostrarConvite(); return; }
-  const { data, error } = await sb.rpc('pl_afiliado_painel');
+  const { data, error } = await abrir(null);
+  ADMIN = !!(data && data.admin);
+  if (ADMIN) { $('v-auth').classList.add('hide'); $('sair').classList.remove('hide'); carregarAdmin(data.afiliado && data.afiliado.slug); if (!data.afiliado) return; }
   if (error || !data || !data.afiliado) {
     $('v-auth').classList.remove('hide'); $('v-painel').classList.add('hide'); $('sair').classList.remove('hide');
     document.querySelector('.tabs button[data-t="cadastrar"]').click();
     showErr('c-err', error ? 'Não foi possível carregar seu painel agora.' : 'Seu login existe, mas falta o cadastro de afiliado. Complete os dados abaixo.');
     $('c-email').value = session.user.email; return;
   }
-  const a = data.afiliado;
   $('v-auth').classList.add('hide'); $('v-painel').classList.remove('hide'); $('sair').classList.remove('hide');
-  $('ola').textContent = 'Olá, ' + a.nome.split(' ')[0] + '!';
-  $('sub').textContent = 'Afiliado desde ' + dt(a.desde) + '.';
-  $('meulink').value = location.origin + location.pathname + '?ref=' + a.slug;
-  $('indicadopor').textContent = a.indicado_por ? 'Você entrou pelo convite de ' + a.indicado_por + '.' : '';
-  const com = data.comissoes || [];
-  const soma = st => com.filter(c => st(c.status)).reduce((s, c) => s + Number(c.valor), 0);
-  $('s-receber').textContent = brl(soma(s => s !== 'pago' && s !== 'cancelado'));
-  $('s-pago').textContent = brl(soma(s => s === 'pago'));
-  $('s-n2').textContent = data.rede_n2.length; $('s-n3').textContent = data.rede_n3.length;
-  const rede = data.rede_n2.map(r => `<div class="small" style="padding:4px 0">${esc(r.nome)} <span class="dim">· 2º nível · desde ${dt(r.desde)}</span></div>`)
-    .concat(data.rede_n3.map(r => `<div class="small" style="padding:4px 0">${esc(r.nome)} <span class="dim">· 3º nível, convidado por ${esc(r.via)}</span></div>`));
-  $('rede').innerHTML = rede.length ? rede.join('') : '<div class="empty">Ninguém ainda. Mande o seu link de convite.</div>';
-  $('t-com').innerHTML = com.length ? com.map(c => {
-    const o = ORIGEM[c.nivel] || [c.nivel, 'p-brand'];
-    const quem = c.nivel !== 'L1' && c.vendedor ? `<div class="small dim">venda de ${esc(c.vendedor)}</div>` : '';
-    const st = c.status === 'pago' ? '<span class="pill p-ok">Pago</span>' : c.status === 'cancelado' ? '<span class="pill p-warn">Cancelado</span>' : '<span class="pill p-brand">A receber</span>';
-    return `<tr><td>${dt(c.data)}</td><td>${esc(c.loja)}<div class="small dim">${c.primeiro_mes ? '1º mês' : 'mensalidade'}</div></td><td><span class="pill ${o[1]}">${o[0]}</span>${quem}</td><td class="num">${brl(c.base)}</td><td class="num">${Number(c.rate)}%</td><td class="num"><b>${brl(c.valor)}</b></td><td>${st}</td></tr>`;
-  }).join('') : '<tr><td colspan="7" class="empty">Nenhuma comissão ainda. Ela aparece aqui quando uma loja indicada por você ou pela sua rede paga.</td></tr>';
-  const ind = data.indicacoes || [];
-  $('t-ind').innerHTML = ind.length ? ind.map(i => `<tr><td>${esc(i.loja)}</td><td class="small">${esc(i.site || '—')}</td><td>${dt(i.quando)}</td><td>${i.situacao === 'cliente' ? '<span class="pill p-ok">Virou cliente</span>' : '<span class="pill p-brand">Em negociação</span>'}</td></tr>`).join('')
-    : '<tr><td colspan="4" class="empty">Nenhuma loja indicada ainda.</td></tr>';
+  desenha(data);
 }
 carregar();
 </script>
