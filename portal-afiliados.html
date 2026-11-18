@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4"></script>
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
 <script src="env.js"></script>
 <style>
 :root{--bg:#f6f5f2;--card:#fff;--line:#e8e6e1;--txt:#1b1a19;--txt2:#5f5d58;--txt3:#8d8a84;--brand:#6d28d9;--brand2:#ede9fe;--ok:#0f7b52;--okbg:#e3f5ec;--warn:#9a5b00;--warnbg:#fdf1dc;--err:#b42318;--errbg:#fdecea;--r:14px}
@@ -90,6 +91,35 @@ svg.links{position:absolute;inset:0;overflow:visible}svg.links path{fill:none;st
 .hist i{display:block;width:100%;border-radius:5px 5px 2px 2px;background:var(--brand)}.hist div:last-child i{background:var(--ok)}
 tfoot td{font-weight:700;border-top:1px solid var(--line)}
 @media (max-width:860px){.money{grid-template-columns:1fr 1fr}.money>div{border-left:0;border-top:1px solid var(--line)}.money>div:first-child{grid-column:1/-1;border-top:0}.split{grid-template-columns:1fr}}
+
+/* ===== visual da dashboard do lojista (17/11) ===== */
+@font-face{font-family:'HelveticaNow';src:url('helveticanowdisplay-medium.ttf') format('truetype');font-weight:500;font-style:normal;font-display:swap}
+:root{--bg:#fafaf7;--card:#fff;--line:#ecebe6;--txt:#1c1826;--txt2:#6b6577;--txt3:#8a8496;--brand:#7c3aed;--brand2:#f1ebfb;--ok:#0f7b52;--okbg:#e3f5ec;--r:18px}
+body{background:var(--bg);color:var(--txt)}
+h1,h2,.logo,.stat .value,.linktop b{font-family:'HelveticaNow',Inter,system-ui,sans-serif;font-weight:500;letter-spacing:-.02em}
+h1{font-size:28px}h2{font-size:16px}
+.card{border-radius:var(--r);border-color:var(--line);box-shadow:0 1px 2px rgba(28,24,38,.04)}
+.btn.pri,#copiar{background:linear-gradient(180deg,#8b4def 0%,#7c3aed 100%);border:1px solid rgba(124,58,237,.9);color:#fff;box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 4px 12px -4px rgba(124,58,237,.35)}
+.linktop{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;padding:16px 18px;margin:14px 0 16px}
+.linktop .lt{display:flex;align-items:center;gap:12px;min-width:220px;flex:1}
+.linktop .ic{width:44px;height:44px;border-radius:14px;background:var(--brand2);color:var(--brand);display:grid;place-items:center;font-size:21px;flex:none}
+.linktop b{display:block;font-size:15px}.linktop small{color:var(--txt2);font-size:12.5px}
+.linktop .linkbox{flex:1.4;min-width:260px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:18px}
+.stat{position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;padding:20px 22px;background:radial-gradient(circle at top right,rgba(124,58,237,.04),transparent 50%),#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 1px 2px rgba(28,24,38,.04);transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s}
+.stat:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,.08)}
+.stat .si{width:48px;height:48px;border-radius:14px;background:rgba(124,58,237,.07);color:var(--brand);display:grid;place-items:center;font-size:22px;flex:none}
+.stat h4{margin:0;font-size:11px;color:var(--txt2);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.stat .value{font-size:26px;line-height:1.1;margin-top:5px;white-space:nowrap}
+.stat .value small{font-size:13px;color:var(--txt2);font-family:Inter,sans-serif;font-weight:500;letter-spacing:0}
+.stat .sub{font-size:12px;color:var(--txt3);margin-top:3px}
+.stat.main{background:linear-gradient(135deg,#7c3aed 0%,#9a5cf2 100%);border-color:#7c3aed;color:#fff;box-shadow:0 12px 32px -10px rgba(124,58,237,.55)}
+.stat.main h4,.stat.main .sub{color:#ede4ff}.stat.main .si{background:rgba(255,255,255,.18);color:#fff}
+.adminbar{background:var(--brand2);color:var(--txt);border:1px solid #e2d6fa}
+.adminbar select{border:1px solid #d9cdf5;background:#fff}
+.adminbar .btn{background:#fff;color:var(--brand);border-color:#d9cdf5}
+.k-eu{background:var(--brand);border-color:var(--brand)}.k-eu .av{background:#fff;color:var(--brand)}.k-eu small{color:#ede4ff!important}
+.tree-card{border-radius:18px}
 </style>
 </head>
 <body>
@@ -135,7 +165,8 @@ tfoot td{font-weight:700;border-top:1px solid var(--line)}
   <section id="v-painel" class="hide">
     <h1 id="ola">Olá!</h1>
     <p class="muted" id="sub" style="margin:0 0 6px"></p>
-    <div class="money" id="money"></div>
+    <div class="card linktop"><div class="lt"><span class="ic"><i class="ph-bold ph-link-simple"></i></span><div><b>Seu link de afiliado</b><small>Quem se cadastrar ou comprar por ele entra na sua rede.</small></div></div><div class="linkbox"><input id="meulink" readonly aria-label="Seu link de afiliado"><button class="btn" id="copiar" type="button">Copiar</button></div></div>
+    <div class="stats" id="money"></div>
     <div class="card tree-card">
       <div class="tree-h"><h2>Sua árvore de indicações</h2><div class="keys"><span><i class="dot" style="background:#1b1530"></i>Você</span><span><i class="dot" style="background:var(--brand)"></i>Afiliado</span><span><i class="dot" style="background:var(--ok)"></i>Loja ativa</span><span><i class="dot" style="background:#8d87a0"></i>Cancelada</span></div></div>
       <div class="stage" id="stage"><div class="gens" id="gens"></div><div class="canvas" id="cv"><svg class="links" id="sv"></svg></div></div>
@@ -166,7 +197,7 @@ tfoot td{font-weight:700;border-top:1px solid var(--line)}
       <div class="card">
         <h2>Convide pessoas para a sua rede</h2>
         <p class="small muted" style="margin:-6px 0 10px">Quem se cadastrar pelo seu link entra na sua rede. Você ganha nas vendas dessa pessoa e de quem ela convidar.</p>
-        <div class="linkbox"><input id="meulink" readonly aria-label="Seu link de convite"><button class="btn" id="copiar" type="button">Copiar</button></div>
+        <p class="small muted" style="margin:0">Seu link está no topo da página.</p>
         <p class="small dim" id="indicadopor" style="margin:12px 0 0"></p>
         <h2 style="margin-top:22px">Lojas que você indicou</h2>
         <div class="scroll"><table><thead><tr><th>Loja</th><th>Indicada em</th><th>Situação</th></tr></thead><tbody id="t-ind"></tbody></table></div>
@@ -293,10 +324,11 @@ function desenha(d) {
   $('sub').textContent = 'Afiliado desde ' + dt(a.desde) + '. Aqui está a sua rede de indicações e quanto cada loja rende para você.';
   $('meulink').value = location.origin + location.pathname + '?ref=' + a.slug;
   $('indicadopor').textContent = a.indicado_por ? 'Você entrou pelo convite de ' + a.indicado_por + '.' : '';
-  $('money').innerHTML = `<div class="main"><small>A receber este mês</small><b>${brl(d.a_receber_mes)}</b><span class="s">fecha no último dia do mês</span></div>
-    <div><small>Recorrência total</small><b>${brl(recorr)}<span style="font-size:13px;color:var(--txt3);font-weight:500"> /mês</span></b><span class="s">se as ${ativas.length} loja${ativas.length === 1 ? '' : 's'} seguir${ativas.length === 1 ? '' : 'em'} ativa${ativas.length === 1 ? '' : 's'}</span></div>
-    <div><small>Já recebido</small><b>${brl(d.recebido)}</b><span class="s">${Number(d.pendente_total) ? brl(d.pendente_total) + ' a receber no total' : 'desde que você entrou'}</span></div>
-    <div><small>Sua rede</small><b>${ativas.length} loja${ativas.length === 1 ? '' : 's'}</b><span class="s">${afs.length} afiliado${afs.length === 1 ? '' : 's'} · ${lojas.length - ativas.length} cancelada${lojas.length - ativas.length === 1 ? '' : 's'}</span></div>`;
+  const ST = (cls, ic, lab, val, sub) => `<div class="stat ${cls}"><span class="si"><i class="ph-bold ${ic}"></i></span><div><h4>${lab}</h4><div class="value">${val}</div><div class="sub">${sub}</div></div></div>`;
+  $('money').innerHTML = ST('main', 'ph-wallet', 'A receber este mês', brl(d.a_receber_mes), 'fecha no último dia do mês')
+    + ST('', 'ph-arrows-clockwise', 'Recorrência total', brl(recorr) + '<small> /mês</small>', `se ${ativas.length === 1 ? 'a loja seguir ativa' : 'as ' + ativas.length + ' lojas seguirem ativas'}`)
+    + ST('', 'ph-check-circle', 'Já recebido', brl(d.recebido), Number(d.pendente_total) ? brl(d.pendente_total) + ' a receber no total' : 'desde que você entrou')
+    + ST('', 'ph-tree-structure', 'Sua rede', ativas.length + ' loja' + (ativas.length === 1 ? '' : 's'), `${afs.length} afiliado${afs.length === 1 ? '' : 's'} · ${lojas.length - ativas.length} cancelada${lojas.length - ativas.length === 1 ? '' : 's'}`);
   // árvore
   const cv = $('cv'), sv = $('sv'), gens = $('gens');
   cv.querySelectorAll('.node,.vazio').forEach(x => x.remove()); gens.innerHTML = '';
