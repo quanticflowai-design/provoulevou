@@ -745,7 +745,10 @@
                 brand: '#FFFFFF', dark: '#E6E6E6', soft: 'rgba(255,255,255,.08)', on: '#000000' },
     // Lily Presentes — logo com fundo preto chapado e anel rosa; tema escuro, rosa do logo clareado p/ contraste; botão rosa com texto escuro (~7:1). SEM PROVADOR (_SEM_PROV)
     lilypresentes: { bg: '#000000', card: '#141012', line: '#2E2428',
-                brand: '#E08A9A', dark: '#CD7281', soft: 'rgba(224,138,154,.14)', on: '#1A0E12' }
+                brand: '#E08A9A', dark: '#CD7281', soft: 'rgba(224,138,154,.14)', on: '#1A0E12' },
+    // Ótica Previsão Prime — logo círculo vermelho com dourado sobre branco; botão vermelho com texto branco (~9:1)
+    oticaprevisao: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EFE3E3',
+                brand: '#8E0A0E', dark: '#6E0709', soft: 'rgba(142,10,14,.08)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
