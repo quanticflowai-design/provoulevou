@@ -742,7 +742,10 @@
                 brand: '#161616', dark: '#000000', soft: 'rgba(22,22,22,.06)', on: '#ffffff' },
     // BriLis — logo branco sobre preto chapado; fundo preto igual ao logo, botão branco com texto preto (21:1)
     brilis: { bg: '#000000', card: '#101010', line: '#2A2A2A',
-                brand: '#FFFFFF', dark: '#E6E6E6', soft: 'rgba(255,255,255,.08)', on: '#000000' }
+                brand: '#FFFFFF', dark: '#E6E6E6', soft: 'rgba(255,255,255,.08)', on: '#000000' },
+    // Lily Presentes — logo com fundo preto chapado e anel rosa; tema escuro, rosa do logo clareado p/ contraste; botão rosa com texto escuro (~7:1). SEM PROVADOR (_SEM_PROV)
+    lilypresentes: { bg: '#000000', card: '#141012', line: '#2E2428',
+                brand: '#E08A9A', dark: '#CD7281', soft: 'rgba(224,138,154,.14)', on: '#1A0E12' }
   };
 
   // ─────────── Tema ───────────
