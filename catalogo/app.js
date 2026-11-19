@@ -736,7 +736,13 @@
                 brand: '#1E1A6E', dark: '#151250', soft: 'rgba(30,26,110,.08)', on: '#ffffff' },
     // Elis Ótica Personalizada — marrom-café do logo sobre branco (cantos do logo são brancos), linha creme; botão marrom com texto branco (~12:1)
     elisotica: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EFE6DD',
-                brand: '#433930', dark: '#2E2721', soft: 'rgba(67,57,48,.08)', on: '#ffffff' }
+                brand: '#433930', dark: '#2E2721', soft: 'rgba(67,57,48,.08)', on: '#ffffff' },
+    // Jaque Santos — logo preto (texto + sol) sobre branco; fundo branco, botão preto com texto branco (~18:1)
+    jaquesantos: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EAEAEA',
+                brand: '#161616', dark: '#000000', soft: 'rgba(22,22,22,.06)', on: '#ffffff' },
+    // BriLis — logo branco sobre preto chapado; fundo preto igual ao logo, botão branco com texto preto (21:1)
+    brilis: { bg: '#000000', card: '#101010', line: '#2A2A2A',
+                brand: '#FFFFFF', dark: '#E6E6E6', soft: 'rgba(255,255,255,.08)', on: '#000000' }
   };
 
   // ─────────── Tema ───────────
