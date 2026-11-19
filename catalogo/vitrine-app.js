@@ -9,7 +9,7 @@
   var _ROUPA = ['intimissima'].indexOf(new URLSearchParams(location.search).get('loja') || '') >= 0;
   // Catálogo sem provador (17/11/2026, Lucas): Intimíssima virou catálogo normal — sem botão de prova, selo,
   // "Minhas provas" e Top 10; o produto vende direto pelo WhatsApp.
-  var _SEM_PROV = ['intimissima'].indexOf(new URLSearchParams(location.search).get('loja') || '') >= 0;
+  var _SEM_PROV = ['intimissima', 'lilypresentes'].indexOf(new URLSearchParams(location.search).get('loja') || '') >= 0;
   if (_SEM_PROV) document.documentElement.classList.add('sem-provador');
   var _tx = function (s) {
     if (!_ROUPA) return s;
