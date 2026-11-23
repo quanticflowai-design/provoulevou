@@ -111,9 +111,10 @@
   // ─────────── Helpers ───────────
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-  const brl = n => 'R$ ' + Number(n).toFixed(2).replace('.', ',');
+  // 23/11/2026: produto pode não ter preço — sem valor, mostra vazio (nunca 'R$ NaN' / 'R$ 0,00')
+  const brl = n => (n === null || n === undefined || n === '' || !Number.isFinite(Number(n))) ? '' : 'R$ ' + Number(n).toFixed(2).replace('.', ',');
   const numeroPositivo = v => Number.isFinite(Number(v)) && Number(v) > 0;
-  const precoProduto = p => numeroPositivo(p && p.price) ? Number(p.price) : Number(p && p.originalPrice);
+  const precoProduto = p => numeroPositivo(p && p.price) ? Number(p.price) : (numeroPositivo(p && p.originalPrice) ? Number(p.originalPrice) : NaN);
   const temOferta = p => !!(p && numeroPositivo(p.price) && numeroPositivo(p.originalPrice) && Number(p.originalPrice) > Number(p.price));
   const precoAtualTxt = p => (temOferta(p) ? 'POR: ' : '') + brl(precoProduto(p));
   const precoOriginalTxt = p => temOferta(p) ? 'DE ' + brl(p.originalPrice) : '';
@@ -3619,8 +3620,9 @@
     if (kitLigado && adminKitSel.length < 2) { toast('Marque pelo menos 2 produtos para montar o kit'); return; }
     // Kit pode ir sem foto própria (a vitrine usa a das peças); produto normal não.
     const faltaFoto = !adminFotosPreview.length && !kitLigado;
-    if (publicar && (!name || !(price || originalPrice) || faltaFoto || adminFotosPreview.some(f => !f.url))) {
-      toast(kitLigado ? 'Para publicar o kit, informe nome e preço' : 'Para publicar, informe nome, preço e uma foto para cada variante'); return;
+    // 23/11/2026 (Lucas): preço é opcional — publica sem preço
+    if (publicar && (!name || faltaFoto || adminFotosPreview.some(f => !f.url))) {
+      toast(kitLigado ? 'Para publicar o kit, informe o nome' : 'Para publicar, informe o nome e uma foto para cada variante'); return;
     }
     if (!publicar && adminFotosPreview.some(f => !f.url && f.variantName)) { toast('Adicione a foto da variante ou remova a opção vazia antes de salvar'); return; }
     const fotos = adminFotosPreview.filter(f => f.url);
