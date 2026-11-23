@@ -125,6 +125,68 @@
     itens.forEach(([n, t]) => { const d = el('div', 'cp-res'); d.appendChild(el('b', '', fmt(n))); d.appendChild(el('span', '', t)); box.appendChild(d); });
   }
 
+  // ── receita (só o time) ──
+  const CORES = { pagando: '#17a86b', teste: '#6d3bef', pausado: '#e08a2c', inativo: '#b9b4c4' };
+  const brl = v => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  function desenhaDash(rec) {
+    const box = $('#cp-dash');
+    if (!rec) { box.hidden = true; return; }
+    box.hidden = false;
+    const pag = rec.pagantes || 0;
+    $('#cp-mrr-v').textContent = '';
+    $('#cp-mrr-v').append(brl(rec.mrr), el('small', '', ' /mês'));
+    $('#cp-mrr-s').textContent = fmt(pag) + ' catálogos pagando' + (pag ? ' · ticket médio ' + brl((rec.mrr || 0) / pag) : '');
+    const ms = $('#cp-meses'); ms.textContent = '';
+    const meses = rec.meses || [], max = Math.max(1, ...meses.map(m => Number(m.t) || 0));
+    const hoje = new Date(), atual = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
+    meses.forEach(m => {
+      const d = el('div', 'cp-mes' + (m.m === atual ? ' atual' : ''));
+      d.title = brl(m.t) + ' recebidos de ' + m.n + ' catálogos' + (m.m === atual ? ' (mês em andamento)' : '');
+      d.appendChild(el('span', 'cp-mes-v', brl(m.t)));
+      const b = el('div', 'cp-mes-bar'); b.style.height = Math.max(3, Math.round((Number(m.t) || 0) / max * 52)) + 'px'; d.appendChild(b);
+      d.appendChild(el('span', 'cp-mes-l', MES[Number(m.m.slice(5)) - 1] || m.m));
+      ms.appendChild(d);
+    });
+    const pl = $('#cp-planos'); pl.textContent = '';
+    const planos = rec.planos || [], maxp = Math.max(1, ...planos.map(p => p.n));
+    if (!planos.length) pl.appendChild(el('div', 'cp-mrr-s', 'Nenhum plano pago nos últimos 40 dias.'));
+    planos.forEach(p => {
+      const d = el('div'); const t = el('div', 'cp-pl-top');
+      t.appendChild(el('b', '', p.plano)); t.appendChild(el('span', '', fmt(p.n) + (p.n === 1 ? ' catálogo · ' : ' catálogos · ') + brl(p.receita)));
+      const bar = el('div', 'cp-pl-bar'), i = el('i'); i.style.width = Math.round(p.n / maxp * 100) + '%'; bar.appendChild(i);
+      d.appendChild(t); d.appendChild(bar); pl.appendChild(d);
+    });
+  }
+  function desenhaSituacao() {
+    const st = $('#cp-stack'), lg = $('#cp-leg'); if (!st) return;
+    const grupos = [['pagando', 'Pagando'], ['teste', 'Em teste'], ['pausado', 'Pausados'], ['inativo', 'Inativo / sem cadastro']];
+    const tot = cp.lojas.length || 1;
+    st.textContent = ''; lg.textContent = '';
+    const partes = [];
+    grupos.forEach(([k, t]) => {
+      const n = cp.lojas.filter(l => situacao(l)[0] === k).length;
+      partes.push(t + ': ' + n);
+      if (n) { const s = el('span'); s.style.width = (n / tot * 100) + '%'; s.style.background = CORES[k]; s.title = t + ': ' + n; st.appendChild(s); }
+      const b = el('button'); b.type = 'button';
+      const i = el('i'); i.style.background = CORES[k];
+      b.appendChild(i); b.appendChild(el('span', '', t)); b.appendChild(el('b', '', fmt(n)));
+      if (k !== 'inativo') b.onclick = () => { cp.filtro = k; cp.pagina = 1; desenhaChips(); desenhaLista(); $('#cp-busca').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+      lg.appendChild(b);
+    });
+    st.setAttribute('aria-label', 'Catálogos por situação: ' + partes.join(', '));
+  }
+
+  async function carregaReceita(s) {
+    try {
+      const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_receita', {
+        method: 'POST', headers: { apikey: SB_ANON, Authorization: 'Bearer ' + s.token, 'Content-Type': 'application/json' }, body: '{}'
+      });
+      if (!r.ok) return null;
+      return await r.json();
+    } catch (e) { return null; }
+  }
+
   function desenhaChips() {
     const box = $('#cp-chips'); box.textContent = '';
     FILTROS.forEach(([k, t]) => {
@@ -225,8 +287,9 @@
     $('#cp-ordem').value = cp.ordem;
     cp.lojas = basicas.map(l => ({ slug: l.slug, nome: l.display_name || l.slug }));
     desenhaResumo(); desenhaChips(); desenhaLista();
-    cp.lojas = await carregaControle(s, basicas);
-    desenhaResumo(); desenhaChips(); desenhaLista();
+    const [lojas, rec] = await Promise.all([carregaControle(s, basicas), carregaReceita(s)]);
+    cp.lojas = lojas;
+    desenhaResumo(); desenhaChips(); desenhaLista(); desenhaSituacao(); desenhaDash(rec);
     const busca = $('#cp-busca');
     if (cp.lojas.length > 8 && matchMedia('(min-width: 761px)').matches) busca.focus();
   }
