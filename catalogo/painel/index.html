@@ -71,6 +71,29 @@
     .cp-pl-top span { color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
     .cp-pl-bar { height: 8px; border-radius: 999px; background: var(--bg); overflow: hidden; }
     .cp-pl-bar i { display: block; height: 100%; border-radius: 999px; background: var(--brand); }
+    .cp-split { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; font-size: 13px; color: var(--ink-2); }
+    .cp-split b { color: var(--ink); font-variant-numeric: tabular-nums; }
+    .cp-split .alerta b { color: #b4231a; }
+    .cp-mes-bar { display: flex; flex-direction: column-reverse; overflow: hidden; background: transparent !important; }
+    .cp-mes-bar i { display: block; width: 100%; }
+    .cp-meses { height: 104px; }
+    .cp-meses-leg { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; font-size: 11.5px; color: var(--ink-2); }
+    .cp-meses-leg span { display: inline-flex; align-items: center; gap: 5px; }
+    .cp-meses-leg i { width: 8px; height: 8px; border-radius: 2px; }
+    .cp-mut { color: var(--muted); }
+    .cp-sec-t { font: 700 18px 'Bricolage Grotesque', sans-serif; color: var(--ink); }
+    .cp-sec-cat { margin: 28px 0 12px; }
+    .cp-pag-sec { margin-bottom: 8px; padding: 18px 18px 14px; }
+    .cp-pag-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .cp-busca-sm { flex: 0 1 260px; height: 36px; }
+    .cp-pag-sec .cp-chips { margin-bottom: 12px; }
+    .cp-pag-sec .cp-tabela { border-radius: 10px; }
+    .cp-tipo { font-size: 12px; font-weight: 700; color: var(--ink-2); }
+    .cp-tipo.cat { color: #0f7a4c; }
+    .cp-venc small { display: block; font-size: 12px; color: var(--muted); }
+    .st-vence { background: #fff6dd; color: #8a5a00; }
+    .st-atrasada { background: #fde8e6; color: #b4231a; }
+    .cp-tot td { font-weight: 700; background: var(--bg); }
     @media (max-width: 1000px) { .cp-dash { grid-template-columns: 1fr 1fr; } .cp-mrr { grid-column: 1 / -1; } }
     @media (max-width: 640px) { .cp-dash { grid-template-columns: 1fr; } }
     .cp-barra { position: sticky; top: 55px; z-index: 10; background: var(--bg); padding: 10px 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
@@ -177,15 +200,16 @@
         <h1 class="cp-h1">Seus catálogos</h1>
         <p class="cp-sub" id="cp-sub">Escolha um catálogo para gerenciar produtos, aparência e provas.</p>
 
-        <div class="cp-resumo" id="cp-resumo"></div>
 
         <!-- 23/11/2026: receita dos catálogos — só aparece para o time (rpc pl_catalog_receita) -->
         <section class="cp-dash" id="cp-dash" hidden aria-label="Receita dos catálogos">
           <div class="cp-card cp-mrr">
-            <div class="cp-card-h">Receita recorrente (MRR)</div>
+            <div class="cp-card-h">MRR · provador + catálogos</div>
             <div class="cp-mrr-v" id="cp-mrr-v">—</div>
             <div class="cp-mrr-s" id="cp-mrr-s"></div>
+            <div class="cp-split" id="cp-split"></div>
             <div class="cp-meses" id="cp-meses" aria-label="Mensalidades recebidas por mês"></div>
+            <div class="cp-meses-leg"><span><i style="background:var(--brand)"></i>Provador</span><span><i style="background:#17a86b"></i>Catálogos</span><span class="cp-mut">mensalidades recebidas por mês</span></div>
           </div>
           <div class="cp-card">
             <div class="cp-card-h">Catálogos por situação</div>
@@ -199,6 +223,20 @@
             <div class="cp-planos" id="cp-planos"></div>
           </div>
         </section>
+
+        <!-- 23/11/2026: lojas pagantes (provador + catálogos) — só o time -->
+        <section class="cp-card cp-pag-sec" id="cp-pagantes" hidden aria-label="Lojas pagantes">
+          <div class="cp-pag-h">
+            <div><div class="cp-sec-t">Lojas pagantes</div><div class="cp-mrr-s" id="cp-pag-sub"></div></div>
+            <input class="cp-busca cp-busca-sm" id="cp-pag-busca" type="search" placeholder="Buscar loja" autocomplete="off">
+          </div>
+          <div class="cp-chips" id="cp-pag-chips" role="group" aria-label="Filtrar lojas pagantes"></div>
+          <div id="cp-pag-lista"></div>
+          <div class="cp-pag" id="cp-pag-pag" hidden></div>
+        </section>
+
+        <h2 class="cp-sec-t cp-sec-cat" id="cp-sec-cat" hidden>Catálogos</h2>
+        <div class="cp-resumo" id="cp-resumo"></div>
 
         <div class="cp-barra">
           <input class="cp-busca" id="cp-busca" type="search" placeholder="Buscar por nome ou endereço  ( / )" autocomplete="off">
@@ -217,6 +255,6 @@
     </section>
   </div>
   <div id="toast"></div>
-  <script src="painel.js?v=151"></script>
+  <script src="painel.js?v=153"></script>
 </body>
 </html>
