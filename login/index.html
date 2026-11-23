@@ -5725,9 +5725,10 @@
                         <button class="disp-btn ghost chat-a-fbtn" id="chatSelBtn" onclick="chatSelToggle()" title="Selecionar várias conversas para etiquetar"><i class="ph-bold ph-check-square"></i> Selecionar</button>
                         <button class="disp-btn ghost chat-a-fbtn" onclick="loadConversas()"><i class="ph-bold ph-arrows-clockwise"></i> Atualizar</button>
                     </div>
+                    
+                    <div class="chat-num-tabs" id="chatNumTabs" role="tablist" aria-label="Número do WhatsApp" hidden></div>
                     <div class="chat-wrap">
                         <div class="chat-a-col">
-                            <div class="chat-num-tabs" id="chatNumTabs" role="tablist" aria-label="Número do WhatsApp" hidden></div>
                             <div class="chat-a-listhead"><span class="chat-a-listtitle">Caixa de entrada</span><span class="chat-a-listcount" id="chatListCount"></span></div>
                             <div class="chat-sel-bar" id="chatSelBar" style="display:none;"></div>
                             <div class="chat-list" id="chatList">
@@ -9558,7 +9559,8 @@
       body:not(.dark-mode) .chat-a-listhead { border-bottom-color: var(--a-line-soft); }
       body:not(.dark-mode) .chat-a-listtitle { color: var(--a-ink); }
       body:not(.dark-mode) .chat-a-listcount { color: var(--a-muted); }
-      .chat-num-tabs { flex: 0 0 auto; display: flex; gap: 4px; padding: 10px 14px 0; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+      .chat-num-tabs { display: flex; gap: 6px; padding: 4px 20px 0; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+      .chat-num-tab { height: 40px !important; padding: 0 14px !important; font-size: 14px !important; }
       .chat-num-tabs[hidden] { display: none; }
       .chat-num-tabs::-webkit-scrollbar { display: none; }
       body:not(.dark-mode) .chat-num-tabs { border-bottom-color: var(--a-line-soft); }
