@@ -33,6 +33,27 @@
   const WH_ADD_IMAGE = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-product-image';
   const WH_LOGO = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-logo';
   const WH_THEME = 'https://n8n.segredosdodrop.com/webhook/pl-catalog-theme';
+  // 23/11/2026 segurança: os webhooks que editam o catálogo só aceitam o dono logado —
+  // toda chamada a eles leva o token da sessão do painel.
+  (function () {
+    const _f = window.fetch.bind(window);
+    window.fetch = function (input, init) {
+      try {
+        const url = typeof input === 'string' ? input : (input && input.url) || '';
+        if (/\/webhook\/pl-catalog-(?!capi)/.test(url)) {
+          let tok = '';
+          try { tok = (JSON.parse(localStorage.getItem('pc_sess_v1') || 'null') || {}).token || ''; } catch (e) {}
+          if (tok) {
+            init = Object.assign({}, init || {});
+            const h = new Headers(init.headers || {});
+            if (!h.has('Authorization')) h.set('Authorization', 'Bearer ' + tok);
+            init.headers = h;
+          }
+        }
+      } catch (e) {}
+      return _f(input, init);
+    };
+  })();
   const MAX_FOTOS_PRODUTO = 5;   // teto: além disso o cadastro fica lento e o ganho some
   // slug da loja: ?loja=<slug> na URL (cada lojista tem o seu link)
   // Alias por unidade: ?loja=alkatraz abre a Magrini já travada na Alkatraz —
