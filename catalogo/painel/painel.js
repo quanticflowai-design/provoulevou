@@ -130,39 +130,42 @@
   const brl = v => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   function desenhaDash(rec) {
-    const box = $('#cp-dash');
-    if (!rec) { box.hidden = true; $('#cp-pagantes').hidden = true; return; }
-    box.hidden = false;
+    const box = $('#cp-dash'), row2 = $('#cp-row2');
+    if (!rec) { box.hidden = true; row2.hidden = true; $('#cp-pagantes').hidden = true; return; }
+    box.hidden = false; row2.hidden = false;
     $('.cp-h1').textContent = 'Painel de controle';
     $('#cp-sub').textContent = 'MRR do provador e dos catálogos, lojas pagantes e a lista de catálogos.';
     $('#cp-sec-cat').hidden = false;
-    $('#cp-mrr-v').textContent = '';
-    $('#cp-mrr-v').append(brl(rec.mrr), el('small', '', ' /mês'));
+    const v = $('#cp-mrr-v'); v.textContent = brl(rec.mrr); v.appendChild(el('em', '', '/mês'));
     $('#cp-mrr-s').textContent = fmt(rec.pagantes) + ' lojas pagantes · ticket médio ' + brl((rec.mrr || 0) / Math.max(1, rec.pagantes));
-    const sp = $('#cp-split'); sp.textContent = '';
-    const item = (t, v, cls) => { const d = el('span', cls || ''); d.append(t + ' '); d.appendChild(el('b', '', v)); sp.appendChild(d); };
-    item('Provador', brl(rec.mrr_prov) + ' (' + fmt(rec.pag_prov) + ')');
-    item('Catálogos', brl(rec.mrr_cat) + ' (' + fmt(rec.pag_cat) + ')');
-    if (rec.n_atrasadas) item('Atrasado', brl(rec.atrasado) + ' (' + fmt(rec.n_atrasadas) + ')', 'alerta');
-    const ms = $('#cp-meses'); ms.textContent = '';
+    $('#cp-k-prov').textContent = brl(rec.mrr_prov);
+    $('#cp-k-prov-s').textContent = fmt(rec.pag_prov) + ' lojas · ' + Math.round((rec.mrr_prov || 0) / Math.max(1, rec.mrr) * 100) + '% do MRR';
+    $('#cp-k-cat').textContent = brl(rec.mrr_cat);
+    $('#cp-k-cat-s').textContent = fmt(rec.pag_cat) + ' catálogos · ' + Math.round((rec.mrr_cat || 0) / Math.max(1, rec.mrr) * 100) + '% do MRR';
+    $('#cp-k-atr').textContent = brl(rec.atrasado);
+    $('#cp-k-atr-s').textContent = fmt(rec.n_atrasadas) + (rec.n_atrasadas === 1 ? ' loja com vencimento passado' : ' lojas com vencimento passado');
+
+    const ms = $('#cp-meses'), mx = $('#cp-meses-x'); ms.textContent = ''; mx.textContent = '';
     const meses = rec.meses || [];
     const tot = m => (Number(m.prov) || 0) + (Number(m.cat) || 0);
     const max = Math.max(1, ...meses.map(tot));
     const hoje = new Date(), atual = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
+    const ALT = 170;
     meses.forEach(m => {
       const d = el('div', 'cp-mes' + (m.m === atual ? ' atual' : ''));
       d.title = 'Provador ' + brl(m.prov) + ' · Catálogos ' + brl(m.cat) + (m.extra ? ' · excedentes ' + brl(m.extra) + ' (fora do MRR)' : '') + (m.m === atual ? ' — mês em andamento' : '');
       d.appendChild(el('span', 'cp-mes-v', brl(tot(m))));
-      const b = el('div', 'cp-mes-bar'); b.style.height = Math.max(3, Math.round(tot(m) / max * 66)) + 'px';
+      const b = el('div', 'cp-mes-bar'); b.style.height = Math.max(3, Math.round(tot(m) / max * ALT)) + 'px';
       const ip = el('i'); ip.style.background = 'var(--brand)'; ip.style.height = (tot(m) ? (Number(m.prov) || 0) / tot(m) * 100 : 0) + '%';
       const ic = el('i'); ic.style.background = '#17a86b'; ic.style.height = (tot(m) ? (Number(m.cat) || 0) / tot(m) * 100 : 0) + '%';
-      if (m.m === atual) { ip.style.opacity = .55; ic.style.opacity = .55; }
-      b.appendChild(ip); b.appendChild(ic); d.appendChild(b);
-      d.appendChild(el('span', 'cp-mes-l', (MES[Number(m.m.slice(5)) - 1] || m.m) + (m.m === atual ? '*' : '')));
-      ms.appendChild(d);
+      b.appendChild(ip); b.appendChild(ic); d.appendChild(b); ms.appendChild(d);
+      mx.appendChild(el('span', '', (MES[Number(m.m.slice(5)) - 1] || m.m) + (m.m === atual ? ' *' : '')));
     });
+    const cur = meses.find(m => m.m === atual);
+    $('#cp-meses-nota').textContent = (cur ? '* ' + (MES[hoje.getMonth()]) + ' ainda em andamento. ' : '') + 'Excedentes não entram (passe o mouse na barra para ver).';
+
     const pl = $('#cp-planos'); pl.textContent = '';
-    const planos = (rec.planos || []).slice(0, 6), maxp = Math.max(1, ...planos.map(p => p.n));
+    const planos = (rec.planos || []).slice(0, 7), maxp = Math.max(1, ...planos.map(p => p.n));
     planos.forEach(p => {
       const d = el('div'); const t = el('div', 'cp-pl-top');
       t.appendChild(el('b', '', p.plano)); t.appendChild(el('span', '', fmt(p.n) + (p.n === 1 ? ' loja · ' : ' lojas · ') + brl(p.receita)));
