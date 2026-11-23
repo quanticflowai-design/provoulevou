@@ -258,7 +258,7 @@
     // Fica exposta no browser, igual a api_key dos widgets das outras lojas — o
     // gerador so aceita se o Origin bater com o domain registrado.
     const rows = await sbGet('pl_catalog_stores?slug=eq.' + encodeURIComponent(STORE_SLUG) +
-      '&is_active=eq.true&select=id,slug,display_name,logo_url,whatsapp,bio,primary_color,tema,is_active,store_api_key,owner_email,categorias_ordem,meta_pixel_id&limit=1');
+      '&is_active=eq.true&select=id,slug,display_name,logo_url,whatsapp,bio,primary_color,tema,is_active,store_api_key,categorias_ordem,meta_pixel_id&limit=1');
     storeRow = (rows && rows[0]) || null;
     if (!storeRow) {
       document.title = 'Catálogo indisponível';
@@ -964,7 +964,7 @@
       if (!storeRow) return;
       await loadCatalog();
       renderStore(); renderCatalog();
-      aplicaPermissoes();   // owner_email so chega com a loja carregada
+      aplicaPermissoes(); atualizaDono();   // quem é dono só dá pra saber com a loja carregada
       atualizaLimite();     // o whatsapp da loja (CTA do limite) so chega agora
       ultimaCarga = Date.now(); novasTentativas = 0;
     } catch (e) {
@@ -3737,10 +3737,24 @@
     return !!(sessaoValidada && sessao && sessao.admin);
   }
 
+  // 23/11/2026: o e-mail do dono saiu da API pública; quem diz se a conta logada
+  // é dona desta loja é o banco (rpc pl_catalog_sou_dono, com o token da sessão).
+  let souDono = false, souDonoSlug = '';
+  async function atualizaDono() {
+    const slug = storeRow && storeRow.slug;
+    if (!sessaoValidada || !sessao || !sessao.token || !slug) { souDono = false; souDonoSlug = ''; aplicaPermissoes(); return; }
+    try {
+      const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_sou_dono', {
+        method: 'POST', headers: { apikey: SB_ANON, Authorization: 'Bearer ' + sessao.token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_slug: slug })
+      });
+      souDono = r.ok && (await r.json()) === true; souDonoSlug = slug;
+    } catch (e) { souDono = false; }
+    aplicaPermissoes();
+  }
+
   function ehDono() {
-    const dono = String((storeRow && storeRow.owner_email) || '').trim().toLowerCase();
-    const logado = String((sessao && sessao.email) || '').trim().toLowerCase();
-    return !!sessaoValidada && (ehAdminGeral() || (!!dono && !!logado && dono === logado));
+    return !!sessaoValidada && (ehAdminGeral() || (souDono && !!storeRow && souDonoSlug === storeRow.slug));
   }
 
   function temSessao() { return !!(sessaoValidada && sessao && sessao.email); }
@@ -3758,6 +3772,7 @@
       sessaoValidada = true;
       try { localStorage.setItem(SESSAO, JSON.stringify(sessao)); } catch (e) {}
       aplicaPermissoes();
+      await atualizaDono();
       return true;
     } catch (e) {
       sessao = null;
