@@ -752,7 +752,10 @@
                 brand: '#8E0A0E', dark: '#6E0709', soft: 'rgba(142,10,14,.08)', on: '#ffffff' },
     // Ótica Aquarela — logo com fundo azul-turquesa chapado (#45A9B9); fundo igual ao logo, cartões brancos, botão turquesa escuro com texto branco (~5,7:1)
     oticaaquarela: { bg: '#45A9B9', card: '#FFFFFF', line: '#D6ECF0',
-                brand: '#1F6E7C', dark: '#185A66', soft: 'rgba(31,110,124,.10)', on: '#ffffff' }
+                brand: '#1F6E7C', dark: '#185A66', soft: 'rgba(31,110,124,.10)', on: '#ffffff' },
+    // Ótica A Jóia Dada — amarelo chapado do logo como fundo, texto e botão pretos; botão preto com texto amarelo (~17:1)
+    oticaajoiadada: { bg: '#FDED04', card: '#FFFFFF', line: '#E6D400',
+                brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.08)', on: '#FDED04' }
   };
 
   // ─────────── Tema ───────────
