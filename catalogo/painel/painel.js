@@ -59,11 +59,14 @@
     };
   }
 
-  function caminhoLojas(s) {
-    const filtro = s && s.admin ? '' : 'owner_email=ilike.' +
-      encodeURIComponent(String(s && s.email || '').toLowerCase()) + '&';
-    return 'pl_catalog_stores?' + filtro +
-      'is_active=eq.true&select=slug,display_name&order=display_name.asc';
+  // 23/11/2026: a lista vem do banco pela conta logada (rpc pl_catalog_minhas) —
+  // o e-mail do dono não é mais lido pela API pública.
+  async function minhasLojas(s) {
+    const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_minhas', {
+      method: 'POST', headers: { apikey: SB_ANON, Authorization: 'Bearer ' + s.token, 'Content-Type': 'application/json' }, body: '{}'
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
   }
 
   function irPara(slug) { location.href = '../?loja=' + encodeURIComponent(slug) + '#admin'; }
@@ -401,7 +404,7 @@
     btn.disabled = true; btn.textContent = 'Entrando…';
     try {
       const s = await entrar($('#login-email').value.trim(), $('#login-pass').value);
-      const lojas = await sbGet(caminhoLojas(s));
+      const lojas = await minhasLojas(s);
       if (!lojas || !lojas.length) {
         // Autenticou, mas nenhuma loja aponta pra esse e-mail. É config nossa
         // faltando (owner_email), não senha errada — a mensagem tem que dizer isso.
@@ -433,7 +436,7 @@
     try {
       s = await validarSessao(s);
       try { localStorage.setItem(SESSAO, JSON.stringify(s)); } catch (e) {}
-      const lojas = await sbGet(caminhoLojas(s));
+      const lojas = await minhasLojas(s);
       if (lojas && lojas.length === 1) irPara(lojas[0].slug);
       else if (lojas && lojas.length > 1) abrePainel(s, lojas);
       else mostraLogin();
