@@ -22,6 +22,7 @@ body{font-family:'Onest',system-ui,-apple-system,sans-serif;background:var(--fun
 .card{background:#fff;border:1px solid var(--linha);border-radius:22px;padding:26px 22px;box-shadow:0 10px 30px rgba(58,46,38,.08)}
 h1{font-size:28px;line-height:1.15;margin:0 0 8px;letter-spacing:-.5px;text-wrap:balance}
 .lead{font-size:16px;line-height:1.5;color:var(--txt2);margin:0 0 20px}
+.sub-passos{font-size:12.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--txt2);margin:0 0 8px}
 .passos{display:grid;gap:10px;margin:0 0 22px;padding:0;list-style:none}
 .passos li{display:flex;gap:12px;align-items:center;background:var(--sup);border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.35}
 .passos .n{flex:none;width:30px;height:30px;border-radius:50%;background:var(--marca);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px}
@@ -31,8 +32,9 @@ h1{font-size:28px;line-height:1.15;margin:0 0 8px;letter-spacing:-.5px;text-wrap
 .btn.p{background:var(--marca);color:#fff}.btn.p:hover{background:var(--marca-esc)}
 .btn.w{background:#1f8a4c;color:#fff}.btn.w:hover{background:#18753f}
 .btn.s{background:none;color:var(--txt2);font-size:15px;padding:12px;text-decoration:underline}
-.medidor{display:none;margin-top:4px;border-radius:18px;overflow:hidden;border:1px solid var(--linha);background:var(--sup)}
-.medidor iframe{display:block;width:100%;height:560px;border:0;background:var(--sup)}
+/* 22/11/2026: medidor sem moldura — parece parte do cartão (antes: caixa bege com o botão colado nas bordas) */
+.medidor{display:none;margin-top:2px}
+.medidor iframe{display:block;width:100%;height:560px;border:0;background:#fff}
 .res{display:none;text-align:center}
 .res .ok{width:56px;height:56px;border-radius:50%;background:#e7f2ec;color:var(--ok);display:grid;place-items:center;margin:0 auto 12px;font-size:28px;font-weight:700}
 .medidas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 22px}
@@ -53,6 +55,7 @@ h1{font-size:28px;line-height:1.15;margin:0 0 8px;letter-spacing:-.5px;text-wrap
   <section class="card" id="intro">
     <h1>Meça sua DNP pelo celular</h1>
     <p class="lead">A DNP é a distância entre as suas pupilas. Com ela, as lentes ficam centralizadas certinho nos seus olhos. Leva cerca de 1 minuto.</p>
+    <p class="sub-passos">Antes de começar</p>
     <ul class="passos">
       <li><span class="n">1</span><span>Tenha em mãos <b>qualquer cartão</b> de tamanho padrão (crédito, débito ou fidelidade)</span></li>
       <li><span class="n">2</span><span>Fique num lugar <b>bem iluminado</b>, sem óculos</span></li>
@@ -86,7 +89,7 @@ h1{font-size:28px;line-height:1.15;margin:0 0 8px;letter-spacing:-.5px;text-wrap
   var MEDIDOR = 'https://quantic-dnp-medicao.k5jwra.easypanel.host/';
   var WHATS = '5534991632975';
   var ORIG = new URL(MEDIDOR).origin;
-  var q = 'retorno=1&embed=1&so_auto=1&raio=16&cor=8b654f&borda=e3d6cb&fundo=f5efe9&sup=ffffff&texto=ffffff&tinta=3a2e26&txt2=6b5e55&fonte=Onest';
+  var q = 'retorno=1&embed=1&so_auto=1&raio=14&cor=8b654f&borda=e3d6cb&fundo=ffffff&sup=f5efe9&texto=ffffff&tinta=3a2e26&txt2=6b5e55&fonte=Onest&passos=sup&iniciar=1&tutorial=1';
   var $ = function (id) { return document.getElementById(id); };
   var aberto = false;
 
@@ -96,15 +99,28 @@ h1{font-size:28px;line-height:1.15;margin:0 0 8px;letter-spacing:-.5px;text-wrap
     $('medidor').style.display = 'block';
     $('dicaMed').style.display = 'block';
     $('medidor').innerHTML = '<iframe src="' + MEDIDOR + '?' + q + '" title="Medidor de DNP" allow="camera; microphone; autoplay; fullscreen" scrolling="no"></iframe>';
-    setTimeout(function () { $('medidor').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
+    
   }
   $('comecar').onclick = abrir;
+  abrir();   // 22/11/2026: um botão só — o INICIAR MEDIÇÃO do medidor
 
   var fmt = function (v) { return (Math.round(Number(v) * 10) / 10).toFixed(1).replace('.', ','); };
 
   window.addEventListener('message', function (ev) {
     if (ev.origin !== ORIG) return;
     var d = ev.data || {};
+    if (d.type === 'pl-dnp-tutorial') {
+      document.querySelectorAll('#intro .lead, #intro .passos, #intro .sub-passos').forEach(function (el) { el.style.display = 'none'; });
+      $('intro').querySelector('h1').textContent = 'Veja como segurar o cartão';
+      setTimeout(function () { $('intro').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
+      return;
+    }
+    if (d.type === 'pl-dnp-inicio') {
+      document.querySelectorAll('#intro .lead, #intro .passos, #intro .sub-passos').forEach(function (el) { el.style.display = 'none'; });
+      $('intro').querySelector('h1').textContent = 'Siga o passo a passo';
+      setTimeout(function () { $('intro').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
+      return;
+    }
     if (d.type === 'pl-dnp-altura' && d.h > 40) {
       var f = document.querySelector('#medidor iframe');
       if (f) f.style.height = Math.min(Math.round(d.h) + 2, Math.round(window.innerHeight * 0.92)) + 'px';
@@ -128,6 +144,8 @@ h1{font-size:28px;line-height:1.15;margin:0 0 8px;letter-spacing:-.5px;text-wrap
     aberto = false;
     $('res').style.display = 'none';
     $('intro').style.display = 'block';
+    $('intro').querySelector('h1').textContent = 'Meça sua DNP pelo celular';
+    document.querySelectorAll('#intro .lead, #intro .passos, #intro .sub-passos').forEach(function (el) { el.style.display = ''; });
     $('medidor').innerHTML = '';
     abrir();
   };
