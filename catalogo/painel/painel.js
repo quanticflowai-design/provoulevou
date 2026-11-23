@@ -160,20 +160,34 @@
   }
   function desenhaSituacao() {
     const st = $('#cp-stack'), lg = $('#cp-leg'); if (!st) return;
-    const grupos = [['pagando', 'Pagando'], ['teste', 'Em teste'], ['pausado', 'Pausados'], ['inativo', 'Inativo / sem cadastro']];
+    const grupos = [['pagando', 'Pagando'], ['teste', 'Em teste'], ['pausado', 'Pausados'], ['inativo', 'Sem cadastro']];
     const tot = cp.lojas.length || 1;
-    st.textContent = ''; lg.textContent = '';
-    const partes = [];
+    lg.textContent = '';
+    const NS = 'http://www.w3.org/2000/svg', R = 50, C = 2 * Math.PI * R;
+    const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '0 0 128 128');
+    let acum = 0; const partes = [];
     grupos.forEach(([k, t]) => {
       const n = cp.lojas.filter(l => situacao(l)[0] === k).length;
       partes.push(t + ': ' + n);
-      if (n) { const s = el('span'); s.style.width = (n / tot * 100) + '%'; s.style.background = CORES[k]; s.title = t + ': ' + n; st.appendChild(s); }
+      if (n) {
+        const fr = n / tot, c = document.createElementNS(NS, 'circle');
+        c.setAttribute('cx', 64); c.setAttribute('cy', 64); c.setAttribute('r', R);
+        c.setAttribute('stroke', CORES[k]);
+        const gap = grupos.filter(([kk]) => cp.lojas.some(l => situacao(l)[0] === kk)).length > 1 ? 2 : 0;
+        c.setAttribute('stroke-dasharray', Math.max(0, fr * C - gap) + ' ' + C);
+        c.setAttribute('stroke-dashoffset', -acum * C);
+        const tt = document.createElementNS(NS, 'title'); tt.textContent = t + ': ' + n + ' (' + Math.round(fr * 100) + '%)'; c.appendChild(tt);
+        svg.appendChild(c); acum += fr;
+      }
+      if (!n && k === 'inativo') return;
       const b = el('button'); b.type = 'button';
       const i = el('i'); i.style.background = CORES[k];
-      b.appendChild(i); b.appendChild(el('span', '', t)); b.appendChild(el('b', '', fmt(n)));
+      b.appendChild(i); const sp = el('span', '', t); sp.appendChild(el('small', '', Math.round(n / tot * 100) + '%')); b.appendChild(sp); b.appendChild(el('b', '', fmt(n)));
       if (k !== 'inativo') b.onclick = () => { cp.filtro = k; cp.pagina = 1; desenhaChips(); desenhaLista(); $('#cp-busca').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
       lg.appendChild(b);
     });
+    st.textContent = ''; st.appendChild(svg);
+    const c = el('div', 'cp-pizza-c'); c.appendChild(el('b', '', fmt(cp.lojas.length))); c.appendChild(el('span', '', 'catálogos')); st.appendChild(c);
     st.setAttribute('aria-label', 'Catálogos por situação: ' + partes.join(', '));
   }
 
