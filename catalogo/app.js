@@ -748,7 +748,10 @@
                 brand: '#E08A9A', dark: '#CD7281', soft: 'rgba(224,138,154,.14)', on: '#1A0E12' },
     // Ótica Previsão Prime — logo círculo vermelho com dourado sobre branco; botão vermelho com texto branco (~9:1)
     oticaprevisao: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EFE3E3',
-                brand: '#8E0A0E', dark: '#6E0709', soft: 'rgba(142,10,14,.08)', on: '#ffffff' }
+                brand: '#8E0A0E', dark: '#6E0709', soft: 'rgba(142,10,14,.08)', on: '#ffffff' },
+    // Ótica Aquarela — logo com fundo azul-turquesa chapado (#45A9B9); fundo igual ao logo, cartões brancos, botão turquesa escuro com texto branco (~5,7:1)
+    oticaaquarela: { bg: '#45A9B9', card: '#FFFFFF', line: '#D6ECF0',
+                brand: '#1F6E7C', dark: '#185A66', soft: 'rgba(31,110,124,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
