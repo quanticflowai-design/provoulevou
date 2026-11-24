@@ -776,7 +776,10 @@
                 brand: '#1F6E7C', dark: '#185A66', soft: 'rgba(31,110,124,.10)', on: '#ffffff' },
     // Ótica A Jóia Dada — amarelo chapado do logo como fundo, texto e botão pretos; botão preto com texto amarelo (~17:1)
     oticaajoiadada: { bg: '#FDED04', card: '#FFFFFF', line: '#E6D400',
-                brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.08)', on: '#FDED04' }
+                brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.08)', on: '#FDED04' },
+    // Visão Caramelo (Neyara, Dione) — fundo bege igual ao do logo, marrom do texto do logo
+    visaocaramelo: { bg: '#E5DAC4', card: '#FBF6EE', line: '#D8C9AE',
+                brand: '#5E4135', dark: '#45302A', soft: 'rgba(94,65,53,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
