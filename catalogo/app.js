@@ -779,7 +779,10 @@
                 brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.08)', on: '#FDED04' },
     // Visão Caramelo (Neyara, Dione) — fundo bege igual ao do logo, marrom do texto do logo
     visaocaramelo: { bg: '#E5DAC4', card: '#E5DAC4', line: 'rgba(94,65,53,.22)',
-                brand: '#5E4135', dark: '#45302A', soft: 'rgba(94,65,53,.10)', on: '#ffffff' }
+                brand: '#5E4135', dark: '#45302A', soft: 'rgba(94,65,53,.10)', on: '#ffffff' },
+    // Ótica Mexirica (Shirlene, Dione) — laranja do logo escurecido p/ 4,8:1 com texto branco
+    oticamexirica: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F3E4DC',
+                brand: '#C44A1F', dark: '#A63E19', soft: 'rgba(241,103,54,.10)', on: '#ffffff' }
   };
 
   // ─────────── Tema ───────────
