@@ -6,7 +6,7 @@
 (function () {
   'use strict';
   // Lojas de roupa (07/11/2026, Lucas): a vitrine nasceu para ótica. Aqui os textos de armação viram peça.
-  var _ROUPA = ['intimissima', 'beula'].indexOf(new URLSearchParams(location.search).get('loja') || '') >= 0;
+  var _ROUPA = ['intimissima', 'beula', 'dilauren'].indexOf(new URLSearchParams(location.search).get('loja') || '') >= 0;
   // Catálogo sem provador (17/11/2026, Lucas): Intimíssima virou catálogo normal — sem botão de prova, selo,
   // "Minhas provas" e Top 10; o produto vende direto pelo WhatsApp.
   var _SEM_PROV = ['intimissima', 'lilypresentes'].indexOf(new URLSearchParams(location.search).get('loja') || '') >= 0;
