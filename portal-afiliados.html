@@ -141,6 +141,21 @@ h1{font-size:28px}h2{font-size:16px}
 .adminbar .btn{background:#fff;color:var(--brand);border-color:#d9cdf5}
 .k-eu{background:var(--brand);border-color:var(--brand)}.k-eu .av{background:#fff;color:var(--brand)}.k-eu small{color:#ede4ff!important}
 .tree-card{border-radius:18px}
+
+/* ===== indicações pelo próprio afiliado (25/11) ===== */
+select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--txt);font:inherit;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--txt2) 50%),linear-gradient(135deg,var(--txt2) 50%,transparent 50%);background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:32px}
+select:focus{outline:2px solid var(--brand2);border-color:var(--brand)}
+.req{color:var(--err)}
+.grid>*{min-width:0}
+.ind-h{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}.ind-h h2{margin:0}
+.ind-h .btn{display:inline-flex;align-items:center;gap:6px}
+.plmod{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(28,24,38,.45)}
+.plmod-box{width:100%;max-width:520px;max-height:calc(100dvh - 32px);overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 24px 60px -12px rgba(28,24,38,.35);padding:20px}
+.plmod-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.plmod-h h2{margin:0 0 4px}
+.plmod-x{appearance:none;border:0;background:none;color:var(--txt2);font-size:20px;line-height:1;padding:4px;cursor:pointer;border-radius:8px}.plmod-x:hover{color:var(--txt);background:var(--bg)}
+.plmod-acts{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;flex-wrap:wrap}
+@media (max-width:520px){.plmod{align-items:flex-end;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}.plmod-acts .btn{flex:1}}
+body.plmod-on{overflow:hidden}
 </style>
 </head>
 <body>
@@ -201,31 +216,51 @@ h1{font-size:28px}h2{font-size:16px}
       </div>
     </div>
     <div class="grid g2 sec">
-      <div class="card">
-        <h2>Indicar uma loja</h2>
-        <p class="small muted" style="margin:-6px 0 6px">Cadastre a loja aqui antes do fechamento. Quando ela pagar, a comissão cai sozinha para você e para a sua rede.</p>
-        <form id="f-indicar">
-          <label for="i-loja">Nome da loja</label><input id="i-loja" required>
-          <label for="i-site">Site ou Instagram da loja</label><input id="i-site" placeholder="https://www.loja.com.br">
-          <div class="grid g2" style="gap:10px">
-            <div><label for="i-email">E-mail do dono</label><input id="i-email" type="email"></div>
-            <div><label for="i-whats">WhatsApp do dono</label><input id="i-whats" inputmode="tel"></div>
-          </div>
-          <div class="err" id="i-err"></div><div class="okmsg" id="i-ok">Loja indicada! Nosso time entra em contato com ela.</div>
-          <button class="btn pri" style="margin-top:14px" type="submit">Indicar loja</button>
-        </form>
+      <div class="card" id="c-ind">
+        <div class="ind-h"><h2>Suas indicações</h2><button class="btn pri" id="nova-ind" type="button"><i class="ph-bold ph-plus"></i>Nova indicação</button></div>
+        <p class="small muted" style="margin:-6px 0 10px">Cadastre a loja aqui antes do fechamento. Quando ela pagar, a comissão cai sozinha para você e para a sua rede.</p>
+        <div class="okmsg" id="i-ok" style="margin:0 0 10px">Indicação cadastrada! Ela aparece na lista abaixo.</div>
+        <div class="scroll"><table><thead><tr><th>Loja</th><th>Indicada em</th><th>Situação</th></tr></thead><tbody id="t-ind"></tbody></table></div>
       </div>
       <div class="card">
         <h2>Convide pessoas para a sua rede</h2>
         <p class="small muted" style="margin:-6px 0 10px">Quem se cadastrar pelo seu link entra na sua rede. Você ganha nas vendas dessa pessoa e de quem ela convidar.</p>
         <p class="small muted" style="margin:0">Seu link está no topo da página.</p>
         <p class="small dim" id="indicadopor" style="margin:12px 0 0"></p>
-        <h2 style="margin-top:22px">Lojas que você indicou</h2>
-        <div class="scroll"><table><thead><tr><th>Loja</th><th>Indicada em</th><th>Situação</th></tr></thead><tbody id="t-ind"></tbody></table></div>
       </div>
     </div>
     <div class="card sec" id="regra-painel"></div>
   </section>
+</div>
+
+<div class="plmod hide" id="m-ind" role="dialog" aria-modal="true" aria-labelledby="m-ind-tit">
+  <div class="plmod-box">
+    <div class="plmod-h"><div><h2 id="m-ind-tit">Nova indicação</h2><p class="small muted" style="margin:0">Preencha os dados da loja que você indicou.</p></div><button class="plmod-x" type="button" data-fechar aria-label="Fechar"><i class="ph-bold ph-x"></i></button></div>
+    <form id="f-indicar" novalidate>
+      <label for="i-loja">Nome da loja <span class="req">*</span></label><input id="i-loja" required maxlength="120" autocomplete="organization">
+      <div class="grid g2" style="gap:10px">
+        <div><label for="i-whats">WhatsApp do dono <span class="req">*</span></label><input id="i-whats" required inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999"></div>
+        <div><label for="i-plat">Plataforma da loja</label>
+          <select id="i-plat">
+            <option value="">Não sei / outra</option>
+            <option value="nuvemshop">Nuvemshop</option>
+            <option value="shopify">Shopify</option>
+            <option value="tray">Tray</option>
+            <option value="loja_integrada">Loja Integrada</option>
+            <option value="bagy">Bagy</option>
+            <option value="vtex">VTEX</option>
+            <option value="woocommerce">WooCommerce</option>
+            <option value="wix">Wix</option>
+            <option value="catalogo">Não tem site (vende pelo WhatsApp/Instagram)</option>
+          </select></div>
+      </div>
+      <label for="i-site">Site ou Instagram da loja</label><input id="i-site" placeholder="https://www.loja.com.br ou @loja" autocomplete="url">
+      <label for="i-email">E-mail do dono</label><input id="i-email" type="email" autocomplete="email">
+      <p class="small dim" style="margin:8px 0 0">Informe o site/Instagram ou o e-mail: é por eles que a loja fica ligada a você quando fechar.</p>
+      <div class="err" id="i-err"></div>
+      <div class="plmod-acts"><button class="btn" type="button" data-fechar>Cancelar</button><button class="btn pri" type="submit">Cadastrar</button></div>
+    </form>
+  </div>
 </div>
 
 <script>
@@ -312,13 +347,36 @@ $('f-cadastrar').onsubmit = async ev => {
   finally { btn.disabled = false; btn.textContent = 'Criar minha conta'; }
 };
 
+const PLAT = { nuvemshop: 'Nuvemshop', shopify: 'Shopify', tray: 'Tray', loja_integrada: 'Loja Integrada', bagy: 'Bagy', vtex: 'VTEX', woocommerce: 'WooCommerce', wix: 'Wix', catalogo: 'Sem site' };
+let ultimoFoco = null;
+function abrirIndicacao() {
+  if (ADMIN && PAINEL_ALVO) return; // admin vendo painel de outro afiliado: a RPC grava no login atual
+  ultimoFoco = document.activeElement; showErr('i-err', ''); $('i-ok').style.display = 'none';
+  $('m-ind').classList.remove('hide'); document.body.classList.add('plmod-on'); setTimeout(() => $('i-loja').focus(), 30);
+}
+function fecharIndicacao() {
+  $('m-ind').classList.add('hide'); document.body.classList.remove('plmod-on');
+  if (ultimoFoco && ultimoFoco.focus) ultimoFoco.focus();
+}
+$('nova-ind').onclick = abrirIndicacao;
+$('m-ind').addEventListener('click', e => { if (e.target === $('m-ind') || e.target.closest('[data-fechar]')) fecharIndicacao(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('m-ind').classList.contains('hide')) fecharIndicacao(); });
+
 $('f-indicar').onsubmit = async ev => {
   ev.preventDefault(); showErr('i-err', ''); $('i-ok').style.display = 'none';
-  const btn = ev.submitter; btn.disabled = true;
-  const { error } = await sb.rpc('pl_afiliado_indicar', { p_loja: $('i-loja').value, p_site: $('i-site').value, p_email: $('i-email').value, p_whatsapp: $('i-whats').value });
-  btn.disabled = false;
-  if (error) return showErr('i-err', error.message.replace(/^.*?:\s*/, '') || 'Não foi possível indicar.');
-  ev.target.reset(); $('i-ok').style.display = 'block'; carregar();
+  const loja = $('i-loja').value.trim(), whats = $('i-whats').value.replace(/\D/g, ''), site = $('i-site').value.trim(), email = $('i-email').value.trim().toLowerCase(), plat = $('i-plat').value;
+  if (loja.length < 2) return showErr('i-err', 'Informe o nome da loja.');
+  if (whats.length < 10 || whats.length > 13) return showErr('i-err', 'Informe o WhatsApp do dono com DDD.');
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showErr('i-err', 'E-mail inválido.');
+  if (!site && !email) return showErr('i-err', 'Informe o site/Instagram ou o e-mail da loja, para ela ficar ligada a você.');
+  const btn = ev.submitter || ev.target.querySelector('[type=submit]'); btn.disabled = true; btn.textContent = 'Cadastrando…';
+  const base = { p_loja: loja, p_site: site, p_email: email, p_whatsapp: whats };
+  // p_plataforma só existe depois da migração; até lá a RPC atual (4 parâmetros) responde PGRST202 e reenviamos sem ele
+  let { error } = await sb.rpc('pl_afiliado_indicar', plat ? { ...base, p_plataforma: plat } : base);
+  if (error && plat && error.code === 'PGRST202') ({ error } = await sb.rpc('pl_afiliado_indicar', base));
+  btn.disabled = false; btn.textContent = 'Cadastrar';
+  if (error) return showErr('i-err', error.message.replace(/^.*?:\s*/, '') || 'Não foi possível cadastrar a indicação.');
+  ev.target.reset(); fecharIndicacao(); $('i-ok').style.display = 'block'; carregar();
 };
 
 $('copiar').onclick = async () => { try { await navigator.clipboard.writeText($('meulink').value); $('copiar').textContent = 'Copiado!'; setTimeout(() => $('copiar').textContent = 'Copiar', 1800); } catch { $('meulink').select(); } };
@@ -391,7 +449,7 @@ function desenha(d) {
   $('ext').innerHTML = ex.length ? `<thead><tr><th>Loja</th><th>Origem</th><th class="num">Mensalidade</th><th class="num">Sua parte</th><th>Situação</th></tr></thead><tbody>${ex.map(c => `<tr><td>${esc(c.loja)}${c.primeiro_mes ? '<span class="tag1 in">1º mês</span>' : ''}<div class="small dim">${dt(c.data)}${c.nivel !== 'L1' && c.vendedor ? ' · venda de ' + esc(c.vendedor) : ''}</div></td><td class="small">${ORIG[c.nivel] || 'comissão'}</td><td class="num">${brl(c.base)}</td><td class="num"><b>${brl(c.valor)}</b><div class="small dim">${Number(c.taxa)}%</div></td><td>${c.status === 'pago' ? '<span class="pill p-ok">Pago</span>' : '<span class="pill p-brand">A receber</span>'}</td></tr>`).join('')}</tbody><tfoot><tr><td colspan="3">Total do mês</td><td class="num" style="color:var(--ok)">${brl(d.a_receber_mes)}</td><td></td></tr></tfoot>`
     : '';
   const vz = document.getElementById('ext-vazio'); if (vz) vz.remove();
-  if (!ex.length) $('ext-wrap').insertAdjacentHTML('beforeend', `<div class="vz" id="ext-vazio"><span class="vi"><i class="ph-bold ph-receipt"></i></span><b>Nenhuma comissão neste mês ainda</b><p>Quando uma loja indicada por você ou pela sua rede pagar a mensalidade, ela aparece aqui com o valor que é seu.</p><div class="acts"><button class="btn pri" type="button" onclick="document.getElementById('copiar').click()">Copiar meu link</button><button class="btn" type="button" onclick="document.getElementById('i-loja').focus()">Indicar uma loja</button></div></div>`);
+  if (!ex.length) $('ext-wrap').insertAdjacentHTML('beforeend', `<div class="vz" id="ext-vazio"><span class="vi"><i class="ph-bold ph-receipt"></i></span><b>Nenhuma comissão neste mês ainda</b><p>Quando uma loja indicada por você ou pela sua rede pagar a mensalidade, ela aparece aqui com o valor que é seu.</p><div class="acts"><button class="btn pri" type="button" onclick="document.getElementById('copiar').click()">Copiar meu link</button><button class="btn" type="button" onclick="document.getElementById('nova-ind').click()">Indicar uma loja</button></div></div>`);
   const queda = prim.reduce((s, l) => s + Number(l.comissao || 0) - Number(l.valor || 0) * Number(l.rec_rate || 0) / 100, 0);
   $('next').innerHTML = (prim.length ? `<div class="it"><span class="ic">↺</span><div><b>${prim.length} loja${prim.length === 1 ? '' : 's'} no 1º mês</b>: a partir do próximo mês ${prim.length === 1 ? 'ela passa' : 'elas passam'} para a comissão recorrente (de 20% para 10%). Por isso a recorrência fica ${brl(queda)} abaixo deste mês.</div></div>` : '')
     + `<div class="it"><span class="ic">✓</span><div>Você recebe enquanto a loja estiver <b>ativa e pagando</b>. Se cancelar, a comissão daquela loja para.</div></div>`
@@ -400,8 +458,10 @@ function desenha(d) {
   const temHist = hi.some(h => Number(h.valor) > 0); $('hist').classList.toggle('zero', !temHist);
   if (!temHist) $('hist').innerHTML = '<div class="hz"><i class="ph-bold ph-chart-bar"></i><span>Seu gráfico começa a aparecer no mês da sua primeira comissão.</span></div>'; else $('hist').innerHTML = hi.map(h => `<div><span>${Number(h.valor) ? brl(h.valor).replace('R$', '').trim() : '–'}</span><i style="height:${Math.max(3, Number(h.valor) / mx * 160)}px"></i>${MES[+h.mes.slice(5, 7) - 1]}</div>`).join('');
   const ind = d.indicacoes || [];
-  $('t-ind').innerHTML = ind.length ? ind.map(i => `<tr><td>${esc(i.loja)}<div class="small dim">${esc(i.site || '')}</div></td><td>${dt(i.quando)}</td><td>${i.situacao === 'cliente' ? '<span class="pill p-ok">Virou cliente</span>' : '<span class="pill p-brand">Em negociação</span>'}</td></tr>`).join('')
-    : '<tr><td colspan="3" class="empty">Nenhuma loja indicada ainda.</td></tr>';
+  const outro = ADMIN && PAINEL_ALVO; $('nova-ind').classList.toggle('hide', !!outro);
+  $('t-ind').innerHTML = ind.length ? ind.map(i => { const p = PLAT[i.plataforma] || i.plataforma || '';
+      return `<tr><td>${esc(i.loja)}<div class="small dim">${[i.site, p].filter(Boolean).map(esc).join(' · ')}</div></td><td>${dt(i.quando)}</td><td>${i.situacao === 'cliente' ? '<span class="pill p-ok">Virou cliente</span>' : '<span class="pill p-brand">Em negociação</span>'}</td></tr>`; }).join('')
+    : `<tr><td colspan="3" class="empty">${outro ? 'Nenhuma loja indicada ainda.' : 'Nenhuma loja indicada ainda. Toque em <b>Nova indicação</b> para cadastrar a primeira.'}</td></tr>`;
 }
 
 let PAINEL_ALVO = null;
