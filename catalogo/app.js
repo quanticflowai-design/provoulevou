@@ -2310,7 +2310,7 @@
   // armação no rosto. Toda loja do catálogo hoje é ótica, então o padrão é
   // óculos e a exceção é declarada. Quando entrar uma loja de roupa, o slug
   // dela entra aqui — até existir coluna de categoria na loja (é DDL).
-  const LOJAS_ROUPA = ['lojateste', 'provoulevou', 'ayzo', 'intimissima'];
+  const LOJAS_ROUPA = ['lojateste', 'provoulevou', 'ayzo', 'intimissima', 'beula'];   // beula (25/11): roupa e calçados; óculos dela caem no RE_OCULOS pelo nome
   // Boné (22/10/2026): vai pro gerador de ROUPA com product_type 'bone', que troca o prompt de roupa
   // pelo de boné (mesmo boné/logo na cabeça; rosto, cabelo e fundo intactos).
   const RE_BONE = /\bbon[eé]s?\b|\bcap\b|trucker|snapback|aba reta|aba curva/i;
