@@ -927,6 +927,18 @@
     }
   }
 
+  // 23/11/2026 (Lucas): foto inteira é escolha de cada produto; sem escolha, segue o tema da loja.
+  function fotoInteiraDe(p) {
+    if (p && p.fotoInteira != null) return !!p.fotoInteira;
+    return !!(storeRow && storeRow.tema && storeRow.tema.fotoInteira);
+  }
+  function aplicaPreviaFotoInteira() {
+    const up = $('#admin-uploader'), ck = $('#admin-foto-inteira');
+    if (up && ck) up.classList.toggle('foto-inteira', ck.checked);
+  }
+  let adminFotoInteiraMexeu = false;
+  document.addEventListener('change', ev => { if (ev.target && ev.target.id === 'admin-foto-inteira') { adminFotoInteiraMexeu = true; aplicaPreviaFotoInteira(); } });
+
   async function loadCatalog() {
     if (!storeRow) return catalog;
     const rows = await sbGet('pl_catalog_products?store_id=eq.' + storeRow.id +
@@ -985,6 +997,7 @@
         cats: cats,                         // o produto pode aparecer em varias categorias
         parcelas: Number(r.parcelas) || 0,
         installmentInterestRate: Number(r.installment_interest_rate) || 0,
+        fotoInteira: r.foto_inteira == null ? null : !!r.foto_inteira,   // null = segue o padrão da loja
         categoria: categoriaDe(r)
       };
     });
@@ -1392,6 +1405,7 @@
         if (pct > 0 && pct <= 85) { const off = document.createElement('span'); off.className = 'pc-off'; off.textContent = '-' + pct + '%'; card.appendChild(off); }
       }
       bindImg(thumb, p.img, p.name);
+      thumb.classList.toggle('inteira', fotoInteiraDe(p));
       // Botão leva DIRETO pra prova (menos um passo pro cliente).
       card.querySelector('.pc-try').addEventListener('click', ev => {
         ev.stopPropagation();
@@ -1439,6 +1453,7 @@
     window.PLVitrineApp.render({
       loja: { slug: STORE_SLUG, nome: storeRow.display_name || STORE.name, logo: storeRow.logo_url || '', bio: storeRow.bio || '', whatsapp: storeRow.whatsapp || '' },
       tema: storeRow.tema || {},
+      fotoInteira: fotoInteiraDe,
       catalog: catalog.filter(p => doTipo(p) && (!slugFixa || !p.unit || slugUnidade(p.unit) === slugFixa))
         .sort((a, b) => Number(b.featured) - Number(a.featured) || (a.position - b.position)),
       cats: categoriasDaLoja(),
@@ -2147,6 +2162,7 @@
     pixelEvento('ViewContent', _pxProduto(p));
     if (STORE.name) document.title = p.name + ' · ' + STORE.name;
     fotoSel = 0;   // produto novo, galeria volta pra primeira foto
+    $('#p-img').classList.toggle('inteira', fotoInteiraDe(p));
     bindImg($('#p-img'), p.img, p.name);
     $('#p-name').textContent = p.name;
     const precoOriginal = $('#p-old-price');
@@ -3029,6 +3045,8 @@
     const abas = $$('.admin-aba');
     if (!abas.length) return;
     if (!abas.some(a => a.dataset.aba === nome)) nome = 'produtos';
+    // produto novo: a caixinha "foto inteira" já vem no padrão da loja
+    try { if (nome === 'cadastrar' && !editando && !adminFotoInteiraMexeu) { const ck = $('#admin-foto-inteira'); if (ck) { ck.checked = fotoInteiraDe(null); aplicaPreviaFotoInteira(); } } } catch (e) {}
     abas.forEach(a => { a.hidden = a.dataset.aba !== nome; });
     $$('.admin-menu-btn').forEach(b => {
       const on = b.dataset.aba === nome;
@@ -3520,6 +3538,7 @@
     stagedProductId = null;
     editando = p;
     $('#admin-featured').checked = !!p.featured;
+    $('#admin-foto-inteira').checked = fotoInteiraDe(p); aplicaPreviaFotoInteira();
     adminPhoto = ''; adminPhotoB64 = ''; adminFotosB64 = []; adminFotosPreview = [];
     adminUploadRequestId = '';
     const fi = $('#admin-photo'); if (fi) fi.value = '';
@@ -3558,6 +3577,7 @@
   function saiEdicao() {
     editando = null; stagedProductId = null;
     $('#admin-featured').checked = false;
+    $('#admin-foto-inteira').checked = fotoInteiraDe(null); adminFotoInteiraMexeu = false; aplicaPreviaFotoInteira();
     $('#admin-name').value = ''; $('#admin-price').value = ''; $('#admin-original-price').value = '';
     $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
     $('#admin-unit').value = '';
@@ -3676,7 +3696,7 @@
     if (estoqueTxt && !/^\d{1,6}$/.test(estoqueTxt)) { toast('Estoque: use um número inteiro (0 ou mais) ou deixe vazio'); return; }
     const fields = { estoque: estoqueTxt, name, price, original_price:originalPrice, description:$('#admin-desc').value.trim(), unit_name:$('#admin-unit').value.trim(),
       parcelas, installment_interest_rate:interestRate, categories:categorias,
-      is_featured:$('#admin-featured').checked, is_active:publicar,
+      is_featured:$('#admin-featured').checked, is_active:publicar, foto_inteira:$('#admin-foto-inteira').checked,
       kit_itens: kitLigado ? adminKitSel.slice() : [] };
     const label = btn.textContent;
     const locked = $$('.admin-fields input, .admin-fields textarea, .admin-fields select, .admin-fields button, #admin-photo');
