@@ -48,10 +48,25 @@ td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}tr:last-c
 .pill{display:inline-block;font-size:12px;font-weight:500;padding:2px 8px;border-radius:99px;white-space:nowrap}
 .p-ok{background:var(--okbg);color:var(--ok)}.p-warn{background:var(--warnbg);color:var(--warn)}.p-brand{background:var(--brand2);color:var(--brand)}
 .empty{color:var(--txt3);font-size:14px;padding:6px 0}
-.regra{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
-@media (max-width:620px){.regra{grid-template-columns:1fr}}
-.nivel{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg)}
-.nivel .t{font-weight:600}.nivel .pc{font-size:22px;font-weight:700;color:var(--brand);margin-top:6px}.nivel .pc small{font-size:13px;color:var(--txt2);font-weight:500}
+.regra{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:4px}
+.nivel{display:flex;flex-direction:column;gap:10px;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg)}
+.nivel .t{font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:2px;line-height:1.25}
+.nv-n{width:22px;height:22px;border-radius:99px;background:var(--brand2);color:var(--brand);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none}
+.nv-txt .small{line-height:1.4}
+.nv-pc{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto}
+.nv-pc>div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center}
+.nv-pc b{display:block;font-size:22px;line-height:1.1;color:var(--brand);font-weight:700}
+.nv-pc>div:last-child b{font-size:18px}
+.nv-pc span{display:block;font-size:11.5px;color:var(--txt2);line-height:1.3;margin-top:2px}
+.ex{margin-top:16px;border:1px solid var(--line);border-radius:12px;padding:14px}
+.ex-tit{font-weight:600;margin-bottom:4px}
+.ex-tab{width:100%;border-collapse:collapse;font-size:13.5px}
+.ex-tab th{text-align:right;font-weight:600;font-size:12px;color:var(--txt2);padding:6px 6px;border-bottom:1px solid var(--line);vertical-align:bottom;line-height:1.25}
+.ex-tab td{text-align:right;padding:9px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.ex-tab tr:last-child td{border-bottom:0}
+.ex-tab td:first-child{text-align:left;font-weight:600;white-space:normal}
+.ex-tab td:first-child small{display:block;font-weight:400;font-size:11.5px;color:var(--txt3)}
+.ex-tab td b{color:var(--brand)}
 .passos{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
 .passos li{display:flex;gap:10px;align-items:baseline;font-size:14px}.passos b{min-width:22px;height:22px;border-radius:99px;background:var(--brand2);color:var(--brand);display:inline-flex;align-items:center;justify-content:center;font-size:12px}
 .hide{display:none!important}
@@ -216,18 +231,23 @@ h1{font-size:28px}h2{font-size:16px}
 <script>
 const REGRA_HTML = `
   <h2>Como você ganha</h2>
-  <p class="small muted" style="margin:-6px 0 8px">A comissão é sobre a mensalidade que a loja paga. No 1º mês ela é maior; do 2º mês em diante continua caindo todo mês, enquanto a loja for cliente.</p>
+  <p class="small muted" style="margin:-6px 0 14px">A comissão é sobre a mensalidade que a loja paga: maior no 1º mês e, depois, todo mês enquanto a loja for cliente.</p>
   <div class="regra">
-    <div class="nivel"><div class="t">Você vendeu</div><div class="small muted">A loja fechou pela sua indicação</div><div class="pc">20% <small>no 1º mês</small></div><div class="pc" style="font-size:17px">10% <small>todo mês depois</small></div></div>
-    <div class="nivel"><div class="t">Sua rede vendeu</div><div class="small muted">Alguém que você convidou fechou</div><div class="pc">5% <small>no 1º mês</small></div><div class="pc" style="font-size:17px">2% <small>todo mês depois</small></div></div>
-    <div class="nivel"><div class="t">A rede da sua rede vendeu</div><div class="small muted">Quem o seu convidado convidou</div><div class="pc">2% <small>no 1º mês</small></div><div class="pc" style="font-size:17px">1% <small>todo mês depois</small></div></div>
+    <div class="nivel"><div class="nv-txt"><div class="t"><span class="nv-n">1</span>Você vendeu</div><div class="small muted">A loja fechou pela sua indicação</div></div>
+      <div class="nv-pc"><div><b>20%</b><span>no 1º mês</span></div><div><b>10%</b><span>todo mês depois</span></div></div></div>
+    <div class="nivel"><div class="nv-txt"><div class="t"><span class="nv-n">2</span>Sua rede vendeu</div><div class="small muted">Alguém que você convidou fechou uma loja</div></div>
+      <div class="nv-pc"><div><b>5%</b><span>no 1º mês</span></div><div><b>2%</b><span>todo mês depois</span></div></div></div>
+    <div class="nivel"><div class="nv-txt"><div class="t"><span class="nv-n">3</span>A rede da sua rede vendeu</div><div class="small muted">Quem o seu convidado convidou fechou uma loja</div></div>
+      <div class="nv-pc"><div><b>2%</b><span>no 1º mês</span></div><div><b>1%</b><span>todo mês depois</span></div></div></div>
   </div>
-  <ul class="passos">
-    <li><b>1</b><span>Exemplo: Ana convida o Bruno, e o Bruno convida a Carla. Só convidar não paga nada.</span></li>
-    <li><b>2</b><span>A Carla fecha uma ótica no plano de R$ 369. No 1º mês: Carla ganha R$ 73,80, Bruno R$ 18,45 e Ana R$ 7,38.</span></li>
-    <li><b>3</b><span>Do 2º mês em diante, todo mês: Carla R$ 36,90, Bruno R$ 7,38 e Ana R$ 3,69.</span></li>
-    <li><b>4</b><span>Se a ótica fica 1 ano: Carla soma R$ 479,70, Bruno R$ 99,63 e Ana R$ 47,97.</span></li>
-  </ul>
+  <div class="ex">
+    <div class="ex-tit">Exemplo</div>
+    <p class="small muted" style="margin:0 0 10px">Ana convida o Bruno, e o Bruno convida a Carla. Só convidar não paga nada. A Carla fecha uma ótica no plano de R$ 369:</p>
+    <table class="ex-tab"><thead><tr><th></th><th>1º mês</th><th>Depois, todo mês</th><th>Em 1 ano</th></tr></thead><tbody>
+      <tr><td>Carla<small>vendeu</small></td><td>R$ 73,80</td><td>R$ 36,90</td><td><b>R$ 479,70</b></td></tr>
+      <tr><td>Bruno<small>convidou a Carla</small></td><td>R$ 18,45</td><td>R$ 7,38</td><td><b>R$ 99,63</b></td></tr>
+      <tr><td>Ana<small>convidou o Bruno</small></td><td>R$ 7,38</td><td>R$ 3,69</td><td><b>R$ 47,97</b></td></tr></tbody></table>
+  </div>
   <p class="small dim" style="margin:12px 0 0">A comissão conta depois que o pagamento da loja é confirmado e para quando a loja deixa de pagar. O ganho vai até o 3º nível: quem a Carla convidar não gera nada para a Ana.</p>`;
 document.getElementById('regra-pub').innerHTML = REGRA_HTML;
 document.getElementById('regra-painel').innerHTML = REGRA_HTML;
