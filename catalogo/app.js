@@ -785,7 +785,10 @@
                 brand: '#C44A1F', dark: '#A63E19', soft: 'rgba(241,103,54,.10)', on: '#ffffff' },
     // Óticas Diamond — preto e amarelo (pedido da Kati); logo em fundo branco → fundo branco; botão preto com texto amarelo (~11:1)
     oticasdiamond: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EEE7D2',
-                brand: '#111111', dark: '#000000', soft: 'rgba(242,194,48,.14)', on: '#F2C230' }
+                brand: '#111111', dark: '#000000', soft: 'rgba(242,194,48,.14)', on: '#F2C230' },
+    // Beulá — vermelho EXATO do fundo do logo (JPEG chapado #970102) como fundo, tema escuro como a Mendonça; botão branco com texto vermelho (~8:1)
+    beula: { bg: '#970102', card: '#A6100F', line: 'rgba(255,255,255,.22)',
+                brand: '#FFFFFF', dark: '#F3E3E3', soft: 'rgba(255,255,255,.12)', on: '#970102' }
   };
 
   // ─────────── Tema ───────────
