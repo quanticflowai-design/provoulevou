@@ -6,7 +6,7 @@
 (function () {
   'use strict';
   // Lojas de roupa (07/11/2026, Lucas): a vitrine nasceu para ótica. Aqui os textos de armação viram peça.
-  var _ROUPA = ['intimissima'].indexOf(new URLSearchParams(location.search).get('loja') || '') >= 0;
+  var _ROUPA = ['intimissima', 'beula'].indexOf(new URLSearchParams(location.search).get('loja') || '') >= 0;
   // Catálogo sem provador (17/11/2026, Lucas): Intimíssima virou catálogo normal — sem botão de prova, selo,
   // "Minhas provas" e Top 10; o produto vende direto pelo WhatsApp.
   var _SEM_PROV = ['intimissima', 'lilypresentes'].indexOf(new URLSearchParams(location.search).get('loja') || '') >= 0;
@@ -106,7 +106,8 @@
     '.va-provas{position:fixed;inset:0;z-index:75;background:#fff;overflow:auto;display:none;font-family:"Plus Jakarta Sans",system-ui,sans-serif;color:#111827}.va-provas.on{display:block}',
     '.va-provas .topo{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,.94);border-bottom:1px solid #eef0f3;backdrop-filter:blur(10px)}.va-provas .topo h2{flex:1;margin:0;font-size:17px}',
     '.va-provas .lista{max-width:1120px;margin:0 auto;padding:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}',
-    '.va-pv{border:1px solid #eef0f3;border-radius:16px;overflow:hidden;background:#fff;display:flex;flex-direction:column}',
+    '.va-pv{border:1px solid #eef0f3;border-radius:16px;overflow:hidden;background:#fff;display:flex;flex-direction:column;position:relative}',
+    '.va-pv .rm{position:absolute;top:8px;right:8px;z-index:2;width:34px;height:34px;border-radius:50%;border:0;background:rgba(17,17,17,.6);color:#fff;display:grid;place-items:center;cursor:pointer;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}.va-pv .rm:hover{background:rgba(220,38,38,.9)}',
     '.va-pv img{width:100%;aspect-ratio:3/4;object-fit:cover;background:#f6f7f9;cursor:pointer}.va-pv .in{padding:10px;display:flex;flex-direction:column;gap:2px;flex:1}',
     '.va-pv .nm{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.va-pv .pr{font-size:15px;font-weight:800}.va-pv .qd{font-size:11.5px;color:#9ca3af}',
     '.va-pv .comprar{margin-top:8px;border:0;border-radius:10px;padding:10px;background:#25d366;color:#fff;font:800 13.5px inherit;cursor:pointer}',
@@ -575,7 +576,7 @@
     p.innerHTML = '<div class="topo"><button type="button" class="va-ico" data-pv="fechar" aria-label="Voltar">' + IC.volta + '</button><h2>Minhas provas</h2></div>' +
       (l.length ? '<div class="lista">' + l.map(function (x, i) {
         var d = new Date(x.quando);
-        return '<div class="va-pv"><img src="' + esc(x.img) + '" alt="Prova de ' + esc(x.nome) + '" data-pv="ver" data-i="' + i + '"><div class="in"><span class="nm">' + esc(x.nome) + '</span>' +
+        return '<div class="va-pv"><button type="button" class="rm" data-pv="remover" data-i="' + i + '" aria-label="Remover esta prova" title="Remover"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button><img src="' + esc(x.img) + '" alt="Prova de ' + esc(x.nome) + '" data-pv="ver" data-i="' + i + '"><div class="in"><span class="nm">' + esc(x.nome) + '</span>' +
           (x.preco ? '<span class="pr">' + X.brl(x.preco) + '</span>' : '') + '<span class="qd">Provado em ' + d.toLocaleDateString('pt-BR') + '</span>' +
           '<button type="button" class="comprar" data-pv="comprar" data-i="' + i + '">Comprar</button></div></div>';
       }).join('') + '</div>'
@@ -588,6 +589,11 @@
     var a = el.getAttribute('data-pv'), item = minhas()[Number(el.getAttribute('data-i'))];
     if (a === 'fechar') return fechaProvas();
     if (a === 'comprar' && item) return X.comprarProva(item);
+    if (a === 'remover' && item) {   // 25/11/2026: apaga só deste aparelho (a prova nunca sai do celular do cliente)
+      if (!window.confirm('Remover esta prova? Ela some só deste celular.')) return;
+      if (X.removerProva) X.removerProva(item.id);
+      pintaQtd(); return abreProvas();
+    }
     if (a === 'ver' && item) { fechaProvas(); X.verProdutoProva(item); }
   }
   document.addEventListener('pl-minhas-provas', function () { pintaQtd(); });

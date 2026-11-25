@@ -1448,6 +1448,8 @@
       sb: { url: SB_URL, key: SB_ANON },
       podeEditar: () => ehDono(),
       minhasProvas: minhasProvas,
+      // 25/11/2026: o cliente apaga uma prova de "Minhas provas" (só some deste aparelho)
+      removerProva: id => { try { localStorage.setItem(MINHAS_KEY, JSON.stringify(minhasProvas().filter(x => x && String(x.id) !== String(id)))); } catch (e) {} document.dispatchEvent(new CustomEvent('pl-minhas-provas')); },
       comprarProva: comprarMinhaProva,
       verProdutoProva: item => { const p = catalog.find(x => String(x.id) === String(item && item.pid)); if (p) openProduct(p); },
       escalaLogo: escalaLogoSalva,
@@ -2660,7 +2662,7 @@
   }
   function comprarMinhaProva(item) {
     const p = catalog.find(x => String(x.id) === String(item && item.pid));
-    if (!p) { toast(['intimissima'].indexOf(STORE_SLUG) >= 0 ? 'Essa peça não está mais no catálogo.' : 'Essa armação não está mais no catálogo.'); return; }
+    if (!p) { toast(['intimissima', 'beula'].indexOf(STORE_SLUG) >= 0 ? 'Essa peça não está mais no catálogo.' : 'Essa armação não está mais no catálogo.'); return; }
     current = p; fotoSel = Number(item.foto) || 0;
     comprarNoWhatsapp();
   }
