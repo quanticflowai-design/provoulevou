@@ -2318,7 +2318,7 @@
   // armação no rosto. Toda loja do catálogo hoje é ótica, então o padrão é
   // óculos e a exceção é declarada. Quando entrar uma loja de roupa, o slug
   // dela entra aqui — até existir coluna de categoria na loja (é DDL).
-  const LOJAS_ROUPA = ['lojateste', 'provoulevou', 'ayzo', 'intimissima', 'beula'];   // beula (25/11): roupa e calçados; óculos dela caem no RE_OCULOS pelo nome
+  const LOJAS_ROUPA = ['lojateste', 'provoulevou', 'ayzo', 'intimissima', 'beula', 'dilauren'];   // dilauren (25/11): bolsas; beula (25/11): roupa e calçados; óculos dela caem no RE_OCULOS pelo nome
   // Boné (22/10/2026): vai pro gerador de ROUPA com product_type 'bone', que troca o prompt de roupa
   // pelo de boné (mesmo boné/logo na cabeça; rosto, cabelo e fundo intactos).
   const RE_BONE = /\bbon[eé]s?\b|\bcap\b|trucker|snapback|aba reta|aba curva/i;
@@ -2665,7 +2665,7 @@
   }
   function comprarMinhaProva(item) {
     const p = catalog.find(x => String(x.id) === String(item && item.pid));
-    if (!p) { toast(['intimissima', 'beula'].indexOf(STORE_SLUG) >= 0 ? 'Essa peça não está mais no catálogo.' : 'Essa armação não está mais no catálogo.'); return; }
+    if (!p) { toast(['intimissima', 'beula', 'dilauren'].indexOf(STORE_SLUG) >= 0 ? 'Essa peça não está mais no catálogo.' : 'Essa armação não está mais no catálogo.'); return; }
     current = p; fotoSel = Number(item.foto) || 0;
     comprarNoWhatsapp();
   }
