@@ -68,7 +68,7 @@
     '.va-top .va-rank{padding:2px 16px 4px;scroll-padding:0 16px}',
     '.va-grade{display:grid;grid-template-columns:1fr 1fr;gap:10px}',
     '.va-card{border:0;background:#fff;padding:0;text-align:left;border-radius:16px;overflow:hidden;box-shadow:0 0 0 1px var(--brand);color:#111827;display:flex;flex-direction:column}',
-    '.va-card .ft{position:relative;aspect-ratio:1;min-height:0;flex:0 0 auto;overflow:hidden;background:#fff}.va-card .ft img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.va.foto-inteira .va-card .ft img{object-fit:contain;padding:8%;box-sizing:border-box}',
+    '.va-card .ft{position:relative;aspect-ratio:1;min-height:0;flex:0 0 auto;overflow:hidden;background:#fff}.va-card .ft img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.va-card .ft.inteira img{object-fit:contain;padding:8%;box-sizing:border-box}',
     // iPad/iPhone antigo (Safari < 15): sem suporte a proporcao por CSS a foto ficava com altura zero e o cartao sem imagem.
     '@supports not (aspect-ratio:1/1){.va-card .ft{width:100%;height:0;padding-top:100%}.va-card .ft img{top:0;left:0}.va-card .in{width:100%;box-sizing:border-box}}',
     '.va-card .pos{position:absolute;left:8px;top:8px;background:#111827;color:#fff;font-size:12px;font-weight:800;border-radius:8px;padding:3px 8px}',
@@ -118,8 +118,8 @@
     '.va-selo{position:absolute;right:7px;bottom:7px;width:40px;height:40px;z-index:2;pointer-events:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}',
     '.va-selo img{width:100%;height:100%;object-fit:contain}',
     '.vp-selo-pv{position:absolute;right:12px;top:12px;width:88px;height:88px;z-index:3;border:0;background:none;padding:0;cursor:pointer;filter:drop-shadow(0 3px 10px rgba(0,0,0,.22));animation:va-tremida 3s infinite}',
-    '.vp-selo-pv img{width:100%;height:100%;object-fit:contain}',
-    '@media(min-width:900px){.va-selo{width:46px;height:46px}.vp-selo-pv{width:72px;height:72px;right:16px;top:16px}}',
+    '.vp-selo-pv img{width:100%;height:100%;object-fit:contain;padding:0!important;background:none!important}',
+    '@media(min-width:900px){.va-selo{width:46px;height:46px}.vp-selo-pv{width:88px;height:88px;right:18px;top:18px}}',
     '.va-head{position:relative}body.va-ed .va-marca{cursor:pointer;outline:2px dashed var(--brand);outline-offset:4px;border-radius:10px}',
     'body.va-ed .va-marca:after{content:"Toque para mudar o tamanho";position:absolute;left:50%;bottom:-2px;transform:translateX(-50%);font-size:10.5px;font-weight:700;color:var(--brand);white-space:nowrap}',
     '.va-logo-tam{position:absolute;left:50%;top:100%;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:6px;background:#111;color:#fff;border-radius:999px;padding:6px 6px 6px 14px;box-shadow:0 10px 24px rgba(0,0,0,.25);font:700 12px "Plus Jakarta Sans",system-ui,sans-serif;white-space:nowrap}',
@@ -158,7 +158,7 @@
     '.vp-trilha{font-size:12.5px;color:#6b7280;padding:12px 16px 0}.vp-trilha a{color:inherit;text-decoration:none;cursor:pointer}.vp-trilha span{margin:0 6px;opacity:.6}',
     '.vp-gal{padding:12px 16px 0}.vp-principal{position:relative;border-radius:18px;overflow:hidden;background:#f6f7f9}',
     '.vp-principal img{width:100%;aspect-ratio:1;object-fit:cover}',
-    'html.foto-inteira .vp-principal,html.foto-inteira .vp-relg img,html.foto-inteira .vp-thumbs img{background:#fff}html.foto-inteira .vp-principal img,html.foto-inteira .vp-relg img,html.foto-inteira .vp-thumbs img{object-fit:contain;padding:8%;box-sizing:border-box}',
+    '.vp-gal.inteira .vp-principal,.vp-gal.inteira .vp-thumbs img,.vp-relg img.inteira{background:#fff}.vp-gal.inteira .vp-principal img,.vp-gal.inteira .vp-thumbs img,.vp-relg img.inteira{object-fit:contain;padding:8%;box-sizing:border-box}',
     '.vp-selo{position:absolute;left:12px;top:12px;background:#ef4444;color:#fff;font-weight:800;font-size:12.5px;border-radius:8px;padding:4px 9px}',
     '.vp-thumbs{display:flex;gap:8px;margin-top:10px;overflow-x:auto;scrollbar-width:none}.vp-thumbs button{flex:0 0 64px;border:2px solid transparent;border-radius:12px;overflow:hidden;padding:0;background:none;opacity:.7}',
     '.vp-thumbs button.on{border-color:var(--brand);opacity:1}.vp-thumbs img{width:100%;height:64px;object-fit:cover}.vp-thumbs small{display:block;font-size:10.5px;font-weight:700;padding:3px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
@@ -292,9 +292,11 @@
     return u.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + (u.indexOf('?') < 0 ? '?' : '&') + 'width=' + w + '&quality=72';
   }
   var SELO_MINI = '<span class="va-selo"><img src="' + SELO + '" alt="Provador virtual" loading="lazy"></span>';
+  // 23/11/2026 (Lucas): foto inteira é escolha de cada produto (cadastro); sem escolha, segue o tema da loja
+  function FI(p) { return X && typeof X.fotoInteira === 'function' ? X.fotoInteira(p) : !!(X && X.tema && X.tema.fotoInteira); }
   function card(p, i) {
     var d = desconto(p), n = provas(p);
-    return '<button class="va-card" data-p="' + esc(p.id) + '"><div class="ft"><img loading="lazy" decoding="async" src="' + esc(MINI(p.img, 480)) + '" alt="">' +
+    return '<button class="va-card" data-p="' + esc(p.id) + '"><div class="ft' + (FI(p) ? ' inteira' : '') + '"><img loading="lazy" decoding="async" src="' + esc(MINI(p.img, 480)) + '" alt="">' +
       (i != null ? '<span class="pos">#' + (i + 1) + '</span>' : '') + (d ? '<span class="off">-' + d + '%</span>' : '') +
       (n >= 3 && !_SEM_PROV ? '<span class="fire">' + IC.trend + ' ' + n + ' provaram</span>' : '') + '</div>' +
       '<div class="in"><div class="nm">' + esc(p.name) + '</div><div class="pr">' + X.brl(X.preco(p)) + (d ? '<span class="de">' + X.brl(p.originalPrice) + '</span>' : '') + '</div>' +
@@ -680,7 +682,7 @@
         _tx('<form class="vp-busca" data-vp-form><input type="search" enterkeyhint="search" placeholder="Buscar armação" aria-label="Buscar armação"></form></div>') +
       '<div class="vp-corpo">' +
         '<div class="vp-trilha"><a data-vp="volta">Início</a>' + (cat ? '<span>›</span><a data-vp="cat">' + esc(cat) + '</a>' : '') + '<span>›</span>' + esc(p.name) + '</div>' +
-        '<div class="vp-gal"><div class="vp-principal"><img class="vp-foto" src="' + esc(MINI(fotos[0] ? fotos[0].url : p.img, 900)) + '" alt="' + esc(p.name) + '">' + (d ? '<span class="vp-selo">-' + d + '%</span>' : '') + '<button type="button" class="vp-selo-pv" data-vp="provar" aria-label="Abrir o provador virtual"><img src="' + SELO + '" alt="Provador virtual"></button></div>' +
+        '<div class="vp-gal' + (FI(p) ? ' inteira' : '') + '"><div class="vp-principal"><img class="vp-foto" src="' + esc(MINI(fotos[0] ? fotos[0].url : p.img, 900)) + '" alt="' + esc(p.name) + '">' + (d ? '<span class="vp-selo">-' + d + '%</span>' : '') + '<button type="button" class="vp-selo-pv" data-vp="provar" aria-label="Abrir o provador virtual"><img src="' + SELO + '" alt="Provador virtual"></button></div>' +
           (fotos.length > 1 || temVar ? '<div class="vp-thumbs">' + fotos.map(function (f, i) { return '<button type="button" class="' + (i ? '' : 'on') + '" data-foto="' + i + '"><img src="' + esc(MINI(f.url, 160)) + '" data-full="' + esc(MINI(f.url, 900)) + '" alt="">' + (temVar ? '<small>' + esc(f.variantName || ('Foto ' + (i + 1))) + '</small>' : '') + '</button>'; }).join('') + '</div>' : '') +
         '</div>' +
         '<div class="vp-dir">' + (cat ? '<div class="vp-cat">' + esc(cat) + '</div>' : '') + '<h1>' + esc(p.name) + '</h1>' +
@@ -702,7 +704,7 @@
         '</div>' +
       '</div>' +
       (rel.length ? '<div class="vp-relw"><h3>Você também pode gostar</h3><div class="vp-relg">' + rel.map(function (r) {
-        return '<button type="button" data-rel="' + esc(r.id) + '"><img src="' + esc(MINI(r.img, 400)) + '" alt="" loading="lazy" decoding="async"><span>' + esc(r.name) + '</span><b>' + X.brl(X.preco(r)) + '</b></button>';
+        return '<button type="button" data-rel="' + esc(r.id) + '"><img' + (FI(r) ? ' class="inteira"' : '') + ' src="' + esc(MINI(r.img, 400)) + '" alt="" loading="lazy" decoding="async"><span>' + esc(r.name) + '</span><b>' + X.brl(X.preco(r)) + '</b></button>';
       }).join('') + '</div></div>' : '') +
       '<div class="vp-barra"><div><small>' + (par > 1 ? par + 'x de ' + X.brl(ctx.valorParcela(p, par)) : esc(p.name)) + '</small><b>' + X.brl(X.preco(p)) + '</b></div>' + (_SEM_PROV ? (L.whatsapp ? '<button type="button" class="vp-provar" data-vp="comprar">Comprar ' + IC.wa + '</button>' : '') : '<button type="button" class="vp-provar" data-vp="provar">' + IC.oculos + ' Provar</button>') + '</div>';
     el.scrollTop = 0;
