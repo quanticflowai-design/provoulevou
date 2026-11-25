@@ -788,7 +788,10 @@
                 brand: '#111111', dark: '#000000', soft: 'rgba(242,194,48,.14)', on: '#F2C230' },
     // Beulá — vermelho EXATO do fundo do logo (JPEG chapado #970102) como fundo, tema escuro como a Mendonça; botão branco com texto vermelho (~8:1)
     beula: { bg: '#970102', card: '#A6100F', line: 'rgba(255,255,255,.22)',
-                brand: '#FFFFFF', dark: '#F3E3E3', soft: 'rgba(255,255,255,.12)', on: '#970102' }
+                brand: '#FFFFFF', dark: '#F3E3E3', soft: 'rgba(255,255,255,.12)', on: '#970102' },
+    // Di Lauren — bolsas de luxo; logo preto sobre branco → fundo branco, marca preta, botão preto com texto branco (~19:1)
+    dilauren: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E7E7E7',
+                brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.06)', on: '#FFFFFF' }
   };
 
   // ─────────── Tema ───────────
