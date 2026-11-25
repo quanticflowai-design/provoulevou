@@ -39,6 +39,7 @@
     return {
       email: (j.user && j.user.email) || email,
       token: j.access_token,
+      refresh: j.refresh_token || '',   // 25/11/2026: o catálogo renova o token com isto (vence em 1 h)
       admin: !!(j.user && j.user.app_metadata && j.user.app_metadata.pl_catalog_admin),
       em: Date.now()
     };
@@ -46,6 +47,15 @@
 
   async function validarSessao(s) {
     if (!s || !s.token) throw new Error('Sessão inválida');
+    // token vencido + refresh guardado: renova antes de checar (senão o lojista cai no login a cada hora)
+    try {
+      const exp = JSON.parse(atob(String(s.token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).exp * 1000;
+      if (s.refresh && exp - Date.now() < 120000) {
+        const rr = await fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', { method: 'POST', headers: { apikey: SB_ANON, 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: s.refresh }) });
+        const jj = await rr.json().catch(() => null);
+        if (rr.ok && jj && jj.access_token) { s.token = jj.access_token; if (jj.refresh_token) s.refresh = jj.refresh_token; }
+      }
+    } catch (e) {}
     const r = await fetch(SB_URL + '/auth/v1/user', {
       headers: { apikey: SB_ANON, Authorization: 'Bearer ' + s.token }
     });
@@ -54,6 +64,7 @@
     return {
       email: user.email,
       token: s.token,
+      refresh: s.refresh || '',
       admin: !!(user.app_metadata && user.app_metadata.pl_catalog_admin),
       em: s.em || Date.now()
     };
