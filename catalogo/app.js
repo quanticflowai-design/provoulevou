@@ -1930,7 +1930,7 @@
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20000);
     try {
-      const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_remove_category', {
+      await garanteToken().catch(() => {}); const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_remove_category', {
         method: 'POST', signal: controller.signal,
         headers: { apikey: SB_ANON, Authorization: 'Bearer ' + sessao.token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ p_slug: STORE_SLUG, p_category: categoria })
@@ -2813,17 +2813,22 @@
   let adminCatalog = [];
   const selecionados = new Set();
   let adminLoading = 0;
-  async function catalogManage(action, data = {}) {
+  async function catalogManage(action, data = {}, _jaTentou) {
+    await garanteToken();
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 25000);
     try {
-      const response = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_manage', {
+      await garanteToken().catch(() => {}); const response = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_manage', {
         method: 'POST', headers: { apikey: SB_ANON, Authorization: 'Bearer ' + (sessao && sessao.token),
           'Content-Type': 'application/json' },
         body: JSON.stringify({ p_store_id: storeRow.id, p_action: action, p_data: data }), signal: controller.signal
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Não foi possível salvar');
+      if (!response.ok && !_jaTentou && /jwt|expired/i.test(String(result.message || ''))) {
+        await garanteToken(true);
+        return catalogManage(action, data, true);
+      }
+      if (!response.ok) throw new Error(/jwt|expired/i.test(String(result.message || '')) ? 'Sua sessão expirou. Saia e entre de novo no painel para continuar.' : (result.message || 'Não foi possível salvar'));
       return result;
     } finally { clearTimeout(timer); }
   }
@@ -2922,7 +2927,7 @@
          : t.length === 10 ? '(' + t.slice(0, 2) + ') ' + t.slice(2, 6) + '-' + t.slice(6) : t;
   }
   async function bloqueios(acao, tel) {
-    const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_bloqueios', {
+    await garanteToken().catch(() => {}); const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_bloqueios', {
       method: 'POST', headers: { apikey: SB_ANON, Authorization: 'Bearer ' + (sessao && sessao.token),
         'Content-Type': 'application/json' },
       body: JSON.stringify({ p_store_id: storeRow.id, p_acao: acao, p_telefone: tel || null })
@@ -2972,7 +2977,7 @@
 
   // Limite de provas por cliente/dia (pl_catalog_limite: sem p_limite lê, com p_limite grava)
   async function limiteCatalogo(valor) {
-    const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_limite', {
+    await garanteToken().catch(() => {}); const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_limite', {
       method: 'POST', headers: { apikey: SB_ANON, Authorization: 'Bearer ' + (sessao && sessao.token),
         'Content-Type': 'application/json' },
       body: JSON.stringify(valor == null ? { p_store_id: storeRow.id } : { p_store_id: storeRow.id, p_limite: valor })
@@ -3080,7 +3085,7 @@
   const brlP = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const dataBr = d => { if (!d) return '—'; const x = new Date(String(d).slice(0, 10) + 'T12:00:00'); return isNaN(x) ? '—' : x.toLocaleDateString('pt-BR'); };
   async function meuPlano() {
-    const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_meu_plano', {
+    await garanteToken().catch(() => {}); const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_meu_plano', {
       method: 'POST', headers: { apikey: SB_ANON, Authorization: 'Bearer ' + (sessao && sessao.token), 'Content-Type': 'application/json' },
       body: JSON.stringify({ p_slug: storeRow.slug })
     });
@@ -3091,7 +3096,7 @@
     planoInfo = d;
     // o preço por prova vem da simulação do próprio fluxo de cobrança (mesma regra do PIX)
     try {
-      const rs = await fetch(AVULSA_URL, { method: 'POST', headers: { Authorization: 'Bearer ' + (sessao && sessao.token), 'Content-Type': 'application/json' },
+      await garanteToken().catch(() => {}); const rs = await fetch(AVULSA_URL, { method: 'POST', headers: { Authorization: 'Bearer ' + (sessao && sessao.token), 'Content-Type': 'application/json' },
         body: JSON.stringify({ quantidade: 50, store_id: d.store_id, simular: true }) });
       const s = await rs.json().catch(() => ({}));
       if (s && s.ok) { d.preco_prova = s.preco_prova; if (d.provas == null) d.provas = s.provas_plano; if (d.valor == null) d.valor = s.valor_plano; }
@@ -3146,7 +3151,7 @@
       const q = avulsaQtd();
       btn.disabled = true; diz('Gerando o PIX…');
       try {
-        const r = await fetch(AVULSA_URL, {
+        await garanteToken().catch(() => {}); const r = await fetch(AVULSA_URL, {
           method: 'POST', headers: { Authorization: 'Bearer ' + (sessao && sessao.token), 'Content-Type': 'application/json' },
           body: JSON.stringify({ quantidade: q, store_id: planoInfo.store_id })
         });
@@ -3169,7 +3174,7 @@
     avulsaTimer = setInterval(async () => {
       if (Date.now() - ini > 30 * 60 * 1000) { clearInterval(avulsaTimer); return; }
       try {
-        const r = await fetch(AVULSA_URL + '-status?payment_id=' + encodeURIComponent(pid), { headers: { Authorization: 'Bearer ' + (sessao && sessao.token) } });
+        await garanteToken().catch(() => {}); const r = await fetch(AVULSA_URL + '-status?payment_id=' + encodeURIComponent(pid), { headers: { Authorization: 'Bearer ' + (sessao && sessao.token) } });
         const d = await r.json().catch(() => ({}));
         if (d.status === 'approved' && d.aplicado) {
           clearInterval(avulsaTimer);
@@ -3771,6 +3776,27 @@
   let sessaoValidada = false;
   try { sessao = JSON.parse(localStorage.getItem(SESSAO) || 'null'); } catch (e) { sessao = null; }
 
+  // 25/11/2026: o token do login vence em 1 h e ninguém renovava — depois disso salvar produto dava
+  // "JWT expired" (Jóia Dada: digitou 7 armações, ficaram 2). Agora renova com o refresh_token.
+  function jwtExp(t) { try { return JSON.parse(atob(String(t).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).exp * 1000; } catch (e) { return 0; } }
+  let renovandoToken = null;
+  async function garanteToken(forcar) {
+    if (!sessao || !sessao.token) return;
+    if (!forcar && jwtExp(sessao.token) - Date.now() > 120000) return;
+    if (!sessao.refresh) throw new Error('Sua sessão expirou. Saia e entre de novo no painel para continuar.');
+    if (!renovandoToken) renovandoToken = (async () => {
+      const r = await fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', {
+        method: 'POST', headers: { apikey: SB_ANON, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: sessao.refresh })
+      });
+      const j = await r.json().catch(() => null);
+      if (!r.ok || !j || !j.access_token) throw new Error('Sua sessão expirou. Saia e entre de novo no painel para continuar.');
+      sessao.token = j.access_token; if (j.refresh_token) sessao.refresh = j.refresh_token;
+      try { localStorage.setItem(SESSAO, JSON.stringify(sessao)); } catch (e) {}
+    })().finally(() => { renovandoToken = null; });
+    return renovandoToken;
+  }
+
   function ehAdminGeral() {
     return !!(sessaoValidada && sessao && sessao.admin);
   }
@@ -3782,7 +3808,7 @@
     const slug = storeRow && storeRow.slug;
     if (!sessaoValidada || !sessao || !sessao.token || !slug) { souDono = false; souDonoSlug = ''; aplicaPermissoes(); return; }
     try {
-      const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_sou_dono', {
+      await garanteToken().catch(() => {}); const r = await fetch(SB_URL + '/rest/v1/rpc/pl_catalog_sou_dono', {
         method: 'POST', headers: { apikey: SB_ANON, Authorization: 'Bearer ' + sessao.token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ p_slug: slug })
       });
@@ -3800,6 +3826,7 @@
   async function validaSessaoAtual() {
     if (!sessao || !sessao.token) return false;
     try {
+      await garanteToken().catch(() => {});
       const r = await fetch(SB_URL + '/auth/v1/user', {
         headers: { apikey: SB_ANON, Authorization: 'Bearer ' + sessao.token }
       });
