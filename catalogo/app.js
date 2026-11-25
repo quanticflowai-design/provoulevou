@@ -782,7 +782,10 @@
                 brand: '#5E4135', dark: '#45302A', soft: 'rgba(94,65,53,.10)', on: '#ffffff' },
     // Ótica Mexirica (Shirlene, Dione) — laranja do logo escurecido p/ 4,8:1 com texto branco
     oticamexirica: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F3E4DC',
-                brand: '#C44A1F', dark: '#A63E19', soft: 'rgba(241,103,54,.10)', on: '#ffffff' }
+                brand: '#C44A1F', dark: '#A63E19', soft: 'rgba(241,103,54,.10)', on: '#ffffff' },
+    // Óticas Diamond — preto e amarelo (pedido da Kati); logo em fundo branco → fundo branco; botão preto com texto amarelo (~11:1)
+    oticasdiamond: { bg: '#FFFFFF', card: '#FFFFFF', line: '#EEE7D2',
+                brand: '#111111', dark: '#000000', soft: 'rgba(242,194,48,.14)', on: '#F2C230' }
   };
 
   // ─────────── Tema ───────────
