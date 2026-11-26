@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=170">
+  <link rel="stylesheet" href="styles.css?v=171">
 </head>
 <body>
   <div id="app">
@@ -67,6 +67,10 @@
             <span class="p-old-price" id="p-old-price" hidden></span>
             <span class="p-price" id="p-price">R$ 0,00</span>
             <span class="p-install" id="p-install"></span>
+          </div>
+          <div class="p-tamanhos" id="p-tamanhos" hidden>
+            <p class="p-tam-titulo">Tamanho: <b class="p-tam-escolhido"></b></p>
+            <div class="p-tam-opcoes"></div>
           </div>
           <!-- Sem "Comprar" aqui: a página do produto existe pra levar o cliente
                à prova. Quem compra sem provar não vira lead e não usa o produto
@@ -192,6 +196,10 @@
         </div>
         <!-- A compra do catalogo acontece na conversa, nao num checkout: o lojista
              nao tem e-commerce. O botao leva direto pro WhatsApp da loja. -->
+        <div class="p-tamanhos r-tamanhos" id="r-tamanhos" hidden>
+          <p class="p-tam-titulo">Tamanho: <b class="p-tam-escolhido"></b></p>
+          <div class="p-tam-opcoes"></div>
+        </div>
         <button class="btn-primary big lz-cta" id="btn-lentes" hidden>ESCOLHER LENTES</button>
         <div class="result-buy-actions">
           <button class="btn-primary big" id="btn-buy">
@@ -425,6 +433,17 @@
             <datalist id="admin-unit-options"></datalist>
             <label class="admin-unit-label" for="admin-estoque">Quantidade em estoque (opcional)</label>
             <input id="admin-estoque" type="number" min="0" max="999999" step="1" inputmode="numeric" placeholder="Ex.: 10 — deixe vazio se não controla estoque">
+            <!-- 26/11/2026 (Beulá): tamanhos com quantidade. Vazio = produto sem tamanho (como hoje). -->
+            <div class="admin-categorias admin-tamanhos" id="admin-tamanhos">
+              <p class="admin-categorias-tit">Tamanhos (opcional)</p>
+              <p class="admin-categorias-sub">Para roupa e calçado: adicione cada tamanho com a quantidade. Tamanho com 0 aparece riscado para o cliente.</p>
+              <div class="admin-tam-lista" id="admin-tam-lista"></div>
+              <div class="admin-categoria-nova admin-tam-novo">
+                <input id="admin-tam-nome" type="text" maxlength="12" placeholder="Ex.: 39 ou M" autocomplete="off">
+                <input id="admin-tam-qtd" type="number" min="0" max="9999" step="1" inputmode="numeric" placeholder="Qtd">
+                <button type="button" class="btn-outline" id="admin-tam-add">Adicionar</button>
+              </div>
+            </div>
             <textarea id="admin-desc" rows="2" placeholder="Descrição (opcional): material, medidas, cor…"></textarea>
             <label class="admin-check"><input type="checkbox" id="admin-featured"> Destacar no catálogo (aparece primeiro)</label>
             <!-- Kit: um produto que junta outros. O preço é o que o lojista digitar;
@@ -753,7 +772,7 @@
   <div id="toast"></div>
 
   <script src="lentes.js?v=152"></script>
-  <script src="vitrine-app.js?v=55"></script>
-  <script src="app.js?v=238"></script>
+  <script src="vitrine-app.js?v=56"></script>
+  <script src="app.js?v=239"></script>
 </body>
 </html>
