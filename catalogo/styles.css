@@ -1252,3 +1252,25 @@ html.pv-modal-gerando .loading-box .progress { height:6px; border-radius:99px; m
 .r-tamanhos { margin: 4px 0 12px; }
 .vp-tam { margin: 14px 0 16px; }
 .admin-fields .admin-tam-chip input[type=number] { width: 52px; min-width: 0; flex: none; }
+/* ── 26/11/2026 (Lucas): painel do lojista legível em loja de tema escuro ─────────────
+   Em loja de fundo escuro/saturado (ex.: Beulá, vermelho #970102) o cadastro herdava o
+   fundo da loja e ficava com texto cinza sobre vermelho. O painel é ferramenta, não vitrine:
+   dentro dele a paleta volta a ser clara e neutra; a vitrine segue com as cores da loja. */
+.tema-escuro #screen-admin .admin-box {
+  --ink: #14121a; --ink-2: #4a4554; --muted: #6b6577; --line: #e2dfe8;
+  --bg: #f6f4fb; --card: #ffffff;
+  --brand: #14121a; --brand-dark: #000000; --brand-soft: rgba(20,18,26,.06); --on-brand: #ffffff;
+  --cta: #14121a; --cta-dark: #000000; --on-cta: #ffffff;
+  background: #ffffff; color: var(--ink); border-radius: var(--radius); padding: 22px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+.tema-escuro #screen-admin .admin-box .btn-outline { border-color: var(--line); color: var(--ink); background: #fff; }
+.tema-escuro #screen-admin .admin-box .btn-outline:hover { background: var(--bg); border-color: var(--ink-2); }
+.tema-escuro #screen-admin .admin-box input,
+.tema-escuro #screen-admin .admin-box select,
+.tema-escuro #screen-admin .admin-box textarea { background: #fff; border-color: var(--line); color: var(--ink); }
+.tema-escuro #screen-admin .admin-box input::placeholder,
+.tema-escuro #screen-admin .admin-box textarea::placeholder { color: #8a8494; }
+/* as prévias do logo mostram a logo sobre a cor REAL da loja (não a do painel claro) */
+.tema-escuro #screen-admin { --loja-bg: var(--bg); --loja-card: var(--card); --loja-ink: #f4f4f5; }
+.tema-escuro #screen-admin .admin-box .tema-logo-previa-topo { --bg: var(--loja-bg); --card: var(--loja-card); --ink: var(--loja-ink); --line: rgba(255,255,255,.22); }
