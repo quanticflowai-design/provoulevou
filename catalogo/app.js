@@ -281,6 +281,17 @@
     const rows = await sbGet('pl_catalog_stores?slug=eq.' + encodeURIComponent(STORE_SLUG) +
       '&is_active=eq.true&select=id,slug,display_name,logo_url,whatsapp,bio,primary_color,tema,is_active,store_api_key,categorias_ordem,meta_pixel_id&limit=1');
     storeRow = (rows && rows[0]) || null;
+    // 26/11/2026 (Lucas, Óticas Original): mais de um WhatsApp da loja ("5512..,5512..") -> cada visitante cai
+    // sempre no mesmo número (sorteado 1 vez e guardado), dividindo os clientes entre os atendentes.
+    try {
+      const _nums = String((storeRow && storeRow.whatsapp) || '').split(/[,;\/|]+/).map(x => x.replace(/\D/g, '')).filter(x => x.length >= 10);
+      if (_nums.length > 1) {
+        let _i = -1;
+        try { _i = parseInt(localStorage.getItem('pc_wa_' + STORE_SLUG), 10); } catch (e) {}
+        if (!(_i >= 0 && _i < _nums.length)) { _i = Math.floor(Math.random() * _nums.length); try { localStorage.setItem('pc_wa_' + STORE_SLUG, String(_i)); } catch (e) {} }
+        storeRow.whatsapp = _nums[_i];
+      }
+    } catch (e) {}
     if (!storeRow) {
       document.title = 'Catálogo indisponível';
       document.body.innerHTML = '<main style="min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center;font-family:Inter,system-ui,sans-serif;background:#f7f7f8;color:#17171b"><section><h1 style="margin:0 0 10px;font-size:28px">Catálogo indisponível</h1><p style="margin:0;color:#666">Este catálogo não está disponível no momento.</p></section></main>';
