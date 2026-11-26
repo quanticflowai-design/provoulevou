@@ -794,7 +794,10 @@
                 brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.06)', on: '#FFFFFF' },
     // Ótica Abreu — dourado do logo sobre branco; botão dourado com texto escuro (~10:1)
     oticaabreu: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F1E6CC',
-                brand: '#F4BC44', dark: '#D9A02A', soft: 'rgba(244,188,68,.14)', on: '#14121a' }
+                brand: '#F4BC44', dark: '#D9A02A', soft: 'rgba(244,188,68,.14)', on: '#14121a' },
+    // Óticas Original — laranja/amarelo do logo sobre branco; preço laranja escuro (~5,5:1), botão laranja com texto preto (~10:1)
+    oticasoriginal: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F6E2C4',
+                brand: '#A85400', dark: '#8A4500', soft: 'rgba(247,162,27,.12)', on: '#ffffff', cta: '#F7A21B', ctaDark: '#E08A0A', onCta: '#111111' }
   };
 
   // ─────────── Tema ───────────
