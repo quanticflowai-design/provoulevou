@@ -1221,3 +1221,34 @@ html.pv-modal-gerando .alt-t2 span { font-size:11px; }
 html.pv-modal-gerando .alt-t2 img { height:24px; opacity:1; }
 html.pv-modal-gerando .loading-box .progress { height:6px; border-radius:99px; max-width:260px; }
 @media (prefers-reduced-motion: reduce) { html.pv-modal-gerando .loading-box::before { animation:none; } }
+
+/* ── Tamanhos (26/11/2026, Beulá) ── mesmo padrão dos chips de categoria e das miniaturas */
+.admin-tam-lista { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.admin-tam-lista:empty { display: none; }
+.admin-tam-chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--card);
+  color: var(--ink); border-radius: 99px; padding: 3px 4px 3px 11px; font: 700 12px 'Hanken Grotesk', sans-serif; }
+.admin-tam-chip.zerado { color: var(--muted); }
+.admin-fields .admin-tam-chip input { width: 52px; height: 26px; padding: 0 6px; border: 1px solid var(--line); border-radius: 99px;
+  font: 600 12px 'Hanken Grotesk', sans-serif; text-align: center; background: var(--bg); color: var(--ink); }
+.admin-tam-chip button { border: 0; background: transparent; color: var(--muted); width: 22px; height: 22px; border-radius: 99px;
+  cursor: pointer; font-size: 15px; line-height: 1; display: grid; place-items: center; }
+.admin-tam-chip button:hover { background: var(--brand-soft); color: var(--brand); }
+.admin-tam-novo #admin-tam-qtd { flex: 0 0 76px; }
+.p-tamanhos { margin-top: 14px; }
+.p-tamanhos[hidden] { display: none; }
+.p-tam-titulo { margin: 0 0 8px; color: var(--ink-2); font-size: 13px; font-weight: 700; }
+.p-tam-titulo b { color: var(--ink); }
+.p-tam-opcoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.p-tam { appearance: none; min-width: 46px; height: 42px; padding: 0 12px; border: 1.5px solid var(--line); border-radius: 11px;
+  background: var(--card); color: var(--ink); font: 700 14px 'Hanken Grotesk', sans-serif; cursor: pointer; transition: border-color .15s, background .15s; }
+.p-tam:hover:not(:disabled) { border-color: var(--brand); }
+.p-tam.sel { border-color: var(--brand); background: var(--brand); color: var(--on-brand, #fff); }
+.p-tam:disabled { color: var(--muted); text-decoration: line-through; cursor: not-allowed; opacity: .55; }
+.p-tamanhos.falta .p-tam-titulo b { text-decoration: underline; text-underline-offset: 3px; }
+.p-tamanhos.falta .p-tam:not(:disabled) { border-color: var(--ink); box-shadow: 0 0 0 2px var(--brand-soft); }
+.p-tamanhos.falta .p-tam-opcoes { animation: pTamFalta .32s cubic-bezier(.22,1,.36,1); }
+@keyframes pTamFalta { 0%,100% { transform: none; } 25% { transform: translateX(-5px); } 60% { transform: translateX(4px); } }
+@media (prefers-reduced-motion: reduce) { .p-tamanhos.falta .p-tam-opcoes { animation: none; } }
+.r-tamanhos { margin: 4px 0 12px; }
+.vp-tam { margin: 14px 0 16px; }
+.admin-fields .admin-tam-chip input[type=number] { width: 52px; min-width: 0; flex: none; }
