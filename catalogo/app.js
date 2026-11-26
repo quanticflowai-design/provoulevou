@@ -791,7 +791,10 @@
                 brand: '#FFFFFF', dark: '#F3E3E3', soft: 'rgba(255,255,255,.12)', on: '#970102' },
     // Di Lauren — bolsas de luxo; logo preto sobre branco → fundo branco, marca preta, botão preto com texto branco (~19:1)
     dilauren: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E7E7E7',
-                brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.06)', on: '#FFFFFF' }
+                brand: '#111111', dark: '#000000', soft: 'rgba(17,17,17,.06)', on: '#FFFFFF' },
+    // Ótica Abreu — dourado do logo sobre branco; botão dourado com texto escuro (~10:1)
+    oticaabreu: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F1E6CC',
+                brand: '#F4BC44', dark: '#D9A02A', soft: 'rgba(244,188,68,.14)', on: '#14121a' }
   };
 
   // ─────────── Tema ───────────
