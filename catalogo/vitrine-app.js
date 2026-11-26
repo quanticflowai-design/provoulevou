@@ -689,6 +689,8 @@
           (n ? '<span class="vp-prova">' + IC.trend + ' ' + n + (n === 1 ? ' pessoa já provou' : ' pessoas já provaram') + '</span>' : '') +
           '<div class="vp-precos"><span class="vp-p">' + X.brl(X.preco(p)) + '</span>' + (d ? '<span class="vp-d">' + X.brl(p.originalPrice) + '</span><span class="vp-eco">Economize ' + X.brl(Number(p.originalPrice) - X.preco(p)) + '</span>' : '') + '</div>' +
           '<div class="vp-parc">' + parcTxt + '</div>' +
+          // 26/11/2026 (Beulá): tamanhos — o app.js preenche (renderTamanhosCliente)
+          '<div class="p-tamanhos vp-tam" hidden><p class="p-tam-titulo">Tamanho: <b class="p-tam-escolhido"></b></p><div class="p-tam-opcoes"></div></div>' +
           (_SEM_PROV ? '' : '<button type="button" class="vp-provar" data-vp="provar">' + IC.oculos + _tx(' Provar no meu rosto</button>')) +
           (L.whatsapp ? '<button type="button" class="vp-wa" data-vp="comprar">Comprar pelo WhatsApp ' + IC.wa + '</button>' : '') +
           '<div class="vp-gar">' + GAR.filter(function (g) { return !_SEM_PROV || !/Prove antes/.test(g[1]); }).map(function (g) { return '<div>' + g[0] + '<span><b>' + g[1] + '</b>' + g[2] + '</span></div>'; }).join('') + '</div>' +
