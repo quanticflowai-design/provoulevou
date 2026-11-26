@@ -93,7 +93,7 @@ svg.links{position:absolute;inset:0;overflow:visible}svg.links path{fill:none;st
 .node:hover{border-color:var(--brand)}.node:focus-visible{outline:2px solid var(--brand);outline-offset:3px}.node.sel{background:#f1ecff;border-color:var(--brand)}
 .av{width:34px;height:34px;flex:none;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12px}
 .k-eu{width:176px;background:#1b1530;border-color:#1b1530;color:#fff}.k-eu .av{background:#a78bfa;color:#1b1530}.k-eu small{color:#cfc6ff!important}
-.k-af .av{background:var(--brand);color:#fff}.k-ok .av{background:var(--okbg);color:var(--ok);box-shadow:inset 0 0 0 1.5px var(--ok)}.k-off{opacity:.7}.k-off .av{color:#8d87a0;box-shadow:inset 0 0 0 1.5px #8d87a0}
+.k-af .av{background:var(--brand);color:#fff}.k-ok .av{background:var(--okbg);color:var(--ok);box-shadow:inset 0 0 0 1.5px var(--ok)}.k-off{opacity:.7}.k-test .av{background:#fff7e6;color:#b45309;box-shadow:inset 0 0 0 1.5px #d97706}.k-test .tx small{color:#b45309}.k-off .av{color:#8d87a0;box-shadow:inset 0 0 0 1.5px #8d87a0}
 .tx{flex:1;min-width:0}.tx b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12.5px;font-weight:600;line-height:1.2}
 .tx small{display:block;font-size:12px;line-height:1.25;color:var(--txt2);overflow-wrap:anywhere}.k-ok .tx small{color:var(--ok)}.k-af .tx small{color:var(--brand)}
 .tag1{position:absolute;top:-9px;right:12px;font-size:10.5px;font-weight:700;color:#1a1300;background:#f5b301;border-radius:5px;padding:1px 6px}
@@ -412,7 +412,7 @@ function desenha(d) {
   $('money').innerHTML = ST('main', 'ph-wallet', 'A receber este mês', brl(d.a_receber_mes), 'fecha no último dia do mês')
     + ST('', 'ph-arrows-clockwise', 'Recorrência total', brl(recorr) + '<small> /mês</small>', `se ${ativas.length === 1 ? 'a loja seguir ativa' : 'as ' + ativas.length + ' lojas seguirem ativas'}`)
     + ST('', 'ph-check-circle', 'Já recebido', brl(d.recebido), Number(d.pendente_total) ? brl(d.pendente_total) + ' a receber no total' : 'desde que você entrou')
-    + ST('', 'ph-tree-structure', 'Sua rede', ativas.length + ' loja' + (ativas.length === 1 ? '' : 's'), `${afs.length} afiliado${afs.length === 1 ? '' : 's'} · ${lojas.length - ativas.length} cancelada${lojas.length - ativas.length === 1 ? '' : 's'}`);
+    + ST('', 'ph-tree-structure', 'Sua rede', ativas.length + ' loja' + (ativas.length === 1 ? '' : 's'), `${afs.length} afiliado${afs.length === 1 ? '' : 's'} · ${lojas.filter(l => l.em_teste).length ? lojas.filter(l => l.em_teste).length + ' em teste · ' : ''}${lojas.filter(l => !l.ativa && !l.em_teste).length} cancelada${lojas.filter(l => !l.ativa && !l.em_teste).length === 1 ? '' : 's'}`);
   // árvore
   const cv = $('cv'), sv = $('sv'), gens = $('gens');
   cv.querySelectorAll('.node,.vazio').forEach(x => x.remove()); gens.innerHTML = '';
@@ -426,8 +426,8 @@ function desenha(d) {
     sv.innerHTML = L.links.map(([p, c]) => { const x1 = X(p), y1 = Y(p) + 50, x2 = X(c), y2 = Y(c), m = (y1 + y2) / 2, s = x2 > x1 ? 10 : x2 < x1 ? -10 : 0;
       return `<path data-to="${L.nodes.indexOf(c)}" d="M${x1},${y1} V${m - 10} Q${x1},${m} ${x1 + s},${m} H${x2 - s} Q${x2},${m} ${x2},${m + 10} V${y2}"/>`; }).join('');
     L.nodes.forEach(n => {
-      const k = n.tipo === 'eu' ? 'eu' : n.tipo === 'afiliado' ? 'af' : n.ativa ? 'ok' : 'off';
-      const val = n.tipo === 'eu' ? brl(n.total) + ' no mês' : n.tipo === 'afiliado' ? brl(n.total) + '<br>da rede dele' : n.ativa ? `${brl(n.comissao)} · ${Number(n.taxa)}%` : 'cancelou';
+      const k = n.tipo === 'eu' ? 'eu' : n.tipo === 'afiliado' ? 'af' : n.ativa ? 'ok' : n.em_teste ? 'test' : 'off';
+      const val = n.tipo === 'eu' ? brl(n.total) + ' no mês' : n.tipo === 'afiliado' ? brl(n.total) + '<br>da rede dele' : n.ativa ? `${brl(n.comissao)} · ${Number(n.taxa)}%` : n.em_teste ? 'em teste · ainda não pagou' : 'cancelou';
       const b = document.createElement('button'); b.type = 'button'; b.className = 'node k-' + k; b.title = n.nome;
       b.style.left = X(n) + 'px'; b.style.top = Y(n) + 'px';
       b.innerHTML = `${n.tipo === 'loja' && n.ativa && Number(n.mes) === 1 ? '<span class="tag1">1º mês</span>' : ''}<span class="av">${n.tipo === 'eu' ? ini2(a.nome) : ini2(n.nome)}</span><span class="tx"><b>${esc(n.nome)}</b><small>${val}</small></span>`;
@@ -435,7 +435,7 @@ function desenha(d) {
         cv.querySelectorAll('.node.sel').forEach(x => x.classList.remove('sel')); b.classList.add('sel');
         const info = n.tipo === 'eu' ? 'Total que a sua rede gera para você este mês' : n.tipo === 'afiliado' ? `Afiliado desde ${dt(n.desde)} · ${(n.filhos || []).length} na rede dele` :
           `${esc(n.plano || '')} · ${brl(n.valor)}/mês · ${n.mes}º mês · cliente desde ${dt(n.desde)} · ${ORIG[n.nivel] || ''}`;
-        $('det').innerHTML = `<b>${esc(n.nome)}</b><span>${info}</span>${n.tipo === 'loja' ? (n.ativa ? `<span>Sua parte este mês: <b style="color:var(--ok)">${brl(n.comissao)}</b></span>` : '<span>Cancelou: sem comissão</span>') : ''}`;
+        $('det').innerHTML = `<b>${esc(n.nome)}</b><span>${info}</span>${n.tipo === 'loja' ? (n.ativa ? `<span>Sua parte este mês: <b style="color:var(--ok)">${brl(n.comissao)}</b></span>` : n.em_teste ? '<span>Em teste: a comissão começa quando a loja pagar a 1ª mensalidade</span>' : '<span>Cancelou: sem comissão</span>') : ''}`;
         const anc = new Set(); (function up(t) { L.links.forEach(([p, c]) => { if (c === t) { anc.add(L.nodes.indexOf(c)); up(p); } }); })(n);
         sv.querySelectorAll('path').forEach(p => p.classList.toggle('hot', anc.has(+p.dataset.to)));
       };
