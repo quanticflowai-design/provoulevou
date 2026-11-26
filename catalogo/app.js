@@ -990,6 +990,7 @@
         imageMeta: imgs.map(x => ({ id: x.id, url: x.url, variantName: (x.variant_name || '').trim() })),
         desc: r.description || '', unit: r.unit_name || '',
         estoque: r.estoque == null ? null : Number(r.estoque),   // null = loja não controla
+        tamanhos: normalizaTamanhos(r.tamanhos),   // 26/11/2026: [{t:'39', q:1}] — vazio = sem tamanho
         position: Number(r.position) || 0,  // ordem definida pelo lojista (setas ↑↓)
         kit: Array.isArray(r.kit_itens) ? r.kit_itens : [],   // kit = ids das peças; vazio = produto normal
         createdAt: r.created_at || '',
@@ -2157,8 +2158,49 @@
     });
   }
 
+  // ─────────── Tamanhos (26/11/2026, Beulá) ───────────
+  // Guardados em pl_catalog_products.tamanhos (jsonb): [{ t:'39', q:1 }, ...]. Sem tamanhos = produto como sempre foi.
+  function normalizaTamanhos(v) {
+    if (!Array.isArray(v)) return [];
+    const vistos = new Set();
+    return v.map(x => ({ t: String((x && (x.t != null ? x.t : x.tamanho)) || '').trim().slice(0, 12),
+                         q: Math.max(0, Math.floor(Number(x && (x.q != null ? x.q : x.qtd)) || 0)) }))
+      .filter(x => x.t && !vistos.has(x.t.toLowerCase()) && vistos.add(x.t.toLowerCase()));
+  }
+  let tamanhoSel = '', tamanhoDe = null;
+  function temTamanhos(p) { return !!(p && p.tamanhos && p.tamanhos.length); }
+  function renderTamanhosCliente() {
+    ['#p-tamanhos', '#r-tamanhos', '#va-produto .vp-tam'].forEach(sel => {
+      const box = $(sel); if (!box) return;
+      const p = current;
+      box.hidden = !temTamanhos(p);
+      box.classList.remove('falta');
+      if (box.hidden) return;
+      box.querySelector('.p-tam-escolhido').textContent = tamanhoSel || 'escolha um';
+      const lista = box.querySelector('.p-tam-opcoes'); lista.textContent = '';
+      p.tamanhos.forEach(x => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'p-tam' + (x.t === tamanhoSel ? ' sel' : '');
+        b.textContent = x.t; b.disabled = x.q <= 0;
+        b.title = x.q <= 0 ? 'Esgotado' : (x.q === 1 ? 'Última peça' : x.q + ' disponíveis');
+        b.setAttribute('aria-pressed', x.t === tamanhoSel ? 'true' : 'false');
+        b.addEventListener('click', () => { tamanhoSel = x.t; renderTamanhosCliente(); });
+        lista.appendChild(b);
+      });
+    });
+  }
+  // Produto com tamanho disponível exige a escolha antes de abrir o WhatsApp.
+  function faltaTamanho(p) {
+    if (!temTamanhos(p) || tamanhoSel || !p.tamanhos.some(x => x.q > 0)) return false;
+    ['#p-tamanhos', '#r-tamanhos', '#va-produto .vp-tam'].forEach(sel => { const box = $(sel); if (box && !box.hidden) box.classList.add('falta'); });
+    toast('Escolha o tamanho antes de comprar');
+    return true;
+  }
+  function textoTamanho() { return tamanhoSel ? ' Tamanho: ' + tamanhoSel + '.' : ''; }
+
   function openProduct(p, semHistorico) {
     current = p;
+    if (tamanhoDe !== p.id) { tamanhoSel = ''; tamanhoDe = p.id; }   // trocou de produto: escolhe de novo
     pixelEvento('ViewContent', _pxProduto(p));
     if (STORE.name) document.title = p.name + ' · ' + STORE.name;
     fotoSel = 0;   // produto novo, galeria volta pra primeira foto
@@ -2192,6 +2234,7 @@
       valorParcela: valorParcela
     });
     if (!pgApp) { const sp = $('#screen-product'); if (sp) sp.classList.remove('va-pg'); }
+    renderTamanhosCliente();   // depois da página App existir (ela tem o próprio bloco .vp-tam)
     show('product');
     // troca a URL sem recarregar, pra quem chegou pelo catálogo poder copiar da
     // barra de endereço e o "voltar" do navegador funcionar
@@ -2692,6 +2735,7 @@
     img.src = urlProva || userPhoto || fallbackSvg('Sua prova');
     bindImg($('#result-thumb'), fotoAtual() || current.img, current.name);
     $('#result-name').textContent = nomeProdutoAtual();
+    renderTamanhosCliente();
     const precoOriginal = $('#result-old-price');
     precoOriginal.textContent = precoOriginalTxt(current);
     precoOriginal.hidden = !precoOriginal.textContent;
@@ -3551,6 +3595,7 @@
     $('#admin-desc').value = p.desc || '';
     $('#admin-unit').value = p.unit || '';
     $('#admin-estoque').value = p.estoque == null ? '' : String(p.estoque);
+    adminTamanhos = (p.tamanhos || []).map(x => ({ t: x.t, q: x.q })); renderAdminTamanhos();
     $('#admin-is-kit').checked = ehKit(p);
     adminKitSel = ehKit(p) ? p.kit.slice() : [];
     renderAdminKit();
@@ -3582,6 +3627,7 @@
     $('#admin-desc').value = ''; $('#admin-parcelas').value = '';
     $('#admin-unit').value = '';
     $('#admin-estoque').value = '';
+    adminTamanhos = []; renderAdminTamanhos();
     $('#admin-is-kit').checked = false; adminKitSel = []; renderAdminKit();
     $('#admin-interest-type').value = 'none'; $('#admin-interest-rate').value = '';
     atualizaCampoJuros();
@@ -3664,6 +3710,41 @@
     }
     e.target.value = '';
   });
+  // ── Tamanhos no cadastro (26/11/2026): chips "39 [qtd] ×" + campo para adicionar, no padrão das categorias
+  let adminTamanhos = [];
+  function renderAdminTamanhos() {
+    const box = $('#admin-tam-lista'); if (!box) return;
+    box.textContent = '';
+    adminTamanhos.forEach((x, i) => {
+      const chip = document.createElement('span'); chip.className = 'admin-tam-chip' + (x.q <= 0 ? ' zerado' : '');
+      const nome = document.createElement('span'); nome.textContent = x.t;
+      const qtd = document.createElement('input'); qtd.type = 'number'; qtd.min = '0'; qtd.max = '9999'; qtd.inputMode = 'numeric';
+      qtd.value = String(x.q); qtd.setAttribute('aria-label', 'Quantidade do tamanho ' + x.t);
+      qtd.addEventListener('input', () => { x.q = Math.max(0, Math.floor(Number(qtd.value) || 0)); chip.classList.toggle('zerado', x.q <= 0); });
+      const del = document.createElement('button'); del.type = 'button'; del.textContent = '×'; del.title = 'Remover tamanho ' + x.t;
+      del.addEventListener('click', () => { adminTamanhos.splice(i, 1); renderAdminTamanhos(); });
+      chip.append(nome, qtd, del); box.appendChild(chip);
+    });
+  }
+  function adicionaTamanhoDigitado() {
+    const nome = $('#admin-tam-nome'), qtd = $('#admin-tam-qtd');
+    if (!nome) return;
+    // aceita vários de uma vez: "39, 40, 41" ou "P M G"
+    const partes = nome.value.split(/[,;\s]+/).map(t => t.trim()).filter(Boolean);
+    if (!partes.length) { nome.focus(); return; }
+    const q = qtd.value === '' ? 1 : Math.max(0, Math.floor(Number(qtd.value) || 0));
+    partes.forEach(t => {
+      t = t.slice(0, 12);
+      const ja = adminTamanhos.find(x => x.t.toLowerCase() === t.toLowerCase());
+      if (ja) ja.q = q; else adminTamanhos.push({ t, q });
+    });
+    nome.value = ''; qtd.value = ''; nome.focus();
+    renderAdminTamanhos();
+  }
+  document.addEventListener('click', ev => { if (ev.target && ev.target.id === 'admin-tam-add') adicionaTamanhoDigitado(); });
+  document.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter' && ev.target && (ev.target.id === 'admin-tam-nome' || ev.target.id === 'admin-tam-qtd')) { ev.preventDefault(); adicionaTamanhoDigitado(); }
+  });
   let stagedProductId = null;
   function valorDigitado(id) {
     const raw = $(id).value.trim();
@@ -3697,7 +3778,7 @@
     const fields = { estoque: estoqueTxt, name, price, original_price:originalPrice, description:$('#admin-desc').value.trim(), unit_name:$('#admin-unit').value.trim(),
       parcelas, installment_interest_rate:interestRate, categories:categorias,
       is_featured:$('#admin-featured').checked, is_active:publicar, foto_inteira:$('#admin-foto-inteira').checked,
-      kit_itens: kitLigado ? adminKitSel.slice() : [] };
+      kit_itens: kitLigado ? adminKitSel.slice() : [], tamanhos: normalizaTamanhos(adminTamanhos) };
     const label = btn.textContent;
     const locked = $$('.admin-fields input, .admin-fields textarea, .admin-fields select, .admin-fields button, #admin-photo');
     const disabledBefore = locked.map(x => x.disabled);
@@ -4013,6 +4094,7 @@
   }
 
   function comprarNoWhatsapp(telefone) {
+    if (faltaTamanho(current)) return;
     const tel = String(telefone || (storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
     if (!tel) { openCheckout(); return; }
     pixelEvento('InitiateCheckout', _pxProduto(current));
@@ -4023,7 +4105,7 @@
       (current && numeroPositivo(precoProduto(current)) ? ' (' + brl(precoProduto(current)) + ')' : '') +
       ' no provador virtual da ' + STORE.name + ' e quero comprar' +
       (unidade ? ' na unidade ' + unidade.rotulo : '') + '.' +
-      (current && current.unit ? ' Unidade do produto: ' + current.unit + '.' : '');
+      (current && current.unit ? ' Unidade do produto: ' + current.unit + '.' : '') + textoTamanho();
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
   }
   // Compra SEM provar: as demais lojas só compram depois da prova (vira lead).
@@ -4033,11 +4115,12 @@
     const lojas = fixa ? [fixa] : (LOJAS_COMPRA_WHATSAPP[STORE_SLUG] || []);
     const tel = String((lojas[0] && lojas[0].telefone) || (storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
     if (!tel) { toast('Esta loja ainda não tem WhatsApp cadastrado.'); return; }
+    if (faltaTamanho(p)) return;
     pixelEvento('InitiateCheckout', _pxProduto(p));
     const num = tel.length <= 11 ? '55' + tel : tel;
     const txt = 'Oi! Vi o ' + (nome || p.name) +
       (numeroPositivo(precoProduto(p)) ? ' (' + brl(precoProduto(p)) + ')' : '') +
-      ' no catálogo da ' + STORE.name + ' e quero comprar.';
+      ' no catálogo da ' + STORE.name + ' e quero comprar.' + textoTamanho();
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(txt), '_blank');
   }
   $('#btn-buy-direct').addEventListener('click', () => { if (current) comprarDireto(current, nomeProdutoAtual()); });
