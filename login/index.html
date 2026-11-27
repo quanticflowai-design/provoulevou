@@ -2365,6 +2365,102 @@
   .lentes-obs { font-size: 12px; line-height: 1.4; color: var(--text-main); background: rgba(124,58,237,.07);
                 border-radius: 8px; padding: 6px 9px; margin-top: 7px; white-space: pre-wrap; word-break: break-word; }
 </style>
+<style id="plSkCss">
+/* Skeleton (27/11/2026, Lucas): no lugar de ícone girando, o formato do conteúdo aparece pulsando */
+:root{--plsk-b:rgba(120,120,150,.13);--plsk-h:rgba(120,120,150,.26)}
+.plsk{display:block;border-radius:8px;background:linear-gradient(90deg,var(--plsk-b) 0%,var(--plsk-h) 50%,var(--plsk-b) 100%);background-size:200% 100%;animation:plskShim 1.3s ease-in-out infinite}
+@keyframes plskShim{0%{background-position:150% 0}100%{background-position:-50% 0}}
+@media (prefers-reduced-motion:reduce){.plsk{animation:none}}
+.plsk-l{height:12px;margin:7px 0}.plsk-s{height:10px}.plsk-n{height:26px;width:55%;margin:12px 0 8px}
+.plsk-av{width:36px;height:36px;border-radius:50%;flex:0 0 auto}
+.plsk-row{display:flex;gap:12px;align-items:center;padding:9px 0}
+.plsk-col{flex:1;min-width:0}
+.plsk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;width:100%}
+.plsk-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%}
+@media (max-width:760px){.plsk-kpis{grid-template-columns:repeat(2,1fr)}}
+.plsk-card{border:1px solid var(--plsk-b);border-radius:14px;padding:16px;min-width:0}
+.plsk-blk{height:220px;border-radius:14px;margin-top:14px;width:100%}
+.plsk-board{display:flex;gap:14px;overflow:hidden;width:100%}
+.plsk-board>div{flex:1 0 220px;display:flex;flex-direction:column;gap:10px}
+.plsk-chat{display:flex;flex-direction:column;gap:12px;width:100%;padding:8px 4px}
+.plsk-bub{height:38px;border-radius:14px}
+.plsk-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.plsk-2{grid-template-columns:1fr}}
+.plsk-page{width:100%;max-width:1280px;margin:0 auto}
+.plsk-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.plsk-tabs{display:flex;gap:10px;margin-bottom:22px;overflow:hidden}
+div.pl-sk-host,p.pl-sk-host,li.pl-sk-host{display:block!important;text-align:left!important;width:100%;align-self:stretch}
+.pl-sk-host.plsk-wide{grid-column:1/-1}
+body.booting #bootSplash{justify-content:flex-start!important;align-items:stretch!important;padding:24px max(16px,4vw)!important;overflow:hidden}
+#mainLoader[style*="flex"]{align-items:flex-start!important;padding:24px max(16px,4vw)!important;overflow:hidden}
+</style>
+<script>
+(function(){
+  /* Troca todo placeholder "Carregando…" (com ou sem ícone girando) por um esqueleto no formato do conteúdo.
+     Botões ("Enviando…", "Salvando…"), selects e textos inline ficam como estão. */
+  var RX=/^\s*(carregando|calculando seus|buscando pedidos)/i, RXQ=/arregando|alculando seus|uscando pedidos/;
+  function L(w,c){return '<span class="plsk plsk-l'+(c?' '+c:'')+'" style="width:'+w+'%"></span>'}
+  function row(i){var w=[62,48,70,55][i%4];return '<div class="plsk-row"><span class="plsk plsk-av"></span><div class="plsk-col">'+L(w)+L(Math.round(w*.6),'plsk-s')+'</div></div>'}
+  function card(i){return '<div class="plsk-card">'+L(40,'plsk-s')+'<span class="plsk plsk-n"></span>'+L([72,60,80][i%3])+L(45,'plsk-s')+'</div>'}
+  function rep(n,f){var h='';for(var i=0;i<n;i++)h+=f(i);return h}
+  var K={
+    list:function(){return rep(4,row)},
+    text:function(){return L(92)+L(80)+L(55)},
+    table:function(){return rep(5,function(i){return L([96,88,92,80,90][i])})},
+    cards:function(){return '<div class="plsk-grid">'+rep(3,card)+'</div>'},
+    kpi:function(){return '<div class="plsk-kpis">'+rep(4,card)+'</div><span class="plsk plsk-blk"></span>'},
+    board:function(){return '<div class="plsk-board">'+rep(4,function(){return '<div>'+L(50)+rep(3,function(i){return '<div class="plsk-card">'+L(70)+L(45,'plsk-s')+'</div>'})+'</div>'})+'</div>'},
+    chat:function(){return '<div class="plsk-chat">'+rep(5,function(i){return '<span class="plsk plsk-bub" style="width:'+[46,34,58,40,30][i]+'%;'+(i%2?'align-self:flex-end':'')+'"></span>'})+'</div>'}
+  };
+  function kind(el,t){
+    var c=String(el.className||'');t=t.toLowerCase();
+    if(el.tagName==='TD')return 'table';
+    if(el.closest('#crmBoard'))return 'board';
+    if(el.closest('#chatThreadBody'))return 'chat';
+    if(/chat-list-empty/.test(c))return 'list';
+    if(/dd-loading|com-loading/.test(c)||/painel|desempenho/.test(t))return 'kpi';
+    if(/autom-a-loading|p2-loading/.test(c)||el.closest('#segBody,#automCards')||/campanhas|públicos|fluxos/.test(t))return 'cards';
+    if(/dd-detail-loading|emc-load|autom-em-hint|p2-cempty|chat-lp|clm-empty|lcfg|ed-nota/.test(c)||/mensagem|e-mail|registros|tarefas|versões|imagem/.test(t))return 'text';
+    return 'list';
+  }
+  function cand(el){
+    if(!el||el.nodeType!==1||el.getAttribute('data-plsk'))return null;
+    if(!/^(DIV|TD|P|LI)$/.test(el.tagName))return null;
+    if(el.closest('button,select,option,label,a,.chat-msg-time,.wa-feedback,#bootSplash,#mainLoader,[data-no-sk]'))return null;
+    for(var i=0;i<el.children.length;i++)if(el.children[i].tagName!=='I')return null;
+    var t=(el.textContent||'').trim();
+    if(!t)return (el.children.length===1&&/ph-spin|ph-spinner/.test(el.children[0].className)&&el.closest('#chatThreadBody'))?'chat':null;
+    return (t.length<70&&RX.test(t))?kind(el,t):null;
+  }
+  function apply(el,k){
+    var t=(el.textContent||'').trim()||'Carregando';
+    el.setAttribute('data-plsk','1');el.setAttribute('aria-busy','true');el.setAttribute('aria-label',t);el.setAttribute('role','status');
+    el.classList.add('pl-sk-host');if(k==='cards'||k==='kpi'||k==='board')el.classList.add('plsk-wide');
+    el.innerHTML=K[k]();
+  }
+  function scan(root){
+    if(!root)return;if(root.nodeType===3)root=root.parentElement;if(!root||root.nodeType!==1)return;
+    var tc=root.textContent||'';
+    if(RXQ.test(tc)){
+      var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null),n,hits=[];
+      while((n=w.nextNode()))if(RX.test(n.nodeValue)||RXQ.test(n.nodeValue))hits.push(n.parentElement);
+      for(var i=0;i<hits.length;i++){var k=cand(hits[i]);if(k)apply(hits[i],k)}
+    }
+    var cb=root.id==='chatThreadBody'?root:(root.closest&&root.closest('#chatThreadBody'))||(root.querySelector&&root.querySelector('#chatThreadBody'));
+    if(cb)for(var j=0;j<cb.children.length;j++){var e=cb.children[j],kk=cand(e);if(kk)apply(e,kk)}
+  }
+  try{
+    new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var m=ms[i];
+      if(m.type==='characterData'){scan(m.target);continue}
+      for(var j=0;j<m.addedNodes.length;j++)scan(m.addedNodes[j]);
+      if(m.addedNodes.length&&m.target.nodeType===1&&!m.target.getAttribute('data-plsk'))scan(m.target);
+    }}).observe(document.documentElement,{childList:true,subtree:true,characterData:true});
+    document.addEventListener('DOMContentLoaded',function(){scan(document.body)});
+  }catch(e){}
+  window.plSkeleton=function(k){return (K[k]||K.list)()};
+})();
+</script>
+
 </head>
 
 <body class="booting">
@@ -2372,8 +2468,14 @@
     <canvas id="neural-canvas"></canvas>
 
     <div id="bootSplash">
-        <div class="boot-spin"></div>
-        <div class="boot-txt">Carregando seu painel…</div>
+        <div class="plsk-page" role="status" aria-busy="true" aria-label="Carregando seu painel">
+            <div class="plsk-top"><span class="plsk" style="width:150px;height:28px"></span><span class="plsk" style="width:36px;height:36px;border-radius:50%"></span></div>
+            <div class="plsk-tabs"><span class="plsk" style="flex:0 0 96px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 84px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 104px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 76px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 96px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 88px;height:34px;border-radius:10px"></span></div>
+            <div class="plsk-kpis"><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div></div>
+            <span class="plsk plsk-blk" style="height:260px"></span>
+            <div class="plsk-2"><span class="plsk plsk-blk"></span><span class="plsk plsk-blk"></span></div>
+        </div>
+
     </div>
 
     <div class="container">
@@ -2499,13 +2601,14 @@
         </div>
 
         <div class="loader" id="mainLoader">
-            <div class="main-loader-card">
-                <div class="main-loader-ring">
-                    <div class="main-loader-ring-inner"></div>
-                </div>
-                <div class="main-loader-text">Carregando sua dashboard</div>
-                <div class="main-loader-sub">Buscando pedidos, provas e gerando seus gráficos…</div>
-            </div>
+            <div class="plsk-page" role="status" aria-busy="true" aria-label="Carregando seu painel">
+            <div class="plsk-top"><span class="plsk" style="width:150px;height:28px"></span><span class="plsk" style="width:36px;height:36px;border-radius:50%"></span></div>
+            <div class="plsk-tabs"><span class="plsk" style="flex:0 0 96px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 84px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 104px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 76px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 96px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 88px;height:34px;border-radius:10px"></span></div>
+            <div class="plsk-kpis"><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div></div>
+            <span class="plsk plsk-blk" style="height:260px"></span>
+            <div class="plsk-2"><span class="plsk plsk-blk"></span><span class="plsk plsk-blk"></span></div>
+        </div>
+
         </div>
         <style>
             #mainLoader {
