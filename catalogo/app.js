@@ -796,8 +796,9 @@
     oticaabreu: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F1E6CC',
                 brand: '#F4BC44', dark: '#D9A02A', soft: 'rgba(244,188,68,.14)', on: '#14121a' },
     // Óticas Original — laranja/amarelo do logo sobre branco; preço laranja escuro (~5,5:1), botão laranja com texto preto (~10:1)
-    oticasoriginal: { bg: '#FFFFFF', card: '#FFFFFF', line: '#F6E2C4',
-                brand: '#A85400', dark: '#8A4500', soft: 'rgba(247,162,27,.12)', on: '#ffffff', cta: '#F7A21B', ctaDark: '#E08A0A', onCta: '#111111' }
+    // 27/11/2026 (Fernando): azul-marinho + amarelo; preço marinho (~13:1), botão amarelo com texto marinho (~10:1)
+    oticasoriginal: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E3E8F2',
+                brand: '#0B2A5B', dark: '#071C3E', soft: '#EEF2F9', on: '#ffffff', cta: '#FFC72C', ctaDark: '#F2B400', onCta: '#0B2A5B' }
   };
 
   // ─────────── Tema ───────────
@@ -886,7 +887,7 @@
   // salvar/restaurar as cores no painel não pode apagar o layout escolhido
   function extrasDoTema() {
     const t0 = (storeRow && storeRow.tema) || {}, x = {};
-    ['layout', 'catImgs', 'blocos', 'slides', 'soLogo', 'fotoInteira', 'msgWhats'].forEach(k => { if (t0[k] != null) x[k] = t0[k]; });
+    ['layout', 'catImgs', 'blocos', 'slides', 'soLogo', 'fotoInteira', 'msgWhats', 'catsFixas', 'fonteGrande', 'textos', 'whatsapps', 'instagram'].forEach(k => { if (t0[k] != null) x[k] = t0[k]; });
     return x;
   }
   function aplicaTema(cor) {

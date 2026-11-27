@@ -52,6 +52,19 @@
     'body.va-ed .va-stories button.ed-foto .r{position:relative;outline:2px dashed var(--brand);outline-offset:3px;cursor:pointer}',
     'body.va-ed .va-stories button.ed-foto .r:after{content:"Trocar";position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);background:#111;color:#fff;font-size:9.5px;font-weight:700;border-radius:999px;padding:2px 7px}',
     '.va-stories button.on .r{background:#111827}.va-stories button.on{font-weight:800}',
+    // 27/11/2026 (Lucas/Fernando, Óticas Original): categorias em blocos com ícone (tema.catsFixas) e letra maior (tema.fonteGrande)
+    '.va.cat-blocos .va-stories{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch;gap:8px;overflow:visible;padding:8px 16px 16px}',
+    '.va.cat-blocos .va-stories button{width:auto;min-width:0;background:var(--brand-soft,#f3f4f6);border-radius:16px;padding:14px 4px 12px;gap:8px;justify-content:flex-start;color:var(--brand)}',
+    '.va.cat-blocos .va-stories button span:not(.r){max-width:100%;font-size:12.5px;font-weight:700;color:#111827;overflow-wrap:normal;word-break:normal;hyphens:none;letter-spacing:-.01em}',
+    '.va.cat-blocos .va-stories .r{width:36px;height:36px;border-radius:0;padding:0;background:none}',
+    '.va.cat-blocos .va-stories .r img{border:0;border-radius:0;background:none;object-fit:contain}',
+    '.va.cat-blocos .va-stories button.on{background:var(--brand);box-shadow:none}.va.cat-blocos .va-stories button.on span:not(.r){color:#fff}.va.cat-blocos .va-stories button.on .r{background:none}.va.cat-blocos .va-stories button.on .r img{filter:brightness(0) invert(1)}',
+    '.va.fonte-grande .va-busca input{font-size:16px;padding-top:14px;padding-bottom:14px}',
+    '.va.fonte-grande .va-sec h2{font-size:21px}.va.fonte-grande .va-sec h2 small{font-size:14px}',
+    '.va.fonte-grande .va-card .nm{font-size:15px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.25}',
+    '.va.fonte-grande .va-card .pr{font-size:18px}.va.fonte-grande .va-card .de{font-size:13px}.va.fonte-grande .va-card .bt{font-size:14.5px;padding:10px}',
+    '.va.fonte-grande .va-vazio{font-size:16px}.va.fonte-grande .va-tab a{font-size:12.5px}.va.fonte-grande .va-zap{font-size:15px}',
+    '.va.fonte-grande.cat-blocos .va-stories button span:not(.r){font-size:13px}@media(max-width:360px){.va.cat-blocos .va-stories button span:not(.r){font-size:11.5px}}.va.fonte-grande .va-stories button{font-size:13px}',
     '.va-busca{position:sticky;top:0;z-index:10;background:#fff;padding:10px 16px;border-bottom:1px solid #eef0f3}',
     '.va-busca input{width:100%;border:0;background:#f3f4f6 no-repeat 13px center/17px url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%239ca3af\' stroke-width=\'2\' stroke-linecap=\'round\'%3E%3Ccircle cx=\'11\' cy=\'11\' r=\'8\'/%3E%3Cpath d=\'m21 21-4.3-4.3\'/%3E%3C/svg%3E");border-radius:12px;padding:12px 14px 12px 38px;font:inherit;font-size:14px;outline:0;color:#111827}',
     '.va-chips{display:none !important;gap:8px;overflow-x:auto;margin-top:10px;scrollbar-width:none}.va-chips::-webkit-scrollbar{display:none}',
@@ -285,7 +298,9 @@
       return !q || norm(p.name).indexOf(q) >= 0 || (p.cats || []).some(function (c) { return norm(c).indexOf(q) >= 0; });
     });
   }
-  function titulo() { if (estado.q && !estado.cat) return 'Busca: “' + estado.q + '”'; return { '': 'Todas', __promo: 'Promoções', __novos: 'Novidades', __alta: 'Em alta' }[estado.cat] || estado.cat; }
+  // textos trocados por loja: tema.textos = { busca, todas }
+  function texto(k, padrao) { var t = X && X.tema && X.tema.textos; return t && typeof t[k] === 'string' && t[k].trim() ? t[k].trim() : padrao; }
+  function titulo() { if (estado.q && !estado.cat) return 'Busca: “' + estado.q + '”'; return { '': texto('todas', 'Todas'), __promo: 'Promoções', __novos: 'Novidades', __alta: 'Em alta' }[estado.cat] || estado.cat; }
 
   var SELO = 'selo-provador.png?v=1';
   // 28/10 (Lucas): foto pesada demorava a carregar — usa a versão redimensionada do Supabase (≈ 4x menor)
@@ -377,7 +392,7 @@
       '</div>' +
       (sl.length ? '<div class="va-banner" data-bl="banner"><div class="va-trilho">' + sl.join('') + '</div><div class="va-pts"></div></div>' : '') +
       '<div class="va-stories" data-bl="categorias"></div>' +
-      _tx('<div class="va-busca" data-bl="busca"><input type="search" placeholder="Buscar armação" aria-label="Buscar armação" autocomplete="off"><div class="va-chips"></div></div>') +
+      _tx('<div class="va-busca" data-bl="busca"><input type="search" placeholder="' + esc(texto('busca', 'Buscar armação')) + '" aria-label="Buscar armação" autocomplete="off"><div class="va-chips"></div></div>') +
       '<div class="va-top" data-bl="top"><h2><span>' + IC.trend + ' Top 10 mais provados</span><small>últimos 30 dias</small></h2><div class="va-rank"></div></div>' +
       '<div class="va-sec" data-bl="grade"><h2><span class="va-tit">Todas</span><small class="va-n"></small></h2><div class="va-grade"></div></div>' +
       '</div>' +
@@ -387,6 +402,8 @@
       (ig ? '<a class="va-ig" href="' + esc(ig) + '" target="_blank" rel="noopener" aria-label="Instagram">' + IC.insta + '</a>' : '') +
       (wa ? '<a class="va-zap" href="' + esc(wa) + '" target="_blank" rel="noopener">' + IC.wa + ' Fale com a loja</a>' : '') +
       '<button type="button" class="va-ed-btn" data-acao="editar">' + IC.lapis + ' Personalizar</button>';
+    root.classList.toggle('cat-blocos', catsFixas().length > 0);
+    root.classList.toggle('fonte-grande', !!(X.tema && X.tema.fonteGrande));
     root.querySelector('.va-busca input').value = estado.q;
     root.querySelector('.va-busca input').addEventListener('input', function () { estado.q = this.value; pintaGrade(); });
     root.addEventListener('click', clique);
@@ -413,7 +430,21 @@
     while (out.length < 4 && out.length) out.push(out[out.length % out.length]);
     return out;
   }
+  // tema.catsFixas = [{ nome, cat, icone }]: sempre aparecem (mesmo sem produto), na ordem dada; cat '__promo' = promoções
+  function catsFixas() {
+    var l = X && X.tema && Array.isArray(X.tema.catsFixas) ? X.tema.catsFixas : [];
+    return l.filter(function (c) { return c && typeof c.nome === 'string' && c.nome.trim(); });
+  }
   function pintaStories() {
+    var fx = catsFixas();
+    if (fx.length) {
+      root.querySelector('.va-stories').innerHTML = fx.map(function (c) {
+        var cat = typeof c.cat === 'string' ? c.cat : c.nome;
+        var ic = typeof c.icone === 'string' && c.icone ? '<img src="' + esc(c.icone) + '" alt="">' : '';
+        return '<button type="button" class="' + (estado.cat === cat ? 'on' : '') + '" data-cat="' + esc(cat) + '"><i class="r">' + ic + '</i><span>' + esc(c.nome) + '</span></button>';
+      }).join('');
+      return;
+    }
     var a = maisProvados(), n = novidades(), pr = promo();
     // 28/10 (Lucas): todo catálogo tem "Todas" como 1ª categoria (mostra todas as armações)
     var mT = (X.tema && X.tema.catImgs) || {}, capaTodas = (ED.catImgs && ED.catImgs['']) || mT[''] || mT['Todas'] || (X.catalog.length ? '__mosaico' : '');
@@ -611,7 +642,9 @@
     if (el.hasAttribute('data-provar')) { ev.preventDefault(); ev.stopPropagation(); var pp = produto(el.getAttribute('data-provar')); if (pp) X.provar(pp); return; }
     if (el.hasAttribute('data-p')) { var p = produto(el.getAttribute('data-p')); if (p) X.abrir(p); return; }
     if (el.hasAttribute('data-cat')) {
-      estado.cat = el.getAttribute('data-cat');
+      var _c = el.getAttribute('data-cat');
+      // blocos fixos não têm "Todas": tocar de novo no bloco escolhido volta para todas
+      estado.cat = (catsFixas().length && el.closest('.va-stories') && estado.cat === _c) ? '' : _c;
       if (estado.cat.indexOf('__') !== 0) X.mudouCategoria(estado.cat);
       pintaGrade(); root.querySelector('.va-grade').closest('.va-sec').scrollIntoView({ behavior: 'smooth', block: 'start' }); return;
     }
