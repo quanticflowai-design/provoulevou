@@ -59,6 +59,7 @@
     '.va.cat-blocos .va-stories .r{width:36px;height:36px;border-radius:0;padding:0;background:none}',
     '.va.cat-blocos .va-stories .r img{border:0;border-radius:0;background:none;object-fit:contain}',
     '.va.cat-blocos .va-stories button.on{background:var(--brand);box-shadow:none}.va.cat-blocos .va-stories button.on span:not(.r){color:#fff}.va.cat-blocos .va-stories button.on .r{background:none}.va.cat-blocos .va-stories button.on .r img{filter:brightness(0) invert(1)}',
+    'html.tema-escuro .va.cat-blocos .va-stories button span:not(.r){color:var(--ink)}html.tema-escuro .va.cat-blocos .va-stories button.on span:not(.r){color:var(--on-brand,#111)}html.tema-escuro .va.cat-blocos .va-stories button.on .r img{filter:brightness(0)}',
     '.va.fonte-grande .va-busca input{font-size:16px;padding-top:14px;padding-bottom:14px}',
     '.va.fonte-grande .va-sec h2{font-size:21px}.va.fonte-grande .va-sec h2 small{font-size:14px}',
     '.va.fonte-grande .va-card .nm{font-size:15px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.25}',
