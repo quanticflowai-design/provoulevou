@@ -373,6 +373,8 @@
     });
     b.querySelector('.va-pts').addEventListener('click', function (e) { var i = [].indexOf.call(this.children, e.target); if (i >= 0) { vaiBanner(i); autoBanner(); } });
   }
+  // tema.bannerProporcao = '2/1' (banner mais alto, texto legível no celular). Padrão 3/1.
+  function propBanner() { var v = X && X.tema && X.tema.bannerProporcao; return typeof v === 'string' && /^\d+(\.\d+)?\/\d+(\.\d+)?$/.test(v) ? v : ''; }
   function multiUni() { return X && Array.isArray(X.unidades) && X.unidades.length > 1; }
   function monta() {
     var L = X.loja, wa = L.whatsapp && !multiUni() ? 'https://wa.me/' + String(L.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent((X.tema && X.tema.msgWhats) || ('Olá! Vim pelo catálogo da ' + L.nome + '.')) : '';
@@ -390,7 +392,7 @@
           : (L.logo ? '<span class="va-av"><img src="' + esc(L.logo) + '" alt=""></span>' : '') + '<h1>' + esc(L.nome) + '</h1>') + '</div>' +
         '<button type="button" class="va-ico va-sacola" data-acao="provas" aria-label="Minhas provas">' + IC.sacola + '<b class="va-qtd" hidden></b></button>' +
       '</div>' +
-      (sl.length ? '<div class="va-banner" data-bl="banner"><div class="va-trilho">' + sl.join('') + '</div><div class="va-pts"></div></div>' : '') +
+      (sl.length ? '<div class="va-banner" data-bl="banner"' + (propBanner() ? ' style="aspect-ratio:' + propBanner() + '"' : '') + '><div class="va-trilho">' + sl.join('') + '</div><div class="va-pts"></div></div>' : '') +
       '<div class="va-stories" data-bl="categorias"></div>' +
       _tx('<div class="va-busca" data-bl="busca"><input type="search" placeholder="' + esc(texto('busca', 'Buscar armação')) + '" aria-label="Buscar armação" autocomplete="off"><div class="va-chips"></div></div>') +
       '<div class="va-top" data-bl="top"><h2><span>' + IC.trend + ' Top 10 mais provados</span><small>últimos 30 dias</small></h2><div class="va-rank"></div></div>' +
