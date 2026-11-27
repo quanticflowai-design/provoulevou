@@ -588,7 +588,7 @@
       '<div class="topo">' + (L.logo ? '<img src="' + esc(typeof X.tema.soLogo === 'string' ? X.tema.soLogo : L.logo) + '" alt="">' : '<b>' + esc(L.nome) + '</b>') + '<button type="button" class="va-ico" data-m="fechar" aria-label="Fechar">' + IC.fechar + '</button></div>' +
       '<button type="button" class="it" data-m="inicio">' + IC.home + ' Início</button>' +
       '<button type="button" class="it" data-m="provas">' + IC.sacola + ' Minhas provas <small>' + minhas().length + '</small></button>' +
-      '<button type="button" class="it" data-m="busca">' + IC.busca + _tx(' Buscar armação</button>') +
+      '<button type="button" class="it" data-m="busca">' + IC.busca + ' ' + esc(_tx(texto('busca', 'Buscar armação'))) + '</button>' +
       (wa ? '<a class="it" href="' + esc(wa) + '" target="_blank" rel="noopener">' + IC.wa.replace('<svg', '<svg class="i" fill="currentColor"') + ' Falar com a loja</a>' : '') +
       (X.cats.length ? '<div class="sep">Categorias</div>' + X.cats.map(function (c) { return '<button type="button" class="it cat" data-m="cat" data-c="' + esc(c) + '">' + esc(c) + '</button>'; }).join('') : '') +
       '<div class="sep">Loja</div><button type="button" class="it cat" data-m="admin">' + IC.gear + ' Área do lojista</button>' +
@@ -718,7 +718,7 @@
         '<div class="vp-marca" data-vp="volta">' + (L.logo ? '<img src="' + esc(typeof X.tema.soLogo === 'string' ? X.tema.soLogo : L.logo) + '" alt="' + esc(L.nome) + '">' : '<b>' + esc(L.nome) + '</b>') + '</div>' +
         '<button type="button" class="va-ico va-sacola" data-vp="provas" aria-label="Minhas provas">' + IC.sacola + '<b class="va-qtd" hidden></b></button></div>' +
         // busca só na página do produto (27/10, Lucas): Enter leva pra vitrine filtrada
-        _tx('<form class="vp-busca" data-vp-form><input type="search" enterkeyhint="search" placeholder="Buscar armação" aria-label="Buscar armação"></form></div>') +
+        '<form class="vp-busca" data-vp-form><input type="search" enterkeyhint="search" placeholder="' + esc(_tx(texto('busca', 'Buscar armação'))) + '" aria-label="' + esc(_tx(texto('busca', 'Buscar armação'))) + '"></form></div>' +
       '<div class="vp-corpo">' +
         '<div class="vp-trilha"><a data-vp="volta">Início</a>' + (cat ? '<span>›</span><a data-vp="cat">' + esc(cat) + '</a>' : '') + '<span>›</span>' + esc(p.name) + '</div>' +
         '<div class="vp-gal' + (FI(p) ? ' inteira' : '') + '"><div class="vp-principal"><img class="vp-foto" src="' + esc(MINI(fotos[0] ? fotos[0].url : p.img, 900)) + '" alt="' + esc(p.name) + '">' + (d ? '<span class="vp-selo">-' + d + '%</span>' : '') + '<button type="button" class="vp-selo-pv" data-vp="provar" aria-label="Abrir o provador virtual"><img src="' + SELO + '" alt="Provador virtual"></button></div>' +
