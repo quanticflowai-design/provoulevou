@@ -281,17 +281,6 @@
     const rows = await sbGet('pl_catalog_stores?slug=eq.' + encodeURIComponent(STORE_SLUG) +
       '&is_active=eq.true&select=id,slug,display_name,logo_url,whatsapp,bio,primary_color,tema,is_active,store_api_key,categorias_ordem,meta_pixel_id&limit=1');
     storeRow = (rows && rows[0]) || null;
-    // 26/11/2026 (Lucas, Óticas Original): mais de um WhatsApp da loja ("5512..,5512..") -> cada visitante cai
-    // sempre no mesmo número (sorteado 1 vez e guardado), dividindo os clientes entre os atendentes.
-    try {
-      const _nums = String((storeRow && storeRow.whatsapp) || '').split(/[,;\/|]+/).map(x => x.replace(/\D/g, '')).filter(x => x.length >= 10);
-      if (_nums.length > 1) {
-        let _i = -1;
-        try { _i = parseInt(localStorage.getItem('pc_wa_' + STORE_SLUG), 10); } catch (e) {}
-        if (!(_i >= 0 && _i < _nums.length)) { _i = Math.floor(Math.random() * _nums.length); try { localStorage.setItem('pc_wa_' + STORE_SLUG, String(_i)); } catch (e) {} }
-        storeRow.whatsapp = _nums[_i];
-      }
-    } catch (e) {}
     if (!storeRow) {
       document.title = 'Catálogo indisponível';
       document.body.innerHTML = '<main style="min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center;font-family:Inter,system-ui,sans-serif;background:#f7f7f8;color:#17171b"><section><h1 style="margin:0 0 10px;font-size:28px">Catálogo indisponível</h1><p style="margin:0;color:#666">Este catálogo não está disponível no momento.</p></section></main>';
@@ -1471,6 +1460,7 @@
     window.PLVitrineApp.render({
       loja: { slug: STORE_SLUG, nome: storeRow.display_name || STORE.name, logo: storeRow.logo_url || '', bio: storeRow.bio || '', whatsapp: storeRow.whatsapp || '' },
       tema: storeRow.tema || {},
+      unidades: unidadesTema(),
       fotoInteira: fotoInteiraDe,
       catalog: catalog.filter(p => doTipo(p) && (!slugFixa || !p.unit || slugUnidade(p.unit) === slugFixa))
         .sort((a, b) => Number(b.featured) - Number(a.featured) || (a.position - b.position)),
@@ -2246,7 +2236,7 @@
     const pgApp = layoutApp() && !ehKit(p) && window.PLVitrineApp && window.PLVitrineApp.produto && window.PLVitrineApp.produto(p, {
       setFoto: i => { fotoSel = i; },
       provar: () => { resetUploader(); show('tryon'); },
-      comprar: () => comprarNoWhatsapp(),
+      comprar: tel => comprarNoWhatsapp(tel),
       voltar: () => show('catalog'),
       valorParcela: valorParcela
     });
@@ -3587,7 +3577,7 @@
     lista.replaceChildren();
     const nomes = catalog.concat(adminCatalog).map(p => p.unit).filter(Boolean);
     if (typeof LOJAS_COMPRA_WHATSAPP !== 'undefined') {
-      (LOJAS_COMPRA_WHATSAPP[STORE_SLUG] || []).forEach(loja => nomes.push(loja.rotulo));
+      lojasCompra().forEach(loja => nomes.push(loja.rotulo));
     }
     [...new Set(nomes)].sort((a,b) => a.localeCompare(b, 'pt-BR')).forEach(nome => {
       const option = document.createElement('option'); option.value = nome; lista.appendChild(option);
@@ -4064,7 +4054,36 @@
     return String(rotulo || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
       .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   }
-  function unidadesDaLoja() { return LOJAS_COMPRA_WHATSAPP[STORE_SLUG] || []; }
+  // 26/11/2026 (Lucas, Óticas Original): loja com várias unidades cadastradas no banco (tema.whatsapps = [{nome, numero}]).
+  function unidadesTema() {
+    const l = storeRow && storeRow.tema && Array.isArray(storeRow.tema.whatsapps) ? storeRow.tema.whatsapps : [];
+    const u = l.map(x => ({ rotulo: String((x && x.nome) || '').trim(), telefone: String((x && x.numero) || '').replace(/\D/g, '') }))
+      .filter(x => x.rotulo && x.telefone.length >= 10);
+    return u.length > 1 ? u : [];
+  }
+  function lojasCompra() { return LOJAS_COMPRA_WHATSAPP[STORE_SLUG] || unidadesTema(); }
+  function unidadesDaLoja() { return LOJAS_COMPRA_WHATSAPP[STORE_SLUG] || []; }   // links por unidade: só as do código (alias)
+  // Janela "Escolha a loja" (botões que não sabem a unidade: Minhas provas, limite, compra pela vitrine)
+  function escolheUnidade(cb) {
+    const uni = unidadesTema();
+    if (uni.length < 2) return false;
+    const ov = document.createElement('div'); ov.className = 'pl-esc-wa';
+    const box = document.createElement('div');
+    const h = document.createElement('h3'); h.textContent = 'Escolha a loja'; box.appendChild(h);
+    const p = document.createElement('p'); p.textContent = 'Com qual unidade você quer comprar?'; box.appendChild(p);
+    uni.forEach(u => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'pl-esc-un';
+      b.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21c5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2Zm5.8 14.03c-.24.69-1.42 1.32-1.96 1.36-.5.04-.97.23-3.27-.68-2.77-1.09-4.5-3.94-4.64-4.12-.13-.18-1.1-1.47-1.1-2.8 0-1.33.7-1.98.95-2.25.24-.27.53-.34.71-.34l.51.01c.16 0 .38-.06.6.46.24.55.79 1.9.86 2.04.07.14.11.3.02.48-.09.18-.13.3-.27.46-.13.16-.28.36-.4.48-.13.13-.27.28-.12.55.16.27.7 1.15 1.5 1.86 1.03.92 1.9 1.2 2.17 1.34.27.13.43.11.59-.07.16-.18.68-.79.86-1.06.18-.27.36-.22.6-.13.25.09 1.58.75 1.85.88.27.14.45.2.52.32.07.11.07.66-.17 1.35Z"/></svg>');
+      b.appendChild(document.createTextNode(u.rotulo));
+      b.addEventListener('click', () => { ov.remove(); cb(u.telefone); });
+      box.appendChild(b);
+    });
+    const x = document.createElement('button'); x.type = 'button'; x.className = 'pl-esc-x'; x.textContent = 'Cancelar';
+    x.addEventListener('click', () => ov.remove()); box.appendChild(x);
+    ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+    ov.appendChild(box); document.body.appendChild(ov);
+    return true;
+  }
   function linkUnidade(u) {
     // Link limpo: ?loja=<slug-da-unidade> (o alias resolve pra loja + unidade).
     return location.origin + location.pathname + '?loja=' + slugUnidade(u.rotulo);
@@ -4084,7 +4103,7 @@
     if (!principal || !secundario) return;
     // ?u= trava numa unidade só; sem ele, mostra todas (fallback)
     const fixa = unidadeFixa();
-    const lojas = fixa ? [fixa] : (LOJAS_COMPRA_WHATSAPP[STORE_SLUG] || []);
+    const lojas = fixa ? [fixa] : lojasCompra();
     principal.dataset.telefone = lojas[0] && lojas[0].telefone || '';
     if (labelPrincipal) labelPrincipal.textContent = lojas.length
       ? 'Comprar — ' + lojas[0].rotulo : 'Comprar no WhatsApp';
@@ -4112,12 +4131,13 @@
 
   function comprarNoWhatsapp(telefone) {
     if (faltaTamanho(current)) return;
+    if (!telefone && !unidadeFixa() && escolheUnidade(t => comprarNoWhatsapp(t))) return;
     const tel = String(telefone || (storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
     if (!tel) { openCheckout(); return; }
     pixelEvento('InitiateCheckout', _pxProduto(current));
     const num = tel.length <= 11 ? '55' + tel : tel;
-    const unidade = STORE_SLUG === 'oticasprimemagrini'
-      ? LOJAS_COMPRA_WHATSAPP.oticasprimemagrini.find(loja => loja.telefone === num) : null;
+    const unidade = (STORE_SLUG === 'oticasprimemagrini' || unidadesTema().length)
+      ? lojasCompra().find(loja => loja.telefone === num) : null;
     const txt = 'Oi! Provei o ' + nomeProdutoAtual() +
       (current && numeroPositivo(precoProduto(current)) ? ' (' + brl(precoProduto(current)) + ')' : '') +
       ' no provador virtual da ' + STORE.name + ' e quero comprar' +
@@ -4127,10 +4147,11 @@
   }
   // Compra SEM provar: as demais lojas só compram depois da prova (vira lead).
   // Aqui entra quem pediu botão de compra na vitrine e na página do produto.
-  function comprarDireto(p, nome) {
+  function comprarDireto(p, nome, telEscolhido) {
     const fixa = unidadeFixa();
-    const lojas = fixa ? [fixa] : (LOJAS_COMPRA_WHATSAPP[STORE_SLUG] || []);
-    const tel = String((lojas[0] && lojas[0].telefone) || (storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
+    if (!telEscolhido && !fixa && unidadesTema().length && escolheUnidade(t => comprarDireto(p, nome, t))) return;
+    const lojas = fixa ? [fixa] : lojasCompra();
+    const tel = String(telEscolhido || (lojas[0] && lojas[0].telefone) || (storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
     if (!tel) { toast('Esta loja ainda não tem WhatsApp cadastrado.'); return; }
     if (faltaTamanho(p)) return;
     pixelEvento('InitiateCheckout', _pxProduto(p));
@@ -4351,8 +4372,9 @@
   // já vai pronto — sem isso o cliente sai da página e não volta.
   {
     const bw = $('#btn-limite-whats');
-    if (bw) bw.addEventListener('click', () => {
-      const tel = String((storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
+    if (bw) bw.addEventListener('click', function abre(ev, telEscolhido) {
+      if (!telEscolhido && escolheUnidade(t => abre(null, t))) return;
+      const tel = String(telEscolhido || (storeRow && storeRow.whatsapp) || '').replace(/\D/g, '');
       if (!tel) return;
       const num = tel.length <= 11 ? '55' + tel : tel;
       const txt = 'Oi! Usei minhas provas de hoje no provador virtual da ' + STORE.name +

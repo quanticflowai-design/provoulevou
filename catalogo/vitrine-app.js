@@ -171,6 +171,8 @@
     '.vp-parc{font-size:14px;color:#6b7280;margin-bottom:18px}.vp-parc b{color:#111827}',
     '.vp-provar{width:100%;border:0;background:var(--cta,var(--brand));color:var(--on-cta,var(--on-brand,#fff));border-radius:14px;padding:16px;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px}.vp-provar svg{width:18px;height:18px}',
     '.vp-wa{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;border:0;background:#25d366;color:#fff;border-radius:14px;padding:14px;font-weight:800;font-size:15px}.vp-wa svg{width:20px;height:20px;flex:0 0 auto}',
+    '.vp-wa+.vp-wa{margin-top:8px}.vp-wa-un span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}@media(max-width:380px){.vp-wa-un{font-size:14px}}',
+    '.pl-esc-wa{position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}.pl-esc-wa>div{background:#fff;color:#17171b;width:100%;max-width:440px;border-radius:18px 18px 0 0;padding:18px 16px 22px;box-shadow:0 -8px 30px rgba(0,0,0,.18)}@media(min-width:600px){.pl-esc-wa{align-items:center}.pl-esc-wa>div{border-radius:18px}}.pl-esc-wa h3{margin:0 0 4px;font-size:17px}.pl-esc-wa p{margin:0 0 14px;font-size:13.5px;color:#6b6577}.pl-esc-wa .pl-esc-un{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;background:#25d366;color:#fff;border-radius:14px;padding:14px;margin:0 0 8px;font:inherit;font-weight:800;font-size:15px;cursor:pointer}.pl-esc-wa .pl-esc-un svg{width:20px;height:20px;flex:0 0 auto}.pl-esc-wa .pl-esc-x{display:block;width:100%;border:0;background:none;color:#6b6577;font:inherit;font-weight:500;padding:10px;cursor:pointer}',
     '.vp-gar{display:grid;gap:10px;margin:20px 0 4px;padding:14px;border:1px solid #eef0f3;border-radius:14px}',
     '.vp-gar div{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#6b7280;line-height:1.35}.vp-gar b{display:block;color:#111827;font-size:13.5px}',
     '.vp-gar svg{flex:0 0 20px;width:20px;height:20px;color:var(--brand);margin-top:1px}',
@@ -356,8 +358,9 @@
     });
     b.querySelector('.va-pts').addEventListener('click', function (e) { var i = [].indexOf.call(this.children, e.target); if (i >= 0) { vaiBanner(i); autoBanner(); } });
   }
+  function multiUni() { return X && Array.isArray(X.unidades) && X.unidades.length > 1; }
   function monta() {
-    var L = X.loja, wa = L.whatsapp ? 'https://wa.me/' + String(L.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent((X.tema && X.tema.msgWhats) || ('Olá! Vim pelo catálogo da ' + L.nome + '.')) : '';
+    var L = X.loja, wa = L.whatsapp && !multiUni() ? 'https://wa.me/' + String(L.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent((X.tema && X.tema.msgWhats) || ('Olá! Vim pelo catálogo da ' + L.nome + '.')) : '';
     // 28/10 (Lucas): Instagram da loja no rodapé, antes do WhatsApp (tema.instagram)
     var ig = X.tema && typeof X.tema.instagram === 'string' && /^https:\/\/(www\.)?instagram\.com\//.test(X.tema.instagram) ? X.tema.instagram : '';
     var sl = slides().map(slideHTML).filter(Boolean); ban.n = Math.max(sl.length, 1);
@@ -538,7 +541,7 @@
   }
 
   // ─────────── Menu lateral e "Minhas provas" ───────────
-  function waLink() { var L = X.loja; return L.whatsapp ? 'https://wa.me/' + String(L.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent((X.tema && X.tema.msgWhats) || ('Olá! Vim pelo catálogo da ' + L.nome + '.')) : ''; }
+  function waLink() { var L = X.loja; return L.whatsapp && !multiUni() ? 'https://wa.me/' + String(L.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent((X.tema && X.tema.msgWhats) || ('Olá! Vim pelo catálogo da ' + L.nome + '.')) : ''; }
   function minhas() { try { return (X.minhasProvas && X.minhasProvas()) || []; } catch (e) { return []; } }
   function pintaQtd() {
     var n = minhas().length;
@@ -692,7 +695,10 @@
           // 26/11/2026 (Beulá): tamanhos — o app.js preenche (renderTamanhosCliente)
           '<div class="p-tamanhos vp-tam" hidden><p class="p-tam-titulo">Tamanho: <b class="p-tam-escolhido"></b></p><div class="p-tam-opcoes"></div></div>' +
           (_SEM_PROV ? '' : '<button type="button" class="vp-provar" data-vp="provar">' + IC.oculos + _tx(' Provar no meu rosto</button>')) +
-          (L.whatsapp ? '<button type="button" class="vp-wa" data-vp="comprar">Comprar pelo WhatsApp ' + IC.wa + '</button>' : '') +
+          (multiUni()
+            // 26/11/2026 (Lucas, Óticas Original): um botão de compra por unidade
+            ? X.unidades.map(function (u) { return '<button type="button" class="vp-wa vp-wa-un" data-vp="comprar" data-tel="' + esc(u.telefone) + '">' + IC.wa + '<span>Comprar · ' + esc(u.rotulo) + '</span></button>'; }).join('')
+            : (L.whatsapp ? '<button type="button" class="vp-wa" data-vp="comprar">Comprar pelo WhatsApp ' + IC.wa + '</button>' : '')) +
           '<div class="vp-gar">' + GAR.filter(function (g) { return !_SEM_PROV || !/Prove antes/.test(g[1]); }).map(function (g) { return '<div>' + g[0] + '<span><b>' + g[1] + '</b>' + g[2] + '</span></div>'; }).join('') + '</div>' +
           (p.desc ? '<details class="vp-sec" open><summary>Descrição</summary><div class="vp-txt">' + esc(p.desc) + '</div></details>' : '') +
           '<details class="vp-sec"' + (p.desc ? '' : ' open') + '><summary>Detalhes do produto</summary><table class="vp-tab">' +
@@ -731,7 +737,7 @@
     if (el.hasAttribute('data-rel')) { var r = produto(el.getAttribute('data-rel')); if (r) X.abrir(r); return; }
     var a = el.getAttribute('data-vp');
     if (a === 'provar') PG.ctx.provar();
-    else if (a === 'comprar') PG.ctx.comprar();
+    else if (a === 'comprar') PG.ctx.comprar(el.getAttribute('data-tel') || '');
     else if (a === 'provas') abreProvas();
     else if (a === 'volta') PG.ctx.voltar();
     else if (a === 'cat') { var c = (PG.p.cats && PG.p.cats[0]) || PG.p.cat; estado.cat = c; X.mudouCategoria(c); PG.ctx.voltar(true); if (root) { pintaGrade(); setTimeout(function () { root.querySelector('.va-grade').closest('.va-sec').scrollIntoView({ block: 'start' }); }, 50); } }
