@@ -1365,7 +1365,7 @@
     // Só filtra se algum produto usa MESMO essa unidade. Na Charme Prime o link
     // é "Charme Prime"/"Órbita" mas o cadastro diz "Matriz" — filtrar escondia
     // 7 de 10 produtos dos dois links.
-    if (slugFixa && !catalog.some(p => p.unit && slugUnidade(p.unit) === slugFixa)) slugFixa = null;
+    if (slugFixa && !catalog.some(p => p.unit && unidadesDaLoja().some(u => slugUnidade(u.rotulo) === slugUnidade(p.unit)))) slugFixa = null;   // 27/11: só desliga o filtro se a loja não usa NENHUMA unidade oficial (antes: se a unidade do link não tinha produto)
     const visiveis = catalog.filter(p =>
       doTipo(p) &&
       (!catFiltro || produtoTemCategoria(p, catFiltro)) &&
@@ -1461,7 +1461,7 @@
     if (!layoutApp() || !storeRow) { window.PLVitrineApp.remove(); return; }
     const fixa = unidadeFixa();
     let slugFixa = fixa ? slugUnidade(fixa.rotulo) : null;
-    if (slugFixa && !catalog.some(p => p.unit && slugUnidade(p.unit) === slugFixa)) slugFixa = null;
+    if (slugFixa && !catalog.some(p => p.unit && unidadesDaLoja().some(u => slugUnidade(u.rotulo) === slugUnidade(p.unit)))) slugFixa = null;   // 27/11: só desliga o filtro se a loja não usa NENHUMA unidade oficial (antes: se a unidade do link não tinha produto)
     window.PLVitrineApp.render({
       loja: { slug: STORE_SLUG, nome: storeRow.display_name || STORE.name, logo: storeRow.logo_url || '', bio: storeRow.bio || '', whatsapp: storeRow.whatsapp || '' },
       tema: storeRow.tema || {},
