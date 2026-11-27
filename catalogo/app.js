@@ -4049,7 +4049,7 @@
     oticasoriginal: [
       { rotulo: 'Centro — Ramira Cabral', telefone: '551239614311' },
       { rotulo: 'Villa Branca', telefone: '5512996882935' },
-      { rotulo: 'Centro — Barão de Jacareí', telefone: '5512992514273' }
+      { rotulo: 'Centro — Barão de Jacareí', telefone: '5512992514276' }
     ],
     charmeprime: [
       { rotulo: 'Charme Prime', telefone: '5593992282999' },
