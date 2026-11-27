@@ -72,7 +72,11 @@
     orbita:            { loja: 'charmeprime', rotulo: 'Órbita' },
     // 17/11 (Lucas): o nome certo é Rufians. O slug interno segue oticasrufins (rota do gerador);
     // o link novo ?loja=oticasrufians abre a mesma loja e o antigo continua valendo.
-    oticasrufians:     { loja: 'oticasrufins', rotulo: null }
+    oticasrufians:     { loja: 'oticasrufins', rotulo: null },
+    // 27/11 (Lucas): Óticas Original — um link por unidade, cada um com os produtos daquela loja
+    'oticas-original':              { loja: 'oticasoriginal', rotulo: 'Óticas Original' },
+    'oticas-original-villa-branca': { loja: 'oticasoriginal', rotulo: 'Óticas Original Villa Branca' },
+    'original-barao':               { loja: 'oticasoriginal', rotulo: 'Original Barão' }
   };
   // Lojas com botão "Comprar" direto na vitrine e na página do produto (sem provar).
   const LOJAS_COMPRA_DIRETA = new Set(['prevedelloacessorios']);
@@ -4041,6 +4045,11 @@
     oticakadima: [
       { rotulo: 'Loja Várzea Paulista' },
       { rotulo: 'Campo Limpo Paulista', telefone: '5511942329445' }
+    ],
+    oticasoriginal: [
+      { rotulo: 'Óticas Original', telefone: '551239614311' },
+      { rotulo: 'Óticas Original Villa Branca', telefone: '5512996882935' },
+      { rotulo: 'Original Barão', telefone: '5512992514273' }
     ],
     charmeprime: [
       { rotulo: 'Charme Prime', telefone: '5593992282999' },
