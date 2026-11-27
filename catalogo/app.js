@@ -959,7 +959,11 @@
       '&is_active=eq.true&select=*,pl_catalog_product_images(id,url,is_primary,position,variant_name)' +
       '&order=position.asc,created_at.desc');
     carregou = true;
-    catalog = resolveKits(mapCatalogRows(rows), true);
+    // 27/11/2026 (Lucas): estoque zerado some da vitrine. Estoque vazio (null) = loja não controla, continua aparecendo.
+    // Produto com tamanhos e todos zerados também some.
+    const disponivel = p => !(p.estoque != null && p.estoque <= 0) &&
+      !(Array.isArray(p.tamanhos) && p.tamanhos.length && !p.tamanhos.some(x => Number(x.q) > 0));
+    catalog = resolveKits(mapCatalogRows(rows).filter(disponivel), true);
     save();
     return catalog;
   }
