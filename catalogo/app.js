@@ -802,7 +802,10 @@
     // Óticas Original — laranja/amarelo do logo sobre branco; preço laranja escuro (~5,5:1), botão laranja com texto preto (~10:1)
     // 27/11/2026 (Fernando): azul-marinho + amarelo; preço marinho (~13:1), botão amarelo com texto marinho (~10:1)
     oticasoriginal: { bg: '#FFFFFF', card: '#FFFFFF', line: '#E3E8F2',
-                brand: '#0B2A5B', dark: '#071C3E', soft: '#EEF2F9', on: '#ffffff', cta: '#FFC72C', ctaDark: '#F2B400', onCta: '#0B2A5B' }
+                brand: '#0B2A5B', dark: '#071C3E', soft: '#EEF2F9', on: '#ffffff', cta: '#FFC72C', ctaDark: '#F2B400', onCta: '#0B2A5B' },
+    // Nara Eyewear — logo dourado sobre preto chapado: fundo preto (tema escuro), dourado do logo no preço/botão, texto do botão preto (~9:1)
+    naraeyewear: { bg: '#000000', card: '#141210', line: '#2A251C',
+                brand: '#C4A577', dark: '#A88A5C', soft: 'rgba(196,165,119,.12)', on: '#000000' }
   };
 
   // ─────────── Tema ───────────
