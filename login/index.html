@@ -2386,13 +2386,22 @@
 .plsk-bub{height:38px;border-radius:14px}
 .plsk-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media (max-width:760px){.plsk-2{grid-template-columns:1fr}}
-.plsk-page{width:100%;max-width:1280px;margin:0 auto}
-.plsk-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
-.plsk-tabs{display:flex;gap:10px;margin-bottom:22px;overflow:hidden}
-div.pl-sk-host,p.pl-sk-host,li.pl-sk-host{display:block!important;text-align:left!important;width:100%;align-self:stretch}
-.pl-sk-host.plsk-wide{grid-column:1/-1}
-body.booting #bootSplash{justify-content:flex-start!important;align-items:stretch!important;padding:24px max(16px,4vw)!important;overflow:hidden}
-#mainLoader[style*="flex"]{align-items:flex-start!important;padding:24px max(16px,4vw)!important;overflow:hidden}
+.plsk-page{width:100%;margin:0;padding:88px 24px 32px;box-sizing:border-box}
+.plsk-hdr{position:absolute;left:0;right:0;top:0;height:63px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:#fff;border-bottom:1px solid #ecebe6;box-sizing:border-box}#mainLoader .plsk-hdr{display:none}
+body.dark-mode .plsk-hdr{background:transparent;border-bottom-color:rgba(255,255,255,.07)}
+@media (max-width:760px){.plsk-page{padding:80px 12px 24px}}
+.plsk-dtop{display:flex;gap:28px;align-items:center;height:59px;padding:0 4px;margin-bottom:16px;background:#fff;border-bottom:1px solid #ecebe6;overflow:hidden}
+.plsk-dtab{display:flex;align-items:center;height:30px;flex:0 0 auto}.plsk-dtab.on{box-shadow:inset 0 -2px 0 #630ed4}
+.plsk-dfil{display:flex;justify-content:space-between;align-items:center;gap:12px;height:43px;margin-bottom:16px}
+.plsk-dhero{height:min(497px,60vh);border-radius:20px;margin-bottom:24px}
+.plsk-d3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+@media (max-width:760px){.plsk-d3{grid-template-columns:1fr}.plsk-dtop{gap:20px}}
+.plsk-dcard{background:#fff;border:1px solid #ecebe6;border-radius:14px;padding:20px;min-height:108px;box-sizing:border-box}
+body.dark-mode .plsk-dtop{background:transparent;border-bottom-color:rgba(255,255,255,.07)}
+body.dark-mode .plsk-dcard{background:#131318;border-color:rgba(255,255,255,.06)}
+body.booting #bootSplash{justify-content:flex-start!important;align-items:stretch!important;padding:0!important;overflow:hidden;background:inherit!important}
+body.booting #bootSplash::before,body.booting #bootSplash::after{display:none!important}
+#mainLoader[style*="flex"]{align-items:flex-start!important;padding:0!important;overflow:hidden;background:transparent!important}
 </style>
 <script>
 (function(){
@@ -2468,13 +2477,7 @@ body.booting #bootSplash{justify-content:flex-start!important;align-items:stretc
     <canvas id="neural-canvas"></canvas>
 
     <div id="bootSplash">
-        <div class="plsk-page" role="status" aria-busy="true" aria-label="Carregando seu painel">
-            <div class="plsk-top"><span class="plsk" style="width:150px;height:28px"></span><span class="plsk" style="width:36px;height:36px;border-radius:50%"></span></div>
-            <div class="plsk-tabs"><span class="plsk" style="flex:0 0 96px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 84px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 104px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 76px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 96px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 88px;height:34px;border-radius:10px"></span></div>
-            <div class="plsk-kpis"><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div></div>
-            <span class="plsk plsk-blk" style="height:260px"></span>
-            <div class="plsk-2"><span class="plsk plsk-blk"></span><span class="plsk plsk-blk"></span></div>
-        </div>
+        <div class="plsk-page" role="status" aria-busy="true" aria-label="Carregando seu painel"><div class="plsk-hdr"><div style="display:flex;gap:14px;align-items:center"><span class="plsk" style="width:26px;height:26px;border-radius:8px"></span><span class="plsk" style="width:64px;height:14px;"></span></div><div style="display:flex;gap:14px;align-items:center"><span class="plsk" style="width:18px;height:18px;border-radius:50%"></span><span class="plsk" style="width:70px;height:28px;border-radius:999px"></span></div></div><div class="plsk-dtop"><span class="plsk-dtab on"><span class="plsk" style="width:74px;height:11px;"></span></span><span class="plsk-dtab"><span class="plsk" style="width:62px;height:11px;"></span></span><span class="plsk-dtab"><span class="plsk" style="width:92px;height:11px;"></span></span><span class="plsk-dtab"><span class="plsk" style="width:48px;height:11px;"></span></span><span class="plsk-dtab"><span class="plsk" style="width:62px;height:11px;"></span></span><span class="plsk-dtab"><span class="plsk" style="width:74px;height:11px;"></span></span><span class="plsk-dtab"><span class="plsk" style="width:96px;height:11px;"></span></span></div><div class="plsk-dfil"><div style="display:flex;gap:12px;align-items:center"><span class="plsk" style="width:58px;height:9px;"></span><span class="plsk" style="width:120px;height:13px;"></span></div><span class="plsk" style="width:min(330px,52vw);height:34px;border-radius:10px"></span></div><div class="plsk plsk-dhero"></div><div class="plsk-d3"><div class="plsk-dcard"><span class="plsk" style="width:42%;height:10px;"></span><span class="plsk" style="width:34%;height:24px;margin:14px 0 10px"></span><span class="plsk" style="width:62%;height:9px;"></span></div><div class="plsk-dcard"><span class="plsk" style="width:42%;height:10px;"></span><span class="plsk" style="width:34%;height:24px;margin:14px 0 10px"></span><span class="plsk" style="width:62%;height:9px;"></span></div><div class="plsk-dcard"><span class="plsk" style="width:42%;height:10px;"></span><span class="plsk" style="width:34%;height:24px;margin:14px 0 10px"></span><span class="plsk" style="width:62%;height:9px;"></span></div></div><div class="plsk-dcard" style="min-height:168px"><span class="plsk" style="width:28%;height:12px;"></span><span class="plsk" style="width:100%;height:6px;margin:22px 0 14px;border-radius:6px"></span><span class="plsk" style="width:46%;height:10px;"></span></div></div>
 
     </div>
 
@@ -2601,13 +2604,7 @@ body.booting #bootSplash{justify-content:flex-start!important;align-items:stretc
         </div>
 
         <div class="loader" id="mainLoader">
-            <div class="plsk-page" role="status" aria-busy="true" aria-label="Carregando seu painel">
-            <div class="plsk-top"><span class="plsk" style="width:150px;height:28px"></span><span class="plsk" style="width:36px;height:36px;border-radius:50%"></span></div>
-            <div class="plsk-tabs"><span class="plsk" style="flex:0 0 96px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 84px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 104px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 76px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 96px;height:34px;border-radius:10px"></span><span class="plsk" style="flex:0 0 88px;height:34px;border-radius:10px"></span></div>
-            <div class="plsk-kpis"><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div><div class="plsk-card"><span class="plsk plsk-l plsk-s" style="width:45%"></span><span class="plsk plsk-n"></span><span class="plsk plsk-l plsk-s" style="width:60%"></span></div></div>
-            <span class="plsk plsk-blk" style="height:260px"></span>
-            <div class="plsk-2"><span class="plsk plsk-blk"></span><span class="plsk plsk-blk"></span></div>
-        </div>
+            <div class="plsk-page" role="status" aria-busy="true" aria-label="Carregando seu painel"><div class="plsk-hdr"><div style="display:flex;gap:14px;align-items:center"><span class="plsk" style="width:26px;height:26px;border-radius:8px"></span><span class="plsk" style="width:64px;height:14px;"></span></div><div style="display:flex;gap:14px;align-items:center"><span class="plsk" style="width:18px;height:18px;border-radius:50%"></span><span class="plsk" style="width:70px;height:28px;border-radius:999px"></span></div></div><div class="plsk-dtop"><span class="plsk-dtab on"><span class="plsk" style="width:74px;height:11px;"></span></span><span class="plsk-dtab"><span class="plsk" style="width:62px;height:11px;"></span></span><span class="plsk-dtab"><span class="plsk" style="width:92px;height:11px;"></span></span><span class="plsk-dtab"><span class="plsk" style="width:48px;height:11px;"></span></span><span class="plsk-dtab"><span class="plsk" style="width:62px;height:11px;"></span></span><span class="plsk-dtab"><span class="plsk" style="width:74px;height:11px;"></span></span><span class="plsk-dtab"><span class="plsk" style="width:96px;height:11px;"></span></span></div><div class="plsk-dfil"><div style="display:flex;gap:12px;align-items:center"><span class="plsk" style="width:58px;height:9px;"></span><span class="plsk" style="width:120px;height:13px;"></span></div><span class="plsk" style="width:min(330px,52vw);height:34px;border-radius:10px"></span></div><div class="plsk plsk-dhero"></div><div class="plsk-d3"><div class="plsk-dcard"><span class="plsk" style="width:42%;height:10px;"></span><span class="plsk" style="width:34%;height:24px;margin:14px 0 10px"></span><span class="plsk" style="width:62%;height:9px;"></span></div><div class="plsk-dcard"><span class="plsk" style="width:42%;height:10px;"></span><span class="plsk" style="width:34%;height:24px;margin:14px 0 10px"></span><span class="plsk" style="width:62%;height:9px;"></span></div><div class="plsk-dcard"><span class="plsk" style="width:42%;height:10px;"></span><span class="plsk" style="width:34%;height:24px;margin:14px 0 10px"></span><span class="plsk" style="width:62%;height:9px;"></span></div></div><div class="plsk-dcard" style="min-height:168px"><span class="plsk" style="width:28%;height:12px;"></span><span class="plsk" style="width:100%;height:6px;margin:22px 0 14px;border-radius:6px"></span><span class="plsk" style="width:46%;height:10px;"></span></div></div>
 
         </div>
         <style>
