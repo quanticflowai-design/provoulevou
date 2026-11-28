@@ -326,22 +326,12 @@ $('f-cadastrar').onsubmit = async ev => {
   if (tel.length < 10) return showErr('c-err', 'Informe o WhatsApp com DDD.');
   const btn = ev.submitter; btn.disabled = true; btn.textContent = 'Criando conta…';
   try {
-    let { data, error } = await sb.auth.signUp({ email, password: senha });
-    if (error && /already|registered|exists/i.test(error.message)) {
-      ({ data, error } = await sb.auth.signInWithPassword({ email, password: senha }));
-      if (error) throw new Error('Este e-mail já tem conta. Use a aba Entrar.');
-    } else if (error) throw new Error(error.message);
-    if (!data.session) { ({ data, error } = await sb.auth.signInWithPassword({ email, password: senha })); if (error) throw new Error('Conta criada. Entre pela aba Entrar.'); }
-    const uid = data.user.id;
-    const { data: ja } = await sb.from('afiliados').select('id').eq('email', email).maybeSingle();
-    if (!ja) {
-      let slug = slugify(nome) || 'afiliado';
-      for (let i = 0; i < 4; i++) {
-        const { error: ie } = await sb.from('afiliados').insert({ id: uid, email, nome, telefone: tel, slug: i ? slug + '-' + Math.random().toString(36).slice(2, 6) : slug, referido_por: ref || null });
-        if (!ie) break;
-        if (!/duplicate|unique/i.test(ie.message) || i === 3) throw new Error('Não foi possível concluir o cadastro. Fale com a gente pelo WhatsApp.');
-      }
-    }
+    // 27/11/2026 segurança: o cadastro público do login foi fechado; a conta e o afiliado são criados pelo servidor.
+    const rc = await fetch('https://n8n.segredosdodrop.com/webhook/pl-afiliado-cadastro', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome, email, tel, senha, ref: ref || null }) });
+    const jc = await rc.json().catch(() => ({}));
+    if (!jc.ok && jc.erro !== 'ja_existe') throw new Error(jc.erro || 'Não foi possível concluir o cadastro. Fale com a gente pelo WhatsApp.');
+    const { error } = await sb.auth.signInWithPassword({ email, password: senha });
+    if (error) throw new Error(jc.erro === 'ja_existe' ? 'Este e-mail já tem conta. Use a aba Entrar.' : 'Conta criada. Entre pela aba Entrar.');
     carregar();
   } catch (e) { showErr('c-err', e.message); }
   finally { btn.disabled = false; btn.textContent = 'Criar minha conta'; }
